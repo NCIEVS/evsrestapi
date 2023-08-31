@@ -70,13 +70,18 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
           String[] conceptSplit = conceptMap.split("\t");
           Map conceptToAdd = new Map();
-          conceptToAdd.setSourceCode(conceptSplit[0].replace("\"", ""));
-          conceptToAdd.setSourceName(conceptSplit[1]);
+          conceptToAdd.setSourceCode(!conceptSplit[0].replace("\"", "").isBlank()
+              ? conceptSplit[0].replace("\"", "") : "No code available");
+          conceptToAdd.setSourceName(!conceptSplit[1].replace("\"", "").isBlank()
+              ? conceptSplit[1].replace("\"", "") : "No name available");
           conceptToAdd.setSource(conceptSplit[2]);
+          logger.info("target code: " + conceptSplit[8]);
           conceptToAdd.setType(conceptSplit[6]);
           conceptToAdd.setRank(conceptSplit[7]);
-          conceptToAdd.setTargetCode(conceptSplit[8]);
-          conceptToAdd.setTargetName(conceptSplit[9]);
+          conceptToAdd.setTargetCode(!conceptSplit[8].replace("\"", "").isBlank()
+              ? conceptSplit[8].replace("\"", "") : "No code available");
+          conceptToAdd.setTargetName(!conceptSplit[9].replace("\"", "").isBlank()
+              ? conceptSplit[9].replace("\"", "") : "No name available");
           conceptToAdd.setTargetTerminology(conceptSplit[10]);
           conceptToAdd.setTargetTerminologyVersion(conceptSplit[11].replace("\"", ""));
           maps.add(conceptToAdd);
@@ -133,11 +138,15 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
         String[] conceptSplit = conceptMap.split("\",\"");
         Map conceptToAdd = new Map();
-        conceptToAdd.setSourceCode(conceptSplit[0].replace("\"", ""));
-        conceptToAdd.setSourceName(conceptSplit[1]);
+        conceptToAdd.setSourceCode(!conceptSplit[0].replace("\"", "").isBlank()
+            ? conceptSplit[0].replace("\"", "") : "No code available");
+        conceptToAdd.setSourceName(!conceptSplit[1].replace("\"", "").isBlank()
+            ? conceptSplit[1].replace("\"", "") : "No name available");
         conceptToAdd.setType(conceptSplit[2]);
-        conceptToAdd.setTargetCode(conceptSplit[3]);
-        conceptToAdd.setTargetName(conceptSplit[4]);
+        conceptToAdd.setTargetCode(!conceptSplit[3].replace("\"", "").isBlank()
+            ? conceptSplit[3].replace("\"", "") : "No code available");
+        conceptToAdd.setTargetName(!conceptSplit[4].replace("\"", "").isBlank()
+            ? conceptSplit[4].replace("\"", "") : "No name available");
         conceptToAdd.setTargetTermType(conceptSplit[5]);
         conceptToAdd.setTargetTerminology(conceptSplit[6]);
         conceptToAdd.setTargetTerminologyVersion(conceptSplit[7].replace("\"", ""));
