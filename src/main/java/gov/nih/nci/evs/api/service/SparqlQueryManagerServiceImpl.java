@@ -201,6 +201,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         term.setTerminology("chebi");
       } else if (term.getSource().endsWith("/umlssemnet.owl")) {
         term.setTerminology("umlssemnet");
+      } else if (term.getSource().endsWith("/MEDRT.owl")) {
+        term.setTerminology("medrt");
       } else {
         log.info("  UNKNOWN ontology = " + term.getSource());
       }
