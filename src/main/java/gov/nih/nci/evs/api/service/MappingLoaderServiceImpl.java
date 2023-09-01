@@ -66,22 +66,27 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     String[] mappingDataList = mappingData.split("\n");
     // welcomeText = true format
     if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
-      if (metadata[5].strip().equals(".csv")) {
+      if (mappingDataList[0].split("\t").length > 2) {
         for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
-          String[] conceptSplit = conceptMap.split("\",\"");
+          String[] conceptSplit = conceptMap.split("\t");
           Map conceptToAdd = new Map();
-          conceptToAdd.setSourceCode(conceptSplit[0].replace("\"", ""));
-          conceptToAdd.setSourceName(conceptSplit[1]);
+          conceptToAdd.setSourceCode(!conceptSplit[0].replace("\"", "").isBlank()
+              ? conceptSplit[0].replace("\"", "") : "No code available");
+          conceptToAdd.setSourceName(!conceptSplit[1].replace("\"", "").isBlank()
+              ? conceptSplit[1].replace("\"", "") : "No name available");
           conceptToAdd.setSource(conceptSplit[2]);
+          logger.info("target code: " + conceptSplit[8]);
           conceptToAdd.setType(conceptSplit[6]);
           conceptToAdd.setRank(conceptSplit[7]);
-          conceptToAdd.setTargetCode(conceptSplit[8]);
-          conceptToAdd.setTargetName(conceptSplit[9]);
+          conceptToAdd.setTargetCode(!conceptSplit[8].replace("\"", "").isBlank()
+              ? conceptSplit[8].replace("\"", "") : "No code available");
+          conceptToAdd.setTargetName(!conceptSplit[9].replace("\"", "").isBlank()
+              ? conceptSplit[9].replace("\"", "") : "No name available");
           conceptToAdd.setTargetTerminology(conceptSplit[10]);
           conceptToAdd.setTargetTerminologyVersion(conceptSplit[11].replace("\"", ""));
           maps.add(conceptToAdd);
         }
-      } else if (metadata[5].strip().equals(".txt")) {
+      } else if (mappingDataList[0].split("\t").length == 2) {
         for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
           String[] conceptSplit = conceptMap.split("\t");
 
@@ -123,7 +128,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           maps.add(conceptToAdd);
         }
       } else {
-        throw new Exception("Unexepcted file extension in metadata = " + metadata[5]);
+        logger.info("" + mappingDataList[0].split("\t"));
+        throw new Exception(
+            "Missing data in metadata for " + metadata[0] + " line: " + mappingDataList[0]);
       }
     }
     // mapsetLink = null + downloadOnly format
@@ -131,11 +138,15 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
         String[] conceptSplit = conceptMap.split("\",\"");
         Map conceptToAdd = new Map();
-        conceptToAdd.setSourceCode(conceptSplit[0].replace("\"", ""));
-        conceptToAdd.setSourceName(conceptSplit[1]);
+        conceptToAdd.setSourceCode(!conceptSplit[0].replace("\"", "").isBlank()
+            ? conceptSplit[0].replace("\"", "") : "No code available");
+        conceptToAdd.setSourceName(!conceptSplit[1].replace("\"", "").isBlank()
+            ? conceptSplit[1].replace("\"", "") : "No name available");
         conceptToAdd.setType(conceptSplit[2]);
-        conceptToAdd.setTargetCode(conceptSplit[3]);
-        conceptToAdd.setTargetName(conceptSplit[4]);
+        conceptToAdd.setTargetCode(!conceptSplit[3].replace("\"", "").isBlank()
+            ? conceptSplit[3].replace("\"", "") : "No code available");
+        conceptToAdd.setTargetName(!conceptSplit[4].replace("\"", "").isBlank()
+            ? conceptSplit[4].replace("\"", "") : "No name available");
         conceptToAdd.setTargetTermType(conceptSplit[5]);
         conceptToAdd.setTargetTerminology(conceptSplit[6]);
         conceptToAdd.setTargetTerminologyVersion(conceptSplit[7].replace("\"", ""));
@@ -257,7 +268,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         map.getProperties().add(new Property("welcomeText", welcomeText));
 
         String mappingDataUri = mappingUri + map.getName()
-            + (map.getVersion() != null ? ("_" + map.getVersion()) : "") + metadata[5]; // build
+            + (map.getVersion() != null ? ("_" + map.getVersion()) : "") + ".txt"; // build
         // map
         String mappingData = IOUtils.toString(
             new URL(mappingDataUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
@@ -291,8 +302,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           // Assume maps are not null
           return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank()
               + o1.getTargetName())
-              .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
-                  + o2.getTargetName());
+                  .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
+                      + o2.getTargetName());
         }
       });
       operationsService.index(map, ElasticOperationsService.MAPPING_INDEX,
