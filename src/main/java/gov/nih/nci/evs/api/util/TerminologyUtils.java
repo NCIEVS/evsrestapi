@@ -10,11 +10,21 @@ import java.util.Date;
 import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.text.StringSubstitutor;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +34,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
@@ -51,6 +62,19 @@ public final class TerminologyUtils {
   /** The stardog properties. */
   @Autowired
   StardogProperties stardogProperties;
+
+  /** The application properties. */
+  @Autowired
+  ApplicationProperties applicationProperties;
+
+  /** The license cache. */
+  @SuppressWarnings("serial")
+  private static Map<String, String> licenseCache = new LinkedHashMap<String, String>(1000 * 4 / 3, 0.75f, true) {
+    @Override
+    protected boolean removeEldestEntry(final Map.Entry<String, String> eldest) {
+      return size() > 1000;
+    }
+  };
 
   /**
    * Returns all terminologies.
@@ -262,21 +286,118 @@ public final class TerminologyUtils {
    * Check license.
    *
    * @param terminology the terminology
-   * @param licenseKey the license key
+   * @param license the license info
    * @throws Exception the exception
    */
-  public void checkLicense(final Terminology terminology, final String licenseKey) throws Exception {
+  public void checkLicense(final Terminology terminology, final String license) throws Exception {
 
-    // Nothing to do if there is no license key.
+    // Nothing to do if there is no license requirement.
     if (terminology.getMetadata().getLicenseText() == null) {
       return;
     }
 
     // Check the license key and fail
-    if (licenseKey == null) {
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN, terminology.getMetadata().getLicenseFailText());
+    if (license == null) {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+          "API calls for terminology='" + terminology.getTerminology()
+              + "' require an X-EVSRESTAPI-License-Key header, visit "
+              + "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md for more information.");
+    }
+
+    // Allow the UI license to bypass this.
+    if (license.equals(applicationProperties.getUiLicense())) {
+      return;
+    }
+
+    // If cached already, continue to allow
+    if (licenseCache.containsKey(terminology.getTerminology() + license)) {
+      return;
+    }
+
+    // Handle MDR Style - meddraId:meddraApiKey
+    if (terminology.getTerminology().equals("mdr")) {
+
+      // Verify license
+      final String[] tokens = license.split(":");
+      if (tokens.length != 2) {
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+            "API calls for terminology='" + terminology.getTerminology()
+                + "' require an X-EVSRESTAPI-License-Key header with 2 parts 'meddraID:meddraApiKey', visit "
+                + "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md for more information.");
+      }
+      final String id = tokens[0];
+      final String apiKey = tokens[1];
+
+      // Test id/apiKey
+      if (!id.equals("12345") || !apiKey.equals("myApiKey")) {
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+            "Invalid X-EVSRESTAPI-License-Key header for this terminology, visit "
+                + "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md for more information.");
+
+      }
+
+      // final String[] parts = terminology.getMetadata().getLicenseCheck().split(";");
+      // final String method = parts[0];
+      // final String uri = parts[1];
+      // final String contentType = parts[2];
+      // final Map<String, String> config = new HashMap<>();
+      // config.put("id", id);
+      // config.put("apiKey", apiKey);
+      // final String payload = new StringSubstitutor(config).replace(parts[3]);
+      // checkLicenseHttp(method, uri, contentType, payload);
+
+      licenseCache.put(terminology.getTerminology() + license, "true");
     }
 
   }
 
+  /**
+   * Check license http.
+   *
+   * @param method the method
+   * @param uri the uri
+   * @param contentType the content type
+   * @param payload the payload
+   * @throws Exception the exception
+   */
+  public void checkLicenseHttp(final String method, final String uri, final String contentType, final String payload)
+    throws Exception {
+
+    try (final CloseableHttpClient httpClient = HttpClients.createDefault()) {
+
+      HttpUriRequest request = null;
+
+      if (method.equals("POST")) {
+        // Create an instance of HttpPost
+        final HttpPost httpPost = new HttpPost(uri);
+        httpPost.addHeader("Content-type", contentType);
+        httpPost.setEntity(new StringEntity(payload));
+        request = httpPost;
+      }
+      // Handle GET when needed
+      // else {}
+
+      // Unexpected
+      else {
+        throw new Exception("Unsupported method = " + method);
+      }
+
+      // Execute the POST request
+      try (final CloseableHttpResponse response = httpClient.execute(request)) {
+        // Get the response entity
+        final HttpEntity entity = response.getEntity();
+
+        // Get the response status code
+        final int statusCode = response.getStatusLine().getStatusCode();
+        final String responseContent = EntityUtils.toString(entity);
+        if (statusCode >= 300) {
+          logger.error("Unexpected response = " + responseContent);
+          throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+              "Invalid X-EVSRESTAPI-License-Key header for this terminology, visit "
+                  + "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md for more information.");
+        }
+
+      }
+    }
+  }
 }

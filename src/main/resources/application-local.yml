@@ -62,6 +62,7 @@ nci:
       metricsEnabled:   ${METRICS_ENABLED:true}
       metricsDir: ${METRICS_DIR:/tmp}
       configBaseUri: ${CONFIG_BASE_URI:https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata}
+      uiLicense: ${UI_LICENSE:ui-license}
     bulkload:
       conceptsDir: ${NCI_EVS_BULK_LOAD_CONCEPTS_DIR:/tmp/}
       lockFile: ${NCI_EVS_BULK_LOAD_LOCK_FILE_NAME:DownloadSuccessfull.lck}
