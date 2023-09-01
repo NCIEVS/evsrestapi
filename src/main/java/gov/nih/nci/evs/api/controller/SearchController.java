@@ -379,12 +379,6 @@ public class SearchController extends BaseController {
       final List<Terminology> terminologies = new ArrayList<>();
       for (String terminology : searchCriteria.getTerminology()) {
         final Terminology term = termUtils.getTerminology(terminology, true);
-        if (term.getMetadata().getLicenseText() != null && searchCriteria.getPageSize() > 10) {
-          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-              term.getName().replaceFirst(":.*", "")
-                  + " has license restrictions and so bulk operations are limited to working on 10 things at a time "
-                  + "(page size is " + searchCriteria.getPageSize() + ")");
-        }
         searchCriteria.validate(term, metadataService);
         terminologies.add(term);
       }

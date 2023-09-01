@@ -9,6 +9,8 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -80,6 +82,10 @@ public class ConceptController extends BaseController {
   @Autowired
   MetadataService metadataService;
 
+  /** The request. */
+  @Autowired
+  HttpServletRequest request;
+
   /**
    * Returns the associations.
    *
@@ -132,14 +138,6 @@ public class ConceptController extends BaseController {
       if (codes.length > 1000) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
             "Maximum number of concepts to request at a time is 1000 = " + codes.length);
-      }
-
-      // Restrict paging for license-restricted terminologies
-      if (term.getMetadata().getLicenseText() != null && codes.length > 10) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-            term.getMetadata().getUiLabel().replaceFirst(":.*", "")
-                + " has license restrictions and so bulk operations are limited to working on 10 things at a time "
-                + "(code list has " + codes.length + " codes)");
       }
 
       final List<Concept> concepts = elasticQueryService.getConcepts(Arrays.asList(codes), term, ip);
@@ -202,8 +200,8 @@ public class ConceptController extends BaseController {
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "limit")
   final Optional<Integer> limit, @RequestParam(required = false, name = "include")
-  final Optional<String> include, @RequestHeader(name = "X-EVSRESTAPI-License", required = false)
-  String licenseKey) throws Exception {
+  final Optional<String> include, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
       termUtils.checkLicense(term, licenseKey);
