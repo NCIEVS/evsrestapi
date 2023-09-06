@@ -191,7 +191,7 @@ public class EVSStatistics {
 			Vector u = StringUtils.parseData(line, '|');
 			String status = (String) u.elementAt(u.size()-1);
 			if (status.compareTo(property_value) == 0) {
-				String code = (String) u.elementAt(0);
+				String code = (String) u.elementAt(1);
 				retired_concepts.add(code);
 			}
 		}
