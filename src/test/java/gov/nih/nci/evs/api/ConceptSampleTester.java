@@ -386,9 +386,7 @@ public class ConceptSampleTester {
             errors.add("ERROR: Wrong parent " + sample.getValue() + " of " + sample.getCode());
           }
         } else if (key.equals("owl:deprecated")) {
-          if (!concept.getProperties().stream().filter(
-              p -> p.getType().equals("Concept_Status") && p.getValue().equals("Retired_Concept"))
-              .findAny().isPresent()) {
+          if (!checkDeprecated(concept)) {
             errors.add("ERROR: Incorrectly labelled code " + sample.getValue() + " of "
                 + terminology.getName() + " as retired/deprecated");
           }
@@ -513,6 +511,15 @@ public class ConceptSampleTester {
    */
   private boolean checkCode(final Concept concept, final SampleRecord sample) {
     return sample.getKey().equals(terminology.getMetadata().getCode());
+  }
+
+  private boolean checkDeprecated(final Concept concept) {
+    return concept.getProperties().stream()
+        .filter(p -> p.getType().equals("Concept_Status") && p.getValue().equals("Retired_Concept"))
+        .findAny().isPresent()
+        || concept.getProperties().stream()
+            .filter(p -> p.getType().equals("deprecated") && p.getValue().equals("true")).findAny()
+            .isPresent();
   }
 
   /**
