@@ -385,6 +385,13 @@ public class ConceptSampleTester {
           if (!checkParent(concept, sample)) {
             errors.add("ERROR: Wrong parent " + sample.getValue() + " of " + sample.getCode());
           }
+        } else if (key.equals("owl:deprecated")) {
+          if (!concept.getProperties().stream().filter(
+              p -> p.getType().equals("Concept_Status") && p.getValue().equals("Retired_Concept"))
+              .findAny().isPresent()) {
+            errors.add("ERROR: Incorrectly labelled code " + sample.getValue() + " of "
+                + terminology.getName() + " as retired/deprecated");
+          }
         } else if (key.equals(terminology.getMetadata().getCode())) {
           if (!checkCode(concept, sample)) {
             errors.add("ERROR: Wrong terminology code " + sample.getValue() + " of "
@@ -401,7 +408,7 @@ public class ConceptSampleTester {
           }
         } else if (terminology.getMetadata().getDefinition().contains(key)) {
           if (!checkDefinition(concept, sample)) {
-            errors.add("ERROR: Wrong synonym " + sample.getValue() + " of " + sample.getCode());
+            errors.add("ERROR: Wrong definition " + sample.getValue() + " of " + sample.getCode());
           }
         } else if ((key.startsWith("rdfs:subClassOf") || key.startsWith("owl:equivalentClass"))
             && key.contains("~")) {
