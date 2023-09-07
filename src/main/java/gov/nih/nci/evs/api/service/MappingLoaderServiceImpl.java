@@ -75,7 +75,6 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           conceptToAdd.setSourceName(!conceptSplit[1].replace("\"", "").isBlank()
               ? conceptSplit[1].replace("\"", "") : "");
           conceptToAdd.setSource(conceptSplit[2]);
-          logger.info("target code: " + conceptSplit[8]);
           conceptToAdd.setType(conceptSplit[6]);
           conceptToAdd.setRank(conceptSplit[7]);
           conceptToAdd.setTargetCode(!conceptSplit[8].replace("\"", "").isBlank()
@@ -302,8 +301,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           // Assume maps are not null
           return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank()
               + o1.getTargetName())
-                  .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
-                      + o2.getTargetName());
+              .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
+                  + o2.getTargetName());
         }
       });
       operationsService.index(map, ElasticOperationsService.MAPPING_INDEX,
