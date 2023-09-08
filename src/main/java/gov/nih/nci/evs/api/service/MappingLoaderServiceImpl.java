@@ -71,16 +71,16 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           String[] conceptSplit = conceptMap.split("\t");
           Map conceptToAdd = new Map();
           conceptToAdd.setSourceCode(!conceptSplit[0].replace("\"", "").isBlank()
-              ? conceptSplit[0].replace("\"", "") : "None");
+              ? conceptSplit[0].replace("\"", "") : "N/A");
           conceptToAdd.setSourceName(!conceptSplit[1].replace("\"", "").isBlank()
-              ? conceptSplit[1].replace("\"", "") : "None");
+              ? conceptSplit[1].replace("\"", "") : "N/A");
           conceptToAdd.setSource(conceptSplit[2]);
           conceptToAdd.setType(conceptSplit[6]);
           conceptToAdd.setRank(conceptSplit[7]);
           conceptToAdd.setTargetCode(!conceptSplit[8].replace("\"", "").isBlank()
-              ? conceptSplit[8].replace("\"", "") : "None");
+              ? conceptSplit[8].replace("\"", "") : "N/A");
           conceptToAdd.setTargetName(!conceptSplit[9].replace("\"", "").isBlank()
-              ? conceptSplit[9].replace("\"", "") : "None");
+              ? conceptSplit[9].replace("\"", "") : "N/A");
           conceptToAdd.setTargetTerminology(conceptSplit[10]);
           conceptToAdd.setTargetTerminologyVersion(conceptSplit[11].replace("\"", ""));
           maps.add(conceptToAdd);
@@ -138,14 +138,14 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         String[] conceptSplit = conceptMap.split("\",\"");
         Map conceptToAdd = new Map();
         conceptToAdd.setSourceCode(!conceptSplit[0].replace("\"", "").isBlank()
-            ? conceptSplit[0].replace("\"", "") : "None");
+            ? conceptSplit[0].replace("\"", "") : "N/A");
         conceptToAdd.setSourceName(!conceptSplit[1].replace("\"", "").isBlank()
-            ? conceptSplit[1].replace("\"", "") : "None");
+            ? conceptSplit[1].replace("\"", "") : "N/A");
         conceptToAdd.setType(conceptSplit[2]);
         conceptToAdd.setTargetCode(!conceptSplit[3].replace("\"", "").isBlank()
-            ? conceptSplit[3].replace("\"", "") : "None");
+            ? conceptSplit[3].replace("\"", "") : "N/A");
         conceptToAdd.setTargetName(!conceptSplit[4].replace("\"", "").isBlank()
-            ? conceptSplit[4].replace("\"", "") : "None");
+            ? conceptSplit[4].replace("\"", "") : "N/A");
         conceptToAdd.setTargetTermType(conceptSplit[5]);
         conceptToAdd.setTargetTerminology(conceptSplit[6]);
         conceptToAdd.setTargetTerminologyVersion(conceptSplit[7].replace("\"", ""));
@@ -301,8 +301,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           // Assume maps are not null
           return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank()
               + o1.getTargetName())
-              .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
-                  + o2.getTargetName());
+                  .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
+                      + o2.getTargetName());
         }
       });
       operationsService.index(map, ElasticOperationsService.MAPPING_INDEX,
