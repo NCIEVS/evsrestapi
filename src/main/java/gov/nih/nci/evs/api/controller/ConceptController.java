@@ -194,9 +194,9 @@ public class ConceptController extends BaseController {
               + "master/doc/INCLUDE.md' target='_blank'>See here for detailed information</a>.",
           required = false, schema = @Schema(implementation = String.class), example = "summary"),
       @Parameter(name = "X-EVSRESTAPI-License-Key",
-      description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
-          + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
-      required = false, schema = @Schema(implementation = String.class), example = "summary")
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}", produces = "application/json")
@@ -208,6 +208,7 @@ public class ConceptController extends BaseController {
   final String license) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      logger.info("XXX license = " + license);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 

@@ -16,7 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.apache.commons.text.StringSubstitutor;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -296,12 +295,14 @@ public final class TerminologyUtils {
       return;
     }
 
+    final String licenseUrl =
+        "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/bac/1.9.0-EVSRESTAPI-353/doc/LICENSE.md";
+
     // Check the license key and fail
     if (license == null) {
       throw new ResponseStatusException(HttpStatus.FORBIDDEN,
           "API calls for terminology='" + terminology.getTerminology()
-              + "' require an X-EVSRESTAPI-License-Key header, visit "
-              + "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md for more information.");
+              + "' require an X-EVSRESTAPI-License-Key header, visit " + licenseUrl + " for more information.");
     }
 
     // Allow the UI license to bypass this.
@@ -323,7 +324,7 @@ public final class TerminologyUtils {
         throw new ResponseStatusException(HttpStatus.FORBIDDEN,
             "API calls for terminology='" + terminology.getTerminology()
                 + "' require an X-EVSRESTAPI-License-Key header with 2 parts 'meddraID:meddraApiKey', visit "
-                + "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md for more information.");
+                + licenseUrl + " for more information.");
       }
       final String id = tokens[0];
       final String apiKey = tokens[1];
@@ -331,9 +332,15 @@ public final class TerminologyUtils {
       // Test id/apiKey
       if (!id.equals("12345") || !apiKey.equals("myApiKey")) {
         throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-            "Invalid X-EVSRESTAPI-License-Key header for this terminology, visit "
-                + "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md for more information.");
+            "Invalid X-EVSRESTAPI-License-Key header for this terminology, visit " + licenseUrl
+                + " for more information.");
 
+      }
+
+      // Override mechanism to support disabling the license check.
+      if (terminology.getMetadata().getLicenseCheck() != null
+          && terminology.getMetadata().getLicenseCheck().equals("DISABLED")) {
+        return;
       }
 
       // final String[] parts = terminology.getMetadata().getLicenseCheck().split(";");
@@ -344,7 +351,7 @@ public final class TerminologyUtils {
       // config.put("id", id);
       // config.put("apiKey", apiKey);
       // final String payload = new StringSubstitutor(config).replace(parts[3]);
-      // checkLicenseHttp(method, uri, contentType, payload);
+      // checkLicenseHttp(method, uri, contentType, payload, licenseUrl);
 
       licenseCache.put(terminology.getTerminology() + license, "true");
     }
@@ -360,8 +367,8 @@ public final class TerminologyUtils {
    * @param payload the payload
    * @throws Exception the exception
    */
-  public void checkLicenseHttp(final String method, final String uri, final String contentType, final String payload)
-    throws Exception {
+  public void checkLicenseHttp(final String method, final String uri, final String contentType, final String payload,
+    final String licenseUrl) throws Exception {
 
     try (final CloseableHttpClient httpClient = HttpClients.createDefault()) {
 
@@ -393,8 +400,8 @@ public final class TerminologyUtils {
         if (statusCode >= 300) {
           logger.error("Unexpected response = " + responseContent);
           throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-              "Invalid X-EVSRESTAPI-License-Key header for this terminology, visit "
-                  + "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md for more information.");
+              "Invalid X-EVSRESTAPI-License-Key header for this terminology, visit " + licenseUrl
+                  + " for more information.");
         }
 
       }
