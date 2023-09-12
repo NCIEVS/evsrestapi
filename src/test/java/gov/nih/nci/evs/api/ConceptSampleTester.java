@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -414,6 +415,8 @@ public class ConceptSampleTester {
             errors.add("ERROR: Wrong role " + sample.getValue() + " of " + sample.getCode());
           }
         } else if (key.startsWith("qualifier")) {
+          sample.setValue(
+              StringEscapeUtils.unescapeHtml4(sample.getValue().replaceAll("&apos;", "'")));
           if (!checkQualifier(concept, sample)) {
             errors.add("ERROR: Bad qualifier " + sample.getValue() + " of " + sample.getCode());
           }
@@ -449,6 +452,11 @@ public class ConceptSampleTester {
         } else if (key.equals("term-type")) {
           if (!checkTermType(concept, sample)) {
             errors.add("ERROR: Wrong term type " + sample.getValue() + " of " + sample.getCode());
+          }
+        } else if (key.contains("disjointWith")) {
+          if (!checkDisjointWith(concept, sample)) {
+            errors.add("ERROR: " + sample.getValue() + " stated to be disjoint with "
+                + sample.getCode() + " even though they are not");
           }
         } else if (associationsList.size() > 0 && key.startsWith("A")) {
           if (!checkAssociations(concept, sample, associationsList)) {
@@ -607,6 +615,7 @@ public class ConceptSampleTester {
    */
   private boolean checkQualifier(final Concept concept, final SampleRecord sample)
     throws Exception {
+    sample.setValue(sample.getValue());
     final String qualKey = sample.getKey().split("-", 2)[1].split("~")[0];
     final String propertyKey = sample.getKey().split("-", 2)[1].split("~")[1];
     final int propertyValueLength = sample.getValue().split("~").length;
@@ -843,6 +852,20 @@ public class ConceptSampleTester {
         .filter(o -> o.getName().equals(qualValue) && o.getQualifiers().stream()
             .filter(q -> q.getType().equals(propertyKey) && q.getValue().equals(propertyValue))
             .findAny().isPresent())
+        .findAny().isPresent();
+  }
+
+  /**
+   * Check disjoint With.
+   *
+   * @param concept the concept
+   * @param sample the sample
+   * @return true, if successful
+   */
+  private boolean checkDisjointWith(final Concept concept, final SampleRecord sample) {
+    return concept.getDisjointWith().stream()
+        .filter(o -> o.getRelatedCode().equals(sample.getValue())
+            || o.getRelatedCode().contentEquals(sample.getValue().replace("_", ":")))
         .findAny().isPresent();
   }
 
