@@ -239,11 +239,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         // TORULE,TORES,MAPRULE,MAPRES,MAPTYPE,MAPATN,MAPATV,CVF
         final String[] fields = line.split("\\|", -1);
 
-        // Skip map sets not being tracked
-        if (!mapsetToTerminologyMap.containsKey(fields[0])) {
-          continue;
-        }
-
         // Skip empty maps (or maps to the empty target: 100051
         if (fields[16].isEmpty() || fields[16].equals("100051")) {
           continue;
@@ -263,11 +258,12 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         map.setSourceCode(fields[8]);
         map.setSourceTerminology(fields[1]);
         map.setSourceName(mapsetNameMap.get(fields[6]));
-        map.setTargetCode(fields[16]);
+        map.setTargetCode(fields[16].isEmpty() || fields[16].equals("100051") ? "" : fields[16]);
         map.setTargetTermType("PT");
         map.setTargetTerminology(mapsetToTerminologyMap.get(fields[0]).split("_")[0]);
         map.setTargetTerminologyVersion(mapsetToTerminologyMap.get(fields[0]).split("_")[1]);
-        map.setTargetName(mapsetNameMap.get(map.getTargetTerminology() + fields[16]));
+        map.setTargetName(fields[16].isEmpty() || fields[16].equals("100051") ? ""
+            : mapsetNameMap.get(map.getTargetTerminology() + fields[16]));
         map.setType(fields[12]);
         map.setGroup(fields[2]);
         map.setRank(fields[3]);
