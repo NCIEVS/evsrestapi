@@ -41,3 +41,6 @@ http://purl.obolibrary.org/obo/CHEBI_10041	CHEBI:10041	parent-count9
 http://purl.obolibrary.org/obo/CHEBI_132640	CHEBI:132640	parent-count10
 http://purl.obolibrary.org/obo/CHEBI_167670	CHEBI:167670	parent-count11
 http://purl.obolibrary.org/obo/CHEBI_85616	CHEBI:85616	parent-count14
+http://purl.obolibrary.org/obo/CHEBI_24431	CHEBI:24431	root
+http://purl.obolibrary.org/obo/CHEBI_36342	CHEBI:36342	root
+http://purl.obolibrary.org/obo/CHEBI_50906	CHEBI:50906	root

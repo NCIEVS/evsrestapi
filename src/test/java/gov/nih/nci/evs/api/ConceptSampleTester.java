@@ -386,6 +386,16 @@ public class ConceptSampleTester {
           if (!checkParent(concept, sample)) {
             errors.add("ERROR: Wrong parent " + sample.getValue() + " of " + sample.getCode());
           }
+        } else if (key.equals("rdfs:label")) {
+          if (!checkLabel(concept, sample)) {
+            errors.add("Incorrectly labelled concept name of " + sample.getValue() + " for concept "
+                + concept.getCode());
+          }
+        } else if (key.equals("rdfs:comment")) {
+          if (!checkComment(concept, sample)) {
+            errors.add("Incorrectly labelled concept name of " + sample.getValue() + " for concept "
+                + concept.getCode());
+          }
         } else if (key.equals("owl:deprecated")) {
           if (!checkDeprecated(concept)) {
             errors.add("ERROR: Incorrectly labelled code " + sample.getValue() + " of "
@@ -866,6 +876,31 @@ public class ConceptSampleTester {
     return concept.getDisjointWith().stream()
         .filter(o -> o.getRelatedCode().equals(sample.getValue())
             || o.getRelatedCode().contentEquals(sample.getValue().replace("_", ":")))
+        .findAny().isPresent();
+  }
+
+  /**
+   * Check label.
+   *
+   * @param concept the concept
+   * @param sample the sample
+   * @return true, if successful
+   */
+  private boolean checkLabel(final Concept concept, final SampleRecord sample) {
+    return concept.getName().equals(sample.getValue());
+  }
+
+  /**
+   * Check design note comment.
+   *
+   * @param concept the concept
+   * @param sample the sample
+   * @return true, if successful
+   */
+  private boolean checkComment(final Concept concept, final SampleRecord sample) {
+    return concept.getProperties().stream()
+        .filter(
+            o -> o.getValue().equals(sample.getValue()) && o.getType().contentEquals("DesignNote"))
         .findAny().isPresent();
   }
 
