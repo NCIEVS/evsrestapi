@@ -388,12 +388,12 @@ public class ConceptSampleTester {
           }
         } else if (key.equals("rdfs:label")) {
           if (!checkLabel(concept, sample)) {
-            errors.add("Incorrectly labelled concept name of " + sample.getValue() + " for concept "
-                + concept.getCode());
+            errors.add(
+                "Incorrectly label of " + sample.getValue() + " for concept " + concept.getCode());
           }
         } else if (key.equals("rdfs:comment")) {
           if (!checkComment(concept, sample)) {
-            errors.add("Incorrectly labelled concept name of " + sample.getValue() + " for concept "
+            errors.add("Incorrectly labelled comment of " + sample.getValue() + " for concept "
                 + concept.getCode());
           }
         } else if (key.equals("owl:deprecated")) {
@@ -898,9 +898,8 @@ public class ConceptSampleTester {
    * @return true, if successful
    */
   private boolean checkComment(final Concept concept, final SampleRecord sample) {
-    return concept.getProperties().stream()
-        .filter(
-            o -> o.getValue().equals(sample.getValue()) && o.getType().contentEquals("DesignNote"))
+    return concept.getProperties().stream().filter(o -> o.getValue().equals(sample.getValue())
+        && (o.getType().contentEquals("DesignNote") || o.getType().contentEquals("rdfs:comment")))
         .findAny().isPresent();
   }
 
