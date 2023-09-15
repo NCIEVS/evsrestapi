@@ -10,7 +10,7 @@ http://purl.obolibrary.org/obo/GO_0000005	GO:0000005	oboInOwl:consider	GO:004225
 http://purl.obolibrary.org/obo/GO_0000005	GO:0000005	rdfs:comment	This term was made obsolete because it refers to a class of gene products and a biological process rather than a molecular function.
 http://purl.obolibrary.org/obo/GO_0000005	GO:0000005	owl:deprecated	true
 http://purl.obolibrary.org/obo/GO_0000006	GO:0000006	oboInOwl:hasRelatedSynonym	high-affinity zinc uptake transmembrane transporter activity
-http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	IAO_0000233	https://github.com/geneontology/go-ontology/issues/23472
+http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	term_tracker_item	https://github.com/geneontology/go-ontology/issues/23472
 http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	oboInOwl:created_by	bf
 http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	oboInOwl:creation_date	2013-09-16T11:50:41Z
 http://purl.obolibrary.org/obo/GO_0000011	GO:0000011	RO_0002161	NCBITaxon_4896
@@ -59,3 +59,6 @@ http://purl.obolibrary.org/obo/GO_0005542	GO:0005542	parent-count7
 http://purl.obolibrary.org/obo/GO_0000514	GO:0000514	parent-count8
 http://purl.obolibrary.org/obo/GO_1900498	GO:1900498	parent-count9
 http://purl.obolibrary.org/obo/GO_0106110	GO:0106110	parent-count11
+http://purl.obolibrary.org/obo/GO_0003674	GO:0003674	root
+http://purl.obolibrary.org/obo/GO_0005575	GO:0005575	root
+http://purl.obolibrary.org/obo/GO_0008150	GO:0008150	root
