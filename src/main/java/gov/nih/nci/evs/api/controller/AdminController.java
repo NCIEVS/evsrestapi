@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.controller;
 
 import org.slf4j.Logger;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import gov.nih.nci.evs.api.configuration.CacheConfiguration;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
@@ -31,6 +33,12 @@ public class AdminController {
   @Autowired
   Environment env;
 
+  /**
+   * Clear cache.
+   *
+   * @param key the key
+   * @return the response entity
+   */
   @SuppressWarnings("rawtypes")
   @RequestMapping(method = RequestMethod.DELETE, value = "/admin/cache")
   @Hidden
@@ -44,6 +52,7 @@ public class AdminController {
     }
 
     cacheConfig.evictAll();
+    TerminologyUtils.clearCache()
     return ResponseEntity.noContent().build();
   }
 }

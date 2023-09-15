@@ -9,12 +9,15 @@ import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -79,6 +82,10 @@ public class ConceptController extends BaseController {
   @Autowired
   MetadataService metadataService;
 
+  /** The request. */
+  @Autowired
+  HttpServletRequest request;
+
   /**
    * Returns the associations.
    *
@@ -114,16 +121,22 @@ public class ConceptController extends BaseController {
       @Parameter(name = "list",
           description = "List (comma-separated) of codes to return concepts for, e.g."
               + "<ul><li>'C2291,C3224' for <i>ncit</i></li>" + "<li>'C0010137,C0025202' for <i>ncim</i></li></ul>",
-          required = true, schema = @Schema(implementation = String.class))
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}", produces = "application/json")
   @RecordMetric
   public @ResponseBody List<Concept> getConcepts(@PathVariable(value = "terminology")
   final String terminology, @RequestParam(required = false, name = "include")
   final Optional<String> include, @RequestParam(name = "list", required = true)
-  final String list) throws Exception {
+  final String list, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
       final String[] codes = list.split(",");
@@ -131,14 +144,6 @@ public class ConceptController extends BaseController {
       if (codes.length > 1000) {
         throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
             "Maximum number of concepts to request at a time is 1000 = " + codes.length);
-      }
-
-      // Restrict paging for license-restricted terminologies
-      if (term.getMetadata().getLicenseText() != null && codes.length > 10) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-            term.getMetadata().getUiLabel().replaceFirst(":.*", "")
-                + " has license restrictions and so bulk operations are limited to working on 10 things at a time "
-                + "(code list has " + codes.length + " codes)");
       }
 
       final List<Concept> concepts = elasticQueryService.getConcepts(Arrays.asList(codes), term, ip);
@@ -193,7 +198,11 @@ public class ConceptController extends BaseController {
               + "disjointWith, history, inverseAssociations, inverseRoles, maps, parents, properties, "
               + "roles, synonyms. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
               + "master/doc/INCLUDE.md' target='_blank'>See here for detailed information</a>.",
-          required = false, schema = @Schema(implementation = String.class), example = "summary")
+          required = false, schema = @Schema(implementation = String.class), example = "summary"),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}", produces = "application/json")
@@ -201,9 +210,11 @@ public class ConceptController extends BaseController {
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "limit")
   final Optional<Integer> limit, @RequestParam(required = false, name = "include")
-  final Optional<String> include) throws Exception {
+  final Optional<String> include, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, ip);
@@ -249,17 +260,23 @@ public class ConceptController extends BaseController {
       @Parameter(name = "code",
           description = "Code in the specified terminology, e.g. <ul><li>'C3224' for <i>ncit</i></li>"
               + "<li>'C0025202' for <i>ncim</i></li></ul>",
-          required = true, schema = @Schema(implementation = String.class))
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/associations",
       produces = "application/json")
   public @ResponseBody List<Association> getAssociations(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code) throws Exception {
+  final String code, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("associations"));
 
@@ -303,7 +320,11 @@ public class ConceptController extends BaseController {
       @Parameter(name = "fromRecord", description = "Start index of the search results", required = false,
           schema = @Schema(implementation = Integer.class), example = "0"),
       @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
-          schema = @Schema(implementation = Integer.class), example = "10")
+          schema = @Schema(implementation = Integer.class), example = "10"),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/associations/{codeOrLabel}",
@@ -312,9 +333,12 @@ public class ConceptController extends BaseController {
   final String terminology, @PathVariable(value = "codeOrLabel")
   final String codeOrLabel, @RequestParam(required = false, name = "fromRecord")
   final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
-  final Optional<Integer> pageSize) throws Exception {
+  final Optional<Integer> pageSize, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
     // Get the association "label"
     final Long startTime = System.currentTimeMillis();
+    final Terminology term = termUtils.getTerminology(terminology, true);
+    termUtils.checkLicense(term, license);
 
     final Optional<Concept> association =
         metadataService.getAssociation(terminology, codeOrLabel, Optional.ofNullable("minimal"));
@@ -357,16 +381,22 @@ public class ConceptController extends BaseController {
       @Parameter(name = "code",
           description = "Code in the specified terminology, e.g." + "<ul><li>'C3224' for <i>ncit</i></li>"
               + "<li>'C0025202' for <i>ncim</i></li></ul>",
-          required = true, schema = @Schema(implementation = String.class))
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseAssociations",
       produces = "application/json")
   public @ResponseBody List<Association> getInverseAssociations(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code) throws Exception {
+  final String code, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
           elasticQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
@@ -421,6 +451,10 @@ public class ConceptController extends BaseController {
           schema = @Schema(implementation = Integer.class), example = "0"),
       @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
           schema = @Schema(implementation = Integer.class), example = "10000"),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+      description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+          + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+      required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/subsetMembers/{code}",
@@ -430,9 +464,11 @@ public class ConceptController extends BaseController {
   final Optional<Integer> fromRecord, @RequestParam(required = false, value = "pageSize")
   final Optional<Integer> pageSize, @PathVariable(required = false, value = "code")
   final String code, @RequestParam("include")
-  final Optional<String> include) throws Exception {
+  final Optional<String> include, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
 
       final Optional<Concept> concept =
@@ -487,17 +523,23 @@ public class ConceptController extends BaseController {
       @Parameter(name = "code",
           description = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, schema = @Schema(implementation = String.class))
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+      description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+          + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+      required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/roles",
       produces = "application/json")
   public @ResponseBody List<Role> getRoles(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code) throws Exception {
+  final String code, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("roles"));
 
@@ -533,17 +575,23 @@ public class ConceptController extends BaseController {
       @Parameter(name = "code",
           description = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>.  This call is only meaningful for <i>ncit</i>.",
-          required = true, schema = @Schema(implementation = String.class))
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/inverseRoles",
       produces = "application/json")
   public @ResponseBody List<Role> getInverseRoles(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code) throws Exception {
+  final String code, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("inverseRoles"));
 
@@ -581,17 +629,23 @@ public class ConceptController extends BaseController {
       @Parameter(name = "code",
           description = "Code in the specified terminology, e.g. "
               + "<ul><li>'C3224' for <i>ncit</i></li><li>'C0025202' for <i>ncim</i></li></ul>",
-          required = true, schema = @Schema(implementation = String.class))
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/parents",
       produces = "application/json")
   public @ResponseBody List<Concept> getParents(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code) throws Exception {
+  final String code, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("parents"));
 
@@ -629,17 +683,23 @@ public class ConceptController extends BaseController {
       @Parameter(name = "code",
           description = "Code in the specified terminology, e.g. "
               + "<ul><li>'C3224' for <i>ncit</i></li><li>'C0025202' for <i>ncim</i></li></ul>",
-          required = true, schema = @Schema(implementation = String.class))
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/children",
       produces = "application/json")
   public @ResponseBody List<Concept> getChildren(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code) throws Exception {
+  final String code, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("children"));
 
@@ -685,7 +745,15 @@ public class ConceptController extends BaseController {
       @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
           schema = @Schema(implementation = Integer.class), example = "50000"),
       @Parameter(name = "maxLevel", description = "Max level of results to return", required = false,
-          schema = @Schema(implementation = Integer.class), example = "10000")
+          schema = @Schema(implementation = Integer.class), example = "10000"),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/descendants",
@@ -696,9 +764,11 @@ public class ConceptController extends BaseController {
   final String code, @RequestParam(required = false, name = "fromRecord")
   final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
   final Optional<Integer> pageSize, @RequestParam(required = false, name = "maxLevel")
-  final Optional<Integer> maxLevel) throws Exception {
+  final Optional<Integer> maxLevel, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
 
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -751,17 +821,23 @@ public class ConceptController extends BaseController {
       @Parameter(name = "code",
           description = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, schema = @Schema(implementation = String.class))
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+      description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+          + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+      required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/maps",
       produces = "application/json")
   public @ResponseBody List<Map> getMaps(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code) throws Exception {
+  final String code, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("maps"));
 
@@ -797,17 +873,23 @@ public class ConceptController extends BaseController {
       @Parameter(name = "code",
           description = "Code in the specified terminology, e.g. "
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i> and <i>ncim</i>.",
-          required = true, schema = @Schema(implementation = String.class))
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/history",
       produces = "application/json")
   public @ResponseBody Concept getHistory(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code) throws Exception {
+  final String code, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("history"));
 
@@ -843,16 +925,22 @@ public class ConceptController extends BaseController {
       @Parameter(name = "code",
           description = "Code in the specified terminology, e.g. "
               + "'C3910' for <i>ncit</i>.  This call is only meaningful for <i>ncit</i>.",
-          required = true, schema = @Schema(implementation = String.class))
+          required = true, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/disjointWith",
       produces = "application/json")
   public @ResponseBody List<DisjointWith> getDisjointWith(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
-  final String code) throws Exception {
+  final String code, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("disjointWith"));
 
@@ -893,17 +981,23 @@ public class ConceptController extends BaseController {
               + "inverseRoles, maps, parents, properties, roles, synonyms. "
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
-          required = false, schema = @Schema(implementation = String.class), example = "minimal")
+          required = false, schema = @Schema(implementation = String.class), example = "minimal"),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+      description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+          + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+      required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/roots", produces = "application/json")
 
   public @ResponseBody List<Concept> getRoots(@PathVariable(value = "terminology")
   final String terminology, @RequestParam(required = false, name = "include")
-  final Optional<String> include) throws Exception {
+  final Optional<String> include, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
       final List<Concept> list = elasticQueryService.getRootNodes(term, ip);
@@ -960,7 +1054,11 @@ public class ConceptController extends BaseController {
       @Parameter(name = "fromRecord", description = "Start index of the search results", required = false,
           schema = @Schema(implementation = Integer.class), example = "0"),
       @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
-          schema = @Schema(implementation = Integer.class), example = "100")
+          schema = @Schema(implementation = Integer.class), example = "100"),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsFromRoot",
@@ -970,10 +1068,12 @@ public class ConceptController extends BaseController {
   final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include, @RequestParam(required = false, name = "fromRecord")
   final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
-  final Optional<Integer> pageSize) throws Exception {
+  final Optional<Integer> pageSize, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
       if (!elasticQueryService.checkConceptExists(code, term)) {
@@ -1027,7 +1127,11 @@ public class ConceptController extends BaseController {
               + "interface can quickly retrieve initial data for a subtree and then call back " + "for more data. "
               + "An extra placeholder entry with just a <i>ct</i> field will be included "
               + "to indicate the total count.",
-          required = false, schema = @Schema(implementation = Integer.class), example = "100")
+          required = false, schema = @Schema(implementation = Integer.class), example = "100"),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/subtree",
@@ -1036,10 +1140,12 @@ public class ConceptController extends BaseController {
   public @ResponseBody List<HierarchyNode> getSubtree(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "limit")
-  final Optional<Integer> limit) throws Exception {
+  final Optional<Integer> limit, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
 
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
 
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
@@ -1164,7 +1270,11 @@ public class ConceptController extends BaseController {
           + "be limited to the specified number of entries. Thus a user interface can "
           + "quickly retrieve initial data for a subtree and then call back for more data. "
           + "An extra placeholder entry with just a <i>ct</i> field will be included " + "to indicate the total count.",
-          required = false, schema = @Schema(implementation = Integer.class), example = "100")
+          required = false, schema = @Schema(implementation = Integer.class), example = "100"),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/subtree/children",
@@ -1172,9 +1282,12 @@ public class ConceptController extends BaseController {
   public @ResponseBody List<HierarchyNode> getSubtreeChildren(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "limit")
-  final Optional<Integer> limit) throws Exception {
+  final Optional<Integer> limit, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
+
       if (!elasticQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
@@ -1242,7 +1355,11 @@ public class ConceptController extends BaseController {
       @Parameter(name = "fromRecord", description = "Start index of the search results", required = false,
           schema = @Schema(implementation = Integer.class), example = "0"),
       @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
-          schema = @Schema(implementation = Integer.class), example = "100")
+          schema = @Schema(implementation = Integer.class), example = "100"),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsToRoot",
@@ -1252,9 +1369,11 @@ public class ConceptController extends BaseController {
   final String code, @RequestParam(required = false, name = "include")
   final Optional<String> include, @RequestParam(required = false, name = "fromRecord")
   final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
-  final Optional<Integer> pageSize) throws Exception {
+  final Optional<Integer> pageSize, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
       if (!elasticQueryService.checkConceptExists(code, term)) {
@@ -1319,7 +1438,11 @@ public class ConceptController extends BaseController {
       @Parameter(name = "fromRecord", description = "Start index of the search results", required = false,
           schema = @Schema(implementation = Integer.class), example = "0"),
       @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
-          schema = @Schema(implementation = Integer.class), example = "100")
+          schema = @Schema(implementation = Integer.class), example = "100"),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/pathsToAncestor/{ancestorCode}",
@@ -1331,9 +1454,11 @@ public class ConceptController extends BaseController {
   final String ancestorCode, @RequestParam(required = false, name = "include")
   final Optional<String> include, @RequestParam(required = false, name = "fromRecord")
   final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
-  final Optional<Integer> pageSize) throws Exception {
+  final Optional<Integer> pageSize, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
     try {
       final Terminology term = termUtils.getTerminology(terminology, true);
+      termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
       if (!elasticQueryService.checkConceptExists(code, term)) {
