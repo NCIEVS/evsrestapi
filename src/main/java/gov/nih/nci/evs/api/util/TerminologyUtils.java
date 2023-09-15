@@ -335,6 +335,9 @@ public final class TerminologyUtils {
       final String apiKey = tokens[1];
 
       // Override mechanism to support disabling the license check.
+      if (terminology.getMetadata().getLicenseCheck() == null) {
+        return;
+      }
       if (terminology.getMetadata().getLicenseCheck() != null
           && terminology.getMetadata().getLicenseCheck().equals("DISABLED")) {
         return;
