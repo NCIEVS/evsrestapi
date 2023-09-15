@@ -52,7 +52,7 @@ public class AdminController {
     }
 
     cacheConfig.evictAll();
-    TerminologyUtils.clearCache()
+    TerminologyUtils.clearCache();
     return ResponseEntity.noContent().build();
   }
 }
