@@ -12,6 +12,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
@@ -182,7 +183,11 @@ public class SearchController extends BaseController {
           description = "Comma-separated list of subsets to restrict search results by, e.g. 'C157225'."
               + " The value '*' can also be used to return results that participate in at least one subset."
               + " This parameter is only meaningful for <i>terminology=ncit</i>",
-          required = false, schema = @Schema(implementation = String.class))
+          required = false, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+      description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+          + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+      required = false, schema = @Schema(implementation = String.class))
   // These are commented out because they are currently not supported
   // @Parameter(name = "inverse", description = "Used with \"associations\"
   // or \"roles\" when true to indicate that inverse associations or roles
@@ -206,8 +211,11 @@ public class SearchController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/search", produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminology(@PathVariable(value = "terminology")
   final String terminology, @ModelAttribute
-  SearchCriteriaWithoutTerminology searchCriteria, BindingResult bindingResult) throws Exception {
-    return search(new SearchCriteria(searchCriteria, terminology), bindingResult);
+  SearchCriteriaWithoutTerminology searchCriteria, BindingResult bindingResult, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
+    final Terminology term = termUtils.getTerminology(terminology, true);
+    termUtils.checkLicense(term, license);
+    return search(new SearchCriteria(searchCriteria, terminology), bindingResult, license);
   }
 
   /**
@@ -320,7 +328,11 @@ public class SearchController extends BaseController {
           description = "Comma-separated list of subsets to restrict search results by, e.g. 'C157225'."
               + " The value '*' can also be used to return results that participate in at least one subset."
               + " This parameter is only meaningful for <i>terminology=ncit</i>",
-          required = false, schema = @Schema(implementation = String.class))
+          required = false, schema = @Schema(implementation = String.class)),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+      description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+          + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+      required = false, schema = @Schema(implementation = String.class))
   // These are commented out because they are currently not supported
   // @Parameter(name = "inverse", value = "Used with \"associations\"
   // or \"roles\" when true to indicate that inverse associations or roles
@@ -343,7 +355,8 @@ public class SearchController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/search", produces = "application/json")
   public @ResponseBody ConceptResultList search(@ModelAttribute
-  SearchCriteria searchCriteria, BindingResult bindingResult) throws Exception {
+  SearchCriteria searchCriteria, BindingResult bindingResult, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
 
     // Check whether or not parameter binding was successful
     if (bindingResult.hasErrors()) {
@@ -379,6 +392,7 @@ public class SearchController extends BaseController {
       final List<Terminology> terminologies = new ArrayList<>();
       for (String terminology : searchCriteria.getTerminology()) {
         final Terminology term = termUtils.getTerminology(terminology, true);
+        termUtils.checkLicense(term, license);
         searchCriteria.validate(term, metadataService);
         terminologies.add(term);
       }

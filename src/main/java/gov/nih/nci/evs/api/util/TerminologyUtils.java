@@ -16,6 +16,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.text.StringSubstitutor;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpPost;
@@ -295,8 +296,7 @@ public final class TerminologyUtils {
       return;
     }
 
-    final String licenseUrl =
-        "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/bac/1.9.0-EVSRESTAPI-353/doc/LICENSE.md";
+    final String licenseUrl = "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md";
 
     // Check the license key and fail
     if (license == null) {
@@ -310,11 +310,16 @@ public final class TerminologyUtils {
       return;
     }
 
-    // If cached already, continue to allow
+    // If cached as success already, continue to allow
     if (licenseCache.containsKey(terminology.getTerminology() + license)) {
-      return;
+      if ("true".equals(licenseCache.get(terminology.getTerminology() + license))) {
+        return;
+      } else {
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+            "Invalid X-EVSRESTAPI-License-Key header for this terminology, visit " + licenseUrl
+                + " for more information.");
+      }
     }
-
     // Handle MDR Style - meddraId:meddraApiKey
     if (terminology.getTerminology().equals("mdr")) {
 
@@ -329,29 +334,26 @@ public final class TerminologyUtils {
       final String id = tokens[0];
       final String apiKey = tokens[1];
 
-      // Test id/apiKey
-      if (!id.equals("12345") || !apiKey.equals("myApiKey")) {
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-            "Invalid X-EVSRESTAPI-License-Key header for this terminology, visit " + licenseUrl
-                + " for more information.");
-
-      }
-
       // Override mechanism to support disabling the license check.
       if (terminology.getMetadata().getLicenseCheck() != null
           && terminology.getMetadata().getLicenseCheck().equals("DISABLED")) {
         return;
       }
 
-      // final String[] parts = terminology.getMetadata().getLicenseCheck().split(";");
-      // final String method = parts[0];
-      // final String uri = parts[1];
-      // final String contentType = parts[2];
-      // final Map<String, String> config = new HashMap<>();
-      // config.put("id", id);
-      // config.put("apiKey", apiKey);
-      // final String payload = new StringSubstitutor(config).replace(parts[3]);
-      // checkLicenseHttp(method, uri, contentType, payload, licenseUrl);
+      final String[] parts = terminology.getMetadata().getLicenseCheck().split(";");
+      final String method = parts[0];
+      final String uri = parts[1];
+      final String contentType = parts[2];
+      final Map<String, String> config = new HashMap<>();
+      config.put("id", id);
+      config.put("apiKey", apiKey);
+      final String payload = new StringSubstitutor(config).replace(parts[3]);
+      try {
+        checkLicenseHttp(method, uri, contentType, payload, licenseUrl);
+      } catch (Exception e) {
+        licenseCache.put(terminology.getTerminology() + license, "false");
+        throw e;
+      }
 
       licenseCache.put(terminology.getTerminology() + license, "true");
     }
@@ -398,6 +400,8 @@ public final class TerminologyUtils {
         final int statusCode = response.getStatusLine().getStatusCode();
         final String responseContent = EntityUtils.toString(entity);
         if (statusCode >= 300) {
+          logger.error("uri = " + uri);
+          logger.error("payload = " + payload);
           logger.error("Unexpected response = " + responseContent);
           throw new ResponseStatusException(HttpStatus.FORBIDDEN,
               "Invalid X-EVSRESTAPI-License-Key header for this terminology, visit " + licenseUrl
@@ -406,5 +410,12 @@ public final class TerminologyUtils {
 
       }
     }
+  }
+
+  /**
+   * Clear cache.
+   */
+  public static void clearCache() {
+    licenseCache.clear();
   }
 }
