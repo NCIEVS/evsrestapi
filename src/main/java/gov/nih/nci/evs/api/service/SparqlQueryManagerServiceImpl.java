@@ -2432,7 +2432,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final List<Concept> subsets = new ArrayList<>();
     for (final String code : terminology.getMetadata().getSubset()) {
       final Concept concept =
-          getConcept(code, terminology, new IncludeParam("summary,children,properties"));
+          getConcept(code, terminology, new IncludeParam("minimal,children,properties"));
 
       getSubsetsHelper(concept, terminology, 0);
       subsets.add(concept);
@@ -2454,7 +2454,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final List<Concept> children = new ArrayList<>();
     for (final Concept child : concept.getChildren()) {
       final Concept childFull =
-          getConcept(child.getCode(), terminology, new IncludeParam("summary,children,properties"));
+          getConcept(child.getCode(), terminology, new IncludeParam("minimal,children,properties"));
       boolean valInSubset = false;
       boolean found = false;
       for (final Property prop : childFull.getProperties()) {
@@ -2470,6 +2470,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (found && !valInSubset) {
         continue;
       }
+      childFull.setProperties(null);
       children.add(childFull);
       getSubsetsHelper(childFull, terminology, level + 1);
     }
