@@ -18,6 +18,7 @@ import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Paths;
+import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
@@ -456,5 +457,17 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   List<Concept> getMapset(String code, IncludeParam ip) throws Exception;
+
+  /**
+   * see superclass *.
+   *
+   * @param terminology the terminology
+   * @param source the source
+   * @return the source stats
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonProcessingException the json processing exception
+   */
+  Map<String, List<StatisticsEntry>> getSourceStats(Terminology terminology, String source)
+    throws JsonMappingException, JsonProcessingException;
 
 }

@@ -24,6 +24,7 @@ import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -166,6 +167,23 @@ public class MetadataServiceImpl implements MetadataService {
     final List<Concept> properties = esQueryService.getProperties(term, ip);
 
     return ConceptUtils.applyList(properties, ip, list.orElse(null));
+  }
+
+  /**
+   * Returns the source stats.
+   *
+   * @param terminology the terminology
+   * @param source the source
+   * @return the properties
+   * @throws Exception the exception
+   */
+  @Override
+  public Map<String, List<StatisticsEntry>> getSourceStats(String terminology, String source)
+    throws Exception {
+    final Terminology term = termUtils.getTerminology(terminology, true);
+
+    return esQueryService.getSourceStats(term, source);
+
   }
 
   /* see superclass */

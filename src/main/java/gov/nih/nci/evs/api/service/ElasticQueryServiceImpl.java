@@ -41,6 +41,7 @@ import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.EVSConceptResultMapper;
 import gov.nih.nci.evs.api.support.es.EVSPageable;
@@ -112,7 +113,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Override
   public List<Concept> getConcepts(Collection<String> codes, Terminology terminology,
     IncludeParam ip) {
-    if (codes == null || codes.size()==0) {
+    if (codes == null || codes.size() == 0) {
       return new ArrayList<>();
     }
     NativeSearchQuery query = new NativeSearchQueryBuilder()
@@ -548,6 +549,26 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   public List<Concept> getProperties(Terminology terminology, IncludeParam ip)
     throws JsonMappingException, JsonProcessingException {
     return getConceptList("properties", terminology, ip);
+  }
+
+  /**
+   * see superclass *.
+   *
+   * @param terminology the terminology
+   * @param ip the ip
+   * @return the properties
+   * @throws JsonMappingException the json mapping exception
+   * @throws JsonProcessingException the json processing exception
+   */
+  @Override
+  public Map<String, List<StatisticsEntry>> getSourceStats(Terminology terminology, String source)
+    throws JsonMappingException, JsonProcessingException {
+    Optional<ElasticObject> esObject =
+        getElasticObject(terminology.getName() + "-stats-" + source, terminology);
+    if (!esObject.isPresent()) {
+      return new HashMap<String, List<StatisticsEntry>>();
+    }
+    return esObject.get().getStatisticsMap();
   }
 
   /**
