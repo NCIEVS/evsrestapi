@@ -330,8 +330,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
             // Assume maps are not null
             return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank()
                 + o1.getTargetName())
-                    .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
-                        + o2.getTargetName());
+                .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
+                    + o2.getTargetName());
           }
         });
         logger.info("    Index map = " + mapset.getName());
@@ -581,7 +581,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       handleAttributes(concept, mrsat, prevCui);
       handleRelationships(concept, mrrel, prevCui);
       handleMapsAndHistory(concept, prevCui);
-      handleStatistics(terminology, terminology.getMetadata().getSynonymSourceSet());
 
       handleConcept(concept, batch, true, terminology.getIndexName());
       totalConcepts++;
@@ -765,7 +764,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
    */
   private void handleStatistics(final Terminology terminology, final Set<String> sourceList)
     throws Exception {
-    if (terminology.getName().equals("ncim")) {
+    if (terminology.getTerminology().equals("ncim")) {
       for (String source : sourceList) {
         // create elastic object
         ElasticObject newStatsEntry = new ElasticObject("ncim-stats-" + source);
@@ -1256,6 +1255,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     //
     // Handle termTypes - n/a - handled inline
     //
+
+    // Handle stats
+    handleStatistics(terminology, terminology.getMetadata().getSynonymSourceSet());
 
   }
 

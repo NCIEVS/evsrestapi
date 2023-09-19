@@ -564,7 +564,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   public Map<String, List<StatisticsEntry>> getSourceStats(Terminology terminology, String source)
     throws JsonMappingException, JsonProcessingException {
     Optional<ElasticObject> esObject =
-        getElasticObject(terminology.getName() + "-stats-" + source, terminology);
+        getElasticObject(terminology.getTerminology() + "-stats-" + source, terminology);
     if (!esObject.isPresent()) {
       return new HashMap<String, List<StatisticsEntry>>();
     }
