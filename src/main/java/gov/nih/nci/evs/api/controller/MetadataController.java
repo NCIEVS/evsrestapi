@@ -1210,6 +1210,7 @@ public class MetadataController extends BaseController {
     try {
       return metadataService.getSourceStats(terminology, source);
     } catch (Exception e) {
+      logger.error(source + " search in " + terminology + " failed.");
       handleException(e);
       return null;
     }
