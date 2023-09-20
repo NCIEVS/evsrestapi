@@ -430,7 +430,6 @@ public class MetadataServiceImpl implements MetadataService {
     // subsets should always return children
     // (contributing source needed)
     ipWithProperties.setChildren(true);
-    ipWithProperties.setProperties(true);
     ipWithProperties.setSubsetLink(true);
     ip.setChildren(true);
     // avoid overwriting IP: ip.setProperties(false);
@@ -442,6 +441,10 @@ public class MetadataServiceImpl implements MetadataService {
     // No list of codes supplied
     if (!list.isPresent()) {
 
+      if (include.orElse("minimal").equals("minimal")) {
+          return subsets;
+      }
+      
       final Set<String> codes = subsets.stream().flatMap(Concept::streamSelfAndChildren)
           .map(c -> c.getCode()).collect(Collectors.toSet());
       final Map<String, Concept> conceptMap =
@@ -450,12 +453,6 @@ public class MetadataServiceImpl implements MetadataService {
       // Populate subset concepts (with properties)
       subsets.stream().flatMap(Concept::streamSelfAndChildren)
           .peek(c -> c.populateFrom(conceptMap.get(c.getCode())));
-
-      // After populating all concepts, remove non-publishable children (based on properties)
-      subsets.stream().flatMap(Concept::streamSelfAndChildren).peek(c -> c.getChildren()
-          .removeIf(chd -> chd.getProperties().stream()
-              .filter(p -> p.getType().equals("Publish_Value_Set") && !p.getValue().equals("Yes"))
-              .count() == 0));
 
       // Apply include (without properties)
       subsets.stream().flatMap(Concept::streamSelfAndChildren)

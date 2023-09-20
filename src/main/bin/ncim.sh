@@ -28,9 +28,9 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Keep LNC out of this for now.
-# NOTE: devreset.sh still loads LNC for local dev
-# NOTE: devreset.sh still loads SNOMEDCT_US for local dev
-for t in MDR ICD10CM ICD9CM; do
+for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US; do
+    # show memory usage
+    free
     # Keep the NCIM folder around while we run
     echo "Load $t (from downloaded data)"
     $DIR/ncim-part.sh ./NCIM/META --keep --terminology $t | sed 's/^/    /'
