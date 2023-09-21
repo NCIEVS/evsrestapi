@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -8,6 +9,7 @@ import java.util.List;
 
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,8 +24,10 @@ import org.springframework.test.web.servlet.MvcResult;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.ConceptSampleTester;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 
 /**
  * NCIt samples test.
@@ -33,13 +37,17 @@ import gov.nih.nci.evs.api.model.Terminology;
 @AutoConfigureMockMvc
 public class MdrSampleTest extends SampleTest {
 
-    /** The logger. */
-    private static final Logger log = LoggerFactory.getLogger(MdrSampleTest.class);
+  /** The application properties. */
+  @Autowired
+  ApplicationProperties applicationProperties;
 
-    /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
-    @Autowired
-    private MockMvc testMvc;
-    
+  /** The logger. */
+  private static final Logger log = LoggerFactory.getLogger(MdrSampleTest.class);
+
+  /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
+  @Autowired
+  private MockMvc testMvc;
+
   /**
    * Setup class.
    *
@@ -49,7 +57,7 @@ public class MdrSampleTest extends SampleTest {
   public static void setupClass() throws Exception {
     loadSamples("mdr", "src/test/resources/samples/mdr-samples.txt");
   }
-  
+
   /**
    * Test concept active status.
    *
@@ -57,7 +65,7 @@ public class MdrSampleTest extends SampleTest {
    */
   @Test
   public void testActive() throws Exception {
-      
+
     String url = null;
     MvcResult result = null;
     String content = null;
@@ -66,7 +74,8 @@ public class MdrSampleTest extends SampleTest {
     // Test active
     url = "/api/v1/concept/mdr/10062368";
     log.info("Testing url - " + url);
-    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", applicationProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
@@ -74,11 +83,12 @@ public class MdrSampleTest extends SampleTest {
     assertThat(concept.getCode()).isEqualTo("10062368");
     assertThat(concept.getTerminology()).isEqualTo("mdr");
     assertThat(concept.isActive()).isTrue();
-    
+
     // Test inactive
     url = "/api/v1/concept/mdr/10002614?include=full";
     log.info("Testing url - " + url);
-    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", applicationProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
@@ -87,12 +97,13 @@ public class MdrSampleTest extends SampleTest {
     assertThat(concept.getTerminology()).isEqualTo("mdr");
     assertThat(concept.isActive()).isFalse();
     assertThat(concept.getConceptStatus()).isEqualTo("Retired_Concept");
-   
+
     // test that "Retired_Concept" was added to the list of concept statuses
     url = "/api/v1/metadata/terminologies?terminology=mdr&latest=true";
     log.info("Testing url - " + url);
 
-    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", applicationProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     List<Terminology> list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
