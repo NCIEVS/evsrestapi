@@ -300,6 +300,13 @@ public final class TerminologyUtils {
 
     // Check the license key and fail
     if (license == null) {
+
+      // Override mechanism to support disabling the license check.
+      if (terminology.getMetadata().getLicenseCheck() == null
+          || terminology.getMetadata().getLicenseCheck().equals("DISABLED")) {
+        return;
+      }
+      
       throw new ResponseStatusException(HttpStatus.FORBIDDEN,
           "API calls for terminology='" + terminology.getTerminology()
               + "' require an X-EVSRESTAPI-License-Key header, visit " + licenseUrl + " for more information.");
@@ -333,15 +340,6 @@ public final class TerminologyUtils {
       }
       final String id = tokens[0];
       final String apiKey = tokens[1];
-
-      // Override mechanism to support disabling the license check.
-      if (terminology.getMetadata().getLicenseCheck() == null) {
-        return;
-      }
-      if (terminology.getMetadata().getLicenseCheck() != null
-          && terminology.getMetadata().getLicenseCheck().equals("DISABLED")) {
-        return;
-      }
 
       final String[] parts = terminology.getMetadata().getLicenseCheck().split(";");
       final String method = parts[0];
