@@ -4,7 +4,7 @@ Information on downloading and using stardog with EVSRESTAPI.
 
 ## Running Stardog Locally
 
-* Initial setup (create a volume to store data/license)
+### Initial setup (create a volume to store data/license)
 
       docker pull stardog/stardog:latest
       
@@ -40,11 +40,13 @@ Information on downloading and using stardog with EVSRESTAPI.
       [root@0b9fbb0b90ba bin]# /opt/stardog/bin/stardog data add --named-graph http://NCI_T NCIT2 /data/ThesaurusInferred.owl
       [root@0b9fbb0b90ba bin]# /opt/stardog/bin/stardog-admin db optimize -n NCIT2
 
-* Running Stardog Locally (after data is loaded)
+### Running Stardog Locally (after data is loaded)
+* You'll be running this regularly when working with the proejct, so save this command somewhere easily accessible to you.
 
       dir=c:/Users/carlsenbr/eclipse-workspace/data/
       docker run -d --name=stardog_evs --rm -p 5820:5820 -v "$dir":/data -v stardog-home2:/var/opt/stardog -e STARDOG_SERVER_JAVA_ARGS="-Xmx4g -Xms3g -XX:MaxDirectMemorySize=4g" stardog/stardog
 
-* Log into a Running Stardog Container
+### Log into a Running Stardog Container
+* Make sure to add your running container id to log in.  e.g. 3c29d72babc2
 
-      docker exec -it <container_id, e.g. 3c29d72babc2> /bin/bash
+      docker exec -it <container_id> /bin/bash
