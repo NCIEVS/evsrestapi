@@ -11,24 +11,19 @@ Information on downloading and using stardog with EVSRESTAPI.
       # Windows volume seems to have an "fsync" issue, try using a "local docker volume"
       docker volume create --name stardog-home2 -d local
 
-* Using an existing stardog license (in $dir). Make sure your license file is called `stardog-license-key.bin` and is in the $dir directory on you rlocal machine.
+* Using an existing stardog license (in $dir). Make sure your license file is called `stardog-license-key.bin` and is in the $dir directory on your local machine.
 
-      dir=c:/Users/carlsenbr/eclipse-workspace/data/
+      # dir will be the path you are storing your project files in on your local machine
+      dir=c:/Users/carlsenbr/eclipse-workspace/data/  
       docker run -it --entrypoint "/bin/bash" -v "$dir":/data -v stardog-home2:/var/opt/stardog stardog/stardog
       [root@0b9fbb0b90ba bin]# cp /data/stardog-license-key.bin /var/opt/stardog
       [root@0b9fbb0b90ba bin]# exit
+  * You may have to share a license with a fellow co-work as a temporary workaround.
 
+* Obtaining Stardog Licence - [Request License](https://www.stardog.com/license-request/) from Stardog directly.
+  * This isn't a guaranteed solution unfortunately and you could be denied. 
 
-* Obtaining Stardog Licence Locally - [see Quick Start Guide](https://www.stardog.com/docs/#_quick_start_guide)
-
-      # get license
-      docker run -it --entrypoint "/bin/bash" -v stardog-home2:/var/opt/stardog stardog/stardog
-      [root@0b9fbb0b90ba bin]# /opt/stardog/bin/stardog-admin license request --force
-      ... answer questions, provide email - bcarlsen+stardog@westcoastinformatics.com ...
-      [root@0b9fbb0b90ba bin]# exit
-
-  * At this point, the license should be in docker volume "stardog-home2" and be properly remounted with the license intact
-  * NOTE: this step only needs to be run once (until license expires)
+* Download the [ThesaurusInferred.owl](https://drive.google.com/drive/u/0/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI) and save it in $dir
 
 * Loading NCIt ThesaurusInferred.owl (after license is setup).  Make sure the local volume being mounted is the one that contains the ThesaurusInferred.owl file.
 
@@ -53,4 +48,3 @@ Information on downloading and using stardog with EVSRESTAPI.
 * Log into a Running Stardog Container
 
       docker exec -it <container_id, e.g. 3c29d72babc2> /bin/bash
-

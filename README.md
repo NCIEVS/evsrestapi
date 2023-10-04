@@ -5,13 +5,13 @@ Information on the build and deployment process for the EVSRESTAPI project
 ### Prerequisites
 
 * Install Docker and ensure it is configured to allow (Docker -> Settings -> Resources)
+* In your termianl, make sure that the command `git config core.autocrlf` returns `false`. Change it to `false` using `git config --global core.autocrlf false` if necessary
 * Clone the project - [https://github.com/NCIEVS/evsrestapi](https://github.com/NCIEVS/evsrestapi)
-  * Before cloning the repo, make sure that the command `git config core.autocrlf` returns `false`. Change it to `false` using `git config --global core.autocrlf false` if necessary
-
-* Choose a local data directory $dir (e.g. c:/evsrestapi/dir)
-* mkdir -p $dir/elasticsearch/data
+* Choose a local data directory $dir (e.g. c:/evsrestapi/dir). This will be where you save your projects and store their related data.
+  * `export set dir=C:/Users/[usrName]/[your/local/path]`
+* `mkdir -p $dir/elasticsearch/data`
 * Download the "Unit Test Data" folder from <https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI>.  Unpack it to your $dir folder (so that $dir/UnitTestData exists)
-  * run `prep.sh`
+  * cd into the UnitTestData and run `prep.sh`
 
 ### Steps for Loading NCI Thesaurus Data and Indexes Locally
 
