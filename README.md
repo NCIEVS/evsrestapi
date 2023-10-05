@@ -5,14 +5,15 @@ Information on the build and deployment process for the EVSRESTAPI project
 ### Prerequisites
 
 * Install Docker and ensure it is configured to allow (Docker -> Settings -> Resources)
-* In your termianl, make sure that the command `git config core.autocrlf` returns `false`. Change it to `false` using `git config --global core.autocrlf false` if necessary
-* Clone the project - [https://github.com/NCIEVS/evsrestapi](https://github.com/NCIEVS/evsrestapi)
-* Choose a local data directory (e.g. c:/evsrestapi/dir). This will be where you save your projects and store their related data and act as a BASE_DIR.
-  * `export set BASE_DIR=C:/Users/[usrName]/[your/local/path]`
-* `mkdir -p $BASE_DIR/elasticsearch/data`
-* Set a new variable $dir to the new directory we created. This will be referenced in upcoming steps. 
-  * `export set dir=$BASE_DIR/data/`
-* Download the "Unit Test Data" folder from <https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI>.  Unpack it to your $dir folder (so that $dir/UnitTestData exists)
+* In your terminal, make sure that the command `git config core.autocrlf` returns `false`. Change it to `false` using `git config --global core.autocrlf false` if necessary
+* Choose a local directory (e.g. c:/Users/carlsenbr/eclipse-workspace/) where the NCI repos and data are stored. This is the base directory.
+* Clone the project - [https://github.com/NCIEVS/evsrestapi](https://github.com/NCIEVS/evsrestapi) into your base directory
+* Create a data folder in your base directory and set a $dir variable in your terminal. This $dir variable will be referenced multiple times in upcoming steps.
+  * `export set dir=C:/Users/carlsenbr/eclipse-workspace/data`
+* Execute `mkdir -p $dir/elasticsearch/data`
+* Set a new variable $ES_DIR to the new directory just created. This $ES_DIR will be referenced in upcoming steps. 
+  * `export set ES_DIR=$dir/elasticsearch/data`
+* Download the "Unit Test Data" folder from <https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI>.  Unpack it to your base directory folder (so that c:/Users/carlsenbr/eclipse-workspace/UnitTestData exists)
   * cd into the UnitTestData and run `prep.sh`
 
 ### Steps for Loading NCI Thesaurus Data and Indexes Locally
