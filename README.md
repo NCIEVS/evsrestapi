@@ -5,11 +5,13 @@ Information on the build and deployment process for the EVSRESTAPI project
 ### Prerequisites
 
 * Install Docker and ensure it is configured to allow (Docker -> Settings -> Resources)
+* Before cloning the repo, make sure that the command `git config core.autocrlf` returns `false`. Change it to `false` using `git config --global core.autocrlf false` if necessary
 * Clone the project - [https://github.com/NCIEVS/evsrestapi](https://github.com/NCIEVS/evsrestapi)
-  * Before cloning the repo, make sure that the command `git config core.autocrlf` returns `false`. Change it to `false` using `git config --global core.autocrlf false` if necessary
-
-* Choose a local data directory $dir (e.g. c:/evsrestapi/dir)
-* mkdir -p $dir/elasticsearch/data
+* Create a local data directory and set a $dir variable in your terminal. This $dir variable will be referenced multiple times in upcoming steps.
+  * `export set dir=C:/Users/carlsenbr/eclipse-workspace/data`
+* Execute `mkdir -p $dir/elasticsearch/data`
+* * Set a new variable $ES_DIR to the new directory just created. This $ES_DIR will be referenced in upcoming steps.
+  * `export set ES_DIR=$dir/elasticsearch/data`
 * Download the "Unit Test Data" folder from <https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI>.  Unpack it to your $dir folder (so that $dir/UnitTestData exists)
   * run `prep.sh`
 
@@ -28,11 +30,13 @@ Information on the build and deployment process for the EVSRESTAPI project
     * STARDOG_USERNAME=admin
     * STARDOG_PASSWORD=admin
 
-* Load the UnitTestData set
+* Load the UnitTestData set by running `prep.sh`
 
+    ```
     cd evsrestapi
     make devreset
     tail -f log
+  ```
 
 ### Steps for Building and Running EVSRESTAPI locally
 
