@@ -160,7 +160,7 @@ pid=`docker ps | grep stardog/stardog | cut -f 1 -d\  `
 # note: //data is required for gitbash
 docker exec -it $pid //data/UnitTestData/x.sh
 if [[ $? -ne 0 ]]; then
-    echo "ERROR: problem connecting to docker elasticsearch"
+    echo "ERROR: problem connecting to docker stardog"
     exit 1
 fi
 ct=`grep -c owl $dir/x.txt`

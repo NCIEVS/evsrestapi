@@ -21,3 +21,4 @@ WEB-INF/*
 .idea/.gitignore
 
 /.idea/
+log
