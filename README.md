@@ -7,9 +7,11 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Install Docker and ensure it is configured to allow (Docker -> Settings -> Resources)
 * In your termianl, make sure that the command `git config core.autocrlf` returns `false`. Change it to `false` using `git config --global core.autocrlf false` if necessary
 * Clone the project - [https://github.com/NCIEVS/evsrestapi](https://github.com/NCIEVS/evsrestapi)
-* Choose a local data directory $dir (e.g. c:/evsrestapi/dir). This will be where you save your projects and store their related data.
-  * `export set dir=C:/Users/[usrName]/[your/local/path]`
-* `mkdir -p $dir/elasticsearch/data`
+* Choose a local data directory (e.g. c:/evsrestapi/dir). This will be where you save your projects and store their related data and act as a BASE_DIR.
+  * `export set BASE_DIR=C:/Users/[usrName]/[your/local/path]`
+* `mkdir -p $BASE_DIR/elasticsearch/data`
+* Set a new variable $dir to the new directory we created. This will be referenced in upcoming steps. 
+  * `export set dir=$BASE_DIR/data/`
 * Download the "Unit Test Data" folder from <https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI>.  Unpack it to your $dir folder (so that $dir/UnitTestData exists)
   * cd into the UnitTestData and run `prep.sh`
 
@@ -19,14 +21,14 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Launch Elasticsearch docker container - (see [Elasticsearch Resources](ELASTICSEARCH.md))
 
 * Make sure to set at least the following environment variables
-    * ES_SCHEME=http
-    * ES_HOST=localhost
-    * ES_PORT=9301
-    * STARDOG_HOST=localhost
-    * STARDOG_PORT=5820
-    * STARDOG_DB=NCIT2
-    * STARDOG_USERNAME=admin
-    * STARDOG_PASSWORD=admin
+    * export set ES_SCHEME=http
+    * export set ES_HOST=localhost
+    * export set ES_PORT=9301
+    * export set STARDOG_HOST=localhost
+    * export set STARDOG_PORT=5820
+    * export set STARDOG_DB=NCIT2
+    * export set STARDOG_USERNAME=admin
+    * export set STARDOG_PASSWORD=admin
 
 * Load the UnitTestData set
 

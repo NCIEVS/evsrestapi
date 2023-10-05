@@ -5,6 +5,7 @@ Information on downloading and using stardog with EVSRESTAPI.
 ## Running Stardog Locally
 
 ### Initial setup (create a volume to store data/license)
+* Verify your $dir points to the correct path we set in the previous steps. If not, set them now.
 
       docker pull stardog/stardog:latest
       
@@ -13,8 +14,6 @@ Information on downloading and using stardog with EVSRESTAPI.
 
 * Using an existing stardog license (in $dir). Make sure your license file is called `stardog-license-key.bin` and is in the $dir directory on your local machine.
 
-      # dir will be the path you are storing your project files in on your local machine
-      dir=c:/Users/carlsenbr/eclipse-workspace/data/  
       docker run -it --entrypoint "/bin/bash" -v "$dir":/data -v stardog-home2:/var/opt/stardog stardog/stardog
       [root@0b9fbb0b90ba bin]# cp /data/stardog-license-key.bin /var/opt/stardog
       [root@0b9fbb0b90ba bin]# exit
@@ -27,7 +26,7 @@ Information on downloading and using stardog with EVSRESTAPI.
 
 * Loading NCIt ThesaurusInferred.owl (after license is setup).  Make sure the local volume being mounted is the one that contains the ThesaurusInferred.owl file.
 
-      dir=c:/Users/carlsenbr/eclipse-workspace/data/
+      
       docker run -it --entrypoint "/bin/bash" -p 5820:5820 -v "$dir":/data -v stardog-home2:/var/opt/stardog stardog/stardog
       [root@0b9fbb0b90ba bin]# export STARDOG_SERVER_JAVA_ARGS="-Xmx4g -Xms3g -XX:MaxDirectMemorySize=4g"
       [root@0b9fbb0b90ba bin]# /opt/stardog/bin/stardog-admin server start
