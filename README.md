@@ -31,11 +31,13 @@ Information on the build and deployment process for the EVSRESTAPI project
     * export set STARDOG_USERNAME=admin
     * export set STARDOG_PASSWORD=admin
 
-* Load the UnitTestData set
+* Load the UnitTestData set by running `prep.sh`
 
+    ```
     cd evsrestapi
     make devreset
     tail -f log
+  ```
 
 ### Steps for Building and Running EVSRESTAPI locally
 
