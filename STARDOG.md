@@ -42,7 +42,6 @@ Information on downloading and using stardog with EVSRESTAPI.
 ### Running Stardog Locally (after data is loaded)
 * You'll be running this regularly when working with the proejct, so save this command somewhere easily accessible to you.
 
-      dir=c:/Users/carlsenbr/eclipse-workspace/data/
       docker run -d --name=stardog_evs --rm -p 5820:5820 -v "$dir":/data -v stardog-home2:/var/opt/stardog -e STARDOG_SERVER_JAVA_ARGS="-Xmx4g -Xms3g -XX:MaxDirectMemorySize=4g" stardog/stardog
 
 ### Log into a Running Stardog Container
