@@ -6,14 +6,13 @@ Information on the build and deployment process for the EVSRESTAPI project
 
 * Install Docker and ensure it is configured to allow (Docker -> Settings -> Resources)
 * In your terminal, make sure that the command `git config core.autocrlf` returns `false`. Change it to `false` using `git config --global core.autocrlf false` if necessary
-* Choose a local directory (e.g. c:/Users/carlsenbr/eclipse-workspace/) where the NCI repos and data are stored. This is the base directory.
-* Clone the project - [https://github.com/NCIEVS/evsrestapi](https://github.com/NCIEVS/evsrestapi) into your base directory
-* Create a data folder in your base directory and set a $dir variable in your terminal. This $dir variable will be referenced multiple times in upcoming steps.
+* Clone the project - [https://github.com/NCIEVS/evsrestapi](https://github.com/NCIEVS/evsrestapi)
+* Create a local data directory and set a $dir variable in your terminal. This $dir variable will be referenced multiple times in upcoming steps.
   * `export set dir=C:/Users/carlsenbr/eclipse-workspace/data`
 * Execute `mkdir -p $dir/elasticsearch/data`
 * Set a new variable $ES_DIR to the new directory just created. This $ES_DIR will be referenced in upcoming steps. 
   * `export set ES_DIR=$dir/elasticsearch/data`
-* Download the "Unit Test Data" folder from <https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI>.  Unpack it to your base directory folder (so that c:/Users/carlsenbr/eclipse-workspace/UnitTestData exists)
+* Download the "Unit Test Data" folder from <https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI>.  Unpack it to your $dir folder (so that $dir/UnitTestData exists)
   * cd into the UnitTestData and run `prep.sh`
 
 ### Steps for Loading NCI Thesaurus Data and Indexes Locally

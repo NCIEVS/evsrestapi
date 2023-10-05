@@ -5,7 +5,7 @@ Information on downloading and using stardog with EVSRESTAPI.
 ## Running Stardog Locally
 
 ### Initial setup (create a volume to store data/license)
-* Verify your $dir points to the correct path we set in the previous steps. If not, set them now.
+* Verify your $ES_DIR points to the correct path we set in the previous steps. If not, set it now.
 
       docker pull stardog/stardog:latest
       
