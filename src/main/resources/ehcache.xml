@@ -27,5 +27,11 @@
 			<heap unit="entries">1000</heap>
 		</resources>
 	</cache>
+	
+	<cache alias="subsets">
+		<resources>
+			<heap unit="entries">1000</heap>
+		</resources>
+	</cache>
 
 </config>
