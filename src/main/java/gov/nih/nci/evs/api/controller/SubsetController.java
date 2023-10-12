@@ -8,6 +8,7 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -90,11 +91,13 @@ public class SubsetController extends BaseController {
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/subset/{terminology}", produces = "application/json")
+  @Cacheable(value = "subsets", key = "{#terminology}")
   public @ResponseBody List<Concept> getSubsets(@PathVariable(value = "terminology")
   final String terminology, @RequestParam(required = false, name = "include")
   final Optional<String> include, @RequestParam(required = false, name = "list")
   final Optional<String> list) throws Exception {
     try {
+      logger.debug("**** NOT CACHED - getSubsets");
       return metadataService.getSubsets(terminology, include, list);
     } catch (Exception e) {
       handleException(e);
