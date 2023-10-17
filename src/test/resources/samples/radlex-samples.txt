@@ -1,0 +1,61 @@
+RID56	RID56	synonym	abdomen
+RID56	RID56	term-type	PT
+RID56	RID56	term-type	SY
+RID471	RID471	term-type	OP
+RID56	RID56	CITE	Playbook
+RID56	RID56	FMAID	9577
+RID56	RID56	COMMENT	[altern def] That portion of the body that lies between the thorax and the pelvis. [MeSH]
+RID56	RID56	PREFERRED_NAME_GERMAN	Abdomen
+RID34730	RID34730	SYNONYM_GERMAN	erworbenes Immunschwächesyndrom
+RID7478	RID7478	RADLEX_VERSION_OF_CLASS_CHANGE	08/19/2014
+RID471	RID471	REPLACED_BY	RID29997
+RID49921	RID49921	DATE_CREATED	2016-02-11T00:00:00
+RID56	RID56	Semantic_Type	Body Location or Region
+RID28794	RID28794	Semantic_Type	Sign or Symptom
+RID31594	RID31594	Semantic_Type	Body Part, Organ, or Organ Component
+RID28795	RID28795	Semantic_Type	Congenital Abnormality
+RID34730	RID34730	Semantic_Type	Disease or Syndrome
+RID31010	RID31010	Semantic_Type	Body System
+RID7478	RID7478	Semantic_Type	Pharmacologic Substance
+RID4700	RID4700	Semantic_Type	Pathologic Function
+RID4895	RID4895	Semantic_Type	Anatomical Abnormality
+RID6421	RID6421	Semantic_Type	Diagnostic Procedure
+RID431	RID431	Semantic_Type	Body Space or Junction
+RID39569	RID39569	Semantic_Type	Anatomical Structure
+RID5769	RID5769	Semantic_Type	Quantitative Concept
+RID39275	RID39275	Semantic_Type	Intellectual Product
+RID39274	RID39274	Semantic_Type	Classification
+RID1541	RID1541	Semantic_Type	Finding
+RID56	RID56	DEFINITION	Subdivision of trunk proper which is demarcated from the thorax internally by the inferior surface of the sternocostal part of the diaphragm and externally by the costal margin, from the back of abdomen by the external surface of the posterior abdominal wall, from the perineum by the superior surface of the urogenital diaphragm and from the lower limbs by the inguinal folds; together with the thorax, and perineum, it constitutes the trunk proper. Examples: There is only one abdomen. [FMA]
+RID56	RID56	root
+RID28795	RID28795	root
+RID34730	RID34730	root
+RID88	RID88	root
+RID28753	RID28753	root
+RID6062	RID6062	root
+RID5277	RID5277	root
+RID1524	RID1524	root
+RID31010	RID31010	root
+RID3461	RID3461	root
+RID30005	RID30005	root
+RID476	RID476	root
+RID4700	RID4700	root
+RID4895	RID4895	root
+RID2485	RID2485	root
+RID58	RID58	root
+RID30058	RID30058	root
+RID170	RID170	root
+RID39156	RID39156	root
+RID2484	RID2484	root
+RID13200	RID13200	root
+RID30063	RID30063	root
+RID29990	RID29990	root
+RID29992	RID29992	root
+RID29997	RID29997	root
+RID29995	RID29995	root
+RID29998	RID29998	root
+RID30874	RID30874	root
+RID445	RID445	root
+RID31899	RID31899	root
+RID0	RID0	root
+RID56	RID56	parent-count1

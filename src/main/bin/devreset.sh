@@ -197,7 +197,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Reindex ncim - individual terminologies
-for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US; do
+for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX; do
 
     # Keep the NCIM folder around while we run
     echo "Load $t (from downloaded data)"
