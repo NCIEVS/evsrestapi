@@ -38,6 +38,7 @@ import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
+import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
@@ -329,8 +330,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
             // Assume maps are not null
             return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank()
                 + o1.getTargetName())
-                    .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
-                        + o2.getTargetName());
+                .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
+                    + o2.getTargetName());
           }
         });
         logger.info("    Index map = " + mapset.getName());
@@ -752,6 +753,49 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       // handle definitions
       buildDefinition(terminology, concept, fields);
     }
+  }
+
+  /**
+   * Handle statistics.
+   *
+   * @param terminologyName the terminologyName
+   * @param sourceList the source list
+   * @throws Exception the exception
+   */
+  private void handleStatistics(final Terminology terminology, final Set<String> sourceList)
+    throws Exception {
+    if (terminology.getTerminology().equals("ncim")) {
+      for (String source : sourceList) {
+        // create elastic object
+        ElasticObject newStatsEntry = new ElasticObject("ncim-stats-" + source);
+
+        // get source overlap stats
+        String filePath = this.getFilepath() + "/stats/" + source + "/" + source + ".txt";
+        // read the source overlap file
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+          Map<String, List<StatisticsEntry>> sourceStatsEntry = new HashMap<>();
+          List<StatisticsEntry> statsList = new ArrayList<StatisticsEntry>();
+
+          String line;
+          while ((line = reader.readLine()) != null) {
+            String[] parts = line.split("\\|");
+            StatisticsEntry statisticsEntry = new StatisticsEntry(parts[0], parts[1], parts[2]);
+            statsList.add(statisticsEntry);
+            System.out.println(line);
+          }
+          sourceStatsEntry.put("Source Overlap", statsList);
+          newStatsEntry.setStatisticsMap(sourceStatsEntry);
+          operationsService.index(newStatsEntry, terminology.getObjectIndexName(),
+              ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+        } catch (IOException e) {
+          // Handle the file not found exception and log a warning
+          logger.warn(source + " source overlap stats file not found for ncim");
+        }
+
+        // any future stats additions go here
+      }
+    }
+
   }
 
   /**
@@ -1211,6 +1255,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     //
     // Handle termTypes - n/a - handled inline
     //
+
+    // Handle stats
+    handleStatistics(terminology, terminology.getMetadata().getSynonymSourceSet());
 
   }
 

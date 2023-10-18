@@ -5,9 +5,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -31,6 +33,7 @@ import com.google.common.collect.Sets;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
@@ -1530,6 +1533,37 @@ public class MetadataControllerTests {
     });
     assertThat(metadataResults.get(0).getVersion() == terminology.getVersion());
 
+  }
+
+  /**
+   * Test terminology versions
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSourceStats() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    url = "/api/v1/metadata/";
+    // valid source stats
+    result = mvc.perform(get(url + "/ncim/stats/AOD")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    Map<String, List<StatisticsEntry>> sourceStats = new ObjectMapper().readValue(content,
+        new TypeReference<Map<String, List<StatisticsEntry>>>() {
+          // n/a
+        });
+    assertThat(new ArrayList<>(sourceStats.keySet()).get(0).equals("Source Overlap"));
+    assertThat(sourceStats.get("Source Overlap")).isNotEmpty();
+
+    // invalid source stats
+    result = mvc.perform(get(url + "/ncim/stats/NO-STATS")).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    sourceStats = new ObjectMapper().readValue(content,
+        new TypeReference<Map<String, List<StatisticsEntry>>>() {
+          // n/a
+        });
+    assertThat(sourceStats.isEmpty());
   }
 
 }
