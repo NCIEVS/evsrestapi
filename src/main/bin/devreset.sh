@@ -230,6 +230,7 @@ echo "    load data"
 /opt/stardog/bin/stardog data add --named-graph http://ChEBI_monthly NCIT2 /data/UnitTestData/ChEBI/chebi_213.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://UmlsSemNet NCIT2 /data/UnitTestData/UmlsSemNet/umlssemnet.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://MEDRT NCIT2 /data/UnitTestData/MED-RT/medrt.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://Canmed NCIT2 /data/UnitTestData/Canmed/canmed.owl | sed 's/^/      /'
 echo "    optimize databases"
 /opt/stardog/bin/stardog-admin db optimize -n CTRP | sed 's/^/      /'
 /opt/stardog/bin/stardog-admin db optimize -n NCIT2 | sed 's/^/      /'
