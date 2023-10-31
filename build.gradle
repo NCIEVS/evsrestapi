@@ -73,7 +73,10 @@ dependencies {
     compile 'org.springframework.boot:spring-boot-starter-cache'
 	// Use version 2 with spring boot 3
 	// custom location => springdoc.swagger-ui.path=/swagger-ui/index.html
-    compile "org.springdoc:springdoc-openapi-ui:1.7.0"
+    compile ("org.springdoc:springdoc-openapi-ui:1.7.0") {
+       exclude group: "org.webjars", module: "swagger-ui"
+    }   
+             
     // compile "io.springfox:springfox-boot-starter:3.0.0"
     // Override spring-core version to handle vulnerabilities
 	compile 'org.springframework:spring-core:5.2.22.RELEASE'
