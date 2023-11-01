@@ -245,6 +245,11 @@ public class HierarchyUtils {
       return;
     }
     for (String child : children) {
+      // Skip children matching code
+      if (code.equals(child)) {
+        logger.error("  unexpected self-as-child = " + code);
+        continue;
+      }
       if (descendantMap.get(child) == null) {
         Concept conc = new Concept(child);
         if (parent2child.containsKey(child))
@@ -494,6 +499,7 @@ public class HierarchyUtils {
         for (final String subclass : subclasses) {
           if (path.contains("|" + subclass + "|")) {
             logger.error("  unexpected cycle = " + path + ", " + subclass);
+            continue;
           }
           stack.push(path + "|" + subclass);
         }
