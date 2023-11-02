@@ -433,12 +433,14 @@ public class Map extends BaseModel implements Comparable<Map> {
         && Objects.equals(sourceName, other.sourceName)
         && Objects.equals(sourceTermType, other.sourceTermType)
         && Objects.equals(sourceTerminology, other.sourceTerminology)
+        && Objects.equals(sourceTerminologyVersion, other.sourceTerminologyVersion)
+        && Objects.equals(sourceLoaded, other.sourceLoaded)
         && Objects.equals(targetCode, other.targetCode)
         && Objects.equals(targetName, other.targetName)
         && Objects.equals(targetTermType, other.targetTermType)
         && Objects.equals(targetTerminology, other.targetTerminology)
         && Objects.equals(targetTerminologyVersion, other.targetTerminologyVersion)
-        && Objects.equals(type, other.type);
+        && Objects.equals(targetLoaded, other.targetLoaded) && Objects.equals(type, other.type);
   }
 
   /* see superclass */
