@@ -1,0 +1,23 @@
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000000060	N0000000060	Preferred_Term	1-Compartment
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000000060	N0000000060	CTY	PK
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000000060	N0000000060	NUI	N0000000060
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000000060	N0000000060	Concept_Name	1-Compartment [PK]
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000000060	N0000000060	Status	ACTIVE
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000175809	N0000175809	Synonym	Hydroxyphenylpyruvate Dioxygenase Inhibitor
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000175809	N0000175809	rdfs:subClassOf/owl:Restriction~has_MoA	N0000175808
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000175771	N0000175771	rdfs:subClassOf/owl:Restriction~has_PE	N0000008953
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000193790	N0000193790	rdfs:subClassOf/owl:Restriction~has_SC	N0000191722
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000175874	N0000175874	rdfs:subClassOf/owl:Restriction~has_TC	N0000178297
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000000060	N0000000060	parent-style1	N0000000059
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000000060	N0000000059	child-style1	N0000000060
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000193894	N0000193894	max-children	115
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000000060	N0000000060	parent-count1
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000000215	N0000000215	parent-count2
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000177910	N0000177910	parent-count3
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000175453	N0000175453	parent-count4
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000000223	N0000000223	root
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000000003	N0000000003	root
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000000001	N0000000001	root
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000009802	N0000009802	root
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000193784	N0000193784	root
+http://ncicb.nci.nih.gov/MEDRT.owl#N0000178293	N0000178293	root
