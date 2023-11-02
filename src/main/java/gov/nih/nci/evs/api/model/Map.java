@@ -27,6 +27,12 @@ public class Map extends BaseModel implements Comparable<Map> {
   /** The source terminology. */
   private String sourceTerminology;
 
+  /** The source terminology version. */
+  private String sourceTerminologyVersion;
+
+  /** Is source terminology loaded */
+  private Boolean sourceLoaded;
+
   /** The type. */
   private String type;
 
@@ -53,6 +59,9 @@ public class Map extends BaseModel implements Comparable<Map> {
 
   /** The target terminology version. */
   private String targetTerminologyVersion;
+
+  /** Is target terminology loaded */
+  private Boolean targetLoaded;
 
   /**
    * Instantiates an empty {@link Map}.
@@ -88,10 +97,13 @@ public class Map extends BaseModel implements Comparable<Map> {
     sourceName = other.getSourceName();
     sourceTermType = other.getSourceTermType();
     sourceTerminology = other.getSourceTerminology();
+    sourceTerminologyVersion = other.getSourceTerminologyVersion();
+    sourceLoaded = other.getSourceLoaded();
     targetCode = other.getTargetCode();
     targetName = other.getTargetName();
     targetTerminology = other.getTargetTerminology();
     targetTerminologyVersion = other.getTargetTerminologyVersion();
+    targetLoaded = other.getTargetLoaded();
   }
 
   /**
@@ -320,6 +332,34 @@ public class Map extends BaseModel implements Comparable<Map> {
   }
 
   /**
+   * @return the sourceTerminologyVersion
+   */
+  public String getSourceTerminologyVersion() {
+    return sourceTerminologyVersion;
+  }
+
+  /**
+   * @param sourceTerminologyVersion the sourceTerminologyVersion to set
+   */
+  public void setSourceTerminologyVersion(String sourceTerminologyVersion) {
+    this.sourceTerminologyVersion = sourceTerminologyVersion;
+  }
+
+  /**
+   * @return the sourceLoaded
+   */
+  public Boolean getSourceLoaded() {
+    return sourceLoaded;
+  }
+
+  /**
+   * @param sourceLoaded the sourceLoaded to set
+   */
+  public void setSourceLoaded(Boolean sourceLoaded) {
+    this.sourceLoaded = sourceLoaded;
+  }
+
+  /**
    * Returns the target terminology.
    *
    * @return the target terminology
@@ -355,11 +395,26 @@ public class Map extends BaseModel implements Comparable<Map> {
     this.targetTerminologyVersion = targetTerminologyVersion;
   }
 
+  /**
+   * @return the targetLoaded
+   */
+  public Boolean getTargetLoaded() {
+    return targetLoaded;
+  }
+
+  /**
+   * @param targetLoaded the targetLoaded to set
+   */
+  public void setTargetLoaded(Boolean targetLoaded) {
+    this.targetLoaded = targetLoaded;
+  }
+
   /* see superclass */
   @Override
   public int hashCode() {
-    return Objects.hash(group, rank, rule, source, sourceCode, sourceName, sourceTermType, sourceTerminology,
-        targetCode, targetName, targetTermType, targetTerminology, targetTerminologyVersion, type);
+    return Objects.hash(group, rank, rule, source, sourceCode, sourceName, sourceTermType,
+        sourceTerminology, sourceTerminologyVersion, sourceLoaded, targetCode, targetName,
+        targetTermType, targetTerminology, targetTerminologyVersion, targetLoaded, type);
   }
 
   /* see superclass */
@@ -372,21 +427,26 @@ public class Map extends BaseModel implements Comparable<Map> {
     if (getClass() != obj.getClass())
       return false;
     Map other = (Map) obj;
-    return Objects.equals(group, other.group) && Objects.equals(rank, other.rank) && Objects.equals(rule, other.rule)
-        && Objects.equals(source, other.source) && Objects.equals(sourceCode, other.sourceCode)
-        && Objects.equals(sourceName, other.sourceName) && Objects.equals(sourceTermType, other.sourceTermType)
-        && Objects.equals(sourceTerminology, other.sourceTerminology) && Objects.equals(targetCode, other.targetCode)
-        && Objects.equals(targetName, other.targetName) && Objects.equals(targetTermType, other.targetTermType)
+    return Objects.equals(group, other.group) && Objects.equals(rank, other.rank)
+        && Objects.equals(rule, other.rule) && Objects.equals(source, other.source)
+        && Objects.equals(sourceCode, other.sourceCode)
+        && Objects.equals(sourceName, other.sourceName)
+        && Objects.equals(sourceTermType, other.sourceTermType)
+        && Objects.equals(sourceTerminology, other.sourceTerminology)
+        && Objects.equals(targetCode, other.targetCode)
+        && Objects.equals(targetName, other.targetName)
+        && Objects.equals(targetTermType, other.targetTermType)
         && Objects.equals(targetTerminology, other.targetTerminology)
-        && Objects.equals(targetTerminologyVersion, other.targetTerminologyVersion) && Objects.equals(type, other.type);
+        && Objects.equals(targetTerminologyVersion, other.targetTerminologyVersion)
+        && Objects.equals(type, other.type);
   }
 
   /* see superclass */
   @Override
   public int compareTo(Map o) {
     return (sourceCode + sourceTerminology + group + rank + targetName + targetCode)
-        .compareToIgnoreCase(o.getSourceCode() + o.getSourceTerminology() + o.getGroup() + o.getRank()
-            + o.getTargetName() + o.getTargetCode());
+        .compareToIgnoreCase(o.getSourceCode() + o.getSourceTerminology() + o.getGroup()
+            + o.getRank() + o.getTargetName() + o.getTargetCode());
   }
 
 }
