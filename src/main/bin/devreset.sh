@@ -158,7 +158,7 @@ chmod 755 $dir/x.sh
 chmod ag+rwx $dir
 pid=`docker ps | grep stardog/stardog | cut -f 1 -d\  `
 # note: //data is required for gitbash
-docker exec -it $pid //data/UnitTestData/x.sh
+docker exec $pid //data/UnitTestData/x.sh
 if [[ $? -ne 0 ]]; then
     echo "ERROR: problem connecting to docker elasticsearch"
     exit 1
@@ -239,7 +239,7 @@ chmod 755 $dir/x.sh
 chmod ag+rwx $dir
 pid=`docker ps | grep stardog/stardog | cut -f 1 -d\  `
 # note: //data is required for gitbash
-docker exec -it $pid //data/UnitTestData/x.sh
+docker exec $pid //data/UnitTestData/x.sh
 if [[ $? -ne 0 ]]; then
     echo "ERROR: problem loading stardog"
     exit 1
