@@ -202,8 +202,8 @@ for x in `cat /tmp/y.$$.txt`; do
 
     # if previous version and current version match, then skip
     # this is a monthly that's in both NCIT2 and CTRP databases
-    if [[ $cv == $pv ]]; then
-        echo "    SEEN $cv, continue"
+    if [[ $cv == $pv ]] && [[ $term == $pt ]]; then
+        echo "    SEEN $cv for $pt, continue"
         continue
     fi
 
