@@ -6,7 +6,7 @@
 # directory is mounted as /data within the stardog container.  Thus, while in
 # the stardog container the path /data/UnitTestData must be available.
 #
-# It resets the stardog and elasticsearch data sets locally to update to
+# It resets the stardog data on the remote server. Make sure to get
 # the latest dev testing data set at that google drive URL.
 #
 help=0
