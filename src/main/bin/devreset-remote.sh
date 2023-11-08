@@ -50,6 +50,7 @@ elif [[ -z $STARDOG_USERNAME ]]; then
 elif [[ -z $STARDOG_PASSWORD ]]; then
     echo "ERROR: STARDOG_PASSWORD is not set"
     exit 1
+fi
 
 # Prerequisites - check the UnitTest
 echo "  Check prerequisites"
