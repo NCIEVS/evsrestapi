@@ -205,6 +205,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         term.setTerminology("medrt");
       } else if (term.getSource().endsWith("/CanMED.owl")) {
         term.setTerminology("canmed");
+      } else if (term.getSource().endsWith("/ctcae5.owl")) {
+        term.setTerminology("ctcae5");
       } else {
         log.info("  UNKNOWN ontology = " + term.getSource());
       }
