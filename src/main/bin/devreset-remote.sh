@@ -90,7 +90,7 @@ fi
 
 # Verify docker stardog is running
 echo "    verify docker stardog is running"
-ct=`docker ps | grep 'stardog/stardog' | wc -l`
+ct=`sudo docker ps | grep 'stardog/stardog' | wc -l`
 if [[ $ct -ne 1 ]]; then
     echo "    ERROR: stardog docker is not running"
     exit 1
@@ -98,8 +98,8 @@ fi
 
 # Verify docker stardog has a volume mounted that contains UnitTestData
 echo "    verify docker stardog has /data/UnitTestData mounted"
-pid=`docker ps | grep stardog/stardog | cut -f 1 -d\  `
-datadir=`docker inspect -f '{{ .Mounts }}' $pid | perl -ne '/.*bind\s+([^\s]+)\s+\/data\s+.*/; print $1' | perl -pe 's/.*\/(host_mnt|mnt\/host)\/([cde])/$2:\//'`
+pid=`sudo docker ps | grep stardog/stardog | cut -f 1 -d\  `
+datadir=`sudo docker inspect -f '{{ .Mounts }}' $pid | perl -ne '/.*bind\s+([^\s]+)\s+\/data\s+.*/; print $1' | perl -pe 's/.*\/(host_mnt|mnt\/host)\/([cde])/$2:\//'`
 if [[ -z "$datadir" ]]; then
     echo "ERROR: unable to determine volume mounted to /data in docker $pid"
     exit 1
@@ -118,9 +118,9 @@ ls /data/UnitTestData > //data/UnitTestData/x.txt
 EOF
 chmod 755 $dir/x.sh
 chmod ag+rwx $dir
-pid=`docker ps | grep stardog/stardog | cut -f 1 -d\  `
+pid=`sudo docker ps | grep stardog/stardog | cut -f 1 -d\  `
 # note: //data is required for gitbash
-docker exec $pid //data/UnitTestData/x.sh
+sudo docker exec $pid //data/UnitTestData/x.sh
 if [[ $? -ne 0 ]]; then
     echo "ERROR: problem connecting to docker elasticsearch"
     exit 1
@@ -162,9 +162,9 @@ echo "    optimize databases"
 EOF
 chmod 755 $dir/x.sh
 chmod ag+rwx $dir
-pid=`docker ps | grep stardog/stardog | cut -f 1 -d\  `
+pid=`sudo docker ps | grep stardog/stardog | cut -f 1 -d\  `
 # note: //data is required for gitbash
-docker exec $pid //data/UnitTestData/x.sh
+sudo docker exec $pid //data/UnitTestData/x.sh
 if [[ $? -ne 0 ]]; then
     echo "ERROR: problem loading stardog"
     exit 1
