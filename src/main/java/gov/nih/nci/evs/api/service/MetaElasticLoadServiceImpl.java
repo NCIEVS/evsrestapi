@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,6 +37,7 @@ import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.History;
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
@@ -48,6 +50,7 @@ import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PushBackReader;
 import gov.nih.nci.evs.api.util.RrfReaders;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * The implementation for {@link MetaElasticLoadServiceImpl}.
@@ -145,6 +148,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   /** The elastic query service. */
   @Autowired
   ElasticQueryService elasticQueryService;
+
+  /** The terminology utils */
+  @Autowired
+  TerminologyUtils termUtils;
 
   /**
    * Returns the filepath.
@@ -292,6 +299,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
         // Handle mapsets
         if (!mapsetMap.containsKey(fields[0])) {
+          List<String> terms = termUtils.getTerminologies(true).stream()
+              .map(Terminology::getTerminology).collect(Collectors.toList());
           final Concept mapset = new Concept();
           // populate the mapset details.
           final String code = mapsetNameMap.get(fields[0]).replaceAll(" ", "_");
@@ -308,6 +317,20 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           mapset.getProperties().add(new Property("welcomeText", welcomeText));
           mapset.getProperties().add(new Property("mapsetLink", null));
           mapset.getProperties().add(new Property("downloadOnly", "false"));
+          mapset.getProperties().add(new Property("sourceLoaded",
+              Boolean.toString(terms.contains(map.getSourceTerminology().toLowerCase()))));
+          mapset.getProperties().add(new Property("targetLoaded",
+              Boolean.toString(terms.contains(map.getTargetTerminology().toLowerCase()))));
+          mapset.getProperties().add(new Property("sourceTerminology",
+              map.getSourceTerminology() != null ? map.getSourceTerminology() : "not found"));
+          mapset.getProperties().add(new Property("targetTerminology",
+              map.getTargetTerminology() != null ? map.getTargetTerminology() : "not found"));
+          mapset.getProperties().add(
+              new Property("sourceTerminologyVersion", map.getSourceTerminologyVersion() != null
+                  ? map.getSourceTerminologyVersion() : "not found"));
+          mapset.getProperties().add(
+              new Property("targetTerminologyVersion", map.getTargetTerminologyVersion() != null
+                  ? map.getTargetTerminologyVersion() : "not found"));
           mapsetMap.put(fields[0], mapset);
           mapsetCt++;
         }
@@ -322,6 +345,24 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
             ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
             Concept.class);
       }
+      // current snomed mapset codes
+      List<String> currentMapsetCodes =
+          elasticQueryService.getMapsets(new IncludeParam("properties")).stream()
+              .filter(concept -> concept.getProperties().stream()
+                  .anyMatch(property -> property.getType().equals("loader")
+                      && property.getValue().contains("MetaElasticLoadServiceImpl")))
+              .map(Concept::getCode).collect(Collectors.toList());
+      // all found snomed codes
+      List<String> allCodes =
+          mapsetMap.values().parallelStream().map(Concept::getCode).collect(Collectors.toList());
+      // mapsets to remove (in current index and shouldn't be)
+      List<String> mapsetsToRemove = currentMapsetCodes.stream().filter(l -> !allCodes.contains(l))
+          .collect(Collectors.toList());
+      // remove old mappings by code
+      for (String mapsetCode : mapsetsToRemove) {
+        operationsService.delete(ElasticOperationsService.MAPPING_INDEX,
+            ElasticOperationsService.CONCEPT_TYPE, mapsetCode);
+      }
       for (final Concept mapset : mapsetMap.values()) {
         Collections.sort(mapset.getMaps(), new Comparator<gov.nih.nci.evs.api.model.Map>() {
           @Override
@@ -330,8 +371,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
             // Assume maps are not null
             return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank()
                 + o1.getTargetName())
-                .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
-                    + o2.getTargetName());
+                    .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
+                        + o2.getTargetName());
           }
         });
         logger.info("    Index map = " + mapset.getName());
@@ -471,6 +512,26 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     logger.info("    ruiQualMap = " + ruiQualMap.size());
     logger.info("    replHistoryMap = " + replHistoryMap.size());
 
+  }
+
+  public Boolean mappingNeedsUpdate(String code, String version,
+    java.util.Map<String, String> currentMapsets) {
+
+    // adding for first time
+    if (currentMapsets.keySet().isEmpty() || !currentMapsets.keySet().contains(code)) {
+      return true;
+    }
+
+    Optional<String> currentMapVersion = Optional.ofNullable(currentMapsets.get(code));
+    // version number while current version number is null
+    if (!version.isEmpty() && currentMapVersion.isPresent() && currentMapVersion.get().isEmpty()) {
+      return true;
+    }
+    // different version
+    if (!version.isEmpty() && currentMapVersion.isPresent()
+        && !version.equals(currentMapVersion.get()))
+      return true;
+    return false;
   }
 
   /* see superclass */
