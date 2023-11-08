@@ -233,6 +233,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         currentMapsetCodes.stream().filter(l -> !allCodes.contains(l)).collect(Collectors.toList());
     logger.info("Mapsets to remove = " + mapsetsToRemove.toString());
 
+    List<String> terms = termUtils.getTerminologies(true).stream().map(Terminology::getTerminology)
+        .collect(Collectors.toList());
+
     for (String line : allLines) { // build each mapset
       String[] metadata = line.split(",", -1);
       // remove and skip
@@ -265,6 +268,15 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             IOUtils.toString(new URL(uri + "/" + metadata[3]).openConnection().getInputStream(),
                 StandardCharsets.UTF_8);
         map.getProperties().add(new Property("welcomeText", welcomeText));
+        map.getProperties().add(new Property("sourceTerminology", metadata[5]));
+        map.getProperties().add(new Property("sourceTerminologyVersion", metadata[6]));
+        map.getProperties().add(new Property("targetTerminology", metadata[7]));
+        map.getProperties()
+            .add(new Property("targetTerminologyVersion", metadata[8].replaceAll("\\s", "")));
+        map.getProperties()
+            .add(new Property("sourceLoaded", Boolean.toString(terms.contains(metadata[5]))));
+        map.getProperties()
+            .add(new Property("targetLoaded", Boolean.toString(terms.contains(metadata[7]))));
 
         String mappingDataUri = mappingUri + map.getName()
             + (map.getVersion() != null ? ("_" + map.getVersion()) : "") + ".txt"; // build
