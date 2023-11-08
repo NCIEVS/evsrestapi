@@ -154,7 +154,7 @@ done
 # this is because we need "monthly" to be indexed from the "monthlyDb"
 # defined in ncit.json
 # NOTE: version isn't cleaned up here so from where versionIRI is still an IRI
-sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
+/bin/sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
 cat /tmp/y.$$.txt | sed 's/^/    version = /;'
 
 if [[ $ES_CLEAN == "true" ]]; then
@@ -198,12 +198,12 @@ for x in `cat /tmp/y.$$.txt`; do
     cv=`echo $version | perl -pe 's/[\.\-]//g;'`
     db=`echo $x | cut -d\| -f 2`
     uri=`echo $x | cut -d\| -f 3`
-    term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/; s/.*\/chebi.owl/chebi/; s/.*\/umlssemnet.owl/umlssemnet/; s/.*\/MEDRT.owl/medrt/; s/.*\/CanMED.owl/canmed/'`
+    term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/; s/.*\/chebi.owl/chebi/; s/.*\/umlssemnet.owl/umlssemnet/; s/.*\/MEDRT.owl/medrt/; s/.*\/CanMED.owl/canmed/; s/.*\/ctcae5.owl/ctcae5/'`
 
     # if previous version and current version match, then skip
     # this is a monthly that's in both NCIT2 and CTRP databases
-    if [[ $cv == $pv ]]; then
-        echo "    SEEN $cv, continue"
+    if [[ $cv == $pv ]] && [[ $term == $pt ]]; then
+        echo "    SEEN $cv for $pt, continue"
         continue
     fi
 
