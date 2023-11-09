@@ -66,8 +66,8 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   @Cacheable(value = "metadata", key = "{#root.methodName,#include.orElse(''),#terminology}",
       condition = "#list.orElse('').isEmpty()")
-  public List<Concept> getAssociations(String terminology, Optional<String> include,
-    Optional<String> list) throws Exception {
+  public List<Concept> getAssociations(String terminology, Optional<String> include, Optional<String> list)
+    throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
@@ -85,18 +85,16 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  public Optional<Concept> getAssociation(String terminology, String code, Optional<String> include)
-    throws Exception {
+  public Optional<Concept> getAssociation(String terminology, String code, Optional<String> include) throws Exception {
     // Verify that it is an association
-    final List<Concept> list = self.getAssociations(terminology,
-        Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
+    final List<Concept> list =
+        self.getAssociations(terminology, Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
     if (list.size() == 1) {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return esQueryService.getAssociation(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
-          "Too many associations " + code + " found");
+      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Too many associations " + code + " found");
     }
     return Optional.empty();
   }
@@ -111,8 +109,7 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  public List<Concept> getRoles(String terminology, Optional<String> include, Optional<String> list)
-    throws Exception {
+  public List<Concept> getRoles(String terminology, Optional<String> include, Optional<String> list) throws Exception {
 
     final Terminology term = termUtils.getTerminology(terminology, true);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
@@ -131,19 +128,17 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  public Optional<Concept> getRole(String terminology, String code, Optional<String> include)
-    throws Exception {
+  public Optional<Concept> getRole(String terminology, String code, Optional<String> include) throws Exception {
 
     // Verify that it is a role
-    final List<Concept> list = self.getRoles(terminology,
-        Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
+    final List<Concept> list =
+        self.getRoles(terminology, Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
     if (list.size() == 1) {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return esQueryService.getRole(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
-          "Too many roles " + code + " found");
+      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Too many roles " + code + " found");
     }
     return Optional.empty();
   }
@@ -158,8 +153,8 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  public List<Concept> getProperties(String terminology, Optional<String> include,
-    Optional<String> list) throws Exception {
+  public List<Concept> getProperties(String terminology, Optional<String> include, Optional<String> list)
+    throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
@@ -178,8 +173,7 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  public Map<String, List<StatisticsEntry>> getSourceStats(String terminology, String source)
-    throws Exception {
+  public Map<String, List<StatisticsEntry>> getSourceStats(String terminology, String source) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
 
     return esQueryService.getSourceStats(term, source);
@@ -188,8 +182,8 @@ public class MetadataServiceImpl implements MetadataService {
 
   /* see superclass */
   @Override
-  public List<Concept> getQualifiers(String terminology, Optional<String> include,
-    Optional<String> list) throws Exception {
+  public List<Concept> getQualifiers(String terminology, Optional<String> include, Optional<String> list)
+    throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
@@ -209,19 +203,16 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  public Optional<Concept> getQualifier(String terminology, String code, Optional<String> include)
-    throws Exception {
+  public Optional<Concept> getQualifier(String terminology, String code, Optional<String> include) throws Exception {
     // Verify that it is a qualifier
-    final List<Concept> list =
-        self.getQualifiers(terminology, Optional.of("minimal"), Optional.ofNullable(code));
+    final List<Concept> list = self.getQualifiers(terminology, Optional.of("minimal"), Optional.ofNullable(code));
 
     if (list.size() == 1) {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return esQueryService.getQualifier(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
-          "Too many qualifiers " + code + " found");
+      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Too many qualifiers " + code + " found");
     }
     return Optional.empty();
   }
@@ -236,19 +227,16 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  public Optional<Concept> getProperty(String terminology, String code, Optional<String> include)
-    throws Exception {
+  public Optional<Concept> getProperty(String terminology, String code, Optional<String> include) throws Exception {
 
     // Verify that it is a property
-    final List<Concept> list =
-        self.getProperties(terminology, Optional.of("minimal"), Optional.ofNullable(code));
+    final List<Concept> list = self.getProperties(terminology, Optional.of("minimal"), Optional.ofNullable(code));
     if (list.size() == 1) {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return esQueryService.getProperty(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
-          "Too many properties " + code + " found");
+      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Too many properties " + code + " found");
     }
     return Optional.empty();
   }
@@ -272,8 +260,7 @@ public class MetadataServiceImpl implements MetadataService {
     final Terminology term = termUtils.getTerminology(terminology, true);
 
     // Build the list from terminology metadata
-    return buildList(term, term.getMetadata().getDefinitionSourceSet(),
-        term.getMetadata().getSources());
+    return buildList(term, term.getMetadata().getDefinitionSourceSet(), term.getMetadata().getSources());
 
   }
 
@@ -287,13 +274,16 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   public List<ConceptMinimal> getSynonymSources(String terminology) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
-    if (!term.getTerminology().equals("ncit")) {
-      // Build the list from terminology metadata
-      return buildList(term, term.getMetadata().getSynonymSourceSet(),
-          term.getMetadata().getSources());
+    // For things loaded via RRF
+    if (!term.getMetadata().getSynonymSourceSet().isEmpty()) {
+      return buildList(term, term.getMetadata().getSynonymSourceSet(), term.getMetadata().getSources());
     }
+    // For NCIt (and other things don't have source info)
+    // Here we lookup from the db but we resolve against the metadata expansions
+    final Set<String> sources =
+        esQueryService.getSynonymSources(term).stream().map(c -> c.getCode()).collect(Collectors.toSet());
+    return buildList(term, sources, term.getMetadata().getSources());
 
-    return esQueryService.getSynonymSources(term);
   }
 
   /**
@@ -305,8 +295,7 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  public Optional<List<String>> getQualifierValues(String terminology, String code)
-    throws Exception {
+  public Optional<List<String>> getQualifierValues(String terminology, String code) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
     final Map<String, Set<String>> map = esQueryService.getQualifierValues(term);
     if (map == null || !map.containsKey(code)) {
@@ -329,8 +318,7 @@ public class MetadataServiceImpl implements MetadataService {
 
     final Terminology term = termUtils.getTerminology(terminology, true);
     // Build the list from terminology metadata
-    return buildList(term, term.getMetadata().getTermTypes().keySet(),
-        term.getMetadata().getTermTypes());
+    return buildList(term, term.getMetadata().getTermTypes().keySet(), term.getMetadata().getTermTypes());
 
   }
 
@@ -353,8 +341,8 @@ public class MetadataServiceImpl implements MetadataService {
 
   /* see superclass */
   @Override
-  public List<Concept> getSynonymTypes(String terminology, Optional<String> include,
-    Optional<String> list) throws Exception {
+  public List<Concept> getSynonymTypes(String terminology, Optional<String> include, Optional<String> list)
+    throws Exception {
 
     final Terminology term = termUtils.getTerminology(terminology, true);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
@@ -365,27 +353,25 @@ public class MetadataServiceImpl implements MetadataService {
 
   /* see superclass */
   @Override
-  public Optional<Concept> getSynonymType(String terminology, String code, Optional<String> include)
-    throws Exception {
+  public Optional<Concept> getSynonymType(String terminology, String code, Optional<String> include) throws Exception {
 
     // Verify that it is a synonym type
-    final List<Concept> list = self.getSynonymTypes(terminology,
-        Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
+    final List<Concept> list =
+        self.getSynonymTypes(terminology, Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
     if (list.size() == 1) {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return esQueryService.getSynonymType(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
-          "Too many synonym types " + code + " found");
+      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Too many synonym types " + code + " found");
     }
     return Optional.empty();
   }
 
   /* see superclass */
   @Override
-  public List<Concept> getDefinitionTypes(String terminology, Optional<String> include,
-    Optional<String> list) throws Exception {
+  public List<Concept> getDefinitionTypes(String terminology, Optional<String> include, Optional<String> list)
+    throws Exception {
 
     final Terminology term = termUtils.getTerminology(terminology, true);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
@@ -396,33 +382,33 @@ public class MetadataServiceImpl implements MetadataService {
 
   /* see superclass */
   @Override
-  public Optional<Concept> getDefinitionType(String terminology, String code,
-    Optional<String> include) throws Exception {
+  public Optional<Concept> getDefinitionType(String terminology, String code, Optional<String> include)
+    throws Exception {
 
     // Verify that it is a definition type
-    final List<Concept> list = self.getDefinitionTypes(terminology,
-        Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
+    final List<Concept> list =
+        self.getDefinitionTypes(terminology, Optional.ofNullable(include.orElse("minimal")), Optional.ofNullable(code));
     if (list.size() == 1) {
       final Terminology term = termUtils.getTerminology(terminology, true);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
       return esQueryService.getDefinitionType(list.get(0).getCode(), term, ip);
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
-          "Too many definition types " + code + " found");
+      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Too many definition types " + code + " found");
     }
     return Optional.empty();
   }
 
   /* see superclass */
-  public AssociationEntryResultList getAssociationEntries(String terminology, String label,
-    Integer fromRecord, Integer pageSize) throws Exception {
+  @Override
+  public AssociationEntryResultList getAssociationEntries(String terminology, String label, Integer fromRecord,
+    Integer pageSize) throws Exception {
     return esQueryService.getAssociationEntries(terminology, label, fromRecord, pageSize);
   }
 
   /* see superclass */
   @Override
-  public List<Concept> getSubsets(String terminology, Optional<String> include,
-    Optional<String> list) throws Exception {
+  public List<Concept> getSubsets(String terminology, Optional<String> include, Optional<String> list)
+    throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
     final IncludeParam ipWithProperties = new IncludeParam(include.orElse(null));
     final IncludeParam ip = new IncludeParam(include.orElse(null));
@@ -442,21 +428,19 @@ public class MetadataServiceImpl implements MetadataService {
     if (!list.isPresent()) {
 
       if (include.orElse("minimal").equals("minimal")) {
-          return subsets;
+        return subsets;
       }
-      
-      final Set<String> codes = subsets.stream().flatMap(Concept::streamSelfAndChildren)
-          .map(c -> c.getCode()).collect(Collectors.toSet());
-      final Map<String, Concept> conceptMap =
-          esQueryService.getConceptsAsMap(codes, term, ipWithProperties);
+
+      final Set<String> codes =
+          subsets.stream().flatMap(Concept::streamSelfAndChildren).map(c -> c.getCode()).collect(Collectors.toSet());
+      final Map<String, Concept> conceptMap = esQueryService.getConceptsAsMap(codes, term, ipWithProperties);
 
       // Populate subset concepts (with properties)
-      subsets.stream().flatMap(Concept::streamSelfAndChildren)
-          .peek(c -> c.populateFrom(conceptMap.get(c.getCode())));
+      subsets.stream().flatMap(Concept::streamSelfAndChildren).peek(c -> c.populateFrom(conceptMap.get(c.getCode())));
 
       // Apply include (without properties)
-      subsets.stream().flatMap(Concept::streamSelfAndChildren)
-          .peek(c -> ConceptUtils.applyInclude(c, ip)).collect(Collectors.toList());
+      subsets.stream().flatMap(Concept::streamSelfAndChildren).peek(c -> ConceptUtils.applyInclude(c, ip))
+          .collect(Collectors.toList());
 
       // Remove subsets if they are not publishable - should not be necessary
       // subsets.removeIf(c -> c.getProperties().stream()
@@ -466,10 +450,9 @@ public class MetadataServiceImpl implements MetadataService {
     }
 
     // List of codes supplied - first apply the filter.
-    subsets = ConceptUtils.applyListWithChildren(subsets, ip, list.orElse(null)).stream()
-        .collect(Collectors.toSet()).stream().collect(Collectors.toList());
-    subsets.stream()
-        .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get(), true))
+    subsets = ConceptUtils.applyListWithChildren(subsets, ip, list.orElse(null)).stream().collect(Collectors.toSet())
+        .stream().collect(Collectors.toList());
+    subsets.stream().peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get(), true))
         .peek(c -> ConceptUtils.applyInclude(c, ip)).collect(Collectors.toList());
 
     return subsets;
@@ -478,16 +461,14 @@ public class MetadataServiceImpl implements MetadataService {
 
   /* see superclass */
   @Override
-  public Optional<Concept> getSubset(String terminology, String code, Optional<String> include)
-    throws Exception {
+  public Optional<Concept> getSubset(String terminology, String code, Optional<String> include) throws Exception {
 
     // Verify that it is a property
     final List<Concept> list = self.getSubsets(terminology, include, Optional.ofNullable(code));
     if (list.size() == 1) {
       return Optional.of(list.get(0));
     } else if (list.size() > 1) {
-      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED,
-          "Too many subsets " + code + " found");
+      throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Too many subsets " + code + " found");
     }
     return Optional.empty();
   }
