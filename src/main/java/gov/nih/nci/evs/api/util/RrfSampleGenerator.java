@@ -123,7 +123,7 @@ public class RrfSampleGenerator {
 
       // load maps
       logger.info("  Load maps");
-      loadMaps();
+      loadMaps(inputCuis);
 
       // Verify input codes
       if (inputCuis.stream().filter(c -> !allcuis.contains(c)).count() > 0) {
@@ -144,8 +144,12 @@ public class RrfSampleGenerator {
       // 1b. Get descendants if indicated
       final Set<String> descendants = new HashSet<>();
       if (keepDescendants) {
-        for (final String code : new HashSet<>(codesabs)) {
-          descendants.addAll(getDescendantsHelper(codesabAuiMap.get(code)));
+        for (final String codesab : new HashSet<>(codesabs)) {
+          // Only do this if the SAB part is in terminologies
+          if (!terminologies.contains(codesab.replaceFirst(".*\\|", ""))) {
+            continue;
+          }
+          descendants.addAll(getDescendantsHelper(codesabAuiMap.get(codesab)));
           logger.info("    desc count = " + descendants.size());
         }
       }
@@ -153,11 +157,15 @@ public class RrfSampleGenerator {
       // 2. Find other related concepts
       if (distanceOne) {
         logger.info("  Add distance 1 related concepts");
-        for (final String code : new HashSet<>(codesabs)) {
-          if (otherMap.containsKey(codesabAuiMap.get(code))) {
-            logger.info("    add auis = " + otherMap.get(codesabAuiMap.get(code)));
+        for (final String codesab : new HashSet<>(codesabs)) {
+          // Only do this if the SAB part is in terminologies
+          if (!terminologies.contains(codesab.replaceFirst(".*\\|", ""))) {
+            continue;
+          }
+          if (otherMap.containsKey(codesabAuiMap.get(codesab))) {
+            logger.info("    add auis = " + otherMap.get(codesabAuiMap.get(codesab)));
             // Map auis back to codes
-            codesabs.addAll(otherMap.get(codesabAuiMap.get(code)).stream().map(a -> auiCodesabMap.get(a))
+            codesabs.addAll(otherMap.get(codesabAuiMap.get(codesab)).stream().map(a -> auiCodesabMap.get(a))
                 .collect(Collectors.toSet()));
           }
         }
@@ -174,13 +182,24 @@ public class RrfSampleGenerator {
 
         // 4. Find all concepts on path to root (e.g. walk up ancestors)
         // Assumes no cycles
-        for (final String code : new HashSet<>(codesabs)) {
-          final String aui = codesabAuiMap.get(code);
+        for (final String codesab : new HashSet<>(codesabs)) {
+
+          // If codesab is null (which can happen while collecting them above)
+          if (codesab == null) {
+            continue;
+          }
+
+          // Only do this if the SAB part is in terminologies
+          if (!terminologies.contains(codesab.replaceFirst(".*\\|", ""))) {
+            continue;
+          }
+
+          final String aui = codesabAuiMap.get(codesab);
           if (aui == null) {
-            throw new Exception("Code missing from codeAuiMap = " + code);
+            throw new Exception("Code missing from codeAuiMap = " + codesab);
           }
           if (!chdParMap.containsKey(aui)) {
-            logger.info("      encountered root code = " + code);
+            logger.info("      encountered root code = " + codesab);
             continue;
           }
           for (final String parAui : chdParMap.get(aui)) {
@@ -199,8 +218,8 @@ public class RrfSampleGenerator {
       codesabs.addAll(descendants.stream().map(a -> auiCodesabMap.get(a)).collect(Collectors.toSet()));
 
       // Map codes to CUIs
-      final Set<String> cuis =
-          codesabs.stream().flatMap(c -> codesabCuisMap.get(c).stream()).collect(Collectors.toSet());
+      final Set<String> cuis = codesabs.stream().filter(s -> s != null).flatMap(c -> codesabCuisMap.get(c).stream())
+          .collect(Collectors.toSet());
 
       // Add in original CUIs
       cuis.addAll(inputCuis);
@@ -228,9 +247,10 @@ public class RrfSampleGenerator {
   /**
    * Load maps.
    *
+   * @param inputCuis the input cuis
    * @throws Exception the exception
    */
-  private void loadMaps() throws Exception {
+  private void loadMaps(final Set<String> inputCuis) throws Exception {
     String line = "";
     final Map<String, String> codesabTtyMap = new HashMap<>();
     final Map<String, Integer> ttyMap = new HashMap<>();
@@ -242,12 +262,13 @@ public class RrfSampleGenerator {
         // 0096|RXNORM|SY|N|
         final String[] fields = line.split("\\|", -1);
         final String rank = fields[0];
-        final String sab = fields[1];
+        // final String sab = fields[1];
         final String tty = fields[2];
 
-        if (!terminologies.contains(sab) && !sab.equals("SRC")) {
-          continue;
-        }
+        // Keep all SABs
+        // if (!terminologies.contains(sab) && !sab.equals("SRC")) {
+        // continue;
+        // }
 
         // Add rank, higher is better
         ttyMap.put(tty, Integer.parseInt(rank));
@@ -268,8 +289,8 @@ public class RrfSampleGenerator {
         final String code = fields[13];
         final String codesab = fields[13] + "|" + sab;
 
-        // Match this source OR the SRC for this terminology
-        if (!terminologies.contains(sab)
+        // Match this source OR the SRC for this terminology (or input cuis)
+        if (!inputCuis.contains(cui) && !terminologies.contains(sab)
             && !(sab.equals("SRC") && terminologies.stream().filter(t -> code.contains(t)).count() > 0)) {
           continue;
         }
@@ -324,8 +345,9 @@ public class RrfSampleGenerator {
         final String sab = fields[10];
         final String reldir = fields[13];
 
-        // Keep only entries matching terminology
-        if (!terminologies.contains(sab) && !sab.equals("SRC")) {
+        // Keep only entries matching terminology (or input cuis)
+        if (!inputCuis.contains(cui1) && !inputCuis.contains(cui2) && !terminologies.contains("*")
+            && !terminologies.contains(sab) && !sab.equals("SRC")) {
           continue;
         }
 

@@ -97,7 +97,7 @@ public class SamplingApplication {
     generator.setCuisFile(listFile);
     generator.setInputPath(inputPath);
     generator.setKeepDescendants(false);
-    generator.setDistanceOne(true);
+    // generator.setDistanceOne(true);
     generator.compute();
 
   }
