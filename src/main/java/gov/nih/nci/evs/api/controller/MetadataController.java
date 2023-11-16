@@ -105,8 +105,9 @@ public class MetadataController extends BaseController {
       List<Terminology> terms = termUtils.getTerminologies(true);
 
       if (latest.isPresent()) {
-        terms = terms.stream().filter(f -> f.getLatest().equals(latest.get()))
-            .collect(Collectors.toList());
+        terms =
+            terms.stream().filter(f -> f.getLatest() != null && f.getLatest().equals(latest.get()))
+                .collect(Collectors.toList());
       }
 
       if (tag.isPresent() && tagList.contains(tag.get())) {
