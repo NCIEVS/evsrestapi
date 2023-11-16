@@ -352,12 +352,28 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
                   .anyMatch(property -> property.getType().equals("loader")
                       && property.getValue().contains("MetaElasticLoadServiceImpl")))
               .map(Concept::getCode).collect(Collectors.toList());
+      List<String> currentMapsetVersions =
+          elasticQueryService.getMapsets(new IncludeParam("properties")).stream()
+              .filter(concept -> concept.getProperties().stream()
+                  .anyMatch(property -> property.getType().equals("loader")
+                      && property.getValue().contains("MetaElasticLoadServiceImpl")))
+              .map(Concept::getVersion).collect(Collectors.toList());
+      logger.info("currentMapsetCodes = " + currentMapsetCodes.toString());
+      logger.info("currentMapsetVersions = " + currentMapsetVersions.toString());
       // all found snomed codes
       List<String> allCodes =
           mapsetMap.values().parallelStream().map(Concept::getCode).collect(Collectors.toList());
+      List<String> allVersions =
+          mapsetMap.values().parallelStream().map(Concept::getVersion).collect(Collectors.toList());
+      logger.info("allCodes = " + allCodes.toString());
+      logger.info("allVersions = " + allVersions.toString());
       // mapsets to remove (in current index and shouldn't be)
       List<String> mapsetsToRemove = currentMapsetCodes.stream().filter(l -> !allCodes.contains(l))
           .collect(Collectors.toList());
+      logger.info("mapsetsToRemove = " + mapsetsToRemove.toString());
+      List<String> mapsetsToAdd = allCodes.stream().filter(l -> !currentMapsetCodes.contains(l))
+          .collect(Collectors.toList());
+      logger.info("mapsetsToAdd = " + mapsetsToAdd);
       // remove old mappings by code
       for (String mapsetCode : mapsetsToRemove) {
         operationsService.delete(ElasticOperationsService.MAPPING_INDEX,
