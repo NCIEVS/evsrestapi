@@ -1,12 +1,4 @@
-/*
- * Copyright 2023 West Coast Informatics - All Rights Reserved.
- *
- * NOTICE:  All information contained herein is, and remains the property of West Coast Informatics
- * The intellectual and technical concepts contained herein are proprietary to
- * West Coast Informatics and may be covered by U.S. and Foreign Patents, patents in process,
- * and are protected by trade secret or copyright law.  Dissemination of this information
- * or reproduction of this material is strictly forbidden.
- */
+
 package gov.nih.nci.evs.api.util;
 
 import java.io.BufferedReader;
@@ -117,7 +109,7 @@ public class RrfFileCopier {
     final Set<String> sabs) throws Exception {
 
     final int[] cuiFields = key == null ? null : key.getCuiFields();
-    final int sabField = key == null ? -1 : key.getSabField();
+    // final int sabField = key == null ? -1 : key.getSabField();
 
     // Now, iterate through input file and copy lines with headers
     // or where the "keyMap" field is in concepts/descriptions
@@ -127,11 +119,6 @@ public class RrfFileCopier {
       OUTER: while ((line = in.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
 
-        // Skip non-matching SAB (keep SRC data for CUIs specified)
-        if (sabField != -1 && sabs != null && !sabs.isEmpty() && !sabs.contains(fields[sabField])
-            && !fields[sabField].equals("SRC")) {
-          continue;
-        }
         // Skip non-matching CUI
         if (cuiFields != null && cuis != null && !cuis.isEmpty()) {
           for (final int i : cuiFields) {
@@ -140,6 +127,15 @@ public class RrfFileCopier {
             }
           }
         }
+
+        // ACTUALLY don't do this, keep all lines for files without CUIs
+        // and for fiels with CUIs, keep lines with matching CUIs
+
+        // // Skip non-matching SAB (keep SRC data for CUIs specified)
+        // if (sabField != -1 && sabs != null && !sabs.isEmpty() && !sabs.contains(fields[sabField])
+        // && !fields[sabField].equals("SRC")) {
+        // continue;
+        // }
 
         // Otherwise, copy line.
         out.print(line + "\n");

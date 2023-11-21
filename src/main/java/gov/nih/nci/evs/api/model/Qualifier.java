@@ -6,14 +6,17 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
- * Represents a qualifier on a synonym, definition, property, or role that isn't
- * explicitly modeled as a first-class attribute.
+ * Represents a qualifier on a synonym, definition, property, or role that isn't explicitly modeled
+ * as a first-class attribute.
  */
+@Schema(description = "Represents a type/value qualifier on a concept element")
 @JsonIgnoreProperties(value = {
     "code"
 })
@@ -79,6 +82,7 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
    *
    * @return the code
    */
+  @Schema(hidden = true)
   public String getCode() {
     return code;
   }
@@ -97,6 +101,7 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
    *
    * @return the type
    */
+  @Schema(description = "Qualifier type")
   public String getType() {
     return type;
   }
@@ -115,6 +120,7 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
    *
    * @return the value
    */
+  @Schema(description = "Qualifier value")
   public String getValue() {
     return value;
   }
@@ -128,11 +134,6 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
     this.value = value;
   }
 
-  /**
-   * Hash code.
-   *
-   * @return the int
-   */
   /* see superclass */
   @Override
   public int hashCode() {
@@ -143,12 +144,6 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
     return result;
   }
 
-  /**
-   * Equals.
-   *
-   * @param obj the obj
-   * @return true, if successful
-   */
   /* see superclass */
   @Override
   public boolean equals(final Object obj) {

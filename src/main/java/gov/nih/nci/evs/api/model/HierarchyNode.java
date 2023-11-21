@@ -4,10 +4,13 @@ package gov.nih.nci.evs.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
- * Represents a node in a hierarchy and is directly compatible with the primeng
- * "TreeNode" structure.
+ * Represents a node in a hierarchy and is directly compatible with the primeng "TreeNode"
+ * structure.
  */
+@Schema(description = "Represents a node in a subtree rendering of the hierarchy")
 public class HierarchyNode extends BaseModel {
 
   /** The code. */
@@ -70,6 +73,7 @@ public class HierarchyNode extends BaseModel {
    *
    * @return the code
    */
+  @Schema(description = "Code of the hierarchy node")
   public String getCode() {
     return code;
   }
@@ -88,6 +92,7 @@ public class HierarchyNode extends BaseModel {
    *
    * @return the label
    */
+  @Schema(description = "Code label for the hierarchy node")
   public String getLabel() {
     return label;
   }
@@ -106,6 +111,7 @@ public class HierarchyNode extends BaseModel {
    *
    * @return the leaf
    */
+  @Schema(description = "Indicates whether the code has children")
   public Boolean getLeaf() {
     return leaf;
   }
@@ -124,6 +130,7 @@ public class HierarchyNode extends BaseModel {
    *
    * @return the level
    */
+  @Schema(description = "Indicates level of depth in the (respective) hierarchy")
   public Integer getLevel() {
     return level;
   }
@@ -142,6 +149,7 @@ public class HierarchyNode extends BaseModel {
    *
    * @return the expanded
    */
+  @Schema(description = "Indicates whether the node has been expanded")
   public Boolean getExpanded() {
     return expanded;
   }
@@ -160,6 +168,7 @@ public class HierarchyNode extends BaseModel {
    *
    * @return the highlight
    */
+  @Schema(hidden = true)
   public Boolean getHighlight() {
     return highlight;
   }
@@ -178,6 +187,7 @@ public class HierarchyNode extends BaseModel {
    *
    * @return the children
    */
+  @Schema(description = "Child nodes")
   public List<HierarchyNode> getChildren() {
     if (children == null) {
       children = new ArrayList<>();

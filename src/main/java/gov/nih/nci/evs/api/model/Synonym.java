@@ -15,9 +15,12 @@ import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents a synonym of a concept.
  */
+@Schema(description = "Represents one of the (potentially many) names for a concept")
 @JsonInclude(Include.NON_EMPTY)
 public class Synonym extends BaseModel implements Comparable<Synonym> {
 
@@ -69,7 +72,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   /** The qualifiers - not NCIT, but could be other terminologies. */
   @Field(type = FieldType.Nested)
   private List<Qualifier> qualifiers;
-  
+
   /** The active flag. */
   @Field(type = FieldType.Boolean)
   private Boolean active;
@@ -116,6 +119,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    *
    * @return the name
    */
+  @Schema(description = "Name for a concept")
   public String getName() {
     return name;
   }
@@ -134,6 +138,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    *
    * @return the normName
    */
+  @Schema(hidden = true)
   public String getNormName() {
     return normName;
   }
@@ -149,13 +154,18 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   }
 
   /**
+   * Returns the stem name.
+   *
    * @return the stemName
    */
+  @Schema(hidden = true)
   public String getStemName() {
     return stemName;
   }
 
   /**
+   * Sets the stem name.
+   *
    * @param stemName the stemName to set
    */
   public void setStemName(String stemName) {
@@ -167,6 +177,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    *
    * @return the highlight
    */
+  @Schema(hidden = true)
   public String getHighlight() {
     return highlight;
   }
@@ -185,6 +196,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    *
    * @return the term type
    */
+  @Schema(description = "Synonym term type")
   public String getTermType() {
     return termType;
   }
@@ -199,19 +211,11 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   }
 
   /**
-   * Sets the term group. This is a bridge to support naming convention normalization.
-   *
-   * @param termGroup the term group
-   */
-  public void setTermGroup(final String termGroup) {
-    this.termType = termGroup;
-  }
-
-  /**
    * Returns the type.
    *
    * @return the type
    */
+  @Schema(description = "Synonym type")
   public String getType() {
     return type;
   }
@@ -230,6 +234,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    *
    * @return the type code
    */
+  @Schema(hidden = true)
   public String getTypeCode() {
     return typeCode;
   }
@@ -237,7 +242,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   /**
    * Sets the type code.
    *
-   * @param type the type code
+   * @param typeCode the type code
    */
   public void setTypeCode(final String typeCode) {
     this.typeCode = typeCode;
@@ -248,6 +253,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    *
    * @return the source
    */
+  @Schema(description = "Synonym source")
   public String getSource() {
     return source;
   }
@@ -266,6 +272,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    *
    * @return the code
    */
+  @Schema(hidden = true)
   public String getCode() {
     return code;
   }
@@ -284,6 +291,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    *
    * @return the sub source
    */
+  @Schema(description = "Synonym sub-source")
   public String getSubSource() {
     return subSource;
   }
@@ -302,6 +310,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    *
    * @return the qualifiers
    */
+  @Schema(description = "Type/value qualifiers on the synonym")
   public List<Qualifier> getQualifiers() {
     if (qualifiers == null) {
       qualifiers = new ArrayList<>();
@@ -317,30 +326,26 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   public void setQualifiers(final List<Qualifier> qualifiers) {
     this.qualifiers = qualifiers;
   }
-  
+
   /**
    * Returns the active flag.
    *
    * @return the active flag
    */
+  @Schema(description = "Indicates whether the synonym is active")
   public Boolean isActive() {
-      return active;
+    return active;
   }
-  
+
   /**
    * Sets the active flag.
    *
    * @param active the active flag
    */
   public void setActive(final Boolean active) {
-      this.active = active;
+    this.active = active;
   }
 
-  /**
-   * Hash code.
-   *
-   * @return the int
-   */
   /* see superclass */
   @Override
   public int hashCode() {
@@ -412,11 +417,11 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
       return false;
     }
     if (active == null) {
-        if (other.active != null) {
-            return false;
-        }
-    } else if (!active.equals(other.active)) {
+      if (other.active != null) {
         return false;
+      }
+    } else if (!active.equals(other.active)) {
+      return false;
     }
     return true;
   }
@@ -429,9 +434,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    */
   @Override
   public int compareTo(Synonym other) {
-    return (source + type + name)
-        .compareToIgnoreCase(other.getSource() + other.getType() + other.getName());
-
+    return (source + type + name).compareToIgnoreCase(other.getSource() + other.getType() + other.getName());
   }
 
 }

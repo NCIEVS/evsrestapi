@@ -10,9 +10,12 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents a synonym of a concept.
  */
+@Schema(hidden = true)
 // Show the empty brackets because it's clearer what happened
 @JsonInclude(Include.NON_NULL)
 public class Extensions extends BaseModel implements Comparable<Extensions> {

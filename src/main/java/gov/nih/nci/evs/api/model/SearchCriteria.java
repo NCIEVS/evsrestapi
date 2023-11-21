@@ -4,9 +4,12 @@ package gov.nih.nci.evs.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Search criteria object for /concept/search implementation.
  */
+@Schema(description = "Criteria for a search or find operation")
 public class SearchCriteria extends SearchCriteriaWithoutTerminology {
 
   /** The terminology. */
@@ -34,8 +37,7 @@ public class SearchCriteria extends SearchCriteriaWithoutTerminology {
    * @param other the other
    * @param terminology the terminology
    */
-  public SearchCriteria(final SearchCriteriaWithoutTerminology other,
-      final String terminology) {
+  public SearchCriteria(final SearchCriteriaWithoutTerminology other, final String terminology) {
     populateFrom(other);
     getTerminology().add(terminology);
   }
@@ -58,6 +60,7 @@ public class SearchCriteria extends SearchCriteriaWithoutTerminology {
    *
    * @return the terminologies
    */
+  @Schema(description = "Comma-separated list of terminologies to search")
   public List<String> getTerminology() {
     if (terminology == null) {
       terminology = new ArrayList<>();
@@ -79,8 +82,7 @@ public class SearchCriteria extends SearchCriteriaWithoutTerminology {
   public int hashCode() {
     final int prime = 31;
     int result = super.hashCode();
-    result =
-        prime * result + ((terminology == null) ? 0 : terminology.hashCode());
+    result = prime * result + ((terminology == null) ? 0 : terminology.hashCode());
     return result;
   }
 

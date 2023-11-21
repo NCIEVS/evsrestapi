@@ -6,9 +6,12 @@ import java.util.Objects;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents a map to a concept in another terminology.
  */
+@Schema(description = "Represents a map from a concept to concepts in other terminologies")
 @JsonInclude(Include.NON_EMPTY)
 public class Map extends BaseModel implements Comparable<Map> {
 
@@ -111,6 +114,7 @@ public class Map extends BaseModel implements Comparable<Map> {
    *
    * @return the source
    */
+  @Schema(description = "Source terminology of the map")
   public String getSource() {
     return source;
   }
@@ -129,6 +133,7 @@ public class Map extends BaseModel implements Comparable<Map> {
    *
    * @return the sourceName
    */
+  @Schema(description = "Preferred name of the source code")
   public String getSourceName() {
     return sourceName;
   }
@@ -147,6 +152,7 @@ public class Map extends BaseModel implements Comparable<Map> {
    *
    * @return the sourceTermType
    */
+  @Schema(description = "Term type of the source code")
   public String getSourceTermType() {
     return sourceTermType;
   }
@@ -282,6 +288,7 @@ public class Map extends BaseModel implements Comparable<Map> {
    *
    * @return the target code
    */
+  @Schema(description = "Target code of the map (the thing being mapped 'to')")
   public String getTargetCode() {
     return targetCode;
   }
@@ -300,6 +307,7 @@ public class Map extends BaseModel implements Comparable<Map> {
    *
    * @return the source code
    */
+  @Schema(description = "Source code of the map (the thing being mapped 'from')")
   public String getSourceCode() {
     return sourceCode;
   }
@@ -318,6 +326,7 @@ public class Map extends BaseModel implements Comparable<Map> {
    *
    * @return the source terminology
    */
+  @Schema(description = "Terminology of the source code")
   public String getSourceTerminology() {
     return sourceTerminology;
   }
@@ -334,6 +343,7 @@ public class Map extends BaseModel implements Comparable<Map> {
   /**
    * @return the sourceTerminologyVersion
    */
+  @Schema(description = "Terminology version of the source code")
   public String getSourceTerminologyVersion() {
     return sourceTerminologyVersion;
   }
@@ -348,6 +358,7 @@ public class Map extends BaseModel implements Comparable<Map> {
   /**
    * @return the sourceLoaded
    */
+  @Schema(description = "Indicates whether the source code terminology/version is currently loaded")
   public Boolean getSourceLoaded() {
     return sourceLoaded;
   }
@@ -364,6 +375,7 @@ public class Map extends BaseModel implements Comparable<Map> {
    *
    * @return the target terminology
    */
+  @Schema(description = "Terminology of the target code")
   public String getTargetTerminology() {
     return targetTerminology;
   }
@@ -382,6 +394,7 @@ public class Map extends BaseModel implements Comparable<Map> {
    *
    * @return the target terminology version
    */
+  @Schema(description = "Terminology version of the target code")
   public String getTargetTerminologyVersion() {
     return targetTerminologyVersion;
   }
@@ -398,6 +411,7 @@ public class Map extends BaseModel implements Comparable<Map> {
   /**
    * @return the targetLoaded
    */
+  @Schema(description = "Indicates whether the target terminology/version is currently loaded")
   public Boolean getTargetLoaded() {
     return targetLoaded;
   }
@@ -412,9 +426,9 @@ public class Map extends BaseModel implements Comparable<Map> {
   /* see superclass */
   @Override
   public int hashCode() {
-    return Objects.hash(group, rank, rule, source, sourceCode, sourceName, sourceTermType,
-        sourceTerminology, sourceTerminologyVersion, sourceLoaded, targetCode, targetName,
-        targetTermType, targetTerminology, targetTerminologyVersion, targetLoaded, type);
+    return Objects.hash(group, rank, rule, source, sourceCode, sourceName, sourceTermType, sourceTerminology,
+        sourceTerminologyVersion, sourceLoaded, targetCode, targetName, targetTermType, targetTerminology,
+        targetTerminologyVersion, targetLoaded, type);
   }
 
   /* see superclass */
@@ -427,17 +441,13 @@ public class Map extends BaseModel implements Comparable<Map> {
     if (getClass() != obj.getClass())
       return false;
     Map other = (Map) obj;
-    return Objects.equals(group, other.group) && Objects.equals(rank, other.rank)
-        && Objects.equals(rule, other.rule) && Objects.equals(source, other.source)
-        && Objects.equals(sourceCode, other.sourceCode)
-        && Objects.equals(sourceName, other.sourceName)
-        && Objects.equals(sourceTermType, other.sourceTermType)
+    return Objects.equals(group, other.group) && Objects.equals(rank, other.rank) && Objects.equals(rule, other.rule)
+        && Objects.equals(source, other.source) && Objects.equals(sourceCode, other.sourceCode)
+        && Objects.equals(sourceName, other.sourceName) && Objects.equals(sourceTermType, other.sourceTermType)
         && Objects.equals(sourceTerminology, other.sourceTerminology)
         && Objects.equals(sourceTerminologyVersion, other.sourceTerminologyVersion)
-        && Objects.equals(sourceLoaded, other.sourceLoaded)
-        && Objects.equals(targetCode, other.targetCode)
-        && Objects.equals(targetName, other.targetName)
-        && Objects.equals(targetTermType, other.targetTermType)
+        && Objects.equals(sourceLoaded, other.sourceLoaded) && Objects.equals(targetCode, other.targetCode)
+        && Objects.equals(targetName, other.targetName) && Objects.equals(targetTermType, other.targetTermType)
         && Objects.equals(targetTerminology, other.targetTerminology)
         && Objects.equals(targetTerminologyVersion, other.targetTerminologyVersion)
         && Objects.equals(targetLoaded, other.targetLoaded) && Objects.equals(type, other.type);
@@ -447,8 +457,8 @@ public class Map extends BaseModel implements Comparable<Map> {
   @Override
   public int compareTo(Map o) {
     return (sourceCode + sourceTerminology + group + rank + targetName + targetCode)
-        .compareToIgnoreCase(o.getSourceCode() + o.getSourceTerminology() + o.getGroup()
-            + o.getRank() + o.getTargetName() + o.getTargetCode());
+        .compareToIgnoreCase(o.getSourceCode() + o.getSourceTerminology() + o.getGroup() + o.getRank()
+            + o.getTargetName() + o.getTargetCode());
   }
 
 }

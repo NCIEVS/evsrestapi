@@ -4,9 +4,12 @@ package gov.nih.nci.evs.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents a list of results with paging parameters.
  */
+@Schema(description = "Represents a list of concepts returned from a search or find call")
 public class ConceptResultList extends ResultList {
 
   /** The concepts. */
@@ -43,6 +46,7 @@ public class ConceptResultList extends ResultList {
    *
    * @return the concepts
    */
+  @Schema(description = "List of concepts")
   public List<Concept> getConcepts() {
     if (concepts == null) {
       concepts = new ArrayList<>();

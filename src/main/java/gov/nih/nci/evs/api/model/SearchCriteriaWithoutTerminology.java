@@ -14,16 +14,17 @@ import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Search criteria object for /concept/search implementation without a terminology field.
  */
+@Schema(description = "Criteria for a search or find operation (except for a terminology aspect)")
 public class SearchCriteriaWithoutTerminology extends BaseModel {
 
   /** The Constant logger. */
   @SuppressWarnings("unused")
-  private static final Logger logger =
-      LoggerFactory.getLogger(SearchCriteriaWithoutTerminology.class);
+  private static final Logger logger = LoggerFactory.getLogger(SearchCriteriaWithoutTerminology.class);
 
   /** The term. */
   private String term;
@@ -131,6 +132,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the term
    */
+  @Schema(description = "Search term, e.g. 'heart', or 'C3224'")
   public String getTerm() {
     return term;
   }
@@ -149,6 +151,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the type
    */
+  @Schema(description = "The match type, one of: contains, match, startsWith, phrase, AND, OR, fuzzy")
   public String getType() {
     return type;
   }
@@ -167,6 +170,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the include
    */
+  @Schema(description = "Include parameter value, e.g. 'minimal', 'summary', 'synonyms,properties,children'")
   public String getInclude() {
     return include;
   }
@@ -185,6 +189,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the sort
    */
+  @Schema(description = "Sort field")
   public String getSort() {
     return sort;
   }
@@ -203,6 +208,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the ascending
    */
+  @Schema(description = "Indicates whether sort is ascending (true), descending (false), or not specified (null)")
   public Boolean getAscending() {
     return ascending;
   }
@@ -221,6 +227,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the from record
    */
+  @Schema(description = "Start index of the search results")
   public Integer getFromRecord() {
     return fromRecord;
   }
@@ -239,6 +246,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the page size
    */
+  @Schema(description = "Max number of results to return")
   public Integer getPageSize() {
     return pageSize;
   }
@@ -257,6 +265,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the concept status
    */
+  @Schema(description = "Comma-separated list of concept status values to restrict search results by")
   public List<String> getConceptStatus() {
     if (conceptStatus == null) {
       conceptStatus = new ArrayList<>();
@@ -278,6 +287,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the property
    */
+  @Schema(description = "Comma-separated list of properties to restrict search results by")
   public List<String> getProperty() {
     if (property == null) {
       property = new ArrayList<>();
@@ -299,6 +309,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the value
    */
+  @Schema(description = "A property value to restrict search results by")
   public String getValue() {
     return value;
   }
@@ -317,6 +328,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the synonym source
    */
+  @Schema(description = "Comma-separated list of synonym sources to restrict search results by")
   public List<String> getSynonymSource() {
     if (synonymSource == null) {
       synonymSource = new ArrayList<>();
@@ -338,6 +350,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the synonym type
    */
+  @Schema(description = "Comma-separated list of synonym types to restrict search results by")
   public List<String> getSynonymType() {
     if (synonymType == null) {
       synonymType = new ArrayList<>();
@@ -359,6 +372,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the definition source
    */
+  @Schema(description = "Comma-separated list of definition sources to restrict search results by")
   public List<String> getDefinitionSource() {
     if (definitionSource == null) {
       definitionSource = new ArrayList<>();
@@ -380,6 +394,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the definition type
    */
+  @Schema(description = "Comma-separated list of definition types to restrict search results by")
   public List<String> getDefinitionType() {
     if (definitionType == null) {
       definitionType = new ArrayList<>();
@@ -401,6 +416,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the synonym term type
    */
+  @Schema(description = "Comma-separated list of synonym term types to restrict search results by")
   public List<String> getSynonymTermType() {
     if (synonymTermType == null) {
       synonymTermType = new ArrayList<>();
@@ -480,6 +496,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /**
    * @return the
    */
+  @Schema(description = "Comma-separated list of subsets to restrict search results by, e.g. 'C157225'")
   public List<String> getSubset() {
     if (subset == null) {
       subset = new ArrayList<>();
@@ -555,23 +572,20 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * @param metadataService the metadata service
    * @throws Exception the exception
    */
-  public void validate(final Terminology terminology, final MetadataService metadataService)
-    throws Exception {
+  public void validate(final Terminology terminology, final MetadataService metadataService) throws Exception {
     // if (getTerm() == null) {
     // throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
     // "Required parameter 'term' is missing");
     // }
 
-    if (!TerminologyUtils
-        .asSet("AND", "OR", "phrase", "exact", "contains", "fuzzy", "match", "startsWith")
+    if (!TerminologyUtils.asSet("AND", "OR", "phrase", "exact", "contains", "fuzzy", "match", "startsWith")
         .contains(getType())) {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
           "Required parameter 'type' has an invalid value = " + type);
     }
 
     if (fromRecord < 0) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Parameter 'fromRecord' must be >= 0 = " + fromRecord);
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parameter 'fromRecord' must be >= 0 = " + fromRecord);
     }
 
     if ((pageSize < 1) || (pageSize > 1000)) {
@@ -580,12 +594,11 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     }
 
     // Restrict paging for license-restricted terminologies (unless term is set)
-    if (terminology.getMetadata().getLicenseText() != null && (term == null || term.isEmpty())
-        && pageSize > 10) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, terminology.getMetadata()
-          .getUiLabel().replaceFirst(":.*", "")
-          + " has license restrictions and so bulk operations are limited to working on 10 things at a time "
-          + "(page size = " + pageSize + ")");
+    if (terminology.getMetadata().getLicenseText() != null && (term == null || term.isEmpty()) && pageSize > 10) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+          terminology.getMetadata().getUiLabel().replaceFirst(":.*", "")
+              + " has license restrictions and so bulk operations are limited to working on 10 things at a time "
+              + "(page size = " + pageSize + ")");
     }
 
     // Validate concept status
@@ -602,9 +615,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
     // Validate synonym source - must be a valid synonym source
     if (getSynonymSource().size() > 0) {
-      final Set<String> synonymSources =
-          metadataService.getSynonymSources(terminology.getTerminology()).stream()
-              .map(c -> c.getCode()).collect(Collectors.toSet());
+      final Set<String> synonymSources = metadataService.getSynonymSources(terminology.getTerminology()).stream()
+          .map(c -> c.getCode()).collect(Collectors.toSet());
       for (final String ss : getSynonymSource()) {
         if (!synonymSources.contains(ss)) {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
@@ -615,9 +627,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
     // Validate definition source - must be a valid definition source
     if (getDefinitionSource().size() > 0) {
-      final Set<String> definitionSources =
-          metadataService.getDefinitionSources(terminology.getTerminology()).stream()
-              .map(c -> c.getCode()).collect(Collectors.toSet());
+      final Set<String> definitionSources = metadataService.getDefinitionSources(terminology.getTerminology()).stream()
+          .map(c -> c.getCode()).collect(Collectors.toSet());
       for (final String ss : getDefinitionSource()) {
         if (!definitionSources.contains(ss)) {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,

@@ -1,9 +1,12 @@
 
 package gov.nih.nci.evs.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents a list of results with paging parameters.
  */
+@Schema(description = "Represents a list of objects returned from a find call")
 public class ResultList extends BaseModel {
 
   /** The total. */
@@ -49,6 +52,7 @@ public class ResultList extends BaseModel {
    *
    * @return the total
    */
+  @Schema(description = "Total nubmer of results (if paging is not considered)")
   public Integer getTotal() {
     return total;
   }
@@ -67,6 +71,7 @@ public class ResultList extends BaseModel {
    *
    * @return the long
    */
+  @Schema(description = "Total time taken to compute the result")
   public Long getTimeTaken() {
     return timeTaken;
   }
@@ -85,6 +90,7 @@ public class ResultList extends BaseModel {
    *
    * @return the parameters
    */
+  @Schema(description = "Search criteria used to arrive at this result")
   public SearchCriteria getParameters() {
     return parameters;
   }

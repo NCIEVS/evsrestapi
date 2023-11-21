@@ -9,9 +9,12 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents a synonym of a concept.
  */
+@Schema(description = "Represents a history record, generally for a retired concept")
 @JsonInclude(Include.NON_EMPTY)
 public class History extends BaseModel implements Comparable<History> {
 
@@ -75,6 +78,7 @@ public class History extends BaseModel implements Comparable<History> {
    *
    * @return the action
    */
+  @Schema(description = "Indicates the history action, e.g. 'merge', 'active', 'retire', 'SY', 'RB', etc.")
   public String getAction() {
     return action;
   }
@@ -93,6 +97,7 @@ public class History extends BaseModel implements Comparable<History> {
    *
    * @return the code
    */
+  @Schema(description = "Code for this history record")
   public String getCode() {
     return code;
   }
@@ -111,6 +116,7 @@ public class History extends BaseModel implements Comparable<History> {
    *
    * @return the concept name
    */
+  @Schema(description = "Last known preferred name for the code")
   public String getName() {
     return name;
   }
@@ -129,6 +135,7 @@ public class History extends BaseModel implements Comparable<History> {
    *
    * @return the date
    */
+  @Schema(description = "Date of the history record")
   public String getDate() {
     return date;
   }
@@ -147,6 +154,7 @@ public class History extends BaseModel implements Comparable<History> {
    *
    * @return the code of the replacement concept
    */
+  @Schema(description = "Code replacing this code")
   public String getReplacementCode() {
     return replacementCode;
   }
@@ -165,6 +173,7 @@ public class History extends BaseModel implements Comparable<History> {
    *
    * @return the name of the replacement concept
    */
+  @Schema(description = "Preferred name of the code replacing this code")
   public String getReplacementName() {
     return replacementName;
   }

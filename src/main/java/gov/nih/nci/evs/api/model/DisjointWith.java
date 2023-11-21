@@ -4,9 +4,12 @@ package gov.nih.nci.evs.api.model;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents an disjointness association between two concepts.
  */
+@Schema(description = "Represents an assertion of disjointness between two concepts")
 @JsonInclude(Include.NON_EMPTY)
 public class DisjointWith extends Relationship {
   /**

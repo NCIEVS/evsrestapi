@@ -8,10 +8,12 @@ import java.util.Set;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
- * Represents a path in a hierarchy (as a list of concepts with a direction
- * flag).
+ * Represents a path in a hierarchy (as a list of concepts with a direction flag).
  */
+@Schema(description = "Represents a path (or partial path) in a hierarchy")
 @JsonInclude(Include.NON_EMPTY)
 public class Path extends BaseModel {
 
@@ -68,11 +70,11 @@ public class Path extends BaseModel {
   }
 
   /**
-   * Returns the direction. 1 means from node to root. -1 means from root to
-   * node.
+   * Returns the direction. 1 means from node to root. -1 means from root to node.
    *
    * @return the direction
    */
+  @Schema(description = "Direction of the map (1 means node-to-root, -1 means root-to-node)")
   public int getDirection() {
     return direction;
   }
@@ -82,6 +84,7 @@ public class Path extends BaseModel {
    *
    * @return the concepts
    */
+  @Schema(description = "Concepts on the path")
   public List<ConceptMinimal> getConcepts() {
     if (concepts == null) {
       concepts = new ArrayList<>(5);

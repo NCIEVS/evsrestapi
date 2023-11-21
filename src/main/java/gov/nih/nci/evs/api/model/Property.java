@@ -15,9 +15,12 @@ import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents a synonym of a concept.
  */
+@Schema(description = "Represents a type/value property on a concept")
 // @JsonIgnoreProperties(value = {
 // "code"
 // })
@@ -99,6 +102,7 @@ public class Property extends BaseModel implements Comparable<Property> {
    *
    * @return the code
    */
+  @Schema(hidden = true)
   public String getCode() {
     return code;
   }
@@ -117,6 +121,7 @@ public class Property extends BaseModel implements Comparable<Property> {
    *
    * @return the type
    */
+  @Schema(description = "Property type")
   public String getType() {
     return type;
   }
@@ -135,6 +140,7 @@ public class Property extends BaseModel implements Comparable<Property> {
    *
    * @return the value
    */
+  @Schema(description = "Property value")
   public String getValue() {
     return value;
   }
@@ -159,6 +165,7 @@ public class Property extends BaseModel implements Comparable<Property> {
    *
    * @return the highlight
    */
+  @Schema(hidden = true)
   public String getHighlight() {
     return highlight;
   }
@@ -177,6 +184,7 @@ public class Property extends BaseModel implements Comparable<Property> {
    *
    * @return the qualifiers
    */
+  @Schema(description = "Type/value qualifiers on the property")
   public List<Qualifier> getQualifiers() {
     if (qualifiers == null) {
       qualifiers = new ArrayList<>();
@@ -198,6 +206,7 @@ public class Property extends BaseModel implements Comparable<Property> {
    *
    * @return the source
    */
+  @Schema(description = "Property source")
   public String getSource() {
     return source;
   }
@@ -211,11 +220,6 @@ public class Property extends BaseModel implements Comparable<Property> {
     this.source = source;
   }
 
-  /**
-   * Hash code.
-   *
-   * @return the int
-   */
   /* see superclass */
   @Override
   public int hashCode() {
@@ -227,12 +231,6 @@ public class Property extends BaseModel implements Comparable<Property> {
     return result;
   }
 
-  /**
-   * Equals.
-   *
-   * @param obj the obj
-   * @return true, if successful
-   */
   /* see superclass */
   @Override
   public boolean equals(final Object obj) {

@@ -4,9 +4,12 @@ package gov.nih.nci.evs.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents a list of Map results with paging parameters.
  */
+@Schema(description = "Represents a list of maps returned from a search or find call")
 public class MapResultList extends ResultList {
 
   /** The maps. */
@@ -54,6 +57,7 @@ public class MapResultList extends ResultList {
    *
    * @return the maps
    */
+  @Schema(description = "List of maps")
   public List<Map> getMaps() {
     return maps;
   }
