@@ -1,0 +1,16 @@
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae5.owl#CTCAE	CTCAE	ctcae5:NCIt_Code	CTCAE
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae5.owl#CTCAE	CTCAE	ctcae5:Preferred_Name	Common Terminology Criteria for Adverse Events
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae5.owl#C143163	C143163	ctcae5:FULL_SYN	Adverse Event by System Organ Class
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae5.owl#C143164	C143164	rdfs:label	Blood and Lymphatic System Disorders
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae5.owl#C143190	C143190	ctcae5:ALT_DEFINITION	A disorder characterized by laboratory test results that indicate an increased number of eosinophils in the blood.
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae5.owl#C143190	C143190	ctcae5:DEFINITION	A disorder characterized by laboratory test results that indicate an increased number of eosinophils in the blood.
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae5.owl#C143190	C143190	ctcae5:MedDRA_Code	10014950
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae5.owl#C59951	C59951	qualifier-FULL_SYN~ctcae5:term-group	Grade 5 Febrile neutropenia~PT
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae5.owl#C59951	C59951	qualifier-FULL_SYN~ctcae5:term-source	Grade 5 Febrile neutropenia~CTCAE_v5
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae5.owl#C59951	C59951	qualifier-ALT_DEFINITION~ctcae5:def-source	Death~NCI
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae5.owl#C59951	C59951	qualifier-DEFINITION~ctcae5:def-source	Death~CTCAE_v5
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae5.owl#C143163	C143163	parent-style1	CTCAE
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae5.owl#C143163	CTCAE	child-style1	C143163
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae5.owl#C146630	C146630	max-children	123
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae5.owl#C143163	C143163	parent-count1
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae5.owl#CTCAE	CTCAE	root
