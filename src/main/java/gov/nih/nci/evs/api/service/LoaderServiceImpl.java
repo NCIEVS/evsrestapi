@@ -134,7 +134,7 @@ public class LoaderServiceImpl {
 
     ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
     ElasticLoadService loadService = null;
-    
+
     try {
       // which indexing object do we need to use
       if (cmd.getOptionValue("t").equals("mapping")) {
@@ -146,7 +146,7 @@ public class LoaderServiceImpl {
         if (cmd.getOptionValue("t").equals("ncim")) {
           loadService = app.getBean(MetaElasticLoadServiceImpl.class);
         } else if (cmd.getOptionValue("t").startsWith("ncit")) {
-            loadService = app.getBean(StardogElasticLoadServiceImpl.class);
+          loadService = app.getBean(StardogElasticLoadServiceImpl.class);
         } else {
           loadService = app.getBean(MetaSourceElasticLoadServiceImpl.class);
         }
@@ -180,6 +180,7 @@ public class LoaderServiceImpl {
         @Override
         public int getExitCode() {
           // return the error code
+          logger.info("Exit code 1");
           return 1;
         }
       });
@@ -190,6 +191,7 @@ public class LoaderServiceImpl {
       @Override
       public int getExitCode() {
         // return the error code
+        logger.info("Exit code 0");
         return 0;
       }
     });

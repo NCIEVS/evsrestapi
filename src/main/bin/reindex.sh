@@ -294,7 +294,7 @@ for x in `cat /tmp/y.$$.txt`; do
         # regardless of whether there was new data
         echo "    RECONCILE $term stale indexes and update flags"
         export EVS_SERVER_PORT="8083"
-        java $local -jar $jar --terminology ${term} --skipConcepts --skipMetadata > /tmp/x.$$.log 2>&1 
+        java $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata > /tmp/x.$$.log 2>&1 
         if [[ $? -ne 0 ]]; then
             cat /tmp/x.$$.log | sed 's/^/    /'
             echo "ERROR: unexpected error building indexes"
@@ -329,7 +329,7 @@ for x in `cat /tmp/y.$$.txt`; do
         fi
 
         echo "    java $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause" | sed 's/^/      /'
-        java $local -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause
+        java $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error building indexes"
             exit 1
@@ -364,7 +364,7 @@ done
 export EVS_SERVER_PORT="8083"
 echo "    Generate mapping indexes"
 echo "      java $local -Xm4096M -jar $jar --terminology mapping" | sed 's/^/      /'
-java $local -Xmx4096M -jar $jar --terminology mapping
+java $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
 if [[ $? -ne 0 ]]; then
     echo "ERROR: unexpected error building mapping indexes"
     exit 1
