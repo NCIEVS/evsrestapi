@@ -236,10 +236,10 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           c.setExtensions(mainTypeHierarchy.getExtensions(c));
           handleHistory(terminology, c);
           if (c.getMaps().size() > 0) {
-            for (final gov.nih.nci.evs.api.model.Map map : c.getMaps()) {
+            for (final gov.nih.nci.evs.api.model.ConceptMap map : c.getMaps()) {
               final String mapterm = map.getTargetTerminology().split(" ")[0];
               if (mapsets.containsKey(mapterm)) {
-                final gov.nih.nci.evs.api.model.Map copy = new gov.nih.nci.evs.api.model.Map(map);
+                final gov.nih.nci.evs.api.model.ConceptMap copy = new gov.nih.nci.evs.api.model.ConceptMap(map);
                 copy.setSourceCode(c.getCode());
                 copy.setSourceName(c.getName());
                 copy.setSourceTerminology(c.getTerminology());
@@ -295,10 +295,10 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         operationsService.delete(ElasticOperationsService.MAPPING_INDEX,
             ElasticOperationsService.CONCEPT_TYPE, "NCIt_Maps_To_" + mapset.getKey());
         Collections.sort(mapset.getValue().getMaps(),
-            new Comparator<gov.nih.nci.evs.api.model.Map>() {
+            new Comparator<gov.nih.nci.evs.api.model.ConceptMap>() {
               @Override
-              public int compare(final gov.nih.nci.evs.api.model.Map o1,
-                final gov.nih.nci.evs.api.model.Map o2) {
+              public int compare(final gov.nih.nci.evs.api.model.ConceptMap o1,
+                final gov.nih.nci.evs.api.model.ConceptMap o2) {
                 // Assume maps are not null
                 return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank()
                     + o1.getTargetName())

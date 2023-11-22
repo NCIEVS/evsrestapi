@@ -18,7 +18,7 @@ import gov.nih.nci.evs.api.SerializationTester;
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
 
 /**
- * Unit test for {@link Map}.
+ * Unit test for {@link ConceptMap}.
  */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestConfiguration.class)
@@ -29,7 +29,7 @@ public class MapUnitTest {
   private static final Logger log = LoggerFactory.getLogger(MapUnitTest.class);
 
   /** The model object to test. */
-  private Map object;
+  private ConceptMap object;
 
   /**
    * Setup.
@@ -38,7 +38,7 @@ public class MapUnitTest {
    */
   @Before
   public void setup() throws Exception {
-    object = new Map();
+    object = new ConceptMap();
   }
 
   /**
@@ -93,7 +93,7 @@ public class MapUnitTest {
   @Test
   public void testModelCopy() throws Exception {
     final CopyConstructorTester tester = new CopyConstructorTester(object);
-    assertTrue(tester.testCopyConstructor(Map.class));
+    assertTrue(tester.testCopyConstructor(ConceptMap.class));
   }
 
   /**

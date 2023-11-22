@@ -10,34 +10,34 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * Represents a list of Map results with paging parameters.
  */
 @Schema(description = "Represents a list of maps returned from a search or find call")
-public class MapResultList extends ResultList {
+public class ConceptMapResultList extends ResultList {
 
   /** The maps. */
-  private List<Map> maps;
+  private List<ConceptMap> maps;
 
   /**
-   * Instantiates an empty {@link MapResultList}.
+   * Instantiates an empty {@link ConceptMapResultList}.
    */
-  public MapResultList() {
+  public ConceptMapResultList() {
     // n/a
   }
 
   /**
-   * Instantiates a {@link MapResultList} from the specified parameters.
+   * Instantiates a {@link ConceptMapResultList} from the specified parameters.
    *
    * @param other the other
    */
-  public MapResultList(final MapResultList other) {
+  public ConceptMapResultList(final ConceptMapResultList other) {
     populateFrom(other);
   }
 
   /**
-   * Instantiates a {@link MapResultList} from the specified parameters.
+   * Instantiates a {@link ConceptMapResultList} from the specified parameters.
    *
    * @param total the total
    * @param maps the maps
    */
-  public MapResultList(final int total, final List<Map> maps) {
+  public ConceptMapResultList(final int total, final List<ConceptMap> maps) {
     super.setTotal(total);
     this.maps = new ArrayList<>(maps);
   }
@@ -47,7 +47,7 @@ public class MapResultList extends ResultList {
    *
    * @param other the other
    */
-  public void populateFrom(final MapResultList other) {
+  public void populateFrom(final ConceptMapResultList other) {
     super.populateFrom(other);
     maps = new ArrayList<>(other.getMaps());
   }
@@ -58,7 +58,7 @@ public class MapResultList extends ResultList {
    * @return the maps
    */
   @Schema(description = "List of maps")
-  public List<Map> getMaps() {
+  public List<ConceptMap> getMaps() {
     return maps;
   }
 
@@ -67,7 +67,7 @@ public class MapResultList extends ResultList {
    *
    * @param maps the maps to set
    */
-  public void setMaps(List<Map> maps) {
+  public void setMaps(List<ConceptMap> maps) {
     this.maps = maps;
   }
 

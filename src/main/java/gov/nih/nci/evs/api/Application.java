@@ -1,6 +1,8 @@
 
 package gov.nih.nci.evs.api;
 
+import java.util.Map;
+
 import org.springdoc.core.SpringDocUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -19,7 +21,7 @@ public class Application extends SpringBootServletInitializer {
 
   // This is an invocation to allow @Request/ResponseBody to be used on maps
   static {
-    SpringDocUtils.getConfig().removeRequestWrapperToIgnore(java.util.Map.class);
+    SpringDocUtils.getConfig().removeRequestWrapperToIgnore(Map.class);
   }
 
   /* see superclass */

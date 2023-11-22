@@ -102,7 +102,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   private Map<String, String> mapsets = new HashMap<>();
 
   /** The maps. */
-  private Map<String, Set<gov.nih.nci.evs.api.model.Map>> maps = new HashMap<>();
+  private Map<String, Set<gov.nih.nci.evs.api.model.ConceptMap>> maps = new HashMap<>();
 
   /** The rui inverse map. */
   private Map<String, String> ruiInverseMap = new HashMap<>();
@@ -289,7 +289,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           continue;
         }
 
-        final gov.nih.nci.evs.api.model.Map map = new gov.nih.nci.evs.api.model.Map();
+        final gov.nih.nci.evs.api.model.ConceptMap map = new gov.nih.nci.evs.api.model.ConceptMap();
         map.setSourceCode(fields[8]);
         map.setSourceTerminology(fields[1]);
         map.setTargetCode(fields[16]);

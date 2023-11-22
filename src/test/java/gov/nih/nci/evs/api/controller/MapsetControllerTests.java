@@ -23,8 +23,8 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Map;
-import gov.nih.nci.evs.api.model.MapResultList;
+import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -195,35 +195,35 @@ public class MapsetControllerTests {
     result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps")).andExpect(status().isOk())
         .andReturn();
     content = result.getResponse().getContentAsString();
-    MapResultList mapList = new ObjectMapper().readValue(content, MapResultList.class);
+    ConceptMapResultList mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() > 0);
     assert (mapList.getMaps().size() == 10);
-    Map tenFromZero = mapList.getMaps().get(9);
+    ConceptMap tenFromZero = mapList.getMaps().get(9);
 
     // testing fromRecord and pageSize
     result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?fromRecord=9&pageSize=23"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    mapList = new ObjectMapper().readValue(content, MapResultList.class);
+    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() > 0);
     assert (mapList.getMaps().size() == 23);
-    Map tenFromTen = mapList.getMaps().get(0);
+    ConceptMap tenFromTen = mapList.getMaps().get(0);
     assert (tenFromTen.equals(tenFromZero));
 
     // test mapset/{code}/maps, fromRecord off page size
     result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?fromRecord=1&pageSize=10"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    mapList = new ObjectMapper().readValue(content, MapResultList.class);
+    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() > 0);
-    Map tenFromOne = mapList.getMaps().get(8);
+    ConceptMap tenFromOne = mapList.getMaps().get(8);
     assert (tenFromTen.equals(tenFromOne));
 
     // test mapset/{code}/maps, fromRecord past the end
     result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?fromRecord=100000"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    mapList = new ObjectMapper().readValue(content, MapResultList.class);
+    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() == 0);
     assert (mapList.getMaps() == null);
 
@@ -231,7 +231,7 @@ public class MapsetControllerTests {
     result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?term=XXXXXXX"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    mapList = new ObjectMapper().readValue(content, MapResultList.class);
+    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() == 0);
     assert (mapList.getMaps() == null);
 
@@ -239,18 +239,18 @@ public class MapsetControllerTests {
     result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?term=act"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    mapList = new ObjectMapper().readValue(content, MapResultList.class);
+    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() != 0);
     assert (mapList.getMaps().stream()
         .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
             .anyMatch(name -> name.contains("act"));
-    Map sixFromZero = mapList.getMaps().get(5);
+    ConceptMap sixFromZero = mapList.getMaps().get(5);
 
     // test mapset/{code}/maps, term with non-zero matches, trim spacing
     result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?term=   act   "))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    mapList = new ObjectMapper().readValue(content, MapResultList.class);
+    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() != 0);
     assert (mapList.getMaps().stream()
         .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
@@ -261,20 +261,20 @@ public class MapsetControllerTests {
         mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?term=act&fromRecord=3&pageSize=12"))
             .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    mapList = new ObjectMapper().readValue(content, MapResultList.class);
+    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() != 0);
     assert (mapList.getMaps().size() == 12);
     assert (mapList.getMaps().stream()
         .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
             .anyMatch(name -> name.contains("act"));
-    Map sixFromThree = mapList.getMaps().get(2);
+    ConceptMap sixFromThree = mapList.getMaps().get(2);
     assert (sixFromThree.equals(sixFromZero));
 
     // test mapset/{code}/maps, code with non-zero matches
     result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?term=C17087"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    mapList = new ObjectMapper().readValue(content, MapResultList.class);
+    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() != 0);
     assert (mapList.getMaps().stream()
         .flatMap(map -> Stream.of(map.getSourceCode(), map.getTargetCode())))

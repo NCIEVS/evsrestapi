@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import org.springframework.data.annotation.Transient;
@@ -66,7 +67,7 @@ public class Concept extends ConceptMinimal {
   @Transient
   @JsonSerialize
   @JsonDeserialize
-  private java.util.Map<String, String> highlights;
+  private Map<String, String> highlights;
 
   /** The normName. */
   @JsonProperty(access = Access.READ_ONLY)
@@ -182,7 +183,7 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Nested, ignoreFields = {
       "qualifiers"
   })
-  private List<Map> maps;
+  private List<ConceptMap> maps;
 
   /** The paths to root. */
   @Field(type = FieldType.Nested, ignoreFields = {
@@ -332,7 +333,7 @@ public class Concept extends ConceptMinimal {
    * @return the highlights
    */
   @Schema(hidden = true)
-  public java.util.Map<String, String> getHighlights() {
+  public Map<String, String> getHighlights() {
     if (highlights == null) {
       highlights = new HashMap<>();
     }
@@ -344,7 +345,7 @@ public class Concept extends ConceptMinimal {
    *
    * @param highlights the highlights
    */
-  public void setHighlights(final java.util.Map<String, String> highlights) {
+  public void setHighlights(final Map<String, String> highlights) {
     this.highlights = highlights;
   }
 
@@ -791,7 +792,7 @@ public class Concept extends ConceptMinimal {
    * @return the maps
    */
   @Schema(description = "Maps from this concept to concepts in other terminologies")
-  public List<Map> getMaps() {
+  public List<ConceptMap> getMaps() {
     if (maps == null) {
       maps = new ArrayList<>();
     }
@@ -803,7 +804,7 @@ public class Concept extends ConceptMinimal {
    *
    * @param maps the maps
    */
-  public void setMaps(final List<Map> maps) {
+  public void setMaps(final List<ConceptMap> maps) {
     this.maps = maps;
   }
 

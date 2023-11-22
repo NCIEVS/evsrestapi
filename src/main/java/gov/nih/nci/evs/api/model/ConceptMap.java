@@ -13,7 +13,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  */
 @Schema(description = "Represents a map from a concept to concepts in other terminologies")
 @JsonInclude(Include.NON_EMPTY)
-public class Map extends BaseModel implements Comparable<Map> {
+public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
 
   /** The source. */
   private String source;
@@ -67,18 +67,18 @@ public class Map extends BaseModel implements Comparable<Map> {
   private Boolean targetLoaded;
 
   /**
-   * Instantiates an empty {@link Map}.
+   * Instantiates an empty {@link ConceptMap}.
    */
-  public Map() {
+  public ConceptMap() {
     // n/a
   }
 
   /**
-   * Instantiates a {@link Map} from the specified parameters.
+   * Instantiates a {@link ConceptMap} from the specified parameters.
    *
    * @param other the other
    */
-  public Map(final Map other) {
+  public ConceptMap(final ConceptMap other) {
     populateFrom(other);
   }
 
@@ -87,7 +87,7 @@ public class Map extends BaseModel implements Comparable<Map> {
    *
    * @param other the other
    */
-  public void populateFrom(final Map other) {
+  public void populateFrom(final ConceptMap other) {
     super.populateFrom(other);
     source = other.getSource();
     type = other.getType();
@@ -440,7 +440,7 @@ public class Map extends BaseModel implements Comparable<Map> {
       return false;
     if (getClass() != obj.getClass())
       return false;
-    Map other = (Map) obj;
+    ConceptMap other = (ConceptMap) obj;
     return Objects.equals(group, other.group) && Objects.equals(rank, other.rank) && Objects.equals(rule, other.rule)
         && Objects.equals(source, other.source) && Objects.equals(sourceCode, other.sourceCode)
         && Objects.equals(sourceName, other.sourceName) && Objects.equals(sourceTermType, other.sourceTermType)
@@ -455,7 +455,7 @@ public class Map extends BaseModel implements Comparable<Map> {
 
   /* see superclass */
   @Override
-  public int compareTo(Map o) {
+  public int compareTo(ConceptMap o) {
     return (sourceCode + sourceTerminology + group + rank + targetName + targetCode)
         .compareToIgnoreCase(o.getSourceCode() + o.getSourceTerminology() + o.getGroup() + o.getRank()
             + o.getTargetName() + o.getTargetCode());

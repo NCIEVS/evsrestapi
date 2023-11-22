@@ -67,10 +67,10 @@ public class ConceptResultListUnitTest {
   private List<Role> r2;
 
   /** The m 1. */
-  private List<Map> m1;
+  private List<ConceptMap> m1;
 
   /** The m 2. */
-  private List<Map> m2;
+  private List<ConceptMap> m2;
 
   /** The c 1. */
   private List<Concept> c1;
@@ -123,11 +123,11 @@ public class ConceptResultListUnitTest {
     r2 = new ArrayList<>();
     r2.add((Role) tester5.createObject(2));
 
-    final ProxyTester tester6 = new ProxyTester(new Map());
+    final ProxyTester tester6 = new ProxyTester(new ConceptMap());
     m1 = new ArrayList<>();
-    m1.add((Map) tester6.createObject(1));
+    m1.add((ConceptMap) tester6.createObject(1));
     m2 = new ArrayList<>();
-    m2.add((Map) tester6.createObject(2));
+    m2.add((ConceptMap) tester6.createObject(2));
 
     final ProxyTester tester7 = new ProxyTester(new SearchCriteria());
     sc1 = (SearchCriteria) tester7.createObject(1);

@@ -33,7 +33,7 @@ import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Map;
+import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Role;
@@ -830,7 +830,7 @@ public class ConceptController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/maps",
       produces = "application/json")
-  public @ResponseBody List<Map> getMaps(@PathVariable(value = "terminology")
+  public @ResponseBody List<ConceptMap> getMaps(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
   final String license) throws Exception {

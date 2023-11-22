@@ -24,8 +24,8 @@ import org.springframework.web.server.ResponseStatusException;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Map;
-import gov.nih.nci.evs.api.model.MapResultList;
+import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.MetadataService;
@@ -180,7 +180,7 @@ public class MapsetController extends BaseController {
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/mapset/{code}/maps", produces = "application/json")
-  public @ResponseBody MapResultList getMapsetMappingsByCode(@PathVariable(value = "code")
+  public @ResponseBody ConceptMapResultList getMapsetMappingsByCode(@PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "fromRecord")
   final Optional<Integer> fromRecord, @RequestParam(required = false, name = "pageSize")
   final Optional<Integer> pageSize, @RequestParam(required = false, name = "term")
@@ -192,7 +192,7 @@ public class MapsetController extends BaseController {
       final Integer fromRecordParam = fromRecord.orElse(0);
       final Integer pageSizeParam = pageSize.orElse(10);
       final IncludeParam ip = new IncludeParam("maps");
-      List<Map> maps = new ArrayList<Map>();
+      List<ConceptMap> maps = new ArrayList<ConceptMap>();
       List<Concept> results = esQueryService.getMapset(code, ip);
       if (results.size() > 0) {
         maps = results.get(0).getMaps();
@@ -238,18 +238,18 @@ public class MapsetController extends BaseController {
         }
       }
       final Integer mapLength = maps.size();
-      final MapResultList list = new MapResultList();
+      final ConceptMapResultList list = new ConceptMapResultList();
       list.setTotal(mapLength);
       if (sort.isPresent()) {
         if (sort.get().equals("sourceName")) {
-          maps.sort(Comparator.comparing(Map::getSourceName));
+          maps.sort(Comparator.comparing(ConceptMap::getSourceName));
 
         } else if (sort.get().equals("targetName")) {
-          maps.sort(Comparator.comparing(Map::getTargetName));
+          maps.sort(Comparator.comparing(ConceptMap::getTargetName));
         } else if (sort.get().equals("sourceCode")) {
-          maps.sort(Comparator.comparing(Map::getSourceCode));
+          maps.sort(Comparator.comparing(ConceptMap::getSourceCode));
         } else if (sort.get().equals("targetCode")) {
-          maps.sort(Comparator.comparing(Map::getTargetCode));
+          maps.sort(Comparator.comparing(ConceptMap::getTargetCode));
         }
         if (ascending.isPresent() && !ascending.get()) {
           Collections.reverse(maps);
@@ -262,7 +262,7 @@ public class MapsetController extends BaseController {
         list.setMaps(maps.subList(fromRecordParam, Math.min(mapLength, fromRecordParam + pageSizeParam)));
       } else {
         list.setTotal(0);
-        list.setMaps(new ArrayList<Map>());
+        list.setMaps(new ArrayList<ConceptMap>());
       }
       final SearchCriteria criteria = new SearchCriteria();
       criteria.setInclude(null);
