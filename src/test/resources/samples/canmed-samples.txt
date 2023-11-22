@@ -1,25 +1,27 @@
-http://seer.nci.nih.gov/CanMED.owl#NDC_00310-0720-50	NDC_00310-0720-50	Preferred_Name	Fulvestrant 50.0 mg/mL
-http://seer.nci.nih.gov/CanMED.owl#NDC_00310-0720-50	NDC_00310-0720-50	Administration_Route	Intramuscular
-http://seer.nci.nih.gov/CanMED.owl#NDC_00310-0720-50	NDC_00310-0720-50	Generic_Name	Fulvestrant
-http://seer.nci.nih.gov/CanMED.owl#NDC_00310-0720-50	NDC_00310-0720-50	NDC_Product_Code	00310-0720
-http://seer.nci.nih.gov/CanMED.owl#NDC_00310-0720-50	NDC_00310-0720-50	Brand_Name	Faslodex
-http://seer.nci.nih.gov/CanMED.owl#NDC_00310-0720-50	NDC_00310-0720-50	owl:deprecated	false
-http://seer.nci.nih.gov/CanMED.owl#NDC_00310-0720-50	NDC_00310-0720-50	Discontinue_Date	10/31/2015 00:00:00
-http://seer.nci.nih.gov/CanMED.owl#NDC_00310-0720-50	NDC_00310-0720-50	NDC_Package_Code	00310-0720-50
-http://seer.nci.nih.gov/CanMED.owl#NDC_00310-0720-50	NDC_00310-0720-50	Strength	50.0 mg/mL
-http://seer.nci.nih.gov/CanMED.owl#NDC_00310-0720-50	NDC_00310-0720-50	Effective_Date	05/20/2002 00:00:00
-http://seer.nci.nih.gov/CanMED.owl#NDC_00310-0720-50	NDC_00310-0720-50	Status	In Use
-http://seer.nci.nih.gov/CanMED.owl#J9395	J9395	FDA_Approval_Year	2002
-http://seer.nci.nih.gov/CanMED.owl#J9395	J9395	Oral	No
-http://seer.nci.nih.gov/CanMED.owl#J9395	J9395	HCPCS_Code	J9395
-http://seer.nci.nih.gov/CanMED.owl#J9395	J9395	CMS_Effective_Date	01/01/2004 00:00:00
-http://seer.nci.nih.gov/CanMED.owl#NDC_16729-0131-30	NDC_16729-0131-30	Description	1 VIAL, SINGLE-DOSE in 1 CARTON (16729-131-30)  &gt; 2 mL in 1 VIAL, SINGLE-DOSE
-http://seer.nci.nih.gov/CanMED.owl#C9428	C9428	CMS_Discontinuation_Date	12/31/2005 00:00:00
-http://seer.nci.nih.gov/CanMED.owl#J1710	J1710	FDA_Discontinuation_Year	2004
-http://seer.nci.nih.gov/CanMED.owl#NDC_00310-0720-50	NDC_00310-0720-50	parent-style1	NDC_00310-0720
-http://seer.nci.nih.gov/CanMED.owl#NDC_00310-0720-50	NDC_00310-0720	child-style1	NDC_00310-0720-50
+http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Preferred_Name	Mercaptopurine 50.0 mg/1
+http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Status	In Use
+http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Effective_Date	07/01/2005 00:00:00
+http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Description	250 TABLET in 1 BOTTLE, PLASTIC (0378-3547-25)
+http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	owl:deprecated	false
+http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Brand_Name	Mercaptopurine
+http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	NDC_Package_Code	00378-3547-25
+http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Administration_Route	Oral
+http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Strength	50.0 mg/1
+http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Generic_Name	Mercaptopurine
+http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	NDC_Product_Code	00378-3547
+http://seer.nci.nih.gov/CanMED.owl#NDC_55289-0603-07	NDC_55289-0603-07	Discontinue_Date	11/23/2021 00:00:00
+http://seer.nci.nih.gov/CanMED.owl#J9034	J9034	CMS_Effective_Date	01/01/2017 00:00:00
+http://seer.nci.nih.gov/CanMED.owl#J9034	J9034	Oral	No
+http://seer.nci.nih.gov/CanMED.owl#J9034	J9034	FDA_Approval_Year	2008
+http://seer.nci.nih.gov/CanMED.owl#J9034	J9034	HCPCS_Code	J9034
+http://seer.nci.nih.gov/CanMED.owl#C9235	C9235	CMS_Discontinuation_Date	12/31/2007 00:00:00
+http://seer.nci.nih.gov/CanMED.owl#S0087	S0087	FDA_Discontinuation_Year	2012
+http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	parent-style1	NDC_00378-3547
+http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547	child-style1	NDC_00378-3547-25
 http://seer.nci.nih.gov/CanMED.owl#NDC_PREDNISONE	NDC_PREDNISONE	max-children	487
-http://seer.nci.nih.gov/CanMED.owl#NDC_00310-0720-50	NDC_00310-0720-50	parent-count1
-http://seer.nci.nih.gov/CanMED.owl#HCPCS_PURINE_ANALOG	HCPCS_PURINE_ANALOG	parent-count2
-http://seer.nci.nih.gov/CanMED.owl#NDC_HER2	NDC_HER2	parent-count3
-http://seer.nci.nih.gov/CanMED.owl#NDC_RADIOPHARMACEUTICAL	NDC_RADIOPHARMACEUTICAL	parent-count4
+http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	parent-count1
+http://seer.nci.nih.gov/CanMED.owl#HCPCS_BCMA	HCPCS_BCMA	parent-count2
+http://seer.nci.nih.gov/CanMED.owl#NDC_DRONABINOL	NDC_DRONABINOL	parent-count3
+http://seer.nci.nih.gov/CanMED.owl#HCPCS_GRANULOCYTE_COLONY_STIMULATING_FACTOR	HCPCS_GRANULOCYTE_COLONY_STIMULATING_FACTOR	parent-count4
+http://seer.nci.nih.gov/CanMED.owl#HCPCS	HCPCS	root
+http://seer.nci.nih.gov/CanMED.owl#NDC	NDC	root
