@@ -32,6 +32,7 @@ import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -52,6 +53,10 @@ public class SearchControllerTests {
   /** The test properties. */
   @Autowired
   TestProperties testProperties;
+
+  /** The application properties. */
+  @Autowired
+  ApplicationProperties appProperties;
 
   /** The object mapper. */
   private ObjectMapper objectMapper;
@@ -470,8 +475,8 @@ public class SearchControllerTests {
     url = baseUrl;
     log.info("Testing url - " + url + "?terminology=mdr&term=cancer&pageSize=10");
     result = this.mvc
-        .perform(
-            get(url).param("terminology", "mdr").param("term", "cancer").param("pageSize", "10"))
+        .perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense())
+            .param("terminology", "mdr").param("term", "cancer").param("pageSize", "10"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -484,14 +489,16 @@ public class SearchControllerTests {
     url = baseUrl;
     log.info("Testing url - " + url + "?terminology=mdr&term=cancer&pageSize=11");
     result = this.mvc
-        .perform(
-            get(url).param("terminology", "mdr").param("term", "cancer").param("pageSize", "11"))
+        .perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense())
+            .param("terminology", "mdr").param("term", "cancer").param("pageSize", "11"))
         .andExpect(status().isBadRequest()).andReturn();
 
     // Legal page size
     url = "/api/v1/concept/mdr/search";
     log.info("Testing url - /api/v1/concept/mdr/search?term=cancer&pageSize=10");
-    result = this.mvc.perform(get(url).param("term", "cancer").param("pageSize", "10"))
+    result = this.mvc
+        .perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense())
+            .param("term", "cancer").param("pageSize", "10"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -504,7 +511,7 @@ public class SearchControllerTests {
     url = "/api/v1/concept/mdr/search";
     log.info("Testing url - /api/v1/concept/mdr/search?term=cancer&pageSize=11");
     result = this.mvc.perform(get(url).param("term", "cancer").param("pageSize", "11"))
-        .andExpect(status().isBadRequest()).andReturn();
+        .andExpect(status().isForbidden()).andReturn();
 
   }
 
