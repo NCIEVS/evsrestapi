@@ -29,6 +29,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -49,6 +50,10 @@ public class MdrControllerTests {
   /** The test properties. */
   @Autowired
   TestProperties testProperties;
+
+  /** The application properties. */
+  @Autowired
+  ApplicationProperties appProperties;
 
   /** The object mapper. */
   private ObjectMapper objectMapper;
@@ -129,7 +134,8 @@ public class MdrControllerTests {
     // Random MDR code
     url = baseUrl + "/mdr/10009802";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
@@ -165,7 +171,8 @@ public class MdrControllerTests {
     // Random MDR code
     url = baseUrl + "/mdr/10009802";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
@@ -192,7 +199,8 @@ public class MdrControllerTests {
     // Check associations
     url = baseUrl + "/mdr/10009802?include=full";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
@@ -246,7 +254,8 @@ public class MdrControllerTests {
     // random concept in MRSAT
     url = baseUrl + "/mdr/10009802";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
@@ -255,12 +264,13 @@ public class MdrControllerTests {
     assertThat(concept.getProperties().size()).isGreaterThan(1);
     assertThat(concept.getProperties().stream()
         .filter(p -> p.getType().equals("PRIMARY_SOC") && p.getValue().equals("10005329")).count())
-        .isEqualTo(1);
+            .isEqualTo(1);
 
     // RELA concept in MRSAT - 10036030
     url = baseUrl + "/mdr/10036030?include=associations,inverseAssociations";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
@@ -269,17 +279,17 @@ public class MdrControllerTests {
     assertThat(concept.getAssociations().size()).isGreaterThan(0);
     assertThat(
         concept.getAssociations().stream().filter(a -> a.getQualifiers().size() >= 1).count())
-        .isGreaterThanOrEqualTo(1);
+            .isGreaterThanOrEqualTo(1);
     assertThat(concept.getAssociations().stream().filter(a -> a.getQualifiers().size() >= 1)
         .flatMap(a -> a.getQualifiers().stream()).filter(q -> q.getType().equals("RELA")).count())
-        .isGreaterThanOrEqualTo(1);
+            .isGreaterThanOrEqualTo(1);
 
     assertThat(concept.getInverseAssociations().size()).isGreaterThan(0);
     assertThat(concept.getInverseAssociations().stream().filter(a -> a.getQualifiers().size() >= 1)
         .count()).isGreaterThanOrEqualTo(1);
     assertThat(concept.getInverseAssociations().stream().filter(a -> a.getQualifiers().size() >= 1)
         .flatMap(a -> a.getQualifiers().stream()).filter(q -> q.getType().equals("RELA")).count())
-        .isGreaterThanOrEqualTo(1);
+            .isGreaterThanOrEqualTo(1);
 
   }
 
@@ -299,8 +309,9 @@ public class MdrControllerTests {
     log.info("Testing url - " + url
         + "?terminology=mdr&fromRecord=0&include=synonyms&pageSize=10&term=Coagulation&type=contains");
     result = mvc
-        .perform(get(url).param("terminology", "mdr").param("term", "Coagulation")
-            .param("pageSize", "10").param("type", "contains").param("include", "synonyms"))
+        .perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense())
+            .param("terminology", "mdr").param("term", "Coagulation").param("pageSize", "10")
+            .param("type", "contains").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
 
     content = result.getResponse().getContentAsString();
@@ -315,9 +326,9 @@ public class MdrControllerTests {
     log.info("Testing url - " + url
         + "?terminology=mdr&fromRecord=0&include=synonyms&pageSize=00&term=Hepatitis, non-infectious (SMQ)&type=contains");
     result = mvc
-        .perform(
-            get(url).param("terminology", "mdr").param("term", "Hepatitis, non-infectious (SMQ)")
-                .param("pageSize", "10").param("type", "contains").param("include", "synonyms"))
+        .perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense())
+            .param("terminology", "mdr").param("term", "Hepatitis, non-infectious (SMQ)")
+            .param("pageSize", "10").param("type", "contains").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     // Just checking that searching with parentheses doesn't cause an error
 
@@ -325,9 +336,9 @@ public class MdrControllerTests {
     log.info("Testing url - " + url
         + "?terminology=mdr&fromRecord=0&include=synonyms&pageSize=10&term=Hepatitis, non-infectious (SMQ)&type=match");
     result = mvc
-        .perform(
-            get(url).param("terminology", "mdr").param("term", "Hepatitis, non-infectious (SMQ)")
-                .param("pageSize", "10").param("type", "match").param("include", "synonyms"))
+        .perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense())
+            .param("terminology", "mdr").param("term", "Hepatitis, non-infectious (SMQ)")
+            .param("pageSize", "10").param("type", "match").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     // Just checking that searching with parentheses doesn't cause an error
   }
@@ -349,7 +360,8 @@ public class MdrControllerTests {
     // Handle associations
     url = base + "/associations";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -375,7 +387,8 @@ public class MdrControllerTests {
     // Handle concept statuses
     url = base + "/conceptStatuses";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -387,7 +400,8 @@ public class MdrControllerTests {
     // Handle definitionSources
     url = base + "/definitionSources";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -398,7 +412,8 @@ public class MdrControllerTests {
     // Handle definitionTypes
     url = base + "/definitionTypes";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -411,7 +426,8 @@ public class MdrControllerTests {
     // Handle properties
     url = base + "/properties";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -426,7 +442,8 @@ public class MdrControllerTests {
     // Handle qualifiers
     url = base + "/qualifiers";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -455,7 +472,8 @@ public class MdrControllerTests {
     // Handle synonymSources - n/a - handled inline
     url = base + "/synonymSources";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -468,7 +486,8 @@ public class MdrControllerTests {
     // Handle synonymTypes
     url = base + "/synonymTypes";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -481,7 +500,8 @@ public class MdrControllerTests {
     // Handle termTypes - n/a - handled inline
     url = base + "/termTypes";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -510,7 +530,8 @@ public class MdrControllerTests {
     // NCIM qualifier values
     url = "/api/v1/metadata/mdr/qualifier/SMQ_TERM_LEVEL/values";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<String>>() {
@@ -537,7 +558,8 @@ public class MdrControllerTests {
     // test /roots
     url = baseUrl + "/mdr/roots";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -549,7 +571,8 @@ public class MdrControllerTests {
     // test /descendants
     url = baseUrl + "/mdr/10053567/descendants";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -560,7 +583,8 @@ public class MdrControllerTests {
     // test /subtree
     url = baseUrl + "/mdr/10053567/subtree";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list2 = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
@@ -571,7 +595,8 @@ public class MdrControllerTests {
     // test /subtree/children
     url = baseUrl + "/mdr/10053567/subtree/children";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list2 = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
@@ -598,7 +623,8 @@ public class MdrControllerTests {
     // test /roots
     url = baseUrl + "/mdr/roots";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     roots = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -608,7 +634,8 @@ public class MdrControllerTests {
     // test /pathsToRoot
     url = baseUrl + "/mdr/10009727/pathsToRoot";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
@@ -626,7 +653,8 @@ public class MdrControllerTests {
     // test /pathsFromRoot
     url = baseUrl + "/mdr/10009727/pathsFromRoot";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
@@ -643,7 +671,8 @@ public class MdrControllerTests {
     // test /pathsToAncestor
     url = baseUrl + "/mdr/10009727/pathsToAncestor/10009802";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
@@ -660,7 +689,8 @@ public class MdrControllerTests {
     // test /pathsToAncestor - all the way up
     url = baseUrl + "/mdr/10009727/pathsToAncestor/10005329";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
