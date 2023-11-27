@@ -1423,7 +1423,7 @@ public class MetadataControllerTests {
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
     });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(11);
+    assertThat(terminologies.size()).isEqualTo(16);
 
   }
 

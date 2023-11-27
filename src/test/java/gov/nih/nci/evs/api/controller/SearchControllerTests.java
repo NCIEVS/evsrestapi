@@ -489,9 +489,9 @@ public class SearchControllerTests {
     url = baseUrl;
     log.info("Testing url - " + url + "?terminology=mdr&term=cancer&pageSize=11");
     result = this.mvc
-        .perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense())
-            .param("terminology", "mdr").param("term", "cancer").param("pageSize", "11"))
-        .andExpect(status().isBadRequest()).andReturn();
+        .perform(
+            get(url).param("terminology", "mdr").param("term", "cancer").param("pageSize", "11"))
+        .andExpect(status().isForbidden()).andReturn();
 
     // Legal page size
     url = "/api/v1/concept/mdr/search";
