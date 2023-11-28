@@ -119,7 +119,7 @@ public class SubsetControllerTests {
         concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
             .isGreaterThan(0);
 
-    // /subset - minimal
+    // /subset - properties
     url = baseUrl + "subset/ncit/C167405?include=properties";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -136,7 +136,7 @@ public class SubsetControllerTests {
     assertThat(concept.getChildren()).isNotEmpty();
     // Check the first child also for just properties
     assertThat(concept.getChildren().get(0).getSynonyms()).isEmpty();
-    assertThat(concept.getChildren().get(0).getProperties()).isNotEmpty();
+    assertThat(concept.getChildren().get(0).getProperties()).isEmpty();
     assertThat(concept.getParents()).isEmpty();
     assertThat(concept.getAssociations()).isEmpty();
     assertThat(concept.getInverseAssociations()).isEmpty();
@@ -147,7 +147,7 @@ public class SubsetControllerTests {
         concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
             .isGreaterThan(0);
 
-    // /subset - properties
+    // /subset - synonyms,properties
     url = baseUrl + "subset/ncit/C167405?include=synonyms,properties";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -164,8 +164,8 @@ public class SubsetControllerTests {
     // Check the first child also for just properties
     assertThat(concept.getChildren().get(0).getParents()).isEmpty();
     assertThat(concept.getChildren().get(0).getChildren()).isEmpty();
-    assertThat(concept.getChildren().get(0).getSynonyms()).isNotEmpty();
-    assertThat(concept.getChildren().get(0).getProperties()).isNotEmpty();
+    assertThat(concept.getChildren().get(0).getSynonyms()).isEmpty();
+    assertThat(concept.getChildren().get(0).getProperties()).isEmpty();
     assertThat(concept.getParents()).isEmpty();
     assertThat(concept.getAssociations()).isEmpty();
     assertThat(concept.getInverseAssociations()).isEmpty();

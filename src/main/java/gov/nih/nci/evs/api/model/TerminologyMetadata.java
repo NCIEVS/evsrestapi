@@ -6,7 +6,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -226,55 +225,29 @@ public class TerminologyMetadata extends BaseModel {
     welcomeText = other.getWelcomeText();
   }
 
-  /* see superclass */
   @Override
   public int hashCode() {
-    return Objects.hash(code, codeLabel, conceptStatus, conceptStatuses, definition, definitionSource,
-        definitionSourceSet, detailsColumns, hierarchy, history, licenseCheck, licenseText, loader, map, mapRelation,
-        mapTarget, mapTargetTermType, mapTargetTerminology, mapTargetTerminologyVersion, mapsets, maxVersions,
-        metaConceptField, monthlyDb, preferredName, preferredTermTypes, relationshipToTarget, retiredStatusValue,
-        sourceCt, sources, sourcesToRemove, subset, subsetLink, subsetMember, subsetPrefix, synonym, synonymCode,
-        synonymSource, synonymSourceSet, synonymSubSource, synonymTermType, termTypes, uiLabel, unpublished,
-        welcomeText);
+    final int prime = 31;
+    int result = 1;
+    result = prime * result + ((uiLabel == null) ? 0 : uiLabel.hashCode());
+    return result;
   }
 
-  /* see superclass */
   @Override
-  public boolean equals(final Object obj) {
-    if (this == obj) {
+  public boolean equals(Object obj) {
+    if (this == obj)
       return true;
-    }
-    if ((obj == null) || (getClass() != obj.getClass())) {
+    if (obj == null)
       return false;
-    }
-    final TerminologyMetadata other = (TerminologyMetadata) obj;
-    return Objects.equals(code, other.code) && Objects.equals(codeLabel, other.codeLabel)
-        && Objects.equals(conceptStatus, other.conceptStatus) && Objects.equals(conceptStatuses, other.conceptStatuses)
-        && Objects.equals(definition, other.definition) && Objects.equals(definitionSource, other.definitionSource)
-        && Objects.equals(definitionSourceSet, other.definitionSourceSet)
-        && Objects.equals(detailsColumns, other.detailsColumns) && Objects.equals(hierarchy, other.hierarchy)
-        && Objects.equals(history, other.history) && Objects.equals(licenseCheck, other.licenseCheck)
-        && Objects.equals(licenseText, other.licenseText) && Objects.equals(loader, other.loader)
-        && Objects.equals(map, other.map) && Objects.equals(mapRelation, other.mapRelation)
-        && Objects.equals(mapTarget, other.mapTarget) && Objects.equals(mapTargetTermType, other.mapTargetTermType)
-        && Objects.equals(mapTargetTerminology, other.mapTargetTerminology)
-        && Objects.equals(mapTargetTerminologyVersion, other.mapTargetTerminologyVersion)
-        && Objects.equals(mapsets, other.mapsets) && Objects.equals(maxVersions, other.maxVersions)
-        && Objects.equals(metaConceptField, other.metaConceptField) && Objects.equals(monthlyDb, other.monthlyDb)
-        && Objects.equals(preferredName, other.preferredName)
-        && Objects.equals(preferredTermTypes, other.preferredTermTypes)
-        && Objects.equals(relationshipToTarget, other.relationshipToTarget)
-        && Objects.equals(retiredStatusValue, other.retiredStatusValue) && sourceCt == other.sourceCt
-        && Objects.equals(sources, other.sources) && Objects.equals(sourcesToRemove, other.sourcesToRemove)
-        && Objects.equals(subset, other.subset) && Objects.equals(subsetLink, other.subsetLink)
-        && Objects.equals(subsetMember, other.subsetMember) && Objects.equals(subsetPrefix, other.subsetPrefix)
-        && Objects.equals(synonym, other.synonym) && Objects.equals(synonymCode, other.synonymCode)
-        && Objects.equals(synonymSource, other.synonymSource)
-        && Objects.equals(synonymSourceSet, other.synonymSourceSet)
-        && Objects.equals(synonymSubSource, other.synonymSubSource)
-        && Objects.equals(synonymTermType, other.synonymTermType) && Objects.equals(termTypes, other.termTypes)
-        && Objects.equals(uiLabel, other.uiLabel) && Objects.equals(unpublished, other.unpublished)
-        && Objects.equals(welcomeText, other.welcomeText);
+    if (getClass() != obj.getClass())
+      return false;
+    TerminologyMetadata other = (TerminologyMetadata) obj;
+    if (uiLabel == null) {
+      if (other.uiLabel != null)
+        return false;
+    } else if (!uiLabel.equals(other.uiLabel))
+      return false;
+    return true;
   }
 
   /**
@@ -1226,9 +1199,9 @@ public class TerminologyMetadata extends BaseModel {
       return false;
     }
     return code.equals(synonymTermType) || code.equals(synonymSource) || code.equals(synonymCode)
-        || code.equals(synonymSubSource) || code.equals(definitionSource) || code.equals(mapRelation)
-        || code.equals(mapTarget) || code.equals(mapTargetTermType) || code.equals(mapTargetTerminology)
-        || code.equals(mapTargetTerminologyVersion);
+        || code.equals(synonymSubSource) || code.equals(definitionSource)
+        || code.equals(mapRelation) || code.equals(mapTarget) || code.equals(mapTargetTermType)
+        || code.equals(mapTargetTerminology) || code.equals(mapTargetTerminologyVersion);
   }
 
   /**
@@ -1249,7 +1222,8 @@ public class TerminologyMetadata extends BaseModel {
    * @param md the md
    * @return the remodeled as type
    */
-  public String getRemodeledAsType(final Property prop, final Qualifier qual, final TerminologyMetadata md) {
+  public String getRemodeledAsType(final Property prop, final Qualifier qual,
+    final TerminologyMetadata md) {
     String code = null;
     if (prop != null) {
       code = prop.getCode();
