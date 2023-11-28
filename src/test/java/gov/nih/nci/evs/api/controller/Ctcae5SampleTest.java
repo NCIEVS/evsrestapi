@@ -27,12 +27,12 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 
 /**
- * CANMED samples tests.
+ * CTCAE5 samples tests.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public class CanmedSampleTest extends SampleTest {
+public class Ctcae5SampleTest extends SampleTest {
 
   /**
    * Setup class.
@@ -40,7 +40,7 @@ public class CanmedSampleTest extends SampleTest {
    */
 
   /** The logger. */
-  private static final Logger log = LoggerFactory.getLogger(CanmedSampleTest.class);
+  private static final Logger log = LoggerFactory.getLogger(Ctcae5SampleTest.class);
 
   /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
   @Autowired
@@ -53,24 +53,24 @@ public class CanmedSampleTest extends SampleTest {
    */
   @BeforeClass
   public static void setupClass() throws Exception {
-    loadSamples("canmed", "src/test/resources/samples/canmed-samples.txt");
+    loadSamples("ctcae5", "src/test/resources/samples/ctcae5-samples.txt");
   }
 
   /**
-   * Test CANMED terminology.
+   * Test CTCAE5 terminology.
    *
    * @throws Exception the exception
    */
   @Test
-  public void testCANMEDTerminology() throws Exception {
+  public void testCTCAET5erminology() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
 
     url = "/api/v1/metadata/terminologies";
     log.info("Testing url - " + url);
-    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "canmed"))
-        .andExpect(status().isOk()).andReturn();
+    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "ctcae5")).andExpect(status().isOk())
+        .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
 
@@ -78,19 +78,17 @@ public class CanmedSampleTest extends SampleTest {
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
         });
     assertThat(terminologies.size()).isGreaterThan(0);
-    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("canmed")).count())
-        .isEqualTo(1);
-    final Terminology terminology =
-        terminologies.stream().filter(t -> t.getTerminology().equals("canmed")).findFirst().get();
-    assertThat(terminology.getTerminology()).isEqualTo("canmed");
-    assertThat(terminology.getMetadata().getUiLabel()).isEqualTo("CanMED");
-    assertThat(terminology.getName()).isEqualTo("CanMED 202311");
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ctcae5")).count()).isEqualTo(1);
+    final Terminology terminology = terminologies.stream().filter(t -> t.getTerminology().equals("ctcae5")).findFirst().get();
+    assertThat(terminology.getTerminology()).isEqualTo("ctcae5");
+    assertThat(terminology.getMetadata().getUiLabel()).isEqualTo("CTCAE 5");
+    assertThat(terminology.getName()).isEqualTo("CTCAE 5 5");
     assertThat(terminology.getDescription()).isNotEmpty();
 
     assertThat(terminology.getMetadata().getLoader()).isEqualTo("rdf");
     assertThat(terminology.getMetadata().getSourceCt()).isEqualTo(0);
     assertThat(terminology.getMetadata().getLicenseText()).isEqualTo(null);
-    assertThat(terminology.getDescription()).isEqualTo("Cancer Medications Enquiry Database (CanMED)");
+    assertThat(terminology.getDescription().trim()).isEqualTo("Common Terminology Criteria for Adverse Events");
 
     assertThat(terminology.getLatest()).isTrue();
   }
@@ -109,16 +107,16 @@ public class CanmedSampleTest extends SampleTest {
     Concept concept = null;
 
     // Test active
-    url = "/api/v1/concept/canmed/NDC_16729-0131-30";
+    url = "/api/v1/concept/ctcae5/C143164";
     log.info("Testing url - " + url);
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("NDC_16729-0131-30");
-    assertThat(concept.getName()).isEqualTo("FLUDARABINE 25.0 mg/mL");
-    assertThat(concept.getTerminology()).isEqualTo("canmed");
+    assertThat(concept.getCode()).isEqualTo("C143164");
+    assertThat(concept.getName()).isEqualTo("Blood and Lymphatic System Disorders");
+    assertThat(concept.getTerminology()).isEqualTo("ctcae5");
     assertThat(concept.isActive()).isTrue();
   }
 }
