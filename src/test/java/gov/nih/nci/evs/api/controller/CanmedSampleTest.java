@@ -69,8 +69,8 @@ public class CanmedSampleTest extends SampleTest {
 
     url = "/api/v1/metadata/terminologies";
     log.info("Testing url - " + url);
-    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "canmed")).andExpect(status().isOk())
-        .andReturn();
+    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "canmed"))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
 
@@ -78,8 +78,10 @@ public class CanmedSampleTest extends SampleTest {
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
         });
     assertThat(terminologies.size()).isGreaterThan(0);
-    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("canmed")).count()).isEqualTo(1);
-    final Terminology terminology = terminologies.stream().filter(t -> t.getTerminology().equals("canmed")).findFirst().get();
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("canmed")).count())
+        .isEqualTo(1);
+    final Terminology terminology =
+        terminologies.stream().filter(t -> t.getTerminology().equals("canmed")).findFirst().get();
     assertThat(terminology.getTerminology()).isEqualTo("canmed");
     assertThat(terminology.getMetadata().getUiLabel()).isEqualTo("CanMED");
     assertThat(terminology.getName()).isEqualTo("CanMED 202311");

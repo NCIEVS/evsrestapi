@@ -29,6 +29,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -49,6 +50,10 @@ public class NcimControllerTests {
   /** The test properties. */
   @Autowired
   TestProperties testProperties;
+
+  /** The application properties. */
+  @Autowired
+  ApplicationProperties appProperties;
 
   /** The object mapper. */
   private ObjectMapper objectMapper;
@@ -538,7 +543,8 @@ public class NcimControllerTests {
     // Handle associations
     url = base + "/associations";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -568,7 +574,8 @@ public class NcimControllerTests {
     // Handle concept statuses
     url = base + "/conceptStatuses";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -580,7 +587,8 @@ public class NcimControllerTests {
     // Handle definitionSources
     url = base + "/definitionSources";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -593,7 +601,8 @@ public class NcimControllerTests {
     // Handle definitionTypes
     url = base + "/definitionTypes";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -620,7 +629,8 @@ public class NcimControllerTests {
     // Handle qualifiers
     url = base + "/qualifiers";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -648,7 +658,8 @@ public class NcimControllerTests {
     // Handle synonymSources - n/a - handled inline
     url = base + "/synonymSources";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -661,7 +672,8 @@ public class NcimControllerTests {
     // Handle synonymTypes
     url = base + "/synonymTypes";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -674,7 +686,8 @@ public class NcimControllerTests {
     // Handle termTypes - n/a - handled inline
     url = base + "/termTypes";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -703,7 +716,8 @@ public class NcimControllerTests {
     // NCIM qualifier values
     url = "/api/v1/metadata/ncim/qualifier/SMQ_TERM_LEVEL/values";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<String>>() {
@@ -715,12 +729,12 @@ public class NcimControllerTests {
   }
 
   /**
-   * Test subree.
+   * Test subtree.
    *
    * @throws Exception the exception
    */
   @Test
-  public void testSubree() throws Exception {
+  public void testSubtree() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
@@ -730,7 +744,8 @@ public class NcimControllerTests {
     // test /roots
     url = baseUrl + "/ncim/roots";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -741,7 +756,8 @@ public class NcimControllerTests {
     // test /descendants
     url = baseUrl + "/ncim/C0004057/descendants";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -752,7 +768,8 @@ public class NcimControllerTests {
     // test /subtree
     url = baseUrl + "/ncim/C0004057/subtree";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list2 = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
@@ -763,7 +780,8 @@ public class NcimControllerTests {
     // test /subtree/children - C0242354
     url = baseUrl + "/ncim/C0242354/subtree/children";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list2 = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
@@ -788,7 +806,8 @@ public class NcimControllerTests {
     // test /pathsToRoot
     url = baseUrl + "/ncim/C0242354/pathsToRoot";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
@@ -799,7 +818,8 @@ public class NcimControllerTests {
     // test /pathsFromRoot
     url = baseUrl + "/ncim/C0242354/pathsFromRoot";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
@@ -810,7 +830,8 @@ public class NcimControllerTests {
     // test /pathsToAncestor
     url = baseUrl + "/ncim/C0242354/pathsToAncestor/C0000005";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {

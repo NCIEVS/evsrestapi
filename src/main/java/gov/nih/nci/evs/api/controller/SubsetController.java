@@ -68,16 +68,19 @@ public class SubsetController extends BaseController {
    * @return the properties
    * @throws Exception the exception
    */
-  @Operation(summary = "Get all subsets (or those specified by list parameter) for the specified terminology")
+  @Operation(
+      summary = "Get all subsets (or those specified by list parameter) for the specified terminology")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "200",
+          description = "Successfully retrieved the requested information"),
       @ApiResponse(responseCode = "404", description = "Resource not found",
-          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology",
-          description = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+          description = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "include",
           description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
@@ -90,7 +93,8 @@ public class SubsetController extends BaseController {
           required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/subset/{terminology}", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/subset/{terminology}",
+      produces = "application/json")
   @Cacheable(value = "subsets", key = "{#terminology}")
   public @ResponseBody List<Concept> getSubsets(@PathVariable(value = "terminology")
   final String terminology, @RequestParam(required = false, name = "include")
@@ -114,11 +118,13 @@ public class SubsetController extends BaseController {
    * @return the subset
    * @throws Exception the exception
    */
-  @Operation(description = "Get the subset for the specified terminology and code.")
+  @Operation(summary = "Get the subset for the specified terminology and code.")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "200",
+          description = "Successfully retrieved the requested information"),
       @ApiResponse(responseCode = "404", description = "Resource not found",
-          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'.", required = true,
@@ -135,7 +141,8 @@ public class SubsetController extends BaseController {
           required = false, schema = @Schema(implementation = String.class), example = "summary")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/subset/{terminology}/{code}", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/subset/{terminology}/{code}",
+      produces = "application/json")
   public @ResponseBody Concept getSubset(@PathVariable(value = "terminology")
   final String terminology, @PathVariable(value = "code")
   final String code, @RequestParam(required = false, name = "include")
@@ -143,11 +150,13 @@ public class SubsetController extends BaseController {
     try {
       // If the code contains a comma, just bail
       if (code.contains(",")) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset not found for code = " + code);
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "Subset not found for code = " + code);
       }
       Optional<Concept> concept = metadataService.getSubset(terminology, code, include);
       if (!concept.isPresent()) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset not found for code = " + code);
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "Subset not found for code = " + code);
       }
       return concept.get();
     } catch (Exception e) {
@@ -170,18 +179,20 @@ public class SubsetController extends BaseController {
   @Operation(summary = "Get subset members for the specified terminology and code. "
       + "Concept subset endpoints will be deprecated in v2 in favor of top level subset endpoints.")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "200",
+          description = "Successfully retrieved the requested information"),
       @ApiResponse(responseCode = "404", description = "Resource not found",
-          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = RestException.class))),
       @ApiResponse(responseCode = "417", description = "Expectation failed",
-      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
           schema = @Schema(implementation = String.class), example = "ncit"),
-      @Parameter(name = "code",
-          description = "Code for a subset concept in the specified "
-              + "terminology, e.g. 'C157225' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
+      @Parameter(name = "code", description = "Code for a subset concept in the specified "
+          + "terminology, e.g. 'C157225' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
           required = true, schema = @Schema(implementation = String.class)),
       @Parameter(name = "include",
           description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
@@ -190,10 +201,10 @@ public class SubsetController extends BaseController {
               + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
               + "for detailed information</a>.",
           required = false, schema = @Schema(implementation = String.class), example = "minimal"),
-      @Parameter(name = "fromRecord", description = "Start index of the search results", required = false,
-          schema = @Schema(implementation = String.class), example = "0"),
-      @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
-          schema = @Schema(implementation = String.class), example = "10000"),
+      @Parameter(name = "fromRecord", description = "Start index of the search results",
+          required = false, schema = @Schema(implementation = String.class), example = "0"),
+      @Parameter(name = "pageSize", description = "Max number of results to return",
+          required = false, schema = @Schema(implementation = String.class), example = "10000"),
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/subset/{terminology}/{code}/members",
@@ -212,7 +223,8 @@ public class SubsetController extends BaseController {
           elasticQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
 
       if (!concept.isPresent()) {
-        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset not found for code = " + code);
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND,
+            "Subset not found for code = " + code);
       }
 
       final List<Concept> subsets = new ArrayList<>();
@@ -220,14 +232,17 @@ public class SubsetController extends BaseController {
 
       if (associationListSize > 0) {
         final int fromIndex = fromRecord.orElse(0);
-        final int toIndex = Math.min(pageSize.orElse(associationListSize) + fromIndex, associationListSize);
-        for (final Association assn : concept.get().getInverseAssociations().subList(fromIndex, toIndex)) {
-          final Concept member = elasticQueryService.getConcept(assn.getRelatedCode(), term, ip).orElse(null);
+        final int toIndex =
+            Math.min(pageSize.orElse(associationListSize) + fromIndex, associationListSize);
+        for (final Association assn : concept.get().getInverseAssociations().subList(fromIndex,
+            toIndex)) {
+          final Concept member =
+              elasticQueryService.getConcept(assn.getRelatedCode(), term, ip).orElse(null);
           if (member != null) {
             subsets.add(member);
           } else {
-            logger.warn("Unexpected subset member that could not be loaded as a concept = " + term.getTerminology()
-                + ", " + assn.getRelatedCode());
+            logger.warn("Unexpected subset member that could not be loaded as a concept = "
+                + term.getTerminology() + ", " + assn.getRelatedCode());
           }
         }
       }

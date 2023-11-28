@@ -61,21 +61,25 @@ public class MapUnitTest {
   @Test
   public void testModelEqualsHashcode() throws Exception {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
+    tester.include("source");
     tester.include("type");
     tester.include("group");
     tester.include("rank");
     tester.include("rule");
     tester.include("targetName");
-    tester.include("source");
+    tester.include("targetTermType");
     tester.include("sourceCode");
     tester.include("sourceName");
     tester.include("sourceTermType");
     tester.include("sourceTerminology");
+    tester.include("sourceTerminologyVersion");
+    tester.include("sourceLoaded");
     tester.include("targetCode");
+    tester.include("targetName");
     tester.include("targetTermType");
     tester.include("targetTerminology");
     tester.include("targetTerminologyVersion");
-    
+    tester.include("targetLoaded");
 
     assertTrue(tester.testIdentityFieldEquals());
     assertTrue(tester.testNonIdentityFieldEquals());
