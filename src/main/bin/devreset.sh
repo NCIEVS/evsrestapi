@@ -193,8 +193,9 @@ for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX; do
 
     # Keep the NCIM folder around while we run
     echo "Load $t (from downloaded data)"
-    src/main/bin/ncim-part.sh --noconfig $dir/NCIM --keep --terminology $t | sed 's/^/    /'
+    src/main/bin/ncim-part.sh --noconfig $dir/NCIM --keep --terminology $t > /tmp/x.$$.txt 2>&1
     if [[ $? -ne 0 ]]; then
+        cat /tmp/x.$$.txt | sed 's/^/    /'
         echo "ERROR: loading $t"
         exit 1
     fi
@@ -202,8 +203,9 @@ done
 
 # Reindex ncim - must run after the prior section so that maps can connect to loaded terminologies
 echo "  Reindex ncim"
-src/main/bin/ncim-part.sh --noconfig $dir/NCIM | sed 's/^/    /'
+src/main/bin/ncim-part.sh --noconfig $dir/NCIM > /tmp/x.$$.txt 2>&1
 if [[ $? -ne 0 ]]; then
+    cat /tmp/x.$$.txt | sed 's/^/    /'
     echo "ERROR: problem running ncim-part.sh"
     exit 1
 fi
@@ -252,8 +254,9 @@ historyFile=$dir/cumulative_history_21.06e.txt
 
 # Reindex stardog terminologies
 echo "  Reindex stardog terminologies"
-src/main/bin/reindex.sh --noconfig --history $historyFile | sed 's/^/    /'
+src/main/bin/reindex.sh --noconfig --history $historyFile > /tmp/x.$$.txt 2>&1 
 if [[ $? -ne 0 ]]; then
+    cat /tmp/x.$$.txt | sed 's/^/    /'
     echo "ERROR: problem running reindex.sh script"
     exit 1
 fi

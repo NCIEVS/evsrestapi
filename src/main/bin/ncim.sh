@@ -21,8 +21,9 @@ echo "Wait for 8 seconds to start ..."
 sleep 8
 
 echo "Load ncim (download)"
-$DIR/ncim-part.sh --download --keep | sed 's/^/    /'
+$DIR/ncim-part.sh --download --keep > /tmp/$$.log 2>&1 
 if [[ $? -ne 0 ]]; then
+    cat /tmp/$$.log | sed 's/^/    /'
     echo "ERROR: loading ncim"
     exit 1
 fi
@@ -33,15 +34,16 @@ for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX; do
     free
     # Keep the NCIM folder around while we run
     echo "Load $t (from downloaded data)"
-    $DIR/ncim-part.sh ./NCIM/META --keep --terminology $t | sed 's/^/    /'
+    $DIR/ncim-part.sh ./NCIM/META --keep --terminology $t > /tmp/$$.log 2>&1
     if [[ $? -ne 0 ]]; then
+        cat /tmp/$$.log | sed 's/^/    /'
         echo "ERROR: loading $t"
         exit 1
     fi
 done
 
 echo "Cleanup"
-/bin/rm -rf ./NCIM
+/bin/rm -rf ./NCIM /tmp/$$.log
 
 echo ""
 echo "--------------------------------------------------"
