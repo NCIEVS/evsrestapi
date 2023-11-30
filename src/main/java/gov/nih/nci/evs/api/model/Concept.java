@@ -313,7 +313,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the highlight
    */
-  @Schema(hidden = true)
+  @Schema(description = "Used by search calls to provide information for highlighting a view of results")
   public String getHighlight() {
     return highlight;
   }
@@ -388,7 +388,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the subsetLink
    */
-  @Schema(hidden = true)
+  @Schema(description = "Link to download data for a subset, used when the concept represents subset metadata")
   public String getSubsetLink() {
     return subsetLink;
   }
@@ -407,7 +407,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the mapsetLink
    */
-  @Schema(hidden = true)
+  @Schema(description = "Metadata for downloading a mapset")
   public String getMapsetLink() {
     return mapsetLink;
   }

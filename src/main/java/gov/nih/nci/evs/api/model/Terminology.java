@@ -229,7 +229,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @return the graph
    */
-  @Schema(hidden = true)
+  @Schema(description = "Name of the RDF triplestore graph if this data is backed by a triplestore")
   public String getGraph() {
     return graph;
   }
@@ -258,7 +258,6 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @param source the source
    */
-  @Schema(hidden = true)
   public void setSource(final String source) {
     this.source = source;
   }

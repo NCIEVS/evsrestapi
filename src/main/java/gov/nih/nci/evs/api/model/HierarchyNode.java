@@ -203,4 +203,5 @@ public class HierarchyNode extends BaseModel {
   public void setChildren(List<HierarchyNode> children) {
     this.children = children;
   }
+
 }

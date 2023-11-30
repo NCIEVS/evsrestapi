@@ -742,7 +742,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the details columns
    */
-  @Schema(hidden = true)
+  @Schema(description = "Metadata for displaying concept")
   public Map<String, Boolean> getDetailsColumns() {
     if (detailsColumns == null) {
       detailsColumns = new HashMap<>();
@@ -755,7 +755,6 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param detailsColumns the details columns
    */
-  @Schema(description = "Metadata for displaying concept")
   public void setDetailsColumns(final Map<String, Boolean> detailsColumns) {
     this.detailsColumns = detailsColumns;
   }
@@ -1199,9 +1198,9 @@ public class TerminologyMetadata extends BaseModel {
       return false;
     }
     return code.equals(synonymTermType) || code.equals(synonymSource) || code.equals(synonymCode)
-        || code.equals(synonymSubSource) || code.equals(definitionSource)
-        || code.equals(mapRelation) || code.equals(mapTarget) || code.equals(mapTargetTermType)
-        || code.equals(mapTargetTerminology) || code.equals(mapTargetTerminologyVersion);
+        || code.equals(synonymSubSource) || code.equals(definitionSource) || code.equals(mapRelation)
+        || code.equals(mapTarget) || code.equals(mapTargetTermType) || code.equals(mapTargetTerminology)
+        || code.equals(mapTargetTerminologyVersion);
   }
 
   /**
@@ -1222,8 +1221,7 @@ public class TerminologyMetadata extends BaseModel {
    * @param md the md
    * @return the remodeled as type
    */
-  public String getRemodeledAsType(final Property prop, final Qualifier qual,
-    final TerminologyMetadata md) {
+  public String getRemodeledAsType(final Property prop, final Qualifier qual, final TerminologyMetadata md) {
     String code = null;
     if (prop != null) {
       code = prop.getCode();
