@@ -108,7 +108,7 @@ public class NcimSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("CL547438");
     assertThat(concept.getTerminology()).isEqualTo("ncim");
-    assertThat(concept.isActive()).isTrue();
+    assertThat(concept.getActive()).isTrue();
 
     // Test inactive
     url = "/api/v1/concept/ncim/C0278390?include=full";
@@ -120,7 +120,7 @@ public class NcimSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0278390");
     assertThat(concept.getTerminology()).isEqualTo("ncim");
-    assertThat(concept.isActive()).isFalse();
+    assertThat(concept.getActive()).isFalse();
     assertThat(concept.getConceptStatus()).isEqualTo("Retired_Concept");
 
     // test that "Retired_Concept" was added to the list of concept statuses

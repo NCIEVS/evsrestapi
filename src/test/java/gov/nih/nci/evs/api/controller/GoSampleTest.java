@@ -110,7 +110,7 @@ public class GoSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("GO:0002451");
     assertThat(concept.getTerminology()).isEqualTo("go");
-    assertThat(concept.isActive()).isTrue();
+    assertThat(concept.getActive()).isTrue();
   }
 
 }

@@ -119,6 +119,6 @@ public class UmlssemnetSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("T001");
     assertThat(concept.getTerminology()).isEqualTo("umlssemnet");
-    assertThat(concept.isActive()).isTrue();
+    assertThat(concept.getActive()).isTrue();
   }
 }

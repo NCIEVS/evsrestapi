@@ -120,6 +120,6 @@ public class MedrtSampleTest extends SampleTest {
     assertThat(concept.getCode()).isEqualTo("N0000175809");
     assertThat(concept.getName()).isEqualTo("4-Hydroxyphenyl-Pyruvate Dioxygenase Inhibitor");
     assertThat(concept.getTerminology()).isEqualTo("medrt");
-    assertThat(concept.isActive()).isTrue();
+    assertThat(concept.getActive()).isTrue();
   }
 }

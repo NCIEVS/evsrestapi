@@ -278,7 +278,7 @@ public class Concept extends ConceptMinimal {
     highlights = new HashMap<>(other.getHighlights());
     conceptStatus = other.getConceptStatus();
     leaf = other.getLeaf();
-    active = other.isActive();
+    active = other.getActive();
     normName = other.getNormName();
     stemName = other.getStemName();
     if (!subsetFlag) {
@@ -465,7 +465,7 @@ public class Concept extends ConceptMinimal {
    * @return the active flag
    */
   @Schema(description = "Indicates whether the concept is active")
-  public Boolean isActive() {
+  public Boolean getActive() {
     return active;
   }
 

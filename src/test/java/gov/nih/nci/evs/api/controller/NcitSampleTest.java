@@ -158,9 +158,9 @@ public class NcitSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C12756");
     assertThat(concept.getTerminology()).isEqualTo("ncit");
-    assertThat(concept.isActive()).isTrue();
+    assertThat(concept.getActive()).isTrue();
     assertThat(concept.getParents()).isNotEmpty();
-    assertThat(concept.getParents().get(0).isActive()).isNull();
+    assertThat(concept.getParents().get(0).getActive()).isNull();
     
     // Test inactive
     url = "/api/v1/concept/ncit/C4631?include=full";
@@ -172,7 +172,7 @@ public class NcitSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C4631");
     assertThat(concept.getTerminology()).isEqualTo("ncit");
-    assertThat(concept.isActive()).isFalse();
+    assertThat(concept.getActive()).isFalse();
     assertThat(concept.getConceptStatus()).isEqualTo("Retired_Concept");
    
     // test that "Retired_Concept" was added to the list of concept statuses

@@ -80,7 +80,7 @@ public class MdrSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("10062368");
     assertThat(concept.getTerminology()).isEqualTo("mdr");
-    assertThat(concept.isActive()).isTrue();
+    assertThat(concept.getActive()).isTrue();
 
     // Test inactive
     url = "/api/v1/concept/mdr/10002614?include=full";
@@ -93,7 +93,7 @@ public class MdrSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("10002614");
     assertThat(concept.getTerminology()).isEqualTo("mdr");
-    assertThat(concept.isActive()).isFalse();
+    assertThat(concept.getActive()).isFalse();
     assertThat(concept.getConceptStatus()).isEqualTo("Retired_Concept");
 
     // test that "Retired_Concept" was added to the list of concept statuses

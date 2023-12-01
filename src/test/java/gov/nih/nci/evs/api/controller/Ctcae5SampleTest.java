@@ -117,6 +117,6 @@ public class Ctcae5SampleTest extends SampleTest {
     assertThat(concept.getCode()).isEqualTo("C143164");
     assertThat(concept.getName()).isEqualTo("Blood and Lymphatic System Disorders");
     assertThat(concept.getTerminology()).isEqualTo("ctcae5");
-    assertThat(concept.isActive()).isTrue();
+    assertThat(concept.getActive()).isTrue();
   }
 }

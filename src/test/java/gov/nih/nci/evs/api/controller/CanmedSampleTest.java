@@ -119,6 +119,6 @@ public class CanmedSampleTest extends SampleTest {
     assertThat(concept.getCode()).isEqualTo("NDC_16729-0131-30");
     assertThat(concept.getName()).isEqualTo("FLUDARABINE 25.0 mg/mL");
     assertThat(concept.getTerminology()).isEqualTo("canmed");
-    assertThat(concept.isActive()).isTrue();
+    assertThat(concept.getActive()).isTrue();
   }
 }

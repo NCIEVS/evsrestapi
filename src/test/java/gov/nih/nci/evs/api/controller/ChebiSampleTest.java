@@ -112,7 +112,7 @@ public class ChebiSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("CHEBI:104926");
     assertThat(concept.getTerminology()).isEqualTo("chebi");
-    assertThat(concept.isActive()).isTrue();
+    assertThat(concept.getActive()).isTrue();
   }
 
 }
