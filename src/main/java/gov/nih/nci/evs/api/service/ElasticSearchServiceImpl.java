@@ -84,7 +84,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if ("".equals(term)) {
       // don't create anything
     } else {
-      boolQuery.must(getTermQuery(searchCriteria.getType(), term));
+      boolQuery.must(getTermQuery(searchCriteria, term));
     }
 
     // Append concept status clause
@@ -166,23 +166,26 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @return the term query
    * @throws Exception the exception
    */
-  private BoolQueryBuilder getTermQuery(final String type, final String term) throws Exception {
+  private BoolQueryBuilder getTermQuery(final SearchCriteria searchCriteria, final String term) throws Exception {
+    
+    final String type = searchCriteria.getType();
+    
     switch (type) {
       case "contains":
       case "phrase":
       case "OR":
-        return getContainsQuery(type, term, false, false);
+        return getContainsQuery(searchCriteria, term, false, false);
       case "match":
         return getMatchQuery(term, false);
       case "startsWith":
         return getMatchQuery(term, true);
       case "fuzzy":
-        return getContainsQuery(type, term, true, false);
+        return getContainsQuery(searchCriteria, term, true, false);
       case "AND":
-        return getContainsQuery(type, term, false, true);
+        return getContainsQuery(searchCriteria, term, false, true);
       default:
         // Default to contains query
-        return getContainsQuery(type, term, false, false);
+        return getContainsQuery(searchCriteria, term, false, false);
     }
   }
 
@@ -196,15 +199,17 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @return the contains query
    * @throws Exception the exception
    */
-  private BoolQueryBuilder getContainsQuery(final String type, final String term, boolean fuzzyFlag,
+  private BoolQueryBuilder getContainsQuery(final SearchCriteria searchCriteria, final String term, boolean fuzzyFlag,
     boolean andFlag) throws Exception {
 
     // Generate variants to search with
+    final String type = searchCriteria.getType();
     final String normTerm = ConceptUtils.normalize(term);
     final String stemTerm = ConceptUtils.normalizeWithStemming(term);
     final String fixTerm = updateTermForType(term, type);
     final String fixNormTerm = updateTermForType(normTerm, type);
     final String codeTerm = term.toUpperCase();
+    final boolean hasCodeList = !searchCriteria.getCodeList().isEmpty();
 
     // Unable to do an exact match on "name" as it is a "text" field
     // final MatchQueryBuilder nameQuery = QueryBuilders.matchQuery("name",
@@ -252,13 +257,19 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     final NestedQueryBuilder nestedDefinitionQuery =
         QueryBuilders.nestedQuery("definitions", definitionQuery, ScoreMode.Max);
 
+    String codeList = "";
+    
+    if (hasCodeList) {
+      codeList = " OR " + String.join(" OR ", searchCriteria.getCodeList());
+    }
+    
     // Code queries
     final QueryStringQueryBuilder codeQuery =
-        QueryBuilders.queryStringQuery(codeTerm).field("code").boost(50f);
+        QueryBuilders.queryStringQuery(codeTerm + codeList).field("code").boost(50f);
     final NestedQueryBuilder synonymCodeQuery =
         QueryBuilders
             .nestedQuery("synonyms",
-                QueryBuilders.queryStringQuery(codeTerm).field("synonyms.code"), ScoreMode.Max)
+                QueryBuilders.queryStringQuery(codeTerm + codeList).field("synonyms.code"), ScoreMode.Max)
             .boost(50f);
 
     // -- fuzzy case
