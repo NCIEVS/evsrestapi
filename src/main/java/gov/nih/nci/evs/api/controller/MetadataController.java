@@ -116,6 +116,7 @@ public class MetadataController extends BaseController {
       for (final Terminology term : terms) {
         // For internal use
         term.setSource(null);
+        term.setIndexName(null);
         final TerminologyMetadata meta = term.getMetadata();
         // Some terminologies may not have metadata
         if (meta != null) {
