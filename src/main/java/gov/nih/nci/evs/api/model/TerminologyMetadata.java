@@ -255,7 +255,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the relationship to target
    */
-  @Schema(description = "OWL property metadata for building maps")
+  @Schema(hidden = true)
   public String getRelationshipToTarget() {
     return relationshipToTarget;
   }
@@ -331,7 +331,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the code
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public String getCode() {
     return code;
   }
@@ -350,7 +350,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the concept status
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public String getConceptStatus() {
     return conceptStatus;
   }
@@ -410,7 +410,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the preferred name
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public String getPreferredName() {
     return preferredName;
   }
@@ -429,7 +429,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public Set<String> getSynonym() {
     if (synonym == null) {
       synonym = new HashSet<>();
@@ -451,7 +451,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym term type
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public String getSynonymTermType() {
     return synonymTermType;
   }
@@ -479,7 +479,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym source
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public String getSynonymSource() {
     return synonymSource;
   }
@@ -498,7 +498,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym code
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public String getSynonymCode() {
     return synonymCode;
   }
@@ -517,7 +517,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym sub source
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public String getSynonymSubSource() {
     return synonymSubSource;
   }
@@ -536,7 +536,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the definition source
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public String getDefinitionSource() {
     return definitionSource;
   }
@@ -555,7 +555,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the definition
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public Set<String> getDefinition() {
     if (definition == null) {
       definition = new HashSet<>();
@@ -577,7 +577,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map relation
    */
-  @Schema(description = "OWL property metadata for building maps")
+  @Schema(hidden = true)
   public String getMapRelation() {
     return mapRelation;
   }
@@ -596,7 +596,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map
    */
-  @Schema(description = "OWL property metadata for building maps")
+  @Schema(hidden = true)
   public String getMap() {
     return map;
   }
@@ -615,7 +615,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map target
    */
-  @Schema(description = "OWL property metadata for building maps")
+  @Schema(hidden = true)
   public String getMapTarget() {
     return mapTarget;
   }
@@ -634,7 +634,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map target term type
    */
-  @Schema(description = "OWL property metadata for building maps")
+  @Schema(hidden = true)
   public String getMapTargetTermType() {
     return mapTargetTermType;
   }
@@ -653,7 +653,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param mapTargetTermGroup the map target term group
    */
-  @Schema(description = "OWL property metadata for building maps")
+  @Schema(hidden = true)
   public void setMapTargetTermGroup(final String mapTargetTermGroup) {
     this.mapTargetTermType = mapTargetTermGroup;
   }
@@ -663,7 +663,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map target terminology
    */
-  @Schema(description = "OWL property metadata for building maps")
+  @Schema(hidden = true)
   public String getMapTargetTerminology() {
     return mapTargetTerminology;
   }
@@ -682,7 +682,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map target terminology version
    */
-  @Schema(description = "OWL property metadata for building maps")
+  @Schema(hidden = true)
   public String getMapTargetTerminologyVersion() {
     return mapTargetTerminologyVersion;
   }
@@ -808,7 +808,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the term types
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public Map<String, String> getTermTypes() {
     if (termTypes == null) {
       termTypes = new HashMap<>();
@@ -1020,7 +1020,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the preferred term types
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public List<String> getPreferredTermTypes() {
     if (preferredTermTypes == null) {
       preferredTermTypes = new ArrayList<>();
@@ -1089,7 +1089,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the subset
    */
-  @Schema(description = "OWL property metadata for building subsets")
+  @Schema(hidden = true)
   public Set<String> getSubset() {
     if (subset == null) {
       subset = new HashSet<>();
