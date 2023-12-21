@@ -27,35 +27,13 @@ RID39275	RID39275	Semantic_Type	Intellectual Product
 RID39274	RID39274	Semantic_Type	Classification
 RID1541	RID1541	Semantic_Type	Finding
 RID56	RID56	DEFINITION	Subdivision of trunk proper which is demarcated from the thorax internally by the inferior surface of the sternocostal part of the diaphragm and externally by the costal margin, from the back of abdomen by the external surface of the posterior abdominal wall, from the perineum by the superior surface of the urogenital diaphragm and from the lower limbs by the inguinal folds; together with the thorax, and perineum, it constitutes the trunk proper. Examples: There is only one abdomen. [FMA]
-RID56	RID56	root
-RID28795	RID28795	root
-RID34730	RID34730	root
-RID88	RID88	root
-RID28753	RID28753	root
-RID6062	RID6062	root
-RID5277	RID5277	root
-RID1524	RID1524	root
-RID31010	RID31010	root
-RID3461	RID3461	root
-RID30005	RID30005	root
-RID476	RID476	root
-RID4700	RID4700	root
 RID4895	RID4895	root
-RID2485	RID2485	root
-RID58	RID58	root
-RID30058	RID30058	root
-RID170	RID170	root
-RID39156	RID39156	root
-RID2484	RID2484	root
-RID13200	RID13200	root
-RID30063	RID30063	root
-RID29990	RID29990	root
-RID29992	RID29992	root
-RID29997	RID29997	root
-RID29995	RID29995	root
-RID29998	RID29998	root
-RID30874	RID30874	root
-RID445	RID445	root
-RID31899	RID31899	root
+RID35738	RID35738	root
+RID28854	RID28854	root
+RID444	RID444	root
+RID13390	RID13390	root
+RID34727	RID34727	root
+RID13404	RID13404	root
+RID5273	RID5273	root
 RID0	RID0	root
 RID56	RID56	parent-count1
