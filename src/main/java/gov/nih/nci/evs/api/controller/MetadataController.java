@@ -58,7 +58,6 @@ public class MetadataController extends BaseController {
   ElasticQueryService esQueryService;
 
   /** The term utils. */
-  /* The terminology utils */
   @Autowired
   TerminologyUtils termUtils;
 
@@ -1150,8 +1149,8 @@ public class MetadataController extends BaseController {
    * @return the subset
    * @throws Exception the exception
    */
-  @Operation(summary = "Get the subset for the specified terminology and code.",
-      description = "This endpoint will be deprecated in v2 in favor of top level subset endpoints.")
+  @Operation(summary = "Get statistics for the source within the specified terminology.",
+      description = "This endpoint is mostly for NCIm to make source overlap statistics available.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
       @ApiResponse(responseCode = "404", description = "Resource not found",
@@ -1162,7 +1161,7 @@ public class MetadataController extends BaseController {
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'.", required = true,
           schema = @Schema(implementation = String.class), example = "ncim"),
-      @Parameter(name = "source", description = "terminology source code, e.g. 'AOD' for <i>ncim</i>.", required = true,
+      @Parameter(name = "source", description = "terminology source code, e.g. 'LNC' for <i>ncim</i>.", required = true,
           schema = @Schema(implementation = String.class))
   })
   @RecordMetric
