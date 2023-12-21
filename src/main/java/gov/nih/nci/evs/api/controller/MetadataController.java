@@ -58,7 +58,6 @@ public class MetadataController extends BaseController {
   ElasticQueryService esQueryService;
 
   /** The term utils. */
-  /* The terminology utils */
   @Autowired
   TerminologyUtils termUtils;
 
@@ -1162,7 +1161,7 @@ public class MetadataController extends BaseController {
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'.", required = true,
           schema = @Schema(implementation = String.class), example = "ncim"),
-      @Parameter(name = "source", description = "terminology source code, e.g. 'AOD' for <i>ncim</i>.", required = true,
+      @Parameter(name = "source", description = "terminology source code, e.g. 'LNC' for <i>ncim</i>.", required = true,
           schema = @Schema(implementation = String.class))
   })
   @RecordMetric
