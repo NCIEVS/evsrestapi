@@ -1449,7 +1449,7 @@ public class ConceptSampleTester {
           String firstLeafDesc = firstLeaf.getProperties().stream()
               .filter(p -> p.getType().equals("Term_Browser_Value_Set_Description"))
               .collect(Collectors.toList()).get(0).getValue();
-          if (root.getProperties().stream()
+          if (firstLeaf.getProperties().stream()
               .noneMatch(d -> d.getType().equals("Term_Browser_Value_Set_Description")
                   && d.getValue().equals(firstLeafDesc))) {
             errors
@@ -1501,16 +1501,25 @@ public class ConceptSampleTester {
    *
    * @param root the root
    * @return the leaf code
+   * @throws Exception
    */
-  public String getLeafCode(Concept root) {
-    if (root == null || root.getLeaf() == null) {
+  public String getLeafCode(Concept root) throws Exception {
+    String url = "/api/v1/subset/" + terminology.getTerminology() + "/" + root.getCode()
+        + "?include=summary";
+    MvcResult result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))
+        .andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
+    Concept rootSubset = new ObjectMapper().readValue(content, new TypeReference<Concept>() {
+      // n/a
+    });
+    if (rootSubset == null || rootSubset.getLeaf() == null) {
       return null;
     }
-    if (root.getLeaf()) {
-      return root.getCode();
+    if (rootSubset.getLeaf()) {
+      return rootSubset.getCode();
     }
     String rootCode = null;
-    for (Concept child : root.getChildren()) {
+    for (Concept child : rootSubset.getChildren()) {
       rootCode = getLeafCode(child);
       if (rootCode != null) {
         return rootCode;
