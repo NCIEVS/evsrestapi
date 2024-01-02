@@ -442,7 +442,8 @@ public class ConceptSampleTester {
           if (!checkSynonym(concept, sample)) {
             errors.add("ERROR: Wrong synonym " + sample.getValue() + " of " + sample.getCode());
           }
-        } else if (terminology.getMetadata().getDefinition().contains(key)) {
+        } else if (terminology.getMetadata().getDefinition().contains(key)
+            || key.contentEquals("DEFINITION")) {
           if (!checkDefinition(concept, sample)) {
             errors.add("ERROR: Wrong definition " + sample.getValue() + " of " + sample.getCode());
           }
@@ -495,7 +496,7 @@ public class ConceptSampleTester {
             errors.add("ERROR: " + sample.getValue() + " stated to be disjoint with "
                 + sample.getCode() + " even though they are not");
           }
-        } else if (associationsList.size() > 0 && key.startsWith("A")) {
+        } else if (associationsList.size() > 0 && key.startsWith("As")) {
           if (!checkAssociations(concept, sample, associationsList)) {
             errors.add("ERROR: Wrong association (" + sample.getKey() + ") " + sample.getValue()
                 + " of " + sample.getCode());
@@ -993,12 +994,15 @@ public class ConceptSampleTester {
     lookupTerminology(term);
     String parentCode1 = null;
     String parentCode2 = null;
+    Boolean hasRoots = false;
     for (List<SampleRecord> values : sampleMap.values()) {
       for (SampleRecord property : values) {
         if (property.getKey().equals("parent-count1")) {
           parentCode1 = property.getCode();
         } else if (property.getKey().equals("parent-count2")) {
           parentCode2 = property.getCode();
+        } else if (!hasRoots && property.getKey().equals("root")) {
+          hasRoots = true;
         }
       }
       if (parentCode1 != null && parentCode2 != null)
@@ -1011,144 +1015,148 @@ public class ConceptSampleTester {
       return;
     }
 
-    // roots testing
-    String url = "/api/v1/concept/" + terminology.getTerminology() + "/roots";
-    result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))
-        .andExpect(status().isOk()).andReturn();
-    String content = result.getResponse().getContentAsString();
-    List<Concept> roots = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
-    List<String> rootCodes =
-        roots.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
-    if (terminology.getMetadata().getHierarchy() == true && roots.size() == 0) {
-      errors.add("ERROR: roots could not be found in hierarchy temrinology " + term);
-    } else if (terminology.getMetadata().getHierarchy() == false && roots.size() > 0) {
-      errors.add("ERROR: roots found in non-hierarchy temrinology " + term);
-    }
+    String url;
+    String content;
+    List<String> rootCodes;
+    String ancestorCode;
+    if (hasRoots) {
+      // roots testing
 
-    // pathsToRoot testing
-    url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1
-        + "/pathsToRoot?include=minimal";
-    result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))
-        .andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    String ancestorCode = null;
-    List<String> reverseToRootPath = null;
-    List<List<Concept>> pathsToRoot =
-        new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
-          // n/a
-        });
-    if (pathsToRoot.size() < 1) {
-      errors.add("ERROR: no paths to root found for non-root concept " + parentCode1
-          + " in terminology " + term);
+      url = "/api/v1/concept/" + terminology.getTerminology() + "/roots";
+      result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))
+          .andExpect(status().isOk()).andReturn();
+      content = result.getResponse().getContentAsString();
+      List<Concept> roots =
+          new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
+            // n/a
+          });
+      rootCodes = roots.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+      if (terminology.getMetadata().getHierarchy() == true && roots.size() == 0) {
+        errors.add("ERROR: roots could not be found in hierarchy temrinology " + term);
+      } else if (terminology.getMetadata().getHierarchy() == false && roots.size() > 0) {
+        errors.add("ERROR: roots found in non-hierarchy temrinology " + term);
+      }
+      // pathsToRoot testing
+      url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1
+          + "/pathsToRoot?include=minimal";
+      result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))
+          .andExpect(status().isOk()).andReturn();
+      content = result.getResponse().getContentAsString();
+      ancestorCode = null;
+      List<String> reverseToRootPath = null;
+      List<List<Concept>> pathsToRoot =
+          new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+            // n/a
+          });
+      if (pathsToRoot.size() < 1) {
+        errors.add("ERROR: no paths to root found for non-root concept " + parentCode1
+            + " in terminology " + term);
 
-    } else {
-      for (List<Concept> path : pathsToRoot) {
-        if (!rootCodes.contains(path.get(path.size() - 1).getCode())) {
-          errors
-              .add("ERROR: path too root for concept " + parentCode1 + " ends in non-root concept "
-                  + path.get(path.size() - 1).getCode() + " in terminology " + term);
-        }
-        // hold an intermediate code for pathToAncestor
-        if (path.size() > 2 && ancestorCode == null) {
-          ancestorCode = path.get(path.size() - 2).getCode();
-        }
-        // hold a reverse root path for pathsFromRoot
-        if (path.size() > 1 && reverseToRootPath == null) {
-          reverseToRootPath =
-              path.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
-          Collections.reverse(reverseToRootPath);
+      } else {
+        for (List<Concept> path : pathsToRoot) {
+          if (!rootCodes.contains(path.get(path.size() - 1).getCode())) {
+            errors.add(
+                "ERROR: path too root for concept " + parentCode1 + " ends in non-root concept "
+                    + path.get(path.size() - 1).getCode() + " in terminology " + term);
+          }
+          // hold an intermediate code for pathToAncestor
+          if (path.size() > 2 && ancestorCode == null) {
+            ancestorCode = path.get(path.size() - 2).getCode();
+          }
+          // hold a reverse root path for pathsFromRoot
+          if (path.size() > 1 && reverseToRootPath == null) {
+            reverseToRootPath =
+                path.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+            Collections.reverse(reverseToRootPath);
+          }
         }
       }
-    }
-
-    // pathsFromRoot testing
-    url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1
-        + "/pathsFromRoot?include=minimal";
-    result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))
-        .andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    List<String> fromRootPath = null;
-    Boolean reversePathFound = false;
-    List<List<Concept>> pathsFromRoot =
-        new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
-          // n/a
-        });
-    if (pathsFromRoot.size() < 1) {
-      errors.add("ERROR: no paths from root found for non-root concept " + parentCode1
-          + " in terminology " + term);
-    } else {
-      for (List<Concept> path : pathsFromRoot) {
-        if (!rootCodes.contains(path.get(0).getCode())) {
-          errors.add("ERROR: path from root for concept " + parentCode1
-              + " starts in non-root concept " + path.get(0).getCode() + " in terminology " + term);
-        }
-        // check for reverse of path found in pathsToRoot
-        fromRootPath = path.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
-        if (fromRootPath.equals(reverseToRootPath)) {
-          reversePathFound = true;
-        }
-      }
-
-    }
-    if (!reversePathFound) {
-      errors
-          .add("ERROR: Chosen reverse path from pathsToRoot not found in pathsFromRoot for concept "
-              + parentCode1 + " in terminology " + term);
-    }
-    if (parentCode2 != null) {
-      url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode2
+      // pathsFromRoot testing
+      url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1
           + "/pathsFromRoot?include=minimal";
       result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))
           .andExpect(status().isOk()).andReturn();
       content = result.getResponse().getContentAsString();
-      pathsFromRoot =
+      List<String> fromRootPath = null;
+      Boolean reversePathFound = false;
+      List<List<Concept>> pathsFromRoot =
           new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
             // n/a
           });
       if (pathsFromRoot.size() < 1) {
-        errors.add("ERROR: no paths from root found for non-root concept " + parentCode2
+        errors.add("ERROR: no paths from root found for non-root concept " + parentCode1
             + " in terminology " + term);
-      }
-    }
+      } else {
+        for (List<Concept> path : pathsFromRoot) {
+          if (!rootCodes.contains(path.get(0).getCode())) {
+            errors.add(
+                "ERROR: path from root for concept " + parentCode1 + " starts in non-root concept "
+                    + path.get(0).getCode() + " in terminology " + term);
+          }
+          // check for reverse of path found in pathsToRoot
+          fromRootPath = path.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+          if (fromRootPath.equals(reverseToRootPath)) {
+            reversePathFound = true;
+          }
+        }
 
-    // pathsToAncestor testing
-    url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1
-        + "/pathsToAncestor/" + ancestorCode + "?include=minimal";
-    result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))
-        .andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    List<List<Concept>> pathsToAncestor =
-        new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
-          // n/a
-        });
-    for (List<Concept> path : pathsToAncestor) {
-      if (!path.get(0).getCode().equals(parentCode1)) {
-        errors.add("ERROR: path to ancestor " + ancestorCode + " for concept " + parentCode1
-            + " starts with different concept from stated " + path.get(0).getCode()
-            + " in terminology " + term);
       }
-      if (!path.get(path.size() - 1).getCode().equals(ancestorCode)) {
-        errors.add("ERROR: path to ancestor " + ancestorCode + " for concept " + parentCode1
-            + " ends in different concept from stated " + path.get(path.size() - 1).getCode()
-            + " in terminology " + term);
+      if (!reversePathFound) {
+        errors.add(
+            "ERROR: Chosen reverse path from pathsToRoot not found in pathsFromRoot for concept "
+                + parentCode1 + " in terminology " + term);
       }
-    }
-
-    // subtree testing
-    url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/subtree";
-    result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))
-        .andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    List<HierarchyNode> subtree =
-        new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
-          // n/a
-        });
-    for (HierarchyNode root : subtree) {
-      if (!rootCodes.contains(root.getCode())) {
-        errors.add("ERROR: non-root found at top level of subtree call for concept " + parentCode1
-            + " in terminology " + term);
+      if (parentCode2 != null) {
+        url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode2
+            + "/pathsFromRoot?include=minimal";
+        result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))
+            .andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        pathsFromRoot =
+            new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+              // n/a
+            });
+        if (pathsFromRoot.size() < 1) {
+          errors.add("ERROR: no paths from root found for non-root concept " + parentCode2
+              + " in terminology " + term);
+        }
+      }
+      // pathsToAncestor testing
+      url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1
+          + "/pathsToAncestor/" + ancestorCode + "?include=minimal";
+      result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))
+          .andExpect(status().isOk()).andReturn();
+      content = result.getResponse().getContentAsString();
+      List<List<Concept>> pathsToAncestor =
+          new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+            // n/a
+          });
+      for (List<Concept> path : pathsToAncestor) {
+        if (!path.get(0).getCode().equals(parentCode1)) {
+          errors.add("ERROR: path to ancestor " + ancestorCode + " for concept " + parentCode1
+              + " starts with different concept from stated " + path.get(0).getCode()
+              + " in terminology " + term);
+        }
+        if (!path.get(path.size() - 1).getCode().equals(ancestorCode)) {
+          errors.add("ERROR: path to ancestor " + ancestorCode + " for concept " + parentCode1
+              + " ends in different concept from stated " + path.get(path.size() - 1).getCode()
+              + " in terminology " + term);
+        }
+      }
+      // subtree testing
+      url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/subtree";
+      result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))
+          .andExpect(status().isOk()).andReturn();
+      content = result.getResponse().getContentAsString();
+      List<HierarchyNode> subtree =
+          new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
+            // n/a
+          });
+      for (HierarchyNode root : subtree) {
+        if (!rootCodes.contains(root.getCode())) {
+          errors.add("ERROR: non-root found at top level of subtree call for concept " + parentCode1
+              + " in terminology " + term);
+        }
       }
     }
 
