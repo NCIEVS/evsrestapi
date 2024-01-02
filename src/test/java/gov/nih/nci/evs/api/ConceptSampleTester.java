@@ -496,9 +496,14 @@ public class ConceptSampleTester {
             errors.add("ERROR: " + sample.getValue() + " stated to be disjoint with "
                 + sample.getCode() + " even though they are not");
           }
-        } else if (associationsList.size() > 0 && key.startsWith("As")) {
+        } else if (associationsList.size() > 0 && associationsList.keySet().contains(key)) {
           if (!checkAssociations(concept, sample, associationsList)) {
             errors.add("ERROR: Wrong association (" + sample.getKey() + ") " + sample.getValue()
+                + " of " + sample.getCode());
+          }
+        } else if (sample.getKey().equals(terminology.getMetadata().getSubsetLink())) {
+          if (checkSubsetLink(sample)) {
+            errors.add("ERROR: Wrong subset link (" + sample.getKey() + ") " + sample.getValue()
                 + " of " + sample.getCode());
           }
         } else {
@@ -523,6 +528,18 @@ public class ConceptSampleTester {
     } else {
       log.info("No sampling errors found for terminology " + terminology.getName());
     }
+  }
+
+  /**
+   * Check subset link.
+   *
+   * @param concept the concept
+   * @param sample the sample
+   * @return true, if successful
+   */
+  private boolean checkSubsetLink(final SampleRecord sample) {
+    return terminology.getMetadata().getSubsetLink().isBlank()
+        || terminology.getMetadata().getSubsetLink().equals(sample.getKey());
   }
 
   /**
