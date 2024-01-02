@@ -673,7 +673,8 @@ public class ConceptSampleTester {
     throws Exception {
     sample.setValue(sample.getValue());
     final String qualKey = sample.getKey().split("-", 2)[1].split("~")[0];
-    final String propertyKey = sample.getKey().split("-", 2)[1].split("~")[1];
+    final String propertyKey = sample.getKey().split("-", 2)[1].split("~")[1]
+        .replace(terminology.getTerminology() + ":", "");
     final int propertyValueLength = sample.getValue().split("~").length;
 
     if (propertyValueLength == 2) {
