@@ -571,7 +571,10 @@ public class ConceptSampleTester {
         .findAny().isPresent()
         || concept.getProperties().stream()
             .filter(p -> p.getType().equals("deprecated") && p.getValue().equals("true")).findAny()
-            .isPresent();
+            .isPresent()
+        || concept.getProperties().stream()
+            .filter(p -> p.getType().equals("Status") && p.getValue().equals("No Longer Used"))
+            .findAny().isPresent();
   }
 
   /**
