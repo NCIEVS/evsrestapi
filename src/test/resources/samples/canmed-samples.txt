@@ -2,7 +2,6 @@ http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Preferred
 http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Status	In Use
 http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Effective_Date	07/01/2005 00:00:00
 http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Description	250 TABLET in 1 BOTTLE, PLASTIC (0378-3547-25)
-http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	owl:deprecated	false
 http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Brand_Name	Mercaptopurine
 http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	NDC_Package_Code	00378-3547-25
 http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Administration_Route	Oral
@@ -10,6 +9,7 @@ http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Strength	
 http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Generic_Name	Mercaptopurine
 http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	NDC_Product_Code	00378-3547
 http://seer.nci.nih.gov/CanMED.owl#NDC_55289-0603-07	NDC_55289-0603-07	Discontinue_Date	11/23/2021 00:00:00
+http://seer.nci.nih.gov/CanMED.owl#NDC_55289-0603-07	NDC_55289-0603-07	owl:deprecated	true
 http://seer.nci.nih.gov/CanMED.owl#J9034	J9034	CMS_Effective_Date	01/01/2017 00:00:00
 http://seer.nci.nih.gov/CanMED.owl#J9034	J9034	Oral	No
 http://seer.nci.nih.gov/CanMED.owl#J9034	J9034	FDA_Approval_Year	2008

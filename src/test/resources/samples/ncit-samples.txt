@@ -236,7 +236,6 @@ http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C16465	C16465	rdfs:subClassOf
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C16547	C16547	rdfs:subClassOf/owl:Restriction~R29	C209
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1687	C1687	rdfs:subClassOf/owl:Restriction~R150	C37042
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C168764	C168764	rdfs:subClassOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R177	C101057
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C170415	C170415	rdfs:comment	Polymorphisms in the INPPL1 gene are have been associated with susceptiblitity to type 2 diabetes mellitus. (J. Clin. Endocr. Metab.2005. 90: 2911-2919.)
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C172188	C172188	P356	NCT03901690
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C173740	C173740	P334	9290/3
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C179320	C179320	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R111	C61581
