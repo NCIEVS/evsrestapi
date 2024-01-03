@@ -64,5 +64,3 @@ C1710021	C1710021	Semantic_Type	Regulation or Law
 CL343444	CL343444	Semantic_Type	Professional or Occupational Group
 CL555329	CL555329	Semantic_Type	Manufactured Object
 C0000294	C0000294	DEFINITION	A sulfhydryl compound that is used to reduce the incidence of hemorrhagic cystitis associated with certain chemotherapeutic agents. Mesna is converted to a free thiol compound in the kidney, where it binds to and inactivates acrolein and other urotoxic metabolites of ifosfamide and cyclophosphamide, thereby reducing their toxic effects on the urinary tract during urinary excretion. (NCI04)
-C0000294	C0000294	parent-count1
-C0008533	C0008533	parent-count2

@@ -502,7 +502,7 @@ public class ConceptSampleTester {
                 + " of " + sample.getCode());
           }
         } else if (sample.getKey().equals(terminology.getMetadata().getSubsetLink())) {
-          if (checkSubsetLink(sample)) {
+          if (!checkSubsetLink(concept.getCode(), sample)) {
             errors.add("ERROR: Wrong subset link (" + sample.getKey() + ") " + sample.getValue()
                 + " of " + sample.getCode());
           }
@@ -536,10 +536,28 @@ public class ConceptSampleTester {
    * @param concept the concept
    * @param sample the sample
    * @return true, if successful
+   * @throws Exception
    */
-  private boolean checkSubsetLink(final SampleRecord sample) {
-    return terminology.getMetadata().getSubsetLink().isBlank()
-        || terminology.getMetadata().getSubsetLink().equals(sample.getKey());
+  private boolean checkSubsetLink(final String conceptCode, final SampleRecord sample)
+    throws Exception {
+
+    String link = sample.getValue().replaceFirst("EVS/", "").split("\\|")[0];
+    if (link.contains(".")) {
+      link = link.replaceFirst("(.*)/[^/]+\\.[^/]+", "$1");
+    }
+    link = terminology.getMetadata().getSubsetPrefix() + link;
+
+    if (terminology.getMetadata().getSubsetLink().isBlank()
+        || terminology.getMetadata().getSubsetLink().equals(sample.getKey())) {
+      String url =
+          "/api/v1/subset/" + terminology.getTerminology() + "/" + conceptCode + "?include=summary";
+      MvcResult result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))
+          .andExpect(status().isOk()).andReturn();
+      String content = result.getResponse().getContentAsString();
+      Concept concept = new ObjectMapper().readValue(content, Concept.class);
+      return concept.getSubsetLink().equals(link);
+    }
+    return false;
   }
 
   /**
@@ -966,8 +984,8 @@ public class ConceptSampleTester {
    * @return true, if successful
    */
   private boolean checkComment(final Concept concept, final SampleRecord sample) {
-    return concept.getProperties().stream().filter(o -> o.getValue().equals(sample.getValue())
-        && (o.getType().contentEquals("DesignNote") || o.getType().contentEquals("rdfs:comment")))
+    return concept.getProperties().stream().filter(
+        o -> o.getValue().equals(sample.getValue()) && o.getType().contentEquals("rdfs:comment"))
         .findAny().isPresent();
   }
 
@@ -1187,7 +1205,9 @@ public class ConceptSampleTester {
         new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
           // n/a
         });
-    if (children.size() < 1) {
+    if (children.size() < 1)
+
+    {
 
     }
 
