@@ -30,7 +30,7 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
 /**
  * The elasticsearch wrapper object for cached objects.
  */
-@Document(indexName = "default_object", type = ElasticOperationsService.OBJECT_TYPE)
+@Document(indexName = "default_object")
 @JsonInclude(content = Include.NON_EMPTY)
 public class ElasticObject extends BaseModel {
 

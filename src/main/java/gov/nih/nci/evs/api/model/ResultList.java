@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class ResultList extends BaseModel {
 
   /** The total. */
-  private Integer total;
+  private Long total;
 
   /** The time taken. */
   private Long timeTaken;
@@ -53,7 +53,7 @@ public class ResultList extends BaseModel {
    * @return the total
    */
   @Schema(description = "Total nubmer of results (if paging is not considered)")
-  public Integer getTotal() {
+  public Long getTotal() {
     return total;
   }
 
@@ -62,7 +62,7 @@ public class ResultList extends BaseModel {
    *
    * @param total the total
    */
-  public void setTotal(final Integer total) {
+  public void setTotal(final Long total) {
     this.total = total;
   }
 

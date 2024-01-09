@@ -22,3 +22,6 @@ WEB-INF/*
 .temp*
 
 /.idea/
+log
+.DS_Store
+src/main/bin/NCIT_HISTORY/

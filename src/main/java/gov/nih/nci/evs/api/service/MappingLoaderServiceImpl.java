@@ -21,6 +21,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.stereotype.Service;
 
 import gov.nih.nci.evs.api.model.Concept;
@@ -189,8 +190,10 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     allLines = allLines.subList(1, allLines.size());
     boolean created = operationsService.createIndex(ElasticOperationsService.MAPPING_INDEX, false);
     if (created) {
-      operationsService.getElasticsearchOperations().putMapping(ElasticOperationsService.MAPPING_INDEX,
-          ElasticOperationsService.CONCEPT_TYPE, Concept.class);
+      operationsService
+              .getElasticsearchOperations()
+              .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPING_INDEX))
+              .putMapping(Concept.class);
     }
 
     List<String> allCodes = new ArrayList<String>();
@@ -232,8 +235,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       // remove and skip
       if (mapsetsToRemove.contains(metadata[0])) {
         logger.info("deleting " + metadata[0]);
-        operationsService.delete(ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
-            metadata[0]);
+        operationsService.delete(ElasticOperationsService.MAPPING_INDEX, metadata[0]);
         continue;
       }
       // skip if no update needed
@@ -306,8 +308,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
               .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank() + o2.getTargetName());
         }
       });
-      operationsService.index(map, ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
-          Concept.class);
+      operationsService.index(map, ElasticOperationsService.MAPPING_INDEX, Concept.class);
 
     }
   }

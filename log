@@ -1,0 +1,110 @@
+--------------------------------------------------
+Starting ...Tue Jan  9 11:46:38 -05 2024
+--------------------------------------------------
+dir = ../data/UnitTestData
+
+  Check prerequisites
+    check NCIM
+    check NCIt weekly
+    check NCIt monthly
+    check GO monthly
+    check HGNC monthly
+    check ChEBI monthly
+    verify docker stardog is running
+    verify docker stardog has /data/UnitTestData mounted
+    verify docker elasticsearch is running
+    verify docker elasticsearch can be reached
+    verify docker stardog can run a script
+  Remove elasticsearch indexes
+  Load MDR (from downloaded data)
+    --------------------------------------------------
+    Starting ...Tue Jan  9 11:46:39 -05 2024
+    --------------------------------------------------
+    terminology = MDR
+    config = 0
+    remove dir = 0
+    dir = ../data/UnitTestData/NCIM
+    download = 0
+    
+      Setup configuration
+      Set index.mapping.total_fields.limit = 5000
+    
+      Check whether indexes exist already
+        REINDEX - indexes not found
+      Generate indexes
+    java -Dspring.profiles.active=local -Xmx3800M -jar build/libs/evsrestapi-1.9.0.RELEASE.jar --terminology MDR -d ../data/UnitTestData/NCIM --forceDeleteIndex
+    11:46:40,424 |-INFO in ch.qos.logback.core.joran.spi.ConfigurationWatchList@ef9296d - URL [jar:file:/Users/gaalicia/Documents/nci/evsrestapi/build/libs/evsrestapi-1.9.0.RELEASE.jar!/BOOT-INF/classes!/logback-spring.xml] is not of type file
+    11:46:40,459 |-INFO in ch.qos.logback.classic.joran.action.ConfigurationAction - debug attribute not set
+    11:46:40,460 |-INFO in ch.qos.logback.core.joran.action.StatusListenerAction - Added status listener of type [ch.qos.logback.core.status.OnConsoleStatusListener]
+    11:46:40,461 |-INFO in ch.qos.logback.core.joran.action.AppenderAction - About to instantiate appender of type [ch.qos.logback.core.ConsoleAppender]
+    11:46:40,464 |-INFO in ch.qos.logback.core.joran.action.AppenderAction - Naming appender as [STDOUT]
+    11:46:40,468 |-INFO in ch.qos.logback.core.joran.action.NestedComplexPropertyIA - Assuming default type [ch.qos.logback.classic.encoder.PatternLayoutEncoder] for [encoder] property
+    11:46:40,485 |-INFO in ch.qos.logback.classic.joran.action.RootLoggerAction - Setting level of ROOT logger to INFO
+    11:46:40,485 |-INFO in ch.qos.logback.classic.jul.LevelChangePropagator@3d74bf60 - Propagating INFO level on Logger[ROOT] onto the JUL framework
+    11:46:40,486 |-INFO in ch.qos.logback.core.joran.action.AppenderRefAction - Attaching appender named [STDOUT] to Logger[ROOT]
+    11:46:40,486 |-INFO in ch.qos.logback.classic.joran.action.ConfigurationAction - End of configuration.
+    11:46:40,486 |-INFO in org.springframework.boot.logging.logback.SpringBootJoranConfigurator@2145b572 - Registering current configuration as safe fallback point
+    11:46:40,490 |-INFO in ch.qos.logback.classic.jul.LevelChangePropagator@3d74bf60 - Propagating WARN level on Logger[org.springframework] onto the JUL framework
+    11:46:40,490 |-INFO in ch.qos.logback.classic.jul.LevelChangePropagator@3d74bf60 - Propagating DEBUG level on Logger[gov.nih.nci.evs.api] onto the JUL framework
+    11:46:40,490 |-INFO in ch.qos.logback.classic.jul.LevelChangePropagator@3d74bf60 - Propagating DEBUG level on Logger[org.springframework.data.elasticsearch.core] onto the JUL framework
+    11:46:40,490 |-INFO in ch.qos.logback.classic.jul.LevelChangePropagator@3d74bf60 - Propagating DEBUG level on Logger[gov.nih.nci.evs.api.configuration.EVSElasticsearchRestTemplate] onto the JUL framework
+    11:46:40,491 |-INFO in ch.qos.logback.classic.jul.LevelChangePropagator@3d74bf60 - Propagating INFO level on Logger[org.apache.http] onto the JUL framework
+    
+      .   ____          _            __ _ _
+     /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+    ( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+     \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+      '  |____| .__|_| |_|_| |_\__, | / / / /
+     =========|_|==============|___/=/_/_/_/
+     :: Spring Boot ::               (v2.7.17)
+    
+    2024-01-09T11:46:40-05:00 INFO  : Starting LoaderServiceImpl using Java 17.0.9 on Alicias-MBP.lan with PID 2158 (/Users/gaalicia/Documents/nci/evsrestapi/build/libs/evsrestapi-1.9.0.RELEASE.jar started by gaalicia in /Users/gaalicia/Documents/nci/evsrestapi)
+    2024-01-09T11:46:40-05:00 DEBUG : Running with Spring Boot v2.7.17, Spring v5.3.30
+    2024-01-09T11:46:40-05:00 INFO  : The following 1 profile is active: "local"
+    2024-01-09T11:46:41-05:00 DEBUG : Creating instance of class PropertiesConfiguration
+    2024-01-09T11:46:41-05:00 INFO  : Initializing ProtocolHandler ["http-nio-8083"]
+    2024-01-09T11:46:41-05:00 INFO  : Starting service [Tomcat]
+    2024-01-09T11:46:41-05:00 INFO  : Starting Servlet engine: [Apache Tomcat/9.0.82]
+    2024-01-09T11:46:41-05:00 INFO  : Initializing Spring embedded WebApplicationContext
+    2024-01-09T11:46:42-05:00 INFO  : Cache 'metadata' created in EhcacheManager.
+    2024-01-09T11:46:42-05:00 INFO  : Cache 'terminology' created in EhcacheManager.
+    2024-01-09T11:46:42-05:00 INFO  : Cache 'subsets' created in EhcacheManager.
+    2024-01-09T11:46:42-05:00 INFO  : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=jar.file./Users/gaalicia/Documents/nci/evsrestapi/build/libs/evsrestapi-1.9.0.RELEASE.jar!/BOOT-INF/classes!/ehcache.xml,Cache=metadata
+    2024-01-09T11:46:42-05:00 INFO  : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=jar.file./Users/gaalicia/Documents/nci/evsrestapi/build/libs/evsrestapi-1.9.0.RELEASE.jar!/BOOT-INF/classes!/ehcache.xml,Cache=terminology
+    2024-01-09T11:46:42-05:00 INFO  : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=jar.file./Users/gaalicia/Documents/nci/evsrestapi/build/libs/evsrestapi-1.9.0.RELEASE.jar!/BOOT-INF/classes!/ehcache.xml,Cache=subsets
+    2024-01-09T11:46:42-05:00 INFO  : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=jar.file./Users/gaalicia/Documents/nci/evsrestapi/build/libs/evsrestapi-1.9.0.RELEASE.jar!/BOOT-INF/classes!/ehcache.xml,Cache=metadata
+    2024-01-09T11:46:42-05:00 INFO  : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=jar.file./Users/gaalicia/Documents/nci/evsrestapi/build/libs/evsrestapi-1.9.0.RELEASE.jar!/BOOT-INF/classes!/ehcache.xml,Cache=terminology
+    2024-01-09T11:46:42-05:00 INFO  : Registering Ehcache MBean javax.cache:type=CacheStatistics,CacheManager=jar.file./Users/gaalicia/Documents/nci/evsrestapi/build/libs/evsrestapi-1.9.0.RELEASE.jar!/BOOT-INF/classes!/ehcache.xml,Cache=subsets
+    2024-01-09T11:46:42-05:00 DEBUG : Creating instance of class Scheduler
+    2024-01-09T11:46:42-05:00 INFO  : Configuring es client for host localhost 9200 200000
+    2024-01-09T11:46:44-05:00 INFO  : Starting ProtocolHandler ["http-nio-8083"]
+    2024-01-09T11:46:44-05:00 INFO  : Started LoaderServiceImpl in 3.936 seconds (JVM running for 4.369)
+    2024-01-09T11:46:44-05:00 INFO  : location - ../data/UnitTestData/NCIM/
+    2024-01-09T11:46:44-05:00 INFO  :   get config for mdr = https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata/mdr.json
+    2024-01-09T11:46:45-05:00 INFO  :   get welcome text for mdr = https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata/mdr.html
+    2024-01-09T11:46:45-05:00 INFO  :   START cache maps
+    2024-01-09T11:46:46-05:00 INFO  :   FINISH cache maps
+    2024-01-09T11:46:46-05:00 INFO  :     mapsets = 2
+    2024-01-09T11:46:46-05:00 INFO  :     maps = 2
+    2024-01-09T11:46:46-05:00 INFO  :     parentChild = 326
+    2024-01-09T11:46:46-05:00 INFO  :     ruiInverseMap = 2
+    2024-01-09T11:46:46-05:00 INFO  :     ruiQualMap = 2
+    2024-01-09T11:46:46-05:00 INFO  : Loading Concepts (index batch size = 1000)
+    2024-01-09T11:46:46-05:00 INFO  :     count = 1
+    2024-01-09T11:46:46-05:00 DEBUG :     roots = 80
+    2024-01-09T11:46:46-05:00 DEBUG :     total paths = 428
+    2024-01-09T11:46:46-05:00 DEBUG :     total paths size = 7066
+    2024-01-09T11:46:46-05:00 INFO  :     write file = /var/folders/5b/m7m0498d7f58d5tj4m1lnbf80000gn/T/tmp12418302687590365966txt
+    2024-01-09T11:46:46-05:00 INFO  :     start build paths map
+    2024-01-09T11:46:46-05:00 DEBUG :     total paths map = 321, 854
+    2024-01-09T11:46:46-05:00 INFO  :     mdr = 1
+    2024-01-09T11:46:46-05:00 INFO  :     BATCH index = 830932, 503
+    2024-01-09T11:46:47-05:00 INFO  : TOTAL concepts = 1385
+    2024-01-09T11:46:47-05:00 INFO  : TOTAL mdr = 503
+    2024-01-09T11:46:47-05:00 INFO  : Concepts count for index concept_mdr_23_1 = 1
+    2024-01-09T11:46:47-05:00 INFO  : Concepts indexing not complete yet, waiting for completion..
+    2024-01-09T11:46:48-05:00 INFO  : Cache 'metadata' removed from EhcacheManager.
+    2024-01-09T11:46:48-05:00 INFO  : Cache 'terminology' removed from EhcacheManager.
+    2024-01-09T11:46:48-05:00 INFO  : Cache 'subsets' removed from EhcacheManager.
+    ERROR: unexpected error building indexes
+ERROR: loading MDR

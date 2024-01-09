@@ -16,8 +16,7 @@ import gov.nih.nci.evs.api.service.ElasticOperationsService;
 /**
  * The Class IndexMetadata.
  */
-@Document(indexName = ElasticOperationsService.METADATA_INDEX,
-    type = ElasticOperationsService.METADATA_TYPE)
+@Document(indexName = ElasticOperationsService.METADATA_INDEX)
 @JsonInclude(Include.NON_EMPTY)
 public class IndexMetadata {
 

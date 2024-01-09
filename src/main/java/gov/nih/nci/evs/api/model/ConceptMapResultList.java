@@ -37,7 +37,7 @@ public class ConceptMapResultList extends ResultList {
    * @param total the total
    * @param maps the maps
    */
-  public ConceptMapResultList(final int total, final List<ConceptMap> maps) {
+  public ConceptMapResultList(final long total, final List<ConceptMap> maps) {
     super.setTotal(total);
     this.maps = new ArrayList<>(maps);
   }
