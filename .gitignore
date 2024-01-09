@@ -21,3 +21,6 @@ WEB-INF/*
 .idea/.gitignore
 
 /.idea/
+log
+.DS_Store
+src/main/bin/NCIT_HISTORY/

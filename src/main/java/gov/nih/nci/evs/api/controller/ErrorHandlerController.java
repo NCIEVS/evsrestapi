@@ -8,6 +8,7 @@ import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpStatus;
@@ -37,6 +38,11 @@ public class ErrorHandlerController implements ErrorController {
   /** The error attributes. */
   private ErrorAttributes errorAttributes;
 
+  /** The error attribute options to include stack trace  */
+  private ErrorAttributeOptions options =
+          ErrorAttributeOptions.defaults()
+                  .including(ErrorAttributeOptions.Include.STACK_TRACE);
+
   /**
    * Basic error controller.
    *
@@ -56,7 +62,7 @@ public class ErrorHandlerController implements ErrorController {
   @ResponseBody
   public String handleErrorHtml(final HttpServletRequest request) {
     final Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
-    final Map<String, Object> body = getErrorAttributes(request, false);
+    final Map<String, Object> body = getErrorAttributes(request, options);
     String ppBody = null;
     try {
       ppBody = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(body);
@@ -83,7 +89,7 @@ public class ErrorHandlerController implements ErrorController {
     if (status == HttpStatus.NO_CONTENT) {
       return new ResponseEntity<>(status);
     }
-    final RestException exception = new RestException(getErrorAttributes(request, false));
+    final RestException exception = new RestException(getErrorAttributes(request, options));
     return new ResponseEntity<>(exception, status);
   }
 
@@ -109,12 +115,12 @@ public class ErrorHandlerController implements ErrorController {
    * Returns the error attributes.
    *
    * @param request the request
-   * @param includeStackTrace the include stack trace
+   * @param options the ErrorAttributeOptions include stack trace
    * @return the error attributes
    */
-  protected Map<String, Object> getErrorAttributes(HttpServletRequest request, boolean includeStackTrace) {
+  protected Map<String, Object> getErrorAttributes(HttpServletRequest request, ErrorAttributeOptions options) {
     WebRequest webRequest = new ServletWebRequest(request);
-    Map<String, Object> body = errorAttributes.getErrorAttributes(webRequest, includeStackTrace);
+    Map<String, Object> body = errorAttributes.getErrorAttributes(webRequest, options);
     if (body.containsKey("message")) {
       try {
         final String message = body.get("message").toString();
@@ -141,7 +147,6 @@ public class ErrorHandlerController implements ErrorController {
   }
 
   /* see superclass */
-  @Override
   public String getErrorPath() {
     return "/error";
   }

@@ -28,6 +28,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -335,8 +336,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       // Here - create the map index and index the mapsets
       boolean created = operationsService.createIndex(ElasticOperationsService.MAPPING_INDEX, false);
       if (created) {
-        operationsService.getElasticsearchOperations().putMapping(ElasticOperationsService.MAPPING_INDEX,
-            ElasticOperationsService.CONCEPT_TYPE, Concept.class);
+        operationsService
+                .getElasticsearchOperations()
+                .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPING_INDEX))
+                .putMapping(Concept.class);
       }
       // current snomed mapset codes
       List<String> currentMapsetCodes = elasticQueryService.getMapsets(new IncludeParam("properties")).stream()
@@ -366,8 +369,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       logger.info("mapsetsToAdd = " + mapsetsToAdd);
       // remove old mappings by code
       for (String mapsetCode : mapsetsToRemove) {
-        operationsService.delete(ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
-            mapsetCode);
+        operationsService.delete(ElasticOperationsService.MAPPING_INDEX, mapsetCode);
       }
       for (final Concept mapset : mapsetMap.values()) {
         Collections.sort(mapset.getMaps(), new Comparator<gov.nih.nci.evs.api.model.ConceptMap>() {
@@ -380,8 +382,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           }
         });
         logger.info("    Index map = " + mapset.getName());
-        operationsService.index(mapset, ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
-            Concept.class);
+        operationsService.index(mapset, ElasticOperationsService.MAPPING_INDEX, Concept.class);
       }
       // free up memory
       mapsetMap.clear();
@@ -544,8 +545,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     // Put the mapping
     boolean result = operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
     if (result) {
-      operationsService.getElasticsearchOperations().putMapping(terminology.getIndexName(),
-          ElasticOperationsService.CONCEPT_TYPE, Concept.class);
+      operationsService
+              .getElasticsearchOperations()
+              .indexOps(IndexCoordinates.of(terminology.getIndexName()))
+              .putMapping(Concept.class);
     }
 
     // Cache the concept preferred names so when we resolve relationships we
@@ -844,8 +847,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           }
           sourceStatsEntry.put("Source Overlap", statsList);
           newStatsEntry.setStatisticsMap(sourceStatsEntry);
-          operationsService.index(newStatsEntry, terminology.getObjectIndexName(), ElasticOperationsService.OBJECT_TYPE,
-              ElasticObject.class);
+          operationsService.index(newStatsEntry, terminology.getObjectIndexName(), ElasticObject.class);
         } catch (IOException e) {
           // Handle the file not found exception and log a warning
           logger.warn(source + " source overlap stats file not found for ncim");
@@ -1219,7 +1221,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     for (final String rel : relSet) {
       associations.getConcepts().add(buildMetadata(terminology, rel, relMap.get(rel)));
     }
-    operationsService.index(associations, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(associations, indexName, ElasticObject.class);
 
     // Hanlde "concept statuses" - n/a
 
@@ -1232,7 +1234,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     //
     final ElasticObject defTypes = new ElasticObject("definitionTypes");
     defTypes.getConcepts().add(buildMetadata(terminology, "DEFINITION", "Definition"));
-    operationsService.index(defTypes, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(defTypes, indexName, ElasticObject.class);
 
     //
     // Handle properties
@@ -1244,7 +1246,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       properties.getConcepts().add(buildMetadata(terminology, atn, atnMap.get(atn)));
     }
 
-    operationsService.index(properties, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(properties, indexName, ElasticObject.class);
 
     //
     // Handle qualifiers
@@ -1272,19 +1274,19 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     }
     // Do this after truncating because it gets turned into a String
     qualifiers.setMap(qualMap);
-    operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(qualifiers, indexName, ElasticObject.class);
 
     //
     // Handle roles - n/a
     //
     final ElasticObject roles = new ElasticObject("roles");
-    operationsService.index(roles, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(roles, indexName, ElasticObject.class);
 
     //
     // Handle subsets - n/a
     //
     final ElasticObject subsets = new ElasticObject("subsets");
-    operationsService.index(subsets, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(subsets, indexName, ElasticObject.class);
 
     //
     // Handle synonymSources - n/a - handled inline
@@ -1296,7 +1298,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     final ElasticObject syTypes = new ElasticObject("synonymTypes");
     syTypes.getConcepts().add(buildMetadata(terminology, "Preferred_Name", "Preferred name"));
     syTypes.getConcepts().add(buildMetadata(terminology, "Synonym", "Synonym"));
-    operationsService.index(syTypes, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(syTypes, indexName, ElasticObject.class);
 
     //
     // Handle termTypes - n/a - handled inline
@@ -1336,8 +1338,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     if (flag || batchSize > 9000000) {
       // Log the bytes and number of concepts
       logger.info("    BATCH index = " + batchSize + ", " + batch.size());
-      operationsService.bulkIndex(new ArrayList<>(batch), indexName, ElasticOperationsService.CONCEPT_TYPE,
-          Concept.class);
+      operationsService.bulkIndex(new ArrayList<>(batch), indexName, Concept.class);
       batch.clear();
       batchSize = 0;
     }

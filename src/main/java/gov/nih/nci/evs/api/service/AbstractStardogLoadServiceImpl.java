@@ -29,6 +29,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
+import org.springframework.data.elasticsearch.NoSuchIndexException;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.util.CollectionUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -55,7 +57,11 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 // @Service
 public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   /** the logger *. */
-  private static final Logger logger = LoggerFactory.getLogger(AbstractStardogLoadServiceImpl.class);
+  private static final Logger logger =
+      LoggerFactory.getLogger(AbstractStardogLoadServiceImpl.class);
+
+  /** constant value for mapping string */
+  public static final String NCIT_MAPS_TO = "NCIt_Maps_To_";
 
   /** the concepts download location *. */
   @Value("${nci.evs.bulkload.conceptsDir}")
@@ -117,13 +123,14 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   public int loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
     throws IOException {
 
-    logger.debug("ElasticLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName(),
-        ElasticOperationsService.CONCEPT_TYPE);
+    logger.debug("ElasticLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName());
 
     boolean result = operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
     if (result) {
-      operationsService.getElasticsearchOperations().putMapping(terminology.getIndexName(),
-          ElasticOperationsService.CONCEPT_TYPE, Concept.class);
+      operationsService
+              .getElasticsearchOperations()
+              .indexOps(IndexCoordinates.of(terminology.getIndexName()))
+              .putMapping(Concept.class);
     }
 
     // Get complex roles and inverse roles
@@ -285,20 +292,26 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
       // resetting and indexing mapsets
       for (Map.Entry<String, Concept> mapset : mapsets.entrySet()) {
-        operationsService.delete(ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
-            "NCIt_Maps_To_" + mapset.getKey());
-        Collections.sort(mapset.getValue().getMaps(), new Comparator<gov.nih.nci.evs.api.model.ConceptMap>() {
-          @Override
-          public int compare(final gov.nih.nci.evs.api.model.ConceptMap o1,
-            final gov.nih.nci.evs.api.model.ConceptMap o2) {
-            // Assume maps are not null
-            return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank() + o1.getTargetName())
-                .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank() + o2.getTargetName());
-          }
-        });
-        logger.info("    Index map = " + mapset.getValue().getName() + ", " + mapset.getValue().getMaps().size());
-        operationsService.index(mapset.getValue(), ElasticOperationsService.MAPPING_INDEX,
-            ElasticOperationsService.CONCEPT_TYPE, Concept.class);
+        try {
+        operationsService.delete(ElasticOperationsService.MAPPING_INDEX, NCIT_MAPS_TO + mapset.getKey());
+        } catch (NoSuchIndexException exception) {
+          logger.error("UNABLE TO DELETE INDEX: " + NCIT_MAPS_TO + mapset.getKey() + " NOT FOUND!");
+        }
+        Collections.sort(mapset.getValue().getMaps(),
+            new Comparator<gov.nih.nci.evs.api.model.ConceptMap>() {
+              @Override
+              public int compare(final gov.nih.nci.evs.api.model.ConceptMap o1,
+                final gov.nih.nci.evs.api.model.ConceptMap o2) {
+                // Assume maps are not null
+                return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank()
+                    + o1.getTargetName())
+                        .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
+                            + o2.getTargetName());
+              }
+            });
+        logger.info("    Index map = " + mapset.getValue().getName() + ", "
+            + mapset.getValue().getMaps().size());
+        operationsService.index(mapset.getValue(), ElasticOperationsService.MAPPING_INDEX, Concept.class);
       }
 
     } catch (Exception e) {
@@ -331,7 +344,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     if (terminology.getMetadata().getHierarchy() != null && terminology.getMetadata().getHierarchy()) {
       ElasticObject hierarchyObject = new ElasticObject("hierarchy");
       hierarchyObject.setHierarchy(hierarchy);
-      operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+      operationsService.index(hierarchyObject, indexName, ElasticObject.class);
       logger.info("  Hierarchy loaded = " + hierarchy.getHierarchyRoots());
     } else {
       logger.info("  Hierarchy skipped");
@@ -340,7 +353,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     List<ConceptMinimal> synonymSources = sparqlQueryManagerService.getSynonymSources(terminology);
     ElasticObject ssObject = new ElasticObject("synonym_sources");
     ssObject.setConceptMinimals(synonymSources);
-    operationsService.index(ssObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(ssObject, indexName, ElasticObject.class);
     logger.info("  Synonym Sources loaded");
 
     List<Concept> qualifiers = sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("full"));
@@ -361,32 +374,32 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       }
     }
     conceptsObject.setMap(map);
-    operationsService.index(conceptsObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(conceptsObject, indexName, ElasticObject.class);
     logger.info("  Qualifiers loaded");
 
     List<Concept> properties = sparqlQueryManagerService.getAllProperties(terminology, new IncludeParam("full"));
     ElasticObject propertiesObject = new ElasticObject("properties");
     propertiesObject.setConcepts(properties);
-    operationsService.index(propertiesObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(propertiesObject, indexName, ElasticObject.class);
     logger.info("  Properties loaded");
 
     List<Concept> associations = sparqlQueryManagerService.getAllAssociations(terminology, new IncludeParam("full"));
     ElasticObject associationsObject = new ElasticObject("associations");
     associationsObject.setConcepts(associations);
-    operationsService.index(associationsObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(associationsObject, indexName, ElasticObject.class);
     logger.info("  Associations loaded");
 
     List<Concept> roles = sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("full"));
     ElasticObject rolesObject = new ElasticObject("roles");
     rolesObject.setConcepts(roles);
-    operationsService.index(rolesObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(rolesObject, indexName, ElasticObject.class);
     logger.info("  Roles loaded");
 
     // synonymTypes
     List<Concept> synonymTypes = sparqlQueryManagerService.getAllSynonymTypes(terminology, new IncludeParam("full"));
     ElasticObject synonymTypesObject = new ElasticObject("synonymTypes");
     synonymTypesObject.setConcepts(synonymTypes);
-    operationsService.index(synonymTypesObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(synonymTypesObject, indexName, ElasticObject.class);
     logger.info("  Synonym Types loaded");
 
     // definitionTypes
@@ -394,15 +407,14 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         sparqlQueryManagerService.getAllDefinitionTypes(terminology, new IncludeParam("full"));
     ElasticObject definitionTypesObject = new ElasticObject("definitionTypes");
     definitionTypesObject.setConcepts(definitionTypes);
-    operationsService.index(definitionTypesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(definitionTypesObject, indexName, ElasticObject.class);
     logger.info("  Definition Types loaded");
 
     // subsets
     List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
     ElasticObject subsetsObject = new ElasticObject("subsets");
     subsetsObject.setConcepts(subsets);
-    operationsService.index(subsetsObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
+    operationsService.index(subsetsObject, indexName, ElasticObject.class);
     logger.info("  Subsets loaded");
 
     // associationEntries
@@ -414,8 +426,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       ElasticObject associationEntriesObject = new ElasticObject("associationEntries_" + association.getName());
       logger.info("    add associationEntries_" + association.getName() + " = " + entries.size());
       associationEntriesObject.setAssociationEntries(entries);
-      operationsService.index(associationEntriesObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-          ElasticObject.class);
+      operationsService.index(associationEntriesObject, indexName, ElasticObject.class);
     }
     logger.info("  Association Entries loaded");
 
@@ -478,7 +489,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     public Void call() throws Exception {
       try {
         taskLogger.info("    start loading concepts: {} to {}", startIndex + 1, endIndex);
-        operationsService.bulkIndex(concepts, indexName, ElasticOperationsService.CONCEPT_TYPE, Concept.class);
+        operationsService.bulkIndex(concepts, indexName, Concept.class);
         int progress = (int) Math.floor((1.0 - 1.0 * latch.getCount() / taskSize) * 100);
         taskLogger.info("    finish loading concepts: {} to {} ({}% complete)", startIndex + 1, endIndex, progress);
       } catch (Throwable e) {
@@ -580,8 +591,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
    */
   private Concept setupMap(String term, String version) {
     Concept map = new Concept();
-    map.setCode("NCIt_Maps_To_" + term);
-    map.setName("NCIt_Maps_To_" + term);
+    map.setCode(NCIT_MAPS_TO + term);
+    map.setName(NCIT_MAPS_TO + term);
     map.setVersion(version);
     map.setActive(true);
     map.getProperties().add(new Property("downloadOnly", "true"));
@@ -667,6 +678,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
    *
    * @param terminology the terminology
    * @param concept the concept
+   * @throws Exception the exception
    */
   private void handleHistory(final Terminology terminology, final Concept concept) {
 

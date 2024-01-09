@@ -5,9 +5,10 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
-import org.springframework.data.elasticsearch.core.SearchResultMapper;
-import org.springframework.data.elasticsearch.core.aggregation.AggregatedPage;
-import org.springframework.data.elasticsearch.core.query.SearchQuery;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.data.elasticsearch.core.query.Query;
 
 /**
  * Custom {@link ElasticsearchRestTemplate} to log queries.
@@ -35,15 +36,14 @@ public class EVSElasticsearchRestTemplate extends ElasticsearchRestTemplate {
   }
 
   /* see superclass */
-  @Override
-  public <T> AggregatedPage<T> queryForPage(SearchQuery query, Class<T> clazz,
-    SearchResultMapper mapper) {
+  public <T> SearchHits<T> search(Query query, Class<T> clazz,
+                                  IndexCoordinates index) {
 
-    if (logger.isDebugEnabled() && query != null && query.getQuery() != null) {
-      logger.debug("  elasticsearch query = \n" + query.getQuery());
+    if (logger.isDebugEnabled() && ((NativeSearchQuery) query).getQuery() != null) {
+      logger.debug("  elasticsearch query = \n" + ((NativeSearchQuery) query).getQuery());
     }
 
-    return super.queryForPage(query, clazz, mapper);
+    return super.search(query, clazz, index);
   }
 
 }
