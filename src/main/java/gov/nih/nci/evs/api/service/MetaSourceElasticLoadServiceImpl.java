@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.stereotype.Service;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -48,6 +49,7 @@ import gov.nih.nci.evs.api.util.RrfReaders;
 public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
   /** the logger *. */
+  @SuppressWarnings("unused")
   private static final Logger logger =
       LoggerFactory.getLogger(MetaSourceElasticLoadServiceImpl.class);
 
@@ -98,6 +100,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   private Map<String, Concept> codeConceptMap = new HashMap<>();
 
   /** The mapsets. */
+  @SuppressWarnings("unused")
   private Map<String, String> mapsets = new HashMap<>();
 
   /** The maps. */
@@ -446,8 +449,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     boolean result =
         operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
     if (result) {
-      operationsService.getElasticsearchOperations().putMapping(terminology.getIndexName(),
-          ElasticOperationsService.CONCEPT_TYPE, Concept.class);
+      operationsService
+              .getElasticsearchOperations()
+              .indexOps(IndexCoordinates.of(terminology.getIndexName()))
+              .putMapping(Concept.class);
     }
 
     // Cache the concept preferred names so when we resolve relationships we
@@ -623,8 +628,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       // force index
       else {
         logger.info("    BATCH index = " + batchSize + ", " + batch.size());
-        operationsService.bulkIndex(new ArrayList<>(batch), terminology.getIndexName(),
-            ElasticOperationsService.CONCEPT_TYPE, Concept.class);
+        operationsService.bulkIndex(new ArrayList<>(batch), terminology.getIndexName(), Concept.class);
       }
 
       totalConcepts++;
@@ -1188,8 +1192,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         && terminology.getMetadata().getHierarchy()) {
       ElasticObject hierarchyObject = new ElasticObject("hierarchy");
       hierarchyObject.setHierarchy(hierarchy);
-      operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-          ElasticObject.class);
+      operationsService.index(hierarchyObject, indexName, ElasticObject.class);
       logger.info("  Hierarchy loaded");
     } else {
       logger.info("  Hierarchy skipped");
@@ -1203,8 +1206,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     for (final String rel : relSet) {
       associations.getConcepts().add(buildMetadata(terminology, rel, relMap.get(rel)));
     }
-    operationsService.index(associations, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(associations, indexName, ElasticObject.class);
 
     // Hanlde "concept statuses" - n/a
 
@@ -1220,8 +1222,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     if (definitionCt > 0) {
       defTypes.getConcepts().add(buildMetadata(terminology, "DEFINITION", "Definition"));
     }
-    operationsService.index(defTypes, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(defTypes, indexName, ElasticObject.class);
 
     //
     // Handle properties
@@ -1239,8 +1240,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       properties.getConcepts().add(buildMetadata(terminology, atn, atnMap.get(atn)));
     }
 
-    operationsService.index(properties, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(properties, indexName, ElasticObject.class);
 
     //
     // Handle qualifiers
@@ -1259,22 +1259,19 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       qualifiers.getConcepts().add(buildMetadata(terminology, qual, atnMap.get(qual)));
     }
     qualifiers.setMap(qualMap);
-    operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(qualifiers, indexName, ElasticObject.class);
 
     //
     // Handle roles - n/a
     //
     final ElasticObject roles = new ElasticObject("roles");
-    operationsService.index(roles, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(roles, indexName, ElasticObject.class);
 
     //
     // Handle subsets - n/a
     //
     final ElasticObject subsets = new ElasticObject("subsets");
-    operationsService.index(subsets, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(subsets, indexName, ElasticObject.class);
 
     //
     // Handle synonymSources - n/a - handled inline
@@ -1286,8 +1283,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     final ElasticObject syTypes = new ElasticObject("synonymTypes");
     syTypes.getConcepts().add(buildMetadata(terminology, "Preferred_Name", "Preferred name"));
     syTypes.getConcepts().add(buildMetadata(terminology, "Synonym", "Synonym"));
-    operationsService.index(syTypes, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(syTypes, indexName, ElasticObject.class);
 
     //
     // Handle termTypes - n/a - handled inline
@@ -1342,8 +1338,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     if (flag || batchSize > 9000000) {
       // Log the bytes and number of concepts
       logger.info("    BATCH index = " + batchSize + ", " + batch.size());
-      operationsService.bulkIndex(new ArrayList<>(batch), indexName,
-          ElasticOperationsService.CONCEPT_TYPE, Concept.class);
+      operationsService.bulkIndex(new ArrayList<>(batch), indexName, Concept.class);
       batch.clear();
       batchSize = 0;
     }
@@ -1377,9 +1372,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           term.setVersion(fields[6]);
           // No info about the date
           term.setDate(null);
-          // term.setName(line.split("\\|", -1)[4]);
-          term.setDescription(line.split("\\|", -1)[24]);
-
+          if (line != null) {
+            // term.setName(line.split("\\|", -1)[4]);
+            term.setDescription(line.split("\\|", -1)[24]);
+          }
           term.setGraph(null);
           term.setSource(null);
           term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());

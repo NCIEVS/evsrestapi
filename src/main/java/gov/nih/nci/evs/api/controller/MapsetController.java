@@ -239,7 +239,7 @@ public class MapsetController extends BaseController {
       }
       final Integer mapLength = maps.size();
       final ConceptMapResultList list = new ConceptMapResultList();
-      list.setTotal(mapLength);
+      list.setTotal(Long.valueOf(mapLength));
       if (sort.isPresent()) {
         if (sort.get().equals("sourceName")) {
           maps.sort(Comparator.comparing(ConceptMap::getSourceName));
@@ -261,7 +261,7 @@ public class MapsetController extends BaseController {
         // on subList "toIndex" don't go past the end
         list.setMaps(maps.subList(fromRecordParam, Math.min(mapLength, fromRecordParam + pageSizeParam)));
       } else {
-        list.setTotal(0);
+        list.setTotal(0L);
         list.setMaps(new ArrayList<ConceptMap>());
       }
       final SearchCriteria criteria = new SearchCriteria();

@@ -20,7 +20,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * Metric.
  */
 @Schema(hidden = true)
-@Document(indexName = "default", type = ElasticOperationsService.METRIC_TYPE)
+@Document(indexName = "default")
 public class Metric {
 
   /** The remote ip address. */

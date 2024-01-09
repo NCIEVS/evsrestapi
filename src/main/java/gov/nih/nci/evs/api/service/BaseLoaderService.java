@@ -22,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.util.CollectionUtils;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -162,7 +163,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
       }
 
       // delete metadata object
-      esQueryService.deleteIndexMetadata(indexName);
+      operationsService.deleteIndexMetadata(indexName);
     }
   }
 
@@ -249,8 +250,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
       }
     }
 
-    operationsService.bulkIndex(iMetas, ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE,
-        IndexMetadata.class);
+    operationsService.bulkIndex(iMetas, ElasticOperationsService.METADATA_INDEX, IndexMetadata.class);
 
   }
 
@@ -312,8 +312,10 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     // boolean created =
     operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
     // if (created) {
-    operationsService.getElasticsearchOperations().putMapping(ElasticOperationsService.METADATA_INDEX,
-        ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
+    operationsService
+            .getElasticsearchOperations()
+            .indexOps(IndexCoordinates.of(ElasticOperationsService.METADATA_INDEX))
+            .putMapping(IndexMetadata.class);
     // }
 
     // Non-blocking index approach
@@ -321,8 +323,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     // ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
 
     // Make sure this blocks before proceeding
-    operationsService.bulkIndexAndWait(Arrays.asList(iMeta), ElasticOperationsService.METADATA_INDEX,
-        ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
+    operationsService.bulkIndexAndWait(Arrays.asList(iMeta),
+        ElasticOperationsService.METADATA_INDEX, IndexMetadata.class);
 
     // This block is for debugging presence of the iMeta
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
@@ -346,8 +348,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws InterruptedException the interrupted exception
    */
   protected void findAndDeleteTerminology(String ID) throws IOException, InterruptedException {
-    DeleteRequest request =
-        new DeleteRequest(ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE, ID);
+    DeleteRequest request = new DeleteRequest(ElasticOperationsService.METADATA_INDEX, ID);
     client.delete(request, RequestOptions.DEFAULT);
 
     // This block is for debugging presence of the iMeta still in the index

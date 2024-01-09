@@ -23,3 +23,6 @@ WEB-INF/*
 
 /.idea/
 report.txt
+log
+.DS_Store
+src/main/bin/NCIT_HISTORY/

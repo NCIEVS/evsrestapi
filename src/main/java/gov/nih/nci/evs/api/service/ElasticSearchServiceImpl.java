@@ -1,8 +1,18 @@
 
 package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.support.es.EVSPageable;
+import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
@@ -20,23 +30,15 @@ import org.elasticsearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptResultList;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.SearchCriteria;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.EVSConceptResultMapper;
-import gov.nih.nci.evs.api.support.es.EVSPageable;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 @Service
 public class ElasticSearchServiceImpl implements ElasticSearchService {
@@ -106,8 +108,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // build final search query
     final NativeSearchQueryBuilder searchQuery = new NativeSearchQueryBuilder().withQuery(boolQuery)
-        .withIndices(buildIndicesArray(searchCriteria))
-        .withTypes(ElasticOperationsService.CONCEPT_TYPE).withPageable(pageable).withSourceFilter(
+        .withPageable(pageable).withSourceFilter(
             new FetchSourceFilter(new IncludeParam(searchCriteria.getInclude()).getIncludedFields(),
                 new String[] {}));
 
@@ -134,27 +135,43 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     // query on operations
-    final Page<Concept> resultPage = operations.queryForPage(searchQuery.build(), Concept.class,
-        new EVSConceptResultMapper(searchCriteria.computeIncludeParam()));
+    final SearchHits<Concept> hits = operations.search(searchQuery.build(), Concept.class, IndexCoordinates.of(buildIndicesArray(searchCriteria)));
 
-    logger.debug("result count: {}", resultPage.getTotalElements());
+    logger.debug("result count: {}", hits.getTotalHits());
 
     final ConceptResultList result = new ConceptResultList();
-    result.setParameters(searchCriteria);
-    if (fromOffset == 0) {
-      result.setConcepts(resultPage.getContent());
+
+    if (hits.getTotalHits() >= 10000) {
+      result.setTotal( operations.count(searchQuery.build(), Concept.class,
+              IndexCoordinates.of(buildIndicesArray(searchCriteria))));
     } else {
-      // Handle non-aligned paging (e.g fromRecord=6, pageSize=10)
-      final List<Concept> results = resultPage.getContent();
-      // if fromIndex is beyond the end of results, bail
+      result.setTotal(hits.getTotalHits());
+    }
+
+    result.setParameters(searchCriteria);
+
+    if (fromOffset == 0) {
+      result.setConcepts(hits.stream().map(r -> { final Concept concept = r.getContent();
+        Map<String, List<String>> highlightMap = r.getHighlightFields();
+        for (String key : highlightMap.keySet()) {
+          if (key.equals("terminology")) {
+            continue;
+          }
+          for (String text : highlightMap.get(key)) {
+            concept.getHighlights().put(
+                    text.replaceAll("<em>", "").replaceAll("<em>", ""), text);
+          }
+        }
+        return concept;
+      }).collect(Collectors.toList()));
+    } else {
+      final List<Concept> results = hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
       if (fromIndex >= results.size()) {
         result.setConcepts(new ArrayList<>());
       } else {
         result.setConcepts(results.subList(fromIndex, Math.min(toIndex, results.size())));
       }
     }
-    result.setTotal(Long.valueOf(resultPage.getTotalElements()).intValue());
-
     return result;
   }
 
