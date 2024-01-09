@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,7 +54,8 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
   @SuppressWarnings("rawtypes")
   @Override
   public void bulkIndex(List objects, String index, Class clazz) throws IOException {
-    if (CollectionUtils.isEmpty(objects)) return;
+    if (CollectionUtils.isEmpty(objects))
+      return;
     List<IndexQuery> indexQueries = new ArrayList<>();
 
     for (Object obj : objects) {
@@ -68,8 +70,10 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
   /* see superclass */
   @SuppressWarnings("rawtypes")
   @Override
-  public void bulkIndexAndWait(List objects, String index, Class clazz) throws IOException {
-    if (CollectionUtils.isEmpty(objects)) return;
+  public void bulkIndexAndWait(List objects, String index, Class clazz)
+    throws IOException {
+    if (CollectionUtils.isEmpty(objects))
+      return;
     List<IndexQuery> indexQueries = new ArrayList<>();
 
     for (Object obj : objects) {
