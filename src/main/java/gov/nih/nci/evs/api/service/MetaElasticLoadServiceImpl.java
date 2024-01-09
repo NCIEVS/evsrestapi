@@ -611,9 +611,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
     if (result) {
       operationsService
-          .getElasticsearchOperations()
-          .indexOps(IndexCoordinates.of(terminology.getIndexName()))
-          .putMapping(Concept.class);
+              .getElasticsearchOperations()
+              .indexOps(IndexCoordinates.of(terminology.getIndexName()))
+              .putMapping(Concept.class);
     }
 
     // Cache the concept preferred names so when we resolve relationships we
