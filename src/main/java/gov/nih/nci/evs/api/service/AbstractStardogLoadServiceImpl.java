@@ -115,16 +115,15 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
       throws Exception {
 
-    logger.debug(
-        "ElasticLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName());
+    logger.debug("ElasticLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName());
 
     boolean result =
         operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
     if (result) {
       operationsService
-          .getElasticsearchOperations()
-          .indexOps(IndexCoordinates.of(terminology.getIndexName()))
-          .putMapping(Concept.class);
+              .getElasticsearchOperations()
+              .indexOps(IndexCoordinates.of(terminology.getIndexName()))
+              .putMapping(Concept.class);
     }
 
     // Get complex roles and inverse roles

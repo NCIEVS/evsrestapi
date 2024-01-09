@@ -5,7 +5,10 @@ import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
