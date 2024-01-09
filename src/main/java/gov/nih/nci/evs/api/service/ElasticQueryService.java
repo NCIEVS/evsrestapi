@@ -198,13 +198,6 @@ public interface ElasticQueryService {
   List<IndexMetadata> getIndexMetadata(boolean completedOnly);
 
   /**
-   * Delete the {@link IndexMetadata} object.
-   *
-   * @param id the id of the {@link IndexMetadata} object
-   */
-  void deleteIndexMetadata(String id);
-
-  /**
    * Get hiearchy roots for a given terminology.
    *
    * @param terminology the terminology

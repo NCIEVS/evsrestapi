@@ -21,10 +21,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.query.DeleteQuery;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -43,7 +46,6 @@ import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.EVSConceptResultMapper;
 import gov.nih.nci.evs.api.support.es.EVSPageable;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
@@ -116,11 +118,10 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
       return new ArrayList<>();
     }
     NativeSearchQuery query = new NativeSearchQueryBuilder().withFilter(QueryBuilders.termsQuery("_id", codes))
-        .withIndices(terminology.getIndexName()).withTypes(ElasticOperationsService.CONCEPT_TYPE)
         .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
         .withPageable(new EVSPageable(0, codes.size(), 0)).build();
 
-    List<Concept> concepts = operations.queryForPage(query, Concept.class, new EVSConceptResultMapper(ip)).toList();
+    List<Concept> concepts = getResults(query, Concept.class, terminology.getIndexName());
     return concepts;
   }
 
@@ -419,21 +420,20 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
 
   /**
    * see superclass *.
-   * 
+   *
    * @param terminology the terminology
    * @return the concepts count
    */
   @Override
   public long getCount(Terminology terminology) {
-    NativeSearchQuery query = new NativeSearchQueryBuilder().withIndices(terminology.getIndexName())
-        .withTypes(ElasticOperationsService.CONCEPT_TYPE).build();
+    NativeSearchQuery query = new NativeSearchQueryBuilder().build();
 
-    return operations.count(query);
+    return operations.count(query, IndexCoordinates.of(terminology.getIndexName()));
   }
 
   /**
    * see superclass *.
-   * 
+   *
    * @param completedOnly boolean indicating to fetch metadata for complete indexes only
    * @return the list of {@link IndexMetadata} objects
    */
@@ -442,30 +442,14 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     // Get first 1000 records
     final Pageable pageable = new EVSPageable(0, 1000, 0);
     NativeSearchQueryBuilder queryBuilder =
-        new NativeSearchQueryBuilder().withIndices(ElasticOperationsService.METADATA_INDEX)
-            .withTypes(ElasticOperationsService.METADATA_TYPE).withPageable(pageable);
+        new NativeSearchQueryBuilder().withPageable(pageable);
 
     if (completedOnly) {
       queryBuilder = queryBuilder.withFilter(QueryBuilders.matchQuery("completed", true));
     }
 
-    return operations.queryForPage(queryBuilder.build(), IndexMetadata.class).toList();
+    return getResults(queryBuilder.build(), IndexMetadata.class, ElasticOperationsService.METADATA_INDEX);
 
-  }
-
-  /**
-   * see superclass *.
-   * 
-   * @param id the id of the {@link IndexMetadata} object
-   */
-  @Override
-  public void deleteIndexMetadata(String id) {
-    DeleteQuery delQuery = new DeleteQuery();
-    delQuery.setQuery(QueryBuilders.idsQuery().addIds(id));
-    delQuery.setIndex(ElasticOperationsService.METADATA_INDEX);
-    delQuery.setType(ElasticOperationsService.METADATA_TYPE);
-
-    operations.delete(delQuery);
   }
 
   /**
@@ -640,7 +624,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     al.setParameters(criteria);
     // check for results
     if (!esObject.isPresent()) {
-      al.setTotal(0);
+      al.setTotal(0L);
       return al;
     }
     List<AssociationEntry> list = esObject.get().getAssociationEntries();
@@ -648,7 +632,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     int to = Math.min(fromRecord + pageSize, list.size());
     // package up as AssociationEntryResultList
     al.setAssociationEntries(list.subList(from, to));
-    al.setTotal(list.size());
+    al.setTotal((long) list.size());
 
     return al;
   }
@@ -796,10 +780,9 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
       logger.debug("getElasticObject({}, {})", id, terminology.getTerminology());
     }
 
-    NativeSearchQuery query = new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", id))
-        .withIndices(terminology.getObjectIndexName()).withTypes(ElasticOperationsService.OBJECT_TYPE).build();
+    NativeSearchQuery query = new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", id)).build();
 
-    List<ElasticObject> objects = operations.queryForList(query, ElasticObject.class);
+    List<ElasticObject> objects = getResults(query, ElasticObject.class, terminology.getObjectIndexName());
 
     if (CollectionUtils.isEmpty(objects)) {
       return Optional.<ElasticObject> empty();
@@ -818,12 +801,12 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Override
   public List<Concept> getMapsets(IncludeParam ip) throws Exception {
 
-    NativeSearchQuery query = new NativeSearchQueryBuilder().withIndices(ElasticOperationsService.MAPPING_INDEX)
+    NativeSearchQuery query = new NativeSearchQueryBuilder()
         .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
         // assuming pageSize < 10000, trying to get all maps, 17 at the time of this comment
-        .withTypes(ElasticOperationsService.CONCEPT_TYPE).withPageable(PageRequest.of(0, 10000)).build();
+        .withPageable(PageRequest.of(0, 10000)).build();
 
-    return operations.queryForList(query, Concept.class);
+    return getResults(query, Concept.class, ElasticOperationsService.MAPPING_INDEX);
 
   }
 
@@ -832,10 +815,23 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
 
     NativeSearchQuery query = new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", code))
         .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
-        .withIndices(ElasticOperationsService.MAPPING_INDEX).withTypes(ElasticOperationsService.CONCEPT_TYPE).build();
+        .build();
 
-    return operations.queryForList(query, Concept.class);
+    return getResults(query, Concept.class, ElasticOperationsService.MAPPING_INDEX);
+  }
 
+  /**
+   * Gets list of results from a search with a query, class, and index name
+   *
+   * @param query the query
+   * @param clazz the Class
+   * @param index the index/name
+   * @return a List of classes
+   */
+  public <T> List<T> getResults(Query query, Class<T> clazz, String index) {
+    SearchHits<T> hits = operations.search(query, clazz, IndexCoordinates.of(index));
+
+    return hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
   }
 
 }

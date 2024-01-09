@@ -13,7 +13,7 @@ import gov.nih.nci.evs.api.service.ElasticOperationsService;
 /**
  * Used just for putting a mapping for this object
  */
-@Document(indexName = "default_object", type = ElasticOperationsService.OBJECT_TYPE)
+@Document(indexName = "default_object")
 @JsonInclude(content = Include.NON_EMPTY)
 public class ElasticObjectMapping extends BaseModel {
 

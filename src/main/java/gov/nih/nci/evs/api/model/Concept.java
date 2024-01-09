@@ -52,7 +52,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * </pre>
  */
 @Schema(description = "Represents a concept in a terminology")
-@Document(indexName = "default", type = ElasticOperationsService.CONCEPT_TYPE)
+@Document(indexName = "default")
 @JsonInclude(Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Concept extends ConceptMinimal {
