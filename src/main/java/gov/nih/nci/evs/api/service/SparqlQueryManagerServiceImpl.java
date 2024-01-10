@@ -81,6 +81,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /** The sparql query cache service */
   @Autowired SparqlQueryCacheService sparqlQueryCacheService;
 
+  /** The sparql query cache service */
+  @Autowired SparqlQueryCacheService sparqlQueryCacheService;
+
   /** The utils. */
   @Autowired TerminologyUtils utils;
 
@@ -121,6 +124,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public String getQueryURL() {
     return stardogProperties.getQueryUrl();
   }
+  // Here check the qualified form as well as the URI
 
   // Here check the qualified form as well as the URI
 
