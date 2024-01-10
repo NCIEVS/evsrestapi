@@ -47,7 +47,7 @@ public class Property extends BaseModel implements Comparable<Property> {
   private String highlight;
 
   /** The qualifiers. */
-  @Field(type = FieldType.Nested)
+  @Field(type = FieldType.Object, enabled = false)
   private List<Qualifier> qualifiers;
 
   /** The source. */

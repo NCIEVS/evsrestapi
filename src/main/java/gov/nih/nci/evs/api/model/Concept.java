@@ -107,92 +107,92 @@ public class Concept extends ConceptMinimal {
   private Boolean active;
 
   /** The synonyms. */
-  @Field(type = FieldType.Nested)
+  @Field(type = FieldType.Object, enabled = false)
   private List<Synonym> synonyms;
 
   /** The definitions. */
-  @Field(type = FieldType.Nested)
+  @Field(type = FieldType.Object, enabled = false)
   private List<Definition> definitions;
 
   /** The history. */
-  @Field(type = FieldType.Nested)
+  @Field(type = FieldType.Object, enabled = false)
   private List<History> history;
 
   /** The properties. */
-  @Field(type = FieldType.Nested, ignoreFields = {
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
       "qualifiers"
   })
   private List<Property> properties;
 
   /** The qualifiers - only used by parent/child references for NCIM. */
-  @Field(type = FieldType.Nested)
+  @Field(type = FieldType.Object, enabled = false)
   private List<Qualifier> qualifiers;
 
   /** The children. */
-  @Field(type = FieldType.Nested, ignoreFields = {
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
       "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles", "inverseRoles",
       "descendants", "paths", "qualifiers", "extensions", "disjointWith"
   })
   private List<Concept> children;
 
   /** The parents. */
-  @Field(type = FieldType.Nested, ignoreFields = {
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
       "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles", "inverseRoles",
       "descendants", "paths", "qualifiers", "extensions", "disjointWith"
   })
   private List<Concept> parents;
 
   /** The descendants. */
-  @Field(type = FieldType.Nested, ignoreFields = {
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
       "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles", "inverseRoles",
       "descendants", "paths", "qualifiers", "extensions", "disjointWith"
   })
   private List<Concept> descendants;
 
   /** The associations. */
-  @Field(type = FieldType.Nested, ignoreFields = {
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
       "qualifiers"
   })
   private List<Association> associations;
 
   /** The inverse associations. */
-  @Field(type = FieldType.Nested, ignoreFields = {
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
       "qualifiers"
   })
   private List<Association> inverseAssociations;
 
   /** The roles. */
-  @Field(type = FieldType.Nested, ignoreFields = {
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
       "qualifiers"
   })
   private List<Role> roles;
 
   /** The disjoint with. */
-  @Field(type = FieldType.Nested, ignoreFields = {
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
       "qualifiers"
   })
   private List<DisjointWith> disjointWith;
 
   /** The inverse roles. */
-  @Field(type = FieldType.Nested, ignoreFields = {
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
       "qualifiers"
   })
   private List<Role> inverseRoles;
 
   /** The maps. */
-  @Field(type = FieldType.Nested, ignoreFields = {
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
       "qualifiers"
   })
   private List<ConceptMap> maps;
 
   /** The paths to root. */
-  @Field(type = FieldType.Nested, ignoreFields = {
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
       "paths"
   })
   private Paths paths;
 
   /** The paths to root. */
-  @Field(type = FieldType.Nested)
+  @Field(type = FieldType.Object, enabled = false)
   private Extensions extensions;
 
   /**
