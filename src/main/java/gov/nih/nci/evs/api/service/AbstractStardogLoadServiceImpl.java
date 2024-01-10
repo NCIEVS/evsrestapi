@@ -94,6 +94,10 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   /** The sparql query cache service */
   @Autowired SparqlQueryCacheService sparqlQueryCacheService;
 
+  /** The sparql query cache service */
+  @Autowired
+  SparqlQueryCacheService sparqlQueryCacheService;
+
   /** The name map. */
   private Map<String, String> nameMap = new HashMap<>();
 
