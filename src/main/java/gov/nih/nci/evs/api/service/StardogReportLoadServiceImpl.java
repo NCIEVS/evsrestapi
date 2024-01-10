@@ -136,7 +136,8 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
     // TODO: show hierarchy (passed in)
 
     // Show qualifiers
-    final List<Concept> qualifiers = sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("full"));
+    final List<Concept> qualifiers =
+        sparqlQueryManagerService.getAllQualifiersCache(terminology, new IncludeParam("full"));
     logReport("  ", "qualifiers", qualifiers);
 
     // Show remodeled qualifiers
@@ -295,7 +296,7 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
   /* see superclass */
   @Override
   public HierarchyUtils getHierarchyUtils(final Terminology term) throws Exception {
-    final HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(term);
+    final HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtilsCache(term);
     logReport("  ", "hierarchy = " + hierarchy.getPathsMap(term).size());
     logReport("  ", "roots = " + hierarchy.getHierarchyRoots());
     final String minPathsCode = hierarchy.getCodeWithMinPaths(term);

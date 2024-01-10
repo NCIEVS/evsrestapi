@@ -86,7 +86,7 @@ public class HistoryController extends BaseController {
 
     try {
 
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       return HistoryUtils.getReplacements(term, elasticQueryService, code);
 
     } catch (final Exception e) {
@@ -134,7 +134,7 @@ public class HistoryController extends BaseController {
 
     try {
 
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       return HistoryUtils.getReplacements(term, elasticQueryService, Arrays.asList(list.split(",")));
 
     } catch (final Exception e) {
