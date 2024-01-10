@@ -70,7 +70,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   private String subSource;
 
   /** The qualifiers - not NCIT, but could be other terminologies. */
-  @Field(type = FieldType.Nested)
+  @Field(type = FieldType.Object, enabled = false)
   private List<Qualifier> qualifiers;
 
   /** The active flag. */
