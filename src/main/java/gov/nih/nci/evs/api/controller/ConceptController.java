@@ -135,7 +135,7 @@ public class ConceptController extends BaseController {
   final String list, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
   final String license) throws Exception {
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
@@ -214,7 +214,7 @@ public class ConceptController extends BaseController {
   final Optional<String> include, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
   final String license) throws Exception {
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
@@ -277,7 +277,7 @@ public class ConceptController extends BaseController {
   final String license) throws Exception {
 
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("associations"));
@@ -340,7 +340,7 @@ public class ConceptController extends BaseController {
   final String license) throws Exception {
     // Get the association "label"
     final Long startTime = System.currentTimeMillis();
-    final Terminology term = termUtils.getTerminology(terminology, true);
+    final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
     termUtils.checkLicense(term, license);
 
     final Optional<Concept> association =
@@ -349,7 +349,7 @@ public class ConceptController extends BaseController {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Association " + codeOrLabel + " not found");
     }
     final String label = association.get().getName();
-    if (termUtils.getTerminology(terminology, true).getMetadata().getSubsetMember().contains(codeOrLabel)) {
+    if (termUtils.getIndexedTerminology(terminology, elasticQueryService).getMetadata().getSubsetMember().contains(codeOrLabel)) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND,
           "Associations used to define subset membership are not resolved by this call");
     }
@@ -399,7 +399,7 @@ public class ConceptController extends BaseController {
   final String code, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
   final String license) throws Exception {
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
@@ -472,7 +472,7 @@ public class ConceptController extends BaseController {
   final Optional<String> include, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
   final String license) throws Exception {
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
 
@@ -544,7 +544,7 @@ public class ConceptController extends BaseController {
   final String license) throws Exception {
 
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("roles"));
@@ -597,7 +597,7 @@ public class ConceptController extends BaseController {
   final String license) throws Exception {
 
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("inverseRoles"));
@@ -652,7 +652,7 @@ public class ConceptController extends BaseController {
   final String license) throws Exception {
 
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("parents"));
@@ -707,7 +707,7 @@ public class ConceptController extends BaseController {
   final String license) throws Exception {
 
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("children"));
@@ -777,7 +777,7 @@ public class ConceptController extends BaseController {
   final Optional<Integer> maxLevel, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
   final String license) throws Exception {
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
 
       if (!elasticQueryService.checkConceptExists(code, term)) {
@@ -847,7 +847,7 @@ public class ConceptController extends BaseController {
   final String license) throws Exception {
 
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("maps"));
@@ -900,7 +900,7 @@ public class ConceptController extends BaseController {
   final String license) throws Exception {
 
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("history"));
@@ -952,7 +952,7 @@ public class ConceptController extends BaseController {
   final String code, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
   final String license) throws Exception {
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept = elasticQueryService.getConcept(code, term, new IncludeParam("disjointWith"));
@@ -1010,7 +1010,7 @@ public class ConceptController extends BaseController {
   final String license) throws Exception {
 
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
@@ -1087,7 +1087,7 @@ public class ConceptController extends BaseController {
   final String license) throws Exception {
 
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
@@ -1160,7 +1160,7 @@ public class ConceptController extends BaseController {
   final String license) throws Exception {
 
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
 
       if (!elasticQueryService.checkConceptExists(code, term)) {
@@ -1302,7 +1302,7 @@ public class ConceptController extends BaseController {
   final Optional<Integer> limit, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
   final String license) throws Exception {
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
 
       if (!elasticQueryService.checkConceptExists(code, term)) {
@@ -1390,7 +1390,7 @@ public class ConceptController extends BaseController {
   final Optional<Integer> pageSize, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
   final String license) throws Exception {
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
@@ -1476,7 +1476,7 @@ public class ConceptController extends BaseController {
   final Optional<Integer> pageSize, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
   final String license) throws Exception {
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 

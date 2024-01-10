@@ -49,7 +49,7 @@ public class TerminologyUtilsTest {
   public void testRemodeledQualifiers() throws Exception {
 
     final Terminology ncit =
-        termUtils.getTerminologies(true).stream().filter(t -> t.getLatest() != null && t.getLatest()
+        termUtils.getIndexedTerminologies(esQueryService).stream().filter(t -> t.getLatest() != null && t.getLatest()
             && t.getTags().containsKey("monthly") && t.getTags().get("monthly").equals("true")).findFirst().get();
     final IncludeParam ip = new IncludeParam((String) null);
 

@@ -60,6 +60,10 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   @Autowired
   private ElasticQueryService esQueryService;
 
+  /** The sparql query service *. */
+  @Autowired
+  private SparqlQueryManagerService sparqlQueryManagerService;
+
   /** The term utils. */
   /* The terminology utils */
   @Autowired
@@ -126,7 +130,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   @Override
   public void cleanStaleIndexes(final Terminology terminology) throws Exception {
 
-    List<IndexMetadata> iMetas = termUtils.getStaleStardogTerminologies(Arrays.asList(dbs.split(",")), terminology);
+    List<IndexMetadata> iMetas =
+        termUtils.getStaleStardogTerminologies(Arrays.asList(dbs.split(",")), terminology, sparqlQueryManagerService, esQueryService );
     if (CollectionUtils.isEmpty(iMetas)) {
       logger.info("NO stale terminologies to remove");
       return;

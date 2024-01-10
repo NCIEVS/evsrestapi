@@ -36,7 +36,12 @@ public class SparqlQueryManagerServiceImplTests {
   // private MockMvc mvc;
 
   @Autowired
-  SparqlQueryManagerService service;
+  SparqlQueryManagerService sparqlQueryService;
+
+  /** The elasticquery service. */
+  @Autowired
+  ElasticQueryService esQueryService;
+
 
   /** The term utils. */
   @Autowired
@@ -58,8 +63,8 @@ public class SparqlQueryManagerServiceImplTests {
   @Test
   public void testGetDefinitionSources() throws Exception {
 
-    final Terminology term = termUtils.getTerminology("ncit", true);
-    final List<ConceptMinimal> list = service.getDefinitionSources(term);
+    final Terminology term = termUtils.getIndexedTerminology("ncit", esQueryService);
+    final List<ConceptMinimal> list = sparqlQueryService.getDefinitionSources(term);
     assertTrue(list.stream().filter(c -> c.getCode().equals("BRIDG")).count() > 0);
     assertFalse(list.stream().filter(c -> c.getCode().equals("MSH2001")).count() > 0);
   }
@@ -72,8 +77,8 @@ public class SparqlQueryManagerServiceImplTests {
   @Test
   public void testGetSynonymSources() throws Exception {
 
-    final Terminology term = termUtils.getTerminology("ncit", true);
-    final List<ConceptMinimal> list = service.getSynonymSources(term);
+    final Terminology term = termUtils.getIndexedTerminology("ncit", esQueryService);
+    final List<ConceptMinimal> list = sparqlQueryService.getSynonymSources(term);
     assertTrue(list.stream().filter(c -> c.getCode().equals("BRIDG")).count() > 0);
   }
 }

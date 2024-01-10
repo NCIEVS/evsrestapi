@@ -96,7 +96,7 @@ public class MetadataController extends BaseController {
   final Optional<String> terminology) throws Exception {
     List<String> tagList = Arrays.asList("monthly", "weekly");
     try {
-      List<Terminology> terms = termUtils.getTerminologies(true);
+      List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
 
       if (latest.isPresent()) {
         terms = terms.stream().filter(f -> f.getLatest() != null && f.getLatest().equals(latest.get()))
@@ -1138,6 +1138,7 @@ public class MetadataController extends BaseController {
       return null;
     }
   }
+
 
   /**
    * Returns the source stats.
