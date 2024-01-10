@@ -108,7 +108,7 @@ import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
 
 /**
- * Termhub Api interceptor to fix header, inject header auth token. Borrowed from OpenApiInterceptor
+ * EVSAPI Api interceptor to fix header, inject header auth token. Borrowed from OpenApiInterceptor
  * and modified.
  */
 public class EVSAPIOpenApiInterceptorR4 {
@@ -187,11 +187,11 @@ public class EVSAPIOpenApiInterceptorR4 {
    * Inits the resources.
    */
   private void initResources() {
-    setBannerImage("termhub.png");
+    setBannerImage("EVSAPI.png");
     setUseResourcePages(true);
 
     addResourcePathToClasspath("/swagger-ui/index.html", "swagger-ui/index.html");
-    addResourcePathToClasspath("/swagger-ui/termhub.png", "swagger-ui/termhub.png");
+    addResourcePathToClasspath("/swagger-ui/EVSAPI.png", "swagger-ui/EVSAPI.png");
     addResourcePathToClasspath("/swagger-ui/index.css", "swagger-ui/index.css");
 
     myExtensionToContentType.put(".png", "image/png");
