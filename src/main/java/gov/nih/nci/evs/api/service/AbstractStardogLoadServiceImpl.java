@@ -43,7 +43,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
-import org.springframework.data.elasticsearch.NoSuchIndexException;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.util.CollectionUtils;
 
