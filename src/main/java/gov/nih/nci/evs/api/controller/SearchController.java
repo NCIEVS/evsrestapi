@@ -254,14 +254,12 @@ public class SearchController extends BaseController {
       // String.class)
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/search",
-      produces = "application/json")
-  public @ResponseBody ConceptResultList searchSingleTerminology(
-    @PathVariable(value = "terminology")
-    final String terminology, @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
-    BindingResult bindingResult, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
-    final String license) throws Exception {
-    final Terminology term = termUtils.getTerminology(terminology, true);
+  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/search", produces = "application/json")
+  public @ResponseBody ConceptResultList searchSingleTerminology(@PathVariable(value = "terminology")
+  final String terminology, @ModelAttribute
+  SearchCriteriaWithoutTerminology searchCriteria, BindingResult bindingResult, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) throws Exception {
+    final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
     termUtils.checkLicense(term, license);
     return search(new SearchCriteria(searchCriteria, terminology), bindingResult, license);
   }
@@ -446,7 +444,7 @@ public class SearchController extends BaseController {
     try {
       final List<Terminology> terminologies = new ArrayList<>();
       for (String terminology : searchCriteria.getTerminology()) {
-        final Terminology term = termUtils.getTerminology(terminology, true);
+        final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
         termUtils.checkLicense(term, license);
         searchCriteria.validate(term, metadataService);
         terminologies.add(term);

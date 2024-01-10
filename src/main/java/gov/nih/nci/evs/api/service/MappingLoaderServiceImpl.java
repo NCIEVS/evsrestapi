@@ -35,7 +35,7 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
- * The implementation for {@link LoaderService}.
+ * The implementation for {@link BaseLoaderService}.
  *
  * @author Arun
  */
@@ -94,7 +94,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
 
           // Determine "source"
           final String source = metadata[0].split("_")[0];
-          final Terminology sourceTerminology = termUtils.getTerminology(source.toLowerCase(), true);
+          final Terminology sourceTerminology = termUtils.getIndexedTerminology(source.toLowerCase(), esQueryService);
           final Concept sourceConcept =
               esQueryService.getConcept(conceptSplit[0].strip(), sourceTerminology, new IncludeParam()).orElse(null);
           String sourceName = "Unable to determine name";
@@ -104,7 +104,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
 
           // Determine "target" terminology
           final String target = metadata[0].split("_")[2];
-          final Terminology targetTerminology = termUtils.getTerminology(target.toLowerCase(), true);
+          final Terminology targetTerminology = termUtils.getIndexedTerminology(target.toLowerCase(), esQueryService);
           final Concept targetConcept =
               esQueryService.getConcept(conceptSplit[1].strip(), targetTerminology, new IncludeParam()).orElse(null);
           String targetName = "Unable to determine name";
@@ -228,7 +228,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     logger.info("Mapsets to remove = " + mapsetsToRemove.toString());
 
     List<String> terms =
-        termUtils.getTerminologies(true).stream().map(Terminology::getTerminology).collect(Collectors.toList());
+        termUtils.getIndexedTerminologies(esQueryService).stream().map(Terminology::getTerminology).collect(Collectors.toList());
 
     for (String line : allLines) { // build each mapset
       String[] metadata = line.split(",", -1);

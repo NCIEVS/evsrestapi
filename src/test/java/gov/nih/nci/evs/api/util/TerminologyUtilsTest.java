@@ -48,10 +48,9 @@ public class TerminologyUtilsTest {
   @Test
   public void testRemodeledQualifiers() throws Exception {
 
-    final Terminology ncit = termUtils
-        .getTerminologies(true).stream().filter(t -> t.getLatest() != null && t.getLatest()
-            && t.getTags().containsKey("monthly") && t.getTags().get("monthly").equals("true"))
-        .findFirst().get();
+    final Terminology ncit =
+        termUtils.getIndexedTerminologies(esQueryService).stream().filter(t -> t.getLatest() != null && t.getLatest()
+            && t.getTags().containsKey("monthly") && t.getTags().get("monthly").equals("true")).findFirst().get();
     final IncludeParam ip = new IncludeParam((String) null);
 
     final List<Concept> list = esQueryService.getQualifiers(ncit, ip);

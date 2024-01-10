@@ -50,6 +50,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   @Autowired
   ElasticsearchOperations operations;
 
+  /** The Elastic query service **/
+  @Autowired
+  ElasticQueryService esQueryService;
+
   /* The terminology utils */
   @Autowired
   TerminologyUtils termUtils;
@@ -514,7 +518,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   /**
    * builds terminology query based on input search criteria
    * 
-   * @param searchCriteria
+   * @param terminologies list of terminologies
    * @return the terminology query builder
    */
   private QueryBuilder getTerminologyQuery(final List<Terminology> terminologies) {
@@ -606,7 +610,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * builds nested query for property criteria on value field for given types.
    *
    * @param searchCriteria the search criteria
-   * @param type the type
    * @return the nested query
    */
   private QueryBuilder getConceptStatusQueryBuilder(SearchCriteria searchCriteria) {
@@ -924,7 +927,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     String[] indices = new String[terminologies.size()];
     // TODO: add getTerminologies call to avoid looping
     for (int i = 0; i < terminologies.size(); i++) {
-      indices[i] = termUtils.getTerminology(terminologies.get(i), true).getIndexName();
+      indices[i] = termUtils.getIndexedTerminology(terminologies.get(i), esQueryService).getIndexName();
     }
     // logger.info("indices array: " + Arrays.asList(indices));
     return indices;

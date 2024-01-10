@@ -90,16 +90,15 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Autowired
   ElasticQueryService elasticQueryService;
 
+  /** The sparql query cache service */
+  @Autowired SparqlQueryCacheService sparqlQueryCacheService;
+
   /** The utils. */
   @Autowired
   TerminologyUtils utils;
 
   /** The rest utils. */
   private RESTUtils restUtils = null;
-
-  /** The self. */
-  @Resource
-  private SparqlQueryManagerService self;
 
   /**
    * Post init.
@@ -131,6 +130,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public String getQueryURL() {
     return stardogProperties.getQueryUrl();
   }
+  // Here check the qualified form as well as the URI
 
   /* see superclass */
   @Override
@@ -1189,7 +1189,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Role>> resultMap =
-        self.getComplexRolesForAllCodes(terminology, inverseFlag);
+        this.getComplexRolesForAllCodes(terminology, inverseFlag);
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
@@ -1533,7 +1533,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           // Here check the qualified form as well as the URI
 
           final String name = EVSUtils.getQualifierName(
-              self.getAllQualifiers(terminology, new IncludeParam("minimal")), propertyCode,
+              sparqlQueryCacheService.getAllQualifiers(terminology, new IncludeParam("minimal"), restUtils, this), propertyCode,
               propertyUri);
           if (name != null) {
             axiomObject.getQualifiers().add(new Qualifier(name, labelValue));
@@ -1543,39 +1543,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         }
         break;
     }
-  }
-
-  /* see superclass */
-  @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion()}")
-  public List<String> getHierarchy(final Terminology terminology) throws Exception {
-    final List<String> parentchild = new ArrayList<>();
-    final String queryPrefix = queryBuilderService.constructPrefix(terminology);
-    final String query = queryBuilderService.constructQuery("hierarchy", terminology);
-    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
-    final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-    final Bindings[] bindings = sparqlResult.getResults().getBindings();
-    for (final Bindings b : bindings) {
-      final StringBuffer str = new StringBuffer();
-      str.append(b.getParentCode() == null ? EVSUtils.getCodeFromUri(b.getParent().getValue())
-          : b.getParentCode().getValue());
-      str.append("\t");
-      str.append(EVSUtils.getParentLabel(b));
-      str.append("\t");
-      str.append(b.getChildCode() == null ? EVSUtils.getCodeFromUri(b.getChild().getValue())
-          : b.getChildCode().getValue());
-      str.append("\t");
-      str.append(EVSUtils.getChildLabel(b));
-      str.append("\n");
-      parentchild.add(str.toString());
-    }
-
-    return parentchild;
   }
 
   /**
@@ -1874,62 +1841,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  // Caching needs to remain for "getConcepts" because it's used
-  // in setAxiomProperty
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion(),#ip.toString()}")
-  public List<Concept> getAllQualifiers(final Terminology terminology, final IncludeParam ip)
-    throws Exception {
-    final String queryPrefix = queryBuilderService.constructPrefix(terminology);
-    final String query = queryBuilderService.constructQuery("all.qualifiers", terminology);
-    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    final List<Qualifier> qualifiers = new ArrayList<>();
-    final List<Concept> concepts = new ArrayList<>();
-
-    final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-    final Bindings[] bindings = sparqlResult.getResults().getBindings();
-    for (final Bindings b : bindings) {
-      final Qualifier qualifier = new Qualifier();
-      if (b.getPropertyCode() == null) {
-        qualifier.setUri(b.getProperty().getValue());
-      }
-      qualifier.setCode(EVSUtils.getPropertyCode(b));
-      qualifiers.add(qualifier);
-    }
-
-    final TerminologyMetadata md = terminology.getMetadata();
-    for (final Qualifier qualifier : qualifiers) {
-
-      // Send URI or code
-      final Concept concept = getQualifier(
-          qualifier.getUri() != null ? qualifier.getUri() : qualifier.getCode(), terminology, ip);
-
-      // Skip unpublished qualifiers
-      if (md.isUnpublished(qualifier.getCode()) || md.isUnpublished(qualifier.getUri())) {
-        continue;
-      }
-
-      // Mark remodeled qualifiers
-      if (md.isRemodeledQualifier(qualifier.getCode())
-          || md.isRemodeledQualifier(qualifier.getUri())) {
-        concept.getProperties().add(new Property("remodeled", "true"));
-        if (qualifier.getCode() != null) {
-          concept.getProperties().add(new Property("remodeledDescription",
-              "Remodeled as " + md.getRemodeledAsType(null, qualifier, md)));
-        }
-      }
-
-      concepts.add(concept);
-    }
-
-    return concepts;
-  }
-
-  /* see superclass */
-  @Override
   public List<Concept> getRemodeledQualifiers(final Terminology terminology, final IncludeParam ip)
     throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
@@ -2104,7 +2015,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<Concept> getAllSynonymTypes(final Terminology terminology, final IncludeParam ip)
     throws Exception {
 
-    final List<Concept> properties = self.getRemodeledProperties(terminology, ip);
+    final List<Concept> properties = this.getRemodeledProperties(terminology, ip);
     final List<Concept> concepts = new ArrayList<>();
     final TerminologyMetadata md = terminology.getMetadata();
     for (final Concept property : properties) {
@@ -2120,7 +2031,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<Concept> getAllDefinitionTypes(final Terminology terminology, final IncludeParam ip)
     throws Exception {
 
-    final List<Concept> properties = self.getRemodeledProperties(terminology, ip);
+    final List<Concept> properties = this.getRemodeledProperties(terminology, ip);
     final List<Concept> concepts = new ArrayList<>();
     final TerminologyMetadata md = terminology.getMetadata();
     for (final Concept property : properties) {
@@ -2134,28 +2045,28 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<HierarchyNode> getRootNodes(final Terminology terminology) throws Exception {
-    return self.getHierarchyUtils(terminology).getRootNodes();
+    return sparqlQueryCacheService.getHierarchyUtils(terminology, restUtils, this).getRootNodes();
   }
 
   /* see superclass */
   @Override
   public List<HierarchyNode> getChildNodes(final String parent, final Terminology terminology)
     throws Exception {
-    return self.getHierarchyUtils(terminology).getChildNodes(parent, 0);
+    return sparqlQueryCacheService.getHierarchyUtils(terminology, restUtils, this).getChildNodes(parent, 0);
   }
 
   /* see superclass */
   @Override
   public List<HierarchyNode> getChildNodes(final String parent, final int maxLevel,
     final Terminology terminology) throws Exception {
-    return self.getHierarchyUtils(terminology).getChildNodes(parent, maxLevel);
+    return sparqlQueryCacheService.getHierarchyUtils(terminology, restUtils, this).getChildNodes(parent, maxLevel);
   }
 
   /* see superclass */
   @Override
   public List<String> getAllChildNodes(final String parent, final Terminology terminology)
     throws Exception {
-    return self.getHierarchyUtils(terminology).getAllChildNodes(parent);
+    return sparqlQueryCacheService.getHierarchyUtils(terminology, restUtils, this).getAllChildNodes(parent);
   }
 
   /* see superclass */
@@ -2211,7 +2122,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<HierarchyNode> getPathInHierarchy(final String code, final Terminology terminology)
     throws Exception {
     final List<HierarchyNode> rootNodes = elasticQueryService.getRootNodesHierarchy(terminology);
-    final Paths paths = self.getHierarchyUtils(terminology).getPaths(terminology, code);
+    final Paths paths = sparqlQueryCacheService.getHierarchyUtils(terminology, restUtils, this).getPaths(terminology, code);
 
     for (final HierarchyNode rootNode : rootNodes) {
       for (final Path path : paths.getPaths()) {
@@ -2220,15 +2131,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     return rootNodes;
-  }
-
-  /* see superclass */
-  @Override
-  @Cacheable(value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion()}")
-  public HierarchyUtils getHierarchyUtils(final Terminology terminology) throws Exception {
-    final List<String> parentchild = self.getHierarchy(terminology);
-    return new HierarchyUtils(terminology, parentchild);
   }
 
   /* see superclass */
@@ -2525,4 +2427,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return entries;
   }
 
+  /* see superclass */
+  public HierarchyUtils getHierarchyUtilsCache(final Terminology terminology) throws Exception {
+    return sparqlQueryCacheService.getHierarchyUtils(terminology, restUtils, this);
+  }
+
+  /* see superclass */
+  public List<Concept> getAllQualifiersCache(Terminology terminology, IncludeParam ip)
+          throws Exception {
+    return sparqlQueryCacheService.getAllQualifiers(terminology, ip, restUtils, this);
+  }
 }

@@ -15,9 +15,11 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.stream.Collectors;
 
+import gov.nih.nci.evs.api.service.ElasticQueryService;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -62,6 +64,10 @@ public class ConceptSampleTester {
 
   private TerminologyUtils termUtils = null;
 
+  /** The elasticquery service. */
+  private ElasticQueryService esQueryService = null;
+
+
   /** The errors. */
   private List<String> errors = new ArrayList<String>();
 
@@ -87,12 +93,11 @@ public class ConceptSampleTester {
    * Sets the terminology.
    *
    * @param term the term
-   * @param mvc the mvc
    * @throws Exception the exception
    */
   private void lookupTerminology(final String term) throws Exception {
 
-    terminology = termUtils.getTerminology(term, true);
+    terminology = termUtils.getIndexedTerminology(term, esQueryService);
   }
 
   /**

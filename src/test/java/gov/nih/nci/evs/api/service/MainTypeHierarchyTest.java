@@ -42,7 +42,11 @@ public class MainTypeHierarchyTest {
 
   /** The service. */
   @Autowired
-  private SparqlQueryManagerService service;
+  private SparqlQueryManagerService sparqlQueryService;
+
+  /** The elasticquery service. */
+  @Autowired
+  ElasticQueryService esQueryService;
 
   /** The term utils. */
   @Autowired
@@ -58,10 +62,10 @@ public class MainTypeHierarchyTest {
 
     log.info("  Get terminology = ncit");
     // Use true to get the metadata
-    final Terminology terminology = termUtils.getTerminology("ncit", true);
+    final Terminology terminology = termUtils.getIndexedTerminology("ncit", esQueryService);
     log.info("    terminology = " + terminology);
     log.info("  Get hierarchy");
-    final HierarchyUtils hierarchy = service.getHierarchyUtils(terminology);
+    final HierarchyUtils hierarchy = sparqlQueryService.getHierarchyUtilsCache(terminology);
     log.info("  Initialize main type hierarchy");
     mainTypeHierarchy.initialize(terminology, hierarchy);
 
@@ -70,7 +74,7 @@ public class MainTypeHierarchyTest {
         "C156722", "C6278", "C128245"
     }) {
       log.info("  Get concept and compute paths = " + code);
-      final Concept concept = service.getConcept(code, terminology, new IncludeParam("full"));
+      final Concept concept = sparqlQueryService.getConcept(code, terminology, new IncludeParam("full"));
       concept.setPaths(hierarchy.getPaths(terminology, concept.getCode()));
 
       final List<Paths> paths = mainTypeHierarchy.getMainMenuAncestors(concept);
