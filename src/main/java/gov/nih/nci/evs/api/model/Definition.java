@@ -48,7 +48,7 @@ public class Definition extends BaseModel implements Comparable<Definition> {
   private String source;
 
   /** The qualifiers. */
-  @Field(type = FieldType.Nested)
+  @Field(type = FieldType.Object, enabled = false)
   private List<Qualifier> qualifiers;
 
   /**
