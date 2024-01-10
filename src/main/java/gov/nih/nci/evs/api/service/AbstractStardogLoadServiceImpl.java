@@ -365,7 +365,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     logger.info("  Synonym Sources loaded");
 
     List<Concept> qualifiers =
-        sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("full"));
+        sparqlQueryManagerService.getAllQualifiersCache(terminology, new IncludeParam("full"));
     ElasticObject conceptsObject = new ElasticObject("qualifiers");
     conceptsObject.setConcepts(qualifiers);
     // Get qualifier values by code and by qualifier name
@@ -525,7 +525,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config,
     String filepath, String terminology, boolean forceDelete) throws Exception {
     TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
-    final Terminology term = termUtils.getTerminology(config.getTerminology(), false);
+    final Terminology term = termUtils.getTerminology(config.getTerminology(), sparqlQueryManagerService);
+
     // Attempt to read the config, if anything goes wrong
     // the config file is probably not there
     try {
@@ -748,7 +749,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public HierarchyUtils getHierarchyUtils(Terminology term) throws Exception {
-    final HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtils(term);
+    final HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtilsCache(term);
 
     return hierarchy;
   }

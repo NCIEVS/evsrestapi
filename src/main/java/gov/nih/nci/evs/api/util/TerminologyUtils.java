@@ -15,6 +15,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import gov.nih.nci.evs.api.service.SparqlQueryManagerServiceImpl;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -24,6 +25,7 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.apache.lucene.index.Term;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,15 +50,6 @@ public final class TerminologyUtils {
   /** The Constant logger. */
   private static final Logger logger = LoggerFactory.getLogger(TerminologyUtils.class);
 
-  /** The sparql query manager service. */
-  @Autowired
-  SparqlQueryManagerService sparqlQueryManagerService;
-
-  /** The es query service. */
-  /* The elasticsearch query service */
-  @Autowired
-  ElasticQueryService esQueryService;
-
   /** The stardog properties. */
   @Autowired
   StardogProperties stardogProperties;
@@ -76,24 +69,22 @@ public final class TerminologyUtils {
   /**
    * Returns all terminologies.
    * 
-   * @param indexed use {@literal true} to get indexed terminologies as opposed to terminologies from stardog
+   * @param sparqlQueryManagerService the sparql query service
    * @return the terminologies
    * @throws Exception Signals that an exception has occurred.
    */
-  public List<Terminology> getTerminologies(boolean indexed) throws Exception {
-    if (indexed) {
-      return getIndexedTerminologies();
-    }
+  public List<Terminology> getTerminologies(SparqlQueryManagerService sparqlQueryManagerService) throws Exception {
     return sparqlQueryManagerService.getTerminologies(stardogProperties.getDb());
   }
 
   /**
    * Returns terminologies loaded to elasticsearch.
-   * 
+   *
+   * @param esQueryService elastic query service
    * @return the list of terminology objects
    * @throws Exception Signals that an exception has occurred.
    */
-  private List<Terminology> getIndexedTerminologies() throws Exception {
+  public List<Terminology> getIndexedTerminologies(ElasticQueryService esQueryService) throws Exception {
     // get index metadata for terminologies completely loaded in es
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
     if (CollectionUtils.isEmpty(iMetas))
@@ -110,7 +101,8 @@ public final class TerminologyUtils {
    * @return the stale terminologies
    * @throws Exception the exception
    */
-  public List<IndexMetadata> getStaleStardogTerminologies(final List<String> dbs, final Terminology terminology)
+  public List<IndexMetadata> getStaleStardogTerminologies(final List<String> dbs, final Terminology terminology, SparqlQueryManagerService sparqlQueryManagerService,
+                                                          ElasticQueryService esQueryService)
     throws Exception {
     // get index metadata for terminologies completely loaded in es
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
@@ -141,41 +133,63 @@ public final class TerminologyUtils {
    * Set {@literal true} for {@code indexedOnly} param to lookup in indexed terminologies.
    *
    * @param terminology the terminology
-   * @param indexed use {@literal true} to lookup in indexed terminologies as opposed to stardog
+   * @param sparqlQueryManagerService the sparql query service
    * @return the terminology
    * @throws Exception the exception
    */
-  public Terminology getTerminology(final String terminology, boolean indexed) throws Exception {
+  public Terminology getTerminology(final String terminology, SparqlQueryManagerService sparqlQueryManagerService) throws Exception {
+    List<Terminology> terminologies = getTerminologies(sparqlQueryManagerService);
+    return findTerminology(terminology, terminologies);
+    }
 
-    List<Terminology> terminologies = getTerminologies(indexed);
+  /**
+   * Get the indexed terminology
+   *
+   * @param terminology search terminology
+   * @param esQueryService elastic query service
+   * @return the Terminology
+   * @throws Exception the exception
+   */
+  public Terminology getIndexedTerminology(final String terminology, ElasticQueryService esQueryService) throws Exception {
+    List<Terminology> terminologies = getIndexedTerminologies(esQueryService);
+    return findTerminology(terminology, terminologies);
+  }
 
+  /**
+   * Helper method to search for the target terminology in the list of terminologies
+   *
+   * @param terminology target terminology
+   * @param terminologies list of terminologies to search through
+   * @return the Terminology
+   */
+  private Terminology findTerminology(final String terminology, List<Terminology> terminologies) {
     // Find latest monthly match
     final Terminology latestMonthly = terminologies.stream()
-        .filter(t -> t.getTerminology().equals(terminology) && "ncit".equals(terminology)
-            && "true".equals(t.getTags().get("monthly")) && t.getLatest() != null && t.getLatest())
-        .findFirst().orElse(null);
+            .filter(t -> t.getTerminology().equals(terminology) && "ncit".equals(terminology)
+                    && "true".equals(t.getTags().get("monthly")) && t.getLatest() != null && t.getLatest())
+            .findFirst().orElse(null);
     if (latestMonthly != null) {
       return latestMonthly;
     }
 
     // Find terminologyVersion match
     final Terminology tv =
-        terminologies.stream().filter(t -> t.getTerminologyVersion().equals(terminology)).findFirst().orElse(null);
+            terminologies.stream().filter(t -> t.getTerminologyVersion().equals(terminology)).findFirst().orElse(null);
     if (tv != null) {
       return tv;
     }
 
     // Find "latest" match
     final Terminology latest = terminologies.stream()
-        .filter(t -> t.getTerminology().equals(terminology) && t.getLatest() != null && t.getLatest()).findFirst()
-        .orElse(null);
+            .filter(t -> t.getTerminology().equals(terminology) && t.getLatest() != null && t.getLatest()).findFirst()
+            .orElse(null);
     if (latest != null) {
       return latest;
     }
 
     // Find the "first"
     final Terminology first =
-        terminologies.stream().filter(t -> t.getTerminology().equals(terminology)).findFirst().orElse(null);
+            terminologies.stream().filter(t -> t.getTerminology().equals(terminology)).findFirst().orElse(null);
     if (first != null) {
       return first;
     }

@@ -299,8 +299,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
         // Handle mapsets
         if (!mapsetMap.containsKey(fields[0])) {
-          List<String> terms = termUtils.getTerminologies(true).stream()
-              .map(Terminology::getTerminology).collect(Collectors.toList());
+          List<String> terms =
+              termUtils.getIndexedTerminologies(elasticQueryService).stream().map(Terminology::getTerminology).collect(Collectors.toList());
           final Concept mapset = new Concept();
           // populate the mapset details.
           final String code = mapsetNameMap.get(fields[0]).replaceAll(" ", "_");
@@ -837,7 +837,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   /**
    * Handle statistics.
    *
-   * @param terminologyName the terminologyName
+   * @param terminology the terminology
    * @param sourceList the source list
    * @throws Exception the exception
    */

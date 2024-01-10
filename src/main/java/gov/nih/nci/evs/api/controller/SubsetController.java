@@ -204,7 +204,7 @@ public class SubsetController extends BaseController {
   final String code, @RequestParam("include")
   final Optional<String> include) throws Exception {
     try {
-      final Terminology term = termUtils.getTerminology(terminology, true);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
 
       final Optional<Concept> concept =

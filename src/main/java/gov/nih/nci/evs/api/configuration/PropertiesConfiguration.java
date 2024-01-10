@@ -13,6 +13,7 @@ import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.ElasticQueryProperties;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
 import gov.nih.nci.evs.api.properties.StardogProperties;
+import org.springframework.context.annotation.Primary;
 
 /**
  * Properties configuration.
@@ -37,6 +38,7 @@ public class PropertiesConfiguration {
    * @return the server properties
    */
   @Bean
+  @Primary
   ServerProperties serverProperties() {
     return new ServerProperties();
   }

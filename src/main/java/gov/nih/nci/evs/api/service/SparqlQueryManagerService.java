@@ -85,16 +85,6 @@ public interface SparqlQueryManagerService {
     throws Exception;
 
   /**
-   * Returns the all qualifiers.
-   *
-   * @param terminology the terminology
-   * @param ip the ip
-   * @return the all qualifiers
-   * @throws Exception the exception
-   */
-  public List<Concept> getAllQualifiers(Terminology terminology, IncludeParam ip) throws Exception;
-
-  /**
    * Returns the remodeled qualifiers.
    *
    * @param terminology the terminology
@@ -459,15 +449,6 @@ public interface SparqlQueryManagerService {
     throws Exception;
 
   /**
-   * Returns the hierarchy.
-   *
-   * @param terminology the terminology
-   * @return the hierarchy
-   * @throws Exception the exception
-   */
-  List<String> getHierarchy(Terminology terminology) throws Exception;
-
-  /**
    * Returns the main type hierarchy.
    *
    * @param terminology the terminology
@@ -489,15 +470,6 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   List<String> getAllChildNodes(String parent, Terminology terminology) throws Exception;
-
-  /**
-   * Get hierarchy for a given terminology.
-   *
-   * @param terminology the terminology
-   * @return the hierarchy
-   * @throws Exception the exception
-   */
-  public HierarchyUtils getHierarchyUtils(Terminology terminology) throws Exception;
 
   /**
    * gets all concepts (minimal).
@@ -562,4 +534,23 @@ public interface SparqlQueryManagerService {
    */
   public List<AssociationEntry> getAssociationEntries(Terminology terminology, Concept association)
     throws Exception;
+
+  /**
+   * Helper method for calling the get Hierarchy with caching enabled
+   *
+   * @param terminology
+   * @return
+   * @throws Exception
+   */
+  public HierarchyUtils getHierarchyUtilsCache(final Terminology terminology) throws Exception;
+
+  /**
+   * Helper method for call the get all qualifiers with caching enabled
+   *
+   * @param terminology
+   * @return
+   * @throws Exception
+   */
+  public List<Concept> getAllQualifiersCache(Terminology terminology, IncludeParam ip)
+          throws Exception;
 }

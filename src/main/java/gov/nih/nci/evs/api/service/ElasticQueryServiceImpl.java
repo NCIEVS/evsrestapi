@@ -73,6 +73,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Autowired
   TerminologyUtils termUtils;
 
+
   /**
    * see superclass *.
    *
@@ -533,7 +534,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * see superclass *.
    *
    * @param terminology the terminology
-   * @param ip the ip
+   * @param source the source
    * @return the properties
    * @throws JsonMappingException the json mapping exception
    * @throws JsonProcessingException the json processing exception
@@ -614,7 +615,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     int pageSize) throws Exception {
     AssociationEntryResultList al = new AssociationEntryResultList();
     Optional<ElasticObject> esObject =
-        getElasticObject("associationEntries_" + label, termUtils.getTerminology(terminology, true));
+        getElasticObject("associationEntries_" + label, termUtils.getIndexedTerminology(terminology, this));
     // set params in object
     List<String> params = Arrays.asList(terminology, label, String.valueOf(fromRecord), String.valueOf(pageSize));
     SearchCriteria criteria = new SearchCriteria();
