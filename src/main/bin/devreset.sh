@@ -263,6 +263,7 @@ historyFile=$dir/cumulative_history_21.06e.txt
 
 # Reindex stardog terminologies
 echo "  Reindex stardog terminologies"
+# After this point, the log is stored in the tmp folder unless an error is hit
 src/main/bin/reindex.sh --noconfig --history $historyFile > /tmp/x.$$.txt 2>&1 
 if [[ $? -ne 0 ]]; then
     cat /tmp/x.$$.txt | sed 's/^/    /'
