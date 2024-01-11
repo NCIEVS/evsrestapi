@@ -94,7 +94,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     // Append concept status clause
-    boolQuery.should(QueryBuilders.matchQuery("active", false).boost(-2000f));
+    boolQuery.should(QueryBuilders.matchQuery("active", false).boost(0.001f));
 
     // append terminology query
     final QueryBuilder terminologyQuery = getTerminologyQuery(terminologies);
