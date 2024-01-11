@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.rest.annotation.IdParam;
 import ca.uhn.fhir.rest.annotation.Operation;
 import ca.uhn.fhir.rest.annotation.OperationParam;
@@ -91,7 +92,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
 
     try {
 
-      return null;
+      return new Parameters();
 
     } catch (final FHIRServerResponseException e) {
       throw e;
@@ -137,7 +138,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     final Set<String> properties) throws Exception {
 
     try {
-      return null;
+      return new Parameters();
 
     } catch (final FHIRServerResponseException e) {
       throw e;
@@ -171,7 +172,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @return the parameters
    * @throws Exception the exception
    */
-  @Operation(name = "$validate-code", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_VALIDATE_CODE, idempotent = true)
   public Parameters validateCodeImplicit(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details,
     @OperationParam(name = "url")
@@ -182,7 +183,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     final Coding coding) throws Exception {
 
     try {
-      return null;
+      return new Parameters();
 
     } catch (final FHIRServerResponseException e) {
       throw e;
@@ -228,7 +229,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     final Coding coding) throws Exception {
 
     try {
-      return null;
+      return new Parameters();
 
     } catch (final FHIRServerResponseException e) {
       throw e;
@@ -269,7 +270,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     final Coding codingB) throws Exception {
 
     try {
-      return null;
+      return new Parameters();
 
     } catch (final FHIRServerResponseException e) {
       throw e;
@@ -310,7 +311,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     final Coding codingB) throws Exception {
 
     try {
-      return null;
+      return new Parameters();
 
     } catch (final FHIRServerResponseException e) {
       throw e;

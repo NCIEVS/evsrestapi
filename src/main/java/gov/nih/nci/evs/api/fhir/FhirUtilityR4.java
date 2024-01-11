@@ -18,6 +18,7 @@ import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.DateTimeType;
+import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r4.model.Parameters;
@@ -74,7 +75,16 @@ public final class FhirUtilityR4 {
   }
 
   public static CodeSystem toR4(Terminology term) {
-    return new CodeSystem();
+    CodeSystem cs = new CodeSystem();
+    cs.setId(term.getTerminologyVersion());
+    cs.setName(term.getName());
+    cs.setTitle(term.getTerminology());
+    cs.setExperimental(false);
+    cs.setUrl(term.getSource());
+    cs.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    cs.setHierarchyMeaning(CodeSystem.CodeSystemHierarchyMeaning.ISA);
+    cs.setVersion(term.getVersion());
+    return cs;
   }
 
   /**
