@@ -14,6 +14,7 @@ import static java.lang.String.format;
 import java.util.Date;
 
 import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.DateTimeType;
@@ -23,6 +24,8 @@ import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.StringType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import gov.nih.nci.evs.api.model.Terminology;
 
 /**
  * Utility for fhir data building.
@@ -68,6 +71,10 @@ public final class FhirUtilityR4 {
 
     return null;
 
+  }
+
+  public static CodeSystem toR4(Terminology term) {
+    return new CodeSystem();
   }
 
   /**

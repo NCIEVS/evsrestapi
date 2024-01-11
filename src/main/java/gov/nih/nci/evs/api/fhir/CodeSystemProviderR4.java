@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.api.fhir;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -20,10 +22,18 @@ import org.springframework.stereotype.Component;
 import ca.uhn.fhir.rest.annotation.IdParam;
 import ca.uhn.fhir.rest.annotation.Operation;
 import ca.uhn.fhir.rest.annotation.OperationParam;
+import ca.uhn.fhir.rest.annotation.OptionalParam;
+import ca.uhn.fhir.rest.annotation.Search;
+import ca.uhn.fhir.rest.param.DateRangeParam;
+import ca.uhn.fhir.rest.param.StringParam;
+import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.param.UriParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * The CodeSystem provider.
@@ -41,6 +51,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /** The search service. */
   @Autowired
   ElasticSearchService searchService;
+
+  /* The terminology utils */
+  @Autowired
+  TerminologyUtils termUtils;
 
   /**
    * Lookup implicit.
@@ -305,6 +319,98 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           500);
     }
 
+  }
+
+  /**
+   * Find code systems.
+   * 
+   * <pre>
+   * Parameters for all resources 
+   *   used: _id
+   *   not used: _content, _filter, _has, _in, _language, _lastUpdated, 
+   *             _list, _profile, _query, _security, _source, _tag, _text, _type
+   * https://hl7.org/fhir/R4/codesystem.html (see Search Parameters)
+   * The following parameters in the registry are not used
+   * &#64;OptionalParam(name="code") String code,
+   * &#64;OptionalParam(name="context") TokenParam context,
+   * &#64;OptionalParam(name="context-quantity") QuantityParam contextQuantity,
+   * &#64;OptionalParam(name="context-type") String contextType,
+   * &#64;OptionalParam(name="context-type-quantity") QuantityParam contextTypeQuantity,
+   * &#64;OptionalParam(name="context-type-value") String contextTypeValue,
+   * &#64;OptionalParam(name="identifier") StringParam identifier,
+   * &#64;OptionalParam(name="jurisdiction") StringParam jurisdiction,
+   * &#64;OptionalParam(name="status") String status,
+   * </pre>
+   *
+   * @param request the request
+   * @param details the details
+   * @param id the id
+   * @param date the date
+   * @param description the description
+   * @param name the name
+   * @param publisher the publisher
+   * @param title the title
+   * @param url the url
+   * @param version the version
+   * @return the list
+   * @throws Exception the exception
+   */
+  @Search
+  public List<CodeSystem> findCodeSystems(@OptionalParam(name = "_id") TokenParam id,
+    @OptionalParam(name = "date")
+    final DateRangeParam date, @OptionalParam(name = "description")
+    final StringParam description, @OptionalParam(name = "name")
+    final StringParam name, @OptionalParam(name = "publisher")
+    final StringParam publisher, @OptionalParam(name = "title")
+    final StringParam title, @OptionalParam(name = "url")
+    final UriParam url, @OptionalParam(name = "version")
+    final StringParam version) throws Exception {
+    try {
+      final List<Terminology> terms = termUtils.getTerminologies(true);
+
+      final List<CodeSystem> list = new ArrayList<>();
+      for (final Terminology terminology : terms) {
+        final CodeSystem cs = FhirUtilityR4.toR4(terminology);
+        // Skip non-matching
+        if ((id != null && !id.getValue().equals(cs.getId()))
+            || (url != null && !url.getValue().equals(cs.getUrl()))) {
+          continue;
+        }
+        if (date != null && !FhirUtility.compareDateRange(date, cs.getDate())) {
+          logger.info("  SKIP date mismatch = " + cs.getDate());
+          continue;
+        }
+        if (description != null && !FhirUtility.compareString(description, cs.getDescription())) {
+          logger.info("  SKIP description mismatch = " + cs.getDescription());
+          continue;
+        }
+        if (name != null && !FhirUtility.compareString(name, cs.getName())) {
+          logger.info("  SKIP name mismatch = " + cs.getName());
+          continue;
+        }
+        if (publisher != null && !FhirUtility.compareString(publisher, cs.getPublisher())) {
+          logger.info("  SKIP publisher mismatch = " + cs.getPublisher());
+          continue;
+        }
+        if (title != null && !FhirUtility.compareString(title, cs.getTitle())) {
+          logger.info("  SKIP title mismatch = " + cs.getTitle());
+          continue;
+        }
+        if (version != null && !FhirUtility.compareString(version, cs.getVersion())) {
+          logger.info("  SKIP version mismatch = " + cs.getVersion());
+          continue;
+        }
+
+        list.add(cs);
+      }
+      return list;
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      logger.error("Unexpected error", e);
+      throw FhirUtilityR4.exception("Failed to find code systems",
+          OperationOutcome.IssueType.EXCEPTION, 500);
+    }
   }
 
   /* see superclass */

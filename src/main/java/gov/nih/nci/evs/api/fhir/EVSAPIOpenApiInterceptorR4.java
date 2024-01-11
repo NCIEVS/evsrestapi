@@ -101,7 +101,6 @@ import io.swagger.v3.oas.models.parameters.Parameter;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
-import io.swagger.v3.oas.models.security.SecurityRequirement;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.security.SecurityScheme.In;
 import io.swagger.v3.oas.models.servers.Server;
@@ -588,9 +587,7 @@ public class EVSAPIOpenApiInterceptorR4 {
       openApi.addTagsItem(serverTag);
 
       final Operation capabilitiesOperation =
-          getPathItem(paths, "/{idOrUriLabel}/fhir/metadata", PathItem.HttpMethod.GET);
-      // addAuthParameter(capabilitiesOperation);
-      addProjectParameter(capabilitiesOperation);
+          getPathItem(paths, "/fhir/metadata", PathItem.HttpMethod.GET);
       capabilitiesOperation.addTagsItem(PAGE_SYSTEM);
       capabilitiesOperation.setSummary("Fetch the server FHIR CapabilityStatement");
       addFhirResourceResponse(ctx, openApi, capabilitiesOperation, "CapabilityStatement");
@@ -601,12 +598,9 @@ public class EVSAPIOpenApiInterceptorR4 {
       // Transaction Operation
       if (systemInteractions.contains(CapabilityStatement.SystemRestfulInteraction.TRANSACTION)
           || systemInteractions.contains(CapabilityStatement.SystemRestfulInteraction.BATCH)) {
-        final Operation transaction =
-            getPathItem(paths, "/{idOrUriLabel}/fhir/", PathItem.HttpMethod.POST);
+        final Operation transaction = getPathItem(paths, "/fhir/", PathItem.HttpMethod.POST);
         transaction.addTagsItem(PAGE_SYSTEM);
         transaction.setSummary("Execute a FHIR Transaction (or FHIR Batch) Bundle");
-        // addAuthParameter(transaction);
-        addProjectParameter(transaction);
         addFhirResourceResponse(ctx, openApi, transaction, null);
         addFhirResourceRequestBody(openApi, transaction, ctx, null);
       }
@@ -614,12 +608,10 @@ public class EVSAPIOpenApiInterceptorR4 {
       // System History Operation
       if (systemInteractions.contains(CapabilityStatement.SystemRestfulInteraction.HISTORYSYSTEM)) {
         final Operation systemHistory =
-            getPathItem(paths, "/{idOrUriLabel}/fhir/_history", PathItem.HttpMethod.GET);
+            getPathItem(paths, "/fhir/_history", PathItem.HttpMethod.GET);
         systemHistory.addTagsItem(PAGE_SYSTEM);
         systemHistory.setSummary(
             "Fetch the resource change history across all resource types on the server");
-        // addAuthParameter(systemHistory);
-        addProjectParameter(systemHistory);
         addFhirResourceResponse(ctx, openApi, systemHistory, null);
       }
 
@@ -650,12 +642,10 @@ public class EVSAPIOpenApiInterceptorR4 {
 
       // Instance Read
       if (typeRestfulInteractions.contains(CapabilityStatement.TypeRestfulInteraction.READ)) {
-        final Operation operation = getPathItem(paths,
-            "/{idOrUriLabel}/fhir/" + resourceType + "/{id}", PathItem.HttpMethod.GET);
+        final Operation operation =
+            getPathItem(paths, "/fhir/" + resourceType + "/{id}", PathItem.HttpMethod.GET);
         operation.addTagsItem(resourceType);
         operation.setSummary("Read " + unCamelCase(resourceType) + " instance");
-        // addAuthParameter(operation);
-        addProjectParameter(operation);
         addResourceIdParameter(operation);
         addFhirResourceResponse(ctx, openApi, operation, null);
       }
@@ -663,13 +653,10 @@ public class EVSAPIOpenApiInterceptorR4 {
       // Instance VRead
       if (typeRestfulInteractions.contains(CapabilityStatement.TypeRestfulInteraction.VREAD)) {
         final Operation operation = getPathItem(paths,
-            "/{idOrUriLabel}/fhir/" + resourceType + "/{id}/_history/{version_id}",
-            PathItem.HttpMethod.GET);
+            "/fhir/" + resourceType + "/{id}/_history/{version_id}", PathItem.HttpMethod.GET);
         operation.addTagsItem(resourceType);
         operation
             .setSummary("Read " + unCamelCase(resourceType) + " instance with specific version");
-        // addAuthParameter(operation);
-        addProjectParameter(operation);
         addResourceIdParameter(operation);
         addResourceVersionIdParameter(operation);
         addFhirResourceResponse(ctx, openApi, operation, null);
@@ -678,25 +665,21 @@ public class EVSAPIOpenApiInterceptorR4 {
       // Type Create
       if (typeRestfulInteractions.contains(CapabilityStatement.TypeRestfulInteraction.CREATE)) {
         final Operation operation =
-            getPathItem(paths, "/{idOrUriLabel}/fhir/" + resourceType, PathItem.HttpMethod.POST);
+            getPathItem(paths, "/fhir/" + resourceType, PathItem.HttpMethod.POST);
         operation.addTagsItem(resourceType);
         operation.setSummary("Create a new " + unCamelCase(resourceType) + " instance");
         addFhirResourceRequestBody(openApi, operation, ctx,
             genericExampleSupplier(ctx, resourceType));
-        // addAuthParameter(operation);
-        addProjectParameter(operation);
         addFhirResourceResponse(ctx, openApi, operation, null);
       }
 
       // Instance Update
       if (typeRestfulInteractions.contains(CapabilityStatement.TypeRestfulInteraction.UPDATE)) {
-        final Operation operation = getPathItem(paths,
-            "/{idOrUriLabel}/fhir/" + resourceType + "/{id}", PathItem.HttpMethod.PUT);
+        final Operation operation =
+            getPathItem(paths, "/fhir/" + resourceType + "/{id}", PathItem.HttpMethod.PUT);
         operation.addTagsItem(resourceType);
         operation.setSummary("Update an existing " + resourceType
             + " instance, or create using a client-assigned ID");
-        // addAuthParameter(operation);
-        addProjectParameter(operation);
         addResourceIdParameter(operation);
         addFhirResourceRequestBody(openApi, operation, ctx,
             genericExampleSupplier(ctx, resourceType));
@@ -706,39 +689,33 @@ public class EVSAPIOpenApiInterceptorR4 {
       // Type history
       if (typeRestfulInteractions
           .contains(CapabilityStatement.TypeRestfulInteraction.HISTORYTYPE)) {
-        final Operation operation = getPathItem(paths,
-            "/{idOrUriLabel}/fhir/" + resourceType + "/_history", PathItem.HttpMethod.GET);
+        final Operation operation =
+            getPathItem(paths, "/fhir/" + resourceType + "/_history", PathItem.HttpMethod.GET);
         operation.addTagsItem(resourceType);
         operation.setSummary(
             "Fetch the resource change history for all resources of type " + resourceType);
-        // addAuthParameter(operation);
-        addProjectParameter(operation);
         addFhirResourceResponse(ctx, openApi, operation, null);
       }
 
       // Instance history
       if (typeRestfulInteractions
           .contains(CapabilityStatement.TypeRestfulInteraction.HISTORYTYPE)) {
-        final Operation operation = getPathItem(paths,
-            "/{idOrUriLabel}/fhir/" + resourceType + "/{id}/_history", PathItem.HttpMethod.GET);
+        final Operation operation =
+            getPathItem(paths, "/fhir/" + resourceType + "/{id}/_history", PathItem.HttpMethod.GET);
         operation.addTagsItem(resourceType);
         operation.setSummary(
             "Fetch the resource change history for all resources of type " + resourceType);
-        // addAuthParameter(operation);
-        addProjectParameter(operation);
         addResourceIdParameter(operation);
         addFhirResourceResponse(ctx, openApi, operation, null);
       }
 
       // Instance Patch
       if (typeRestfulInteractions.contains(CapabilityStatement.TypeRestfulInteraction.PATCH)) {
-        final Operation operation = getPathItem(paths,
-            "/{idOrUriLabel}/fhir/" + resourceType + "/{id}", PathItem.HttpMethod.PATCH);
+        final Operation operation =
+            getPathItem(paths, "/fhir/" + resourceType + "/{id}", PathItem.HttpMethod.PATCH);
         operation.addTagsItem(resourceType);
         operation.setSummary(
             "Patch a resource instance of type " + unCamelCase(resourceType) + " by ID");
-        // addAuthParameter(operation);
-        addProjectParameter(operation);
         addResourceIdParameter(operation);
         addFhirResourceRequestBody(openApi, operation, FHIR_CONTEXT_CANONICAL,
             patchExampleSupplier());
@@ -747,12 +724,10 @@ public class EVSAPIOpenApiInterceptorR4 {
 
       // Instance Delete
       if (typeRestfulInteractions.contains(CapabilityStatement.TypeRestfulInteraction.DELETE)) {
-        final Operation operation = getPathItem(paths,
-            "/{idOrUriLabel}/fhir/" + resourceType + "/{id}", PathItem.HttpMethod.DELETE);
+        final Operation operation =
+            getPathItem(paths, "/fhir/" + resourceType + "/{id}", PathItem.HttpMethod.DELETE);
         operation.addTagsItem(resourceType);
         operation.setSummary("Perform a logical delete on a resource instance");
-        // addAuthParameter(operation);
-        addProjectParameter(operation);
         addResourceIdParameter(operation);
         addFhirResourceResponse(ctx, openApi, operation, null);
       }
@@ -760,10 +735,10 @@ public class EVSAPIOpenApiInterceptorR4 {
       // Search
       if (typeRestfulInteractions.contains(CapabilityStatement.TypeRestfulInteraction.SEARCHTYPE)) {
         addSearchOperation(openApi,
-            getPathItem(paths, "/{idOrUriLabel}/fhir/" + resourceType, PathItem.HttpMethod.GET),
-            ctx, resourceType, nextResource);
-        addSearchOperation(openApi, getPathItem(paths,
-            "/{idOrUriLabel}/fhir/" + resourceType + "/_search", PathItem.HttpMethod.GET), ctx,
+            getPathItem(paths, "/fhir/" + resourceType, PathItem.HttpMethod.GET), ctx, resourceType,
+            nextResource);
+        addSearchOperation(openApi,
+            getPathItem(paths, "/fhir/" + resourceType + "/_search", PathItem.HttpMethod.GET), ctx,
             resourceType, nextResource);
       }
 
@@ -793,8 +768,6 @@ public class EVSAPIOpenApiInterceptorR4 {
     operation.addTagsItem(resourceType);
     operation.setDescription("This is a search type");
     operation.setSummary("Search for " + unCamelCase(resourceType) + " instances");
-    // addAuthParameter(operation);
-    addProjectParameter(operation);
     addFhirResourceResponse(ctx, openApi, operation, null);
 
     for (final CapabilityStatement.CapabilityStatementRestResourceSearchParamComponent nextSearchParam : nextResource
@@ -915,7 +888,7 @@ public class EVSAPIOpenApiInterceptorR4 {
         if (theResourceType != null) {
           if (operationDefinition.getType()) {
             final Operation operation = getPathItem(thePaths,
-                "/{idOrUriLabel}/fhir/" + theResourceType + "/$" + operationDefinition.getCode(),
+                "/fhir/" + theResourceType + "/$" + operationDefinition.getCode(),
                 PathItem.HttpMethod.GET);
             populateOperation(theFhirContext, theOpenApi, theResourceType, operationDefinition,
                 operation, true);
@@ -924,12 +897,11 @@ public class EVSAPIOpenApiInterceptorR4 {
                 + operationDefinition.getCode());
           }
           if (operationDefinition.getInstance()) {
-            final Operation operation =
-                getPathItem(thePaths, "/{idOrUriLabel}/fhir/" + theResourceType + "/{id}/$"
-                    + operationDefinition.getCode(), PathItem.HttpMethod.GET);
+            final Operation operation = getPathItem(thePaths,
+                "/fhir/" + theResourceType + "/{id}/$" + operationDefinition.getCode(),
+                PathItem.HttpMethod.GET);
             addResourceIdParameter(operation);
             // addAuthParameter(operation);
-            addProjectParameter(operation);
             populateOperation(theFhirContext, theOpenApi, theResourceType, operationDefinition,
                 operation, true);
             operation.setSummary(operationDefinition.getCode());
@@ -939,7 +911,7 @@ public class EVSAPIOpenApiInterceptorR4 {
         } else {
           if (operationDefinition.getSystem()) {
             final Operation operation = getPathItem(thePaths,
-                "/{idOrUriLabel}/fhir/$" + operationDefinition.getCode(), PathItem.HttpMethod.GET);
+                "/fhir/$" + operationDefinition.getCode(), PathItem.HttpMethod.GET);
             populateOperation(theFhirContext, theOpenApi, null, operationDefinition, operation,
                 true);
             operation.setSummary(operationDefinition.getCode());
@@ -953,7 +925,7 @@ public class EVSAPIOpenApiInterceptorR4 {
       if (theResourceType != null) {
         if (operationDefinition.getType()) {
           final Operation operation = getPathItem(thePaths,
-              "/{idOrUriLabel}/fhir/" + theResourceType + "/$" + operationDefinition.getCode(),
+              "/fhir/" + theResourceType + "/$" + operationDefinition.getCode(),
               PathItem.HttpMethod.POST);
           populateOperation(theFhirContext, theOpenApi, theResourceType, operationDefinition,
               operation, false);
@@ -963,10 +935,8 @@ public class EVSAPIOpenApiInterceptorR4 {
         }
         if (operationDefinition.getInstance()) {
           final Operation operation = getPathItem(thePaths,
-              "/{idOrUriLabel}/fhir/" + theResourceType + "/{id}/$" + operationDefinition.getCode(),
+              "/fhir/" + theResourceType + "/{id}/$" + operationDefinition.getCode(),
               PathItem.HttpMethod.POST);
-          // addAuthParameter(operation);
-          addProjectParameter(operation);
           addResourceIdParameter(operation);
           populateOperation(theFhirContext, theOpenApi, theResourceType, operationDefinition,
               operation, false);
@@ -977,7 +947,7 @@ public class EVSAPIOpenApiInterceptorR4 {
       } else {
         if (operationDefinition.getSystem()) {
           final Operation operation = getPathItem(thePaths,
-              "/{idOrUriLabel}/fhir/$" + operationDefinition.getCode(), PathItem.HttpMethod.POST);
+              "/fhir/$" + operationDefinition.getCode(), PathItem.HttpMethod.POST);
           populateOperation(theFhirContext, theOpenApi, null, operationDefinition, operation,
               false);
           operation.setSummary(operationDefinition.getCode());
@@ -1028,8 +998,6 @@ public class EVSAPIOpenApiInterceptorR4 {
     }
     theOperation.setSummary(theOperationDefinition.getTitle());
     theOperation.setDescription(theOperationDefinition.getDescription());
-    // addAuthParameter(theOperation);
-    addProjectParameter(theOperation);
     addFhirResourceResponse(theFhirContext, theOpenApi, theOperation, null);
     if (theGet) {
 
@@ -1303,43 +1271,6 @@ public class EVSAPIOpenApiInterceptorR4 {
     parameter.setExample("123");
     parameter.setSchema(new Schema<>().type("string").minimum(new BigDecimal(1)));
     parameter.setStyle(Parameter.StyleEnum.SIMPLE);
-    theOperation.addParametersItem(parameter);
-  }
-
-  /**
-   * Adds the project parameter.
-   *
-   * @param theOperation the the operation
-   */
-  private void addProjectParameter(final Operation theOperation) {
-    final Parameter parameter = new Parameter();
-    parameter.setName("idOrUriLabel");
-    parameter.setIn("path");
-    parameter.setDescription("The project id or uriLabel");
-    parameter.setExample("sandbox");
-    parameter.setSchema(new Schema<>().type("string").minimum(new BigDecimal(1)));
-    parameter.setStyle(Parameter.StyleEnum.SIMPLE);
-    theOperation.addParametersItem(parameter);
-
-    // Also add bearer auth
-    theOperation.addSecurityItem(new SecurityRequirement().addList("bearerAuth"));
-  }
-
-  /**
-   * Adds the auth parameter.
-   *
-   * @param theOperation the the operation
-   */
-  @SuppressWarnings("unused")
-  private void addAuthParameter(final Operation theOperation) {
-    final Parameter parameter = new Parameter();
-    parameter.setName("token");
-    parameter.setIn("header");
-    parameter.setDescription("the 'Authorization: Bearer <token>'");
-    // parameter.setExample("sandbox");
-    parameter.setSchema(new Schema<>().type("string").minimum(new BigDecimal(1)));
-    parameter.setStyle(Parameter.StyleEnum.SIMPLE);
-    parameter.setRequired(true);
     theOperation.addParametersItem(parameter);
   }
 
