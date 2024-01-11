@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.fhir;
 
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
@@ -27,7 +28,6 @@ public class FHIRConfig {
     hapiServlet.setServerName("EVSAPI R4 FHIR Terminology Server");
     hapiServlet.setServerVersion(getClass().getPackage().getImplementationVersion());
     hapiServlet.setDefaultResponseEncoding(EncodingEnum.JSON);
-    hapiServlet.setTenantIdentificationStrategy(new ProjectTenantIdentificationStrategy());
 
     final ResponseHighlighterInterceptor interceptor = new ResponseHighlighterInterceptor();
     hapiServlet.registerInterceptor(interceptor);

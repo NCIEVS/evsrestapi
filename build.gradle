@@ -94,32 +94,32 @@ dependencies {
     compile 'com.maxmind.geoip2:geoip2:2.15.0'
     compile 'org.apache.opennlp:opennlp-tools:2.2.0'
     
-    implementation ("ca.uhn.hapi.fhir:hapi-fhir-base:6.8.3") {
-     exclude group: "com.google.guava", module: "guava"
-	  }
-	  implementation ("com.fasterxml.jackson.core:jackson-core:2.15.2") {
-	     exclude group: "com.google.guava", module: "guava"
-	  }
-	  implementation ("ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.8.3") {
-	     exclude group: "com.google.guava", module: "guava"
-	  }
-	  implementation ("ca.uhn.hapi.fhir:hapi-fhir-server:6.8.3") {
-	     exclude group: "com.google.guava", module: "guava"
-	  }
-	  implementation ("ca.uhn.hapi.fhir:hapi-fhir-jpaserver-base:6.8.3") {
-	     exclude group: "ca.uhn.hapi.fhir", module: "hapi-fhir-sql-migrate"
-	     exclude group: "org.elasticsearch.client", module: "elasticsearch-rest-high-level-client"
-	     exclude group: "org.hibernate.search"
-	     exclude group: "org.apache.lucene"
-	     exclude group: "com.github.jsonld-java", module: "jsonld-java"
-	     exclude group: "com.graphql-java", module: "graphql-java"
-	     exclude group: "org.glassfish", module: "javax.el"
-	     exclude group: "org.apache.logging.log4j", module: "log4j-to-slf4j"
-	     exclude group: "com.google.guava", module: "guava"
-	  }
-	  implementation ("ca.uhn.hapi.fhir:hapi-fhir-server-openapi:6.8.3") {
-	     exclude group: "com.google.guava", module: "guava"
-	  }
+    compile ("ca.uhn.hapi.fhir:hapi-fhir-base:6.8.3") {
+      exclude group: "com.google.guava", module: "guava"
+    }
+    compile ("com.fasterxml.jackson.core:jackson-core:2.15.2") {
+      exclude group: "com.google.guava", module: "guava"
+	}
+	compile ("ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.8.3") {
+      exclude group: "com.google.guava", module: "guava"
+    }
+    compile ("ca.uhn.hapi.fhir:hapi-fhir-server:6.8.3") {
+      exclude group: "com.google.guava", module: "guava"
+    }
+    compile ("ca.uhn.hapi.fhir:hapi-fhir-jpaserver-base:6.8.3") {
+      exclude group: "ca.uhn.hapi.fhir", module: "hapi-fhir-sql-migrate"
+      exclude group: "org.elasticsearch.client", module: "elasticsearch-rest-high-level-client"
+      exclude group: "org.hibernate.search"
+      exclude group: "org.apache.lucene"
+      exclude group: "com.github.jsonld-java", module: "jsonld-java"
+      exclude group: "com.graphql-java", module: "graphql-java"
+      exclude group: "org.glassfish", module: "javax.el"
+      exclude group: "org.apache.logging.log4j", module: "log4j-to-slf4j"
+      exclude group: "com.google.guava", module: "guava"
+    }
+    compile ("ca.uhn.hapi.fhir:hapi-fhir-server-openapi:6.8.3") {
+       exclude group: "com.google.guava", module: "guava"
+    }
 
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
