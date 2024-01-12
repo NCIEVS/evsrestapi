@@ -10,7 +10,6 @@ import javax.servlet.http.HttpServletResponse;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Parameters;
@@ -83,16 +82,21 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     final HttpServletResponse response, final ServletRequestDetails details,
     @OperationParam(name = "code")
     final CodeType code, @OperationParam(name = "system")
-    final String system, @OperationParam(name = "version")
-    final String version, @OperationParam(name = "coding")
+    final StringParam system, @OperationParam(name = "version")
+    final StringParam version, @OperationParam(name = "coding")
     final Coding coding, @OperationParam(name = "date")
-    final DateTimeType date, @OperationParam(name = "displayLanguage")
+    final DateRangeParam date, @OperationParam(name = "displayLanguage")
     final String displayLanguage, @OperationParam(name = "property")
     final Set<String> properties) throws Exception {
 
     try {
+      FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
+      List<CodeSystem> cs = findCodeSystems(null, date, null, system, null, null, null, version);
+      Parameters params = new Parameters();
+      if (cs.size() > 0) {
 
-      return new Parameters();
+      }
+      return params;
 
     } catch (final FHIRServerResponseException e) {
       throw e;
@@ -130,15 +134,22 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     final HttpServletResponse response, final ServletRequestDetails details, @IdParam
     final IdType id, @OperationParam(name = "code")
     final CodeType code, @OperationParam(name = "system")
-    final String system, @OperationParam(name = "version")
-    final String version, @OperationParam(name = "coding")
+    final StringParam system, @OperationParam(name = "version")
+    final StringParam version, @OperationParam(name = "coding")
     final Coding coding, @OperationParam(name = "date")
-    final DateTimeType date, @OperationParam(name = "displayLanguage")
+    final DateRangeParam date, @OperationParam(name = "displayLanguage")
     final String displayLanguage, @OperationParam(name = "property")
     final Set<String> properties) throws Exception {
 
     try {
-      return new Parameters();
+      FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
+      List<CodeSystem> cs = findCodeSystems(new TokenParam().setValue(id.getIdPart()), date, null,
+          system, null, null, null, version);
+      Parameters params = new Parameters();
+      if (cs.size() > 0) {
+
+      }
+      return params;
 
     } catch (final FHIRServerResponseException e) {
       throw e;
