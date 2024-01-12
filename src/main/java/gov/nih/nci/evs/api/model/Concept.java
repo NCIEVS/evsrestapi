@@ -107,11 +107,11 @@ public class Concept extends ConceptMinimal {
   private Boolean active;
 
   /** The synonyms. */
-  @Field(type = FieldType.Object, enabled = false)
+  @Field(type = FieldType.Nested)
   private List<Synonym> synonyms;
 
   /** The definitions. */
-  @Field(type = FieldType.Object, enabled = false)
+  @Field(type = FieldType.Nested)
   private List<Definition> definitions;
 
   /** The history. */
@@ -119,7 +119,7 @@ public class Concept extends ConceptMinimal {
   private List<History> history;
 
   /** The properties. */
-  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
+  @Field(type = FieldType.Nested, ignoreFields = {
       "qualifiers"
   })
   private List<Property> properties;
