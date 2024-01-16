@@ -109,15 +109,15 @@ public class Concept extends ConceptMinimal {
   private Boolean active;
 
   /** The synonyms. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-          "qualifiers"
-  })
+  @Field(
+      type = FieldType.Nested,
+      ignoreFields = {"qualifiers"})
   private List<Synonym> synonyms;
 
   /** The definitions. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-          "qualifiers"
-  })
+  @Field(
+      type = FieldType.Nested,
+      ignoreFields = {"qualifiers"})
   private List<Definition> definitions;
 
   /** The history. */
@@ -137,17 +137,27 @@ public class Concept extends ConceptMinimal {
   private List<Qualifier> qualifiers;
 
   /** The children. */
-  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
-      "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles", "inverseRoles",
-      "descendants", "paths", "qualifiers", "extensions", "disjointWith", "synonyms", "history", "properties"
-  })
+  @Field(
+      type = FieldType.Object,
+      enabled = false,
+      ignoreFields = {
+        "definitions", "parents", "children", "maps", "associations", "inverseAssociations",
+            "roles", "inverseRoles",
+        "descendants", "paths", "qualifiers", "extensions", "disjointWith", "synonyms", "history",
+            "properties"
+      })
   private List<Concept> children;
 
   /** The parents. */
-  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
-      "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles", "inverseRoles",
-      "descendants", "paths", "qualifiers", "extensions", "disjointWith", "synonyms", "history", "properties"
-  })
+  @Field(
+      type = FieldType.Object,
+      enabled = false,
+      ignoreFields = {
+        "definitions", "parents", "children", "maps", "associations", "inverseAssociations",
+            "roles", "inverseRoles",
+        "descendants", "paths", "qualifiers", "extensions", "disjointWith", "synonyms", "history",
+            "properties"
+      })
   private List<Concept> parents;
 
   /** The descendants. */
@@ -187,7 +197,9 @@ public class Concept extends ConceptMinimal {
 
   /** The maps. */
   @Field(
-      type = FieldType.Object, enabled = false, ignoreFields = {"qualifiers"})
+      type = FieldType.Object,
+      enabled = false,
+      ignoreFields = {"qualifiers"})
   @DynamicMapping(DynamicMappingValue.False)
   private List<ConceptMap> maps;
 

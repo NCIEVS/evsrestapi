@@ -62,9 +62,9 @@ public class SparqlQueryManagerServiceImplTests {
    */
   @Test
   public void testGetDefinitionSources() throws Exception {
-
     final Terminology term = termUtils.getIndexedTerminology("ncit", esQueryService);
     final List<ConceptMinimal> list = sparqlQueryService.getDefinitionSources(term);
+
     assertTrue(list.stream().filter(c -> c.getCode().equals("BRIDG")).count() > 0);
     assertFalse(list.stream().filter(c -> c.getCode().equals("MSH2001")).count() > 0);
   }
