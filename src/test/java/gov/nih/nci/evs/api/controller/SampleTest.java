@@ -37,6 +37,10 @@ public class SampleTest {
   @Autowired
   private MockMvc mvc;
 
+  /** The elasticquery service. */
+  @Autowired
+  ElasticQueryService esQueryService;
+
   /** The samples. */
   private static Map<String, List<SampleRecord>> samples;
 
@@ -49,7 +53,7 @@ public class SampleTest {
   /** Constructor */
   @Autowired
   public void setTermUtils(TerminologyUtils termUtils) {
-    conceptSampleTester = new ConceptSampleTester(termUtils);
+    conceptSampleTester = new ConceptSampleTester(termUtils, esQueryService);
   }
 
   /**
