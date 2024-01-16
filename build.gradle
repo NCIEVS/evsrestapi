@@ -89,8 +89,6 @@ dependencies {
     implementation 'commons-cli:commons-cli:1.4'
     implementation 'cglib:cglib:2.2.2'
     implementation 'com.maxmind.geoip2:geoip2:2.15.0'
-    testImplementation 'junit:junit:4.13.1'
-    testImplementation 'junit:junit:4.13.1'
 
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
@@ -98,6 +96,7 @@ dependencies {
      * Test Dependencies
     */
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'junit:junit:4.13.1'
     testRuntimeOnly "org.junit.platform:junit-platform-commons:1.7.0"
     testRuntimeOnly "org.junit.platform:junit-platform-runner:1.7.0"
 
