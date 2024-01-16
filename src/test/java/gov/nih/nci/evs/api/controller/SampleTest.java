@@ -34,6 +34,10 @@ public class SampleTest {
   /** The elastic query service. */
   @Autowired ElasticQueryService esQueryService;
 
+  /** The elasticquery service. */
+  @Autowired
+  ElasticQueryService esQueryService;
+
   /** The samples. */
   private static Map<String, List<SampleRecord>> samples;
 
