@@ -20,8 +20,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import com.maxmind.geoip2.DatabaseReader;
-import com.maxmind.geoip2.model.CityResponse;
 
 import gov.nih.nci.evs.api.model.Metric;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
@@ -40,11 +38,10 @@ public class MetricAdvice {
   private static final Logger logger = LoggerFactory.getLogger(MetricAdvice.class);
 
   /** the geoIP location database. */
-  DatabaseReader dbReader = null;
+  // DatabaseReader dbReader = null;
 
   /** the metrics db path. */
-  @Autowired
-  ApplicationProperties applicationProperties;
+  @Autowired ApplicationProperties applicationProperties;
 
   /** The elastic server properties. */
   @Autowired
@@ -134,15 +131,17 @@ public class MetricAdvice {
     final String url = request.getRequestURL().toString();
     metric.setEndPoint(url);
 
-    if (this.databaseFound) {
-      logger.info("database found: " + this.databaseFound);
-      try {
-        CityResponse response = dbReader.city(InetAddress.getByName(userIpAddress));
-        metric.setGeoPoint(new GeoPoint(response.getLocation().getLatitude(), response.getLocation().getLongitude()));
-      } catch (Exception e) {
-        logger.warn("GeoPoint could not find IP");
-      }
-    }
+    // NO LONGER USE
+    //    if (this.databaseFound) {
+    //      logger.info("database found: " + this.databaseFound);
+    //      try {
+    //        CityResponse response = dbReader.city(InetAddress.getByName(userIpAddress));
+    //        metric.setGeoPoint(new GeoPoint(response.getLocation().getLatitude(),
+    // response.getLocation().getLongitude()));
+    //      } catch (Exception e) {
+    //        logger.warn("GeoPoint could not find IP");
+    //      }
+    //    }
 
     metric.setQueryParams(params);
     metric.setStartTime(startDate);

@@ -10,6 +10,8 @@ import java.util.stream.Stream;
 
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.DynamicMapping;
+import org.springframework.data.elasticsearch.annotations.DynamicMappingValue;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
@@ -183,6 +185,7 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Object, enabled = false, ignoreFields = {
       "qualifiers"
   })
+  @DynamicMapping(DynamicMappingValue.False)
   private List<ConceptMap> maps;
 
   /** The paths to root. */
