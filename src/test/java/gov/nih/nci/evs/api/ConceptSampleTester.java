@@ -74,10 +74,11 @@ public class ConceptSampleTester {
   /**
    * Instantiates an empty {@link ConceptSampleTester}.
    *
-   * @param licenseKey the license key
+   * @param termUtils the terminology utils
    */
-  public ConceptSampleTester(TerminologyUtils termUtils) {
+  public ConceptSampleTester(TerminologyUtils termUtils, ElasticQueryService esQueryService) {
     this.termUtils = termUtils;
+    this.esQueryService = esQueryService;
   }
 
   /**
