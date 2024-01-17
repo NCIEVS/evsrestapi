@@ -390,13 +390,28 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.mutuallyRequired("codeA", codeA, "system", system);
       FhirUtilityR4.mutuallyRequired("codeB", codeB, "system", system);
       FhirUtilityR4.mutuallyExclusive("codingB", codingB, "codeB", codeB);
-      FhirUtilityR4.mutuallyExclusive("codeA", codingA, "codeA", codeA);
+      FhirUtilityR4.mutuallyExclusive("codingA", codingA, "codeA", codeA);
       List<CodeSystem> cs = findCodeSystems(null, null, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
         CodeSystem codeSys = cs.get(0);
         Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
-
+        Optional<Concept> checkA =
+            queryService.getConcept(codeA.asStringValue(), term, new IncludeParam("minimal"));
+        Optional<Concept> checkB =
+            queryService.getConcept(codeB.asStringValue(), term, new IncludeParam("minimal"));
+        if (checkA.get() != null && checkB.get() != null) {
+          params.addParameter("system", codeSys.getUrl());
+          params.addParameter("version", codeSys.getVersion());
+          if (queryService.getPathsToParent(codeA.getCode(), codeB.getCode(), term).getCt() > 0) {
+            params.addParameter("outcome", "subsumes");
+          } else if (queryService.getPathsToParent(codeB.getCode(), codeA.getCode(), term)
+              .getCt() > 0) {
+            params.addParameter("outcome", "subsumed-by");
+          } else {
+            params.addParameter("outcome", "no-subsumption-relationship");
+          }
+        }
       }
       return params;
 
@@ -449,6 +464,22 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       if (cs.size() > 0) {
         CodeSystem codeSys = cs.get(0);
         Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        Optional<Concept> checkA =
+            queryService.getConcept(codeA.asStringValue(), term, new IncludeParam("minimal"));
+        Optional<Concept> checkB =
+            queryService.getConcept(codeB.asStringValue(), term, new IncludeParam("minimal"));
+        if (checkA.get() != null && checkB.get() != null) {
+          params.addParameter("system", codeSys.getUrl());
+          params.addParameter("version", codeSys.getVersion());
+          if (queryService.getPathsToParent(codeA.getCode(), codeB.getCode(), term).getCt() > 0) {
+            params.addParameter("outcome", "subsumes");
+          } else if (queryService.getPathsToParent(codeB.getCode(), codeA.getCode(), term)
+              .getCt() > 0) {
+            params.addParameter("outcome", "subsumed-by");
+          } else {
+            params.addParameter("outcome", "no-subsumption-relationship");
+          }
+        }
       }
       return params;
 
