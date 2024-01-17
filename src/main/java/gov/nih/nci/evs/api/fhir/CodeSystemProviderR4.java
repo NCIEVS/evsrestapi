@@ -27,11 +27,14 @@ import ca.uhn.fhir.rest.annotation.Search;
 import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
-import ca.uhn.fhir.rest.param.UriParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
+import gov.nih.nci.evs.api.controller.ConceptController;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 
@@ -48,9 +51,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   @Autowired
   ElasticOperationsService operationsService;
 
+  /** the query service */
+  @Autowired
+  ElasticQueryService queryService;
+
   /** The search service. */
   @Autowired
   ElasticSearchService searchService;
+
+  /** The concept controller */
+  @Autowired
+  ConceptController conceptController;
 
   /* The terminology utils */
   @Autowired
@@ -90,11 +101,28 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     final Set<String> properties) throws Exception {
 
     try {
+      FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
-      List<CodeSystem> cs = findCodeSystems(null, date, null, system, null, null, null, version);
+      List<CodeSystem> cs = findCodeSystems(null, date, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
+        CodeSystem codeSys = cs.get(0);
+        Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        Concept conc =
+            queryService.getConcept(code.asStringValue(), term, new IncludeParam("children")).get();
+        params.addParameter("code", "code");
+        params.addParameter("system", codeSys.getUrl());
+        params.addParameter("code", codeSys.getName());
+        params.addParameter("version", codeSys.getVersion());
+        params.addParameter("display", conc.getName());
+        params.addParameter("active", codeSys.getStatus().toString());
+        for (Concept parent : conc.getParents()) {
+          params.addParameter(FhirUtilityR4.createProperty("parent", parent.getCode(), true));
+        }
+        for (Concept child : conc.getChildren()) {
+          params.addParameter(FhirUtilityR4.createProperty("child", child.getCode(), true));
+        }
 
       }
       return params;
@@ -143,11 +171,29 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     final Set<String> properties) throws Exception {
 
     try {
+      FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
-      List<CodeSystem> cs = findCodeSystems(new TokenParam().setValue(id.getIdPart()), date, null,
-          system, null, null, null, version);
+      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
+      List<CodeSystem> cs =
+          findCodeSystems(new TokenParam().setValue(id.getIdPart()), date, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
+        CodeSystem codeSys = cs.get(0);
+        Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        Concept conc =
+            queryService.getConcept(code.asStringValue(), term, new IncludeParam("children")).get();
+        params.addParameter("code", "code");
+        params.addParameter("system", codeSys.getUrl());
+        params.addParameter("code", codeSys.getName());
+        params.addParameter("version", codeSys.getVersion());
+        params.addParameter("display", conc.getName());
+        params.addParameter("active", codeSys.getStatus().toString());
+        for (Concept parent : conc.getParents()) {
+          params.addParameter(FhirUtilityR4.createProperty("parent", parent.getCode(), true));
+        }
+        for (Concept child : conc.getChildren()) {
+          params.addParameter(FhirUtilityR4.createProperty("child", child.getCode(), true));
+        }
 
       }
       return params;
@@ -371,12 +417,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   @Search
   public List<CodeSystem> findCodeSystems(@OptionalParam(name = "_id") TokenParam id,
     @OptionalParam(name = "date")
-    final DateRangeParam date, @OptionalParam(name = "description")
-    final StringParam description, @OptionalParam(name = "name")
-    final StringParam name, @OptionalParam(name = "publisher")
-    final StringParam publisher, @OptionalParam(name = "title")
-    final StringParam title, @OptionalParam(name = "url")
-    final UriParam url, @OptionalParam(name = "version")
+    final DateRangeParam date, @OptionalParam(name = "system")
+    final StringParam system, @OptionalParam(name = "version")
     final StringParam version) throws Exception {
     try {
       final List<Terminology> terms = termUtils.getTerminologies(true);
@@ -386,27 +428,12 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         final CodeSystem cs = FhirUtilityR4.toR4(terminology);
         // Skip non-matching
         if ((id != null && !id.getValue().equals(cs.getId()))
-            || (url != null && !url.getValue().equals(cs.getUrl()))) {
+            || (system != null && !system.getValue().equals(cs.getUrl()))) {
+          logger.info("  SKIP url mismatch = " + cs.getUrl());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cs.getDate())) {
           logger.info("  SKIP date mismatch = " + cs.getDate());
-          continue;
-        }
-        if (description != null && !FhirUtility.compareString(description, cs.getDescription())) {
-          logger.info("  SKIP description mismatch = " + cs.getDescription());
-          continue;
-        }
-        if (name != null && !FhirUtility.compareString(name, cs.getName())) {
-          logger.info("  SKIP name mismatch = " + cs.getName());
-          continue;
-        }
-        if (publisher != null && !FhirUtility.compareString(publisher, cs.getPublisher())) {
-          logger.info("  SKIP publisher mismatch = " + cs.getPublisher());
-          continue;
-        }
-        if (title != null && !FhirUtility.compareString(title, cs.getTitle())) {
-          logger.info("  SKIP title mismatch = " + cs.getTitle());
           continue;
         }
         if (version != null && !FhirUtility.compareString(version, cs.getVersion())) {
