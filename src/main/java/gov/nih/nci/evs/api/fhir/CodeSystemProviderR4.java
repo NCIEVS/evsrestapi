@@ -91,6 +91,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
 
     try {
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
+      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
       List<CodeSystem> cs = findCodeSystems(null, date, null, system, null, null, null, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {

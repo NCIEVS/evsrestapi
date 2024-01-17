@@ -12,6 +12,7 @@ package gov.nih.nci.evs.api.fhir;
 import static java.lang.String.format;
 
 import java.util.Date;
+import java.util.HashMap;
 
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.CodeSystem;
@@ -37,11 +38,64 @@ public final class FhirUtilityR4 {
   @SuppressWarnings("unused")
   private static Logger logger = LoggerFactory.getLogger(FhirUtilityR4.class);
 
+  private static HashMap<String, String> publishers = generatePublishers();
+
+  private static HashMap<String, String> uris = generateUris();
+
   /**
    * Instantiates an empty {@link FhirUtilityR4}.
    */
   private FhirUtilityR4() {
     // n/a
+  }
+
+  private static HashMap<String, String> generatePublishers() {
+    HashMap<String, String> publish = new HashMap<>();
+    publish.put("mdr",
+        "MedDRA Maintenance and Support Services Organization (MedDRA MSSO); Mr. Patrick Revelle; MSSO Director");
+    publish.put("umlssemnet", "National Library of Medicine");
+    publish.put("go", "GO Consortium");
+    publish.put("icd10cm", "NCHS");
+    publish.put("hgnc", "HUGO Gene Nomenclature Committee");
+    publish.put("snomedct_us", "National Library of Medicine");
+    publish.put("ctcae5", "NCI");
+    publish.put("lnc", "LOINC and Health Data Standards, Regenstrief Institute, Inc.");
+    publish.put("ncit", "NCI");
+    publish.put("icd9cm", "http://terminology.hl7.org/CodeSystem/icd9cm");
+    publish.put("radlex", "RSNA (Radiological Society of North America)");
+    publish.put("canmed", "National Cancer Institute Enterprise Vocabulary Services");
+    publish.put("medrt", "National Cancer Institute Enterprise Vocabulary Services");
+    publish.put("chebi", "Open Biomedical Ontologies - European Bioinformatics Institute");
+    publish.put("ncim", "National Cancer Institute Enterprise Vocabulary Services");
+    return publish;
+  }
+
+  private static HashMap<String, String> generateUris() {
+    HashMap<String, String> uri = new HashMap<>();
+    uri.put("mdr", "https://www.meddra.org");
+    uri.put("umlssemnet", "http://www.nlm.nih.gov/research/umls/umlssemnet.owl");
+    uri.put("go", "http://purl.obolibrary.org/obo/go.owl");
+    uri.put("icd10cm", "http://hl7.org/fhir/sid/icd-10-cm");
+    uri.put("hgnc", "http://www.genenames.org");
+    uri.put("snomedct_us", "http://terminology.hl7.org/CodeSystem/snomedct_us");
+    uri.put("ctcae5", "http://hl7.org/fhir/us/ctcae");
+    uri.put("lnc", "http://loinc.org");
+    uri.put("ncit", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    uri.put("icd9cm", "NCHS");
+    uri.put("radlex", "http://radlex.org/");
+    uri.put("canmed", "http://seer.nci.nih.gov/CanMED.owl");
+    uri.put("medrt", "http://va.gov/terminology/medrt");
+    uri.put("chebi", "http://www.ebi.ac.uk/chebi/");
+    uri.put("ncim", "https://ncim.nci.nih.gov/ncimbrowser/");
+    return uri;
+  }
+
+  private static String getPublisher(String terminology) {
+    return publishers.get(terminology);
+  }
+
+  private static String getUri(String terminology) {
+    return uris.get(terminology);
   }
 
   /**
@@ -80,10 +134,11 @@ public final class FhirUtilityR4 {
     cs.setName(term.getName());
     cs.setTitle(term.getTerminology());
     cs.setExperimental(false);
-    cs.setUrl(term.getSource());
     cs.setStatus(Enumerations.PublicationStatus.ACTIVE);
     cs.setHierarchyMeaning(CodeSystem.CodeSystemHierarchyMeaning.ISA);
     cs.setVersion(term.getVersion());
+    cs.setPublisher(getPublisher(term.getTerminology()));
+    cs.setUrl(getUri(term.getTerminology()));
     return cs;
   }
 
