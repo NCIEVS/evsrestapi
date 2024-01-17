@@ -2,6 +2,7 @@ package gov.nih.nci.evs.api.fhir;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
@@ -234,14 +235,42 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   public Parameters validateCodeImplicit(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details,
     @OperationParam(name = "url")
-    final String url, @OperationParam(name = "code")
+    final String url, @OperationParam(name = "system")
+    final StringParam system, @OperationParam(name = "code")
     final CodeType code, @OperationParam(name = "display")
     final String display, @OperationParam(name = "version")
-    final String version, @OperationParam(name = "coding")
+    final StringParam version, @OperationParam(name = "coding")
     final Coding coding) throws Exception {
 
     try {
-      return new Parameters();
+      FhirUtilityR4.mutuallyRequired("code", code, "system", system);
+      FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
+      List<CodeSystem> cs = findCodeSystems(null, null, system, version);
+      Parameters params = new Parameters();
+      if (cs.size() > 0) {
+        CodeSystem codeSys = cs.get(0);
+        Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        Optional<Concept> check =
+            queryService.getConcept(code.asStringValue(), term, new IncludeParam("children"));
+        if (check.get() != null) {
+          Concept conc = queryService
+              .getConcept(code.asStringValue(), term, new IncludeParam("children")).get();
+          params.addParameter("result", "true");
+          params.addParameter("code", "code");
+          params.addParameter("system", codeSys.getUrl());
+          params.addParameter("code", codeSys.getName());
+          params.addParameter("version", codeSys.getVersion());
+          params.addParameter("display", conc.getName());
+          params.addParameter("active", codeSys.getStatus().toString());
+        } else {
+          params.addParameter("result", "false");
+          params.addParameter("message",
+              "The code does not exist for the supplied code system and/or version");
+          params.addParameter("system", codeSys.getUrl());
+          params.addParameter("version", codeSys.getVersion());
+        }
+      }
+      return params;
 
     } catch (final FHIRServerResponseException e) {
       throw e;
@@ -281,13 +310,43 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     final HttpServletResponse response, final ServletRequestDetails details, @IdParam IdType id,
     @OperationParam(name = "url")
     final String url, @OperationParam(name = "code")
-    final CodeType code, @OperationParam(name = "display")
+    final CodeType code, @OperationParam(name = "system")
+    final StringParam system, @OperationParam(name = "display")
     final String display, @OperationParam(name = "version")
-    final String version, @OperationParam(name = "coding")
+    final StringParam version, @OperationParam(name = "coding")
     final Coding coding) throws Exception {
 
     try {
-      return new Parameters();
+      FhirUtilityR4.mutuallyRequired("code", code, "system", system);
+      FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
+      List<CodeSystem> cs =
+          findCodeSystems(new TokenParam().setValue(id.getIdPart()), null, system, version);
+      Parameters params = new Parameters();
+      if (cs.size() > 0) {
+        CodeSystem codeSys = cs.get(0);
+        Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        Optional<Concept> check =
+            queryService.getConcept(code.asStringValue(), term, new IncludeParam("children"));
+        if (check.get() != null) {
+          Concept conc = queryService
+              .getConcept(code.asStringValue(), term, new IncludeParam("children")).get();
+          params.addParameter("result", "true");
+          params.addParameter("code", "code");
+          params.addParameter("system", codeSys.getUrl());
+          params.addParameter("code", codeSys.getName());
+          params.addParameter("version", codeSys.getVersion());
+          params.addParameter("display", conc.getName());
+          params.addParameter("active", codeSys.getStatus().toString());
+        } else {
+          params.addParameter("result", "false");
+          params.addParameter("message",
+              "The code does not exist for the supplied code system and/or version");
+          params.addParameter("system", codeSys.getUrl());
+          params.addParameter("version", codeSys.getVersion());
+        }
+
+      }
+      return params;
 
     } catch (final FHIRServerResponseException e) {
       throw e;
@@ -322,13 +381,24 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     @OperationParam(name = "codeA")
     final CodeType codeA, @OperationParam(name = "codeB")
     final CodeType codeB, @OperationParam(name = "system")
-    final String system, @OperationParam(name = "version")
-    final String version, @OperationParam(name = "codingA")
+    final StringParam system, @OperationParam(name = "version")
+    final StringParam version, @OperationParam(name = "codingA")
     final Coding codingA, @OperationParam(name = "codingB")
     final Coding codingB) throws Exception {
 
     try {
-      return new Parameters();
+      FhirUtilityR4.mutuallyRequired("codeA", codeA, "system", system);
+      FhirUtilityR4.mutuallyRequired("codeB", codeB, "system", system);
+      FhirUtilityR4.mutuallyExclusive("codingB", codingB, "codeB", codeB);
+      FhirUtilityR4.mutuallyExclusive("codeA", codingA, "codeA", codeA);
+      List<CodeSystem> cs = findCodeSystems(null, null, system, version);
+      Parameters params = new Parameters();
+      if (cs.size() > 0) {
+        CodeSystem codeSys = cs.get(0);
+        Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+
+      }
+      return params;
 
     } catch (final FHIRServerResponseException e) {
       throw e;
@@ -363,13 +433,24 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     @OperationParam(name = "codeA")
     final CodeType codeA, @OperationParam(name = "codeB")
     final CodeType codeB, @OperationParam(name = "system")
-    final String system, @OperationParam(name = "version")
-    final String version, @OperationParam(name = "codingA")
+    final StringParam system, @OperationParam(name = "version")
+    final StringParam version, @OperationParam(name = "codingA")
     final Coding codingA, @OperationParam(name = "codingB")
     final Coding codingB) throws Exception {
 
     try {
-      return new Parameters();
+      FhirUtilityR4.mutuallyRequired("codeA", codeA, "system", system);
+      FhirUtilityR4.mutuallyRequired("codeB", codeB, "system", system);
+      FhirUtilityR4.mutuallyExclusive("codingB", codingB, "codeB", codeB);
+      FhirUtilityR4.mutuallyExclusive("codeA", codingA, "codeA", codeA);
+      List<CodeSystem> cs =
+          findCodeSystems(new TokenParam().setValue(id.getIdPart()), null, system, version);
+      Parameters params = new Parameters();
+      if (cs.size() > 0) {
+        CodeSystem codeSys = cs.get(0);
+        Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+      }
+      return params;
 
     } catch (final FHIRServerResponseException e) {
       throw e;
