@@ -299,7 +299,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
       // resetting and indexing mapsets
       for (Map.Entry<String, Concept> mapset : mapsets.entrySet()) {
-        //TEMP FIX FOR NOSUCHINDEXERROR THROWN BY DELETING A MAPING INDEX
+        //TEMP FIX FOR NOSUCHINDEXERROR THROWN BY DELETING A MAPPING INDEX
         try {
           operationsService.delete(ElasticOperationsService.MAPPING_INDEX, NCIT_MAPS_TO + mapset.getKey());
         } catch (NoSuchIndexException e) {

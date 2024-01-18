@@ -109,21 +109,16 @@ public class Concept extends ConceptMinimal {
   private Boolean active;
 
   /** The synonyms. */
-  @Field(
-      type = FieldType.Nested,
-      ignoreFields = {"qualifiers"})
+  @Field(type = FieldType.Nested, ignoreFields = {
+          "qualifiers"
+  })
   private List<Synonym> synonyms;
 
   /** The definitions. */
-  @Field(
-      type = FieldType.Nested,
-      ignoreFields = {"qualifiers"})
+  @Field(type = FieldType.Nested, ignoreFields = {
+          "qualifiers"
+  })
   private List<Definition> definitions;
-
-  /** The history. */
-  @Field(type = FieldType.Object, enabled = false)
-  @DynamicMapping(DynamicMappingValue.False)
-  private List<History> history;
 
   /** The properties. */
   @Field(type = FieldType.Nested, ignoreFields = {
@@ -131,39 +126,21 @@ public class Concept extends ConceptMinimal {
   })
   private List<Property> properties;
 
-  /** The qualifiers - only used by parent/child references for NCIM. */
-  @Field(type = FieldType.Object, enabled = false)
-  @DynamicMapping(DynamicMappingValue.False)
-  private List<Qualifier> qualifiers;
-
   /** The children. */
-  @Field(
-      type = FieldType.Object,
-      enabled = false,
-      ignoreFields = {
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
         "definitions", "parents", "children", "maps", "associations", "inverseAssociations",
-            "roles", "inverseRoles",
-        "descendants", "paths", "qualifiers", "extensions", "disjointWith", "synonyms", "history",
-            "properties"
+            "roles", "inverseRoles", "descendants", "paths", "qualifiers", "extensions", "disjointWith", "synonyms",
+          "history", "properties"
       })
   private List<Concept> children;
 
   /** The parents. */
-  @Field(
-      type = FieldType.Object,
-      enabled = false,
-      ignoreFields = {
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
         "definitions", "parents", "children", "maps", "associations", "inverseAssociations",
-            "roles", "inverseRoles",
-        "descendants", "paths", "qualifiers", "extensions", "disjointWith", "synonyms", "history",
-            "properties"
+            "roles", "inverseRoles", "descendants", "paths", "qualifiers", "extensions", "disjointWith", "synonyms",
+          "history", "properties"
       })
   private List<Concept> parents;
-
-  /** The descendants. */
-  @Field(type = FieldType.Object, enabled = false)
-  @DynamicMapping(DynamicMappingValue.False)
-  private List<Concept> descendants;
 
   /** The associations. */
   @Field(type = FieldType.Object, enabled = false, ignoreFields = {
@@ -195,22 +172,39 @@ public class Concept extends ConceptMinimal {
   })
   private List<Role> inverseRoles;
 
+  /** The history. */
+  @Field(type = FieldType.Object, enabled = false)
+//  @DynamicMapping(DynamicMappingValue.False)
+  private List<History> history;
+
+  /** The qualifiers - only used by parent/child references for NCIM. */
+  @Field(type = FieldType.Object, enabled = false)
+//  @DynamicMapping(DynamicMappingValue.False)
+  private List<Qualifier> qualifiers;
+
+  /** The descendants. */
+//  @Field(type = FieldType.Object, enabled = false, ignoreFields = {
+//         "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles", "inverseRoles",
+//         "descendants", "paths", "qualifiers", "extensions", "disjointWith"
+// })
+  @Field(type = FieldType.Object, enabled = false)
+//  @DynamicMapping(DynamicMappingValue.False)
+  private List<Concept> descendants;
+
   /** The maps. */
-  @Field(
-      type = FieldType.Object,
-      enabled = false,
-      ignoreFields = {"qualifiers"})
-  @DynamicMapping(DynamicMappingValue.False)
+//  @Field(type = FieldType.Object, enabled = false, ignoreFields = {"qualifiers"})
+  @Field(type = FieldType.Object, enabled = false)
+//  @DynamicMapping(DynamicMappingValue.False)
   private List<ConceptMap> maps;
 
   /** The paths to root. */
   @Field(type = FieldType.Object, enabled = false)
-  @DynamicMapping(DynamicMappingValue.False)
+//  @DynamicMapping(DynamicMappingValue.False)
   private Paths paths;
 
   /** The paths to root. */
   @Field(type = FieldType.Object, enabled = false)
-  @DynamicMapping(DynamicMappingValue.False)
+//  @DynamicMapping(DynamicMappingValue.False)
   private Extensions extensions;
 
   /**
