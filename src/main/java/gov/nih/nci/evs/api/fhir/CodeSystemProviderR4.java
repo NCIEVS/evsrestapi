@@ -108,10 +108,16 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       List<CodeSystem> cs = findCodeSystems(null, date, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
+        String codeToLookup = "";
+        if (code != null) {
+          codeToLookup = code.getCode();
+        } else if (coding != null) {
+          codeToLookup = coding.getCode();
+        }
         CodeSystem codeSys = cs.get(0);
         Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
         Concept conc =
-            queryService.getConcept(code.asStringValue(), term, new IncludeParam("children")).get();
+            queryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
         params.addParameter("code", "code");
         params.addParameter("system", codeSys.getUrl());
         params.addParameter("code", codeSys.getName());
@@ -179,10 +185,16 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           findCodeSystems(new TokenParam().setValue(id.getIdPart()), date, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
+        String codeToLookup = "";
+        if (code != null) {
+          codeToLookup = code.getCode();
+        } else if (coding != null) {
+          codeToLookup = coding.getCode();
+        }
         CodeSystem codeSys = cs.get(0);
         Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
         Concept conc =
-            queryService.getConcept(code.asStringValue(), term, new IncludeParam("children")).get();
+            queryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
         params.addParameter("code", "code");
         params.addParameter("system", codeSys.getUrl());
         params.addParameter("code", codeSys.getName());
@@ -248,13 +260,19 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       List<CodeSystem> cs = findCodeSystems(null, null, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
+        String codeToValidate = "";
+        if (code != null) {
+          codeToValidate = code.getCode();
+        } else if (coding != null) {
+          codeToValidate = coding.getCode();
+        }
         CodeSystem codeSys = cs.get(0);
         Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
         Optional<Concept> check =
-            queryService.getConcept(code.asStringValue(), term, new IncludeParam("children"));
+            queryService.getConcept(codeToValidate, term, new IncludeParam("children"));
         if (check.get() != null) {
-          Concept conc = queryService
-              .getConcept(code.asStringValue(), term, new IncludeParam("children")).get();
+          Concept conc =
+              queryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
           params.addParameter("result", "true");
           params.addParameter("code", "code");
           params.addParameter("system", codeSys.getUrl());
@@ -323,13 +341,19 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           findCodeSystems(new TokenParam().setValue(id.getIdPart()), null, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
+        String codeToValidate = "";
+        if (code != null) {
+          codeToValidate = code.getCode();
+        } else if (coding != null) {
+          codeToValidate = coding.getCode();
+        }
         CodeSystem codeSys = cs.get(0);
         Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
         Optional<Concept> check =
-            queryService.getConcept(code.asStringValue(), term, new IncludeParam("children"));
+            queryService.getConcept(codeToValidate, term, new IncludeParam("children"));
         if (check.get() != null) {
-          Concept conc = queryService
-              .getConcept(code.asStringValue(), term, new IncludeParam("children")).get();
+          Concept conc =
+              queryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
           params.addParameter("result", "true");
           params.addParameter("code", "code");
           params.addParameter("system", codeSys.getUrl());
@@ -394,19 +418,27 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       List<CodeSystem> cs = findCodeSystems(null, null, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
+        String code1 = "";
+        String code2 = "";
+        if (codeA != null && codeB != null) {
+          code1 = codeA.getCode();
+          code2 = codeB.getCode();
+        } else if (codingA != null && codingB != null) {
+          code1 = codingA.getCode();
+          code2 = codingB.getCode();
+        }
         CodeSystem codeSys = cs.get(0);
         Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
         Optional<Concept> checkA =
-            queryService.getConcept(codeA.asStringValue(), term, new IncludeParam("minimal"));
+            queryService.getConcept(code1, term, new IncludeParam("minimal"));
         Optional<Concept> checkB =
-            queryService.getConcept(codeB.asStringValue(), term, new IncludeParam("minimal"));
+            queryService.getConcept(code2, term, new IncludeParam("minimal"));
         if (checkA.get() != null && checkB.get() != null) {
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
-          if (queryService.getPathsToParent(codeA.getCode(), codeB.getCode(), term).getCt() > 0) {
+          if (queryService.getPathsToParent(code1, code2, term).getCt() > 0) {
             params.addParameter("outcome", "subsumes");
-          } else if (queryService.getPathsToParent(codeB.getCode(), codeA.getCode(), term)
-              .getCt() > 0) {
+          } else if (queryService.getPathsToParent(code2, code1, term).getCt() > 0) {
             params.addParameter("outcome", "subsumed-by");
           } else {
             params.addParameter("outcome", "no-subsumption-relationship");
@@ -462,19 +494,27 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           findCodeSystems(new TokenParam().setValue(id.getIdPart()), null, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
+        String code1 = "";
+        String code2 = "";
+        if (codeA != null && codeB != null) {
+          code1 = codeA.getCode();
+          code2 = codeB.getCode();
+        } else if (codingA != null && codingB != null) {
+          code1 = codingA.getCode();
+          code2 = codingB.getCode();
+        }
         CodeSystem codeSys = cs.get(0);
         Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
         Optional<Concept> checkA =
-            queryService.getConcept(codeA.asStringValue(), term, new IncludeParam("minimal"));
+            queryService.getConcept(code1, term, new IncludeParam("minimal"));
         Optional<Concept> checkB =
-            queryService.getConcept(codeB.asStringValue(), term, new IncludeParam("minimal"));
+            queryService.getConcept(code2, term, new IncludeParam("minimal"));
         if (checkA.get() != null && checkB.get() != null) {
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
-          if (queryService.getPathsToParent(codeA.getCode(), codeB.getCode(), term).getCt() > 0) {
+          if (queryService.getPathsToParent(code1, code2, term).getCt() > 0) {
             params.addParameter("outcome", "subsumes");
-          } else if (queryService.getPathsToParent(codeB.getCode(), codeA.getCode(), term)
-              .getCt() > 0) {
+          } else if (queryService.getPathsToParent(code2, code1, term).getCt() > 0) {
             params.addParameter("outcome", "subsumed-by");
           } else {
             params.addParameter("outcome", "no-subsumption-relationship");
