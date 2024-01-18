@@ -1,5 +1,9 @@
 package gov.nih.nci.evs.api.fhir;
 
+import java.util.List;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -10,6 +14,8 @@ import org.hl7.fhir.r4.model.ConceptMap;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.StringType;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import ca.uhn.fhir.rest.annotation.IdParam;
@@ -17,12 +23,20 @@ import ca.uhn.fhir.rest.annotation.Operation;
 import ca.uhn.fhir.rest.annotation.OperationParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
 
 /**
  * The ConceptMap provider.
  */
 @Component
 public class ConceptMapProviderR4 implements IResourceProvider {
+
+  /** the query service */
+  @Autowired
+  ElasticQueryService queryService;
+
+  String codeToTranslate = "";
 
   /**
    * Perform the lookup in the instance map.
@@ -69,6 +83,41 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     final String targetSystem) throws Exception {
 
     try {
+      FhirUtilityR4.requireExactlyOneOf("code", code, "coding", coding, "codeableConcept",
+          codeableConcept);
+      FhirUtilityR4.mutuallyRequired("code", code, "system", system);
+      FhirUtilityR4.notSupported("version", version);
+      if (code != null) {
+        codeToTranslate = code.getCode();
+      } else if (coding != null) {
+        codeToTranslate = coding.getCode();
+      } else if (codeableConcept != null) {
+        codeToTranslate = codeableConcept.getId();
+      }
+      List<gov.nih.nci.evs.api.model.ConceptMap> maps =
+          queryService.getMapset(system, new IncludeParam("minimal")).get(0).getMaps();
+      List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = maps.stream()
+          .filter(m -> m.getSourceCode().toLowerCase().contains(codeToTranslate)
+              || m.getSourceName().toLowerCase()
+                  .matches("^" + Pattern.quote(codeToTranslate) + ".*")
+              || m.getSourceName().toLowerCase()
+                  .matches(".*\\b" + Pattern.quote(codeToTranslate) + ".*"))
+          .collect(Collectors.toList());
+      Parameters params = new Parameters();
+      if (filteredMaps.size() > 0) {
+        gov.nih.nci.evs.api.model.ConceptMap map = filteredMaps.get(0);
+        params.addParameter("result", true);
+        Parameters.ParametersParameterComponent property =
+            new Parameters.ParametersParameterComponent().setName("match");
+        property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
+        property.addPart().setName("concept").setValue(
+            new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
+        params.addParameter(property);
+
+      } else {
+        params.addParameter("result", false);
+        params.addParameter("match", "none");
+      }
       return null;
 
     } catch (final FHIRServerResponseException e) {
@@ -123,6 +172,41 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     final String targetSystem) throws Exception {
 
     try {
+      FhirUtilityR4.requireExactlyOneOf("code", code, "coding", coding, "codeableConcept",
+          codeableConcept);
+      FhirUtilityR4.mutuallyRequired("code", code, "system", system);
+      FhirUtilityR4.notSupported("version", version);
+      if (code != null) {
+        codeToTranslate = code.getCode();
+      } else if (coding != null) {
+        codeToTranslate = coding.getCode();
+      } else if (codeableConcept != null) {
+        codeToTranslate = codeableConcept.getId();
+      }
+      List<gov.nih.nci.evs.api.model.ConceptMap> maps =
+          queryService.getMapset(system, new IncludeParam("minimal")).get(0).getMaps();
+      List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = maps.stream()
+          .filter(m -> m.getSourceCode().toLowerCase().contains(codeToTranslate)
+              || m.getSourceName().toLowerCase()
+                  .matches("^" + Pattern.quote(codeToTranslate) + ".*")
+              || m.getSourceName().toLowerCase()
+                  .matches(".*\\b" + Pattern.quote(codeToTranslate) + ".*"))
+          .collect(Collectors.toList());
+      Parameters params = new Parameters();
+      if (filteredMaps.size() > 0) {
+        gov.nih.nci.evs.api.model.ConceptMap map = filteredMaps.get(0);
+        params.addParameter("result", true);
+        Parameters.ParametersParameterComponent property =
+            new Parameters.ParametersParameterComponent().setName("match");
+        property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
+        property.addPart().setName("concept").setValue(
+            new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
+        params.addParameter(property);
+
+      } else {
+        params.addParameter("result", false);
+        params.addParameter("match", "none");
+      }
       return null;
 
     } catch (final FHIRServerResponseException e) {
