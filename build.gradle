@@ -103,6 +103,8 @@ dependencies {
 }
 
 test {
+    // Args to pass when running the tests to ensure the cglib can be accessed and avoid InaccessibleObjectException
+    jvmArgs ('-Xmx8G', '--add-opens', 'java.base/java.lang=ALL-UNNAMED')
     /*
      * Configure gradle to show standard out and standard error
      * of the test JVM(s) on the console
