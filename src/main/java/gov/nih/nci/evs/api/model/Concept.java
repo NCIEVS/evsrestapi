@@ -97,15 +97,15 @@ public class Concept extends ConceptMinimal {
   private Boolean active;
 
   /** The synonyms. */
-  @Field(
-      type = FieldType.Nested,
-      ignoreFields = {"qualifiers"})
+  @Field(type = FieldType.Nested, ignoreFields = {
+          "qualifiers"
+  })
   private List<Synonym> synonyms;
 
   /** The definitions. */
-  @Field(
-      type = FieldType.Nested,
-      ignoreFields = {"qualifiers"})
+  @Field(type = FieldType.Nested, ignoreFields = {
+          "qualifiers"
+  })
   private List<Definition> definitions;
 
   /** The properties. */
@@ -263,7 +263,7 @@ public class Concept extends ConceptMinimal {
    * object.
    */
   @Field(type = FieldType.Object, enabled = false)
-  @DynamicMapping(DynamicMappingValue.False)
+//  @DynamicMapping(DynamicMappingValue.False)
   private Paths paths;
 
   /**
@@ -272,7 +272,7 @@ public class Concept extends ConceptMinimal {
    * Extensions object.
    */
   @Field(type = FieldType.Object, enabled = false)
-  @DynamicMapping(DynamicMappingValue.False)
+//  @DynamicMapping(DynamicMappingValue.False)
   private Extensions extensions;
 
   /** Instantiates an empty {@link Concept}. */

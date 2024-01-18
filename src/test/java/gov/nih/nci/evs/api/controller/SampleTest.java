@@ -34,7 +34,7 @@ public class SampleTest {
   /** The elastic query service. */
   @Autowired ElasticQueryService esQueryService;
 
-  /** The elasticquery service. */
+  /** The elastic query service. */
   @Autowired
   ElasticQueryService esQueryService;
 
