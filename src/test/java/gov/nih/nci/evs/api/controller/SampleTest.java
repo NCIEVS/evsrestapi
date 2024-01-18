@@ -37,7 +37,7 @@ public class SampleTest {
   @Autowired
   private MockMvc mvc;
 
-  /** The elasticquery service. */
+  /** The elastic query service. */
   @Autowired
   ElasticQueryService esQueryService;
 
