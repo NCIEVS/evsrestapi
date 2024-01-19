@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.fhir;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -15,15 +16,24 @@ import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.StringType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import ca.uhn.fhir.rest.annotation.IdParam;
 import ca.uhn.fhir.rest.annotation.Operation;
 import ca.uhn.fhir.rest.annotation.OperationParam;
+import ca.uhn.fhir.rest.annotation.OptionalParam;
+import ca.uhn.fhir.rest.annotation.Search;
+import ca.uhn.fhir.rest.param.DateRangeParam;
+import ca.uhn.fhir.rest.param.StringParam;
+import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 
 /**
@@ -31,6 +41,9 @@ import gov.nih.nci.evs.api.service.ElasticQueryService;
  */
 @Component
 public class ConceptMapProviderR4 implements IResourceProvider {
+
+  /** The logger. */
+  private static Logger logger = LoggerFactory.getLogger(ConceptMapProviderR4.class);
 
   /** the query service */
   @Autowired
@@ -77,23 +90,13 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     final String url, @OperationParam(name = "code")
     final CodeType code, @OperationParam(name = "system")
     final String system, @OperationParam(name = "version")
-    final String version, @OperationParam(name = "coding")
-    final Coding coding, @OperationParam(name = "codeableConcept")
-    final CodeableConcept codeableConcept, @OperationParam(name = "targetsystem")
+    final String version, @OperationParam(name = "targetSystem")
     final String targetSystem) throws Exception {
 
     try {
-      FhirUtilityR4.requireExactlyOneOf("code", code, "coding", coding, "codeableConcept",
-          codeableConcept);
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.notSupported("version", version);
-      if (code != null) {
-        codeToTranslate = code.getCode();
-      } else if (coding != null) {
-        codeToTranslate = coding.getCode();
-      } else if (codeableConcept != null) {
-        codeToTranslate = codeableConcept.getId();
-      }
+      codeToTranslate = code.getCode();
       List<gov.nih.nci.evs.api.model.ConceptMap> maps =
           queryService.getMapset(system, new IncludeParam("minimal")).get(0).getMaps();
       List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = maps.stream()
@@ -172,17 +175,9 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     final String targetSystem) throws Exception {
 
     try {
-      FhirUtilityR4.requireExactlyOneOf("code", code, "coding", coding, "codeableConcept",
-          codeableConcept);
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.notSupported("version", version);
-      if (code != null) {
-        codeToTranslate = code.getCode();
-      } else if (coding != null) {
-        codeToTranslate = coding.getCode();
-      } else if (codeableConcept != null) {
-        codeToTranslate = codeableConcept.getId();
-      }
+      codeToTranslate = code.getCode();
       List<gov.nih.nci.evs.api.model.ConceptMap> maps =
           queryService.getMapset(system, new IncludeParam("minimal")).get(0).getMaps();
       List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = maps.stream()
@@ -221,5 +216,50 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   @Override
   public Class<ConceptMap> getResourceType() {
     return ConceptMap.class;
+  }
+
+  @Search
+  public List<ConceptMap> findConceptMaps(@OptionalParam(name = "_id") TokenParam id,
+    @OptionalParam(name = "date")
+    final DateRangeParam date, @OptionalParam(name = "system")
+    final StringParam system, @OptionalParam(name = "version")
+    final StringParam version) throws Exception {
+    try {
+      final List<Concept> mapsets = queryService.getMapsets(new IncludeParam("properties"));
+
+      final List<ConceptMap> list = new ArrayList<>();
+      for (final Concept mapset : mapsets) {
+        List<Property> props = mapset.getProperties();
+        if (props.stream()
+            .filter(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))
+            .findAny().isPresent()) {
+          continue;
+        }
+        final ConceptMap cm = FhirUtilityR4.toR4(mapset);
+        // Skip non-matching
+        if ((id != null && !id.getValue().equals(cm.getId()))
+            || (system != null && !system.getValue().equals(cm.getUrl()))) {
+          logger.info("  SKIP url mismatch = " + cm.getUrl());
+          continue;
+        }
+        if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
+          logger.info("  SKIP date mismatch = " + cm.getDate());
+          continue;
+        }
+        if (version != null && !FhirUtility.compareString(version, cm.getVersion())) {
+          logger.info("  SKIP version mismatch = " + cm.getVersion());
+          continue;
+        }
+
+        list.add(cm);
+      }
+      return list;
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      logger.error("Unexpected error", e);
+      throw FhirUtilityR4.exception("Failed to find concept maps",
+          OperationOutcome.IssueType.EXCEPTION, 500);
+    }
   }
 }

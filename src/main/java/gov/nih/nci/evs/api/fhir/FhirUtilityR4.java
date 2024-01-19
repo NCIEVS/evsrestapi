@@ -18,15 +18,19 @@ import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.ConceptMap;
+import org.hl7.fhir.r4.model.ConceptMap.ConceptMapGroupComponent;
 import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.UriType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 
 /**
@@ -140,6 +144,30 @@ public final class FhirUtilityR4 {
     cs.setPublisher(getPublisher(term.getTerminology()));
     cs.setUrl(getUri(term.getTerminology()));
     return cs;
+  }
+
+  public static ConceptMap toR4(Concept mapset) {
+    ConceptMap cm = new ConceptMap();
+    cm.setId(mapset.getCode() + "_" + mapset.getVersion());
+    cm.setName(mapset.getName());
+    cm.setTitle(mapset.getName());
+    cm.setExperimental(false);
+    cm.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    cm.setVersion(mapset.getVersion());
+    cm.setPublisher(getPublisher(mapset.getProperties().stream()
+        .filter(m -> m.getType().equals("sourceTerminology")).findFirst().orElse(null).getValue()));
+
+    ConceptMapGroupComponent group = new ConceptMapGroupComponent();
+    group.setSourceVersion(mapset.getProperties().stream()
+        .filter(m -> m.getType().equals("sourceTerminologyVersion")).findFirst().get().getValue());
+    group.setTargetVersion(mapset.getProperties().stream()
+        .filter(m -> m.getType().equals("targetTerminologyVersion")).findFirst().get().getValue());
+    group.setSourceElement(new UriType(getUri(mapset.getProperties().stream()
+        .filter(m -> m.getType().equals("sourceTerminology")).findFirst().get().getValue())));
+    group.setTargetElement(new UriType(getUri(mapset.getProperties().stream()
+        .filter(m -> m.getType().equals("targetTerminology")).findFirst().get().getValue())));
+    cm.addGroup(group);
+    return cm;
   }
 
   /**
