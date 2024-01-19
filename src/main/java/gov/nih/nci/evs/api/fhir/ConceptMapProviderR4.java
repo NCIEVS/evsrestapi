@@ -12,7 +12,6 @@ import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ConceptMap;
-import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.StringType;
@@ -86,38 +85,54 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   @Operation(name = "$translate", idempotent = true)
   public Parameters translateInstance(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details, @IdParam
-    final IdType id, @OperationParam(name = "url")
+    final TokenParam id, @OperationParam(name = "url")
     final String url, @OperationParam(name = "code")
     final CodeType code, @OperationParam(name = "system")
-    final String system, @OperationParam(name = "version")
-    final String version, @OperationParam(name = "targetSystem")
-    final String targetSystem) throws Exception {
+    final StringParam system, @OperationParam(name = "version")
+    final StringParam version, @OperationParam(name = "reverse")
+    final StringParam reverse) throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.notSupported("version", version);
       codeToTranslate = code.getCode();
-      List<gov.nih.nci.evs.api.model.ConceptMap> maps =
-          queryService.getMapset(system, new IncludeParam("minimal")).get(0).getMaps();
-      List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = maps.stream()
-          .filter(m -> m.getSourceCode().toLowerCase().contains(codeToTranslate)
-              || m.getSourceName().toLowerCase()
-                  .matches("^" + Pattern.quote(codeToTranslate) + ".*")
-              || m.getSourceName().toLowerCase()
-                  .matches(".*\\b" + Pattern.quote(codeToTranslate) + ".*"))
-          .collect(Collectors.toList());
       Parameters params = new Parameters();
-      if (filteredMaps.size() > 0) {
-        gov.nih.nci.evs.api.model.ConceptMap map = filteredMaps.get(0);
-        params.addParameter("result", true);
-        Parameters.ParametersParameterComponent property =
-            new Parameters.ParametersParameterComponent().setName("match");
-        property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
-        property.addPart().setName("concept").setValue(
-            new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
-        params.addParameter(property);
+      List<ConceptMap> cm = findConceptMaps(id, null, system, version);
+      for (ConceptMap mapping : cm) {
+        List<gov.nih.nci.evs.api.model.ConceptMap> maps = queryService
+            .getMapset(mapping.getTitle(), new IncludeParam("minimal")).get(0).getMaps();
+        List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = new ArrayList<>();
+        if (reverse.getValue().equals("true")) {
+          filteredMaps = maps.stream()
+              .filter(m -> m.getTargetCode().toLowerCase().contains(codeToTranslate)
+                  || m.getTargetName().toLowerCase()
+                      .matches("^" + Pattern.quote(codeToTranslate) + ".*")
+                  || m.getTargetName().toLowerCase()
+                      .matches(".*\\b" + Pattern.quote(codeToTranslate) + ".*"))
+              .collect(Collectors.toList());
+        } else {
+          filteredMaps = maps.stream()
+              .filter(m -> m.getSourceCode().toLowerCase().contains(codeToTranslate)
+                  || m.getSourceName().toLowerCase()
+                      .matches("^" + Pattern.quote(codeToTranslate) + ".*")
+                  || m.getSourceName().toLowerCase()
+                      .matches(".*\\b" + Pattern.quote(codeToTranslate) + ".*"))
+              .collect(Collectors.toList());
+        }
 
-      } else {
+        if (filteredMaps.size() > 0) {
+          gov.nih.nci.evs.api.model.ConceptMap map = filteredMaps.get(0);
+          params.addParameter("result", true);
+          Parameters.ParametersParameterComponent property =
+              new Parameters.ParametersParameterComponent().setName("match");
+          property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
+          property.addPart().setName("concept").setValue(
+              new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
+          params.addParameter(property);
+
+        }
+      }
+      if (!params.hasParameter()) {
         params.addParameter("result", false);
         params.addParameter("match", "none");
       }
@@ -168,37 +183,53 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     @OperationParam(name = "url")
     final String url, @OperationParam(name = "code")
     final CodeType code, @OperationParam(name = "system")
-    final String system, @OperationParam(name = "version")
-    final String version, @OperationParam(name = "coding")
+    final StringParam system, @OperationParam(name = "version")
+    final StringParam version, @OperationParam(name = "coding")
     final Coding coding, @OperationParam(name = "codeableConcept")
-    final CodeableConcept codeableConcept, @OperationParam(name = "targetsystem")
-    final String targetSystem) throws Exception {
+    final CodeableConcept codeableConcept, @OperationParam(name = "reverse")
+    final StringParam reverse) throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.notSupported("version", version);
       codeToTranslate = code.getCode();
-      List<gov.nih.nci.evs.api.model.ConceptMap> maps =
-          queryService.getMapset(system, new IncludeParam("minimal")).get(0).getMaps();
-      List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = maps.stream()
-          .filter(m -> m.getSourceCode().toLowerCase().contains(codeToTranslate)
-              || m.getSourceName().toLowerCase()
-                  .matches("^" + Pattern.quote(codeToTranslate) + ".*")
-              || m.getSourceName().toLowerCase()
-                  .matches(".*\\b" + Pattern.quote(codeToTranslate) + ".*"))
-          .collect(Collectors.toList());
       Parameters params = new Parameters();
-      if (filteredMaps.size() > 0) {
-        gov.nih.nci.evs.api.model.ConceptMap map = filteredMaps.get(0);
-        params.addParameter("result", true);
-        Parameters.ParametersParameterComponent property =
-            new Parameters.ParametersParameterComponent().setName("match");
-        property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
-        property.addPart().setName("concept").setValue(
-            new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
-        params.addParameter(property);
+      List<ConceptMap> cm = findConceptMaps(null, null, system, version);
+      for (ConceptMap mapping : cm) {
+        List<gov.nih.nci.evs.api.model.ConceptMap> maps = queryService
+            .getMapset(mapping.getTitle(), new IncludeParam("minimal")).get(0).getMaps();
+        List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = new ArrayList<>();
+        if (reverse.getValue().equals("true")) {
+          filteredMaps = maps.stream()
+              .filter(m -> m.getTargetCode().toLowerCase().contains(codeToTranslate)
+                  || m.getTargetName().toLowerCase()
+                      .matches("^" + Pattern.quote(codeToTranslate) + ".*")
+                  || m.getTargetName().toLowerCase()
+                      .matches(".*\\b" + Pattern.quote(codeToTranslate) + ".*"))
+              .collect(Collectors.toList());
+        } else {
+          filteredMaps = maps.stream()
+              .filter(m -> m.getSourceCode().toLowerCase().contains(codeToTranslate)
+                  || m.getSourceName().toLowerCase()
+                      .matches("^" + Pattern.quote(codeToTranslate) + ".*")
+                  || m.getSourceName().toLowerCase()
+                      .matches(".*\\b" + Pattern.quote(codeToTranslate) + ".*"))
+              .collect(Collectors.toList());
+        }
 
-      } else {
+        if (filteredMaps.size() > 0) {
+          gov.nih.nci.evs.api.model.ConceptMap map = filteredMaps.get(0);
+          params.addParameter("result", true);
+          Parameters.ParametersParameterComponent property =
+              new Parameters.ParametersParameterComponent().setName("match");
+          property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
+          property.addPart().setName("concept").setValue(
+              new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
+          params.addParameter(property);
+
+        }
+      }
+      if (!params.hasParameter()) {
         params.addParameter("result", false);
         params.addParameter("match", "none");
       }
