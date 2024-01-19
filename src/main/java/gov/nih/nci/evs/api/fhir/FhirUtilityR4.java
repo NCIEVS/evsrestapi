@@ -167,6 +167,7 @@ public final class FhirUtilityR4 {
     group.setTargetElement(new UriType(getUri(mapset.getProperties().stream()
         .filter(m -> m.getType().equals("targetTerminology")).findFirst().get().getValue())));
     cm.addGroup(group);
+    cm.setUrl(group.getSourceElement().asStringValue() + "?fhris_cm=$" + mapset.getCode());
     return cm;
   }
 
