@@ -303,7 +303,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           final String code = mapsetNameMap.get(fields[0]).replaceAll(" ", "_");
           mapset.setCode(code);
           mapset.setName(mapsetNameMap.get(fields[0]));
-          mapset.setTerminology("SNOMEDCT_US");
+          mapset.setTerminology("snomedct_us");
           mapset.setVersion(mapsetVersionMap.get(fields[0]));
           // set other fields and properties as needed (to match other mapsets and needs of ui)
           mapset.getProperties().add(new Property("loader", "MetaElasticLoadServiceImpl"));
@@ -319,9 +319,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           mapset.getProperties().add(
               new Property("targetLoaded", Boolean.toString(terms.contains(map.getTargetTerminology().toLowerCase()))));
           mapset.getProperties().add(new Property("sourceTerminology",
-              map.getSourceTerminology() != null ? map.getSourceTerminology() : "not found"));
+              map.getSourceTerminology() != null ? map.getSourceTerminology().toLowerCase() : "not found"));
           mapset.getProperties().add(new Property("targetTerminology",
-              map.getTargetTerminology() != null ? map.getTargetTerminology() : "not found"));
+              map.getTargetTerminology() != null ? map.getTargetTerminology().toLowerCase() : "not found"));
           mapset.getProperties().add(new Property("sourceTerminologyVersion",
               map.getSourceTerminologyVersion() != null ? map.getSourceTerminologyVersion() : "not found"));
           mapset.getProperties().add(new Property("targetTerminologyVersion",
