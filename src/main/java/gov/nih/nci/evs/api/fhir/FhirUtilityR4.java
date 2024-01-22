@@ -154,7 +154,7 @@ public final class FhirUtilityR4 {
     ConceptMap cm = new ConceptMap();
     cm.setId(mapset.getCode() + "_" + mapset.getVersion());
     cm.setName(mapset.getName());
-    cm.setTitle(mapset.getName());
+    cm.setTitle(mapset.getCode());
     cm.setExperimental(false);
     cm.setStatus(Enumerations.PublicationStatus.ACTIVE);
     cm.setVersion(mapset.getVersion());

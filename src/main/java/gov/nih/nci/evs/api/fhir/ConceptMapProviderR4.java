@@ -94,7 +94,6 @@ public class ConceptMapProviderR4 implements IResourceProvider {
 
     try {
       FhirUtilityR4.required("code", code);
-      FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.notSupported("version", version);
       codeToTranslate = code.getCode().toLowerCase();
       Parameters params = new Parameters();
@@ -190,7 +189,6 @@ public class ConceptMapProviderR4 implements IResourceProvider {
 
     try {
       FhirUtilityR4.required("code", code);
-      FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.notSupported("version", version);
       codeToTranslate = code.getCode().toLowerCase();
       Parameters params = new Parameters();
