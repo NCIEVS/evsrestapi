@@ -176,6 +176,21 @@ public final class FhirUtilityR4 {
   }
 
   /**
+   * Required.
+   *
+   * @param param1Name the param 1 name
+   * @param param1 the param 1
+   * @param param2Name the param 2 name
+   * @param param2 the param 2
+   */
+  public static void required(final String param1Name, final Object param1) {
+    if (param1 == null) {
+      throw exception(format("Must use '%s' parameter.", param1Name),
+          OperationOutcome.IssueType.INVARIANT, 400);
+    }
+  }
+
+  /**
    * Mutually exclusive.
    *
    * @param param1Name the param 1 name

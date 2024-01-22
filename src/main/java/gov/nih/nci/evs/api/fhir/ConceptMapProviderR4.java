@@ -8,8 +8,8 @@ import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ConceptMap;
 import org.hl7.fhir.r4.model.OperationOutcome;
@@ -86,23 +86,24 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   public Parameters translateInstance(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details, @IdParam
     final TokenParam id, @OperationParam(name = "url")
-    final String url, @OperationParam(name = "code")
+    final StringParam url, @OperationParam(name = "code")
     final CodeType code, @OperationParam(name = "system")
     final StringParam system, @OperationParam(name = "version")
-    final StringParam version, @OperationParam(name = "reverse")
-    final StringParam reverse) throws Exception {
+    final StringParam version, @OperationParam(name = "reverse", type = BooleanType.class)
+    final BooleanType reverse) throws Exception {
 
     try {
+      FhirUtilityR4.required("code", code);
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.notSupported("version", version);
-      codeToTranslate = code.getCode();
+      codeToTranslate = code.getCode().toLowerCase();
       Parameters params = new Parameters();
-      List<ConceptMap> cm = findConceptMaps(id, null, system, version);
+      List<ConceptMap> cm = findConceptMaps(id, null, system, url, version);
       for (ConceptMap mapping : cm) {
-        List<gov.nih.nci.evs.api.model.ConceptMap> maps = queryService
-            .getMapset(mapping.getTitle(), new IncludeParam("minimal")).get(0).getMaps();
+        List<gov.nih.nci.evs.api.model.ConceptMap> maps =
+            queryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
         List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = new ArrayList<>();
-        if (reverse.getValue().equals("true")) {
+        if (reverse.getValue()) {
           filteredMaps = maps.stream()
               .filter(m -> m.getTargetCode().toLowerCase().contains(codeToTranslate)
                   || m.getTargetName().toLowerCase()
@@ -136,7 +137,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
         params.addParameter("result", false);
         params.addParameter("match", "none");
       }
-      return null;
+      return params;
 
     } catch (final FHIRServerResponseException e) {
       throw e;
@@ -181,25 +182,24 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   public Parameters translateImplicit(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details,
     @OperationParam(name = "url")
-    final String url, @OperationParam(name = "code")
+    final StringParam url, @OperationParam(name = "code")
     final CodeType code, @OperationParam(name = "system")
     final StringParam system, @OperationParam(name = "version")
-    final StringParam version, @OperationParam(name = "coding")
-    final Coding coding, @OperationParam(name = "codeableConcept")
-    final CodeableConcept codeableConcept, @OperationParam(name = "reverse")
-    final StringParam reverse) throws Exception {
+    final StringParam version, @OperationParam(name = "reverse", type = BooleanType.class)
+    final BooleanType reverse) throws Exception {
 
     try {
+      FhirUtilityR4.required("code", code);
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.notSupported("version", version);
-      codeToTranslate = code.getCode();
+      codeToTranslate = code.getCode().toLowerCase();
       Parameters params = new Parameters();
-      List<ConceptMap> cm = findConceptMaps(null, null, system, version);
+      List<ConceptMap> cm = findConceptMaps(null, null, system, url, version);
       for (ConceptMap mapping : cm) {
-        List<gov.nih.nci.evs.api.model.ConceptMap> maps = queryService
-            .getMapset(mapping.getTitle(), new IncludeParam("minimal")).get(0).getMaps();
+        List<gov.nih.nci.evs.api.model.ConceptMap> maps =
+            queryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
         List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = new ArrayList<>();
-        if (reverse.getValue().equals("true")) {
+        if (reverse.getValue()) {
           filteredMaps = maps.stream()
               .filter(m -> m.getTargetCode().toLowerCase().contains(codeToTranslate)
                   || m.getTargetName().toLowerCase()
@@ -233,7 +233,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
         params.addParameter("result", false);
         params.addParameter("match", "none");
       }
-      return null;
+      return params;
 
     } catch (final FHIRServerResponseException e) {
       throw e;
@@ -253,7 +253,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   public List<ConceptMap> findConceptMaps(@OptionalParam(name = "_id") TokenParam id,
     @OptionalParam(name = "date")
     final DateRangeParam date, @OptionalParam(name = "system")
-    final StringParam system, @OptionalParam(name = "version")
+    final StringParam system, @OptionalParam(name = "url")
+    final StringParam url, @OptionalParam(name = "version")
     final StringParam version) throws Exception {
     try {
       final List<Concept> mapsets = queryService.getMapsets(new IncludeParam("properties"));
@@ -268,9 +269,16 @@ public class ConceptMapProviderR4 implements IResourceProvider {
         }
         final ConceptMap cm = FhirUtilityR4.toR4(mapset);
         // Skip non-matching
-        if ((id != null && !id.getValue().equals(cm.getId()))
-            || (system != null && !system.getValue().equals(cm.getUrl()))) {
+        if (url != null && !url.getValue().equals(cm.getUrl())) {
           logger.info("  SKIP url mismatch = " + cm.getUrl());
+          continue;
+        }
+        if (id != null && !id.getValue().equals(cm.getId())) {
+          logger.info("  SKIP id mismatch = " + cm.getName());
+          continue;
+        }
+        if (system != null && !system.getValue().equals(cm.getName())) {
+          logger.info("  SKIP system mismatch = " + cm.getName());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
