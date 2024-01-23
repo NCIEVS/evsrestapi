@@ -81,6 +81,7 @@ public final class FhirUtilityR4 {
     uri.put("mdr", "https://www.meddra.org");
     uri.put("umlssemnet", "http://www.nlm.nih.gov/research/umls/umlssemnet.owl");
     uri.put("go", "http://purl.obolibrary.org/obo/go.owl");
+    uri.put("icd10", "http://hl7.org/fhir/sid/icd-10");
     uri.put("icd10cm", "http://hl7.org/fhir/sid/icd-10-cm");
     uri.put("hgnc", "http://www.genenames.org");
     uri.put("snomedct_us", "http://terminology.hl7.org/CodeSystem/snomedct_us");
@@ -103,7 +104,7 @@ public final class FhirUtilityR4 {
   }
 
   private static String getUri(String terminology) {
-    return uris.get(terminology);
+    return uris.get(terminology.toLowerCase());
   }
 
   /**
