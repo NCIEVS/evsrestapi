@@ -15,6 +15,8 @@ import java.util.Map;
 import java.util.stream.Stream;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.DynamicMapping;
+import org.springframework.data.elasticsearch.annotations.DynamicMappingValue;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
@@ -261,6 +263,7 @@ public class Concept extends ConceptMinimal {
    * object.
    */
   @Field(type = FieldType.Object, enabled = false)
+  @DynamicMapping(DynamicMappingValue.False)
   private Paths paths;
 
   /**
@@ -269,6 +272,7 @@ public class Concept extends ConceptMinimal {
    * Extensions object.
    */
   @Field(type = FieldType.Object, enabled = false)
+  @DynamicMapping(DynamicMappingValue.False)
   private Extensions extensions;
 
   /** Instantiates an empty {@link Concept}. */
