@@ -27,15 +27,12 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
   @JsonProperty(access = Access.READ_ONLY)
   // index=false marks these fields as such in elasticsearch
   // thus making qualifiers not indexed and not searchable
-  @Field(type = FieldType.Keyword, index = false)
   private String code;
 
   /** The type. */
-  @Field(type = FieldType.Keyword, index = false)
   private String type;
 
   /** The value. */
-  @Field(type = FieldType.Keyword, index = false)
   private String value;
 
   /**
