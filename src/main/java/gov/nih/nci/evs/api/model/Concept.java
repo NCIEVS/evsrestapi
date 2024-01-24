@@ -1,14 +1,10 @@
 package gov.nih.nci.evs.api.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -20,6 +16,8 @@ import java.util.Map;
 import java.util.stream.Stream;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.DynamicMapping;
+import org.springframework.data.elasticsearch.annotations.DynamicMappingValue;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
@@ -118,149 +116,160 @@ public class Concept extends ConceptMinimal {
   private List<Property> properties;
 
   /**
-   * The children. Given this is a List<Concept>, we will not set enabled = false, given we want to
-   * index values from our model and ignore specific fields. Otherwise, we are creating a circular reference that results
-   * in a StackOverflowError
+   * The children. Given this is a List<Concept>, we will not set enabled = false, even though we
+   * don't need most of the field data associated with descendant. Otherwise, we are creating a self
+   * circular reference that results in a StackOverflowError
    */
   @Field(
       type = FieldType.Object,
       ignoreFields = {
-        "definitions",
-        "parents",
-        "children",
-        "maps",
         "associations",
-        "inverseAssociations",
-        "roles",
-        "inverseRoles",
+        "children",
         "descendants",
-        "paths",
-        "qualifiers",
-        "extensions",
+        "definitions",
         "disjointWith",
-        "synonyms",
+        "extensions",
         "history",
-        "properties"
+        "inverseAssociations",
+        "inverseRoles",
+        "maps",
+        "parents",
+        "paths",
+        "properties",
+        "qualifiers",
+        "roles",
+        "synonyms",
       })
   private List<Concept> children;
 
   /**
-   * The parents. Given this is a List<Concept>, we will not set enabled = false, given we want to
-   * index some values from our model and ignore specific fields. Otherwise, we are creating a circular reference that
-   * results in a StackOverflowError
+   * The parents. Given this is a List<Concept>, we will not set enabled = false, even though we
+   *  don't need most of the field data associated with parents. Otherwise, we are creating a self
+   * circular reference that results in a StackOverflowError
    */
   @Field(
       type = FieldType.Object,
       ignoreFields = {
-        "definitions",
-        "parents",
-        "children",
-        "maps",
         "associations",
-        "inverseAssociations",
-        "roles",
-        "inverseRoles",
+        "children",
         "descendants",
-        "paths",
-        "qualifiers",
-        "extensions",
+        "definitions",
         "disjointWith",
-        "synonyms",
+        "extensions",
         "history",
-        "properties"
+        "inverseAssociations",
+        "inverseRoles",
+        "maps",
+        "parents",
+        "paths",
+        "properties",
+        "qualifiers",
+        "roles",
+        "synonyms",
       })
   private List<Concept> parents;
 
   /**
-   * The descendants. Given this is a List<Concept>, we will not set enabled = false even though we don't want all the
-   * data associated with descendant. Otherwise, we are creating a circular reference that results in a StackOverflowError
+   * The descendants. Given this is a List<Concept>, we will not set enabled = false even though we
+   * don't need most of the field data associated with descendant. Otherwise, we are creating a self
+   * circular reference that results in a StackOverflowError
    */
   @Field(
       type = FieldType.Object,
       ignoreFields = {
-        "definitions",
-        "parents",
-        "children",
-        "maps",
         "associations",
-        "inverseAssociations",
-        "roles",
-        "inverseRoles",
+        "children",
         "descendants",
-        "paths",
-        "qualifiers",
+        "definitions",
+        "disjointWith",
         "extensions",
-        "disjointWith"
+        "history",
+        "inverseAssociations",
+        "inverseRoles",
+        "maps",
+        "parents",
+        "paths",
+        "properties",
+        "qualifiers",
+        "roles",
+        "synonyms",
       })
-//  @JsonIdentityInfo(
-//          generator = ObjectIdGenerators.PropertyGenerator.class,
-//          property = "code"
-//  )
-//  @Field(type = FieldType.Object, enabled = false)
   private List<Concept> descendants;
+
+  /**
+   * The qualifiers - only used by parent/child references for NCIM. The enabled = false will set
+   * the index = false, to avoid indexing the fields in this Concept model. The
+   * DynamicMappingValue.False will prevent indexing fields from the Qualifiers object.
+   */
+  @Field(type = FieldType.Object, enabled = false)
+  @DynamicMapping(DynamicMappingValue.False)
+  private List<Qualifier> qualifiers;
 
   /**
    * The associations. enabled = false will set the index = false, to avoid indexing the fields in
    * this Concept model
    */
-  @Field(type = FieldType.Object, enabled = false)
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = "qualifiers")
   private List<Association> associations;
 
   /**
    * The inverse associations. enabled = false will set the index = false, to avoid indexing the
    * fields in this Concept model
    */
-  @Field(type = FieldType.Object, enabled = false)
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = "qualifiers")
   private List<Association> inverseAssociations;
 
   /**
    * The roles. enabled = false will set the index = false, to avoid indexing the fields in this
    * Concept model
    */
-  @Field(type = FieldType.Object, enabled = false)
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = "qualifiers")
   private List<Role> roles;
 
   /**
    * The disjoint with. enabled = false will set the index = false, to avoid indexing the fields in
    * this Concept model
    */
-  @Field(type = FieldType.Object, enabled = false)
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = "qualifiers")
   private List<DisjointWith> disjointWith;
 
   /**
    * The inverse roles. enabled = false will set the index = false, to avoid indexing the fields in
    * this Concept model
    */
-  @Field(type = FieldType.Object, enabled = false)
+  @Field(type = FieldType.Object, enabled = false, ignoreFields = "qualifiers")
   private List<Role> inverseRoles;
 
   /**
    * The history. enabled = false will set the index = false, to avoid indexing the fields in this
-   * Concept model
+   * Concept model. The DynamicMappingValue.False will prevent indexing fields from the History object.
    */
   @Field(type = FieldType.Object, enabled = false)
+  @DynamicMapping(DynamicMappingValue.False)
   private List<History> history;
 
   /**
-   * The qualifiers - only used by parent/child references for NCIM. enabled = false will set the
-   * index = false, to avoid indexing the fields in this Concept model
+   * The maps. enabled = false will set the index = false, to avoid indexing the fields in this
+   * Concept model. The DynamicMappingValue.False will prevent indexing fields from the ConceptMap object.
    */
   @Field(type = FieldType.Object, enabled = false)
-  private List<Qualifier> qualifiers;
-
-  /** The maps. enabled = false will set the index = false, to avoid indexing the fields in
-   * this Concept model */
-  @Field(type = FieldType.Object, enabled = false)
+  @DynamicMapping(DynamicMappingValue.False)
   private List<ConceptMap> maps;
 
-  /** The paths to root. enabled = false will set the index = false, to avoid indexing the fields in
-   * this Concept model */
+  /**
+   * The paths to root. enabled = false will set the index = false, to avoid indexing the fields in
+   * this Concept model. The DynamicMappingValue.False will prevent indexing fields from the Paths object.
+   */
   @Field(type = FieldType.Object, enabled = false)
+  @DynamicMapping(DynamicMappingValue.False)
   private Paths paths;
 
-  /** The paths to root. enabled = false will set the index = false, to avoid indexing the fields in
-   * this Concept model */
+  /**
+   * The paths to root. enabled = false will set the index = false, to avoid indexing the fields in
+   * this Concept model. The DynamicMappingValue.False will prevent indexing fields from the Extensions object.
+   */
   @Field(type = FieldType.Object, enabled = false)
+  @DynamicMapping(DynamicMappingValue.False)
   private Extensions extensions;
 
   /** Instantiates an empty {@link Concept}. */

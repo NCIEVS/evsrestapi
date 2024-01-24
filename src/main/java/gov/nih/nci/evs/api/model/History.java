@@ -19,27 +19,21 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class History extends BaseModel implements Comparable<History> {
 
   /** The concept code. */
-  @Field(type = FieldType.Keyword)
   private String code;
 
   /** The concept name. */
-  @Field(type = FieldType.Keyword)
   private String name;
 
   /** The action. */
-  @Field(type = FieldType.Keyword)
   private String action;
 
   /** The date. */
-  @Field(type = FieldType.Keyword)
   private String date;
 
   /** The code of the replacement concept. */
-  @Field(type = FieldType.Keyword)
   private String replacementCode;
 
   /** The name of the replacement concept. */
-  @Field(type = FieldType.Text)
   private String replacementName;
 
   /**
