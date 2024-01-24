@@ -21,37 +21,27 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class Extensions extends BaseModel implements Comparable<Extensions> {
 
   /** CTRP "is disease" flag. */
-  @Field(type = FieldType.Boolean)
   private Boolean isDisease;
 
   /** The is disease grade. */
-  @Field(type = FieldType.Boolean)
   private Boolean isDiseaseGrade;
 
   /** The is disease stage. */
-  @Field(type = FieldType.Boolean)
   private Boolean isDiseaseStage;
 
   /** The is main type. */
-  @Field(type = FieldType.Boolean)
   private Boolean isMainType;
 
   /** CTRP "is subtype" flag. */
-  @Field(type = FieldType.Boolean)
   private Boolean isSubtype;
 
   /** The is biomarker. */
-  @Field(type = FieldType.Boolean)
   private Boolean isBiomarker;
 
   /** The is reference gene. */
-  @Field(type = FieldType.Boolean)
   private Boolean isReferenceGene;
 
   /** The paths to root. */
-  @Field(type = FieldType.Object, ignoreFields = {
-      "paths"
-  })
   private List<Paths> mainMenuAncestors;
 
   /**
