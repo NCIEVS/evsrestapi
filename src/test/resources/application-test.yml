@@ -40,6 +40,11 @@ info:
 test:
   conceptCodeList: ${CONCEPT_CODE_LIST:C7073}
 
+logging:
+    level:
+        org.springframework: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK:WARN}
+        gov.nih.nci.evs.api: ${LOGGING_LEVEL_GOV_NIH_NCI_EVS_API:INFO}
+
 #
 # Spring Properties
 #

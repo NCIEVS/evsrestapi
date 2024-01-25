@@ -1,14 +1,19 @@
 
 package gov.nih.nci.evs.api.controller;
 
+import gov.nih.nci.evs.api.ConceptSampleTester;
+import gov.nih.nci.evs.api.SampleRecord;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.BufferedReader;
-import java.io.FileReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import gov.nih.nci.evs.api.service.ElasticQueryService;
 import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -16,11 +21,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
-
-import gov.nih.nci.evs.api.ConceptSampleTester;
-import gov.nih.nci.evs.api.SampleRecord;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * Superclass for the terminology sample tests.
@@ -64,13 +64,15 @@ public class SampleTest {
    * @return the samples
    * @throws Exception the exception
    */
-  public static void loadSamples(final String terminology, final String sampleFile)
+  public static void loadSamples(final String terminology, final String sampleFile, Charset encode)
     throws Exception {
 
     samples = new HashMap<>();
     SampleTest.terminology = terminology;
-    // load tab separated txt file as resource and load into samples
-    try (BufferedReader fileReader = new BufferedReader(new FileReader(sampleFile));) {
+    // load tab separated txt file, with their corresponding character encoding, as resource and load into samples
+    try (FileInputStream fileInput = new FileInputStream(sampleFile);
+         InputStreamReader inputStreamReader = new InputStreamReader(fileInput, encode);
+         BufferedReader fileReader = new BufferedReader(inputStreamReader);) {
       String line;
       while ((line = fileReader.readLine()) != null) {
         String[] parts = line.split("\t");

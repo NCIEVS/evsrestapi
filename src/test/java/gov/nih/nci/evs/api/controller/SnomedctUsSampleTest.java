@@ -21,6 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 /**
  * NCIt samples test.
  */
@@ -43,7 +46,8 @@ public class SnomedctUsSampleTest extends SampleTest {
    */
   @BeforeClass
   public static void setupClass() throws Exception {
-    loadSamples("snomedct_us", "src/test/resources/samples/snomedct_us-samples.txt");
+    Charset encode = StandardCharsets.US_ASCII;
+    loadSamples("snomedct_us", "src/test/resources/samples/snomedct_us-samples.txt", encode);
   }
 
   /**

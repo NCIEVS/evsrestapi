@@ -21,6 +21,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 /**
  * NCIt samples test.
  */
@@ -43,7 +46,8 @@ public class Icd10cmSampleTest extends SampleTest {
    */
   @BeforeClass
   public static void setupClass() throws Exception {
-    loadSamples("icd10cm", "src/test/resources/samples/icd10cm-samples.txt");
+    Charset encode = StandardCharsets.ISO_8859_1;
+    loadSamples("icd10cm", "src/test/resources/samples/icd10cm-samples.txt", encode);
   }
   
   /**
