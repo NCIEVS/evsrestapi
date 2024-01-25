@@ -105,6 +105,8 @@ dependencies {
 test {
     // Args to pass when running the tests to ensure the cglib can be accessed and avoid InaccessibleObjectException
     jvmArgs ('-Xmx8G', '--add-opens', 'java.base/java.lang=ALL-UNNAMED')
+    // Set the active profile to use our application-test.yml file from test resources
+    systemProperty("spring.profiles.active", "test")
     /*
      * Configure gradle to show standard out and standard error
      * of the test JVM(s) on the console
