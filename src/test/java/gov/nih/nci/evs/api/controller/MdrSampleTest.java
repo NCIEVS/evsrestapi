@@ -7,6 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
@@ -58,7 +60,8 @@ public class MdrSampleTest extends SampleTest {
    */
   @BeforeClass
   public static void setupClass() throws Exception {
-    loadSamples("mdr", "src/test/resources/samples/mdr-samples.txt");
+    Charset encode = StandardCharsets.US_ASCII;
+    loadSamples("mdr", "src/test/resources/samples/mdr-samples.txt", encode);
   }
 
   /**
