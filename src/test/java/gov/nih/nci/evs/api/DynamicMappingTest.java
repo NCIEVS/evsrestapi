@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api;
 import static org.junit.Assert.assertNotNull;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.controller.ConceptControllerTests;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
