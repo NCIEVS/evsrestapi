@@ -27,6 +27,7 @@ import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.UriType;
+import org.hl7.fhir.r4.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -174,6 +175,16 @@ public final class FhirUtilityR4 {
     cm.addGroup(group);
     cm.setUrl(group.getSourceElement().asStringValue() + "?fhir_vs=$" + mapset.getCode());
     return cm;
+  }
+
+  public static ValueSet toR4VS(Terminology term) {
+    ValueSet vs = new ValueSet();
+    return vs;
+  }
+
+  public static ValueSet toR4VS(Concept subset) {
+    ValueSet vs = new ValueSet();
+    return vs;
   }
 
   /**
