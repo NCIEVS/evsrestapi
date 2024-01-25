@@ -10,6 +10,9 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+
 /**
  * RadLex samples test.
  */
@@ -29,7 +32,8 @@ public class RadlexSampleTest extends SampleTest {
    */
   @BeforeClass
   public static void setupClass() throws Exception {
-    loadSamples("radlex", "src/test/resources/samples/radlex-samples.txt");
+    Charset encode = StandardCharsets.UTF_8;
+    loadSamples("radlex", "src/test/resources/samples/radlex-samples.txt", encode);
   }
 
 }
