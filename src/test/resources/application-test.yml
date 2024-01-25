@@ -1,3 +1,38 @@
+#
+# Spring Properties - copied from application-local to ensure our credentials aren't being pulled from
+# application.yml while running tests
+#
+spring:
+    #
+    # Application Properties
+    #
+    application:
+        name: nci-evs-api
+    #profiles:
+    #  include: metadata
+
+    #
+    # JSON Formatting Properties
+    #
+    jackson:
+        serialization:
+            INDENT_OUTPUT: true
+
+    # ehcache configuration
+    cache:
+        jcache:
+            config: classpath:ehcache.xml
+
+management:
+    endpoints:
+        web:
+            exposure:
+                include: heapdump,liquibase,loggers,prometheus,threaddump,info,metrics,health
+
+info:
+    app:
+        name: NCI EVS API
+        version: 1.0.0.RELEASE
 ---
 #
 # Test Properties
