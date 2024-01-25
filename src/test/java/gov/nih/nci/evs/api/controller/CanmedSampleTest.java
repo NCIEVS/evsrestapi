@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 import org.junit.BeforeClass;
@@ -53,7 +55,8 @@ public class CanmedSampleTest extends SampleTest {
    */
   @BeforeClass
   public static void setupClass() throws Exception {
-    loadSamples("canmed", "src/test/resources/samples/canmed-samples.txt");
+    Charset encode = StandardCharsets.US_ASCII;
+    loadSamples("canmed", "src/test/resources/samples/canmed-samples.txt", encode);
   }
 
   /**

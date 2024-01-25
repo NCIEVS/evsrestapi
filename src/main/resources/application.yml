@@ -2,24 +2,24 @@
 # Spring Properties
 #
 spring:
-    #
-    # Application Properties
-    #
-    application:
-        name: nci-evs-api
-    #profiles:
-    #  include: metadata
+  #
+  # Application Properties
+  #
+  application:
+    name: nci-evs-api
+  #profiles:
+  #  include: metadata
 
-    #
-    # JSON Formatting Properties
-    #
-    jackson:
-        serialization:
-            INDENT_OUTPUT: true
+  #
+  # JSON Formatting Properties
+  #
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
 
-    cache:
-        jcache:
-            config: classpath:ehcache.xml
+  cache:
+    jcache:
+      config: classpath:ehcache.xml
 
 management:
   endpoints:
@@ -31,29 +31,30 @@ management:
 # TODO: need to inject this into the application and use in VersionController, currently ignored
 #
 info:
-    app:
-        name: NCI EVS API
-        version: 1.1.2.RELEASE
+  app:
+    name: NCI EVS API
+    version: 1.1.2.RELEASE
 
 #
 # Logging Properties
 #
 logging:
-    level:
-        org.springframework: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK:WARN}
-        gov.nih.nci.evs.api: ${LOGGING_LEVEL_GOV_NIH_NCI_EVS_API:INFO}
-        org.springframework.data.elasticsearch.core: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
-        gov.nih.nci.evs.api.configuration.EVSElasticsearchRestTemplate: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
+  level:
+    org.springframework: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK:WARN}
+    gov.nih.nci.evs.api: ${LOGGING_LEVEL_GOV_NIH_NCI_EVS_API:INFO}
+    org.springframework.data.elasticsearch.core: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
+    gov.nih.nci.evs.api.configuration.EVSElasticsearchRestTemplate: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
 
 #
 # Server Properties
 #
 server:
-    port: ${EVS_SERVER_PORT:8080}
-    servlet:
-       context-path: /
-       session:
-        persistent: false
+  port: ${EVS_SERVER_PORT:8080}
+  servlet:
+    context-path: /
+    session:
+      persistent: false
+
 
 #
 # Application Properties
@@ -63,7 +64,7 @@ nci:
     application:
       adminKey: ${NCI_EVS_ADMIN_KEY:Default}
       contextPath: ${NCI_EVS_API_PATH:/api/v1}
-      metricsEnabled:   ${METRICS_ENABLED:false}
+      metricsEnabled: ${METRICS_ENABLED:false}
       metricsDir: ${METRICS_DIR}
       configBaseUri: ${CONFIG_BASE_URI:https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata}
       uiLicense: ${UI_LICENSE:ui-license}
@@ -93,7 +94,7 @@ nci:
 
 # Springdoc
 springdoc:
-    swagger-ui:
-        tagsSorter: alpha
-        operationsSorter: alpha
-        doc-expansion: none
+  swagger-ui:
+    tagsSorter: alpha
+    operationsSorter: alpha
+    doc-expansion: none
