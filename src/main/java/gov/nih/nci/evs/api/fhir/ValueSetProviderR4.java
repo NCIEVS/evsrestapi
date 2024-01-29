@@ -83,8 +83,14 @@ public class ValueSetProviderR4 implements IResourceProvider {
     @OperationParam(name = "activeOnly") BooleanType activeOnly) throws Exception {
 
     try {
-      return null;
+      ValueSet result = new ValueSet();
+      FhirUtilityR4.required("url", url);
+      if (url.contains("?fhir_vs=$")) {
 
+      } else {
+
+      }
+      return result;
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
@@ -116,7 +122,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Operation(name = "$expand", idempotent = true)
-  public ValueSet expandInstance(@IdParam IdType id,
+  public ValueSet expandInstance(@IdParam IdType id, @OperationParam(name = "url") String url,
     @OperationParam(name = "valueSetVersion") StringParam version,
     @OperationParam(name = "filter") String filter,
     @OperationParam(name = "offset") IntegerType offset,
@@ -126,8 +132,14 @@ public class ValueSetProviderR4 implements IResourceProvider {
   ) throws Exception {
 
     try {
-      return null;
+      ValueSet result = new ValueSet();
+      FhirUtilityR4.required("url", url);
+      if (url.contains("?fhir_vs=$")) {
 
+      } else {
+
+      }
+      return result;
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
