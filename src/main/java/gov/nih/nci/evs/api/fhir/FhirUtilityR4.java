@@ -179,11 +179,30 @@ public final class FhirUtilityR4 {
 
   public static ValueSet toR4VS(Terminology term) {
     ValueSet vs = new ValueSet();
+    vs.setId(term.getName() + "_" + term.getVersion());
+    vs.setName(term.getName());
+    vs.setVersion(term.getVersion());
+    vs.setTitle(term.getTerminology());
+    vs.setUrl(getUri(term.getTerminology()));
+    vs.setPublisher(getPublisher(term.getTerminology()));
+    vs.setExperimental(false);
+    vs.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    vs.setDescription(term.getDescription());
     return vs;
   }
 
   public static ValueSet toR4VS(Concept subset) {
     ValueSet vs = new ValueSet();
+    vs.setId(subset.getTerminology() + "_" + subset.getCode());
+    vs.setUrl(getUri(subset.getTerminology()) + "?fhir_vs=$" + subset.getCode());
+    vs.setName(subset.getName());
+    vs.setVersion(subset.getVersion());
+    vs.setTitle(subset.getCode());
+    vs.setPublisher(getPublisher(subset.getTerminology()));
+    vs.setDescription(
+        "Value set representing the " + subset.getTerminology() + " subset " + subset.getCode());
+    vs.setExperimental(false);
+    vs.setStatus(Enumerations.PublicationStatus.ACTIVE);
     return vs;
   }
 

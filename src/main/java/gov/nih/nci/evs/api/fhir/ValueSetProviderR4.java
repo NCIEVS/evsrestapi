@@ -274,60 +274,59 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
     final List<Terminology> terms = termUtils.getTerminologies(true);
 
-    final List<ValueSet> list = new ArrayList<>();
-    if (code.getValue() != null) {
-      for (final Terminology terminology : terms) {
-        final ValueSet vs = FhirUtilityR4.toR4VS(terminology);
-        // Skip non-matching
-        if (id != null && !id.getValue().equals(vs.getId())) {
-          logger.info("  SKIP id mismatch = " + vs.getUrl());
-          continue;
-        }
-        if (system != null && !system.getValue().equals(vs.getTitle())) {
-          logger.info("  SKIP system mismatch = " + vs.getTitle());
-          continue;
-        }
-        if (name != null && !name.getValue().equals(vs.getName())) {
-          logger.info("  SKIP name mismatch = " + vs.getName());
-          continue;
-        }
-        if (version != null && !FhirUtility.compareString(version, vs.getVersion())) {
-          logger.info("  SKIP version mismatch = " + vs.getVersion());
-          continue;
-        }
+    final List<ValueSet> list = new ArrayList<ValueSet>();
+    for (final Terminology terminology : terms) {
+      final ValueSet vs = FhirUtilityR4.toR4VS(terminology);
+      // Skip non-matching
+      if (id != null && !id.getValue().equals(vs.getId())) {
+        logger.info("  SKIP id mismatch = " + vs.getUrl());
+        continue;
+      }
+      if (system != null && !system.getValue().equals(vs.getTitle())) {
+        logger.info("  SKIP system mismatch = " + vs.getTitle());
+        continue;
+      }
+      if (name != null && !name.getValue().equals(vs.getName())) {
+        logger.info("  SKIP name mismatch = " + vs.getName());
+        continue;
+      }
+      if (version != null && !FhirUtility.compareString(version, vs.getVersion())) {
+        logger.info("  SKIP version mismatch = " + vs.getVersion());
+        continue;
+      }
 
-        list.add(vs);
+      list.add(vs);
+    }
+    logger.info("Hello");
+    final List<Concept> subsets =
+        metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.ofNullable(null));
+    final Set<String> codes = subsets.stream().flatMap(Concept::streamSelfAndChildren)
+        .map(c -> c.getCode()).collect(Collectors.toSet());
+    List<Concept> subsetsAsConcepts = queryService.getConcepts(codes,
+        termUtils.getTerminology("ncit", true), new IncludeParam("minimal"));
+    for (final Concept subset : subsetsAsConcepts) {
+      final ValueSet vs = FhirUtilityR4.toR4VS(subset);
+      // Skip non-matching
+      if (id != null && !id.getValue().equals(vs.getId())) {
+        logger.info("  SKIP id mismatch = " + vs.getUrl());
+        continue;
       }
-      final List<Concept> subsets =
-          metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.of(null));
-      final Set<String> codes = subsets.stream().flatMap(Concept::streamSelfAndChildren)
-          .map(c -> c.getCode()).collect(Collectors.toSet());
-      List<Concept> subsetsAsConcepts = queryService.getConcepts(codes,
-          termUtils.getTerminology("ncit", true), new IncludeParam("minimal"));
-      for (final Concept subset : subsetsAsConcepts) {
-        final ValueSet vs = FhirUtilityR4.toR4VS(subset);
-        // Skip non-matching
-        if (id != null && !id.getValue().equals(vs.getId())) {
-          logger.info("  SKIP id mismatch = " + vs.getUrl());
-          continue;
-        }
-        if (system != null && !system.getValue().equals(vs.getTitle())) {
-          logger.info("  SKIP system mismatch = " + vs.getTitle());
-          continue;
-        }
-        if (name != null && !name.getValue().equals(vs.getName())) {
-          logger.info("  SKIP name mismatch = " + vs.getName());
-          continue;
-        }
-        if (code != null && !code.getValue().equals(vs.getIdentifier())) {
-          logger.info("  SKIP code mismatch = " + vs.getIdentifier());
-          continue;
-        }
-        list.add(vs);
+      if (system != null && !system.getValue().equals(vs.getTitle())) {
+        logger.info("  SKIP system mismatch = " + vs.getTitle());
+        continue;
       }
+      if (name != null && !name.getValue().equals(vs.getName())) {
+        logger.info("  SKIP name mismatch = " + vs.getName());
+        continue;
+      }
+      if (code != null && !code.getValue().equals(vs.getIdentifier())) {
+        logger.info("  SKIP code mismatch = " + vs.getIdentifier());
+        continue;
+      }
+      list.add(vs);
     }
 
-    return null;
+    return list;
 
   }
 
