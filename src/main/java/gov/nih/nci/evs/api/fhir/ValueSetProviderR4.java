@@ -6,8 +6,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.IntegerType;
@@ -23,11 +21,9 @@ import ca.uhn.fhir.rest.annotation.IdParam;
 import ca.uhn.fhir.rest.annotation.Operation;
 import ca.uhn.fhir.rest.annotation.OperationParam;
 import ca.uhn.fhir.rest.annotation.OptionalParam;
-import ca.uhn.fhir.rest.annotation.ResourceParam;
 import ca.uhn.fhir.rest.annotation.Search;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
-import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -79,15 +75,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Operation(name = "$expand", idempotent = true)
-  public ValueSet expandImplicit(final HttpServletRequest request,
-    final ServletRequestDetails details, @ResourceParam String rawBody,
-    @OperationParam(name = "url") String url,
+  public ValueSet expandImplicit(@OperationParam(name = "url") String url,
     @OperationParam(name = "valueSetVersion") StringParam version,
     @OperationParam(name = "filter") String filter,
     @OperationParam(name = "offset") IntegerType offset,
     @OperationParam(name = "count") IntegerType count,
-    @OperationParam(name = "includeDesignations") BooleanType includeDesignationsType,
-    @OperationParam(name = "designation") Set<String> designations,
     @OperationParam(name = "activeOnly") BooleanType activeOnly) throws Exception {
 
     try {
@@ -124,14 +116,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Operation(name = "$expand", idempotent = true)
-  public ValueSet expandInstance(final HttpServletRequest request,
-    final ServletRequestDetails details, @IdParam IdType id, @ResourceParam String rawBody,
+  public ValueSet expandInstance(@IdParam IdType id,
     @OperationParam(name = "valueSetVersion") StringParam version,
     @OperationParam(name = "filter") String filter,
     @OperationParam(name = "offset") IntegerType offset,
     @OperationParam(name = "count") IntegerType count,
-    @OperationParam(name = "includeDesignations") BooleanType includeDesignationsType,
-    @OperationParam(name = "designation") Set<String> designations,
     @OperationParam(name = "activeOnly") BooleanType activeOnly
 
   ) throws Exception {
