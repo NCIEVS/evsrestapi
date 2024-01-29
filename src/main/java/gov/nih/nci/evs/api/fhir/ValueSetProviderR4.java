@@ -297,7 +297,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
       list.add(vs);
     }
-    logger.info("Hello");
     final List<Concept> subsets =
         metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.ofNullable(null));
     final Set<String> codes = subsets.stream().flatMap(Concept::streamSelfAndChildren)
@@ -319,8 +318,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
         logger.info("  SKIP name mismatch = " + vs.getName());
         continue;
       }
-      if (code != null && !code.getValue().equals(vs.getIdentifier())) {
-        logger.info("  SKIP code mismatch = " + vs.getIdentifier());
+      if (code != null && !vs.getIdentifier().stream()
+          .filter(i -> i.getValue().equals(code.getValue())).findAny().isPresent()) {
+        logger.info("  SKIP code mismatch = " + vs.getTitle());
         continue;
       }
       list.add(vs);
