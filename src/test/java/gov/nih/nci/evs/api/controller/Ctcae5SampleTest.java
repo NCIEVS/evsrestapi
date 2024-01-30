@@ -76,10 +76,12 @@ public class Ctcae5SampleTest extends SampleTest {
 
     final List<Terminology> terminologies =
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
         });
     assertThat(terminologies.size()).isGreaterThan(0);
     assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ctcae5")).count()).isEqualTo(1);
-    final Terminology terminology = terminologies.stream().filter(t -> t.getTerminology().equals("ctcae5")).findFirst().get();
+    final Terminology terminology =
+        terminologies.stream().filter(t -> t.getTerminology().equals("ctcae5")).findFirst().get();
     assertThat(terminology.getTerminology()).isEqualTo("ctcae5");
     assertThat(terminology.getMetadata().getUiLabel()).isEqualTo("CTCAE 5");
     assertThat(terminology.getName()).isEqualTo("CTCAE 5 5");

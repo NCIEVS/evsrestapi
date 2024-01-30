@@ -65,6 +65,11 @@ public class SubsetControllerTests {
     baseUrl = "/api/v1/";
   }
 
+  /**
+   * Test include subsets.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testIncludeSubsets() throws Exception {
 
@@ -115,9 +120,8 @@ public class SubsetControllerTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-    assertThat(
-        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
-            .isGreaterThan(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
+        .isGreaterThan(0);
 
     // /subset - properties
     url = baseUrl + "subset/ncit/C167405?include=properties";
@@ -143,9 +147,8 @@ public class SubsetControllerTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-    assertThat(
-        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
-            .isGreaterThan(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
+        .isGreaterThan(0);
 
     // /subset - synonyms,properties
     url = baseUrl + "subset/ncit/C167405?include=synonyms,properties";
@@ -172,9 +175,8 @@ public class SubsetControllerTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-    assertThat(
-        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
-            .isGreaterThan(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
+        .isGreaterThan(0);
 
   }
 
@@ -183,6 +185,7 @@ public class SubsetControllerTests {
    *
    * @throws Exception the exception
    */
+  @SuppressWarnings("null")
   @Test
   public void testTopLevelSubsetSearch() throws Exception {
     String url = baseUrl + "subset/ncit?include=properties";
@@ -194,12 +197,12 @@ public class SubsetControllerTests {
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
       // n/a
     });
-    assertThat(list != null && list.size() > 0).isTrue();
+    assertThat(list != null).isTrue();
+    assertThat(list.size() > 0).isTrue();
     // No subsets or children should have Publish_Value_Set set to something other than "Yes".
     assertThat(list.stream().flatMap(Concept::streamSelfAndChildren)
         .filter(c -> c.getProperties().stream()
-            .filter(p -> p.getType().equals("Publish_Value_Set") && !p.getValue().equals("Yes"))
-            .count() > 0)
+            .filter(p -> p.getType().equals("Publish_Value_Set") && !p.getValue().equals("Yes")).count() > 0)
         .count()).isEqualTo(0);
 
   }

@@ -65,21 +65,18 @@ public class NcitSampleTest extends SampleTest {
     // test if mdr term exists
     url = "/api/v1/metadata/terminologies";
     log.info("Testing url - " + url);
-    result = testMvc
-        .perform(
-            get(url).param("latest", "true").param("tag", "monthly").param("terminology", "ncit"))
+    result = testMvc.perform(get(url).param("latest", "true").param("tag", "monthly").param("terminology", "ncit"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
 
     final List<Terminology> terminologies =
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
         });
     assertThat(terminologies.size()).isGreaterThan(0);
-    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).count())
-        .isEqualTo(1);
-    final Terminology ncit =
-        terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).count()).isEqualTo(1);
+    final Terminology ncit = terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
     assertThat(ncit.getTerminology()).isEqualTo("ncit");
     assertThat(ncit.getMetadata().getUiLabel()).isEqualTo("NCI Thesaurus");
     assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 21.06e");
@@ -92,8 +89,7 @@ public class NcitSampleTest extends SampleTest {
         .isEqualTo("NCI Thesaurus, a controlled vocabulary in support of NCI administrative and "
             + "scientific activities. Produced by the Enterprise Vocabulary System (EVS), "
             + "a project by the NCI Center for Biomedical Informatics and Information "
-            + "Technology. National Cancer Institute, National Institutes of Health, "
-            + "Bethesda, MD 20892, U.S.A.");
+            + "Technology. National Cancer Institute, National Institutes of Health, " + "Bethesda, MD 20892, U.S.A.");
 
     assertThat(ncit.getLatest()).isTrue();
   }
@@ -112,21 +108,18 @@ public class NcitSampleTest extends SampleTest {
     // test if mdr term exists
     url = "/api/v1/metadata/terminologies";
     log.info("Testing url - " + url);
-    result = testMvc
-        .perform(
-            get(url).param("latest", "true").param("tag", "weekly").param("terminology", "ncit"))
+    result = testMvc.perform(get(url).param("latest", "true").param("tag", "weekly").param("terminology", "ncit"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
 
     final List<Terminology> terminologies =
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
         });
     assertThat(terminologies.size()).isGreaterThan(0);
-    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).count())
-        .isEqualTo(1);
-    final Terminology ncit =
-        terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).count()).isEqualTo(1);
+    final Terminology ncit = terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
     assertThat(ncit.getTerminology()).isEqualTo("ncit");
     assertThat(ncit.getMetadata().getUiLabel()).isEqualTo("NCI Thesaurus");
     assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 21.07a");
@@ -139,8 +132,7 @@ public class NcitSampleTest extends SampleTest {
         .isEqualTo("NCI Thesaurus, a controlled vocabulary in support of NCI administrative and "
             + "scientific activities. Produced by the Enterprise Vocabulary System (EVS), "
             + "a project by the NCI Center for Biomedical Informatics and Information "
-            + "Technology. National Cancer Institute, National Institutes of Health, "
-            + "Bethesda, MD 20892, U.S.A.");
+            + "Technology. National Cancer Institute, National Institutes of Health, " + "Bethesda, MD 20892, U.S.A.");
 
     assertThat(ncit.getLatest()).isTrue();
   }
@@ -192,10 +184,9 @@ public class NcitSampleTest extends SampleTest {
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    List<Terminology> list =
-        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
-          // n/a
-        });
+    List<Terminology> list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
+    });
     assertThat(list).isNotEmpty();
     Terminology term = list.get(0);
     assertThat(term.getMetadata().getConceptStatuses()).isNotEmpty();

@@ -60,19 +60,18 @@ public class GoSampleTest extends SampleTest {
 
     url = "/api/v1/metadata/terminologies";
     log.info("Testing url - " + url);
-    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "go"))
-        .andExpect(status().isOk()).andReturn();
+    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "go")).andExpect(status().isOk())
+        .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
 
     final List<Terminology> terminologies =
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
         });
     assertThat(terminologies.size()).isGreaterThan(0);
-    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("go")).count())
-        .isEqualTo(1);
-    final Terminology go =
-        terminologies.stream().filter(t -> t.getTerminology().equals("go")).findFirst().get();
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("go")).count()).isEqualTo(1);
+    final Terminology go = terminologies.stream().filter(t -> t.getTerminology().equals("go")).findFirst().get();
     assertThat(go.getTerminology()).isEqualTo("go");
     assertThat(go.getMetadata().getUiLabel()).isEqualTo("GO: Gene Ontology");
     assertThat(go.getName()).isEqualTo("GO: Gene Ontology 2022-07-01");
@@ -86,7 +85,7 @@ public class GoSampleTest extends SampleTest {
 
     assertThat(go.getLatest()).isTrue();
   }
-  
+
   /**
    * Test concept active status.
    *
@@ -94,7 +93,7 @@ public class GoSampleTest extends SampleTest {
    */
   @Test
   public void testActive() throws Exception {
-      
+
     String url = null;
     MvcResult result = null;
     String content = null;

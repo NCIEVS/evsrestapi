@@ -21,7 +21,6 @@ import org.springframework.web.client.RestTemplate;
 public class RESTUtils {
 
   /** The Constant log. */
-  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(RESTUtils.class);
 
   /** The username. */
@@ -73,8 +72,7 @@ public class RESTUtils {
     try {
       RestTemplate restTemplate = new RestTemplate();
       restTemplate.getInterceptors().add(new BasicAuthenticationInterceptor(username, password));
-      restTemplate.getMessageConverters().add(0,
-          new StringHttpMessageConverter(Charset.forName("UTF-8")));
+      restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
       MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
       body.add("query", query);
       HttpHeaders headers = new HttpHeaders();

@@ -5,6 +5,7 @@ import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -75,8 +76,7 @@ public class ConceptControllerExtensionTests {
    */
   @Test
   public void testBroadCategorySet() throws Exception {
-    testHelper("extensions-test-broad-category-set.txt",
-        "extensions-test-broad-category-result.txt");
+    testHelper("extensions-test-broad-category-set.txt", "extensions-test-broad-category-result.txt");
   }
 
   /**
@@ -100,8 +100,7 @@ public class ConceptControllerExtensionTests {
   }
 
   /**
-   * Test full set. This doesn't need to be kept around as an actively running
-   * test The other tests are sufficient.
+   * Test full set. This doesn't need to be kept around as an actively running test The other tests are sufficient.
    * @throws Exception the exception
    */
   // @Test
@@ -124,23 +123,24 @@ public class ConceptControllerExtensionTests {
     final Map<String, String> map = new HashMap<>();
     final ObjectMapper mapper = new ObjectMapper();
     int ct = 0;
-    for (final String code : IOUtils
-        .readLines(getClass().getClassLoader().getResourceAsStream(codeSetPath), "UTF-8")) {
-      url = baseUrl + "/ncit/" + code + "?include=extensions";
-      result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-      content = result.getResponse().getContentAsString();
-      concept = new ObjectMapper().readValue(content, Concept.class);
-      // For comparing main menu ancestors, null all concept fields in paths
-      // except for the codes
-      concept.getExtensions().getMainMenuAncestors().stream().flatMap(p -> p.getPaths().stream())
-          .flatMap(p -> p.getConcepts().stream()).peek(c -> c.setName(null))
-          .peek(c -> c.setTerminology(null)).peek(c -> c.setLevel(null))
-          .peek(c -> c.setVersion(null)).collect(Collectors.toList());
-      final String pretty = mapper.writerWithDefaultPrettyPrinter()
-          .writeValueAsString(concept.getExtensions()).replaceAll("\r", "") + "\n";
-      map.put(code, pretty);
-      if (++ct % 1000 == 0) {
-        log.info("  count = " + ct);
+    try (final InputStream is = getClass().getClassLoader().getResourceAsStream(codeSetPath)) {
+      for (final String code : IOUtils.readLines(is, "UTF-8")) {
+        url = baseUrl + "/ncit/" + code + "?include=extensions";
+        result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+        content = result.getResponse().getContentAsString();
+        concept = new ObjectMapper().readValue(content, Concept.class);
+        // For comparing main menu ancestors, null all concept fields in paths
+        // except for the codes
+        concept.getExtensions().getMainMenuAncestors().stream().flatMap(p -> p.getPaths().stream())
+            .flatMap(p -> p.getConcepts().stream()).peek(c -> c.setName(null)).peek(c -> c.setTerminology(null))
+            .peek(c -> c.setLevel(null)).peek(c -> c.setVersion(null)).collect(Collectors.toList());
+        final String pretty =
+            mapper.writerWithDefaultPrettyPrinter().writeValueAsString(concept.getExtensions()).replaceAll("\r", "")
+                + "\n";
+        map.put(code, pretty);
+        if (++ct % 1000 == 0) {
+          log.info("  count = " + ct);
+        }
       }
     }
 
@@ -170,8 +170,7 @@ public class ConceptControllerExtensionTests {
       sb.append("\n");
       boolean match = true;
       for (final String field : new String[] {
-          "isDisease", "isDiseaseGrade", "isDiseaseStage", "isMainType", "isSubtype", "isBiomarker",
-          "isReferenceGene"
+          "isDisease", "isDiseaseGrade", "isDiseaseStage", "isMainType", "isSubtype", "isBiomarker", "isReferenceGene"
       }) {
         final String val = node.get(field) == null ? "null" : node.get(field).asText();
         final String cmpVal = cmpNode.get(field) == null ? "null" : cmpNode.get(field).asText();
@@ -189,12 +188,11 @@ public class ConceptControllerExtensionTests {
       final String val = node.get(field) == null ? "null" : node.get(field).asText();
       final String cmpVal = cmpNode.get(field) == null ? "null" : cmpNode.get(field).asText();
       if (!val.equals(cmpVal)) {
-        final String pretty = mapper.writerWithDefaultPrettyPrinter()
-            .writeValueAsString(node.get("mainMenuAncestors"));
-        final String cmpPretty = mapper.writerWithDefaultPrettyPrinter()
-            .writeValueAsString(cmpNode.get("mainMenuAncestors"));
-        sb.append("  MISMATCH mainMenuAncestors = \n").append("<<< map\n").append(pretty)
-            .append(">>> cmpMap\n").append(cmpPretty).append("\n");
+        final String pretty = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(node.get("mainMenuAncestors"));
+        final String cmpPretty =
+            mapper.writerWithDefaultPrettyPrinter().writeValueAsString(cmpNode.get("mainMenuAncestors"));
+        sb.append("  MISMATCH mainMenuAncestors = \n").append("<<< map\n").append(pretty).append(">>> cmpMap\n")
+            .append(cmpPretty).append("\n");
         match = false;
       }
       if (!match) {
@@ -223,26 +221,27 @@ public class ConceptControllerExtensionTests {
    */
   private Map<String, String> getResults(final String path) throws Exception {
     final Map<String, String> map = new HashMap<>();
-    final List<String> lines =
-        IOUtils.readLines(getClass().getClassLoader().getResourceAsStream(path), "UTF-8");
-    String code = null;
-    StringBuilder result = new StringBuilder();
-    for (final String line : lines) {
-      if (line.matches("^CONCEPT .*")) {
-        // Add prior result
-        if (code != null) {
-          map.put(code, result.toString());
-          result = new StringBuilder();
+    try (final InputStream is = getClass().getClassLoader().getResourceAsStream(path)) {
+      final List<String> lines = IOUtils.readLines(is, "UTF-8");
+      String code = null;
+      StringBuilder result = new StringBuilder();
+      for (final String line : lines) {
+        if (line.matches("^CONCEPT .*")) {
+          // Add prior result
+          if (code != null) {
+            map.put(code, result.toString());
+            result = new StringBuilder();
+          }
+          code = line.replaceFirst("CONCEPT ", "");
+          continue;
         }
-        code = line.replaceFirst("CONCEPT ", "");
-        continue;
+        result.append(line).append("\n");
       }
-      result.append(line).append("\n");
-    }
-    // Put the final case
-    map.put(code, result.toString());
+      // Put the final case
+      map.put(code, result.toString());
 
-    return map;
+      return map;
+    }
   }
 
   // // For testing computation of extensions - no longer needed

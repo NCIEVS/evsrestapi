@@ -1104,6 +1104,11 @@ public class MetadataControllerTests {
     }
   }
 
+  /**
+   * Test mutually exclusive.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testMutuallyExclusive() throws Exception {
 
@@ -1187,18 +1192,21 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url).param("terminology", "ncit")).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies != null && terminologies.size() == 2).isTrue();
 
     result = mvc.perform(get(url).param("terminology", "ncim")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies != null && terminologies.size() == 1).isTrue();
 
     result = mvc.perform(get(url).param("latest", "true")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isGreaterThan(10);
@@ -1206,6 +1214,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url).param("latest", "false")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(0);
@@ -1213,6 +1222,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url).param("tag", "monthly")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(1);
@@ -1220,6 +1230,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url).param("tag", "weekly")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(1);
@@ -1228,6 +1239,7 @@ public class MetadataControllerTests {
         .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(2);
@@ -1236,6 +1248,7 @@ public class MetadataControllerTests {
         .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualByComparingTo(0);
@@ -1244,6 +1257,7 @@ public class MetadataControllerTests {
         .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(1);
@@ -1252,6 +1266,7 @@ public class MetadataControllerTests {
         .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(1);
@@ -1260,6 +1275,7 @@ public class MetadataControllerTests {
         mvc.perform(get(url).param("latest", "true").param("tag", "monthly")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(1);
@@ -1268,6 +1284,7 @@ public class MetadataControllerTests {
         mvc.perform(get(url).param("latest", "true").param("tag", "weekly")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(1);
@@ -1276,6 +1293,7 @@ public class MetadataControllerTests {
         mvc.perform(get(url).param("latest", "false").param("tag", "monthly")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(0);
@@ -1284,6 +1302,7 @@ public class MetadataControllerTests {
         mvc.perform(get(url).param("latest", "false").param("tag", "weekly")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(0);
@@ -1292,6 +1311,7 @@ public class MetadataControllerTests {
         .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(1);
@@ -1300,6 +1320,7 @@ public class MetadataControllerTests {
         .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(0);
@@ -1308,6 +1329,7 @@ public class MetadataControllerTests {
         .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(0);
@@ -1316,6 +1338,7 @@ public class MetadataControllerTests {
         .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(0);
@@ -1324,6 +1347,7 @@ public class MetadataControllerTests {
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(1);
@@ -1332,6 +1356,7 @@ public class MetadataControllerTests {
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(1);
@@ -1340,6 +1365,7 @@ public class MetadataControllerTests {
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(0);
@@ -1348,6 +1374,7 @@ public class MetadataControllerTests {
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(0);
@@ -1356,6 +1383,7 @@ public class MetadataControllerTests {
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(0);
@@ -1364,6 +1392,7 @@ public class MetadataControllerTests {
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(0);
@@ -1372,6 +1401,7 @@ public class MetadataControllerTests {
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(0);
@@ -1380,6 +1410,7 @@ public class MetadataControllerTests {
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(0);
@@ -1387,6 +1418,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(16);
@@ -1394,7 +1426,7 @@ public class MetadataControllerTests {
   }
 
   /**
-   * Test terminology versions
+   * Test terminology versions.
    *
    * @throws Exception the exception
    */
@@ -1408,6 +1440,7 @@ public class MetadataControllerTests {
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     Terminology terminology = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     }).get(0);
     String weeklyTerm = terminology.getTerminologyVersion();
     String baseWeeklyUrl = url + weeklyTerm;
@@ -1499,7 +1532,7 @@ public class MetadataControllerTests {
   }
 
   /**
-   * Test terminology versions
+   * Test terminology versions.
    *
    * @throws Exception the exception
    */

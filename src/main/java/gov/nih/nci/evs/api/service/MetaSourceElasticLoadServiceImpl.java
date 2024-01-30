@@ -47,9 +47,7 @@ import gov.nih.nci.evs.api.util.RrfReaders;
 public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
   /** the logger *. */
-  @SuppressWarnings("unused")
-  private static final Logger logger =
-      LoggerFactory.getLogger(MetaSourceElasticLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(MetaSourceElasticLoadServiceImpl.class);
 
   /** the concepts download location *. */
   @Value("${nci.evs.bulkload.conceptsDir}")
@@ -98,7 +96,6 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   private Map<String, Concept> codeConceptMap = new HashMap<>();
 
   /** The mapsets. */
-  @SuppressWarnings("unused")
   private Map<String, String> mapsets = new HashMap<>();
 
   /** The maps. */
@@ -193,8 +190,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         final PushBackReader mrcols = readers.getReader(RrfReaders.Keys.MRCOLS);) {
 
       if (terminology.getMetadata().getPreferredTermTypes().isEmpty()) {
-        throw new Exception(
-            "No preferred term types are specified, meaning no preferred names can be chosen");
+        throw new Exception("No preferred term types are specified, meaning no preferred names can be chosen");
       }
 
       String line = null;
@@ -228,8 +224,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           // If the new rank is lower than the previously assigned rank
           // or we've never assigned a name, assign the name
           // Lower index in preferred term types is better rank
-          if (!nameRankMap.containsKey(code)
-              || (nameRankMap.containsKey(code) && rank < nameRankMap.get(code))) {
+          if (!nameRankMap.containsKey(code) || (nameRankMap.containsKey(code) && rank < nameRankMap.get(code))) {
             nameMap.put(code, fields[14]);
             nameRankMap.put(code, rank);
           }
@@ -249,8 +244,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         }
 
         // Cache mapsets
-        if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("XM")
-            && fields[14].contains("ICD10")) {
+        if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("XM") && fields[14].contains("ICD10")) {
           // |SNOMEDCT_US_2020_09_01 to ICD10CM_2021 Mappings
           // |SNOMEDCT_US_2022_03_01 to ICD10_2016 Mappings
           mapsets.put(fields[0], fields[14].replaceFirst(".* to ([^ ]+).*", "$1"));
@@ -405,8 +399,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           // C4229995|A5970983|AUI|PAR|C4229995|A5963886|AUI||R91875256||MDR|MDR|||N||
           final String key = fields[1] + fields[5] + fields[3] + fields[7];
           helper.put(key, fields[8]);
-          final String key2 =
-              fields[5] + fields[1] + relInverseMap.get(fields[3]) + relaInverseMap.get(fields[7]);
+          final String key2 = fields[5] + fields[1] + relInverseMap.get(fields[3]) + relaInverseMap.get(fields[7]);
           if (helper.containsKey(key2)) {
             ruiInverseMap.put(fields[8], helper.get(key2));
             ruiInverseMap.put(helper.get(key2), fields[8]);
@@ -439,13 +432,12 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public int loadConcepts(ElasticLoadConfig config, Terminology terminology,
-    HierarchyUtils hierarchy) throws Exception {
+  public int loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+    throws Exception {
     logger.info("Loading Concepts (index batch size = " + INDEX_BATCH_SIZE + ")");
 
     // Put the mapping
-    boolean result =
-        operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
+    boolean result = operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
     if (result) {
       operationsService.getElasticsearchOperations().putMapping(terminology.getIndexName(),
           ElasticOperationsService.CONCEPT_TYPE, Concept.class);
@@ -566,9 +558,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
             concept.setVersion(terminology.getVersion());
             concept.setActive(true);
             if (concept.getName() == null) {
-              throw new Exception(
-                  "Unable to find preferred name, likely TTY issue (" + terminology.getTerminology()
-                      + ".json) = " + terminology.getTerminology().toUpperCase() + ", " + code);
+              throw new Exception("Unable to find preferred name, likely TTY issue (" + terminology.getTerminology()
+                  + ".json) = " + terminology.getTerminology().toUpperCase() + ", " + code);
             }
             codeConceptMap.put(code, concept);
           }
@@ -615,8 +606,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
           } else {
             // If not, then something went wrong, should not be possible
-            throw new Exception(
-                "Unexpected additional CUIs for code not covered = " + codeCuisMap.get(code));
+            throw new Exception("Unexpected additional CUIs for code not covered = " + codeCuisMap.get(code));
           }
         }
       }
@@ -648,15 +638,14 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @param fields the fields
    * @throws Exception the exception
    */
-  public void addSynonym(final Terminology terminology, Concept concept, final String[] fields)
-    throws Exception {
+  public void addSynonym(final Terminology terminology, Concept concept, final String[] fields) throws Exception {
     // Each line of MRCONSO is a synonym
     final Synonym sy = new Synonym();
     // Put the AUI into the URI field for the time being (to be removed later)
     sy.setUri(fields[7]);
-    sy.setType(fields[14].equals(concept.getName())
-        && terminology.getMetadata().getPreferredTermTypes().contains(fields[12]) ? "Preferred_Name"
-            : "Synonym");
+    sy.setType(
+        fields[14].equals(concept.getName()) && terminology.getMetadata().getPreferredTermTypes().contains(fields[12])
+            ? "Preferred_Name" : "Synonym");
     if (!concept.getCode().equals(fields[13])) {
       sy.setCode(fields[13]);
     }
@@ -685,8 +674,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  public void handleSemanticTypes(final Set<String> codes, final PushBackReader mrsty,
-    final String prevCui) throws Exception {
+  public void handleSemanticTypes(final Set<String> codes, final PushBackReader mrsty, final String prevCui)
+    throws Exception {
     String line;
     Set<String> seen = new HashSet<>(4);
     while ((line = mrsty.readLine()) != null) {
@@ -719,8 +708,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  public void handleAttributes(final Terminology terminology, final Set<String> codes,
-    final PushBackReader mrsat, final String prevCui) throws Exception {
+  public void handleAttributes(final Terminology terminology, final Set<String> codes, final PushBackReader mrsat,
+    final String prevCui) throws Exception {
 
     // Track seen to avoid duplicates
     final Set<String> seen = new HashSet<>();
@@ -774,8 +763,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           qualMap.get(atn).add(atv);
 
           // find synonym
-          final Synonym syn = concept.getSynonyms().stream()
-              .filter(s -> s.getUri().equals(fields[3])).findFirst().orElse(null);
+          final Synonym syn =
+              concept.getSynonyms().stream().filter(s -> s.getUri().equals(fields[3])).findFirst().orElse(null);
           if (syn == null) {
             throw new Exception("Synonym for attribute cannot be resolved = " + line);
           }
@@ -810,8 +799,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @param source the source
    * @return the property
    */
-  private void buildProperty(final Concept concept, final String type, final String value,
-    final String source) {
+  private void buildProperty(final Concept concept, final String type, final String value, final String source) {
     final Property prop = new Property();
     prop.setValue(value);
     prop.setType(type);
@@ -821,8 +809,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     }
     // Skip if STY exists already
     if (type.equals("Semantic_Type") && !concept.getProperties().stream()
-        .filter(p -> p.getType().equals("Semantic_Type") && p.getValue().equals(value)).findFirst()
-        .isEmpty()) {
+        .filter(p -> p.getType().equals("Semantic_Type") && p.getValue().equals(value)).findFirst().isEmpty()) {
       return;
     }
 
@@ -838,8 +825,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @param prevCui the prev cui
    * @throws Exception the exception
    */
-  private void handleDefinitions(final Terminology terminology, final Set<String> codes,
-    final PushBackReader mrdef, final String prevCui) throws Exception {
+  private void handleDefinitions(final Terminology terminology, final Set<String> codes, final PushBackReader mrdef,
+    final String prevCui) throws Exception {
     String line;
 
     // CUI,AUI,ATUI,SATUI,SAB,DEF,SUPPRESS,CVF
@@ -876,8 +863,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @param fields the fields
    * @return the definition
    */
-  private void buildDefinition(final Terminology terminology, final Concept concept,
-    final String[] fields) {
+  private void buildDefinition(final Terminology terminology, final Concept concept, final String[] fields) {
     final String definition = fields[5];
     final String source = fields[4];
 
@@ -928,8 +914,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       final String rela = fields[7];
 
       // Skip certain situations
-      if (rel.equals("SY") || rel.equals("AQ") || rel.equals("QB") || rel.equals("BRO")
-          || rel.equals("BRN") || rel.equals("BRB") || rel.equals("XR")) {
+      if (rel.equals("SY") || rel.equals("AQ") || rel.equals("QB") || rel.equals("BRO") || rel.equals("BRN")
+          || rel.equals("BRB") || rel.equals("XR")) {
         continue;
       }
 
@@ -950,8 +936,13 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       }
 
       // This is unexpected, except for cross-terminology mapping rels
-      if (concept1 == null && !rela.contains("map")) {
-        throw new Exception("AUI1 for relationship cannot be resolved = " + line);
+      if (concept1 == null) {
+        if (rela.contains("map")) {
+          // Skip if missing
+          continue;
+        } else {
+          throw new Exception("AUI1 for relationship cannot be resolved = " + line);
+        }
       }
 
       // Determine concept2 (lookup the code for the AUI)
@@ -1017,8 +1008,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @param fields the fields
    * @throws Exception the exception
    */
-  private void buildChild(HierarchyUtils hierarchy, Concept concept, final String[] fields)
-    throws Exception {
+  private void buildChild(HierarchyUtils hierarchy, Concept concept, final String[] fields) throws Exception {
     final Concept child = buildParentChildHelper(concept, fields);
     if (!concept.getCode().equals(child.getCode())) {
       concept.getChildren().add(child);
@@ -1035,8 +1025,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @return the concept
    * @throws Exception the exception
    */
-  private Concept buildParentChildHelper(final Concept concept, final String[] fields)
-    throws Exception {
+  private Concept buildParentChildHelper(final Concept concept, final String[] fields) throws Exception {
 
     // C2584594|A9570455|SCUI|PAR|C0203464|A3803453|SCUI|inverse_isa|R105418833|4727926024|SNOMEDCT_US|SNOMEDCT_US||N|N||
     final String aui2 = fields[5];
@@ -1085,8 +1074,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     if (ruiQualMap.containsKey(inverseRui)) {
       for (final String atnatv : ruiQualMap.get(inverseRui)) {
         final String[] parts = atnatv.split("\\|");
-        association.getQualifiers()
-            .add(new Qualifier(parts[0], ConceptUtils.substr(parts[1], 1000)));
+        association.getQualifiers().add(new Qualifier(parts[0], ConceptUtils.substr(parts[1], 1000)));
       }
     }
 
@@ -1111,8 +1099,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     if (ruiQualMap.containsKey(inverseRui)) {
       for (final String atnatv : ruiQualMap.get(inverseRui)) {
         final String[] parts = atnatv.split("\\|");
-        iassociation.getQualifiers()
-            .add(new Qualifier(parts[0], ConceptUtils.substr(parts[1], 1000)));
+        iassociation.getQualifiers().add(new Qualifier(parts[0], ConceptUtils.substr(parts[1], 1000)));
       }
       ruiQualMap.remove(inverseRui);
       ruiInverseMap.remove(fields[8]);
@@ -1133,8 +1120,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @param name the name
    * @return the concept
    */
-  private Concept buildMetadata(final Terminology terminology, final String code,
-    final String name) {
+  private Concept buildMetadata(final Terminology terminology, final String code, final String name) {
     final Concept propMeta = new Concept();
     propMeta.setCode(code);
     propMeta.setName(code);
@@ -1158,8 +1144,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public void loadObjects(ElasticLoadConfig config, Terminology terminology,
-    HierarchyUtils hierarchy) throws Exception {
+  public void loadObjects(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+    throws Exception {
 
     final String indexName = terminology.getObjectIndexName();
 
@@ -1173,12 +1159,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     //
     // Handle hierarchy
     //
-    if (terminology.getMetadata().getHierarchy() != null
-        && terminology.getMetadata().getHierarchy()) {
+    if (terminology.getMetadata().getHierarchy() != null && terminology.getMetadata().getHierarchy()) {
       ElasticObject hierarchyObject = new ElasticObject("hierarchy");
       hierarchyObject.setHierarchy(hierarchy);
-      operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE,
-          ElasticObject.class);
+      operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
       logger.info("  Hierarchy loaded");
     } else {
       logger.info("  Hierarchy skipped");
@@ -1192,8 +1176,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     for (final String rel : relSet) {
       associations.getConcepts().add(buildMetadata(terminology, rel, relMap.get(rel)));
     }
-    operationsService.index(associations, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(associations, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     // Hanlde "concept statuses" - n/a
 
@@ -1209,8 +1192,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     if (definitionCt > 0) {
       defTypes.getConcepts().add(buildMetadata(terminology, "DEFINITION", "Definition"));
     }
-    operationsService.index(defTypes, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(defTypes, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //
     // Handle properties
@@ -1228,8 +1210,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       properties.getConcepts().add(buildMetadata(terminology, atn, atnMap.get(atn)));
     }
 
-    operationsService.index(properties, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(properties, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //
     // Handle qualifiers
@@ -1248,22 +1229,19 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       qualifiers.getConcepts().add(buildMetadata(terminology, qual, atnMap.get(qual)));
     }
     qualifiers.setMap(qualMap);
-    operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(qualifiers, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //
     // Handle roles - n/a
     //
     final ElasticObject roles = new ElasticObject("roles");
-    operationsService.index(roles, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(roles, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //
     // Handle subsets - n/a
     //
     final ElasticObject subsets = new ElasticObject("subsets");
-    operationsService.index(subsets, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(subsets, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //
     // Handle synonymSources - n/a - handled inline
@@ -1275,8 +1253,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     final ElasticObject syTypes = new ElasticObject("synonymTypes");
     syTypes.getConcepts().add(buildMetadata(terminology, "Preferred_Name", "Preferred name"));
     syTypes.getConcepts().add(buildMetadata(terminology, "Synonym", "Synonym"));
-    operationsService.index(syTypes, indexName, ElasticOperationsService.OBJECT_TYPE,
-        ElasticObject.class);
+    operationsService.index(syTypes, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
 
     //
     // Handle termTypes - n/a - handled inline
@@ -1294,8 +1271,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
 
-  private void handleConcept(Terminology terminology, Concept concept, List<Concept> batch,
-    boolean flag, String indexName) throws IOException {
+  private void handleConcept(Terminology terminology, Concept concept, List<Concept> batch, boolean flag,
+    String indexName) throws IOException {
 
     boolean hasActiveSynonyms = false;
 
@@ -1331,8 +1308,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     if (flag || batchSize > 9000000) {
       // Log the bytes and number of concepts
       logger.info("    BATCH index = " + batchSize + ", " + batch.size());
-      operationsService.bulkIndex(new ArrayList<>(batch), indexName,
-          ElasticOperationsService.CONCEPT_TYPE, Concept.class);
+      operationsService.bulkIndex(new ArrayList<>(batch), indexName, ElasticOperationsService.CONCEPT_TYPE,
+          Concept.class);
       batch.clear();
       batchSize = 0;
     }
@@ -1341,16 +1318,15 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config,
-    String filepath, String terminology, boolean forceDelete) throws Exception {
+  public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config, String filepath,
+    String terminology, boolean forceDelete) throws Exception {
     // will eventually read and build differently
     this.setFilepath(new File(filepath));
     if (!this.getFilepath().exists()) {
       throw new Exception("Given filepath does not exist = " + filepath);
     }
     try (InputStream input = new FileInputStream(this.getFilepath() + "/release.dat");
-        final BufferedReader in =
-            new BufferedReader(new FileReader(this.getFilepath() + "/MRSAB.RRF"));) {
+        final BufferedReader in = new BufferedReader(new FileReader(this.getFilepath() + "/MRSAB.RRF"));) {
 
       String line;
       Terminology term = new Terminology();
@@ -1365,10 +1341,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           term.setVersion(fields[6]);
           // No info about the date
           term.setDate(null);
-          if (line != null) {
-            // term.setName(line.split("\\|", -1)[4]);
-            term.setDescription(line.split("\\|", -1)[24]);
-          }
+          // term.setName(line.split("\\|", -1)[4]);
+          term.setDescription(line.split("\\|", -1)[24]);
+
           term.setGraph(null);
           term.setSource(null);
           term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());
@@ -1384,13 +1359,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       try {
         // Load from config
         final JsonNode node = getMetadataAsNode(terminology.toLowerCase());
-        final TerminologyMetadata metadata =
-            new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
+        final TerminologyMetadata metadata = new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
 
         // Set term name and description
         term.setName(metadata.getUiLabel() + " " + term.getVersion());
-        if (term.getDescription() == null
-            || term.getDescription().isEmpty() && node.get("description") != null) {
+        if (term.getDescription() == null || term.getDescription().isEmpty() && node.get("description") != null) {
           term.setDescription(node.get("description").asText());
         }
 
@@ -1401,8 +1374,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         term.setMetadata(metadata);
 
       } catch (Exception e) {
-        throw new Exception("Unexpected error trying to load metadata = "
-            + applicationProperties.getConfigBaseUri(), e);
+        throw new Exception("Unexpected error trying to load metadata = " + applicationProperties.getConfigBaseUri(),
+            e);
       }
 
       return term;
@@ -1448,8 +1421,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     } else if (terminology.getMetadata().getMetaConceptField().equals("SDUI")) {
       return fields[10];
     } else {
-      throw new Exception("Missing or incorrect metaConceptField = "
-          + terminology.getMetadata().getMetaConceptField());
+      throw new Exception("Missing or incorrect metaConceptField = " + terminology.getMetadata().getMetaConceptField());
     }
   }
 
@@ -1462,8 +1434,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
    * @return true, if successful
    */
   private boolean sabMatch(final String sab1, final String sab2) {
-    return sab1.toLowerCase().equals(sab2)
-        || (sab1.equals("SNOMEDCT_US") && sab2.equals("snomedct"));
+    return sab1.toLowerCase().equals(sab2) || (sab1.equals("SNOMEDCT_US") && sab2.equals("snomedct"));
   }
 
 }

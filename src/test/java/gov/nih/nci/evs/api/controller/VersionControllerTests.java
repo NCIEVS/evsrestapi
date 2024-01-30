@@ -95,6 +95,7 @@ public class VersionControllerTests {
    * @return the builds the gradle version
    * @throws Exception the exception
    */
+  @SuppressWarnings("resource")
   private String getBuildGradleVersion() throws Exception {
     final LineIterator iter = FileUtils.lineIterator(new File("build.gradle"), "UTF-8");
 

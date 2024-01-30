@@ -76,6 +76,7 @@ public class HgncSampleTest extends SampleTest {
 
     final List<Terminology> terminologies =
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
         });
     assertThat(terminologies.size()).isGreaterThan(0);
     assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("hgnc")).count()).isEqualTo(1);

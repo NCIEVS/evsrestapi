@@ -23,13 +23,15 @@ import gov.nih.nci.evs.api.util.ConceptUtils;
 public class ConceptUtilsTest {
 
   /** The logger. */
-  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ConceptUtilsTest.class);
 
   /** The test properties. */
   @Autowired
   TestProperties testProperties;
 
+  /**
+   * Test is code.
+   */
   @Test
   public void testIsCode() {
     assert (ConceptUtils.isCode(null) == false);
@@ -61,6 +63,9 @@ public class ConceptUtilsTest {
 
   }
 
+  /**
+   * Test normalize with stemming.
+   */
   @Test
   public void testNormalizeWithStemming() {
     // change working into asserts
