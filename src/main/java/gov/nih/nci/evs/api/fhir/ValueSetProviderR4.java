@@ -24,8 +24,11 @@ import ca.uhn.fhir.rest.annotation.OptionalParam;
 import ca.uhn.fhir.rest.annotation.Search;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
+import gov.nih.nci.evs.api.controller.SubsetController;
+import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
@@ -53,6 +56,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
   @Autowired
   MetadataService metadataService;
 
+  /** The subset controller. */
+  @Autowired
+  SubsetController subsetController;
+
   /* The terminology utils */
   @Autowired
   TerminologyUtils termUtils;
@@ -75,9 +82,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Operation(name = "$expand", idempotent = true)
-  public ValueSet expandImplicit(@OperationParam(name = "url") String url,
+  public ValueSet expandImplicit(@OperationParam(name = "url") StringParam url,
     @OperationParam(name = "valueSetVersion") StringParam version,
-    @OperationParam(name = "filter") String filter,
+    @OperationParam(name = "filter") StringParam filter,
     @OperationParam(name = "offset") IntegerType offset,
     @OperationParam(name = "count") IntegerType count,
     @OperationParam(name = "activeOnly") BooleanType activeOnly) throws Exception {
@@ -85,9 +92,38 @@ public class ValueSetProviderR4 implements IResourceProvider {
     try {
       ValueSet result = new ValueSet();
       FhirUtilityR4.required("url", url);
-      if (url.contains("?fhir_vs=$")) {
-
+      List<ValueSet> vsList = findValueSets(null, null, null, null, url, null);
+      if (vsList.size() == 0) {
+        throw FhirUtilityR4.exception("Value set " + url + " not found",
+            OperationOutcome.IssueType.EXCEPTION, 500);
+      }
+      ValueSet vs = vsList.get(0);
+      List<Concept> subsetMembers = new ArrayList<Concept>();
+      if (url.getValue().contains("?fhir_vs=$")) {
+        List<Association> invAssoc =
+            queryService.getConcept(vs.getTitle(), termUtils.getTerminology(vs.getTitle(), true),
+                new IncludeParam("inverseAssociations")).get().getInverseAssociations();
+        for (final Association assn : invAssoc) {
+          final Concept member = queryService.getConcept(assn.getRelatedCode(),
+              termUtils.getTerminology(vs.getTitle(), true), new IncludeParam("minimal"))
+              .orElse(null);
+          if (member != null) {
+            subsetMembers.add(member);
+          }
+        }
+        subsetMembers = subsetController.getSubsetMembers(vs.getTitle(),
+            Optional.ofNullable(offset.getValue()), Optional.ofNullable(count.getValue()),
+            filter.getValue(), Optional.ofNullable("minimal"));
       } else {
+        final List<Terminology> terminologies = new ArrayList<>();
+        terminologies.add(termUtils.getTerminology(vs.getTitle(), true));
+        SearchCriteria sc = new SearchCriteria();
+        sc.setPageSize(count != null ? count.getValue() : 10);
+        sc.setFromRecord(offset != null ? offset.getValue() : 0);
+        sc.setTerm(filter != null ? filter.getValue() : null);
+        subsetMembers = searchService.search(terminologies, sc).getConcepts();
+      }
+      for (Concept subset : subsetMembers) {
 
       }
       return result;
@@ -122,9 +158,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Operation(name = "$expand", idempotent = true)
-  public ValueSet expandInstance(@IdParam IdType id, @OperationParam(name = "url") String url,
+  public ValueSet expandInstance(@IdParam IdType id, @OperationParam(name = "url") StringParam url,
     @OperationParam(name = "valueSetVersion") StringParam version,
-    @OperationParam(name = "filter") String filter,
+    @OperationParam(name = "filter") StringParam filter,
     @OperationParam(name = "offset") IntegerType offset,
     @OperationParam(name = "count") IntegerType count,
     @OperationParam(name = "activeOnly") BooleanType activeOnly
@@ -134,9 +170,38 @@ public class ValueSetProviderR4 implements IResourceProvider {
     try {
       ValueSet result = new ValueSet();
       FhirUtilityR4.required("url", url);
-      if (url.contains("?fhir_vs=$")) {
-
+      List<ValueSet> vsList = findValueSets(id.getIdPart(), null, null, null, url, null);
+      if (vsList.size() == 0) {
+        throw FhirUtilityR4.exception("Value set " + url + " not found",
+            OperationOutcome.IssueType.EXCEPTION, 500);
+      }
+      ValueSet vs = vsList.get(0);
+      List<Concept> subsetMembers = new ArrayList<Concept>();
+      if (url.getValue().contains("?fhir_vs=$")) {
+        List<Association> invAssoc =
+            queryService.getConcept(vs.getTitle(), termUtils.getTerminology(vs.getTitle(), true),
+                new IncludeParam("inverseAssociations")).get().getInverseAssociations();
+        for (final Association assn : invAssoc) {
+          final Concept member = queryService.getConcept(assn.getRelatedCode(),
+              termUtils.getTerminology(vs.getTitle(), true), new IncludeParam("minimal"))
+              .orElse(null);
+          if (member != null) {
+            subsetMembers.add(member);
+          }
+        }
+        subsetMembers = subsetController.getSubsetMembers(vs.getTitle(),
+            Optional.ofNullable(offset.getValue()), Optional.ofNullable(count.getValue()),
+            filter.getValue(), Optional.ofNullable("minimal"));
       } else {
+        final List<Terminology> terminologies = new ArrayList<>();
+        terminologies.add(termUtils.getTerminology(vs.getTitle(), true));
+        SearchCriteria sc = new SearchCriteria();
+        sc.setPageSize(count != null ? count.getValue() : 10);
+        sc.setFromRecord(offset != null ? offset.getValue() : 0);
+        sc.setTerm(filter != null ? filter.getValue() : null);
+        subsetMembers = searchService.search(terminologies, sc).getConcepts();
+      }
+      for (Concept subset : subsetMembers) {
 
       }
       return result;
@@ -306,6 +371,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
           logger.info("  SKIP id mismatch = " + vs.getUrl());
           continue;
         }
+        if (url != null && !url.getValue().equals(vs.getUrl())) {
+          logger.info("  SKIP url mismatch = " + vs.getUrl());
+          continue;
+        }
         if (system != null && !system.getValue().equals(vs.getTitle())) {
           logger.info("  SKIP system mismatch = " + vs.getTitle());
           continue;
@@ -333,6 +402,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
       // Skip non-matching
       if (id != null && !id.equals(vs.getId())) {
         logger.info("  SKIP id mismatch = " + vs.getUrl());
+        continue;
+      }
+      if (url != null && !url.getValue().equals(vs.getUrl())) {
+        logger.info("  SKIP url mismatch = " + vs.getUrl());
         continue;
       }
       if (system != null && !system.getValue().equals(vs.getTitle())) {

@@ -183,7 +183,7 @@ public final class FhirUtilityR4 {
     vs.setId(term.getTerminology() + "_" + term.getVersion());
     vs.setName(term.getName());
     vs.setVersion(term.getVersion());
-    vs.setTitle(term.getName());
+    vs.setTitle(term.getTerminology());
     vs.setUrl(getUri(term.getTerminology()));
     vs.setPublisher(getPublisher(term.getTerminology()));
     vs.setExperimental(false);
@@ -198,7 +198,7 @@ public final class FhirUtilityR4 {
     vs.setUrl(getUri(subset.getTerminology()) + "?fhir_vs=$" + subset.getCode());
     vs.setName(subset.getName());
     vs.setVersion(subset.getVersion());
-    vs.setTitle(subset.getName());
+    vs.setTitle(subset.getTerminology());
     vs.setPublisher(getPublisher(subset.getTerminology()));
     vs.setDescription(
         "Value set representing the " + subset.getTerminology() + " subset " + subset.getCode());
