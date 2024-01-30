@@ -17,9 +17,6 @@ import org.apache.commons.codec.binary.Base64;
 import java.nio.charset.Charset;
 import java.time.Duration;
 
-
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -46,14 +43,16 @@ public class RESTUtils {
 		this.connectTimeout =  Duration.ofSeconds(connectTimeout);
 	}
 
-	public RESTUtils(String username, String password,long readTimeout, long connectTimeout) {
+	public RESTUtils(String username, String password, long readTimeout, long connectTimeout) {
 		this.username = username;
 		this.password = password;
 		this.readTimeout= Duration.ofSeconds(readTimeout);
 		this.connectTimeout =  Duration.ofSeconds(connectTimeout);
 	}
 
-	public String runSPARQL(String query, String restURL) {
+	public String runSPARQL(String restURL, String query) {
+		System.out.println("restURL: " + restURL);
+		System.out.println("query: " + query);
 		RestTemplate restTemplate = null;
 		if (username != null) {
 			restTemplate = new RestTemplateBuilder().
@@ -131,7 +130,7 @@ public class RESTUtils {
 	}
 
 	public static String loadQuery(String filename) {
-		return loadQuery(filename, true);
+		return loadQuery(filename, false);
 	}
 
 
@@ -154,10 +153,30 @@ public class RESTUtils {
 		return v;
 	}
 
-    public static void testServer(String serviceUrl) {
-		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl);
-		Vector v = owlSPARQLUtils.get_ontology_info();
-		Utils.dumpVector("get_ontology_info", v);
+    public static void main(String[] args) {
+		long ms = System.currentTimeMillis();
+		String restURL = args[0];
+		String queryfile = args[1];
+		String username = null;
+		String password = null;
+		String query = loadQuery(queryfile);
+		long readTimeout = 60000;
+		long connectTimeout = 60000;
+
+		RESTUtils restUtils =
+		  new RESTUtils(username, password, readTimeout, connectTimeout);
+
+		String json = restUtils.runSPARQL(restURL, query);
+		System.out.println(json);
+
+        //gov.nih.nci.evs.reportwriter.core.util.JSONUtils jsonUtils = new gov.nih.nci.evs.reportwriter.core.util.JSONUtils();
+        //gov.nih.nci.evs.restapi.util.JSONUtils jsonUtils = new gov.nih.nci.evs.restapi.util.JSONUtils();
+        JSONUtils jsonUtils = new JSONUtils();
+		Vector w = jsonUtils.parseJSON(json);
+        w = jsonUtils.getResponseValues(w);
+        Utils.dumpVector("w", w);
+
 	}
+
 }
 

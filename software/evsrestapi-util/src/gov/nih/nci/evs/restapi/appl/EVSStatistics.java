@@ -304,9 +304,10 @@ public class EVSStatistics {
 	}
 
     public void run(String queryfile) {
-		String query = loadQuery(queryfile);
-		boolean parsevalues = true;
-		Vector w = httpUtils.execute(serviceUrl, username, password, query, parsevalues);
+		String query = HTTPUtils.loadQuery(queryfile);
+		//boolean parsevalues = true;
+		//Vector w = httpUtils.execute(serviceUrl, username, password, query, parsevalues);
+		Vector w = HTTPUtils.runQuery(serviceUrl,  username, password, query);
 		if (w != null && w.size() > 0) {
 			int n = queryfile.lastIndexOf("_query");
 			if(n ==  -1) {

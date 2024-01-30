@@ -1,10 +1,12 @@
 package gov.nih.nci.evs.restapi.util;
 
-
 import gov.nih.nci.evs.restapi.bean.*;
+
+
 import java.io.*;
 import java.util.*;
 import org.json.*;
+//import gov.nih.nci.evs.reportwriter.core.model.evs.*;
 
 
 /**
@@ -246,44 +248,126 @@ public class JSONUtils {
 		return w;
 	}
 
-    public static String beautify(String input) {
-        int tabCount = 0;
 
-        StringBuilder inputBuilder = new StringBuilder();
-        char[] inputChar = input.toCharArray();
+	public Vector getResponseVariables(Vector v) {
+		if (v == null) return null;
+		Vector w = new Vector();
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = parseData(line, '|');
+			String var = (String) u.elementAt(0);
+			if (!w.contains(var)) {
+				w.add(var);
+			}
+		}
+		return w;
+	}
 
-        for (int i = 0; i < inputChar.length; i++) {
-            String charI = String.valueOf(inputChar[i]);
-            if (charI.equals("}") || charI.equals("]")) {
-                tabCount--;
-                if (!String.valueOf(inputChar[i - 1]).equals("[") && !String.valueOf(inputChar[i - 1]).equals("{"))
-                    inputBuilder.append(newLine(tabCount));
-            }
-            inputBuilder.append(charI);
-            if (charI.equals("{") || charI.equals("[")) {
-                tabCount++;
-                if (String.valueOf(inputChar[i + 1]).equals("]") || String.valueOf(inputChar[i + 1]).equals("}"))
-                    continue;
+    public static Vector parseData(String line, char delimiter) {
+		if(line == null) return null;
+		Vector w = new Vector();
+		StringBuffer buf = new StringBuffer();
+		for (int i=0; i<line.length(); i++) {
+			char c = line.charAt(i);
+			if (c == delimiter) {
+				w.add(buf.toString());
+				buf = new StringBuffer();
+			} else {
+				buf.append(c);
+			}
+		}
+		w.add(buf.toString());
+		return w;
+	}
 
-                inputBuilder.append(newLine(tabCount));
-            }
+    public String getValue(String t) {
+		if (t == null) return null;
+		Vector v = parseData(t, '|');
+		if (v.size() == 0) return null;
+		return (String) v.elementAt(v.size()-1);
+	}
 
-            if (charI.equals(",")) {
-                inputBuilder.append(newLine(tabCount));
-            }
-        }
+	public Vector parse(Vector v, int m) {
+		if (v == null) return null;
+		Vector w = new Vector();
+		if (w == null) return w;
+		int n = v.size()/m;
+		for (int i=0; i<n; i++) {
+			StringBuffer buf = new StringBuffer();
+			for (int j=0; j<m; j++) {
+				int i0 = i*m+j;
+				String t = (String) v.elementAt(i0);
+				t = getValue(t);
+				buf.append(t);
+				if (j < m-1) {
+					buf.append("|");
+				}
+			}
+			String s = buf.toString();
+			w.add(s);
+		}
+		return w;
+	}
 
-        return inputBuilder.toString();
-    }
+	public String getVariableName(String line) {
+		Vector u = parseData(line, '|');
+		return (String) u.elementAt(0);
+	}
 
-    private static String newLine(int tabCount) {
-        StringBuilder builder = new StringBuilder();
+	public Vector getResponseValues(Vector v) {
+		if (v == null || v.size() == 0) return null;
+		Vector w = new Vector();
+		Vector vars = getResponseVariables(v);
+		String firstVar = (String) vars.elementAt(0);
+		String[] values = new String[vars.size()];
+		for (int i=0; i<vars.size(); i++) {
+			values[i] = null;
+		}
+		for (int i=0; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			String var = getVariableName(line);
+			if (var.compareTo(firstVar) == 0 && values[0] != null) {
+				StringBuffer buf = new StringBuffer();
+				for (int j=0; j<vars.size(); j++) {
+					String t = values[j];
+					if (t == null) {
+						t = "null";
+					}
+					buf.append(t);
+					if (j < vars.size()-1) {
+						buf.append("|");
+					}
+				}
+				String s = buf.toString();
+				w.add(s);
 
-        builder.append("\n");
-        for (int j = 0; j < tabCount; j++)
-            builder.append("  ");
+				for (int k=0; k<vars.size(); k++) {
+					values[k] = null;
+			    }
+		    }
+		    String value = getValue(line);
+			for (int k=0; k<vars.size(); k++) {
+				if (var.compareTo((String) vars.elementAt(k)) == 0) {
+					values[k] = value;
+				}
+			}
 
-        return builder.toString();
-    }
+		}
+		StringBuffer buf = new StringBuffer();
+		for (int i=0; i<vars.size(); i++) {
+			String t = values[i];
+			if (t == null) {
+				t = "null";
+			}
+			buf.append(t);
+			if (i < vars.size()-1) {
+				buf.append("|");
+			}
+		}
+		String s = buf.toString();
+		w.add(s);
+		return w;
+	}
+
 }
 

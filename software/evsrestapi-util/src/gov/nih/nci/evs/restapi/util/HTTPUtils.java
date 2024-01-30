@@ -67,7 +67,6 @@ import java.time.Duration;
  *
  */
 
-
 public class HTTPUtils {
     public static String DEFAULT_ACCEPT_FORMAT = "application/json";
     public static String SPARQL_JSON_ACCEPT_FORMAT = "application/sparql-results+json";
@@ -76,15 +75,17 @@ public class HTTPUtils {
     private String username = null;
     private String password = null;
 
-	private long readTimeout;
-	private long connectTimeout;
+	//private long readTimeout;
+	//private long connectTimeout;
 
-	private long DEFAULT_READ_TIMEOUT = 1000000;
-	private long DEFAULT_CONNECT_TIMEOUT = 1000000;
+	private int readTimeout;
+	private int connectTimeout;
 
-	private Duration readTimeoutDuration;
-	private Duration connectTimeoutDuration;
+	private int DEFAULT_READ_TIMEOUT = 1000000;
+	private int DEFAULT_CONNECT_TIMEOUT = 1000000;
 
+	//private Duration readTimeoutDuration;
+	//private Duration connectTimeoutDuration;
 
 	private String restURL = null;
 
@@ -92,17 +93,18 @@ public class HTTPUtils {
 
 	}
 
-	public void setReadTimeout(long readTimeout) {
+	public void setReadTimeout(int readTimeout) {
 		this.readTimeout = readTimeout;
 	}
 
-	public void setconnectTimeout(long connectTimeout) {
+	public void setconnectTimeout(int connectTimeout) {
 		this.connectTimeout = connectTimeout;
 	}
 
     public HTTPUtils(String serviceUrl) {
 		//serviceUrl = verifyServiceUrl(serviceUrl);
 		this.serviceUrl = serviceUrl;
+		this.restURL = serviceUrl;
 	}
 
 	public static String verifyServiceUrl(String serviceUrl) {
@@ -118,7 +120,7 @@ public class HTTPUtils {
     public HTTPUtils(String restURL, String username, String password) {
 		this.restURL = restURL;
 		this.serviceUrl = restURL; //verifyServiceUrl(restURL);
-		this.serviceUrl = serviceUrl;
+		//this.serviceUrl = serviceUrl;
 		this.username = username;
 		this.password = password;
 
@@ -130,30 +132,31 @@ public class HTTPUtils {
 		this.username = username;
 		this.password = password;
 
+		this.readTimeout= (int) readTimeout;
+		this.connectTimeout = (int) connectTimeout;
+
+		//this.readTimeoutDuration = Duration.ofSeconds(readTimeout);
+		//this.connectTimeoutDuration = Duration.ofSeconds(connectTimeout);
+    }
+
+	public HTTPUtils(String username, String password, int readTimeout, int connectTimeout) {
+		this.username = username;
+		this.password = password;
+
 		this.readTimeout= readTimeout;
 		this.connectTimeout =  connectTimeout;
 
-		this.readTimeoutDuration = Duration.ofSeconds(readTimeout);
-		this.connectTimeoutDuration = Duration.ofSeconds(connectTimeout);
+		//this.readTimeoutDuration = Duration.ofSeconds(readTimeout);
+		//this.connectTimeoutDuration = Duration.ofSeconds(connectTimeout);
     }
 
 	public HTTPUtils(String username, String password) {
 		this.username = username;
 		this.password = password;
-		this.readTimeoutDuration = Duration.ofSeconds(600000);
-		this.connectTimeoutDuration =  Duration.ofSeconds(600000);
+		//this.readTimeoutDuration = Duration.ofSeconds(600000);
+		//this.connectTimeoutDuration =  Duration.ofSeconds(600000);
     }
 
-	public String runSPARQL(String query) {
-		if (restURL == null) {
-			return null;
-		}
-		return new RESTUtils(username, password, readTimeout, connectTimeout).runSPARQL(query, restURL);
-	}
-
-	public String runSPARQL(String query, String restURL) {
-		return new RESTUtils(username, password, readTimeout, connectTimeout).runSPARQL(query, restURL);
-	}
 
 
 	public void setUsername(String username) {
@@ -180,7 +183,7 @@ public class HTTPUtils {
 		this.restURL = restURL;
 	}
 
-	public String loadQuery(String filename, boolean encode) {
+	public static String loadQuery(String filename, boolean encode) {
 	    StringBuffer buf = new StringBuffer();
 	    Vector v = readFile(filename);
 	    for (int i=0; i<v.size(); i++) {
@@ -199,12 +202,12 @@ public class HTTPUtils {
 		return query;
 	}
 
-	public String loadQuery(String filename) {
-		return loadQuery(filename, true);
+	public static String loadQuery(String filename) {
+		return loadQuery(filename, false);
 	}
 
 
-	public Vector readFile(String filename)
+	public static Vector readFile(String filename)
 	{
 		Vector v = new Vector();
 		try {
@@ -223,7 +226,7 @@ public class HTTPUtils {
 		return v;
 	}
 
-    public String replaceAll(String s) {
+    public static String replaceAll(String s) {
 		if (s == null) return null;
 		StringBuffer buf = new StringBuffer();
 		for (int i=0; i<s.length(); i++) {
@@ -241,7 +244,7 @@ public class HTTPUtils {
 		return s;
 	}
 
-    public String encode(String query) {
+    public static String encode(String query) {
 		try {
 			String retstr = String.format("%s", URLEncoder.encode(query, "UTF-8"));
 			retstr = replaceAll(retstr);
@@ -314,27 +317,6 @@ public class HTTPUtils {
 		return responseBuffer.toString();
 	}
 
-    public Vector execute(String restURL, String username, String password, String query) {
-		boolean parsevalues = true;
-		return execute(restURL, username, password, query, parsevalues);
-	}
-
-    public Vector execute(String restURL, String username, String password, String query, boolean parsevalues) {
-		Vector v = null;
-		try {
-			//String json = httpUtils.runSPARQL(query);
-			String json = runSPARQL(query);
-			v = new JSONUtils().parseJSON(json);
-			if (parsevalues) {
-				v = new ParserUtils().getResponseValues(v);
-			}
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-		return v;
-	}
-
-
     public void dumpURL(URL url) {
 	    System.out.println("getDefaultPort: " + url.getDefaultPort());
 	    System.out.println("getFile: " + url.getFile());
@@ -347,41 +329,60 @@ public class HTTPUtils {
 	    System.out.println("getUserInfo: " + url.getUserInfo());
 	}
 
-    public static Vector runQuery(String restURL, String username, String password, String query) {
-		restURL = verifyServiceUrl(restURL);
-        Vector v = null;
-        try {
-			HTTPUtils httpUtils = new HTTPUtils(restURL, username, password);
-			query = httpUtils.encode(query);
-            String json = httpUtils.executeQuery(query);
-			v = new JSONUtils().parseJSON(json);
-			v = new ParserUtils().getResponseValues(v);
-
+	public static Vector runQuery(String restURL, String username, String password, String query) {
+		HTTPUtils util = new HTTPUtils(restURL);
+		Vector v = null;
+		query = encode(query);
+		try {
+			String s = restURL + "?query=" + query;
+			URL url = new URL(s);
+			String json = util.executeQuery(url, username, password, "application/json");
+			if (json != null) {
+				v = new JSONUtils().parseJSON(json);
+				v = new ParserUtils().getResponseValues(v);
+			}
 		} catch (Exception ex) {
 			ex.printStackTrace();
 		}
-		return v;
+		return new SortUtils().quickSort(v);
 	}
+
+	public String runSPARQL(String query) {
+		System.out.println("restURL: " + restURL);
+
+		if (restURL == null) {
+			return null;
+		}
+		System.out.println("Instantiating RESTUtils ...");
+		return new RESTUtils(username, password, readTimeout, connectTimeout).runSPARQL(query, restURL);
+	}
+
+	public String runSPARQL(String query, String restURL) {
+		return new RESTUtils(username, password, readTimeout, connectTimeout).runSPARQL(query, restURL);
+	}
+
 
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 		String restURL = args[0];
-		String namedGraph = args[1];
-		String username = args[2];
-		String password = args[3];
-		String queryfile = args[4];
-		HTTPUtils util = new HTTPUtils();
-		String query = util.loadQuery(queryfile, false);
-		boolean parsevalues = true;
-		Vector w = util.execute(restURL, username, password, query, parsevalues);
-		Utils.dumpVector(queryfile, w);
+		String queryfile = args[1];
+		String username = null;
+		String password = null;
+		String query = loadQuery(queryfile);
+		Vector v = runQuery(restURL, username, password, query);
+		Utils.dumpVector("v", v);
+
+		String json = new HTTPUtils(restURL).runSPARQL(query, restURL);
+		System.out.println(json);
+        //gov.nih.nci.evs.reportwriter.core.util.JSONUtils jsonUtils = new gov.nih.nci.evs.reportwriter.core.util.JSONUtils();
+        //gov.nih.nci.evs.restapi.util.JSONUtils jsonUtils = new gov.nih.nci.evs.restapi.util.JSONUtils();
+        JSONUtils jsonUtils = new JSONUtils();
+
+		Vector w = jsonUtils.parseJSON(json);
+        w = jsonUtils.getResponseValues(w);
+        Utils.dumpVector("w", w);
+
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
-
 }
-
-
-
-
-
 
