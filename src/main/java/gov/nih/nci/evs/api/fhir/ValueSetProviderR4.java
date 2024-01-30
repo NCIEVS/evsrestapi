@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.fhir;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -12,6 +13,8 @@ import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.ValueSet;
+import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionComponent;
+import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionContainsComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,7 +93,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
     @OperationParam(name = "activeOnly") BooleanType activeOnly) throws Exception {
 
     try {
-      ValueSet result = new ValueSet();
       FhirUtilityR4.required("url", url);
       List<ValueSet> vsList = findValueSets(null, null, null, null, url, null);
       if (vsList.size() == 0) {
@@ -100,9 +102,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
       ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
       if (url.getValue().contains("?fhir_vs=$")) {
-        List<Association> invAssoc =
-            queryService.getConcept(vs.getTitle(), termUtils.getTerminology(vs.getTitle(), true),
-                new IncludeParam("inverseAssociations")).get().getInverseAssociations();
+        List<Association> invAssoc = queryService.getConcept(vs.getIdentifier().get(0).getValue(),
+            termUtils.getTerminology(vs.getTitle(), true), new IncludeParam("inverseAssociations"))
+            .get().getInverseAssociations();
         for (final Association assn : invAssoc) {
           final Concept member = queryService.getConcept(assn.getRelatedCode(),
               termUtils.getTerminology(vs.getTitle(), true), new IncludeParam("minimal"))
@@ -111,9 +113,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
             subsetMembers.add(member);
           }
         }
-        subsetMembers = subsetController.getSubsetMembers(vs.getTitle(),
-            Optional.ofNullable(offset.getValue()), Optional.ofNullable(count.getValue()),
-            filter.getValue(), Optional.ofNullable("minimal"));
       } else {
         final List<Terminology> terminologies = new ArrayList<>();
         terminologies.add(termUtils.getTerminology(vs.getTitle(), true));
@@ -121,12 +120,27 @@ public class ValueSetProviderR4 implements IResourceProvider {
         sc.setPageSize(count != null ? count.getValue() : 10);
         sc.setFromRecord(offset != null ? offset.getValue() : 0);
         sc.setTerm(filter != null ? filter.getValue() : null);
+        sc.setType("contains");
+        sc.setTerminology(
+            terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
         subsetMembers = searchService.search(terminologies, sc).getConcepts();
       }
-      for (Concept subset : subsetMembers) {
+      ValueSetExpansionComponent vsExpansion = new ValueSetExpansionComponent();
+      vsExpansion.setTimestamp(new Date());
+      vsExpansion.setOffset(offset != null ? offset.getValue() : 0);
+      vsExpansion.setTotal(subsetMembers.size());
+      if (subsetMembers.size() > 0) {
+        for (Concept subset : subsetMembers) {
+          ValueSetExpansionContainsComponent vsContains = new ValueSetExpansionContainsComponent();
+          vsContains.setSystem(url.getValue());
+          vsContains.setCode(subset.getCode());
+          vsContains.setDisplay(subset.getName());
+          vsExpansion.addContains(vsContains);
+        }
 
       }
-      return result;
+      vs.setExpansion(vsExpansion);
+      return vs;
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
@@ -168,7 +182,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
   ) throws Exception {
 
     try {
-      ValueSet result = new ValueSet();
       FhirUtilityR4.required("url", url);
       List<ValueSet> vsList = findValueSets(id.getIdPart(), null, null, null, url, null);
       if (vsList.size() == 0) {
@@ -178,9 +191,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
       ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
       if (url.getValue().contains("?fhir_vs=$")) {
-        List<Association> invAssoc =
-            queryService.getConcept(vs.getTitle(), termUtils.getTerminology(vs.getTitle(), true),
-                new IncludeParam("inverseAssociations")).get().getInverseAssociations();
+        List<Association> invAssoc = queryService.getConcept(vs.getIdentifier().get(0).getValue(),
+            termUtils.getTerminology(vs.getTitle(), true), new IncludeParam("inverseAssociations"))
+            .get().getInverseAssociations();
         for (final Association assn : invAssoc) {
           final Concept member = queryService.getConcept(assn.getRelatedCode(),
               termUtils.getTerminology(vs.getTitle(), true), new IncludeParam("minimal"))
@@ -189,9 +202,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
             subsetMembers.add(member);
           }
         }
-        subsetMembers = subsetController.getSubsetMembers(vs.getTitle(),
-            Optional.ofNullable(offset.getValue()), Optional.ofNullable(count.getValue()),
-            filter.getValue(), Optional.ofNullable("minimal"));
       } else {
         final List<Terminology> terminologies = new ArrayList<>();
         terminologies.add(termUtils.getTerminology(vs.getTitle(), true));
@@ -199,12 +209,27 @@ public class ValueSetProviderR4 implements IResourceProvider {
         sc.setPageSize(count != null ? count.getValue() : 10);
         sc.setFromRecord(offset != null ? offset.getValue() : 0);
         sc.setTerm(filter != null ? filter.getValue() : null);
+        sc.setType("contains");
+        sc.setTerminology(
+            terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
         subsetMembers = searchService.search(terminologies, sc).getConcepts();
       }
-      for (Concept subset : subsetMembers) {
+      ValueSetExpansionComponent vsExpansion = new ValueSetExpansionComponent();
+      vsExpansion.setTimestamp(new Date());
+      vsExpansion.setOffset(offset != null ? offset.getValue() : 0);
+      vsExpansion.setTotal(subsetMembers.size());
+      if (subsetMembers.size() > 0) {
+        for (Concept subset : subsetMembers) {
+          ValueSetExpansionContainsComponent vsContains = new ValueSetExpansionContainsComponent();
+          vsContains.setSystem(url.getValue());
+          vsContains.setCode(subset.getCode());
+          vsContains.setDisplay(subset.getName());
+          vsExpansion.addContains(vsContains);
+        }
 
       }
-      return result;
+      vs.setExpansion(vsExpansion);
+      return vs;
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
@@ -368,7 +393,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         final ValueSet vs = FhirUtilityR4.toR4VS(terminology);
         // Skip non-matching
         if (id != null && !id.equals(vs.getId())) {
-          logger.info("  SKIP id mismatch = " + vs.getUrl());
+          logger.info("  SKIP id mismatch = " + vs.getId());
           continue;
         }
         if (url != null && !url.getValue().equals(vs.getUrl())) {
