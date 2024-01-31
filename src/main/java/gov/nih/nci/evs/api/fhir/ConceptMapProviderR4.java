@@ -102,7 +102,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
         List<gov.nih.nci.evs.api.model.ConceptMap> maps =
             queryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
         List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = new ArrayList<>();
-        if (reverse.getValue()) {
+        if (reverse != null && reverse.getValue()) {
           filteredMaps = maps.stream()
               .filter(m -> m.getTargetCode().toLowerCase().contains(codeToTranslate)
                   || m.getTargetName().toLowerCase()
@@ -197,7 +197,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
         List<gov.nih.nci.evs.api.model.ConceptMap> maps =
             queryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
         List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = new ArrayList<>();
-        if (reverse.getValue()) {
+        if (reverse != null && reverse.getValue()) {
           filteredMaps = maps.stream()
               .filter(m -> m.getTargetCode().toLowerCase().contains(codeToTranslate)
                   || m.getTargetName().toLowerCase()
