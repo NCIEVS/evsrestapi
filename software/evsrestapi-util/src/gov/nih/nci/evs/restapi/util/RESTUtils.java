@@ -50,7 +50,7 @@ public class RESTUtils {
 		this.connectTimeout =  Duration.ofSeconds(connectTimeout);
 	}
 
-	public String runSPARQL(String restURL, String query) {
+	public String runSPARQL(String query, String restURL) {
 		System.out.println("restURL: " + restURL);
 		System.out.println("query: " + query);
 		RestTemplate restTemplate = null;
@@ -166,7 +166,7 @@ public class RESTUtils {
 		RESTUtils restUtils =
 		  new RESTUtils(username, password, readTimeout, connectTimeout);
 
-		String json = restUtils.runSPARQL(restURL, query);
+		String json = restUtils.runSPARQL(query, restURL);
 		System.out.println(json);
 
         //gov.nih.nci.evs.reportwriter.core.util.JSONUtils jsonUtils = new gov.nih.nci.evs.reportwriter.core.util.JSONUtils();
