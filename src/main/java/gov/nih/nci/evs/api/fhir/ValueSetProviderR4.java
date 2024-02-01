@@ -11,7 +11,10 @@ import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.UriType;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionContainsComponent;
@@ -24,9 +27,12 @@ import ca.uhn.fhir.rest.annotation.IdParam;
 import ca.uhn.fhir.rest.annotation.Operation;
 import ca.uhn.fhir.rest.annotation.OperationParam;
 import ca.uhn.fhir.rest.annotation.OptionalParam;
+import ca.uhn.fhir.rest.annotation.Read;
 import ca.uhn.fhir.rest.annotation.Search;
 import ca.uhn.fhir.rest.param.StringParam;
+import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
+import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.controller.SubsetController;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
@@ -85,16 +91,16 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Operation(name = "$expand", idempotent = true)
-  public ValueSet expandImplicit(@OperationParam(name = "url") StringParam url,
-    @OperationParam(name = "valueSetVersion") StringParam version,
-    @OperationParam(name = "filter") StringParam filter,
+  public ValueSet expandImplicit(@OperationParam(name = "url") UriType url,
+    @OperationParam(name = "valueSetVersion") StringType version,
+    @OperationParam(name = "filter") StringType filter,
     @OperationParam(name = "offset") IntegerType offset,
     @OperationParam(name = "count") IntegerType count,
     @OperationParam(name = "activeOnly") BooleanType activeOnly) throws Exception {
 
     try {
       FhirUtilityR4.required("url", url);
-      List<ValueSet> vsList = findValueSets(null, null, null, null, url, null);
+      List<ValueSet> vsList = findPossibleValueSets(null, null, null, null, url, null);
       if (vsList.size() == 0) {
         throw FhirUtilityR4.exception("Value set " + url + " not found",
             OperationOutcome.IssueType.EXCEPTION, 500);
@@ -172,9 +178,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Operation(name = "$expand", idempotent = true)
-  public ValueSet expandInstance(@IdParam IdType id, @OperationParam(name = "url") StringParam url,
-    @OperationParam(name = "valueSetVersion") StringParam version,
-    @OperationParam(name = "filter") StringParam filter,
+  public ValueSet expandInstance(@IdParam IdType id, @OperationParam(name = "url") UriType url,
+    @OperationParam(name = "valueSetVersion") StringType version,
+    @OperationParam(name = "filter") StringType filter,
     @OperationParam(name = "offset") IntegerType offset,
     @OperationParam(name = "count") IntegerType count,
     @OperationParam(name = "activeOnly") BooleanType activeOnly
@@ -183,7 +189,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
     try {
       FhirUtilityR4.required("url", url);
-      List<ValueSet> vsList = findValueSets(id.getIdPart(), null, null, null, url, null);
+      List<ValueSet> vsList = findPossibleValueSets(null, null, null, null, url, null);
       if (vsList.size() == 0) {
         throw FhirUtilityR4.exception("Value set " + url + " not found",
             OperationOutcome.IssueType.EXCEPTION, 500);
@@ -259,16 +265,16 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Operation(name = "$validate-code", idempotent = true)
-  public Parameters validateCodeImplicit(@OperationParam(name = "code") StringParam codeType,
-    @OperationParam(name = "name") StringParam name,
-    @OperationParam(name = "system") StringParam system,
-    @OperationParam(name = "systemVersion") StringParam systemVersion,
-    @OperationParam(name = "url") StringParam url) throws Exception {
+  public Parameters validateCodeImplicit(@OperationParam(name = "code") StringType codeType,
+    @OperationParam(name = "name") StringType name, @OperationParam(name = "system") UriType system,
+    @OperationParam(name = "systemVersion") StringType systemVersion,
+    @OperationParam(name = "url") UriType url) throws Exception {
 
     try {
       FhirUtilityR4.requireAtLeastOneOf("code", codeType, "name", name, "system", system,
           "systemVersion", systemVersion, "url", url);
-      final List<ValueSet> list = findValueSets(null, codeType, name, system, url, systemVersion);
+      final List<ValueSet> list =
+          findPossibleValueSets(null, codeType, name, system, url, systemVersion);
       Parameters params = new Parameters();
       if (list.size() > 0) {
         params.addParameter("result", true);
@@ -310,18 +316,17 @@ public class ValueSetProviderR4 implements IResourceProvider {
    */
   @Operation(name = "$validate-code", idempotent = true)
   public Parameters validateCodeInstance(@IdParam IdType id,
-    @OperationParam(name = "code") StringParam codeType,
-    @OperationParam(name = "name") StringParam name,
-    @OperationParam(name = "system") StringParam system,
-    @OperationParam(name = "systemVersion") StringParam systemVersion,
-    @OperationParam(name = "url") StringParam url) throws Exception {
+    @OperationParam(name = "code") StringType codeType,
+    @OperationParam(name = "name") StringType name, @OperationParam(name = "system") UriType system,
+    @OperationParam(name = "systemVersion") StringType systemVersion,
+    @OperationParam(name = "url") UriType url) throws Exception {
 
     try {
       FhirUtilityR4.requireAtLeastOneOf("code", codeType, "name", name, "system", system,
           "systemVersion", systemVersion, "url", url);
       FhirUtilityR4.required("id", id);
       final List<ValueSet> list =
-          findValueSets(id.getIdPart(), codeType, name, system, url, systemVersion);
+          findPossibleValueSets(null, codeType, name, system, url, systemVersion);
       Parameters params = new Parameters();
       if (list.size() > 0) {
         params.addParameter("result", true);
@@ -379,10 +384,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
    *                               </pre>
    */
   @Search
-  public List<ValueSet> findValueSets(@OptionalParam(name = "_id") String id,
+  public List<ValueSet> findValueSets(@OptionalParam(name = "_id") TokenParam id,
     @OptionalParam(name = "code") StringParam code, @OptionalParam(name = "name") StringParam name,
-    @OptionalParam(name = "system") StringParam system,
-    @OptionalParam(name = "url") StringParam url,
+    @OptionalParam(name = "system") UriType system, @OptionalParam(name = "url") StringParam url,
     @OptionalParam(name = "version") StringParam version) throws Exception {
 
     final List<Terminology> terms = termUtils.getTerminologies(true);
@@ -392,7 +396,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       for (final Terminology terminology : terms) {
         final ValueSet vs = FhirUtilityR4.toR4VS(terminology);
         // Skip non-matching
-        if (id != null && !id.equals(vs.getId())) {
+        if (id != null && !id.getValue().equals(vs.getId())) {
           logger.info("  SKIP id mismatch = " + vs.getId());
           continue;
         }
@@ -409,6 +413,104 @@ public class ValueSetProviderR4 implements IResourceProvider {
           continue;
         }
         if (version != null && !FhirUtility.compareString(version, vs.getVersion())) {
+          logger.info("  SKIP version mismatch = " + vs.getVersion());
+          continue;
+        }
+
+        list.add(vs);
+      }
+    }
+    final List<Concept> subsets =
+        metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.ofNullable(null));
+    final Set<String> codes = subsets.stream().flatMap(Concept::streamSelfAndChildren)
+        .map(c -> c.getCode()).collect(Collectors.toSet());
+    List<Concept> subsetsAsConcepts = queryService.getConcepts(codes,
+        termUtils.getTerminology("ncit", true), new IncludeParam("minimal"));
+    for (final Concept subset : subsetsAsConcepts) {
+      final ValueSet vs = FhirUtilityR4.toR4VS(subset);
+      // Skip non-matching
+      if (id != null && !id.getValue().equals(vs.getId())) {
+        logger.info("  SKIP id mismatch = " + vs.getUrl());
+        continue;
+      }
+      if (url != null && !url.getValue().equals(vs.getUrl())) {
+        logger.info("  SKIP url mismatch = " + vs.getUrl());
+        continue;
+      }
+      if (system != null && !system.getValue().equals(vs.getTitle())) {
+        logger.info("  SKIP system mismatch = " + vs.getTitle());
+        continue;
+      }
+      if (name != null && !name.getValue().equals(vs.getName())) {
+        logger.info("  SKIP name mismatch = " + vs.getName());
+        continue;
+      }
+      if (code != null && !vs.getIdentifier().stream()
+          .filter(i -> i.getValue().equals(code.getValue())).findAny().isPresent()) {
+        logger.info("  SKIP code mismatch = " + vs.getTitle());
+        continue;
+      }
+      list.add(vs);
+    }
+
+    return list;
+
+  }
+
+  @Read
+  public ValueSet getValueSet(final ServletRequestDetails details, @IdParam
+  final IdType id) throws Exception {
+    try {
+
+      final List<ValueSet> candidates = findPossibleValueSets(id, null, null, null, null, null);
+      for (final ValueSet set : candidates) {
+        if (id.getIdPart().equals(set.getId())) {
+          return set;
+        }
+      }
+
+      throw FhirUtilityR4.exception(
+          "Value set not found = " + (id == null ? "null" : id.getIdPart()), IssueType.NOTFOUND,
+          404);
+
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      logger.error("Unexpected exception", e);
+      throw FhirUtilityR4.exception("Failed to get value set", OperationOutcome.IssueType.EXCEPTION,
+          500);
+    }
+  }
+
+  public List<ValueSet> findPossibleValueSets(@OptionalParam(name = "_id") IdType id,
+    @OptionalParam(name = "code") StringType code, @OptionalParam(name = "name") StringType name,
+    @OptionalParam(name = "system") UriType system, @OptionalParam(name = "url") UriType url,
+    @OptionalParam(name = "version") StringType version) throws Exception {
+
+    final List<Terminology> terms = termUtils.getTerminologies(true);
+
+    final List<ValueSet> list = new ArrayList<ValueSet>();
+    if (code == null) {
+      for (final Terminology terminology : terms) {
+        final ValueSet vs = FhirUtilityR4.toR4VS(terminology);
+        // Skip non-matching
+        if (id != null && !id.getValue().equals(vs.getId())) {
+          logger.info("  SKIP id mismatch = " + vs.getId());
+          continue;
+        }
+        if (url != null && !url.getValue().equals(vs.getUrl())) {
+          logger.info("  SKIP url mismatch = " + vs.getUrl());
+          continue;
+        }
+        if (system != null && !system.getValue().equals(vs.getTitle())) {
+          logger.info("  SKIP system mismatch = " + vs.getTitle());
+          continue;
+        }
+        if (name != null && !name.getValue().equals(vs.getName())) {
+          logger.info("  SKIP name mismatch = " + vs.getName());
+          continue;
+        }
+        if (version != null && !version.getValue().equals(vs.getVersion())) {
           logger.info("  SKIP version mismatch = " + vs.getVersion());
           continue;
         }

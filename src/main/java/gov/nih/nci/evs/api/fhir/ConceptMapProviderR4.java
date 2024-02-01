@@ -12,9 +12,12 @@ import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ConceptMap;
+import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.UriType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,7 @@ import ca.uhn.fhir.rest.annotation.IdParam;
 import ca.uhn.fhir.rest.annotation.Operation;
 import ca.uhn.fhir.rest.annotation.OperationParam;
 import ca.uhn.fhir.rest.annotation.OptionalParam;
+import ca.uhn.fhir.rest.annotation.Read;
 import ca.uhn.fhir.rest.annotation.Search;
 import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.StringParam;
@@ -85,11 +89,11 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   @Operation(name = "$translate", idempotent = true)
   public Parameters translateInstance(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details, @IdParam
-    final TokenParam id, @OperationParam(name = "url")
-    final StringParam url, @OperationParam(name = "code")
+    final IdType id, @OperationParam(name = "url")
+    final UriType url, @OperationParam(name = "code")
     final CodeType code, @OperationParam(name = "system")
-    final StringParam system, @OperationParam(name = "version")
-    final StringParam version, @OperationParam(name = "reverse", type = BooleanType.class)
+    final UriType system, @OperationParam(name = "version")
+    final StringType version, @OperationParam(name = "reverse", type = BooleanType.class)
     final BooleanType reverse) throws Exception {
 
     try {
@@ -97,7 +101,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupported("version", version);
       codeToTranslate = code.getCode().toLowerCase();
       Parameters params = new Parameters();
-      List<ConceptMap> cm = findConceptMaps(id, null, system, url, version);
+      List<ConceptMap> cm = findPossibleConceptMaps(id, null, system, url, version);
       for (ConceptMap mapping : cm) {
         List<gov.nih.nci.evs.api.model.ConceptMap> maps =
             queryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
@@ -181,10 +185,10 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   public Parameters translateImplicit(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details,
     @OperationParam(name = "url")
-    final StringParam url, @OperationParam(name = "code")
+    final UriType url, @OperationParam(name = "code")
     final CodeType code, @OperationParam(name = "system")
-    final StringParam system, @OperationParam(name = "version")
-    final StringParam version, @OperationParam(name = "reverse", type = BooleanType.class)
+    final UriType system, @OperationParam(name = "version")
+    final StringType version, @OperationParam(name = "reverse", type = BooleanType.class)
     final BooleanType reverse) throws Exception {
 
     try {
@@ -192,7 +196,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupported("version", version);
       codeToTranslate = code.getCode().toLowerCase();
       Parameters params = new Parameters();
-      List<ConceptMap> cm = findConceptMaps(null, null, system, url, version);
+      List<ConceptMap> cm = findPossibleConceptMaps(null, null, system, url, version);
       for (ConceptMap mapping : cm) {
         List<gov.nih.nci.evs.api.model.ConceptMap> maps =
             queryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
@@ -296,6 +300,83 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     } catch (final Exception e) {
       logger.error("Unexpected error", e);
       throw FhirUtilityR4.exception("Failed to find concept maps",
+          OperationOutcome.IssueType.EXCEPTION, 500);
+    }
+  }
+
+  public List<ConceptMap> findPossibleConceptMaps(@OptionalParam(name = "_id") IdType id,
+    @OptionalParam(name = "date")
+    final DateRangeParam date, @OptionalParam(name = "system")
+    final UriType system, @OptionalParam(name = "url")
+    final UriType url, @OptionalParam(name = "version")
+    final StringType version) throws Exception {
+    try {
+      final List<Concept> mapsets = queryService.getMapsets(new IncludeParam("properties"));
+
+      final List<ConceptMap> list = new ArrayList<>();
+      for (final Concept mapset : mapsets) {
+        List<Property> props = mapset.getProperties();
+        if (props.stream()
+            .filter(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))
+            .findAny().isPresent()) {
+          continue;
+        }
+        final ConceptMap cm = FhirUtilityR4.toR4(mapset);
+        // Skip non-matching
+        if (url != null && !url.getValue().equals(cm.getUrl())) {
+          logger.info("  SKIP url mismatch = " + cm.getUrl());
+          continue;
+        }
+        if (id != null && !id.getValue().equals(cm.getId())) {
+          logger.info("  SKIP id mismatch = " + cm.getName());
+          continue;
+        }
+        if (system != null && !system.getValue().equals(cm.getName())) {
+          logger.info("  SKIP system mismatch = " + cm.getName());
+          continue;
+        }
+        if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
+          logger.info("  SKIP date mismatch = " + cm.getDate());
+          continue;
+        }
+        if (version != null && !version.getValue().equals(cm.getVersion())) {
+          logger.info("  SKIP version mismatch = " + cm.getVersion());
+          continue;
+        }
+
+        list.add(cm);
+      }
+      return list;
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      logger.error("Unexpected error", e);
+      throw FhirUtilityR4.exception("Failed to find concept maps",
+          OperationOutcome.IssueType.EXCEPTION, 500);
+    }
+  }
+
+  @Read
+  public ConceptMap getConceptMap(final ServletRequestDetails details, @IdParam
+  final IdType id) throws Exception {
+    try {
+
+      final List<ConceptMap> candidates = findPossibleConceptMaps(id, null, null, null, null);
+      for (final ConceptMap set : candidates) {
+        if (id.getIdPart().equals(set.getId())) {
+          return set;
+        }
+      }
+
+      throw FhirUtilityR4.exception(
+          "Concept map not found = " + (id == null ? "null" : id.getIdPart()), IssueType.NOTFOUND,
+          404);
+
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      logger.error("Unexpected exception", e);
+      throw FhirUtilityR4.exception("Failed to get concept map",
           OperationOutcome.IssueType.EXCEPTION, 500);
     }
   }

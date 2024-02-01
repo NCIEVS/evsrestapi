@@ -13,7 +13,10 @@ import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.UriType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,7 @@ import ca.uhn.fhir.rest.annotation.IdParam;
 import ca.uhn.fhir.rest.annotation.Operation;
 import ca.uhn.fhir.rest.annotation.OperationParam;
 import ca.uhn.fhir.rest.annotation.OptionalParam;
+import ca.uhn.fhir.rest.annotation.Read;
 import ca.uhn.fhir.rest.annotation.Search;
 import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.StringParam;
@@ -94,18 +98,18 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     final HttpServletResponse response, final ServletRequestDetails details,
     @OperationParam(name = "code")
     final CodeType code, @OperationParam(name = "system")
-    final StringParam system, @OperationParam(name = "version")
-    final StringParam version, @OperationParam(name = "coding")
+    final StringType system, @OperationParam(name = "version")
+    final StringType version, @OperationParam(name = "coding")
     final Coding coding, @OperationParam(name = "date")
     final DateRangeParam date, @OperationParam(name = "displayLanguage")
-    final String displayLanguage, @OperationParam(name = "property")
+    final StringType displayLanguage, @OperationParam(name = "property")
     final Set<String> properties) throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
-      List<CodeSystem> cs = findCodeSystems(null, date, system, version);
+      List<CodeSystem> cs = findPossibleCodeSystems(null, date, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
         String codeToLookup = "";
@@ -170,19 +174,18 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     final HttpServletResponse response, final ServletRequestDetails details, @IdParam
     final IdType id, @OperationParam(name = "code")
     final CodeType code, @OperationParam(name = "system")
-    final StringParam system, @OperationParam(name = "version")
-    final StringParam version, @OperationParam(name = "coding")
+    final StringType system, @OperationParam(name = "version")
+    final StringType version, @OperationParam(name = "coding")
     final Coding coding, @OperationParam(name = "date")
     final DateRangeParam date, @OperationParam(name = "displayLanguage")
-    final String displayLanguage, @OperationParam(name = "property")
+    final StringType displayLanguage, @OperationParam(name = "property")
     final Set<String> properties) throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
-      List<CodeSystem> cs =
-          findCodeSystems(new TokenParam().setValue(id.getIdPart()), date, system, version);
+      List<CodeSystem> cs = findPossibleCodeSystems(id, date, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
         String codeToLookup = "";
@@ -247,17 +250,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   public Parameters validateCodeImplicit(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details,
     @OperationParam(name = "url")
-    final String url, @OperationParam(name = "system")
-    final StringParam system, @OperationParam(name = "code")
-    final CodeType code, @OperationParam(name = "display")
-    final String display, @OperationParam(name = "version")
-    final StringParam version, @OperationParam(name = "coding")
+    final UriType url, @OperationParam(name = "code")
+    final CodeType code, @OperationParam(name = "system")
+    final StringType system, @OperationParam(name = "display")
+    final StringType display, @OperationParam(name = "version")
+    final StringType version, @OperationParam(name = "coding")
     final Coding coding) throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
-      List<CodeSystem> cs = findCodeSystems(null, null, system, version);
+      List<CodeSystem> cs = findPossibleCodeSystems(null, null, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
         String codeToValidate = "";
@@ -327,18 +330,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   public Parameters validateCodeInstance(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details, @IdParam IdType id,
     @OperationParam(name = "url")
-    final String url, @OperationParam(name = "code")
+    final UriType url, @OperationParam(name = "code")
     final CodeType code, @OperationParam(name = "system")
-    final StringParam system, @OperationParam(name = "display")
-    final String display, @OperationParam(name = "version")
-    final StringParam version, @OperationParam(name = "coding")
+    final StringType system, @OperationParam(name = "display")
+    final StringType display, @OperationParam(name = "version")
+    final StringType version, @OperationParam(name = "coding")
     final Coding coding) throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
-      List<CodeSystem> cs =
-          findCodeSystems(new TokenParam().setValue(id.getIdPart()), null, system, version);
+      List<CodeSystem> cs = findPossibleCodeSystems(id, null, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
         String codeToValidate = "";
@@ -405,8 +407,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     @OperationParam(name = "codeA")
     final CodeType codeA, @OperationParam(name = "codeB")
     final CodeType codeB, @OperationParam(name = "system")
-    final StringParam system, @OperationParam(name = "version")
-    final StringParam version, @OperationParam(name = "codingA")
+    final StringType system, @OperationParam(name = "version")
+    final StringType version, @OperationParam(name = "codingA")
     final Coding codingA, @OperationParam(name = "codingB")
     final Coding codingB) throws Exception {
 
@@ -415,7 +417,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.mutuallyRequired("codeB", codeB, "system", system);
       FhirUtilityR4.mutuallyExclusive("codingB", codingB, "codeB", codeB);
       FhirUtilityR4.mutuallyExclusive("codingA", codingA, "codeA", codeA);
-      List<CodeSystem> cs = findCodeSystems(null, null, system, version);
+      List<CodeSystem> cs = findPossibleCodeSystems(null, null, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
         String code1 = "";
@@ -480,8 +482,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     @OperationParam(name = "codeA")
     final CodeType codeA, @OperationParam(name = "codeB")
     final CodeType codeB, @OperationParam(name = "system")
-    final StringParam system, @OperationParam(name = "version")
-    final StringParam version, @OperationParam(name = "codingA")
+    final StringType system, @OperationParam(name = "version")
+    final StringType version, @OperationParam(name = "codingA")
     final Coding codingA, @OperationParam(name = "codingB")
     final Coding codingB) throws Exception {
 
@@ -490,8 +492,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.mutuallyRequired("codeB", codeB, "system", system);
       FhirUtilityR4.mutuallyExclusive("codingB", codingB, "codeB", codeB);
       FhirUtilityR4.mutuallyExclusive("codeA", codingA, "codeA", codeA);
-      List<CodeSystem> cs =
-          findCodeSystems(new TokenParam().setValue(id.getIdPart()), null, system, version);
+      List<CodeSystem> cs = findPossibleCodeSystems(id, null, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
         String code1 = "";
@@ -601,6 +602,69 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     } catch (final Exception e) {
       logger.error("Unexpected error", e);
       throw FhirUtilityR4.exception("Failed to find code systems",
+          OperationOutcome.IssueType.EXCEPTION, 500);
+    }
+  }
+
+  public List<CodeSystem> findPossibleCodeSystems(@OptionalParam(name = "_id") IdType id,
+    @OptionalParam(name = "date")
+    final DateRangeParam date, @OptionalParam(name = "system")
+    final StringType system, @OptionalParam(name = "version")
+    final StringType version) throws Exception {
+    try {
+      final List<Terminology> terms = termUtils.getTerminologies(true);
+
+      final List<CodeSystem> list = new ArrayList<>();
+      for (final Terminology terminology : terms) {
+        final CodeSystem cs = FhirUtilityR4.toR4(terminology);
+        // Skip non-matching
+        if ((id != null && !id.getValue().equals(cs.getId()))
+            || (system != null && !system.getValue().equals(cs.getUrl()))) {
+          logger.info("  SKIP url mismatch = " + cs.getUrl());
+          continue;
+        }
+        if (date != null && !FhirUtility.compareDateRange(date, cs.getDate())) {
+          logger.info("  SKIP date mismatch = " + cs.getDate());
+          continue;
+        }
+        if (version != null && !version.getValue().equals(cs.getVersion())) {
+          logger.info("  SKIP version mismatch = " + cs.getVersion());
+          continue;
+        }
+
+        list.add(cs);
+      }
+      return list;
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      logger.error("Unexpected error", e);
+      throw FhirUtilityR4.exception("Failed to find code systems",
+          OperationOutcome.IssueType.EXCEPTION, 500);
+    }
+  }
+
+  @Read
+  public CodeSystem getConceptMap(final ServletRequestDetails details, @IdParam
+  final IdType id) throws Exception {
+    try {
+
+      final List<CodeSystem> candidates = findPossibleCodeSystems(id, null, null, null);
+      for (final CodeSystem set : candidates) {
+        if (id.getIdPart().equals(set.getId())) {
+          return set;
+        }
+      }
+
+      throw FhirUtilityR4.exception(
+          "Code system not found = " + (id == null ? "null" : id.getIdPart()), IssueType.NOTFOUND,
+          404);
+
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      logger.error("Unexpected exception", e);
+      throw FhirUtilityR4.exception("Failed to get code system",
           OperationOutcome.IssueType.EXCEPTION, 500);
     }
   }
