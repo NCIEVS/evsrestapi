@@ -334,7 +334,11 @@ public class HTTPUtils {
 		Vector v = null;
 		query = encode(query);
 		try {
-			String s = restURL + "?query=" + query;
+			String s = restURL;
+			if (query != null) {
+			   s = s + "?query=" + query;
+		    }
+			//String s = restURL + "?query=" + query;
 			URL url = new URL(s);
 			String json = util.executeQuery(url, username, password, "application/json");
 			if (json != null) {
