@@ -2857,23 +2857,35 @@ public class SearchControllerTests {
         new ObjectMapper()
             .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
     log.info("  list = " + list);
-    assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
+    assertThat(list.getConcepts() != null && !list.getConcepts().isEmpty()).isTrue();
+
     boolean found = false;
-    for (Concept conc : list.getConcepts()) {
-      for (Property prop : conc.getProperties()) {
-        if (prop.getValue() != null && prop.getValue().equals("Retired_Concept")) {
+    for (int i = 0; i < list.getConcepts().size(); i++) {
+      Concept conc = list.getConcepts().get(i);
+      Property prop = conc.getProperties().get(0);
+      if (conc.getConceptStatus().equals("Retired_Concept") && (prop.getValue() != null)) {
+        // check the next concept is also retired
+        if (i + 1 < list.getConcepts().size()) {
+          Concept nextConc = list.getConcepts().get(i + 1);
+          // All next concepts should be retired, if not, our boost isn't working
+          assertThat(nextConc.getConceptStatus()).isEqualTo("Retired_Concept");
           found = true;
-          break;
+        }
+        // If we've hit the last concept in the list, check it's a retired concept
+        if (i == list.getConcepts().size() - 1
+            && conc.getConceptStatus().equals("Retired_Concept")) {
+          found = true;
         }
       }
-
-      assertThat(found).isFalse();
     }
+    // Assert we have found a retired concept, as they are confirmed at the end of the list from
+    // above check
+    assertThat(found).isTrue();
   }
 
   /**
-   * Test search retired concepts still returns the retired concept. Ensure our deboost logic isn't
-   * affecting the search results.
+   * Test search retired concepts still returns the retired concept. Ensure our deboost logic isn't affecting
+   * the search results.
    *
    * @throws Exception the exception
    */
@@ -2891,12 +2903,12 @@ public class SearchControllerTests {
                 get(url)
                     .param("terminology", "ncit")
                     .param("term", "Jax Grey Lethal Mutn")
-                    .param("type", "match"))
+                        .param("type", "match"))
             .andExpect(status().isOk())
             .andReturn();
     list =
-        new ObjectMapper()
-            .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
+            new ObjectMapper()
+                    .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
     log.info("  list = " + list);
     assertThat(list.getConcepts() != null && !list.getConcepts().isEmpty()).isTrue();
     assertThat(list.getConcepts().get(0).getConceptStatus()).isEqualTo("Retired_Concept");
