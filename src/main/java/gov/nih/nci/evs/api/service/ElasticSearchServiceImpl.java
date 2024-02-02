@@ -50,10 +50,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   /** The Elastic query service * */
   @Autowired ElasticQueryService esQueryService;
 
-  /** The Elastic query service **/
-  @Autowired
-  ElasticQueryService esQueryService;
-
   /* The terminology utils */
   @Autowired TerminologyUtils termUtils;
 
