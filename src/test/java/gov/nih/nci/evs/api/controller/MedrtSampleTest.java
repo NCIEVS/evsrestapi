@@ -92,11 +92,7 @@ public class MedrtSampleTest extends SampleTest {
 
     assertThat(terminology.getMetadata().getLoader()).isEqualTo("rdf");
     assertThat(terminology.getMetadata().getSourceCt()).isEqualTo(0);
-    assertThat(terminology.getMetadata().getLicenseText())
-        .isEqualTo("Government information at NLM Web sites is in the public domain. "
-            + "Public domain information may be freely distributed and copied, but it is requested that in any subsequent use the "
-            + "National Library of Medicine (NLM) be given appropriate acknowledgement as specified at "
-            + "https://lhncbc.nlm.nih.gov/semanticnetwork/terms.html");
+    assertThat(terminology.getMetadata().getLicenseText()).isNull();
     assertThat(terminology.getDescription()).isEqualTo("MEDRT");
 
     assertThat(terminology.getLatest()).isTrue();

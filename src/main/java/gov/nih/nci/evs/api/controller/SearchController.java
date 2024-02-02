@@ -436,7 +436,7 @@ public class SearchController extends BaseController {
     searchCriteria.checkPagination();
     logger.debug("  Search = " + searchCriteria);
 
-    if (searchCriteria.getTerminology().size() == 0) {
+    if (searchCriteria.getTerminology().isEmpty()) {
       // Implicitly use ncit
       searchCriteria.getTerminology().add("ncit");
     }
