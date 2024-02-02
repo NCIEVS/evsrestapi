@@ -1,6 +1,5 @@
 #
-# Spring Properties - copied from application-local to ensure our credentials aren't being pulled from
-# application.yml while running tests
+# Spring Properties - copied from application-local
 #
 spring:
     #
@@ -51,8 +50,7 @@ spring:
             config: classpath:ehcache.xml
 
 #
-#Server Properties - copied from application-local to ensure our credentials aren't being pulled from
-# application.yml while running tests
+#Server Properties - copied from application-local
 #
 server:
     port: ${EVS_SERVER_PORT:8082}
