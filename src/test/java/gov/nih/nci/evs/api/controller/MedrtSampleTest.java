@@ -93,7 +93,7 @@ public class MedrtSampleTest extends SampleTest {
 
     assertThat(terminology.getMetadata().getLoader()).isEqualTo("rdf");
     assertThat(terminology.getMetadata().getSourceCt()).isEqualTo(0);
-    assertThat(terminology.getMetadata().getLicenseText()).isEqualTo(null);
+    assertThat(terminology.getMetadata().getLicenseText()).isNull();
     assertThat(terminology.getDescription()).isEqualTo("MEDRT");
 
     assertThat(terminology.getLatest()).isTrue();
