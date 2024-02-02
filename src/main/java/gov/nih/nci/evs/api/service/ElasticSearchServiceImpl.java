@@ -50,10 +50,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   /** The Elastic query service * */
   @Autowired ElasticQueryService esQueryService;
 
-  /** The Elastic query service **/
-  @Autowired
-  ElasticQueryService esQueryService;
-
   /* The terminology utils */
   @Autowired TerminologyUtils termUtils;
 
@@ -92,8 +88,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       boolQuery.must(getTermQuery(searchCriteria, term));
     }
 
-    // Append concept status clause. Boosts active to the top of the list, and maintains inactive at
-    // the bottom
+    // Append concept status clause. Boosts active to the top of the list, and maintains inactive at the bottom
     BoolQueryBuilder activeQuery = new BoolQueryBuilder();
     activeQuery.should(QueryBuilders.matchQuery("active", true).boost(100000f));
     activeQuery.should(QueryBuilders.matchQuery("active", false).boost(0.0001f));
