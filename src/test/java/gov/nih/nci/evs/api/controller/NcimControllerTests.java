@@ -29,6 +29,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -49,6 +50,10 @@ public class NcimControllerTests {
   /** The test properties. */
   @Autowired
   TestProperties testProperties;
+
+  /** The application properties. */
+  @Autowired
+  ApplicationProperties appProperties;
 
   /** The object mapper. */
   private ObjectMapper objectMapper;
@@ -91,19 +96,17 @@ public class NcimControllerTests {
 
     final List<Terminology> terminologies =
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
         });
     assertThat(terminologies.size()).isGreaterThan(0);
-    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncim")).count())
-        .isEqualTo(1);
-    final Terminology ncim =
-        terminologies.stream().filter(t -> t.getTerminology().equals("ncim")).findFirst().get();
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncim")).count()).isEqualTo(1);
+    final Terminology ncim = terminologies.stream().filter(t -> t.getTerminology().equals("ncim")).findFirst().get();
     assertThat(ncim.getTerminology()).isEqualTo("ncim");
     assertThat(ncim.getName()).isEqualTo("NCI Metathesaurus 202102");
     assertThat(ncim.getMetadata().getUiLabel()).isEqualTo("NCI Metathesaurus");
     assertThat(ncim.getMetadata().getLoader()).isEqualTo("rrf");
     assertThat(ncim.getMetadata().getSourceCt()).isGreaterThan(1);
-    assertThat(ncim.getDescription())
-        .isEqualTo("NCI Metathesaurus. Bethesda, MD: National Cancer Institute.");
+    assertThat(ncim.getDescription()).isEqualTo("NCI Metathesaurus. Bethesda, MD: National Cancer Institute.");
     assertThat(ncim.getLatest()).isTrue();
     assertThat(ncim.getMetadata().getUiLabel()).isEqualTo("NCI Metathesaurus");
     assertThat(ncim.getMetadata().getLoader()).isEqualTo("rrf");
@@ -224,8 +227,8 @@ public class NcimControllerTests {
     assertThat(concept.getName()).isEqualTo("Pancreas");
     assertThat(concept.getDefinitions()).isNotNull();
     assertThat(concept.getDefinitions().size()).isEqualTo(8);
-    assertThat(concept.getDefinitions().get(0).getDefinition()).startsWith(
-        "A digestive organ in the abdomen that has both endocrine and exocrine functions.");
+    assertThat(concept.getDefinitions().get(0).getDefinition())
+        .startsWith("A digestive organ in the abdomen that has both endocrine and exocrine functions.");
     assertThat(concept.getDefinitions().get(1).getSource()).isEqualTo("NCI-GLOSS");
 
     // test random concept with no definition
@@ -266,8 +269,9 @@ public class NcimControllerTests {
     assertThat(concept.getName()).isEqualTo("(131)I-Macroaggregated Albumin");
     assertThat(concept.getProperties().size()).isGreaterThan(1);
     // Confirm STY "Amino Acid, Peptide, or Protein"
-    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")
-        && p.getValue().equals("Amino Acid, Peptide, or Protein")).count()).isEqualTo(1);
+    assertThat(concept.getProperties().stream()
+        .filter(p -> p.getType().equals("Semantic_Type") && p.getValue().equals("Amino Acid, Peptide, or Protein"))
+        .count()).isEqualTo(1);
 
     // test random concept with property
     url = baseUrl + "/ncim/C0718043";
@@ -280,11 +284,11 @@ public class NcimControllerTests {
     assertThat(concept.getCode()).isEqualTo("C0718043");
     assertThat(concept.getName()).isEqualTo("Sacrosidase");
     assertThat(concept.getProperties().size()).isGreaterThan(1);
+    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
+        .isGreaterThan(0);
     assertThat(
-        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
-            .isGreaterThan(0);
-    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type"))
-        .findFirst().get().getValue()).isEqualTo("Amino Acid, Peptide, or Protein");
+        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).findFirst().get().getValue())
+            .isEqualTo("Amino Acid, Peptide, or Protein");
 
     // test penultimate concept with property
     url = baseUrl + "/ncim/CL988042";
@@ -295,14 +299,14 @@ public class NcimControllerTests {
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("CL988042");
-    assertThat(concept.getName()).isEqualTo(
-        "Guidance for drainage+placement of drainage catheter^WO contrast:Find:Pt:Abdomen:Doc:CT");
+    assertThat(concept.getName())
+        .isEqualTo("Guidance for drainage+placement of drainage catheter^WO contrast:Find:Pt:Abdomen:Doc:CT");
     assertThat(concept.getProperties().size()).isGreaterThan(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
+        .isGreaterThan(0);
     assertThat(
-        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
-            .isGreaterThan(0);
-    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type"))
-        .findFirst().get().getValue()).isEqualTo("Clinical Attribute");
+        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).findFirst().get().getValue())
+            .isEqualTo("Clinical Attribute");
 
     // last concept in MRCONSO with one property
     url = baseUrl + "/ncim/CL990362";
@@ -315,11 +319,11 @@ public class NcimControllerTests {
     assertThat(concept.getCode()).isEqualTo("CL990362");
     assertThat(concept.getName()).isEqualTo("Foundational Model of Anatomy Ontology, 4_15");
     assertThat(concept.getProperties().size()).isGreaterThan(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
+        .isGreaterThan(0);
     assertThat(
-        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
-            .isGreaterThan(0);
-    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type"))
-        .findFirst().get().getValue()).isEqualTo("Intellectual Product");
+        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).findFirst().get().getValue())
+            .isEqualTo("Intellectual Product");
 
   }
 
@@ -361,11 +365,9 @@ public class NcimControllerTests {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0242354");
     assertThat(concept.getChildren().size()).isEqualTo(4);
-    assertThat(concept.getChildren().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
-        .contains("CL979355");
+    assertThat(concept.getChildren().stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("CL979355");
     assertThat(concept.getParents().size()).isEqualTo(2);
-    assertThat(concept.getParents().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
-        .contains("C0012634");
+    assertThat(concept.getParents().stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("C0012634");
 
   }
 
@@ -393,13 +395,12 @@ public class NcimControllerTests {
     assertThat(concept.getParents().size()).isGreaterThan(0);
     // Verify that parents are "isa" and not "inverse isa"
     assertThat(concept.getParents().stream()
-        .filter(
-            r -> !r.getQualifiers().isEmpty() && r.getQualifiers().get(0).getValue().equals("isa"))
-        .count() > 0);
+        .filter(r -> !r.getQualifiers().isEmpty() && r.getQualifiers().get(0).getValue().equals("isa")).count() > 0);
     // Verify that children are "inverse isa" and not "isa"
     assertThat(concept.getChildren().size()).isGreaterThan(0);
-    assertThat(concept.getChildren().stream().filter(r -> !r.getQualifiers().isEmpty()
-        && r.getQualifiers().get(0).getValue().equals("inverse_isa")).count() > 0);
+    assertThat(concept.getChildren().stream()
+        .filter(r -> !r.getQualifiers().isEmpty() && r.getQualifiers().get(0).getValue().equals("inverse_isa"))
+        .count() > 0);
 
     // Read something with associations and inverse associations
     url = baseUrl + "/ncim/C0000726?include=full";
@@ -414,10 +415,11 @@ public class NcimControllerTests {
     // C0000726|A13537807|AUI|RO|CL565855|A15706523|AUI|analyzes|R123761621||LNC|LNC|||N||
     // CL565855|A15706523|AUI|RO|C0000726|A13537807|AUI|analyzed_by|R123761622||LNC|LNC|||N||
     assertThat(concept.getAssociations().size()).isGreaterThan(0);
-    assertThat(concept.getAssociations().stream().filter(r -> !r.getQualifiers().isEmpty()
-        && r.getQualifiers().get(0).getValue().equals("analyzed_by")).count() > 0);
-    assertThat(concept.getInverseAssociations().stream().filter(
-        r -> !r.getQualifiers().isEmpty() && r.getQualifiers().get(0).getValue().equals("analyzes"))
+    assertThat(concept.getAssociations().stream()
+        .filter(r -> !r.getQualifiers().isEmpty() && r.getQualifiers().get(0).getValue().equals("analyzed_by"))
+        .count() > 0);
+    assertThat(concept.getInverseAssociations().stream()
+        .filter(r -> !r.getQualifiers().isEmpty() && r.getQualifiers().get(0).getValue().equals("analyzes"))
         .count() > 0);
 
     assertThat(concept.getInverseAssociations().size()).isGreaterThan(0);
@@ -447,10 +449,8 @@ public class NcimControllerTests {
     assertThat(concept.getCode()).isEqualTo("C0000052");
     assertThat(concept.getName()).isEqualTo("1,4-alpha-Glucan Branching Enzyme");
     assertThat(concept.getProperties().size()).isGreaterThan(1);
-    assertThat(concept.getProperties().stream()
-        .filter(p -> p.getType().equals("DEFINITION_STATUS_ID")
-            && p.getSource().equals("SNOMEDCT_US") && p.getValue().equals("900000000000074008"))
-        .count()).isEqualTo(1);
+    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("DEFINITION_STATUS_ID")
+        && p.getSource().equals("SNOMEDCT_US") && p.getValue().equals("900000000000074008")).count()).isEqualTo(1);
 
     // random concept in MRSAT
     url = baseUrl + "/ncim/C0436993";
@@ -463,10 +463,8 @@ public class NcimControllerTests {
     assertThat(concept.getCode()).isEqualTo("C0436993");
     assertThat(concept.getName()).isEqualTo("On examination - abdominal mass - regular shape");
     assertThat(concept.getProperties().size()).isGreaterThan(1);
-    assertThat(concept.getProperties().stream()
-        .filter(p -> p.getType().equals("DEFINITION_STATUS_ID")
-            && p.getSource().equals("SNOMEDCT_US") && p.getValue().equals("900000000000074008"))
-        .count()).isEqualTo(1);
+    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("DEFINITION_STATUS_ID")
+        && p.getSource().equals("SNOMEDCT_US") && p.getValue().equals("900000000000074008")).count()).isEqualTo(1);
 
     // last concept in MRSTY/MRSAT
     // TODO: we're ignoring AUI attributes so for the moment this turns up
@@ -504,20 +502,18 @@ public class NcimControllerTests {
     ConceptResultList list = null;
 
     // Valid test
-    log.info("Testing url - " + url
-        + "?fromRecord=0&include=synonyms&pageSize=10&term=aspirin&type=contains");
-    result = mvc
-        .perform(get(url).param("terminology", "ncim").param("term", "aspirin")
-            .param("pageSize", "10").param("type", "contains").param("include", "synonyms"))
-        .andExpect(status().isOk()).andReturn();
+    log.info("Testing url - " + url + "?fromRecord=0&include=synonyms&pageSize=10&term=aspirin&type=contains");
+    result = mvc.perform(get(url).param("terminology", "ncim").param("term", "aspirin").param("pageSize", "10")
+        .param("type", "contains").param("include", "synonyms")).andExpect(status().isOk()).andReturn();
 
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list).isNotNull();
     // Look for the Aspirin CUI.
-    assertThat(list.getConcepts().stream().filter(c -> c.getCode().equals("C0004057"))
-        .collect(Collectors.toList()).size()).isGreaterThanOrEqualTo(1);
+    assertThat(
+        list.getConcepts().stream().filter(c -> c.getCode().equals("C0004057")).collect(Collectors.toList()).size())
+            .isGreaterThanOrEqualTo(1);
 
   }
 
@@ -538,7 +534,8 @@ public class NcimControllerTests {
     // Handle associations
     url = base + "/associations";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -550,36 +547,32 @@ public class NcimControllerTests {
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("RN");
     // assertThat(list.stream().map(c ->
     // c.getCode()).collect(Collectors.toSet())).contains("RQ");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
-        .doesNotContain("SY");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
-        .doesNotContain("BRO");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
-        .doesNotContain("BRN");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
-        .doesNotContain("BRB");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
-        .doesNotContain("XR");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
-        .doesNotContain("AQ");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
-        .doesNotContain("QB");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).doesNotContain("SY");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).doesNotContain("BRO");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).doesNotContain("BRN");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).doesNotContain("BRB");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).doesNotContain("XR");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).doesNotContain("AQ");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).doesNotContain("QB");
 
     // Handle concept statuses
     url = base + "/conceptStatuses";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
       // n/a
     });
-    assertThat(list).isEmpty();
+    // Entry for "Retired_Concept"
+    assertThat(list.size()).isEqualTo(1);
 
     // Handle definitionSources
     url = base + "/definitionSources";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -592,7 +585,8 @@ public class NcimControllerTests {
     // Handle definitionTypes
     url = base + "/definitionTypes";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -611,15 +605,14 @@ public class NcimControllerTests {
       // n/a
     });
     assertThat(list).isNotEmpty();
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
-        .contains("Semantic_Type");
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
-        .contains("HAS_VERSION");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("Semantic_Type");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("HAS_VERSION");
 
     // Handle qualifiers
     url = base + "/qualifiers";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -627,8 +620,7 @@ public class NcimControllerTests {
     });
     assertThat(list).isNotEmpty();
     // NOTE: some quaifiers are not actually used
-    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet()))
-        .doesNotContain("AUI1");
+    assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).doesNotContain("AUI1");
     // assertThat(list.stream().map(c ->
     // c.getCode()).collect(Collectors.toSet())).contains("STYPE1");
     // assertThat(list.stream().map(c ->
@@ -647,7 +639,8 @@ public class NcimControllerTests {
     // Handle synonymSources - n/a - handled inline
     url = base + "/synonymSources";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -660,7 +653,8 @@ public class NcimControllerTests {
     // Handle synonymTypes
     url = base + "/synonymTypes";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -673,7 +667,8 @@ public class NcimControllerTests {
     // Handle termTypes - n/a - handled inline
     url = base + "/termTypes";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -702,7 +697,8 @@ public class NcimControllerTests {
     // NCIM qualifier values
     url = "/api/v1/metadata/ncim/qualifier/SMQ_TERM_LEVEL/values";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<String>>() {
@@ -714,12 +710,12 @@ public class NcimControllerTests {
   }
 
   /**
-   * Test subree.
+   * Test subtree.
    *
    * @throws Exception the exception
    */
   @Test
-  public void testSubree() throws Exception {
+  public void testSubtree() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
@@ -729,7 +725,8 @@ public class NcimControllerTests {
     // test /roots
     url = baseUrl + "/ncim/roots";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -740,7 +737,8 @@ public class NcimControllerTests {
     // test /descendants
     url = baseUrl + "/ncim/C0004057/descendants";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -751,7 +749,8 @@ public class NcimControllerTests {
     // test /subtree
     url = baseUrl + "/ncim/C0004057/subtree";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list2 = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
@@ -762,7 +761,8 @@ public class NcimControllerTests {
     // test /subtree/children - C0242354
     url = baseUrl + "/ncim/C0242354/subtree/children";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list2 = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
@@ -787,7 +787,8 @@ public class NcimControllerTests {
     // test /pathsToRoot
     url = baseUrl + "/ncim/C0242354/pathsToRoot";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
@@ -798,7 +799,8 @@ public class NcimControllerTests {
     // test /pathsFromRoot
     url = baseUrl + "/ncim/C0242354/pathsFromRoot";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
@@ -809,7 +811,8 @@ public class NcimControllerTests {
     // test /pathsToAncestor
     url = baseUrl + "/ncim/C0242354/pathsToAncestor/C0000005";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {

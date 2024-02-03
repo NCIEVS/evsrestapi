@@ -25,3 +25,8 @@ export ES_SCHEME="EDIT_THIS, e.g. https"
 export ES_CLEAN=false
 
 export DATA_DIR=/evs/data/ncim
+
+# Obtaining data/config from evsrestapi-operations
+# Replace "main" with "develop" for 
+export CONFIG_BASE_URI=https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata
+

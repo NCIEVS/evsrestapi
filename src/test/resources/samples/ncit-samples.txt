@@ -55,6 +55,7 @@ http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100103	C100103	A17	C45300
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100103	C100103	A18	C149570
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100104	C100104	A24	C173262
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100110	C100110	P372	Yes
+http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100110	C100110	P374	EVS/CDISC/SDTM/SDTM Terminology.xls|2:all
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100110	C100110	P376	&lt;p&gt;The terminology subset that includes terms pertaining to the CDISC questionnaire terminology.&lt;/p&gt; &lt;p&gt;The terminology can be downloaded at this location: &lt;a href=&quot;https://evs.nci.nih.gov/ftp1/CDISC/SDTM/&quot;&gt; CDISC Questionnaire Terminology&lt;/a&gt;.&lt;/p&gt;
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100110	C100110	P398	No
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C100120	C100120	P361	No
@@ -235,7 +236,6 @@ http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C16465	C16465	rdfs:subClassOf
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C16547	C16547	rdfs:subClassOf/owl:Restriction~R29	C209
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C1687	C1687	rdfs:subClassOf/owl:Restriction~R150	C37042
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C168764	C168764	rdfs:subClassOf/owl:Class/owl:unionOf/owl:Class/owl:intersectionOf/owl:Restriction~R177	C101057
-http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C170415	C170415	rdfs:comment	Polymorphisms in the INPPL1 gene are have been associated with susceptiblitity to type 2 diabetes mellitus. (J. Clin. Endocr. Metab.2005. 90: 2911-2919.)
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C172188	C172188	P356	NCT03901690
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C173740	C173740	P334	9290/3
 http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#C179320	C179320	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~R111	C61581

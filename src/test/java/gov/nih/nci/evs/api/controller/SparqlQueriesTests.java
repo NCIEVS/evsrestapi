@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.controller;
 
 import static org.junit.Assert.fail;
 
+import java.io.InputStream;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Properties;
@@ -41,8 +42,10 @@ public class SparqlQueriesTests {
   @BeforeClass
   public static void setup() throws Exception {
     prop = new Properties();
-    prop.load(
-        SparqlQueriesTests.class.getClassLoader().getResourceAsStream("sparql-queries.properties"));
+    try (final InputStream is =
+        SparqlQueriesTests.class.getClassLoader().getResourceAsStream("sparql-queries.properties")) {
+      prop.load(is);
+    }
   }
 
   /**
@@ -122,8 +125,7 @@ public class SparqlQueriesTests {
   public void testPreferredNameCode() {
 
     // This is an exception because it's always NCIt
-    final Set<String> exceptions =
-        Set.of("subset", "associations.all.ncit", "association.entries.ncit");
+    final Set<String> exceptions = Set.of("subset", "associations.all.ncit", "association.entries.ncit");
     boolean found = false;
     boolean error = false;
     for (final Map.Entry<Object, Object> entry : prop.entrySet()) {
@@ -138,8 +140,7 @@ public class SparqlQueriesTests {
       for (final String line : query.split(" \\. ")) {
 
         final boolean pnc = line.contains("preferredNameCode");
-        final boolean matches =
-            line.matches(".*OPTIONAL \\{ .*#\\{preferredNameCode\\} .*Label.*\\}.*");
+        final boolean matches = line.matches(".*OPTIONAL \\{ .*#\\{preferredNameCode\\} .*Label.*\\}.*");
 
         if (pnc) {
           logger.info("  FOUND #{preferredNameCode} = " + key + ", " + line);
@@ -199,6 +200,9 @@ public class SparqlQueriesTests {
     }
   }
 
+  /**
+   * Test dot before clause.
+   */
   @Test
   public void testDotBeforeClause() {
 

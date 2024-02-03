@@ -14,10 +14,12 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Metric.
  */
+@Schema(hidden = true)
 @Document(indexName = "default", type = ElasticOperationsService.METRIC_TYPE)
 public class Metric {
 
@@ -34,14 +36,12 @@ public class Metric {
   private Map<String, String[]> queryParams;
 
   /** The start time. */
-  @Field(type = FieldType.Date, store = true, format = DateFormat.custom,
-      pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  @Field(type = FieldType.Date, store = true, format = DateFormat.custom, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   private Date startTime;
 
   /** The end time. */
-  @Field(type = FieldType.Date, store = true, format = DateFormat.custom,
-      pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  @Field(type = FieldType.Date, store = true, format = DateFormat.custom, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   private Date endTime;
 

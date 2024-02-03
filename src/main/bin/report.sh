@@ -149,7 +149,7 @@ done
 # Sort by version then reverse by DB (NCIT2 goes before CTRP)
 # this is because we need "monthly" to be indexed from the "monthlyDb"
 # defined in ncit.json
-/bin/sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
+sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
 
 
 if [ $list -eq 1 ]; then

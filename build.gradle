@@ -26,6 +26,20 @@ repositories {
 
 ext['log4j2.version'] = '2.17.1'
 
+// Extra Properties
+ext {
+  // Parameters
+  if (!project.hasProperty("inputPath")) {
+    inputPath = "na"
+  }
+  if (!project.hasProperty("listFile")) {
+    listFile = "na"
+  }
+  if (!project.hasProperty("terminology")) {
+    terminology = "na"
+  }
+}
+
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'war'
@@ -41,7 +55,7 @@ apply plugin: 'maven-publish'
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
-version = "1.8.1.RELEASE"
+version = "1.9.0.RELEASE"
 
 sourceCompatibility = 11
 targetCompatibility = 11
@@ -61,8 +75,8 @@ dependencies {
 	// custom location => springdoc.swagger-ui.path=/swagger-ui/index.html
     compile ("org.springdoc:springdoc-openapi-ui:1.7.0") {
        exclude group: "org.webjars", module: "swagger-ui"
-    } 
-    
+    }   
+             
     // compile "io.springfox:springfox-boot-starter:3.0.0"
     // Override spring-core version to handle vulnerabilities
 	compile 'org.springframework:spring-core:5.2.22.RELEASE'
@@ -78,6 +92,7 @@ dependencies {
     compile 'commons-cli:commons-cli:1.4'
     compile 'cglib:cglib:2.2.2'
     compile 'com.maxmind.geoip2:geoip2:2.15.0'
+    compile 'org.apache.opennlp:opennlp-tools:2.2.0'
 
     providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
@@ -95,6 +110,18 @@ test {
      */
     testLogging.showStandardStreams = true
 }
+
+// # for this, the cuis with listed sources will have hierarchies computed
+// ./gradlew rrfSample -Pterminology=NCIMTH,ICD10CM,ICD9CM,SNOMEDCT_US,RXNORM,LNC,MDR,RADLEX -PlistFile=src/main/resources/cuis.txt -PinputPath=../data/NCIM
+task rrfSample(type: JavaExec) {
+   classpath = sourceSets.main.runtimeClasspath
+   main = "gov.nih.nci.evs.api.service.SamplingApplication"
+   systemProperties System.getProperties()
+   // arguments to pass to the application
+   args ("rrfSample", inputPath, listFile, terminology)
+   jvmArgs "-Xmx8G"
+}
+
 
 task zipFile(type: Zip) {
     def zipFileRootDirectory = "${project.name}-${project.version}"

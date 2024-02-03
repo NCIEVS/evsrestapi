@@ -26,6 +26,8 @@ import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import opennlp.tools.stemmer.snowball.SnowballStemmer;
+import opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM;
 
 /**
  * Utilities for handling the "include" flag, and converting EVSConcept to Concept.
@@ -67,14 +69,26 @@ public final class ConceptUtils {
   }
 
   /**
+   * get word stem.
+   *
+   * @param value the value
+   * @return the string
+   */
+  public static String normalizeWithStemming(final String value) {
+    final SnowballStemmer stemmer = new SnowballStemmer(ALGORITHM.ENGLISH);
+    String norm = normalize(value);
+    // split by spaces and stem everything, then rejoin
+    return norm != null ? Arrays.stream(norm.split(" ")).map(stemmer::stem).collect(Collectors.joining(" ")) : "";
+  }
+
+  /**
    * Apply highlights.
    *
    * @param concept the concept
    * @param highlights the highlights
    * @throws Exception the exception
    */
-  public static void applyHighlights(final Concept concept, final java.util.Map<String, String> highlights)
-    throws Exception {
+  public static void applyHighlights(final Concept concept, final Map<String, String> highlights) throws Exception {
 
     // concept
     if (highlights.containsKey(concept.getName())) {
@@ -434,7 +448,7 @@ public final class ConceptUtils {
     // Most of the top level concepts are all the same
     final Set<String> codes = list.stream().flatMap(l -> l.stream()).map(c -> c.getCode()).collect(Collectors.toSet());
     final Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
-    // final java.util.Map<String, Concept> cache = new HashMap<>();
+    // final Map<String, Concept> cache = new HashMap<>();
     for (final List<Concept> concepts : list) {
       for (final Concept concept : concepts) {
         final int level = concept.getLevel();

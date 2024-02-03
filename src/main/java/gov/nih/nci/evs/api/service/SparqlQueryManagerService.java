@@ -320,7 +320,7 @@ public interface SparqlQueryManagerService {
    * @return the maps to
    * @throws Exception the exception
    */
-  public List<gov.nih.nci.evs.api.model.Map> getMapsTo(String conceptCode, Terminology terminology)
+  public List<gov.nih.nci.evs.api.model.ConceptMap> getMapsTo(String conceptCode, Terminology terminology)
     throws Exception;
 
   /**

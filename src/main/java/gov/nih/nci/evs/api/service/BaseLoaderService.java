@@ -2,6 +2,7 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -26,6 +27,7 @@ import org.springframework.util.CollectionUtils;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
@@ -123,8 +125,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   @Override
   public void cleanStaleIndexes(final Terminology terminology) throws Exception {
 
-    List<IndexMetadata> iMetas =
-        termUtils.getStaleStardogTerminologies(Arrays.asList(dbs.split(",")), terminology);
+    List<IndexMetadata> iMetas = termUtils.getStaleStardogTerminologies(Arrays.asList(dbs.split(",")), terminology);
     if (CollectionUtils.isEmpty(iMetas)) {
       logger.info("NO stale terminologies to remove");
       return;
@@ -190,8 +191,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
         return -1 * o1.getTerminology().getVersion().compareTo(o2.getTerminology().getVersion());
       }
     });
-    logger.info("  iMetas = " + iMetas.stream().map(i -> i.getTerminology().getTerminologyVersion())
-        .collect(Collectors.toList()));
+    logger.info("  iMetas = "
+        + iMetas.stream().map(i -> i.getTerminology().getTerminologyVersion()).collect(Collectors.toList()));
     boolean latestMonthlyFound = false;
     boolean latestWeeklyFound = false;
     boolean latestFound = false;
@@ -240,10 +241,16 @@ public abstract class BaseLoaderService implements ElasticLoadService {
         iMeta.getTerminology().setLatest(false);
       }
 
+      // see if Concept Statuses needs to be updated
+      if (!iMeta.getTerminology().getMetadata().getConceptStatuses()
+          .equals(terminology.getMetadata().getConceptStatuses())) {
+
+        iMeta.getTerminology().getMetadata().setConceptStatuses(terminology.getMetadata().getConceptStatuses());
+      }
     }
 
-    operationsService.bulkIndex(iMetas, ElasticOperationsService.METADATA_INDEX,
-        ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
+    operationsService.bulkIndex(iMetas, ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE,
+        IndexMetadata.class);
 
   }
 
@@ -305,9 +312,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     // boolean created =
     operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
     // if (created) {
-    operationsService.getElasticsearchOperations().putMapping(
-        ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE,
-        IndexMetadata.class);
+    operationsService.getElasticsearchOperations().putMapping(ElasticOperationsService.METADATA_INDEX,
+        ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
     // }
 
     // Non-blocking index approach
@@ -315,9 +321,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     // ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
 
     // Make sure this blocks before proceeding
-    operationsService.bulkIndexAndWait(Arrays.asList(iMeta),
-        ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE,
-        IndexMetadata.class);
+    operationsService.bulkIndexAndWait(Arrays.asList(iMeta), ElasticOperationsService.METADATA_INDEX,
+        ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
 
     // This block is for debugging presence of the iMeta
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
@@ -341,8 +346,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws InterruptedException the interrupted exception
    */
   protected void findAndDeleteTerminology(String ID) throws IOException, InterruptedException {
-    DeleteRequest request = new DeleteRequest(ElasticOperationsService.METADATA_INDEX,
-        ElasticOperationsService.METADATA_TYPE, ID);
+    DeleteRequest request =
+        new DeleteRequest(ElasticOperationsService.METADATA_INDEX, ElasticOperationsService.METADATA_TYPE, ID);
     client.delete(request, RequestOptions.DEFAULT);
 
     // This block is for debugging presence of the iMeta still in the index
@@ -356,6 +361,22 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   }
 
   /**
+   * Take care of all needed steps to set a concept to inactive.
+   *
+   * @param term the Terminology
+   * @param concept the concept
+   */
+  protected void setConceptInactive(final Terminology term, final Concept concept) {
+
+    concept.setActive(false);
+    concept.setConceptStatus("Retired_Concept");
+
+    if (!term.getMetadata().getConceptStatuses().contains("Retired_Concept")) {
+      term.getMetadata().getConceptStatuses().add("Retired_Concept");
+    }
+  }
+
+  /**
    * Returns the metadata.
    *
    * @param terminology the terminology
@@ -363,8 +384,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws Exception the exception
    */
   public TerminologyMetadata getMetadata(final String terminology) throws Exception {
-    return new ObjectMapper().treeToValue(getMetadataAsNode(terminology),
-        TerminologyMetadata.class);
+    return new ObjectMapper().treeToValue(getMetadataAsNode(terminology), TerminologyMetadata.class);
   }
 
   /**
@@ -377,13 +397,14 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   public JsonNode getMetadataAsNode(final String terminology) throws Exception {
     // Read from the configured URI where this data lives
     // If terminology is {term}_{version} -> strip the version
-    final String uri = applicationProperties.getConfigBaseUri() + "/"
-        + terminology.replaceFirst("_.*", "") + ".json";
+    final String uri =
+        applicationProperties.getConfigBaseUri() + "/" + termUtils.getTerminologyName(terminology) + ".json";
     logger.info("  get config for " + terminology + " = " + uri);
     final URL url = new URL(uri);
 
-    return new ObjectMapper()
-        .readTree(IOUtils.toString(url.openConnection().getInputStream(), "UTF-8"));
+    try (final InputStream is = url.openConnection().getInputStream()) {
+      return new ObjectMapper().readTree(IOUtils.toString(is, "UTF-8"));
+    }
   }
 
   /**
@@ -396,10 +417,12 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   public String getWelcomeText(final String terminology) throws Exception {
     // Read from the configured URI where this data lives
     // If terminology is {term}_{version} -> strip the version
-    final String uri = applicationProperties.getConfigBaseUri() + "/"
-        + terminology.replaceFirst("_.*", "") + ".html";
+    final String uri =
+        applicationProperties.getConfigBaseUri() + "/" + termUtils.getTerminologyName(terminology) + ".html";
     logger.info("  get welcome text for " + terminology + " = " + uri);
-    return IOUtils.toString(new URL(uri).openConnection().getInputStream(), StandardCharsets.UTF_8);
+    try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
+      return IOUtils.toString(is, StandardCharsets.UTF_8);
+    }
   }
 
 }

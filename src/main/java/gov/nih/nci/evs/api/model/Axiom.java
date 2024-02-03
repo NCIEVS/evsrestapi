@@ -4,9 +4,12 @@ package gov.nih.nci.evs.api.model;
 import java.util.ArrayList;
 import java.util.List;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents an OWL Axiom.
  */
+@Schema(hidden = true)
 public class Axiom extends BaseModel {
 
   /** The annotated property. */

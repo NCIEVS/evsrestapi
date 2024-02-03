@@ -16,9 +16,12 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.google.common.collect.Sets;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents a list of paths.
  */
+@Schema(description = "Represents a list of paths")
 @JsonInclude(Include.NON_EMPTY)
 public class Paths extends BaseModel {
 
@@ -78,6 +81,7 @@ public class Paths extends BaseModel {
    *
    * @return the paths
    */
+  @Schema(description = "List of paths")
   public List<Path> getPaths() {
     return this.paths;
   }

@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.util;
 
 import java.io.BufferedReader;
@@ -25,50 +26,100 @@ public class RrfReaders {
   public enum Keys {
 
     /** The mrconso. */
-    MRCONSO,
+    MRCONSO(new int[] {
+        0
+    }, 11),
 
     /** The mrdef. */
-    MRDEF,
-
-    /** The mrcols. */
-    MRCOLS,
+    MRDEF(new int[] {
+        0
+    }, 4),
 
     /** The mrdoc. */
-    MRDOC,
+    MRDOC(null, -1),
 
     /** The mrmap. */
-    MRMAP,
-
-    /** The mrsmap. */
-    MRSMAP,
+    MRMAP(new int[] {
+        0
+    }, 1),
 
     /** The mrrank. */
-    MRRANK,
+    MRRANK(null, 1),
 
     /** The mrrel. */
-    MRREL,
+    MRREL(new int[] {
+        0, 4
+    }, 10),
 
     /** The mrhier. */
-    MRHIER,
+    MRHIER(new int[] {
+        0
+    }, 4),
 
     /** The mrsab. */
-    MRSAB,
+    MRSAB(null, 3),
 
     /** The mrsat. */
-    MRSAT,
+    MRSAT(new int[] {
+        0
+    }, 9),
 
     /** The mrsty. */
-    MRSTY,
+    MRSTY(new int[] {
+        0
+    }, -1),
 
     /** The mrcui. */
-    MRCUI,
+    MRCUI(new int[] {
+        5
+    }, -1),
 
     /** The mraui. */
-    MRAUI,
+    MRAUI(null, -1),
 
     /** The srdef. */
-    SRDEF;
+    SRDEF(null, -1),
 
+    /** The mrcols. */
+    MRCOLS(null, -1),
+
+    /** The mrfiles. */
+    MRFILES(null, -1);
+
+    /** The sab field. */
+    private int sabField;
+
+    /** The cui fields. */
+    private int[] cuiFields;
+
+    /**
+     * Instantiates a new keys.
+     *
+     * @param cuiFields the cui fields
+     * @param sabField the sab field
+     */
+    private Keys(int[] cuiFields, int sabField) {
+      this.cuiFields = cuiFields;
+      this.sabField = sabField;
+    }
+
+    /**
+     * Gets the cui fields.
+     *
+     * @return the cui fields
+     */
+    public int[] getCuiFields() {
+      return cuiFields;
+    }
+
+    /**
+     * Gets the sab field.
+     *
+     * @return the sab field
+     */
+    public int getSabField() {
+      return sabField;
+    }
   }
 
   /**
@@ -87,7 +138,23 @@ public class RrfReaders {
    * @throws Exception the exception
    */
   public void openReaders() throws Exception {
-    // n/a
+
+    // N/A - sorting is assumed
+
+    // readers.put(Keys.MRCONSO, getReader("consoByConcept.sort"));
+    // readers.put(Keys.MRDEF, getReader("defByConcept.sort"));
+    // readers.put(Keys.MRDOC, getReader("docByKey.sort"));
+    // readers.put(Keys.MRMAP, getReader("mapByConcept.sort"));
+    // readers.put(Keys.MRRANK, getReader("rankByRank.sort"));
+    // readers.put(Keys.MRREL, getReader("relByConcept.sort"));
+    // readers.put(Keys.MRHIER, getReader("relByConcept.sort"));
+    // readers.put(Keys.MRSAB, getReader("sabBySab.sort"));
+    // readers.put(Keys.MRSAT, getReader("satByConcept.sort"));
+    // readers.put(Keys.MRSTY, getReader("styByConcept.sort"));
+    // readers.put(Keys.SRDEF, getReader("srdef.sort"));
+    // readers.put(Keys.MRCUI, getReader("cuiHistory.sort"));
+    // readers.put(Keys.MRAUI, getReader("auiHistory.sort"));
+
   }
 
   /**
@@ -96,6 +163,7 @@ public class RrfReaders {
    * @param prefix the prefix (e.g. MR or RXN)
    * @throws Exception the exception
    */
+  @SuppressWarnings("resource")
   public void openOriginalReaders(final String prefix) throws Exception {
 
     for (final Keys key : Keys.values()) {
@@ -126,12 +194,10 @@ public class RrfReaders {
    * @return the reader
    * @throws Exception the exception
    */
-  @SuppressWarnings("resource")
   private PushBackReader getReader(final String filename) throws Exception {
     final File file = new File(inputDir, filename);
-    if (file != null && file.exists()) {
-      return new PushBackReader(
-          new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8")));
+    if (file.exists()) {
+      return new PushBackReader(new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8")));
     } else {
       // if no file, return an empty stream
       return new PushBackReader(new StringReader(""));

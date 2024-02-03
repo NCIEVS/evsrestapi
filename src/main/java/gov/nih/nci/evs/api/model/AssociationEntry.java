@@ -7,9 +7,12 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
- * Represents an association between two concepts.
+ * Represents an entry in a table of associations between two concepts.
  */
+@Schema(description = "Represents an entry in a table of associations between two concepts")
 @JsonInclude(Include.NON_EMPTY)
 public class AssociationEntry extends Relationship {
 
@@ -69,6 +72,7 @@ public class AssociationEntry extends Relationship {
   /**
    * @return the terminology
    */
+  @Schema(description = "Terminology abbreviation, e.g. 'nci'")
   public String getTerminology() {
     return terminology;
   }
@@ -83,6 +87,7 @@ public class AssociationEntry extends Relationship {
   /**
    * @return the version
    */
+  @Schema(description = "Terminology version, e.g. '23.11d'")
   public String getVersion() {
     return version;
   }
@@ -97,6 +102,7 @@ public class AssociationEntry extends Relationship {
   /**
    * @return the association
    */
+  @Schema(description = "Type of relationship between code and related code")
   public String getAssociation() {
     return association;
   }
@@ -111,6 +117,8 @@ public class AssociationEntry extends Relationship {
   /**
    * @return the code
    */
+  @Schema(description = "Code on the 'from' side of the association")
+  @Override
   public String getCode() {
     return code;
   }
@@ -118,6 +126,7 @@ public class AssociationEntry extends Relationship {
   /**
    * @param code the code to set
    */
+  @Override
   public void setCode(String code) {
     this.code = code;
   }
@@ -125,6 +134,7 @@ public class AssociationEntry extends Relationship {
   /**
    * @return the name
    */
+  @Schema(description = "Preferred name of the code")
   public String getName() {
     return name;
   }
@@ -139,6 +149,8 @@ public class AssociationEntry extends Relationship {
   /**
    * @return the relatedCode
    */
+  @Schema(description = "Code on the 'to' side of the association")
+  @Override
   public String getRelatedCode() {
     return relatedCode;
   }
@@ -146,6 +158,7 @@ public class AssociationEntry extends Relationship {
   /**
    * @param relatedCode the relatedCode to set
    */
+  @Override
   public void setRelatedCode(String relatedCode) {
     this.relatedCode = relatedCode;
   }
@@ -153,6 +166,8 @@ public class AssociationEntry extends Relationship {
   /**
    * @return the relatedName
    */
+  @Override
+  @Schema(description = "Preferred name of the related code")
   public String getRelatedName() {
     return relatedName;
   }
@@ -160,6 +175,7 @@ public class AssociationEntry extends Relationship {
   /**
    * @param relatedName the relatedName to set
    */
+  @Override
   public void setRelatedName(String relatedName) {
     this.relatedName = relatedName;
   }

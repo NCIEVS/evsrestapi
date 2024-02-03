@@ -67,8 +67,11 @@ public class HistoryController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "code",
           description = "Code in the specified terminology, e.g. " + "<ul><li>'C4654' for <i>ncit</i></li>"
               + "<li>'C0000733' for <i>ncim</i></li></ul>.",
@@ -112,8 +115,11 @@ public class HistoryController extends BaseController {
 
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "list",
           description = "Comma-separated list of codes, e.g. " + "<ul><li>'C4654,C40117' for <i>ncit</i></li>"
               + "<li>'C0000733,C3551741' for <i>ncim</i></li></ul>.",

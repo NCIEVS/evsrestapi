@@ -23,6 +23,7 @@ import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Paths;
+import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 
@@ -51,6 +52,9 @@ public class ElasticObject extends BaseModel {
 
   /** The association entries. */
   private List<AssociationEntry> associationEntries;
+
+  /** The statistics map */
+  private Map<String, List<StatisticsEntry>> statisticsMap;
 
   /** The map. Store this as a string to avoid complicated indexing */
   @Field(type = FieldType.Keyword)
@@ -187,6 +191,20 @@ public class ElasticObject extends BaseModel {
   }
 
   /**
+   * @return the statisticsMap
+   */
+  public Map<String, List<StatisticsEntry>> getStatisticsMap() {
+    return statisticsMap;
+  }
+
+  /**
+   * @param statisticsMap the statisticsMap to set
+   */
+  public void setStatisticsMap(Map<String, List<StatisticsEntry>> statisticsMap) {
+    this.statisticsMap = statisticsMap;
+  }
+
+  /**
    * Returns the map.
    *
    * @return the map
@@ -201,9 +219,10 @@ public class ElasticObject extends BaseModel {
       return new HashMap<>();
     }
     // Turn back into a map
-    return new ObjectMapper().readValue(mapString.substring(1), new TypeReference<Map<String, Set<String>>>() {
-      // n/a
-    });
+    return new ObjectMapper().readValue(mapString.substring(1),
+        new TypeReference<Map<String, Set<String>>>() {
+          // n/a
+        });
   }
 
   /**
