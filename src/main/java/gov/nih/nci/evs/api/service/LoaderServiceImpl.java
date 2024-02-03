@@ -53,8 +53,7 @@ public class LoaderServiceImpl {
   public static Options prepareOptions() {
     Options options = new Options();
 
-    options.addOption("f", "forceDeleteIndex", false,
-        "Force delete index if index already exists.");
+    options.addOption("f", "forceDeleteIndex", false, "Force delete index if index already exists.");
     options.addOption("h", "help", false, "Show this help information and exit.");
     options.addOption("r", "realTime", false, "Keep for backwards compabitlity. No Effect.");
     options.addOption("t", "terminology", true, "The terminology (ex: ncit_20.02d) to load.");
@@ -122,8 +121,7 @@ public class LoaderServiceImpl {
     try {
       cmd = new DefaultParser().parse(options, args);
     } catch (ParseException e) {
-      logger.error("{}; Try -h or --help to learn more about command line options available.",
-          e.getMessage());
+      logger.error("{}; Try -h or --help to learn more about command line options available.", e.getMessage());
       return;
     }
 
@@ -132,6 +130,7 @@ public class LoaderServiceImpl {
       return;
     }
 
+    @SuppressWarnings("resource")
     ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
     ElasticLoadService loadService = null;
 
@@ -156,8 +155,8 @@ public class LoaderServiceImpl {
         loadService = app.getBean(StardogElasticLoadServiceImpl.class);
       }
       final ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
-      final Terminology term = loadService.getTerminology(app, config, cmd.getOptionValue("d"),
-          cmd.getOptionValue("t"), config.isForceDeleteIndex());
+      final Terminology term = loadService.getTerminology(app, config, cmd.getOptionValue("d"), cmd.getOptionValue("t"),
+          config.isForceDeleteIndex());
       final HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
       int totalConcepts = 0;
       if (!cmd.hasOption("xl")) {

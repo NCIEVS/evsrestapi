@@ -59,7 +59,6 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
   /** the logger *. */
-  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(MetaElasticLoadServiceImpl.class);
 
   /** the concepts download location *. */
@@ -309,9 +308,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           mapset.getProperties().add(new Property("loader", "MetaElasticLoadServiceImpl"));
           final String mapsetUri = applicationProperties.getConfigBaseUri() + "/mapping-snomed-"
               + mapsetToTerminologyMap.get(fields[0]).split("_")[0].toLowerCase() + ".html";
-          final String welcomeText =
-              IOUtils.toString(new URL(mapsetUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
-          mapset.getProperties().add(new Property("welcomeText", welcomeText));
+          try (final InputStream is = new URL(mapsetUri).openConnection().getInputStream()) {
+            final String welcomeText = IOUtils.toString(is, StandardCharsets.UTF_8);
+            mapset.getProperties().add(new Property("welcomeText", welcomeText));
+          }
           mapset.getProperties().add(new Property("mapsetLink", null));
           mapset.getProperties().add(new Property("downloadOnly", "false"));
           mapset.getProperties().add(
@@ -1370,10 +1370,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           term.setTerminology(terminology);
           term.setVersion(p.getProperty("umls.release.name"));
           term.setDate(p.getProperty("umls.release.date"));
-          if (line != null) {
-            // term.setName(line.split("\\|", -1)[4]);
-            term.setDescription(line.split("\\|", -1)[24]);
-          }
+
+          // term.setName(line.split("\\|", -1)[4]);
+          term.setDescription(line.split("\\|", -1)[24]);
+
           term.setGraph(null);
           term.setSource(null);
           term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());

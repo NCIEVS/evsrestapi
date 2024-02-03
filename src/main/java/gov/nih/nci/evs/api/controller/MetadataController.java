@@ -46,7 +46,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class MetadataController extends BaseController {
 
   /** The Constant log. */
-  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(MetadataController.class);
 
   /** The metadata service. */
@@ -1144,8 +1143,7 @@ public class MetadataController extends BaseController {
    * Returns the source stats.
    *
    * @param terminology the terminology
-   * @param code the code
-   * @param include the include
+   * @param source the source
    * @return the subset
    * @throws Exception the exception
    */

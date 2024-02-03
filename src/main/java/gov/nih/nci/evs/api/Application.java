@@ -35,6 +35,7 @@ public class Application extends SpringBootServletInitializer {
    *
    * @param args the command line arguments
    */
+  @SuppressWarnings("resource")
   public static void main(String[] args) {
     SpringApplication.run(Application.class, args);
   }

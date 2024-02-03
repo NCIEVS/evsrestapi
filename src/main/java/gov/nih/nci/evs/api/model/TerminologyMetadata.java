@@ -15,8 +15,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Represents terminology metadata, which includes information about mapping from OWL structures to
- * the terminology model.
+ * Represents terminology metadata, which includes information about mapping from OWL structures to the terminology
+ * model.
  */
 @Schema(description = "Represents additional terminology metadata")
 @JsonInclude(Include.NON_EMPTY)
@@ -105,7 +105,6 @@ public class TerminologyMetadata extends BaseModel {
   private Boolean mapsets;
 
   /** The source ct. */
-  @SuppressWarnings("unused")
   private int sourceCt;
 
   /** The definition source set. */
@@ -917,8 +916,8 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Returns the unpublished properties or qualifiers. These are things where the data defines the
-   * metadata but then no uses of that metadata occur.
+   * Returns the unpublished properties or qualifiers. These are things where the data defines the metadata but then no
+   * uses of that metadata occur.
    *
    * @return the unpublished
    */

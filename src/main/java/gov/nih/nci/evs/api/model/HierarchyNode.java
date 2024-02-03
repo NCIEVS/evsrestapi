@@ -7,8 +7,7 @@ import java.util.List;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Represents a node in a hierarchy and is directly compatible with the primeng "TreeNode"
- * structure.
+ * Represents a node in a hierarchy and is directly compatible with the primeng "TreeNode" structure.
  */
 @Schema(description = "Represents a node in a subtree rendering of the hierarchy")
 public class HierarchyNode extends BaseModel {
@@ -38,7 +37,8 @@ public class HierarchyNode extends BaseModel {
    * Instantiates an empty {@link HierarchyNode}.
    */
   public HierarchyNode() {
-  };
+    // n/a
+  }
 
   /**
    * Instantiates a {@link HierarchyNode} from the specified parameters.
@@ -51,7 +51,7 @@ public class HierarchyNode extends BaseModel {
     this.code = code;
     this.label = label;
     this.leaf = leaf;
-  };
+  }
 
   /**
    * Instantiates a {@link HierarchyNode} from the specified parameters.
@@ -66,7 +66,7 @@ public class HierarchyNode extends BaseModel {
     this.label = label;
     this.leaf = leaf;
     this.children = children;
-  };
+  }
 
   /**
    * Returns the code.

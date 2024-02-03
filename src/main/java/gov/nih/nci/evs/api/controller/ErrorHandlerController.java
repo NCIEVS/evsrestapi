@@ -32,7 +32,6 @@ import io.swagger.v3.oas.annotations.Hidden;
 public class ErrorHandlerController implements ErrorController {
 
   /** Logger. */
-  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(ErrorHandlerController.class);
 
   /** The error attributes. */
