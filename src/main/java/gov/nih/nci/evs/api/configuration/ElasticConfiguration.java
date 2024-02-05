@@ -1,4 +1,3 @@
-
 package gov.nih.nci.evs.api.configuration;
 
 import org.apache.http.HttpHost;
@@ -15,12 +14,11 @@ import org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate;
 @Configuration
 public class ElasticConfiguration {
 
-  /** the logger **/
+  /** the logger * */
   private static final Logger logger = LoggerFactory.getLogger(ElasticConfiguration.class);
 
-  /** the environment with properties **/
-  @Autowired
-  Environment env;
+  /** the environment with properties * */
+  @Autowired Environment env;
 
   @SuppressWarnings("deprecation")
   @Bean
@@ -30,9 +28,10 @@ public class ElasticConfiguration {
     String esScheme = env.getProperty("nci.evs.elasticsearch.server.scheme");
     int timeout = Integer.parseInt(env.getProperty("nci.evs.elasticsearch.timeout"));
     logger.info(String.format("Configuring es client for host %s %s %s", esHost, esPort, timeout));
-    return new RestHighLevelClient(RestClient.builder(new HttpHost(esHost, esPort, esScheme))
-        .setRequestConfigCallback(
-            builder -> builder.setConnectTimeout(timeout).setSocketTimeout(timeout)));
+    return new RestHighLevelClient(
+        RestClient.builder(new HttpHost(esHost, esPort, esScheme))
+            .setRequestConfigCallback(
+                builder -> builder.setConnectTimeout(timeout).setSocketTimeout(timeout)));
 
     // ClientConfiguration clientConfiguration =
     // ClientConfiguration.builder().connectedTo(esHost)..build();

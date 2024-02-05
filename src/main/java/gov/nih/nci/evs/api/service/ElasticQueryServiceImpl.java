@@ -1,40 +1,8 @@
-
 package gov.nih.nci.evs.api.service;
-
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.elasticsearch.index.query.QueryBuilders;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-import org.springframework.data.elasticsearch.core.SearchHit;
-import org.springframework.data.elasticsearch.core.SearchHits;
-import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
-import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
-import org.springframework.data.elasticsearch.core.query.Query;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
@@ -53,6 +21,34 @@ import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PathUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.elasticsearch.index.query.QueryBuilders;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.SearchHit;
+import org.springframework.data.elasticsearch.core.SearchHits;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.Query;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 /**
  * The implementation for {@link ElasticQueryService}}.
@@ -66,13 +62,10 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   private static final Logger logger = LoggerFactory.getLogger(ElasticQueryServiceImpl.class);
 
   /** the elasticsearch operations *. */
-  @Autowired
-  ElasticsearchOperations operations;
+  @Autowired ElasticsearchOperations operations;
 
   /** the term utils. */
-  @Autowired
-  TerminologyUtils termUtils;
-
+  @Autowired TerminologyUtils termUtils;
 
   /**
    * see superclass *.
@@ -114,13 +107,17 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @return the concepts
    */
   @Override
-  public List<Concept> getConcepts(Collection<String> codes, Terminology terminology, IncludeParam ip) {
+  public List<Concept> getConcepts(
+      Collection<String> codes, Terminology terminology, IncludeParam ip) {
     if (codes == null || codes.size() == 0) {
       return new ArrayList<>();
     }
-    NativeSearchQuery query = new NativeSearchQueryBuilder().withFilter(QueryBuilders.termsQuery("_id", codes))
-        .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
-        .withPageable(new EVSPageable(0, codes.size(), 0)).build();
+    NativeSearchQuery query =
+        new NativeSearchQueryBuilder()
+            .withFilter(QueryBuilders.termsQuery("_id", codes))
+            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
+            .withPageable(new EVSPageable(0, codes.size(), 0))
+            .build();
 
     List<Concept> concepts = getResults(query, Concept.class, terminology.getIndexName());
     return concepts;
@@ -135,7 +132,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @return the concepts as map
    */
   @Override
-  public Map<String, Concept> getConceptsAsMap(Collection<String> codes, Terminology terminology, IncludeParam ip) {
+  public Map<String, Concept> getConceptsAsMap(
+      Collection<String> codes, Terminology terminology, IncludeParam ip) {
     List<Concept> concepts = getConcepts(codes, terminology, ip);
     if (CollectionUtils.isEmpty(concepts)) {
       return Collections.emptyMap();
@@ -205,8 +203,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Override
   public Optional<String> getLabel(String code, Terminology terminology) {
     Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("minimal"));
-    if (!concept.isPresent() || concept.get().getName() == null)
-      return Optional.empty();
+    if (!concept.isPresent() || concept.get().getName() == null) return Optional.empty();
     return Optional.of(concept.get().getName());
   }
 
@@ -222,15 +219,15 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public List<Concept> getRootNodes(Terminology terminology, IncludeParam ip)
-    throws JsonParseException, JsonMappingException, IOException {
+      throws JsonParseException, JsonMappingException, IOException {
     Optional<HierarchyUtils> hierarchy = getHierarchyRoots(terminology);
-    if (!hierarchy.isPresent())
-      return Collections.emptyList();
+    if (!hierarchy.isPresent()) return Collections.emptyList();
     List<String> hierarchyRoots = hierarchy.get().getHierarchyRoots();
     if (hierarchyRoots.size() < 1) {
       return new ArrayList<Concept>();
     }
-    ArrayList<Concept> concepts = new ArrayList<Concept>(getConcepts(hierarchyRoots, terminology, ip));
+    ArrayList<Concept> concepts =
+        new ArrayList<Concept>(getConcepts(hierarchyRoots, terminology, ip));
     concepts.sort(Comparator.comparing(Concept::getName));
     for (Concept c : concepts) {
       c.setLeaf(null);
@@ -249,10 +246,9 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public List<HierarchyNode> getRootNodesHierarchy(Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
+      throws JsonParseException, JsonMappingException, IOException {
     Optional<HierarchyUtils> hierarchy = getHierarchyRoots(terminology);
-    if (!hierarchy.isPresent())
-      return Collections.emptyList();
+    if (!hierarchy.isPresent()) return Collections.emptyList();
     List<HierarchyNode> nodes = new ArrayList<>();
     List<String> hierarchyRoots = hierarchy.get().getHierarchyRoots();
     List<Concept> concepts = getConcepts(hierarchyRoots, terminology, new IncludeParam("minimal"));
@@ -281,7 +277,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   // key = "{#root.methodName, #parent, #maxLevel,
   // #terminology.getTerminologyVersion()}")
   public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
+      throws JsonParseException, JsonMappingException, IOException {
     List<HierarchyNode> nodes = new ArrayList<>();
     List<Concept> children = getSubclasses(parent, terminology);
     if (children == null) {
@@ -328,7 +324,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @param terminology the terminology
    * @return the all child nodes recursive
    */
-  private void getAllChildNodesRecursive(String code, List<String> childCodes, Terminology terminology) {
+  private void getAllChildNodesRecursive(
+      String code, List<String> childCodes, Terminology terminology) {
     List<Concept> children = getSubclasses(code, terminology);
     if (children == null || children.size() == 0) {
       return;
@@ -352,7 +349,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public Paths getPathsToRoot(String code, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
+      throws JsonParseException, JsonMappingException, IOException {
     Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("paths"));
     if (!concept.isPresent() || concept.get().getPaths() == null) {
       return new Paths();
@@ -373,7 +370,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public Paths getPathsToParent(String code, String parentCode, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException {
+      throws JsonParseException, JsonMappingException, IOException {
     // logger.debug(String.format("getPathToParent(%s, %s)", code, parentCode));
     Paths paths = getPathsToRoot(code, terminology);
     // logger.debug("paths: " + paths);
@@ -442,15 +439,14 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   public List<IndexMetadata> getIndexMetadata(boolean completedOnly) {
     // Get first 1000 records
     final Pageable pageable = new EVSPageable(0, 1000, 0);
-    NativeSearchQueryBuilder queryBuilder =
-        new NativeSearchQueryBuilder().withPageable(pageable);
+    NativeSearchQueryBuilder queryBuilder = new NativeSearchQueryBuilder().withPageable(pageable);
 
     if (completedOnly) {
       queryBuilder = queryBuilder.withFilter(QueryBuilders.matchQuery("completed", true));
     }
 
-    return getResults(queryBuilder.build(), IndexMetadata.class, ElasticOperationsService.METADATA_INDEX);
-
+    return getResults(
+        queryBuilder.build(), IndexMetadata.class, ElasticOperationsService.METADATA_INDEX);
   }
 
   /**
@@ -463,10 +459,9 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public Optional<HierarchyUtils> getHierarchyRoots(Terminology terminology)
-    throws JsonMappingException, JsonProcessingException {
+      throws JsonMappingException, JsonProcessingException {
     Optional<ElasticObject> esObject = getElasticObject("hierarchy", terminology);
-    if (!esObject.isPresent())
-      return Optional.empty();
+    if (!esObject.isPresent()) return Optional.empty();
 
     return Optional.of(esObject.get().getHierarchy());
   }
@@ -482,7 +477,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public List<Concept> getQualifiers(Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonProcessingException {
+      throws JsonMappingException, JsonProcessingException {
     return getConceptList("qualifiers", terminology, ip);
   }
 
@@ -510,7 +505,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public Optional<Concept> getQualifier(String code, Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonParseException, IOException {
+      throws JsonMappingException, JsonParseException, IOException {
     List<Concept> qualifiers = getQualifiers(terminology, ip);
     return qualifiers.stream().filter(q -> q.getCode().equals(code)).findFirst();
   }
@@ -526,7 +521,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public List<Concept> getProperties(Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonProcessingException {
+      throws JsonMappingException, JsonProcessingException {
     return getConceptList("properties", terminology, ip);
   }
 
@@ -541,8 +536,9 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public Map<String, List<StatisticsEntry>> getSourceStats(Terminology terminology, String source)
-    throws JsonMappingException, JsonProcessingException {
-    Optional<ElasticObject> esObject = getElasticObject(terminology.getTerminology() + "-stats-" + source, terminology);
+      throws JsonMappingException, JsonProcessingException {
+    Optional<ElasticObject> esObject =
+        getElasticObject(terminology.getTerminology() + "-stats-" + source, terminology);
     if (!esObject.isPresent()) {
       return new HashMap<String, List<StatisticsEntry>>();
     }
@@ -562,7 +558,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public Optional<Concept> getProperty(String code, Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonParseException, IOException {
+      throws JsonMappingException, JsonParseException, IOException {
     List<Concept> properties = getProperties(terminology, ip);
     return properties.stream().filter(p -> p.getCode().equals(code)).findFirst();
   }
@@ -578,7 +574,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public List<Concept> getAssociations(Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonProcessingException {
+      throws JsonMappingException, JsonProcessingException {
     return getConceptList("associations", terminology, ip);
   }
 
@@ -595,7 +591,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public Optional<Concept> getAssociation(String code, Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonParseException, IOException {
+      throws JsonMappingException, JsonParseException, IOException {
     List<Concept> associations = getAssociations(terminology, ip);
     return associations.stream().filter(a -> a.getCode().equals(code)).findFirst();
   }
@@ -611,13 +607,15 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @throws Exception Signals that an exception has occurred.
    */
   @Override
-  public AssociationEntryResultList getAssociationEntries(String terminology, String label, int fromRecord,
-    int pageSize) throws Exception {
+  public AssociationEntryResultList getAssociationEntries(
+      String terminology, String label, int fromRecord, int pageSize) throws Exception {
     AssociationEntryResultList al = new AssociationEntryResultList();
     Optional<ElasticObject> esObject =
-        getElasticObject("associationEntries_" + label, termUtils.getIndexedTerminology(terminology, this));
+        getElasticObject(
+            "associationEntries_" + label, termUtils.getIndexedTerminology(terminology, this));
     // set params in object
-    List<String> params = Arrays.asList(terminology, label, String.valueOf(fromRecord), String.valueOf(pageSize));
+    List<String> params =
+        Arrays.asList(terminology, label, String.valueOf(fromRecord), String.valueOf(pageSize));
     SearchCriteria criteria = new SearchCriteria();
     criteria.setTerminology(params);
     criteria.setFromRecord(fromRecord);
@@ -649,7 +647,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public List<Concept> getRoles(Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonProcessingException {
+      throws JsonMappingException, JsonProcessingException {
     return getConceptList("roles", terminology, ip);
   }
 
@@ -666,7 +664,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public Optional<Concept> getRole(String code, Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonParseException, IOException {
+      throws JsonMappingException, JsonParseException, IOException {
     List<Concept> roles = getRoles(terminology, ip);
     return roles.stream().filter(r -> r.getCode().equals(code)).findFirst();
   }
@@ -674,14 +672,14 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   /* see superclass */
   @Override
   public List<Concept> getSynonymTypes(Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonProcessingException {
+      throws JsonMappingException, JsonProcessingException {
     return getConceptList("synonymTypes", terminology, ip);
   }
 
   /* see superclass */
   @Override
   public Optional<Concept> getSynonymType(String code, Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonParseException, IOException {
+      throws JsonMappingException, JsonParseException, IOException {
     List<Concept> synonymTypes = getSynonymTypes(terminology, ip);
     return synonymTypes.stream().filter(r -> r.getCode().equals(code)).findFirst();
   }
@@ -689,14 +687,14 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   /* see superclass */
   @Override
   public List<Concept> getDefinitionTypes(Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonProcessingException {
+      throws JsonMappingException, JsonProcessingException {
     return getConceptList("definitionTypes", terminology, ip);
   }
 
   /* see superclass */
   @Override
   public Optional<Concept> getDefinitionType(String code, Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonParseException, IOException {
+      throws JsonMappingException, JsonParseException, IOException {
     List<Concept> definitionTypes = getDefinitionTypes(terminology, ip);
     return definitionTypes.stream().filter(r -> r.getCode().equals(code)).findFirst();
   }
@@ -711,7 +709,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public List<ConceptMinimal> getContributingSources(Terminology terminology)
-    throws JsonMappingException, JsonProcessingException {
+      throws JsonMappingException, JsonProcessingException {
     return getConceptMinimalList("contributing_sources", terminology);
   }
 
@@ -725,7 +723,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   @Override
   public List<ConceptMinimal> getSynonymSources(Terminology terminology)
-    throws JsonMappingException, JsonProcessingException {
+      throws JsonMappingException, JsonProcessingException {
     return getConceptMinimalList("synonym_sources", terminology);
   }
 
@@ -740,10 +738,10 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @throws JsonProcessingException the json processing exception
    */
   private List<Concept> getConceptList(String id, Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonProcessingException {
+      throws JsonMappingException, JsonProcessingException {
     Optional<ElasticObject> esObject = getElasticObject(id, terminology);
     if (!esObject.isPresent()) {
-      return Collections.<Concept> emptyList();
+      return Collections.<Concept>emptyList();
     }
 
     List<Concept> concepts = esObject.get().getConcepts();
@@ -760,10 +758,10 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @throws JsonProcessingException the json processing exception
    */
   private List<ConceptMinimal> getConceptMinimalList(String id, Terminology terminology)
-    throws JsonMappingException, JsonProcessingException {
+      throws JsonMappingException, JsonProcessingException {
     Optional<ElasticObject> esObject = getElasticObject(id, terminology);
     if (!esObject.isPresent()) {
-      return Collections.<ConceptMinimal> emptyList();
+      return Collections.<ConceptMinimal>emptyList();
     }
 
     return esObject.get().getConceptMinimals();
@@ -781,12 +779,14 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
       logger.debug("getElasticObject({}, {})", id, terminology.getTerminology());
     }
 
-    NativeSearchQuery query = new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", id)).build();
+    NativeSearchQuery query =
+        new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", id)).build();
 
-    List<ElasticObject> objects = getResults(query, ElasticObject.class, terminology.getObjectIndexName());
+    List<ElasticObject> objects =
+        getResults(query, ElasticObject.class, terminology.getObjectIndexName());
 
     if (CollectionUtils.isEmpty(objects)) {
-      return Optional.<ElasticObject> empty();
+      return Optional.<ElasticObject>empty();
     }
 
     return Optional.of(objects.get(0));
@@ -795,28 +795,31 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   /* see superclass */
   @Override
   public List<Concept> getSubsets(Terminology term, IncludeParam ip)
-    throws JsonMappingException, JsonProcessingException {
+      throws JsonMappingException, JsonProcessingException {
     return getConceptList("subsets", term, ip);
   }
 
   @Override
   public List<Concept> getMapsets(IncludeParam ip) throws Exception {
 
-    NativeSearchQuery query = new NativeSearchQueryBuilder()
-        .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
-        // assuming pageSize < 10000, trying to get all maps, 17 at the time of this comment
-        .withPageable(PageRequest.of(0, 10000)).build();
+    NativeSearchQuery query =
+        new NativeSearchQueryBuilder()
+            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
+            // assuming pageSize < 10000, trying to get all maps, 17 at the time of this comment
+            .withPageable(PageRequest.of(0, 10000))
+            .build();
 
     return getResults(query, Concept.class, ElasticOperationsService.MAPPING_INDEX);
-
   }
 
   @Override
   public List<Concept> getMapset(String code, IncludeParam ip) throws Exception {
 
-    NativeSearchQuery query = new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", code))
-        .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
-        .build();
+    NativeSearchQuery query =
+        new NativeSearchQueryBuilder()
+            .withFilter(QueryBuilders.termQuery("_id", code))
+            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
+            .build();
 
     return getResults(query, Concept.class, ElasticOperationsService.MAPPING_INDEX);
   }
@@ -834,5 +837,4 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
 
     return hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
   }
-
 }

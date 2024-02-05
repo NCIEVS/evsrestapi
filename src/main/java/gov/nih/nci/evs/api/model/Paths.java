@@ -1,26 +1,20 @@
-
 package gov.nih.nci.evs.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.google.common.collect.Sets;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.google.common.collect.Sets;
-
-import io.swagger.v3.oas.annotations.media.Schema;
-
-/**
- * Represents a list of paths.
- */
+/** Represents a list of paths. */
 @Schema(description = "Represents a list of paths")
 @JsonInclude(Include.NON_EMPTY)
 public class Paths extends BaseModel {
@@ -32,9 +26,7 @@ public class Paths extends BaseModel {
   /** The paths. */
   private List<Path> paths = null;
 
-  /**
-   * Instantiates an empty {@link Paths}.
-   */
+  /** Instantiates an empty {@link Paths}. */
   public Paths() {
     paths = new ArrayList<Path>(5);
   }
@@ -108,18 +100,13 @@ public class Paths extends BaseModel {
   /* see superclass */
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
     Paths other = (Paths) obj;
     if (paths == null) {
-      if (other.paths != null)
-        return false;
-    } else if (!paths.equals(other.paths))
-      return false;
+      if (other.paths != null) return false;
+    } else if (!paths.equals(other.paths)) return false;
     return true;
   }
 
@@ -133,7 +120,12 @@ public class Paths extends BaseModel {
     // Return filtered paths that contain a reference to specified code
     return getPaths().stream()
         .filter(
-            p -> p.getConcepts().stream().filter(c -> ancestors.contains(c.getCode())).findFirst().orElse(null) != null)
+            p ->
+                p.getConcepts().stream()
+                        .filter(c -> ancestors.contains(c.getCode()))
+                        .findFirst()
+                        .orElse(null)
+                    != null)
         .collect(Collectors.toList());
   }
 
@@ -145,8 +137,10 @@ public class Paths extends BaseModel {
    * @param broadCategorySet the broad category set
    * @return the list
    */
-  public List<Paths> rewritePaths(final Map<String, Paths> mainTypeHierarchy, final Set<String> mainTypeSet,
-    final Set<String> broadCategorySet) {
+  public List<Paths> rewritePaths(
+      final Map<String, Paths> mainTypeHierarchy,
+      final Set<String> mainTypeSet,
+      final Set<String> broadCategorySet) {
 
     final Set<String> combined = Sets.union(mainTypeSet, broadCategorySet);
     final Map<String, Paths> map = new HashMap<>();
@@ -185,16 +179,27 @@ public class Paths extends BaseModel {
 
     // Determine if any paths go through main type concepts (or it is a main
     // type concept)
-    boolean mtFlag = getPaths().stream().flatMap(p -> p.getConcepts().stream())
-        .filter(c -> mainTypeSet.contains(c.getCode())).findFirst().orElse(null) != null;
+    boolean mtFlag =
+        getPaths().stream()
+                .flatMap(p -> p.getConcepts().stream())
+                .filter(c -> mainTypeSet.contains(c.getCode()))
+                .findFirst()
+                .orElse(null)
+            != null;
 
     // * Find all paths from the given concept to Disease or Disorder (Code
     // C2991) and concepts belonging to the broad category.
     long longestLength = -1;
     final List<Path> longestPathsRewritten = new ArrayList<>();
-    for (final Path path : getPaths().stream()
-        .filter(p -> p.getConcepts().stream().filter(c -> broadCategorySet.contains(c.getCode())).count() > 0)
-        .collect(Collectors.toList())) {
+    for (final Path path :
+        getPaths().stream()
+            .filter(
+                p ->
+                    p.getConcepts().stream()
+                            .filter(c -> broadCategorySet.contains(c.getCode()))
+                            .count()
+                        > 0)
+            .collect(Collectors.toList())) {
 
       // logger.info(" path = "
       // + path.getConcepts().stream().map(c ->
@@ -202,15 +207,23 @@ public class Paths extends BaseModel {
 
       // If there are paths through main type concepts, skip paths that don't
       // have them
-      if (mtFlag && path.getConcepts().stream().filter(c -> mainTypeSet.contains(c.getCode())).findFirst()
-          .orElse(null) == null) {
+      if (mtFlag
+          && path.getConcepts().stream()
+                  .filter(c -> mainTypeSet.contains(c.getCode()))
+                  .findFirst()
+                  .orElse(null)
+              == null) {
         // logger.info(" SKIP mtFlag ");
         continue;
       }
 
       // Find the first main menu ancestor concept
       final String mma =
-          path.getConcepts().stream().filter(c -> combined.contains(c.getCode())).findFirst().get().getCode();
+          path.getConcepts().stream()
+              .filter(c -> combined.contains(c.getCode()))
+              .findFirst()
+              .get()
+              .getCode();
 
       // if mma is an ancestor of another main type concept that's in one of the
       // candidate paths, then skip it
@@ -221,8 +234,10 @@ public class Paths extends BaseModel {
 
       // * Find the length of the first mma concept in the main type hierarchy
       // or 0 if it's not there
-      int length = mainTypeHierarchy.containsKey(mma)
-          ? mainTypeHierarchy.get(mma + "-FULL").getPaths().get(0).getConcepts().size() : 0;
+      int length =
+          mainTypeHierarchy.containsKey(mma)
+              ? mainTypeHierarchy.get(mma + "-FULL").getPaths().get(0).getConcepts().size()
+              : 0;
 
       // logger.info(" length = " + length);
       if (length >= longestLength) {
@@ -237,7 +252,6 @@ public class Paths extends BaseModel {
           longestPathsRewritten.add(rewritePath);
         }
       }
-
     }
     // logger.info(" longest length = " + longestLength);
     // logger.info(" longest paths = " + longestPathsRewritten);
@@ -246,8 +260,10 @@ public class Paths extends BaseModel {
     rewritePaths.getPaths().addAll(longestPathsRewritten);
 
     // For each main menu ancestor, get the corresponding paths
-    for (final String mma : rewritePaths.getPaths().stream().map(p -> p.getConcepts().get(0).getCode())
-        .collect(Collectors.toSet())) {
+    for (final String mma :
+        rewritePaths.getPaths().stream()
+            .map(p -> p.getConcepts().get(0).getCode())
+            .collect(Collectors.toSet())) {
 
       // Proceed if the main type hierarchy has an entry for mma
       // An example of a mma that does not is: C173902 "CTRP Disease Finding"
@@ -257,8 +273,17 @@ public class Paths extends BaseModel {
     }
 
     // Sort paths by name of first concept
-    final List<Paths> sortedPaths = map.values().stream().sorted((a, b) -> a.getPaths().get(0).getConcepts().get(0)
-        .getCode().compareTo(b.getPaths().get(0).getConcepts().get(0).getCode())).collect(Collectors.toList());
+    final List<Paths> sortedPaths =
+        map.values().stream()
+            .sorted(
+                (a, b) ->
+                    a.getPaths()
+                        .get(0)
+                        .getConcepts()
+                        .get(0)
+                        .getCode()
+                        .compareTo(b.getPaths().get(0).getConcepts().get(0).getCode()))
+            .collect(Collectors.toList());
 
     return sortedPaths;
   }

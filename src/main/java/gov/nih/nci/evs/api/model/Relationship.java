@@ -1,12 +1,4 @@
-
 package gov.nih.nci.evs.api.model;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -14,12 +6,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
-/**
- * Represents a connection between two concepts.
- */
+/** Represents a connection between two concepts. */
 @Schema(description = "Represents a connection between two concepts")
 @JsonInclude(Include.NON_EMPTY)
 public class Relationship extends BaseModel implements Comparable<Relationship> {
@@ -46,18 +40,13 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
   private String source;
 
   /** The highlight. */
-  @Transient
-  @JsonSerialize
-  @JsonDeserialize
-  private String highlight;
+  @Transient @JsonSerialize @JsonDeserialize private String highlight;
 
   /** The qualifiers. */
   @Field(type = FieldType.Object, enabled = false)
   private List<Qualifier> qualifiers;
 
-  /**
-   * Instantiates an empty {@link Relationship}.
-   */
+  /** Instantiates an empty {@link Relationship}. */
   public Relationship() {
     // n/a
   }
@@ -187,7 +176,9 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
    *
    * @return the highlight
    */
-  @Schema(description = "Used by search calls to provide information for highlighting a view of results")
+  @Schema(
+      description =
+          "Used by search calls to provide information for highlighting a view of results")
   public String getHighlight() {
     return highlight;
   }
@@ -285,5 +276,4 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
     return (relatedName + source + relatedCode + type)
         .compareToIgnoreCase(o.getRelatedName() + o.getSource() + o.getRelatedCode() + o.getType());
   }
-
 }

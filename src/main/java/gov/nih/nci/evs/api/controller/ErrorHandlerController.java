@@ -1,10 +1,9 @@
-
 package gov.nih.nci.evs.api.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Hidden;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,13 +19,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.swagger.v3.oas.annotations.Hidden;
-
-/**
- * Handler for errors when accessing API thru browser.
- */
+/** Handler for errors when accessing API thru browser. */
 @Controller
 @RequestMapping("/error")
 @Hidden
@@ -38,10 +31,9 @@ public class ErrorHandlerController implements ErrorController {
   /** The error attributes. */
   private ErrorAttributes errorAttributes;
 
-  /** The error attribute options to include stack trace  */
+  /** The error attribute options to include stack trace */
   private ErrorAttributeOptions options =
-          ErrorAttributeOptions.defaults()
-                  .including(ErrorAttributeOptions.Include.STACK_TRACE);
+      ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.STACK_TRACE);
 
   /**
    * Basic error controller.
@@ -70,10 +62,12 @@ public class ErrorHandlerController implements ErrorController {
       ppBody = body.toString().replaceAll("<", "&lt;");
     }
 
-    return String.format("<html><body><h2>Error Page</h2><div>Something went wrong, "
-        + "<a href=\"https://datascience.cancer.gov/about/application-support\">"
-        + "please contact the NCI helpdesk</a></div><div>Status code: <b>%s</b></div>"
-        + "<div>Message: <pre>%s</pre></div><body></html>", statusCode, ppBody);
+    return String.format(
+        "<html><body><h2>Error Page</h2><div>Something went wrong, "
+            + "<a href=\"https://datascience.cancer.gov/about/application-support\">"
+            + "please contact the NCI helpdesk</a></div><div>Status code: <b>%s</b></div>"
+            + "<div>Message: <pre>%s</pre></div><body></html>",
+        statusCode, ppBody);
   }
 
   /**
@@ -118,7 +112,8 @@ public class ErrorHandlerController implements ErrorController {
    * @param options the ErrorAttributeOptions include stack trace
    * @return the error attributes
    */
-  protected Map<String, Object> getErrorAttributes(HttpServletRequest request, ErrorAttributeOptions options) {
+  protected Map<String, Object> getErrorAttributes(
+      HttpServletRequest request, ErrorAttributeOptions options) {
     WebRequest webRequest = new ServletWebRequest(request);
     Map<String, Object> body = errorAttributes.getErrorAttributes(webRequest, options);
     if (body.containsKey("message")) {
@@ -150,5 +145,4 @@ public class ErrorHandlerController implements ErrorController {
   public String getErrorPath() {
     return "/error";
   }
-
 }

@@ -1,9 +1,6 @@
-
 package gov.nih.nci.evs.api.properties;
 
-/**
- * Application properties.
- */
+/** Application properties. */
 public class ApplicationProperties {
 
   /** The admin key. */
@@ -131,5 +128,4 @@ public class ApplicationProperties {
   public void setUiLicense(final String uiLicense) {
     this.uiLicense = uiLicense;
   }
-
 }

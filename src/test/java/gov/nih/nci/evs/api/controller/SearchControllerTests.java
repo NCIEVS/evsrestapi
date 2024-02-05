@@ -2912,8 +2912,8 @@ public class SearchControllerTests {
   }
 
   /**
-   * Test search retired concepts still returns the retired concept. Ensure our deboost logic isn't affecting
-   * the search results.
+   * Test search retired concepts still returns the retired concept. Ensure our deboost logic isn't
+   * affecting the search results.
    *
    * @throws Exception the exception
    */
@@ -2931,12 +2931,12 @@ public class SearchControllerTests {
                 get(url)
                     .param("terminology", "ncit")
                     .param("term", "Jax Grey Lethal Mutn")
-                        .param("type", "match"))
+                    .param("type", "match"))
             .andExpect(status().isOk())
             .andReturn();
     list =
-            new ObjectMapper()
-                    .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
+        new ObjectMapper()
+            .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
     log.info("  list = " + list);
     assertThat(list.getConcepts() != null && !list.getConcepts().isEmpty()).isTrue();
     assertThat(list.getConcepts().get(0).getConceptStatus()).isEqualTo("Retired_Concept");

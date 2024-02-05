@@ -1,12 +1,14 @@
-
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,15 +23,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.properties.TestProperties;
-
-/**
- * Integration tests for ConceptController for "include" flag.
- */
+/** Integration tests for ConceptController for "include" flag. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -39,12 +33,10 @@ public class ConceptControllerIncludeTests {
   private static final Logger log = LoggerFactory.getLogger(ConceptControllerIncludeTests.class);
 
   /** The mvc. */
-  @Autowired
-  private MockMvc mvc;
+  @Autowired private MockMvc mvc;
 
   /** The test properties. */
-  @Autowired
-  TestProperties testProperties;
+  @Autowired TestProperties testProperties;
 
   /** The object mapper. */
   private ObjectMapper objectMapper;
@@ -52,9 +44,7 @@ public class ConceptControllerIncludeTests {
   /** The base url. */
   private String baseUrl = "";
 
-  /**
-   * Sets the up.
-   */
+  /** Sets the up. */
   @Before
   public void setUp() {
 
@@ -149,14 +139,18 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getMaps()).isEmpty();
     // Test for Preferred_Name and FULL_SYN
     assertThat(
-        concept.getSynonyms().stream().filter(s -> s.getType().equals("Preferred_Name")).count())
-            .isGreaterThan(0);
+            concept.getSynonyms().stream()
+                .filter(s -> s.getType().equals("Preferred_Name"))
+                .count())
+        .isGreaterThan(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getType().equals("FULL_SYN")).count())
         .isGreaterThan(0);
     // Test properties are "by label"
     assertThat(
-        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
-            .isGreaterThan(0);
+            concept.getProperties().stream()
+                .filter(p -> p.getType().equals("Semantic_Type"))
+                .count())
+        .isGreaterThan(0);
 
     // Test "summary" is equal to "synonyms,definitions,properties"
     url = baseUrl + "/ncit/C3224?include=synonyms,definitions,properties";
@@ -202,17 +196,21 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getMaps()).isNotEmpty();
     // Test for Preferred_Name and FULL_SYN
     assertThat(
-        concept.getSynonyms().stream().filter(s -> "Preferred_Name".equals(s.getType())).count())
-            .isGreaterThan(0);
+            concept.getSynonyms().stream()
+                .filter(s -> "Preferred_Name".equals(s.getType()))
+                .count())
+        .isGreaterThan(0);
     assertThat(
-        concept.getSynonyms().stream().filter(s -> "Display_Name".equals(s.getType())).count())
-            .isGreaterThan(0);
+            concept.getSynonyms().stream().filter(s -> "Display_Name".equals(s.getType())).count())
+        .isGreaterThan(0);
     assertThat(concept.getSynonyms().stream().filter(s -> "FULL_SYN".equals(s.getType())).count())
         .isGreaterThan(0);
     // Test properties are "by label"
     assertThat(
-        concept.getProperties().stream().filter(p -> "Semantic_Type".equals(p.getType())).count())
-            .isGreaterThan(0);
+            concept.getProperties().stream()
+                .filter(p -> "Semantic_Type".equals(p.getType()))
+                .count())
+        .isGreaterThan(0);
   }
 
   /**
@@ -248,11 +246,12 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getMaps()).isEmpty();
     // Test for Preferred_Name and FULL_SYN
     assertThat(
-        concept.getSynonyms().stream().filter(s -> s.getType().equals("Preferred_Name")).count())
-            .isGreaterThan(0);
+            concept.getSynonyms().stream()
+                .filter(s -> s.getType().equals("Preferred_Name"))
+                .count())
+        .isGreaterThan(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getType().equals("FULL_SYN")).count())
         .isGreaterThan(0);
-
   }
 
   /**
@@ -321,9 +320,10 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getMaps()).isEmpty();
     // Test properties are "by label"
     assertThat(
-        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
-            .isGreaterThan(0);
-
+            concept.getProperties().stream()
+                .filter(p -> p.getType().equals("Semantic_Type"))
+                .count())
+        .isGreaterThan(0);
   }
 
   /**
@@ -357,7 +357,6 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-
   }
 
   /**
@@ -391,7 +390,6 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-
   }
 
   /**
@@ -426,7 +424,6 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-
   }
 
   /**
@@ -460,7 +457,6 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getRoles()).isNotEmpty();
     assertThat(concept.getInverseRoles()).isNotEmpty();
     assertThat(concept.getMaps()).isEmpty();
-
   }
 
   /**
@@ -494,7 +490,6 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isNotEmpty();
-
   }
 
   /**
@@ -562,7 +557,6 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-
   }
 
   /**
@@ -585,9 +579,13 @@ public class ConceptControllerIncludeTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isEqualTo(10);
     assertThat(list.get(0).getCode()).isNotNull();
@@ -606,9 +604,13 @@ public class ConceptControllerIncludeTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isEqualTo(10);
     assertThat(list.get(0).getCode()).isNotNull();
@@ -618,6 +620,5 @@ public class ConceptControllerIncludeTests {
     assertThat(list.get(0).getLeaf()).isNotNull();
     assertThat(list.get(0).getSynonyms()).isNotEmpty();
     assertThat(list.get(0).getProperties()).isEmpty();
-
   }
 }

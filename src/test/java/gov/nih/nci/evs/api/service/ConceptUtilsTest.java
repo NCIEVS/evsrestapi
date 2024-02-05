@@ -1,6 +1,7 @@
-
 package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -11,12 +12,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import gov.nih.nci.evs.api.properties.TestProperties;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-
-/**
- * Unit test for {@link ConceptUtils}.
- */
+/** Unit test for {@link ConceptUtils}. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -26,12 +22,9 @@ public class ConceptUtilsTest {
   private static final Logger log = LoggerFactory.getLogger(ConceptUtilsTest.class);
 
   /** The test properties. */
-  @Autowired
-  TestProperties testProperties;
+  @Autowired TestProperties testProperties;
 
-  /**
-   * Test is code.
-   */
+  /** Test is code. */
   @Test
   public void testIsCode() {
     assert (ConceptUtils.isCode(null) == false);
@@ -60,12 +53,9 @@ public class ConceptUtilsTest {
     assert (ConceptUtils.isCode("207.0") == true);
     assert (ConceptUtils.isCode("HIJK:L?5678/AB_C_") == false);
     assert (ConceptUtils.isCode("MNO:1234/5678.90.12") == false);
-
   }
 
-  /**
-   * Test normalize with stemming.
-   */
+  /** Test normalize with stemming. */
   @Test
   public void testNormalizeWithStemming() {
     // change working into asserts
@@ -89,5 +79,4 @@ public class ConceptUtilsTest {
     assert (ConceptUtils.normalizeWithStemming("All sites").equals("all site"));
     assert (ConceptUtils.normalizeWithStemming("cancerous").equals("cancer"));
   }
-
 }

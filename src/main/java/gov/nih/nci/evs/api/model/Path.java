@@ -1,18 +1,13 @@
-
 package gov.nih.nci.evs.api.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import io.swagger.v3.oas.annotations.media.Schema;
-
-/**
- * Represents a path in a hierarchy (as a list of concepts with a direction flag).
- */
+/** Represents a path in a hierarchy (as a list of concepts with a direction flag). */
 @Schema(description = "Represents a path (or partial path) in a hierarchy")
 @JsonInclude(Include.NON_EMPTY)
 public class Path extends BaseModel {
@@ -23,9 +18,7 @@ public class Path extends BaseModel {
   /** The concepts. */
   private List<ConceptMinimal> concepts;
 
-  /**
-   * Instantiates an empty {@link Path}.
-   */
+  /** Instantiates an empty {@link Path}. */
   public Path() {
     // n/a
   }
@@ -105,20 +98,14 @@ public class Path extends BaseModel {
   /* see superclass */
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
     Path other = (Path) obj;
     if (concepts == null) {
-      if (other.concepts != null)
-        return false;
-    } else if (!concepts.equals(other.concepts))
-      return false;
-    if (direction != other.direction)
-      return false;
+      if (other.concepts != null) return false;
+    } else if (!concepts.equals(other.concepts)) return false;
+    if (direction != other.direction) return false;
     return true;
   }
 

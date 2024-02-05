@@ -1,18 +1,15 @@
-
 package gov.nih.nci.evs.api.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import io.swagger.v3.oas.annotations.media.Schema;
-
 /**
  * Represents a concept with a code from a terminology with the smallest amount of information.
- * 
+ *
  * <pre>
  * {
  *   "code" : "C3224",
@@ -49,9 +46,7 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
   @Field(type = FieldType.Integer)
   private Integer level;
 
-  /**
-   * Instantiates an empty {@link ConceptMinimal}.
-   */
+  /** Instantiates an empty {@link ConceptMinimal}. */
   public ConceptMinimal() {
     // n/a
   }
@@ -196,7 +191,10 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
    *
    * @return the level
    */
-  @Schema(description = "Level of depth in a hierarchy (when this object is used to represent an element in a path)")
+  @Schema(
+      description =
+          "Level of depth in a hierarchy (when this object is used to represent an element in a"
+              + " path)")
   public Integer getLevel() {
     return level;
   }
@@ -286,5 +284,4 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
     // Handle null
     return (name + code).compareToIgnoreCase(o.getName() + o.getCode());
   }
-
 }

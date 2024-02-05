@@ -1,10 +1,15 @@
-
 package gov.nih.nci.evs.api.service;
 
 import static org.junit.Assert.assertTrue;
 
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Paths;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.MainTypeHierarchy;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.List;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -15,17 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
 
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Paths;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.MainTypeHierarchy;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
-
-/**
- * Unit test for {@link MainTypeHierarchy}.
- */
+/** Unit test for {@link MainTypeHierarchy}. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -37,20 +32,16 @@ public class MainTypeHierarchyTest {
   private static final Logger log = LoggerFactory.getLogger(MainTypeHierarchyTest.class);
 
   /** The main type hierarchy. */
-  @Autowired
-  MainTypeHierarchy mainTypeHierarchy;
+  @Autowired MainTypeHierarchy mainTypeHierarchy;
 
   /** The service. */
-  @Autowired
-  private SparqlQueryManagerService sparqlQueryService;
+  @Autowired private SparqlQueryManagerService sparqlQueryService;
 
   /** The elasticquery service. */
-  @Autowired
-  ElasticQueryService esQueryService;
+  @Autowired ElasticQueryService esQueryService;
 
   /** The term utils. */
-  @Autowired
-  TerminologyUtils termUtils;
+  @Autowired TerminologyUtils termUtils;
 
   /**
    * Test.
@@ -70,11 +61,10 @@ public class MainTypeHierarchyTest {
     mainTypeHierarchy.initialize(terminology, hierarchy);
 
     // Check certain concepts
-    for (final String code : new String[] {
-        "C156722", "C6278", "C128245"
-    }) {
+    for (final String code : new String[] {"C156722", "C6278", "C128245"}) {
       log.info("  Get concept and compute paths = " + code);
-      final Concept concept = sparqlQueryService.getConcept(code, terminology, new IncludeParam("full"));
+      final Concept concept =
+          sparqlQueryService.getConcept(code, terminology, new IncludeParam("full"));
       concept.setPaths(hierarchy.getPaths(terminology, concept.getCode()));
 
       final List<Paths> paths = mainTypeHierarchy.getMainMenuAncestors(concept);

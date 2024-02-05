@@ -1,6 +1,9 @@
-
 package gov.nih.nci.evs.api.configuration;
 
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.properties.ElasticQueryProperties;
+import gov.nih.nci.evs.api.properties.ElasticServerProperties;
+import gov.nih.nci.evs.api.properties.StardogProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -8,16 +11,9 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.properties.ElasticQueryProperties;
-import gov.nih.nci.evs.api.properties.ElasticServerProperties;
-import gov.nih.nci.evs.api.properties.StardogProperties;
 import org.springframework.context.annotation.Primary;
 
-/**
- * Properties configuration.
- */
+/** Properties configuration. */
 @Configuration
 @EnableConfigurationProperties
 public class PropertiesConfiguration {
@@ -25,9 +21,7 @@ public class PropertiesConfiguration {
   /** The logger. */
   private static final Logger log = LoggerFactory.getLogger(PropertiesConfiguration.class);
 
-  /**
-   * Instantiates an empty {@link PropertiesConfiguration}.
-   */
+  /** Instantiates an empty {@link PropertiesConfiguration}. */
   public PropertiesConfiguration() {
     log.debug("Creating instance of class PropertiesConfiguration");
   }
@@ -86,6 +80,4 @@ public class PropertiesConfiguration {
   ElasticServerProperties elasticServerProperties() {
     return new ElasticServerProperties();
   }
-
-
 }

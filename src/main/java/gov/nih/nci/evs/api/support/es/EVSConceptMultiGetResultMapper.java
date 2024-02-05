@@ -1,35 +1,35 @@
 //
-//package gov.nih.nci.evs.api.support.es;
+// package gov.nih.nci.evs.api.support.es;
 //
-//import java.util.ArrayList;
-//import java.util.List;
-//import java.util.Map;
+// import java.util.ArrayList;
+// import java.util.List;
+// import java.util.Map;
 //
-//import org.elasticsearch.action.get.MultiGetItemResponse;
-//import org.elasticsearch.action.get.MultiGetResponse;
-//import org.slf4j.Logger;
-//import org.slf4j.LoggerFactory;
-//import org.springframework.data.elasticsearch.core.MultiGetResultMapper;
+// import org.elasticsearch.action.get.MultiGetItemResponse;
+// import org.elasticsearch.action.get.MultiGetResponse;
+// import org.slf4j.Logger;
+// import org.slf4j.LoggerFactory;
+// import org.springframework.data.elasticsearch.core.MultiGetResultMapper;
 //
-//import com.fasterxml.jackson.core.JsonProcessingException;
-//import com.fasterxml.jackson.databind.ObjectMapper;
+// import com.fasterxml.jackson.core.JsonProcessingException;
+// import com.fasterxml.jackson.databind.ObjectMapper;
 //
-//import gov.nih.nci.evs.api.model.Concept;
-//import gov.nih.nci.evs.api.model.IncludeParam;
+// import gov.nih.nci.evs.api.model.Concept;
+// import gov.nih.nci.evs.api.model.IncludeParam;
 //
 
 // **************************************************************************************************
-// THIS CLASS IS DEPRECATED AND NO LONGER REQUIRED AFTER UPGRADING TO spring-data-elasticsearch:4.2.12
+// THIS CLASS IS DEPRECATED AND NO LONGER REQUIRED AFTER UPGRADING TO
+// spring-data-elasticsearch:4.2.12
 // KEEPING CODE FOR REFERENCE
 // **************************************************************************************************
 
-
-///**
+/// **
 // * The multiGet elasticsearch result mapper.
 // *
 // * @author Arun
 // */
-//public class EVSConceptMultiGetResultMapper extends BaseResultMapper
+// public class EVSConceptMultiGetResultMapper extends BaseResultMapper
 //    implements MultiGetResultMapper {
 //
 //  /** The Constant log. */
@@ -71,7 +71,8 @@
 //        try {
 //          concept = mapper.readValue(response.getResponse().getSourceAsString(), Concept.class);
 //        } catch (JsonProcessingException e) {
-//          throw new RuntimeException("Error while processing multiGet results: " + e.getMessage());
+//          throw new RuntimeException("Error while processing multiGet results: " +
+// e.getMessage());
 //        }
 //      } else {
 //        Map<String, Object> sourceMap = response.getResponse().getSource();
@@ -83,4 +84,4 @@
 //
 //    return (List<T>) concepts;
 //  }
-//}
+// }

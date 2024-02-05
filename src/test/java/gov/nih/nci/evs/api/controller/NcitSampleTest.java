@@ -1,14 +1,16 @@
-
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -22,15 +24,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Terminology;
-
-/**
- * NCIt samples test.
- */
+/** NCIt samples test. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -40,8 +34,7 @@ public class NcitSampleTest extends SampleTest {
   private static final Logger log = LoggerFactory.getLogger(NcitSampleTest.class);
 
   /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
-  @Autowired
-  private MockMvc testMvc;
+  @Autowired private MockMvc testMvc;
 
   /**
    * Setup class.
@@ -68,18 +61,30 @@ public class NcitSampleTest extends SampleTest {
     // test if mdr term exists
     url = "/api/v1/metadata/terminologies";
     log.info("Testing url - " + url);
-    result = testMvc.perform(get(url).param("latest", "true").param("tag", "monthly").param("terminology", "ncit"))
-        .andExpect(status().isOk()).andReturn();
+    result =
+        testMvc
+            .perform(
+                get(url)
+                    .param("latest", "true")
+                    .param("tag", "monthly")
+                    .param("terminology", "ncit"))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
 
     final List<Terminology> terminologies =
-        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
-          // n/a
-        });
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Terminology>>() {
+                  // n/a
+                });
     assertThat(terminologies.size()).isGreaterThan(0);
-    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).count()).isEqualTo(1);
-    final Terminology ncit = terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).count())
+        .isEqualTo(1);
+    final Terminology ncit =
+        terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
     assertThat(ncit.getTerminology()).isEqualTo("ncit");
     assertThat(ncit.getMetadata().getUiLabel()).isEqualTo("NCI Thesaurus");
     assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 21.06e");
@@ -89,10 +94,12 @@ public class NcitSampleTest extends SampleTest {
     assertThat(ncit.getMetadata().getSourceCt()).isGreaterThan(60);
     assertThat(ncit.getMetadata().getLicenseText()).isNull();
     assertThat(ncit.getDescription())
-        .isEqualTo("NCI Thesaurus, a controlled vocabulary in support of NCI administrative and "
-            + "scientific activities. Produced by the Enterprise Vocabulary System (EVS), "
-            + "a project by the NCI Center for Biomedical Informatics and Information "
-            + "Technology. National Cancer Institute, National Institutes of Health, " + "Bethesda, MD 20892, U.S.A.");
+        .isEqualTo(
+            "NCI Thesaurus, a controlled vocabulary in support of NCI administrative and "
+                + "scientific activities. Produced by the Enterprise Vocabulary System (EVS), "
+                + "a project by the NCI Center for Biomedical Informatics and Information "
+                + "Technology. National Cancer Institute, National Institutes of Health, "
+                + "Bethesda, MD 20892, U.S.A.");
 
     assertThat(ncit.getLatest()).isTrue();
   }
@@ -111,18 +118,30 @@ public class NcitSampleTest extends SampleTest {
     // test if mdr term exists
     url = "/api/v1/metadata/terminologies";
     log.info("Testing url - " + url);
-    result = testMvc.perform(get(url).param("latest", "true").param("tag", "weekly").param("terminology", "ncit"))
-        .andExpect(status().isOk()).andReturn();
+    result =
+        testMvc
+            .perform(
+                get(url)
+                    .param("latest", "true")
+                    .param("tag", "weekly")
+                    .param("terminology", "ncit"))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
 
     final List<Terminology> terminologies =
-        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
-          // n/a
-        });
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Terminology>>() {
+                  // n/a
+                });
     assertThat(terminologies.size()).isGreaterThan(0);
-    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).count()).isEqualTo(1);
-    final Terminology ncit = terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).count())
+        .isEqualTo(1);
+    final Terminology ncit =
+        terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
     assertThat(ncit.getTerminology()).isEqualTo("ncit");
     assertThat(ncit.getMetadata().getUiLabel()).isEqualTo("NCI Thesaurus");
     assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 21.07a");
@@ -132,10 +151,12 @@ public class NcitSampleTest extends SampleTest {
     assertThat(ncit.getMetadata().getSourceCt()).isGreaterThan(60);
     assertThat(ncit.getMetadata().getLicenseText()).isNull();
     assertThat(ncit.getDescription())
-        .isEqualTo("NCI Thesaurus, a controlled vocabulary in support of NCI administrative and "
-            + "scientific activities. Produced by the Enterprise Vocabulary System (EVS), "
-            + "a project by the NCI Center for Biomedical Informatics and Information "
-            + "Technology. National Cancer Institute, National Institutes of Health, " + "Bethesda, MD 20892, U.S.A.");
+        .isEqualTo(
+            "NCI Thesaurus, a controlled vocabulary in support of NCI administrative and "
+                + "scientific activities. Produced by the Enterprise Vocabulary System (EVS), "
+                + "a project by the NCI Center for Biomedical Informatics and Information "
+                + "Technology. National Cancer Institute, National Institutes of Health, "
+                + "Bethesda, MD 20892, U.S.A.");
 
     assertThat(ncit.getLatest()).isTrue();
   }
@@ -187,9 +208,13 @@ public class NcitSampleTest extends SampleTest {
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    List<Terminology> list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
-      // n/a
-    });
+    List<Terminology> list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Terminology>>() {
+                  // n/a
+                });
     assertThat(list).isNotEmpty();
     Terminology term = list.get(0);
     assertThat(term.getMetadata().getConceptStatuses()).isNotEmpty();
