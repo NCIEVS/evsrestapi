@@ -1,23 +1,17 @@
-
 package gov.nih.nci.evs.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
-/**
- * Represents a list of Map results with paging parameters.
- */
+/** Represents a list of Map results with paging parameters. */
 @Schema(description = "Represents a list of maps returned from a search or find call")
 public class ConceptMapResultList extends ResultList {
 
   /** The maps. */
   private List<ConceptMap> maps;
 
-  /**
-   * Instantiates an empty {@link ConceptMapResultList}.
-   */
+  /** Instantiates an empty {@link ConceptMapResultList}. */
   public ConceptMapResultList() {
     // n/a
   }
@@ -70,5 +64,4 @@ public class ConceptMapResultList extends ResultList {
   public void setMaps(List<ConceptMap> maps) {
     this.maps = maps;
   }
-
 }

@@ -88,7 +88,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       boolQuery.must(getTermQuery(searchCriteria, term));
     }
 
-    // Append concept status clause. Boosts active to the top of the list, and maintains inactive at the bottom
+    // Append concept status clause. Boosts active to the top of the list, and maintains inactive at
+    // the bottom
     BoolQueryBuilder activeQuery = new BoolQueryBuilder();
     activeQuery.should(QueryBuilders.matchQuery("active", true).boost(100000f));
     activeQuery.should(QueryBuilders.matchQuery("active", false).boost(0.0001f));
@@ -685,8 +686,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     BoolQueryBuilder subsetListQuery = QueryBuilders.boolQuery();
 
     if (subsets.size() == 1) {
-      subsetListQuery = subsetListQuery
-          .must(QueryBuilders.matchQuery("associations.relatedCode", subsets.get(0)));
+      subsetListQuery =
+          subsetListQuery.must(
+              QueryBuilders.matchQuery("associations.relatedCode", subsets.get(0)));
     } else {
       for (String subset : subsets) {
         subsetListQuery =
@@ -694,8 +696,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       }
     }
 
-    BoolQueryBuilder subsetQuery = QueryBuilders.boolQuery()
-        .must(QueryBuilders.matchQuery("associations.type", "Concept_In_Subset"));
+    BoolQueryBuilder subsetQuery =
+        QueryBuilders.boolQuery()
+            .must(QueryBuilders.matchQuery("associations.type", "Concept_In_Subset"));
 
     if (!(searchCriteria.getSubset().size() == 1
         && searchCriteria.getSubset().get(0).contentEquals("*"))) {
@@ -755,8 +758,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
 
     if (searchCriteria.getSynonymSource().size() == 1) {
-      fieldBoolQuery = fieldBoolQuery.must(
-          QueryBuilders.matchQuery("synonyms.source", searchCriteria.getSynonymSource().get(0)));
+      fieldBoolQuery =
+          fieldBoolQuery.must(
+              QueryBuilders.matchQuery(
+                  "synonyms.source", searchCriteria.getSynonymSource().get(0)));
     } else {
       BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
       for (String source : searchCriteria.getSynonymSource()) {
@@ -816,8 +821,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
 
     if (searchCriteria.getDefinitionSource().size() == 1) {
-      inQuery = inQuery.must(QueryBuilders.matchQuery("definitions.source",
-          searchCriteria.getDefinitionSource().get(0)));
+      inQuery =
+          inQuery.must(
+              QueryBuilders.matchQuery(
+                  "definitions.source", searchCriteria.getDefinitionSource().get(0)));
     } else {
       for (String source : searchCriteria.getDefinitionSource()) {
         inQuery = inQuery.should(QueryBuilders.matchQuery("definitions.source", source));
@@ -878,8 +885,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
 
     if (searchCriteria.getSynonymTermType().size() == 1) {
-      fieldBoolQuery = fieldBoolQuery.must(QueryBuilders.matchQuery("synonyms.termType",
-          searchCriteria.getSynonymTermType().get(0)));
+      fieldBoolQuery =
+          fieldBoolQuery.must(
+              QueryBuilders.matchQuery(
+                  "synonyms.termType", searchCriteria.getSynonymTermType().get(0)));
     } else {
       // IN query on synonym.termType
       BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
@@ -906,8 +915,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
 
     if (searchCriteria.getSynonymTermType().size() == 1) {
-      fieldBoolQuery = fieldBoolQuery.must(QueryBuilders.matchQuery("synonyms.termType",
-          searchCriteria.getSynonymTermType().get(0)));
+      fieldBoolQuery =
+          fieldBoolQuery.must(
+              QueryBuilders.matchQuery(
+                  "synonyms.termType", searchCriteria.getSynonymTermType().get(0)));
     } else {
       // IN query on synonym.termType
       BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
@@ -918,8 +929,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     if (searchCriteria.getSynonymSource().size() == 1) {
-      fieldBoolQuery = fieldBoolQuery.must(
-          QueryBuilders.matchQuery("synonyms.source", searchCriteria.getSynonymSource().get(0)));
+      fieldBoolQuery =
+          fieldBoolQuery.must(
+              QueryBuilders.matchQuery(
+                  "synonyms.source", searchCriteria.getSynonymSource().get(0)));
     } else {
       BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
       for (String source : searchCriteria.getSynonymSource()) {

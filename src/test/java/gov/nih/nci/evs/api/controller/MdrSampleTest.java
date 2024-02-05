@@ -1,16 +1,21 @@
-
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 import org.apache.commons.io.IOUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -25,33 +30,20 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
-
-/**
- * NCIt samples test.
- */
+/** NCIt samples test. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class MdrSampleTest extends SampleTest {
 
   /** The application properties. */
-  @Autowired
-  ApplicationProperties applicationProperties;
+  @Autowired ApplicationProperties applicationProperties;
 
   /** The logger. */
   private static final Logger log = LoggerFactory.getLogger(MdrSampleTest.class);
 
   /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
-  @Autowired
-  private MockMvc testMvc;
+  @Autowired private MockMvc testMvc;
 
   /**
    * Setup class.
@@ -80,8 +72,12 @@ public class MdrSampleTest extends SampleTest {
     // Test active
     url = "/api/v1/concept/mdr/10062368";
     log.info("Testing url - " + url);
-    result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", applicationProperties.getUiLicense()))
-        .andExpect(status().isOk()).andReturn();
+    result =
+        testMvc
+            .perform(
+                get(url).header("X-EVSRESTAPI-License-Key", applicationProperties.getUiLicense()))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
@@ -93,8 +89,12 @@ public class MdrSampleTest extends SampleTest {
     // Test inactive
     url = "/api/v1/concept/mdr/10002614?include=full";
     log.info("Testing url - " + url);
-    result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", applicationProperties.getUiLicense()))
-        .andExpect(status().isOk()).andReturn();
+    result =
+        testMvc
+            .perform(
+                get(url).header("X-EVSRESTAPI-License-Key", applicationProperties.getUiLicense()))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
@@ -108,13 +108,21 @@ public class MdrSampleTest extends SampleTest {
     url = "/api/v1/metadata/terminologies?terminology=mdr&latest=true";
     log.info("Testing url - " + url);
 
-    result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", applicationProperties.getUiLicense()))
-        .andExpect(status().isOk()).andReturn();
+    result =
+        testMvc
+            .perform(
+                get(url).header("X-EVSRESTAPI-License-Key", applicationProperties.getUiLicense()))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    List<Terminology> list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
-      // n/a
-    });
+    List<Terminology> list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Terminology>>() {
+                  // n/a
+                });
     assertThat(list).isNotEmpty();
     Terminology term = list.get(0);
     assertThat(term.getMetadata().getConceptStatuses()).isNotEmpty();
@@ -140,29 +148,39 @@ public class MdrSampleTest extends SampleTest {
     log.info(" content = " + content);
 
     final List<Terminology> terminologies =
-        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
-          // n/a
-        });
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Terminology>>() {
+                  // n/a
+                });
     assertThat(terminologies.size()).isGreaterThan(0);
-    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("mdr")).count()).isEqualTo(1);
-    final Terminology mdr = terminologies.stream().filter(t -> t.getTerminology().equals("mdr")).findFirst().get();
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("mdr")).count())
+        .isEqualTo(1);
+    final Terminology mdr =
+        terminologies.stream().filter(t -> t.getTerminology().equals("mdr")).findFirst().get();
     assertThat(mdr.getTerminology()).isEqualTo("mdr");
-    assertThat(mdr.getMetadata().getUiLabel()).isEqualTo("MedDRA: Medical Dictionary for Regulatory Activities");
-    assertThat(mdr.getName()).isEqualTo("MedDRA: Medical Dictionary for Regulatory Activities 23_1");
+    assertThat(mdr.getMetadata().getUiLabel())
+        .isEqualTo("MedDRA: Medical Dictionary for Regulatory Activities");
+    assertThat(mdr.getName())
+        .isEqualTo("MedDRA: Medical Dictionary for Regulatory Activities 23_1");
     assertThat(mdr.getDescription()).isNotEmpty();
     assertThat(mdr.getMetadata().getLoader()).isEqualTo("rrf");
     assertThat(mdr.getMetadata().getSourceCt()).isEqualTo(1);
     assertThat(mdr.getMetadata().getLicenseText()).isNotNull();
-    assertThat(mdr.getDescription()).isEqualTo(
-        ";;MedDRA MSSO;;MedDRA [electronic resource]" + " : Medical Dictionary for Regulatory Activities Terminology;;;"
-            + "Version 23.1;;MedDRA MSSO;;September, 2020;;;;MedDRA "
-            + "[electronic resource] : Medical Dictionary for Regulatory Activities Terminology");
+    assertThat(mdr.getDescription())
+        .isEqualTo(
+            ";;MedDRA MSSO;;MedDRA [electronic resource] : Medical Dictionary for Regulatory"
+                + " Activities Terminology;;;Version 23.1;;MedDRA MSSO;;September, 2020;;;;MedDRA"
+                + " [electronic resource] : Medical Dictionary for Regulatory Activities"
+                + " Terminology");
 
     assertThat(mdr.getLatest()).isTrue();
 
     // Load from config
     final JsonNode node = getMetadataAsNode("mdr");
-    final TerminologyMetadata metadata = new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
+    final TerminologyMetadata metadata =
+        new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
     log.info("XXX2 = " + metadata.getLicenseCheck());
   }
 

@@ -1,9 +1,6 @@
-
 package gov.nih.nci.evs.api.properties;
 
-/**
- * The Class ElasticServerProperties.
- */
+/** The Class ElasticServerProperties. */
 public class ElasticServerProperties {
 
   /** The host *. */
@@ -68,5 +65,4 @@ public class ElasticServerProperties {
   public void setScheme(String scheme) {
     this.scheme = scheme;
   }
-
 }

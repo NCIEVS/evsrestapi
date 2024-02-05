@@ -1,11 +1,15 @@
-
 package gov.nih.nci.evs.api.model;
 
 import static org.junit.Assert.assertTrue;
 
+import gov.nih.nci.evs.api.CopyConstructorTester;
+import gov.nih.nci.evs.api.EqualsHashcodeTester;
+import gov.nih.nci.evs.api.GetterSetterTester;
+import gov.nih.nci.evs.api.ProxyTester;
+import gov.nih.nci.evs.api.SerializationTester;
+import gov.nih.nci.evs.api.configuration.TestConfiguration;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -14,16 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import gov.nih.nci.evs.api.CopyConstructorTester;
-import gov.nih.nci.evs.api.EqualsHashcodeTester;
-import gov.nih.nci.evs.api.GetterSetterTester;
-import gov.nih.nci.evs.api.ProxyTester;
-import gov.nih.nci.evs.api.SerializationTester;
-import gov.nih.nci.evs.api.configuration.TestConfiguration;
-
-/**
- * Unit test for {@link Terminology}.
- */
+/** Unit test for {@link Terminology}. */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestConfiguration.class)
 public class TerminologyUnitTest {

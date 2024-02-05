@@ -1,10 +1,10 @@
-
 package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.Application;
+import gov.nih.nci.evs.api.util.RrfSampleGenerator;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ExitCodeGenerator;
@@ -12,12 +12,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Service;
 
-import gov.nih.nci.evs.api.Application;
-import gov.nih.nci.evs.api.util.RrfSampleGenerator;
-
-/**
- * Entry point for gradle tasks.
- */
+/** Entry point for gradle tasks. */
 @Service
 public class SamplingApplication {
 
@@ -47,36 +42,44 @@ public class SamplingApplication {
         final String listFile = args[2];
         final String terminology = args[3];
         // Generate subset to local directory
-        SamplingApplication.rrfSample("admin", inputPath, listFile,
+        SamplingApplication.rrfSample(
+            "admin",
+            inputPath,
+            listFile,
             Arrays.asList(terminology.split(",")).stream().collect(Collectors.toSet()));
       }
 
     } catch (final Throwable t) {
       logger.error("Unexpected error", t);
-      final int exitCode = SpringApplication.exit(app, new ExitCodeGenerator() {
-        @Override
-        public int getExitCode() {
-          // return the error code
-          return 1;
-        }
-      });
+      final int exitCode =
+          SpringApplication.exit(
+              app,
+              new ExitCodeGenerator() {
+                @Override
+                public int getExitCode() {
+                  // return the error code
+                  return 1;
+                }
+              });
       System.exit(exitCode);
     }
 
-    final int exitCode = SpringApplication.exit(app, new ExitCodeGenerator() {
+    final int exitCode =
+        SpringApplication.exit(
+            app,
+            new ExitCodeGenerator() {
 
-      /**
-       * Returns the exit code.
-       *
-       * @return the exit code
-       */
-      @Override
-      public int getExitCode() {
-        // return the error code
-        return 0;
-      }
-
-    });
+              /**
+               * Returns the exit code.
+               *
+               * @return the exit code
+               */
+              @Override
+              public int getExitCode() {
+                // return the error code
+                return 0;
+              }
+            });
     System.exit(exitCode);
   }
 
@@ -89,8 +92,12 @@ public class SamplingApplication {
    * @param terminologies the terminologies
    * @throws Exception the exception
    */
-  public static void rrfSample(final String username, final String inputPath, final String listFile,
-    final Set<String> terminologies) throws Exception {
+  public static void rrfSample(
+      final String username,
+      final String inputPath,
+      final String listFile,
+      final Set<String> terminologies)
+      throws Exception {
 
     final RrfSampleGenerator generator = new RrfSampleGenerator();
     generator.setTerminologies(terminologies);
@@ -99,7 +106,5 @@ public class SamplingApplication {
     generator.setKeepDescendants(false);
     // generator.setDistanceOne(true);
     generator.compute();
-
   }
-
 }

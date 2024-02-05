@@ -1,14 +1,17 @@
-
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.common.collect.Sets;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -23,13 +26,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.properties.TestProperties;
-
 /**
  * Integration tests for ContentController organized around proper handling of property qualifiers.
  * This is based on work from EVSRESTAPI-69.
@@ -43,12 +39,10 @@ public class QualifierTests {
   private static final Logger log = LoggerFactory.getLogger(QualifierTests.class);
 
   /** The mvc. */
-  @Autowired
-  private MockMvc mvc;
+  @Autowired private MockMvc mvc;
 
   /** The test properties. */
-  @Autowired
-  TestProperties testProperties;
+  @Autowired TestProperties testProperties;
 
   /** The object mapper. */
   private ObjectMapper objectMapper;
@@ -59,9 +53,7 @@ public class QualifierTests {
   /** The meta base url. */
   private String metaBaseUrl = "";
 
-  /**
-   * Sets the up.
-   */
+  /** Sets the up. */
   @Before
   public void setUp() {
 
@@ -94,12 +86,18 @@ public class QualifierTests {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C101669");
     assertThat(concept.getDefinitions().size()).isGreaterThan(0);
-    assertThat(concept.getDefinitions().stream()
-        .filter(d -> "ALT_DEFINITION".equals(d.getType()) && d.getQualifiers().size() > 0).count()).isGreaterThan(0);
-    assertThat(concept.getDefinitions().stream()
-        .filter(d -> "ALT_DEFINITION".equals(d.getType()) && d.getQualifiers().size() > 0)
-        .flatMap(d -> d.getQualifiers().stream()).filter(q -> q.getType().equals("attribution")).count())
-            .isGreaterThan(0);
+    assertThat(
+            concept.getDefinitions().stream()
+                .filter(d -> "ALT_DEFINITION".equals(d.getType()) && d.getQualifiers().size() > 0)
+                .count())
+        .isGreaterThan(0);
+    assertThat(
+            concept.getDefinitions().stream()
+                .filter(d -> "ALT_DEFINITION".equals(d.getType()) && d.getQualifiers().size() > 0)
+                .flatMap(d -> d.getQualifiers().stream())
+                .filter(q -> q.getType().equals("attribution"))
+                .count())
+        .isGreaterThan(0);
   }
 
   /**
@@ -124,12 +122,18 @@ public class QualifierTests {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C101046");
     assertThat(concept.getDefinitions().size()).isGreaterThan(0);
-    assertThat(concept.getDefinitions().stream()
-        .filter(d -> !"ALT_DEFINITION".equals(d.getType()) && d.getQualifiers().size() > 0).count()).isGreaterThan(0);
-    assertThat(concept.getDefinitions().stream()
-        .filter(d -> !"ALT_DEFINITION".equals(d.getType()) && d.getQualifiers().size() > 0)
-        .flatMap(d -> d.getQualifiers().stream()).filter(q -> q.getType().equals("attribution")).count())
-            .isGreaterThan(0);
+    assertThat(
+            concept.getDefinitions().stream()
+                .filter(d -> !"ALT_DEFINITION".equals(d.getType()) && d.getQualifiers().size() > 0)
+                .count())
+        .isGreaterThan(0);
+    assertThat(
+            concept.getDefinitions().stream()
+                .filter(d -> !"ALT_DEFINITION".equals(d.getType()) && d.getQualifiers().size() > 0)
+                .flatMap(d -> d.getQualifiers().stream())
+                .filter(q -> q.getType().equals("attribution"))
+                .count())
+        .isGreaterThan(0);
   }
 
   /**
@@ -154,10 +158,16 @@ public class QualifierTests {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C100065");
     assertThat(concept.getSynonyms().size()).isGreaterThan(0);
-    assertThat(concept.getSynonyms().stream()
-        .filter(
-            s -> s.getSource() != null && s.getSubSource() != null && s.getCode() != null && s.getTermType() != null)
-        .count()).isGreaterThan(0);
+    assertThat(
+            concept.getSynonyms().stream()
+                .filter(
+                    s ->
+                        s.getSource() != null
+                            && s.getSubSource() != null
+                            && s.getCode() != null
+                            && s.getTermType() != null)
+                .count())
+        .isGreaterThan(0);
   }
 
   /**
@@ -182,9 +192,17 @@ public class QualifierTests {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C101034");
     assertThat(concept.getMaps().size()).isGreaterThan(0);
-    assertThat(concept.getMaps().stream().filter(m -> m.getType() != null && m.getTargetCode() != null
-        && m.getTargetTerminologyVersion() != null && m.getTargetTermType() != null && m.getTargetTerminology() != null)
-        .count()).isGreaterThan(0);
+    assertThat(
+            concept.getMaps().stream()
+                .filter(
+                    m ->
+                        m.getType() != null
+                            && m.getTargetCode() != null
+                            && m.getTargetTerminologyVersion() != null
+                            && m.getTargetTermType() != null
+                            && m.getTargetTerminology() != null)
+                .count())
+        .isGreaterThan(0);
   }
 
   /**
@@ -209,20 +227,39 @@ public class QualifierTests {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C19799");
     assertThat(concept.getProperties().size()).isGreaterThan(0);
-    assertThat(concept.getProperties().stream().filter(p -> p.getType().contentEquals("GO_Annotation")).count())
+    assertThat(
+            concept.getProperties().stream()
+                .filter(p -> p.getType().contentEquals("GO_Annotation"))
+                .count())
         .isGreaterThan(0);
-    assertThat(concept.getProperties().stream().filter(p -> p.getType().contentEquals("GO_Annotation"))
-        .flatMap(p -> p.getQualifiers().stream()).filter(q -> q.getType().contentEquals("go-evi")).count())
-            .isGreaterThan(0);
-    assertThat(concept.getProperties().stream().filter(p -> p.getType().contentEquals("GO_Annotation"))
-        .flatMap(p -> p.getQualifiers().stream()).filter(q -> q.getType().contentEquals("go-id")).count())
-            .isGreaterThan(0);
-    assertThat(concept.getProperties().stream().filter(p -> p.getType().contentEquals("GO_Annotation"))
-        .flatMap(p -> p.getQualifiers().stream()).filter(q -> q.getType().contentEquals("go-source")).count())
-            .isGreaterThan(0);
-    assertThat(concept.getProperties().stream().filter(p -> p.getType().contentEquals("GO_Annotation"))
-        .flatMap(p -> p.getQualifiers().stream()).filter(q -> q.getType().contentEquals("source-date")).count())
-            .isGreaterThan(0);
+    assertThat(
+            concept.getProperties().stream()
+                .filter(p -> p.getType().contentEquals("GO_Annotation"))
+                .flatMap(p -> p.getQualifiers().stream())
+                .filter(q -> q.getType().contentEquals("go-evi"))
+                .count())
+        .isGreaterThan(0);
+    assertThat(
+            concept.getProperties().stream()
+                .filter(p -> p.getType().contentEquals("GO_Annotation"))
+                .flatMap(p -> p.getQualifiers().stream())
+                .filter(q -> q.getType().contentEquals("go-id"))
+                .count())
+        .isGreaterThan(0);
+    assertThat(
+            concept.getProperties().stream()
+                .filter(p -> p.getType().contentEquals("GO_Annotation"))
+                .flatMap(p -> p.getQualifiers().stream())
+                .filter(q -> q.getType().contentEquals("go-source"))
+                .count())
+        .isGreaterThan(0);
+    assertThat(
+            concept.getProperties().stream()
+                .filter(p -> p.getType().contentEquals("GO_Annotation"))
+                .flatMap(p -> p.getQualifiers().stream())
+                .filter(q -> q.getType().contentEquals("source-date"))
+                .count())
+        .isGreaterThan(0);
   }
 
   /**
@@ -242,9 +279,13 @@ public class QualifierTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    final List<Concept> list1 = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
+    final List<Concept> list1 =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
     assertThat(list1).isNotEmpty();
 
     // Get qualifiers
@@ -253,9 +294,13 @@ public class QualifierTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    final List<Concept> list2 = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
+    final List<Concept> list2 =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
     assertThat(list2).isNotEmpty();
 
     // list1 and list2 should not have any codes in common
@@ -267,7 +312,6 @@ public class QualifierTests {
     final Set<String> names1 = list1.stream().map(c -> c.getName()).collect(Collectors.toSet());
     final Set<String> names2 = list2.stream().map(c -> c.getName()).collect(Collectors.toSet());
     assertThat(Sets.intersection(names1, names2).size()).isEqualTo(0);
-
   }
 
   /**
@@ -287,9 +331,13 @@ public class QualifierTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    final List<Concept> list1 = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
+    final List<Concept> list1 =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
     assertThat(list1).isNotEmpty();
 
     // Get qualifiers
@@ -298,9 +346,13 @@ public class QualifierTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    final List<Concept> list2 = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
+    final List<Concept> list2 =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
     assertThat(list2).isNotEmpty();
 
     // Take the each property and look it up as a qualifier, expect 404
@@ -323,7 +375,6 @@ public class QualifierTests {
   }
 
   /**
-   * 
    * Test property not used.
    *
    * @throws Exception the exception
@@ -360,10 +411,11 @@ public class QualifierTests {
     String content = null;
     Concept concept = null;
 
-    for (final String name : new String[] {
-        // "Maps_To", - this one removed for ReportWriter
-        "code", "name", "Preferred_Name", "DEFINITION", "ALT_DEFINITION", "FULL_SYN", "label"
-    }) {
+    for (final String name :
+        new String[] {
+          // "Maps_To", - this one removed for ReportWriter
+          "code", "name", "Preferred_Name", "DEFINITION", "ALT_DEFINITION", "FULL_SYN", "label"
+        }) {
       // skip name and label
       if (name.equals("name") || name.equals("label")) {
         continue;
@@ -373,7 +425,6 @@ public class QualifierTests {
       log.info("Testing url - " + url);
       result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     }
-
   }
 
   /**
@@ -398,12 +449,18 @@ public class QualifierTests {
     assertThat(concept).isNotNull();
 
     // Assert that the "preferred name" synonym does match the concept name
-    assertThat(concept.getSynonyms().stream().filter(c -> c.getType().equals("Preferred_Name")).count())
+    assertThat(
+            concept.getSynonyms().stream()
+                .filter(c -> c.getType().equals("Preferred_Name"))
+                .count())
         .isGreaterThan(0);
     assertThat(
-        concept.getSynonyms().stream().filter(c -> c.getType().equals("Preferred_Name")).findFirst().get().getName())
-            .isEqualTo("attribution");
-
+            concept.getSynonyms().stream()
+                .filter(c -> c.getType().equals("Preferred_Name"))
+                .findFirst()
+                .get()
+                .getName())
+        .isEqualTo("attribution");
   }
 
   /**
@@ -423,9 +480,13 @@ public class QualifierTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    final List<Concept> list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
+    final List<Concept> list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
     assertThat(list).isNotEmpty();
 
     // Assert that properties do contain any "remodeled qualifiers"
@@ -439,5 +500,4 @@ public class QualifierTests {
       result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     }
   }
-
 }

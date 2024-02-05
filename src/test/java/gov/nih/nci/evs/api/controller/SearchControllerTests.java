@@ -2218,6 +2218,35 @@ public class SearchControllerTests {
       assertThat(found).isFalse();
     }
 
+  /**
+   * Test search retired concepts still returns the retired concept. Ensure our deboost logic isn't
+   * affecting the search results.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchRetiredConcepts() throws Exception {
+    // SETUP
+    String url = baseUrl;
+    MvcResult result = null;
+    ConceptResultList list = null;
+    log.info("Testing url - " + url + "?term=Jax Grey Lethal Mutn&terminology=ncit");
+
+    // ACT & ASSERT
+    result =
+        mvc.perform(
+                get(url)
+                    .param("terminology", "ncit")
+                    .param("term", "Jax Grey Lethal Mutn")
+                    .param("type", "match"))
+            .andExpect(status().isOk())
+            .andReturn();
+    list =
+        new ObjectMapper()
+            .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
+    log.info("  list = " + list);
+    assertThat(list.getConcepts() != null && !list.getConcepts().isEmpty()).isTrue();
+    assertThat(list.getConcepts().get(0).getConceptStatus()).isEqualTo("Retired_Concept");
   }
 
   /**

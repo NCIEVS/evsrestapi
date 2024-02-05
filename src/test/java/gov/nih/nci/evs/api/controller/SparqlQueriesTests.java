@@ -1,4 +1,3 @@
-
 package gov.nih.nci.evs.api.controller;
 
 import static org.junit.Assert.fail;
@@ -11,7 +10,6 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.util.set.Sets;
 import org.junit.BeforeClass;
@@ -21,9 +19,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.junit4.SpringRunner;
 
-/**
- * Integration tests for SearchController.
- */
+/** Integration tests for SearchController. */
 @RunWith(SpringRunner.class)
 // @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class SparqlQueriesTests {
@@ -43,14 +39,14 @@ public class SparqlQueriesTests {
   public static void setup() throws Exception {
     prop = new Properties();
     try (final InputStream is =
-        SparqlQueriesTests.class.getClassLoader().getResourceAsStream("sparql-queries.properties")) {
+        SparqlQueriesTests.class
+            .getClassLoader()
+            .getResourceAsStream("sparql-queries.properties")) {
       prop.load(is);
     }
   }
 
-  /**
-   * Test query fields.
-   */
+  /** Test query fields. */
   @Test
   public void testQueryFields() {
 
@@ -76,8 +72,10 @@ public class SparqlQueriesTests {
 
       // Find things referenced in "graph" that are not in "select"
       final Set<String> selectNotGraph = Sets.difference(selectMatches, graphMatches);
-      final Set<String> graphNotSelect = Sets.difference(graphMatches, selectMatches).stream()
-          .filter(s -> !s.matches("\\?([xyz].*|rs)")).collect(Collectors.toSet());
+      final Set<String> graphNotSelect =
+          Sets.difference(graphMatches, selectMatches).stream()
+              .filter(s -> !s.matches("\\?([xyz].*|rs)"))
+              .collect(Collectors.toSet());
       if (selectNotGraph.size() > 0) {
         logger.info("  FOUND select field not in graph = " + key);
         logger.info("    ERROR = " + selectNotGraph);
@@ -88,17 +86,13 @@ public class SparqlQueriesTests {
         logger.info("    ERROR = " + graphNotSelect);
         error = true;
       }
-
     }
     if (error) {
       fail("Unexpected graph fields not in select, see log.");
     }
-
   }
 
-  /**
-   * In general, rdfs:label should not be used in queries.
-   */
+  /** In general, rdfs:label should not be used in queries. */
   @Test
   public void testRdfsLabel() {
 
@@ -118,14 +112,13 @@ public class SparqlQueriesTests {
     }
   }
 
-  /**
-   * Test that #{preferredNameCode} is always optional.
-   */
+  /** Test that #{preferredNameCode} is always optional. */
   @Test
   public void testPreferredNameCode() {
 
     // This is an exception because it's always NCIt
-    final Set<String> exceptions = Set.of("subset", "associations.all.ncit", "association.entries.ncit");
+    final Set<String> exceptions =
+        Set.of("subset", "associations.all.ncit", "association.entries.ncit");
     boolean found = false;
     boolean error = false;
     for (final Map.Entry<Object, Object> entry : prop.entrySet()) {
@@ -140,7 +133,8 @@ public class SparqlQueriesTests {
       for (final String line : query.split(" \\. ")) {
 
         final boolean pnc = line.contains("preferredNameCode");
-        final boolean matches = line.matches(".*OPTIONAL \\{ .*#\\{preferredNameCode\\} .*Label.*\\}.*");
+        final boolean matches =
+            line.matches(".*OPTIONAL \\{ .*#\\{preferredNameCode\\} .*Label.*\\}.*");
 
         if (pnc) {
           logger.info("  FOUND #{preferredNameCode} = " + key + ", " + line);
@@ -160,9 +154,7 @@ public class SparqlQueriesTests {
     }
   }
 
-  /**
-   * Test code code after preferred name code.
-   */
+  /** Test code code after preferred name code. */
   @Test
   public void testCodeCodeAfterPreferredNameCode() {
 
@@ -200,9 +192,7 @@ public class SparqlQueriesTests {
     }
   }
 
-  /**
-   * Test dot before clause.
-   */
+  /** Test dot before clause. */
   @Test
   public void testDotBeforeClause() {
 
@@ -234,9 +224,7 @@ public class SparqlQueriesTests {
 
         if (StringUtils.countMatches(line, "?") > 3) {
           logger.info("    ERROR missing clause . separator = " + key + " = " + line);
-
         }
-
       }
     }
     if (error) {

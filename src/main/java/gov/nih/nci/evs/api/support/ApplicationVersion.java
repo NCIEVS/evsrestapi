@@ -1,9 +1,6 @@
-
 package gov.nih.nci.evs.api.support;
 
-/**
- * Represents HomePageData.
- */
+/** Represents HomePageData. */
 public class ApplicationVersion {
 
   /** The name. */
@@ -68,5 +65,4 @@ public class ApplicationVersion {
   public void setDescription(final String description) {
     this.description = description;
   }
-
 }

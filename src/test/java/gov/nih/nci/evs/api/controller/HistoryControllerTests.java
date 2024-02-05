@@ -1,12 +1,14 @@
-
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.History;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,15 +23,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.History;
-import gov.nih.nci.evs.api.properties.TestProperties;
-
-/**
- * subset tests.
- */
+/** subset tests. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -39,12 +33,10 @@ public class HistoryControllerTests {
   private static final Logger log = LoggerFactory.getLogger(MetadataControllerTests.class);
 
   /** The mvc. */
-  @Autowired
-  private MockMvc mvc;
+  @Autowired private MockMvc mvc;
 
   /** The test properties. */
-  @Autowired
-  TestProperties testProperties;
+  @Autowired TestProperties testProperties;
 
   /** The object mapper. */
   private ObjectMapper objectMapper;
@@ -52,9 +44,7 @@ public class HistoryControllerTests {
   /** The base url. */
   private String baseUrl = "";
 
-  /**
-   * Sets the up.
-   */
+  /** Sets the up. */
   @Before
   public void setUp() {
 
@@ -83,9 +73,13 @@ public class HistoryControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
-      // n/a
-    });
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<History>>() {
+                  // n/a
+                });
     assertThat(list).isNotNull();
     assertThat(list.size()).isEqualTo(1);
     assertThat(list.get(0).getCode()).isEqualTo("C3224");
@@ -99,9 +93,13 @@ public class HistoryControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
-      // n/a
-    });
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<History>>() {
+                  // n/a
+                });
     assertThat(list).isNotNull();
     assertThat(list.size()).isEqualTo(1);
     assertThat(list.get(0).getCode()).isEqualTo("C13320");
@@ -114,9 +112,13 @@ public class HistoryControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
-      // n/a
-    });
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<History>>() {
+                  // n/a
+                });
     assertThat(list).isNotNull();
     assertThat(list.size()).isEqualTo(1);
     assertThat(list.get(0).getCode()).isEqualTo("C12756");
@@ -128,9 +130,13 @@ public class HistoryControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
-      // n/a
-    });
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<History>>() {
+                  // n/a
+                });
     assertThat(list).isNotNull();
     assertThat(list.size()).isEqualTo(1);
     assertThat(list.get(0).getCode()).isEqualTo("C17610");
@@ -142,9 +148,13 @@ public class HistoryControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
-      // n/a
-    });
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<History>>() {
+                  // n/a
+                });
     assertThat(list).isNotNull();
     assertThat(list.size()).isEqualTo(1);
     assertThat(list.get(0).getCode()).isEqualTo("C4631");
@@ -156,9 +166,13 @@ public class HistoryControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
-      // n/a
-    });
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<History>>() {
+                  // n/a
+                });
     assertThat(list).isNotNull();
     assertThat(list.size()).isEqualTo(1);
     assertThat(list.get(0).getCode()).isEqualTo("C0278390");
@@ -170,9 +184,13 @@ public class HistoryControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
-      // n/a
-    });
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<History>>() {
+                  // n/a
+                });
     assertThat(list).isNotNull();
     assertThat(list.size()).isEqualTo(1);
     assertThat(list.get(0).getCode()).isEqualTo("C0003962");
@@ -185,9 +203,13 @@ public class HistoryControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
-      // n/a
-    });
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<History>>() {
+                  // n/a
+                });
     assertThat(list).isNotNull();
     assertThat(list.size()).isEqualTo(1);
     assertThat(list.get(0).getCode()).isEqualTo("CL511651");
@@ -200,14 +222,17 @@ public class HistoryControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
-      // n/a
-    });
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<History>>() {
+                  // n/a
+                });
     assertThat(list).isNotNull();
     assertThat(list.size()).isEqualTo(1);
     assertThat(list.get(0).getCode()).isEqualTo("C3554541");
     assertThat(list.get(0).getAction()).isEqualTo("active");
-
   }
 
   /**
@@ -229,9 +254,13 @@ public class HistoryControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
-      // n/a
-    });
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<History>>() {
+                  // n/a
+                });
     assertThat(list).isNotNull();
     assertThat(list.size()).isEqualTo(1);
     assertThat(list.get(0).getCode()).isEqualTo("C3224");
@@ -245,9 +274,13 @@ public class HistoryControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<History>>() {
-      // n/a
-    });
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<History>>() {
+                  // n/a
+                });
     assertThat(list).isNotNull();
     assertThat(list.size()).isEqualTo(2);
     assertThat(list.get(0).getCode()).isEqualTo("C169836");

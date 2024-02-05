@@ -1,13 +1,10 @@
-
 package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.model.Metric;
+import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import java.io.IOException;
 import java.util.List;
-
-import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-
-import gov.nih.nci.evs.api.model.Metric;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -64,7 +61,7 @@ public interface ElasticOperationsService {
    * @throws IOException the io exception
    */
   void index(Object object, String index, @SuppressWarnings("rawtypes") Class clazz)
-    throws IOException;
+      throws IOException;
 
   /**
    * load metrics.

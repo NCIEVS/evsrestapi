@@ -1,14 +1,10 @@
-
 package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
 import java.util.Map;
 
-import gov.nih.nci.evs.api.model.Terminology;
-
-/**
- * Query builder service.
- */
+/** Query builder service. */
 public interface QueryBuilderService {
 
   /**
@@ -47,8 +43,8 @@ public interface QueryBuilderService {
    * @param conceptCodes the concept codes
    * @return the string
    */
-  public String constructBatchQuery(String queryProp, Terminology terminology,
-    List<String> conceptCodes);
+  public String constructBatchQuery(
+      String queryProp, Terminology terminology, List<String> conceptCodes);
 
   /**
    * Construct query.
@@ -58,8 +54,8 @@ public interface QueryBuilderService {
    * @param paramMap the param map
    * @return the string
    */
-  public String constructQuery(String queryProp, Terminology terminology,
-    Map<String, String> paramMap);
+  public String constructQuery(
+      String queryProp, Terminology terminology, Map<String, String> paramMap);
 
   /**
    * Contruct prefix.
@@ -68,5 +64,4 @@ public interface QueryBuilderService {
    * @return the string
    */
   public String constructPrefix(Terminology terminology);
-
 }

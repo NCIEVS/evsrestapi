@@ -1,6 +1,11 @@
-
 package gov.nih.nci.evs.api.util;
 
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -14,8 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
-import gov.nih.nci.evs.api.service.SparqlQueryManagerServiceImpl;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -25,7 +28,6 @@ import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
-import org.apache.lucene.index.Term;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,16 +36,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ResponseStatusException;
 
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.properties.StardogProperties;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-import gov.nih.nci.evs.api.support.es.IndexMetadata;
-
-/**
- * Utilities for handling the "include" flag, and converting EVSConcept to Concept.
- */
+/** Utilities for handling the "include" flag, and converting EVSConcept to Concept. */
 @Component
 public final class TerminologyUtils {
 
@@ -51,29 +44,29 @@ public final class TerminologyUtils {
   private static final Logger logger = LoggerFactory.getLogger(TerminologyUtils.class);
 
   /** The stardog properties. */
-  @Autowired
-  StardogProperties stardogProperties;
+  @Autowired StardogProperties stardogProperties;
 
   /** The application properties. */
-  @Autowired
-  ApplicationProperties applicationProperties;
+  @Autowired ApplicationProperties applicationProperties;
 
   /** The license cache. */
-  private static Map<String, String> licenseCache = new LinkedHashMap<String, String>(1000 * 4 / 3, 0.75f, true) {
-    @Override
-    protected boolean removeEldestEntry(final Map.Entry<String, String> eldest) {
-      return size() > 1000;
-    }
-  };
+  private static Map<String, String> licenseCache =
+      new LinkedHashMap<String, String>(1000 * 4 / 3, 0.75f, true) {
+        @Override
+        protected boolean removeEldestEntry(final Map.Entry<String, String> eldest) {
+          return size() > 1000;
+        }
+      };
 
   /**
    * Returns all terminologies.
-   * 
+   *
    * @param sparqlQueryManagerService the sparql query service
    * @return the terminologies
    * @throws Exception Signals that an exception has occurred.
    */
-  public List<Terminology> getTerminologies(SparqlQueryManagerService sparqlQueryManagerService) throws Exception {
+  public List<Terminology> getTerminologies(SparqlQueryManagerService sparqlQueryManagerService)
+      throws Exception {
     return sparqlQueryManagerService.getTerminologies(stardogProperties.getDb());
   }
 
@@ -84,11 +77,11 @@ public final class TerminologyUtils {
    * @return the list of terminology objects
    * @throws Exception Signals that an exception has occurred.
    */
-  public List<Terminology> getIndexedTerminologies(ElasticQueryService esQueryService) throws Exception {
+  public List<Terminology> getIndexedTerminologies(ElasticQueryService esQueryService)
+      throws Exception {
     // get index metadata for terminologies completely loaded in es
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
-    if (CollectionUtils.isEmpty(iMetas))
-      return Collections.emptyList();
+    if (CollectionUtils.isEmpty(iMetas)) return Collections.emptyList();
 
     return iMetas.stream().map(m -> m.getTerminology()).collect(Collectors.toList());
   }
@@ -101,9 +94,12 @@ public final class TerminologyUtils {
    * @return the stale terminologies
    * @throws Exception the exception
    */
-  public List<IndexMetadata> getStaleStardogTerminologies(final List<String> dbs, final Terminology terminology, SparqlQueryManagerService sparqlQueryManagerService,
-                                                          ElasticQueryService esQueryService)
-    throws Exception {
+  public List<IndexMetadata> getStaleStardogTerminologies(
+      final List<String> dbs,
+      final Terminology terminology,
+      SparqlQueryManagerService sparqlQueryManagerService,
+      ElasticQueryService esQueryService)
+      throws Exception {
     // get index metadata for terminologies completely loaded in es
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
     if (CollectionUtils.isEmpty(iMetas)) {
@@ -121,26 +117,30 @@ public final class TerminologyUtils {
     // Stale means matching current terminology, not loaded via RRF, and in NOT
     // in stardog
     return iMetas.stream()
-        .filter(m -> m.getTerminology().getTerminology().equals(terminology.getTerminology())
-            && !m.getTerminology().getMetadata().getLoader().equals("rrf")
-            && !stardogMap.containsKey(m.getTerminologyVersion()))
+        .filter(
+            m ->
+                m.getTerminology().getTerminology().equals(terminology.getTerminology())
+                    && !m.getTerminology().getMetadata().getLoader().equals("rrf")
+                    && !stardogMap.containsKey(m.getTerminologyVersion()))
         .collect(Collectors.toList());
   }
 
   /**
    * Returns the terminology.
-   * 
-   * Set {@literal true} for {@code indexedOnly} param to lookup in indexed terminologies.
+   *
+   * <p>Set {@literal true} for {@code indexedOnly} param to lookup in indexed terminologies.
    *
    * @param terminology the terminology
    * @param sparqlQueryManagerService the sparql query service
    * @return the terminology
    * @throws Exception the exception
    */
-  public Terminology getTerminology(final String terminology, SparqlQueryManagerService sparqlQueryManagerService) throws Exception {
+  public Terminology getTerminology(
+      final String terminology, SparqlQueryManagerService sparqlQueryManagerService)
+      throws Exception {
     List<Terminology> terminologies = getTerminologies(sparqlQueryManagerService);
     return findTerminology(terminology, terminologies);
-    }
+  }
 
   /**
    * Get the indexed terminology
@@ -150,7 +150,8 @@ public final class TerminologyUtils {
    * @return the Terminology
    * @throws Exception the exception
    */
-  public Terminology getIndexedTerminology(final String terminology, ElasticQueryService esQueryService) throws Exception {
+  public Terminology getIndexedTerminology(
+      final String terminology, ElasticQueryService esQueryService) throws Exception {
     List<Terminology> terminologies = getIndexedTerminologies(esQueryService);
     return findTerminology(terminology, terminologies);
   }
@@ -164,24 +165,40 @@ public final class TerminologyUtils {
    */
   private Terminology findTerminology(final String terminology, List<Terminology> terminologies) {
     // Find latest monthly match
-    final Terminology latestMonthly = terminologies.stream()
-            .filter(t -> t.getTerminology().equals(terminology) && "ncit".equals(terminology)
-                    && "true".equals(t.getTags().get("monthly")) && t.getLatest() != null && t.getLatest())
-            .findFirst().orElse(null);
+    final Terminology latestMonthly =
+        terminologies.stream()
+            .filter(
+                t ->
+                    t.getTerminology().equals(terminology)
+                        && "ncit".equals(terminology)
+                        && "true".equals(t.getTags().get("monthly"))
+                        && t.getLatest() != null
+                        && t.getLatest())
+            .findFirst()
+            .orElse(null);
     if (latestMonthly != null) {
       return latestMonthly;
     }
 
     // Find terminologyVersion match
     final Terminology tv =
-            terminologies.stream().filter(t -> t.getTerminologyVersion().equals(terminology)).findFirst().orElse(null);
+        terminologies.stream()
+            .filter(t -> t.getTerminologyVersion().equals(terminology))
+            .findFirst()
+            .orElse(null);
     if (tv != null) {
       return tv;
     }
 
     // Find "latest" match
-    final Terminology latest = terminologies.stream()
-            .filter(t -> t.getTerminology().equals(terminology) && t.getLatest() != null && t.getLatest()).findFirst()
+    final Terminology latest =
+        terminologies.stream()
+            .filter(
+                t ->
+                    t.getTerminology().equals(terminology)
+                        && t.getLatest() != null
+                        && t.getLatest())
+            .findFirst()
             .orElse(null);
     if (latest != null) {
       return latest;
@@ -189,14 +206,18 @@ public final class TerminologyUtils {
 
     // Find the "first"
     final Terminology first =
-            terminologies.stream().filter(t -> t.getTerminology().equals(terminology)).findFirst().orElse(null);
+        terminologies.stream()
+            .filter(t -> t.getTerminology().equals(terminology))
+            .findFirst()
+            .orElse(null);
     if (first != null) {
       return first;
     }
 
     // IF we get this far, something is weird, show all terminologies
     terminologies.stream().forEach(t -> logger.info("  " + t.getTerminologyVersion() + " = " + t));
-    throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Terminology not found = " + terminology);
+    throw new ResponseStatusException(
+        HttpStatus.NOT_FOUND, "Terminology not found = " + terminology);
   }
 
   /**
@@ -217,8 +238,7 @@ public final class TerminologyUtils {
    * @param values the values
    * @return the sets the
    */
-  public static <T> Set<T> asSet(@SuppressWarnings("unchecked")
-  final T... values) {
+  public static <T> Set<T> asSet(@SuppressWarnings("unchecked") final T... values) {
     final Set<T> set = new HashSet<>(values.length);
     for (final T value : values) {
       if (value != null) {
@@ -255,7 +275,9 @@ public final class TerminologyUtils {
     // If the stardogProperties "db" matches the terminology metadata
     // "monthlyDb"
     // then continue, we're good.
-    if (terminology.getMetadata() != null && db != null && db.equals(terminology.getMetadata().getMonthlyDb())) {
+    if (terminology.getMetadata() != null
+        && db != null
+        && db.equals(terminology.getMetadata().getMonthlyDb())) {
       logger.info("  stardog monthly db found = " + db);
       monthly = true;
     }
@@ -263,7 +285,8 @@ public final class TerminologyUtils {
     // If the ncit.json "monthlyDb" isn't set, then calculate
     // NOTE: this wont' handle exceptions like 20210531 being
     // the 5th Monday of May in 2021 but also a holiday
-    else if (terminology.getMetadata() == null || terminology.getMetadata().getMonthlyDb() == null) {
+    else if (terminology.getMetadata() == null
+        || terminology.getMetadata().getMonthlyDb() == null) {
       final Date d = fmt.parse(terminology.getDate());
       Calendar cal = Calendar.getInstance();
       cal.setTime(d);
@@ -274,14 +297,13 @@ public final class TerminologyUtils {
       char weekIndicator = version.charAt(version.length() - 1);
       switch (weekIndicator) {
         case 'e':
-          monthly = true;// has to be monthly version
+          monthly = true; // has to be monthly version
           break;
-        case 'd':// monthly version, if month has only 4 days of week (for ex:
-                 // Monday) only
-          if (maxDayOfWeek == 4)
-            monthly = true;
+        case 'd': // monthly version, if month has only 4 days of week (for ex:
+          // Monday) only
+          if (maxDayOfWeek == 4) monthly = true;
           break;
-        default:// case a,b,c
+        default: // case a,b,c
           break;
       }
     }
@@ -307,7 +329,8 @@ public final class TerminologyUtils {
       return;
     }
 
-    final String licenseUrl = "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md";
+    final String licenseUrl =
+        "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md";
 
     // Check the license key and fail
     if (license == null) {
@@ -318,9 +341,13 @@ public final class TerminologyUtils {
         return;
       }
 
-      throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-          "API calls for terminology='" + terminology.getTerminology()
-              + "' require an X-EVSRESTAPI-License-Key header, visit " + licenseUrl + " for more information.");
+      throw new ResponseStatusException(
+          HttpStatus.FORBIDDEN,
+          "API calls for terminology='"
+              + terminology.getTerminology()
+              + "' require an X-EVSRESTAPI-License-Key header, visit "
+              + licenseUrl
+              + " for more information.");
     }
 
     // Allow the UI license to bypass this.
@@ -333,8 +360,10 @@ public final class TerminologyUtils {
       if ("true".equals(licenseCache.get(terminology.getTerminology() + license))) {
         return;
       } else {
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-            "Invalid X-EVSRESTAPI-License-Key header for this terminology, visit " + licenseUrl
+        throw new ResponseStatusException(
+            HttpStatus.FORBIDDEN,
+            "Invalid X-EVSRESTAPI-License-Key header for this terminology, visit "
+                + licenseUrl
                 + " for more information.");
       }
     }
@@ -344,10 +373,14 @@ public final class TerminologyUtils {
       // Verify license
       final String[] tokens = license.split(":");
       if (tokens.length != 2) {
-        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-            "API calls for terminology='" + terminology.getTerminology()
-                + "' require an X-EVSRESTAPI-License-Key header with 2 parts 'meddraID:meddraApiKey', visit "
-                + licenseUrl + " for more information.");
+        throw new ResponseStatusException(
+            HttpStatus.FORBIDDEN,
+            "API calls for terminology='"
+                + terminology.getTerminology()
+                + "' require an X-EVSRESTAPI-License-Key header with 2 parts"
+                + " 'meddraID:meddraApiKey', visit "
+                + licenseUrl
+                + " for more information.");
       }
       final String id = tokens[0];
       final String apiKey = tokens[1];
@@ -369,7 +402,6 @@ public final class TerminologyUtils {
 
       licenseCache.put(terminology.getTerminology() + license, "true");
     }
-
   }
 
   /**
@@ -382,8 +414,13 @@ public final class TerminologyUtils {
    * @param licenseUrl the license url
    * @throws Exception the exception
    */
-  public void checkLicenseHttp(final String method, final String uri, final String contentType, final String payload,
-    final String licenseUrl) throws Exception {
+  public void checkLicenseHttp(
+      final String method,
+      final String uri,
+      final String contentType,
+      final String payload,
+      final String licenseUrl)
+      throws Exception {
 
     try (final CloseableHttpClient httpClient = HttpClients.createDefault()) {
 
@@ -416,18 +453,17 @@ public final class TerminologyUtils {
           logger.error("uri = " + uri);
           logger.error("payload = " + payload);
           logger.error("Unexpected response = " + responseContent);
-          throw new ResponseStatusException(HttpStatus.FORBIDDEN,
-              "Invalid X-EVSRESTAPI-License-Key header for this terminology, visit " + licenseUrl
+          throw new ResponseStatusException(
+              HttpStatus.FORBIDDEN,
+              "Invalid X-EVSRESTAPI-License-Key header for this terminology, visit "
+                  + licenseUrl
                   + " for more information.");
         }
-
       }
     }
   }
 
-  /**
-   * Clear cache.
-   */
+  /** Clear cache. */
   public static void clearCache() {
     licenseCache.clear();
   }

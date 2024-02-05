@@ -1,6 +1,21 @@
-
 package gov.nih.nci.evs.api.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.AssociationEntry;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.History;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.MainTypeHierarchy;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -22,7 +37,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,27 +47,7 @@ import org.springframework.data.elasticsearch.NoSuchIndexException;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.util.CollectionUtils;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.AssociationEntry;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMinimal;
-import gov.nih.nci.evs.api.model.History;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.properties.StardogProperties;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
-import gov.nih.nci.evs.api.support.es.ElasticObject;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.MainTypeHierarchy;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
-
-/**
- * The implementation for {@link ElasticLoadService}.
- */
+/** The implementation for {@link ElasticLoadService}. */
 // @Service
 public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   /** the logger *. */
@@ -80,28 +74,25 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   private int INDEX_BATCH_SIZE;
 
   /** the environment *. */
-  @Autowired
-  Environment env;
+  @Autowired Environment env;
 
   /** The Elasticsearch operations service instance *. */
-  @Autowired
-  ElasticOperationsService operationsService;
+  @Autowired ElasticOperationsService operationsService;
 
   /** The sparql query manager service. */
-  @Autowired
-  private SparqlQueryManagerService sparqlQueryManagerService;
+  @Autowired private SparqlQueryManagerService sparqlQueryManagerService;
 
   /** The stardog properties. */
-  @Autowired
-  StardogProperties stardogProperties;
+  @Autowired StardogProperties stardogProperties;
 
   /** The main type hierarchy. */
-  @Autowired
-  MainTypeHierarchy mainTypeHierarchy;
+  @Autowired MainTypeHierarchy mainTypeHierarchy;
 
   /** the sparql query service impl. */
-  @Autowired
-  private SparqlQueryManagerServiceImpl sparqlQueryManagerServiceImpl;
+  @Autowired private SparqlQueryManagerServiceImpl sparqlQueryManagerServiceImpl;
+
+  /** The sparql query cache service */
+  @Autowired SparqlQueryCacheService sparqlQueryCacheService;
 
   /** The name map. */
   private Map<String, String> nameMap = new HashMap<>();
@@ -120,25 +111,29 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
+  public int loadConcepts(
+      ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+      throws IOException {
   public int loadConcepts(ElasticLoadConfig config, Terminology terminology,
     HierarchyUtils hierarchy) throws Exception {
 
-    logger.debug("ElasticLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName());
+    logger.debug(
+        "ElasticLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName());
 
     boolean result =
         operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
     if (result) {
       operationsService
-              .getElasticsearchOperations()
-              .indexOps(IndexCoordinates.of(terminology.getIndexName()))
-              .putMapping(Concept.class);
+          .getElasticsearchOperations()
+          .indexOps(IndexCoordinates.of(terminology.getIndexName()))
+          .putMapping(Concept.class);
     }
 
     // Get complex roles and inverse roles
     try {
       logger.info("Load complex roles");
-      hierarchy
-          .setRoleMap(sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, false));
+      hierarchy.setRoleMap(
+          sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, false));
       logger.info("Load complex inverse roles");
       hierarchy.setInverseRoleMap(
           sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, true));
@@ -177,7 +172,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     }
 
     return ct;
-
   }
 
   /**
@@ -188,8 +182,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
    * @param hierarchy the hierarchy
    * @throws Exception the exception
    */
-  private void loadConceptsRealTime(List<Concept> allConcepts, Terminology terminology,
-    HierarchyUtils hierarchy) throws Exception {
+  private void loadConceptsRealTime(
+      List<Concept> allConcepts, Terminology terminology, HierarchyUtils hierarchy)
+      throws Exception {
     logger.info("  download batch size = " + DOWNLOAD_BATCH_SIZE);
     logger.info("  index batch size = " + INDEX_BATCH_SIZE);
 
@@ -227,42 +222,45 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     ExecutorService executor = Executors.newFixedThreadPool(10);
     try {
       while (start < total) {
-        if (total - start <= DOWNLOAD_BATCH_SIZE)
-          end = total.intValue();
+        if (total - start <= DOWNLOAD_BATCH_SIZE) end = total.intValue();
 
         logger.info("  Processing {} to {}", start + 1, end);
         logger.info("    start reading {} to {}", start + 1, end);
-        List<Concept> concepts = sparqlQueryManagerService
-            .getConcepts(allConcepts.subList(start, end), terminology, hierarchy);
+        List<Concept> concepts =
+            sparqlQueryManagerService.getConcepts(
+                allConcepts.subList(start, end), terminology, hierarchy);
         logger.info("    finish reading {} to {}", start + 1, end);
 
         logger.info("    start computing extensions and history {} to {}", start + 1, end);
-        concepts.stream().forEach(c -> {
-          // logger.info(" concept = " + c.getCode() + " " + c.getName());
-          c.setExtensions(mainTypeHierarchy.getExtensions(c));
-          handleHistory(terminology, c);
-          if (c.getMaps().size() > 0) {
-            for (final gov.nih.nci.evs.api.model.ConceptMap map : c.getMaps()) {
-              final String mapterm = map.getTargetTerminology().split(" ")[0];
-              if (mapsets.containsKey(mapterm)) {
-                final gov.nih.nci.evs.api.model.ConceptMap copy =
-                    new gov.nih.nci.evs.api.model.ConceptMap(map);
-                copy.setSourceCode(c.getCode());
-                copy.setSourceName(c.getName());
-                copy.setSourceTerminology(c.getTerminology());
-                if (map.getTargetTerminology().split(" ").length > 1) {
-                  copy.setTargetTerminology(mapterm);
-                  copy.setTargetTerminologyVersion(map.getTargetTerminology().split(" ")[1]);
-                }
-                mapsets.get(mapterm).getMaps().add(copy);
-              }
-            }
-          }
-          // if (c.getExtensions() != null) {
-          // logger.info(" extensions " + c.getCode() + " = " +
-          // c.getExtensions());
-          // }
-        });
+        concepts.stream()
+            .forEach(
+                c -> {
+                  // logger.info(" concept = " + c.getCode() + " " + c.getName());
+                  c.setExtensions(mainTypeHierarchy.getExtensions(c));
+                  handleHistory(terminology, c);
+                  if (c.getMaps().size() > 0) {
+                    for (final gov.nih.nci.evs.api.model.ConceptMap map : c.getMaps()) {
+                      final String mapterm = map.getTargetTerminology().split(" ")[0];
+                      if (mapsets.containsKey(mapterm)) {
+                        final gov.nih.nci.evs.api.model.ConceptMap copy =
+                            new gov.nih.nci.evs.api.model.ConceptMap(map);
+                        copy.setSourceCode(c.getCode());
+                        copy.setSourceName(c.getName());
+                        copy.setSourceTerminology(c.getTerminology());
+                        if (map.getTargetTerminology().split(" ").length > 1) {
+                          copy.setTargetTerminology(mapterm);
+                          copy.setTargetTerminologyVersion(
+                              map.getTargetTerminology().split(" ")[1]);
+                        }
+                        mapsets.get(mapterm).getMaps().add(copy);
+                      }
+                    }
+                  }
+                  // if (c.getExtensions() != null) {
+                  // logger.info(" extensions " + c.getCode() + " = " +
+                  // c.getExtensions());
+                  // }
+                });
         logger.info("    finish computing extensions {} to {}", start + 1, end);
 
         int indexStart = 0;
@@ -270,16 +268,20 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         Double indexTotal = (double) concepts.size();
         final List<Future<Void>> futures = new ArrayList<>();
         while (indexStart < indexTotal) {
-          if (indexTotal - indexStart <= INDEX_BATCH_SIZE)
-            indexEnd = indexTotal.intValue();
+          if (indexTotal - indexStart <= INDEX_BATCH_SIZE) indexEnd = indexTotal.intValue();
 
-          futures.add(executor.submit(
-              new ConceptLoadTask(concepts.subList(indexStart, indexEnd), start + indexStart,
-                  start + indexEnd, terminology.getIndexName(), latch, taskSize.intValue())));
+          futures.add(
+              executor.submit(
+                  new ConceptLoadTask(
+                      concepts.subList(indexStart, indexEnd),
+                      start + indexStart,
+                      start + indexEnd,
+                      terminology.getIndexName(),
+                      latch,
+                      taskSize.intValue())));
 
           indexStart = indexEnd;
           indexEnd = indexEnd + INDEX_BATCH_SIZE;
-
         }
         // Look for exceptions
         for (final Future<Void> future : futures) {
@@ -299,27 +301,41 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
       // resetting and indexing mapsets
       for (Map.Entry<String, Concept> mapset : mapsets.entrySet()) {
-        //TEMP FIX FOR NOSUCHINDEXERROR THROWN BY DELETING A MAPPING INDEX
+        // TEMP FIX FOR NOSUCHINDEXERROR THROWN BY DELETING A MAPPING INDEX
         try {
-          operationsService.delete(ElasticOperationsService.MAPPING_INDEX, NCIT_MAPS_TO + mapset.getKey());
+          operationsService.delete(
+              ElasticOperationsService.MAPPING_INDEX, NCIT_MAPS_TO + mapset.getKey());
         } catch (NoSuchIndexException e) {
           logger.warn("UNABLE TO DELETE INDEX: " + NCIT_MAPS_TO + mapset.getKey() + " NOT FOUND!");
         }
-        Collections.sort(mapset.getValue().getMaps(),
+        Collections.sort(
+            mapset.getValue().getMaps(),
             new Comparator<gov.nih.nci.evs.api.model.ConceptMap>() {
               @Override
-              public int compare(final gov.nih.nci.evs.api.model.ConceptMap o1,
-                final gov.nih.nci.evs.api.model.ConceptMap o2) {
+              public int compare(
+                  final gov.nih.nci.evs.api.model.ConceptMap o1,
+                  final gov.nih.nci.evs.api.model.ConceptMap o2) {
                 // Assume maps are not null
-                return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank()
-                    + o1.getTargetName())
-                        .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank()
+                return (o1.getSourceName()
+                        + o1.getType()
+                        + o1.getGroup()
+                        + o1.getRank()
+                        + o1.getTargetName())
+                    .compareTo(
+                        o2.getSourceName()
+                            + o2.getType()
+                            + o2.getGroup()
+                            + o2.getRank()
                             + o2.getTargetName());
               }
             });
-        logger.info("    Index map = " + mapset.getValue().getName() + ", "
-            + mapset.getValue().getMaps().size());
-        operationsService.index(mapset.getValue(), ElasticOperationsService.MAPPING_INDEX, Concept.class);
+        logger.info(
+            "    Index map = "
+                + mapset.getValue().getName()
+                + ", "
+                + mapset.getValue().getMaps().size());
+        operationsService.index(
+            mapset.getValue(), ElasticOperationsService.MAPPING_INDEX, Concept.class);
       }
 
     } catch (Exception e) {
@@ -334,8 +350,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public void loadObjects(ElasticLoadConfig config, Terminology terminology,
-    HierarchyUtils hierarchy) throws Exception {
+  public void loadObjects(
+      ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+      throws Exception {
     String indexName = terminology.getObjectIndexName();
     logger.info("Loading Elastic Objects");
     logger.debug("object index name: {}", indexName);
@@ -372,8 +389,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     // Get qualifier values by code and by qualifier name
     final Map<String, Set<String>> map = new HashMap<>();
     for (final Concept qualifier : qualifiers) {
-      for (final String value : sparqlQueryManagerService.getQualifierValues(qualifier.getCode(),
-          terminology)) {
+      for (final String value :
+          sparqlQueryManagerService.getQualifierValues(qualifier.getCode(), terminology)) {
         if (!map.containsKey(qualifier.getCode())) {
           map.put(qualifier.getCode(), new HashSet<>());
         }
@@ -491,8 +508,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
      * @throws Exception the exception
      */
     @SuppressWarnings("rawtypes")
-    public ConceptLoadTask(List concepts, int start, int end, String indexName,
-        CountDownLatch latch, int taskSize) throws Exception {
+    public ConceptLoadTask(
+        List concepts, int start, int end, String indexName, CountDownLatch latch, int taskSize)
+        throws Exception {
       this.concepts = concepts;
       this.startIndex = start;
       this.endIndex = end;
@@ -508,8 +526,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         taskLogger.info("    start loading concepts: {} to {}", startIndex + 1, endIndex);
         operationsService.bulkIndex(concepts, indexName, Concept.class);
         int progress = (int) Math.floor((1.0 - 1.0 * latch.getCount() / taskSize) * 100);
-        taskLogger.info("    finish loading concepts: {} to {} ({}% complete)", startIndex + 1,
-            endIndex, progress);
+        taskLogger.info(
+            "    finish loading concepts: {} to {} ({}% complete)",
+            startIndex + 1, endIndex, progress);
       } catch (Throwable e) {
         throw new Exception(e);
       } finally {
@@ -523,10 +542,16 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config,
-    String filepath, String terminology, boolean forceDelete) throws Exception {
+  public Terminology getTerminology(
+      ApplicationContext app,
+      ElasticLoadConfig config,
+      String filepath,
+      String terminology,
+      boolean forceDelete)
+      throws Exception {
     TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
-    final Terminology term = termUtils.getTerminology(config.getTerminology(), sparqlQueryManagerService);
+    final Terminology term =
+        termUtils.getTerminology(config.getTerminology(), sparqlQueryManagerService);
 
     // Attempt to read the config, if anything goes wrong
     // the config file is probably not there
@@ -565,8 +590,10 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
       // Compute definition sources
       if (metadata.getDefinitionSource() != null) {
-        metadata.setDefinitionSourceSet(sparqlQueryManagerService.getDefinitionSources(term)
-            .stream().map(d -> d.getCode()).collect(Collectors.toSet()));
+        metadata.setDefinitionSourceSet(
+            sparqlQueryManagerService.getDefinitionSources(term).stream()
+                .map(d -> d.getCode())
+                .collect(Collectors.toSet()));
       }
 
       // Setup maps if this is a "monthly" version
@@ -645,7 +672,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
       // Assume this file is checked. It's passed in by the reindex.sh
       try (BufferedReader reader =
-          new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF8"));) {
+          new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF8")); ) {
 
         String line = null;
 

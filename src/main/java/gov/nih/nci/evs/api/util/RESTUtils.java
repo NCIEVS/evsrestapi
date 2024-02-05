@@ -1,4 +1,3 @@
-
 package gov.nih.nci.evs.api.util;
 
 import java.nio.charset.Charset;
@@ -20,9 +19,7 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
-/**
- * REST call utilities.
- */
+/** REST call utilities. */
 public class RESTUtils {
 
   /** The Constant log. */
@@ -40,9 +37,7 @@ public class RESTUtils {
   /** The connect timeout. */
   // private Duration connectTimeout;
 
-  /**
-   * Instantiates an empty {@link RESTUtils}.
-   */
+  /** Instantiates an empty {@link RESTUtils}. */
   public RESTUtils() {
     // n/a
   }
@@ -128,8 +123,9 @@ public class RESTUtils {
     try {
       RestTemplate restTemplate = new RestTemplate();
       restTemplate.getInterceptors().add(new BasicAuthenticationInterceptor(username, password));
-      restTemplate.getMessageConverters().add(0,
-          new StringHttpMessageConverter(Charset.forName("UTF-8")));
+      restTemplate
+          .getMessageConverters()
+          .add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
       MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
       body.add("query", query);
       HttpHeaders headers = new HttpHeaders();
@@ -142,7 +138,5 @@ public class RESTUtils {
       log.error("Unexpected error running query = \n" + query);
       throw e;
     }
-
   }
-
 }
