@@ -210,9 +210,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     boolean created = operationsService.createIndex(ElasticOperationsService.MAPPING_INDEX, false);
     if (created) {
       operationsService
-              .getElasticsearchOperations()
-              .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPING_INDEX))
-              .putMapping(Concept.class);
+          .getElasticsearchOperations()
+          .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPING_INDEX))
+          .putMapping(Concept.class);
     }
 
     List<String> allCodes = new ArrayList<String>();

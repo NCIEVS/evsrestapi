@@ -103,14 +103,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /** The elastic search service. */
   @Autowired
-  @org.springframework.beans.factory.annotation.Qualifier("elasticSearchServiceImpl")
-  ElasticSearchService elasticSearchService;
+  @org.springframework.beans.factory.annotation.Qualifier("elasticSearchServiceImpl") ElasticSearchService elasticSearchService;
 
   /** The elastic search service. */
   @Autowired ElasticQueryService elasticQueryService;
-
-  /** The sparql query cache service */
-  @Autowired SparqlQueryCacheService sparqlQueryCacheService;
 
   /** The sparql query cache service */
   @Autowired SparqlQueryCacheService sparqlQueryCacheService;
@@ -155,6 +151,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public String getQueryURL() {
     return stardogProperties.getQueryUrl();
   }
+
   // Here check the qualified form as well as the URI
 
   // Here check the qualified form as well as the URI
@@ -2584,21 +2581,17 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       log.error("Mapper could not read value in Association Entries");
       e.printStackTrace();
     }
-    if (sparqlResult != null) {
-      final Bindings[] bindings = sparqlResult.getResults().getBindings();
-      for (final Bindings b : bindings) {
-        final AssociationEntry entry = new AssociationEntry();
-        entry.setTerminology(terminology.getTerminology());
-        entry.setVersion(terminology.getVersion());
-        entry.setAssociation(association.getName());
-        entry.setCode(b.getConceptCode().getValue());
-        entry.setName(b.getConceptLabel().getValue());
-        entry.setRelatedCode(b.getRelatedConceptCode().getValue());
-        entry.setRelatedName(b.getRelatedConceptLabel().getValue());
-        entries.add(entry);
-      }
-    } else {
-      log.error("Unexpected null sparql result");
+    final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (final Bindings b : bindings) {
+      final AssociationEntry entry = new AssociationEntry();
+      entry.setTerminology(terminology.getTerminology());
+      entry.setVersion(terminology.getVersion());
+      entry.setAssociation(association.getName());
+      entry.setCode(b.getConceptCode().getValue());
+      entry.setName(b.getConceptLabel().getValue());
+      entry.setRelatedCode(b.getRelatedConceptCode().getValue());
+      entry.setRelatedName(b.getRelatedConceptLabel().getValue());
+      entries.add(entry);
     }
     return entries;
   }
