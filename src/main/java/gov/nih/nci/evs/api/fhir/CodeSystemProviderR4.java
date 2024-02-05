@@ -438,9 +438,9 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         if (checkA.get() != null && checkB.get() != null) {
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
-          if (queryService.getPathsToParent(code1, code2, term).getCt() > 0) {
+          if (queryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumes");
-          } else if (queryService.getPathsToParent(code2, code1, term).getCt() > 0) {
+          } else if (queryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumed-by");
           } else {
             params.addParameter("outcome", "no-subsumption-relationship");
@@ -618,7 +618,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       for (final Terminology terminology : terms) {
         final CodeSystem cs = FhirUtilityR4.toR4(terminology);
         // Skip non-matching
-        if ((id != null && !id.getValue().equals(cs.getId()))
+        if ((id != null && !id.getIdPart().equals(cs.getId()))
             || (system != null && !system.getValue().equals(cs.getUrl()))) {
           logger.info("  SKIP url mismatch = " + cs.getUrl());
           continue;
