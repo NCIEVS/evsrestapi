@@ -5,18 +5,13 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 @ConfigurationProperties(prefix = "test", ignoreUnknownFields = false)
 public class TestProperties {
 
-    private String conceptCodeList;
+  private String conceptCodeList;
 
-	public String getConceptCodeList() {
-		return conceptCodeList;
-	}
+  public String getConceptCodeList() {
+    return conceptCodeList;
+  }
 
-	public void setConceptCodeList(String conceptCodeList) {
-		this.conceptCodeList = conceptCodeList;
-	}
-   
-
-    
-    
-
+  public void setConceptCodeList(String conceptCodeList) {
+    this.conceptCodeList = conceptCodeList;
+  }
 }

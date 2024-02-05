@@ -1,11 +1,9 @@
-
 package gov.nih.nci.evs.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
-
 import org.apache.commons.io.FileUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -26,8 +24,7 @@ public class ApplicationTests {
   /** The logger. */
   private static final Logger log = LoggerFactory.getLogger(ApplicationTests.class);
 
-  @Autowired
-  ApplicationContext context;
+  @Autowired ApplicationContext context;
 
   @Test
   public void contextLoads() {
@@ -50,15 +47,22 @@ public class ApplicationTests {
         new File("src/main/java/gov/nih/nci/evs/api/controller/VersionController.java");
     assertTrue(bgf.exists());
     final String version =
-        FileUtils.readLines(bgf, "UTF-8").stream().filter(s -> s.matches("^version =.*"))
-            .map(s -> s.replaceFirst("version = ", "")).findFirst().get();
+        FileUtils.readLines(bgf, "UTF-8").stream()
+            .filter(s -> s.matches("^version =.*"))
+            .map(s -> s.replaceFirst("version = ", ""))
+            .findFirst()
+            .get();
     assertTrue(vcf.exists());
 
-    final boolean flag = FileUtils.readLines(vcf, "UTF-8").stream()
-        .filter(s -> s.contains("\"" + version + "\"")).count() > 0;
+    final boolean flag =
+        FileUtils.readLines(vcf, "UTF-8").stream()
+                .filter(s -> s.contains("\"" + version + "\""))
+                .count()
+            > 0;
     if (!flag) {
-      log.error("Unexpected mismatch between build.gradle version and VersionController verion = "
-          + version);
+      log.error(
+          "Unexpected mismatch between build.gradle version and VersionController verion = "
+              + version);
     }
     assertTrue(!flag);
   }

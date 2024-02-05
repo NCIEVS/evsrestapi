@@ -1,27 +1,21 @@
-
 package gov.nih.nci.evs.api;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Collection;
 import java.util.Map;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Automates JUnit testing of equals and hashcode methods.
- */
+/** Automates JUnit testing of equals and hashcode methods. */
 public class CopyConstructorTester extends ProxyTester {
 
   /** The logger. */
-  private final Logger logger =
-      LoggerFactory.getLogger(CopyConstructorTester.class);
+  private final Logger logger = LoggerFactory.getLogger(CopyConstructorTester.class);
 
   /**
-   * Constructs a new getter/setter tester to test objects of a particular
-   * class.
-   * 
+   * Constructs a new getter/setter tester to test objects of a particular class.
+   *
    * @param obj Object to test.
    */
   public CopyConstructorTester(final Object obj) {
@@ -35,15 +29,11 @@ public class CopyConstructorTester extends ProxyTester {
    * @return true, if successful
    * @throws Exception the exception
    */
-  public boolean testCopyConstructor(final Class<?> interfaceType)
-    throws Exception {
+  public boolean testCopyConstructor(final Class<?> interfaceType) throws Exception {
     logger.debug("Test copy constructor - " + getClazz().getName());
     final Object o1 = createObject(1);
-    final Object o2 = getClazz().getConstructor(new Class<?>[] {
-        interfaceType
-    }).newInstance(new Object[] {
-        o1
-    });
+    final Object o2 =
+        getClazz().getConstructor(new Class<?>[] {interfaceType}).newInstance(new Object[] {o1});
 
     return checkAllFields(o1, o2, null);
   }
@@ -55,18 +45,15 @@ public class CopyConstructorTester extends ProxyTester {
    * @return true, if successful
    * @throws Exception the exception
    */
-  public boolean testCopyConstructorCollection(final Class<?> interfaceType)
-    throws Exception {
+  public boolean testCopyConstructorCollection(final Class<?> interfaceType) throws Exception {
     logger.debug("Test copy constructor - " + getClazz().getName());
     final Object o1 = createObject(1);
-    final Object o2 = getClazz().getConstructor(new Class<?>[] {
-        interfaceType, boolean.class
-    }).newInstance(new Object[] {
-        o1, true
-    });
+    final Object o2 =
+        getClazz()
+            .getConstructor(new Class<?>[] {interfaceType, boolean.class})
+            .newInstance(new Object[] {o1, true});
 
     return checkAllFields(o1, o2, true);
-
   }
 
   /**
@@ -77,8 +64,7 @@ public class CopyConstructorTester extends ProxyTester {
    * @param deepFlag the deep
    * @return true, if successful
    */
-  private boolean checkAllFields(final Object o1, final Object o2,
-    final Boolean deepFlag) {
+  private boolean checkAllFields(final Object o1, final Object o2, final Boolean deepFlag) {
     final boolean allFields = true;
     final Method[] methods = getClazz().getMethods();
     for (int i = 0; i < methods.length; i++) {
@@ -94,8 +80,7 @@ public class CopyConstructorTester extends ProxyTester {
       }
 
       /* Check the field name against our include/exclude list. */
-      if (!getIncludes().isEmpty()
-          && !getIncludes().contains(fieldName.toLowerCase())) {
+      if (!getIncludes().isEmpty() && !getIncludes().contains(fieldName.toLowerCase())) {
         continue;
       }
       if (getExcludes().contains(fieldName.toLowerCase())) {
@@ -124,20 +109,26 @@ public class CopyConstructorTester extends ProxyTester {
       Object result2;
       try {
         result1 = getter.invoke(o1, new Object[] {});
-      } catch (IllegalAccessException | IllegalArgumentException
-          | InvocationTargetException e1) {
+      } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e1) {
         throw new RuntimeException(
-            "Getter" + getter.getDeclaringClass().getName() + "."
-                + getter.getName() + " threw " + e1);
+            "Getter"
+                + getter.getDeclaringClass().getName()
+                + "."
+                + getter.getName()
+                + " threw "
+                + e1);
       }
 
       try {
         result2 = getter.invoke(o2, new Object[] {});
-      } catch (IllegalAccessException | IllegalArgumentException
-          | InvocationTargetException e2) {
+      } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e2) {
         throw new RuntimeException(
-            "Getter" + getter.getDeclaringClass().getName() + "."
-                + getter.getName() + " threw " + e2);
+            "Getter"
+                + getter.getDeclaringClass().getName()
+                + "."
+                + getter.getName()
+                + " threw "
+                + e2);
       }
 
       // Determine if "result1" and "result2" match
@@ -179,7 +170,6 @@ public class CopyConstructorTester extends ProxyTester {
         logger.info("  o2 = " + o2.hashCode() + ", " + result2);
         return false;
       }
-
     }
     return allFields;
   }
