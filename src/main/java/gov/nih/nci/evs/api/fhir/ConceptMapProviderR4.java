@@ -130,8 +130,13 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           Parameters.ParametersParameterComponent property =
               new Parameters.ParametersParameterComponent().setName("match");
           property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
-          property.addPart().setName("concept").setValue(
-              new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
+          if (reverse != null && reverse.getValue()) {
+            property.addPart().setName("concept").setValue(
+                new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
+          } else {
+            property.addPart().setName("concept").setValue(
+                new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
+          }
           params.addParameter(property);
 
         }
@@ -225,8 +230,14 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           Parameters.ParametersParameterComponent property =
               new Parameters.ParametersParameterComponent().setName("match");
           property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
-          property.addPart().setName("concept").setValue(
-              new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
+          if (reverse != null && reverse.getValue()) {
+            property.addPart().setName("concept").setValue(
+                new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
+          } else {
+            property.addPart().setName("concept").setValue(
+                new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
+          }
+
           params.addParameter(property);
 
         }
@@ -327,7 +338,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           logger.info("  SKIP url mismatch = " + cm.getUrl());
           continue;
         }
-        if (id != null && !id.getValue().equals(cm.getId())) {
+        if (id != null && !id.getIdPart().equals(cm.getId())) {
           logger.info("  SKIP id mismatch = " + cm.getName());
           continue;
         }

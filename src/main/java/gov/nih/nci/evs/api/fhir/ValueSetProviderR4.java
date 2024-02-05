@@ -251,16 +251,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * https://hl7.org/fhir/R4/valueset-operation-validate-code.html
    * </pre>
    *
-   * @param request the request
-   * @param details the details
    * @param url the url
-   * @param version the version
    * @param codeType the code type
    * @param system the system
    * @param systemVersion the system version
-   * @param display the display
-   * @param coding the coding
-   * @param date the date
    * @return the parameters
    * @throws Exception the exception
    */
@@ -304,13 +298,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param request the request
    * @param details the details
    * @param id the id
-   * @param version the version
    * @param codeType the code type
    * @param system the system
    * @param systemVersion the system version
-   * @param display the display
-   * @param coding the coding
-   * @param date the date
    * @return the parameters
    * @throws Exception the exception
    */
@@ -494,7 +484,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       for (final Terminology terminology : terms) {
         final ValueSet vs = FhirUtilityR4.toR4VS(terminology);
         // Skip non-matching
-        if (id != null && !id.getValue().equals(vs.getId())) {
+        if (id != null && !id.getIdPart().equals(vs.getId())) {
           logger.info("  SKIP id mismatch = " + vs.getId());
           continue;
         }
