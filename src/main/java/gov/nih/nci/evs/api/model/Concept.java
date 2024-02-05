@@ -278,7 +278,7 @@ public class Concept extends ConceptMinimal {
     highlights = new HashMap<>(other.getHighlights());
     conceptStatus = other.getConceptStatus();
     leaf = other.getLeaf();
-    active = other.isActive();
+    active = other.getActive();
     normName = other.getNormName();
     stemName = other.getStemName();
     if (!subsetFlag) {
@@ -313,7 +313,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the highlight
    */
-  @Schema(hidden = true)
+  @Schema(description = "Used by search calls to provide information for highlighting a view of results")
   public String getHighlight() {
     return highlight;
   }
@@ -388,7 +388,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the subsetLink
    */
-  @Schema(hidden = true)
+  @Schema(description = "Link to download data for a subset, used when the concept represents subset metadata")
   public String getSubsetLink() {
     return subsetLink;
   }
@@ -407,7 +407,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the mapsetLink
    */
-  @Schema(hidden = true)
+  @Schema(description = "Metadata for downloading a mapset")
   public String getMapsetLink() {
     return mapsetLink;
   }
@@ -465,7 +465,7 @@ public class Concept extends ConceptMinimal {
    * @return the active flag
    */
   @Schema(description = "Indicates whether the concept is active")
-  public Boolean isActive() {
+  public Boolean getActive() {
     return active;
   }
 

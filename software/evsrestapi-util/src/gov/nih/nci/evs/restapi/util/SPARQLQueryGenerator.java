@@ -186,11 +186,17 @@ public class SPARQLQueryGenerator {
 		String queryfile = args[4];
 		System.out.println(queryfile);
 
+		String query = HTTPUtils.loadQuery(queryfile);
+		//boolean parsevalues = true;
+		//Vector w = httpUtils.execute(serviceUrl, username, password, query, parsevalues);
+		Vector w = HTTPUtils.runQuery(restURL,  username, password, query);
+/*
 		HTTPUtils util = new HTTPUtils();
 		String query = util.loadQuery(queryfile, false);
 		System.out.println(query);
 		boolean parsevalues = true;
 		Vector w = util.execute(restURL, username, password, query, parsevalues);
+*/
 		Utils.saveToFile("ressults_" + queryfile, w);
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 

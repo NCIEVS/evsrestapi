@@ -69,17 +69,19 @@ public class UmlssemnetSampleTest extends SampleTest {
 
     url = "/api/v1/metadata/terminologies";
     log.info("Testing url - " + url);
-    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "umlssemnet")).andExpect(status().isOk())
-        .andReturn();
+    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "umlssemnet"))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
 
     final List<Terminology> terminologies =
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
         });
     assertThat(terminologies.size()).isGreaterThan(0);
     assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("umlssemnet")).count()).isEqualTo(1);
-    final Terminology terminology = terminologies.stream().filter(t -> t.getTerminology().equals("umlssemnet")).findFirst().get();
+    final Terminology terminology =
+        terminologies.stream().filter(t -> t.getTerminology().equals("umlssemnet")).findFirst().get();
     assertThat(terminology.getTerminology()).isEqualTo("umlssemnet");
     assertThat(terminology.getMetadata().getUiLabel()).isEqualTo("UMLS Semantic Network");
     assertThat(terminology.getName()).isEqualTo("UMLS Semantic Network 2023AA");
@@ -87,10 +89,11 @@ public class UmlssemnetSampleTest extends SampleTest {
 
     assertThat(terminology.getMetadata().getLoader()).isEqualTo("rdf");
     assertThat(terminology.getMetadata().getSourceCt()).isEqualTo(0);
-    assertThat(terminology.getMetadata().getLicenseText()).isEqualTo("Government information at NLM Web sites is in the public domain. " 
-        + "Public domain information may be freely distributed and copied, but it is requested that in any subsequent use the " 
-        + "National Library of Medicine (NLM) be given appropriate acknowledgement as specified at " 
-        + "https://lhncbc.nlm.nih.gov/semanticnetwork/terms.html");
+    assertThat(terminology.getMetadata().getLicenseText())
+        .isEqualTo("Government information at NLM Web sites is in the public domain. "
+            + "Public domain information may be freely distributed and copied, but it is requested that in any subsequent use the "
+            + "National Library of Medicine (NLM) be given appropriate acknowledgement as specified at "
+            + "https://lhncbc.nlm.nih.gov/semanticnetwork/terms.html");
     assertThat(terminology.getDescription()).isEqualTo("UMLS Semantic Network");
 
     assertThat(terminology.getLatest()).isTrue();
@@ -119,6 +122,6 @@ public class UmlssemnetSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("T001");
     assertThat(concept.getTerminology()).isEqualTo("umlssemnet");
-    assertThat(concept.isActive()).isTrue();
+    assertThat(concept.getActive()).isTrue();
   }
 }

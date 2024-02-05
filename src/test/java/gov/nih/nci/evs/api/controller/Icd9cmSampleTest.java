@@ -69,7 +69,7 @@ public class Icd9cmSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("759.9");
     assertThat(concept.getTerminology()).isEqualTo("icd9cm");
-    assertThat(concept.isActive()).isTrue();
+    assertThat(concept.getActive()).isTrue();
   }
 
 }

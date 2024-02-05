@@ -104,6 +104,6 @@ public class SnomedctUsSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("36138009");
     assertThat(concept.getTerminology()).isEqualTo("snomedct_us");
-    assertThat(concept.isActive()).isTrue();
+    assertThat(concept.getActive()).isTrue();
   }
 }

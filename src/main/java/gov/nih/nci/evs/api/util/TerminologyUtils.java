@@ -7,7 +7,6 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -47,7 +46,6 @@ import gov.nih.nci.evs.api.support.es.IndexMetadata;
 public final class TerminologyUtils {
 
   /** The Constant logger. */
-  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(TerminologyUtils.class);
 
   /** The sparql query manager service. */
@@ -68,7 +66,6 @@ public final class TerminologyUtils {
   ApplicationProperties applicationProperties;
 
   /** The license cache. */
-  @SuppressWarnings("serial")
   private static Map<String, String> licenseCache = new LinkedHashMap<String, String>(1000 * 4 / 3, 0.75f, true) {
     @Override
     protected boolean removeEldestEntry(final Map.Entry<String, String> eldest) {
@@ -79,8 +76,7 @@ public final class TerminologyUtils {
   /**
    * Returns all terminologies.
    * 
-   * @param indexed use {@literal true} to get indexed terminologies as opposed to terminologies
-   *          from stardog
+   * @param indexed use {@literal true} to get indexed terminologies as opposed to terminologies from stardog
    * @return the terminologies
    * @throws Exception Signals that an exception has occurred.
    */
@@ -254,7 +250,7 @@ public final class TerminologyUtils {
     // the 5th Monday of May in 2021 but also a holiday
     else if (terminology.getMetadata() == null || terminology.getMetadata().getMonthlyDb() == null) {
       final Date d = fmt.parse(terminology.getDate());
-      Calendar cal = GregorianCalendar.getInstance();
+      Calendar cal = Calendar.getInstance();
       cal.setTime(d);
       // Count days of week; for NCI, this should be max Mondays in month
       int maxDayOfWeek = cal.getActualMaximum(Calendar.DAY_OF_WEEK_IN_MONTH);
@@ -306,7 +302,7 @@ public final class TerminologyUtils {
           || terminology.getMetadata().getLicenseCheck().equals("DISABLED")) {
         return;
       }
-      
+
       throw new ResponseStatusException(HttpStatus.FORBIDDEN,
           "API calls for terminology='" + terminology.getTerminology()
               + "' require an X-EVSRESTAPI-License-Key header, visit " + licenseUrl + " for more information.");
@@ -368,6 +364,7 @@ public final class TerminologyUtils {
    * @param uri the uri
    * @param contentType the content type
    * @param payload the payload
+   * @param licenseUrl the license url
    * @throws Exception the exception
    */
   public void checkLicenseHttp(final String method, final String uri, final String contentType, final String payload,

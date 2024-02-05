@@ -34,7 +34,6 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 public class MainTypeHierarchyTest {
 
   /** The logger. */
-  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(MainTypeHierarchyTest.class);
 
   /** The main type hierarchy. */

@@ -44,7 +44,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class SubsetController extends BaseController {
 
   /** Logger. */
-  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(SubsetController.class);
 
   /** The elastic query service. */
@@ -114,7 +113,7 @@ public class SubsetController extends BaseController {
    * @return the subset
    * @throws Exception the exception
    */
-  @Operation(description = "Get the subset for the specified terminology and code.")
+  @Operation(summary = "Get the subset for the specified terminology and code.")
   @ApiResponses({
       @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
       @ApiResponse(responseCode = "404", description = "Resource not found",
@@ -174,7 +173,7 @@ public class SubsetController extends BaseController {
       @ApiResponse(responseCode = "404", description = "Resource not found",
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
       @ApiResponse(responseCode = "417", description = "Expectation failed",
-      content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
       @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,

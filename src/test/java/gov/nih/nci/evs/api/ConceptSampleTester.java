@@ -2,9 +2,11 @@
 package gov.nih.nci.evs.api;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -29,6 +31,7 @@ import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * Test harness for content samples.
@@ -46,7 +49,7 @@ public class ConceptSampleTester {
   private String baseMetadataUrl = "/api/v1/metadata/";
 
   /** The term url. */
-  private String termUrl = "/api/v1/metadata/terminologies";
+  // private String termUrl = "/api/v1/metadata/terminologies";
 
   /** The license key. */
   private String licenseKey = "notblank";
@@ -57,6 +60,8 @@ public class ConceptSampleTester {
   /** The terminology. */
   private Terminology terminology;
 
+  private TerminologyUtils termUtils = null;
+
   /** The errors. */
   private List<String> errors = new ArrayList<String>();
 
@@ -65,8 +70,8 @@ public class ConceptSampleTester {
    *
    * @param licenseKey the license key
    */
-  public ConceptSampleTester() {
-    // n/a
+  public ConceptSampleTester(TerminologyUtils termUtils) {
+    this.termUtils = termUtils;
   }
 
   /**
@@ -85,20 +90,9 @@ public class ConceptSampleTester {
    * @param mvc the mvc
    * @throws Exception the exception
    */
-  private void lookupTerminology(final String term, final MockMvc mvc) throws Exception {
-    String url = termUrl + "?latest=true&terminology=" + term;
-    if (term.equals("ncit")) {
-      url += "&tag=monthly";
-    }
+  private void lookupTerminology(final String term) throws Exception {
 
-    final MvcResult result =
-        mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey)).andExpect(status().isOk()).andReturn();
-    final String content = result.getResponse().getContentAsString();
-    log.info("  content = " + content);
-    final List<Terminology> list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
-      // n/a
-    });
-    terminology = list.get(0);
+    terminology = termUtils.getTerminology(term, true);
   }
 
   /**
@@ -115,7 +109,7 @@ public class ConceptSampleTester {
     MvcResult result = null;
     testMvc = mvc;
     String content = null;
-    lookupTerminology(term, testMvc);
+    lookupTerminology(term);
 
     // get associations
     url = baseMetadataUrl + term + "/associations?include=minimal";
@@ -346,14 +340,14 @@ public class ConceptSampleTester {
     testMvc = mvc;
     String content = null;
     Concept concept = null;
-    lookupTerminology(term, testMvc);
+    lookupTerminology(term);
 
     for (final Entry<String, List<SampleRecord>> entry : sampleMap.entrySet()) {
       url = baseUrl + term + "/" + entry.getKey() + "?include=full";
       log.info("Testing url - " + url);
       result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey)).andExpect(status().isOk())
           .andReturn();
-      content = result.getResponse().getContentAsString();
+      content = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
       log.info(" content = " + content);
       concept = new ObjectMapper().readValue(content, Concept.class);
       assertThat(content).isNotNull();
@@ -414,7 +408,7 @@ public class ConceptSampleTester {
           if (!checkSynonym(concept, sample)) {
             errors.add("ERROR: Wrong synonym " + sample.getValue() + " of " + sample.getCode());
           }
-        } else if (terminology.getMetadata().getDefinition().contains(key)) {
+        } else if (terminology.getMetadata().getDefinition().contains(key) || key.contentEquals("DEFINITION")) {
           if (!checkDefinition(concept, sample)) {
             errors.add("ERROR: Wrong definition " + sample.getValue() + " of " + sample.getCode());
           }
@@ -462,10 +456,15 @@ public class ConceptSampleTester {
             errors.add("ERROR: " + sample.getValue() + " stated to be disjoint with " + sample.getCode()
                 + " even though they are not");
           }
-        } else if (associationsList.size() > 0 && key.startsWith("A")) {
+        } else if (associationsList.size() > 0 && associationsList.keySet().contains(key)) {
           if (!checkAssociations(concept, sample, associationsList)) {
             errors.add(
                 "ERROR: Wrong association (" + sample.getKey() + ") " + sample.getValue() + " of " + sample.getCode());
+          }
+        } else if (sample.getKey().equals(terminology.getMetadata().getSubsetLink())) {
+          if (!checkSubsetLink(concept.getCode(), sample)) {
+            errors.add(
+                "ERROR: Wrong subset link (" + sample.getKey() + ") " + sample.getValue() + " of " + sample.getCode());
           }
         } else {
           String newSample = sample.getKey();
@@ -484,9 +483,38 @@ public class ConceptSampleTester {
       for (final String err : errors) {
         log.error(err);
       }
+      fail("Sampling errors found");
     } else {
       log.info("No sampling errors found for terminology " + terminology.getName());
     }
+  }
+
+  /**
+   * Check subset link.
+   *
+   * @param concept the concept
+   * @param sample the sample
+   * @return true, if successful
+   * @throws Exception
+   */
+  private boolean checkSubsetLink(final String conceptCode, final SampleRecord sample) throws Exception {
+
+    String link = sample.getValue().replaceFirst("EVS/", "").split("\\|")[0];
+    if (link.contains(".")) {
+      link = link.replaceFirst("(.*)/[^/]+\\.[^/]+", "$1");
+    }
+    link = terminology.getMetadata().getSubsetPrefix() + link;
+
+    if (terminology.getMetadata().getSubsetLink().isBlank()
+        || terminology.getMetadata().getSubsetLink().equals(sample.getKey())) {
+      String url = "/api/v1/subset/" + terminology.getTerminology() + "/" + conceptCode + "?include=summary";
+      MvcResult result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))
+          .andExpect(status().isOk()).andReturn();
+      String content = result.getResponse().getContentAsString();
+      Concept concept = new ObjectMapper().readValue(content, Concept.class);
+      return concept.getSubsetLink().equals(link);
+    }
+    return false;
   }
 
   /**
@@ -533,7 +561,9 @@ public class ConceptSampleTester {
         .filter(p -> p.getType().equals("Concept_Status") && p.getValue().equals("Retired_Concept")).findAny()
         .isPresent()
         || concept.getProperties().stream().filter(p -> p.getType().equals("deprecated") && p.getValue().equals("true"))
-            .findAny().isPresent();
+            .findAny().isPresent()
+        || concept.getProperties().stream()
+            .filter(p -> p.getType().equals("Status") && p.getValue().equals("No Longer Used")).findAny().isPresent();
   }
 
   /**
@@ -622,7 +652,8 @@ public class ConceptSampleTester {
   private boolean checkQualifier(final Concept concept, final SampleRecord sample) throws Exception {
     sample.setValue(sample.getValue());
     final String qualKey = sample.getKey().split("-", 2)[1].split("~")[0];
-    final String propertyKey = sample.getKey().split("-", 2)[1].split("~")[1];
+    final String propertyKey =
+        sample.getKey().split("-", 2)[1].split("~")[1].replace(terminology.getTerminology() + ":", "");
     final int propertyValueLength = sample.getValue().split("~").length;
 
     if (propertyValueLength == 2) {
@@ -885,9 +916,8 @@ public class ConceptSampleTester {
    */
   private boolean checkComment(final Concept concept, final SampleRecord sample) {
     return concept.getProperties().stream()
-        .filter(o -> o.getValue().equals(sample.getValue())
-            && (o.getType().contentEquals("DesignNote") || o.getType().contentEquals("rdfs:comment")))
-        .findAny().isPresent();
+        .filter(o -> o.getValue().equals(sample.getValue()) && o.getType().contentEquals("rdfs:comment")).findAny()
+        .isPresent();
   }
 
   /**
@@ -925,15 +955,18 @@ public class ConceptSampleTester {
 
     MvcResult result = null;
     testMvc = mvc;
-    lookupTerminology(term, testMvc);
+    lookupTerminology(term);
     String parentCode1 = null;
     String parentCode2 = null;
+    Boolean hasRoots = false;
     for (List<SampleRecord> values : sampleMap.values()) {
       for (SampleRecord property : values) {
         if (property.getKey().equals("parent-count1")) {
           parentCode1 = property.getCode();
         } else if (property.getKey().equals("parent-count2")) {
           parentCode2 = property.getCode();
+        } else if (!hasRoots && property.getKey().equals("root")) {
+          hasRoots = true;
         }
       }
       if (parentCode1 != null && parentCode2 != null)
@@ -946,128 +979,133 @@ public class ConceptSampleTester {
       return;
     }
 
-    // roots testing
-    String url = "/api/v1/concept/" + terminology.getTerminology() + "/roots";
-    result =
-        testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey)).andExpect(status().isOk()).andReturn();
-    String content = result.getResponse().getContentAsString();
-    List<Concept> roots = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
-    List<String> rootCodes = roots.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
-    if (terminology.getMetadata().getHierarchy() == true && roots.size() == 0) {
-      errors.add("ERROR: roots could not be found in hierarchy temrinology " + term);
-    } else if (terminology.getMetadata().getHierarchy() == false && roots.size() > 0) {
-      errors.add("ERROR: roots found in non-hierarchy temrinology " + term);
-    }
+    String url;
+    String content;
+    List<String> rootCodes;
+    String ancestorCode;
+    if (hasRoots) {
+      // roots testing
 
-    // pathsToRoot testing
-    url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/pathsToRoot?include=minimal";
-    result =
-        testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    String ancestorCode = null;
-    List<String> reverseToRootPath = null;
-    List<List<Concept>> pathsToRoot = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
-      // n/a
-    });
-    if (pathsToRoot.size() < 1) {
-      errors.add("ERROR: no paths to root found for non-root concept " + parentCode1 + " in terminology " + term);
-
-    } else {
-      for (List<Concept> path : pathsToRoot) {
-        if (!rootCodes.contains(path.get(path.size() - 1).getCode())) {
-          errors.add("ERROR: path too root for concept " + parentCode1 + " ends in non-root concept "
-              + path.get(path.size() - 1).getCode() + " in terminology " + term);
-        }
-        // hold an intermediate code for pathToAncestor
-        if (path.size() > 2 && ancestorCode == null) {
-          ancestorCode = path.get(path.size() - 2).getCode();
-        }
-        // hold a reverse root path for pathsFromRoot
-        if (path.size() > 1 && reverseToRootPath == null) {
-          reverseToRootPath = path.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
-          Collections.reverse(reverseToRootPath);
-        }
-      }
-    }
-
-    // pathsFromRoot testing
-    url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/pathsFromRoot?include=minimal";
-    result =
-        testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    List<String> fromRootPath = null;
-    Boolean reversePathFound = false;
-    List<List<Concept>> pathsFromRoot = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
-      // n/a
-    });
-    if (pathsFromRoot.size() < 1) {
-      errors.add("ERROR: no paths from root found for non-root concept " + parentCode1 + " in terminology " + term);
-    } else {
-      for (List<Concept> path : pathsFromRoot) {
-        if (!rootCodes.contains(path.get(0).getCode())) {
-          errors.add("ERROR: path from root for concept " + parentCode1 + " starts in non-root concept "
-              + path.get(0).getCode() + " in terminology " + term);
-        }
-        // check for reverse of path found in pathsToRoot
-        fromRootPath = path.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
-        if (fromRootPath.equals(reverseToRootPath)) {
-          reversePathFound = true;
-        }
-      }
-
-    }
-    if (!reversePathFound) {
-      errors.add("ERROR: Chosen reverse path from pathsToRoot not found in pathsFromRoot for concept " + parentCode1
-          + " in terminology " + term);
-    }
-    if (parentCode2 != null) {
-      url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode2 + "/pathsFromRoot?include=minimal";
+      url = "/api/v1/concept/" + terminology.getTerminology() + "/roots";
       result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey)).andExpect(status().isOk())
           .andReturn();
       content = result.getResponse().getContentAsString();
-      pathsFromRoot = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      List<Concept> roots = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
         // n/a
       });
-      if (pathsFromRoot.size() < 1) {
-        errors.add("ERROR: no paths from root found for non-root concept " + parentCode2 + " in terminology " + term);
+      rootCodes = roots.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+      if (terminology.getMetadata().getHierarchy() == true && roots.size() == 0) {
+        errors.add("ERROR: roots could not be found in hierarchy temrinology " + term);
+      } else if (terminology.getMetadata().getHierarchy() == false && roots.size() > 0) {
+        errors.add("ERROR: roots found in non-hierarchy temrinology " + term);
       }
-    }
+      // pathsToRoot testing
+      url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/pathsToRoot?include=minimal";
+      result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey)).andExpect(status().isOk())
+          .andReturn();
+      content = result.getResponse().getContentAsString();
+      ancestorCode = null;
+      List<String> reverseToRootPath = null;
+      List<List<Concept>> pathsToRoot = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+        // n/a
+      });
+      if (pathsToRoot.size() < 1) {
+        errors.add("ERROR: no paths to root found for non-root concept " + parentCode1 + " in terminology " + term);
 
-    // pathsToAncestor testing
-    url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/pathsToAncestor/" + ancestorCode
-        + "?include=minimal";
-    result =
-        testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    List<List<Concept>> pathsToAncestor =
-        new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+      } else {
+        for (List<Concept> path : pathsToRoot) {
+          if (!rootCodes.contains(path.get(path.size() - 1).getCode())) {
+            errors.add("ERROR: path too root for concept " + parentCode1 + " ends in non-root concept "
+                + path.get(path.size() - 1).getCode() + " in terminology " + term);
+          }
+          // hold an intermediate code for pathToAncestor
+          if (path.size() > 2 && ancestorCode == null) {
+            ancestorCode = path.get(path.size() - 2).getCode();
+          }
+          // hold a reverse root path for pathsFromRoot
+          if (path.size() > 1 && reverseToRootPath == null) {
+            reverseToRootPath = path.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+            Collections.reverse(reverseToRootPath);
+          }
+        }
+      }
+      // pathsFromRoot testing
+      url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/pathsFromRoot?include=minimal";
+      result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey)).andExpect(status().isOk())
+          .andReturn();
+      content = result.getResponse().getContentAsString();
+      List<String> fromRootPath = null;
+      Boolean reversePathFound = false;
+      List<List<Concept>> pathsFromRoot =
+          new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+            // n/a
+          });
+      if (pathsFromRoot.size() < 1) {
+        errors.add("ERROR: no paths from root found for non-root concept " + parentCode1 + " in terminology " + term);
+      } else {
+        for (List<Concept> path : pathsFromRoot) {
+          if (!rootCodes.contains(path.get(0).getCode())) {
+            errors.add("ERROR: path from root for concept " + parentCode1 + " starts in non-root concept "
+                + path.get(0).getCode() + " in terminology " + term);
+          }
+          // check for reverse of path found in pathsToRoot
+          fromRootPath = path.stream().map(entry -> entry.getCode()).collect(Collectors.toList());
+          if (fromRootPath.equals(reverseToRootPath)) {
+            reversePathFound = true;
+          }
+        }
+
+      }
+      if (!reversePathFound) {
+        errors.add("ERROR: Chosen reverse path from pathsToRoot not found in pathsFromRoot for concept " + parentCode1
+            + " in terminology " + term);
+      }
+      if (parentCode2 != null) {
+        url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode2 + "/pathsFromRoot?include=minimal";
+        result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey)).andExpect(status().isOk())
+            .andReturn();
+        content = result.getResponse().getContentAsString();
+        pathsFromRoot = new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
           // n/a
         });
-    for (List<Concept> path : pathsToAncestor) {
-      if (!path.get(0).getCode().equals(parentCode1)) {
-        errors.add("ERROR: path to ancestor " + ancestorCode + " for concept " + parentCode1
-            + " starts with different concept from stated " + path.get(0).getCode() + " in terminology " + term);
+        if (pathsFromRoot.size() < 1) {
+          errors.add("ERROR: no paths from root found for non-root concept " + parentCode2 + " in terminology " + term);
+        }
       }
-      if (!path.get(path.size() - 1).getCode().equals(ancestorCode)) {
-        errors.add("ERROR: path to ancestor " + ancestorCode + " for concept " + parentCode1
-            + " ends in different concept from stated " + path.get(path.size() - 1).getCode() + " in terminology "
-            + term);
+      // pathsToAncestor testing
+      url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/pathsToAncestor/" + ancestorCode
+          + "?include=minimal";
+      result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey)).andExpect(status().isOk())
+          .andReturn();
+      content = result.getResponse().getContentAsString();
+      List<List<Concept>> pathsToAncestor =
+          new ObjectMapper().readValue(content, new TypeReference<List<List<Concept>>>() {
+            // n/a
+          });
+      for (List<Concept> path : pathsToAncestor) {
+        if (!path.get(0).getCode().equals(parentCode1)) {
+          errors.add("ERROR: path to ancestor " + ancestorCode + " for concept " + parentCode1
+              + " starts with different concept from stated " + path.get(0).getCode() + " in terminology " + term);
+        }
+        if (!path.get(path.size() - 1).getCode().equals(ancestorCode)) {
+          errors.add("ERROR: path to ancestor " + ancestorCode + " for concept " + parentCode1
+              + " ends in different concept from stated " + path.get(path.size() - 1).getCode() + " in terminology "
+              + term);
+        }
       }
-    }
-
-    // subtree testing
-    url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/subtree";
-    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    List<HierarchyNode> subtree = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
-      // n/a
-    });
-    for (HierarchyNode root : subtree) {
-      if (!rootCodes.contains(root.getCode())) {
-        errors.add("ERROR: non-root found at top level of subtree call for concept " + parentCode1 + " in terminology "
-            + term);
+      // subtree testing
+      url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/subtree";
+      result = testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey)).andExpect(status().isOk())
+          .andReturn();
+      content = result.getResponse().getContentAsString();
+      List<HierarchyNode> subtree = new ObjectMapper().readValue(content, new TypeReference<List<HierarchyNode>>() {
+        // n/a
+      });
+      for (HierarchyNode root : subtree) {
+        if (!rootCodes.contains(root.getCode())) {
+          errors.add("ERROR: non-root found at top level of subtree call for concept " + parentCode1
+              + " in terminology " + term);
+        }
       }
     }
 
@@ -1080,7 +1118,7 @@ public class ConceptSampleTester {
       // n/a
     });
     if (children.size() < 1) {
-
+      // TODO: what's supposed to happen here?!
     }
 
     if (errors.size() > 0) {
@@ -1088,6 +1126,7 @@ public class ConceptSampleTester {
       for (final String err : errors) {
         log.error(err);
       }
+      fail("Sampling errors found");
     } else {
       log.info("No sampling errors found for terminology " + terminology.getName()
           + " in paths, subtree, and root testing.");
@@ -1111,7 +1150,7 @@ public class ConceptSampleTester {
     String url = null;
     String content = null;
     Concept testConcept = null;
-    lookupTerminology(term, testMvc);
+    lookupTerminology(term);
     for (List<SampleRecord> values : sampleMap.values()) {
       for (SampleRecord property : values) {
         url = "/api/v1/concept/" + terminology.getTerminology() + "/" + property.getCode() + "?include=minimal";
@@ -1282,7 +1321,7 @@ public class ConceptSampleTester {
 
     MvcResult result = null;
     testMvc = mvc;
-    lookupTerminology(term, testMvc);
+    lookupTerminology(term);
 
     String url = "/api/v1/subset/" + terminology.getTerminology() + "?include=full";
     result =
@@ -1323,13 +1362,12 @@ public class ConceptSampleTester {
             // n/a
           });
           /*
-           * if (firstLeaf.getSubsetLink() == null) { errors.add("Subset leaf " + leafCode +
-           * " has no subset link"); }
+           * if (firstLeaf.getSubsetLink() == null) { errors.add("Subset leaf " + leafCode + " has no subset link"); }
            */
           String firstLeafDesc =
               firstLeaf.getProperties().stream().filter(p -> p.getType().equals("Term_Browser_Value_Set_Description"))
                   .collect(Collectors.toList()).get(0).getValue();
-          if (root.getProperties().stream().noneMatch(
+          if (firstLeaf.getProperties().stream().noneMatch(
               d -> d.getType().equals("Term_Browser_Value_Set_Description") && d.getValue().equals(firstLeafDesc))) {
             errors.add(
                 "No matching Term_Browser_Value_Set_Description property found in subset leaf " + firstLeaf.getCode());
@@ -1358,6 +1396,7 @@ public class ConceptSampleTester {
         for (final String err : errors) {
           log.error(err);
         }
+        fail("Sampling errors found");
       } else {
         log.info("No sampling errors found for terminology " + terminology.getName() + " in subset testing.");
       }
@@ -1374,16 +1413,24 @@ public class ConceptSampleTester {
    *
    * @param root the root
    * @return the leaf code
+   * @throws Exception
    */
-  public String getLeafCode(Concept root) {
-    if (root == null || root.getLeaf() == null) {
+  public String getLeafCode(Concept root) throws Exception {
+    String url = "/api/v1/subset/" + terminology.getTerminology() + "/" + root.getCode() + "?include=summary";
+    MvcResult result =
+        testMvc.perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey)).andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
+    Concept rootSubset = new ObjectMapper().readValue(content, new TypeReference<Concept>() {
+      // n/a
+    });
+    if (rootSubset == null || rootSubset.getLeaf() == null) {
       return null;
     }
-    if (root.getLeaf()) {
-      return root.getCode();
+    if (rootSubset.getLeaf()) {
+      return rootSubset.getCode();
     }
     String rootCode = null;
-    for (Concept child : root.getChildren()) {
+    for (Concept child : rootSubset.getChildren()) {
       rootCode = getLeafCode(child);
       if (rootCode != null) {
         return rootCode;
@@ -1409,7 +1456,7 @@ public class ConceptSampleTester {
 
     MvcResult result = null;
     testMvc = mvc;
-    lookupTerminology(term, testMvc);
+    lookupTerminology(term);
 
     String url = "/api/v1/metadata/" + terminology.getTerminology() + "/associations";
     result =
@@ -1423,7 +1470,7 @@ public class ConceptSampleTester {
     for (Concept assoc : associations) {
       if (!assoc.getTerminology().equals("ncit")) {
         errors.add("ncit association " + assoc.getCode() + " has terminology " + assoc.getTerminology());
-      } else if (firstAssociation == null && !assoc.getCode().equals("A8")) {
+      } else if (!assoc.getCode().equals("A8")) {
         firstAssociation = assoc;
         break;
       }

@@ -177,7 +177,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    *
    * @return the highlight
    */
-  @Schema(hidden = true)
+  @Schema(description = "Used by search calls to provide information for highlighting a view of results")
   public String getHighlight() {
     return highlight;
   }
@@ -272,7 +272,8 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    *
    * @return the code
    */
-  @Schema(hidden = true)
+  @Schema(description = "Code of the synonym, used in particular for "
+      + "Metathesaurus data where the source of the synonym is not the terminology itself")
   public String getCode() {
     return code;
   }

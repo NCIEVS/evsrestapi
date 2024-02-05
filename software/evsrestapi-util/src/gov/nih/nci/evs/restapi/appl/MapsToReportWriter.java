@@ -21,6 +21,7 @@ import org.json.*;
 
 
 public class MapsToReportWriter {
+
     public static String MAPS_TO_HEADING = "Subset Code|Subset Name|Concept Code|NCIt Preferred Term|Relationship To Target|Target Code|Target Term|Target Term Type|Target Terminology|Target Terminology Version";
 
 	public static String MAPS_TO = "Maps_To";
@@ -32,6 +33,7 @@ public class MapsToReportWriter {
     String serviceUrl = null;
     String named_graph_id = ":NHC0";
     String BASE_URI = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
+    String OWLFILE = "ThesaurusInferred_forTS.owl";
 
     OWLSPARQLUtils owlSPARQLUtils = null;
     MetadataUtils metadataUtils = null;
@@ -51,18 +53,26 @@ public class MapsToReportWriter {
 		this.username = username;
 		this.password = password;
 		owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
+		if (owlSPARQLUtils == null) {
+			System.out.println("WARNING: unable to instantiate owlSPARQLUtils???");
+		}
+
         long ms = System.currentTimeMillis();
         owlSPARQLUtils.set_named_graph(namedGraph);
         Vector concept_status_vec = owlSPARQLUtils.getPropertyValues(namedGraph, "Concept_Status");
-        concept_status_vec = new ParserUtils().getResponseValues(concept_status_vec);
-        retired = new HashSet();
-        for (int i=0; i<concept_status_vec.size(); i++) {
-			String line = (String) concept_status_vec.elementAt(i);
-			Vector u = StringUtils.parseData(line, '|');
-			String code = (String) u.elementAt(1);
-			String status = (String) u.elementAt(3);
-			if (status.compareTo("Retired_Concept") == 0) {
-				retired.add(code);
+        if (concept_status_vec == null) {
+			System.out.println("WARNING: concept_status_vec == null???");
+		} else {
+			concept_status_vec = new ParserUtils().getResponseValues(concept_status_vec);
+			retired = new HashSet();
+			for (int i=0; i<concept_status_vec.size(); i++) {
+				String line = (String) concept_status_vec.elementAt(i);
+				Vector u = StringUtils.parseData(line, '|');
+				String code = (String) u.elementAt(1);
+				String status = (String) u.elementAt(3);
+				if (status.compareTo("Retired_Concept") == 0) {
+					retired.add(code);
+				}
 			}
 		}
         metadataUtils = new MetadataUtils(serviceUrl, username, password);
@@ -199,6 +209,7 @@ public class MapsToReportWriter {
 	}
 
 	public Vector getMapsToData(String terminology_name, String terminology_version) {
+
 		Vector v = new Vector();
 		HashSet hset = new HashSet();
 
@@ -256,23 +267,27 @@ public class MapsToReportWriter {
 		return v;
 	}
 
-
-
     public Vector generateMapsToReport(String code, String terminology_name, String terminology_version) {
 		Vector v = getMapsToData(terminology_name, terminology_version);
-
+		//Utils.saveToFile("MapsTo_" + terminology_name + "_" + terminology_version + ".txt", v);
+		boolean codeOnly = true;
+		Vector members = owlSPARQLUtils.getSubsetMembership(namedGraph, code, codeOnly);
+        //Utils.saveToFile("members_" + code + ".txt", members);
 		v = sortByColumn(v, "NCIt Preferred Term");
 		String label = getLabelByCode(code);
 		Vector w = new Vector();
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
-			w.add(code + "|" + label + "|" + line);
+			Vector u = StringUtils.parseData(line, '|');
+			String member_code = (String) u.elementAt(0);
+			if (members.contains(member_code)) {
+				w.add(code + "|" + label + "|" + line);
+			}
 		}
 		w = sortByColumn(w, "NCIt Preferred Term");
 		v = new Vector();
 		v.add(MAPS_TO_HEADING);
 		v.addAll(w);
-
         return v;
 	}
 
@@ -310,10 +325,36 @@ public class MapsToReportWriter {
         v = owlSPARQLUtils.getCodeByLabel(this.namedGraph, label);
         v = new ParserUtils().getResponseValues(v);
         w.add((String) v.elementAt(0));
+
         label = "Mapped ICDO" + version + " Morphology PT Terminology";
         v = owlSPARQLUtils.getCodeByLabel(this.namedGraph, label);
         v = new ParserUtils().getResponseValues(v);
         w.add((String) v.elementAt(0));
+
+/*
+Mapped ICDO Terminology (C168654)
+Mapped ICDO3.1 Terminology (C168655)
+Mapped ICDO3.2 Terminology (C168656)
+Mapped ICDO3.2 Morphology Terminology (C168661)
+Mapped ICDO3.2 Topography Terminology (C168663)
+Mapped ICDO3.2 Topography PT Terminology (C168664)
+Mapped ICDO3.2 Morphology PT Terminology (C168662)
+Mapped ICDO3.1 Morphology Terminology (C168657)
+Mapped ICDO3.1 Topography Terminology (C168659)
+Mapped ICDO3.1 Topography PT Terminology (C168660)
+Mapped ICDO3.1 Morphology PT Terminology (C168658)
+*/
+        //To be modified:
+        label = "Mapped ICDO" + version + " Topography Terminology";
+        v = owlSPARQLUtils.getCodeByLabel(this.namedGraph, label);
+        v = new ParserUtils().getResponseValues(v);
+        w.add((String) v.elementAt(0));
+
+        label = "Mapped ICDO" + version + " Topography PT Terminology";
+        v = owlSPARQLUtils.getCodeByLabel(this.namedGraph, label);
+        v = new ParserUtils().getResponseValues(v);
+        w.add((String) v.elementAt(0));
+
         StringUtils.dumpVector("codes", w);
         return w;
 	}

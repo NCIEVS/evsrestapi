@@ -2,6 +2,7 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -172,14 +173,17 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     return false;
   }
 
+  /* see superclass */
   @Override
   public void loadObjects(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
     throws IOException, Exception {
     final String uri = applicationProperties.getConfigBaseUri();
     final String mappingUri = uri.replaceFirst("config/metadata", "data/mappings/");
     final String mapsetMetadataUri = uri + "/mapsetMetadata.txt";
-    String rawMetadata =
-        IOUtils.toString(new URL(mapsetMetadataUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
+    String rawMetadata = null;
+    try (final InputStream is = new URL(mapsetMetadataUri).openConnection().getInputStream()) {
+      rawMetadata = IOUtils.toString(is, StandardCharsets.UTF_8);
+    }
     List<String> allLines = Arrays.asList(rawMetadata.split("\n"));
     // skip header line
     allLines = allLines.subList(1, allLines.size());
@@ -250,10 +254,12 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
 
       // setting up metadata
       if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) { // welcome
-                                                                                       // text
-        String welcomeText = IOUtils.toString(new URL(uri + "/" + metadata[3]).openConnection().getInputStream(),
-            StandardCharsets.UTF_8);
-        map.getProperties().add(new Property("welcomeText", welcomeText));
+
+        try (final InputStream is = new URL(uri + "/" + metadata[3]).openConnection().getInputStream()) {
+          // text
+          String welcomeText = IOUtils.toString(is, StandardCharsets.UTF_8);
+          map.getProperties().add(new Property("welcomeText", welcomeText));
+        }
         map.getProperties().add(new Property("sourceTerminology", metadata[5]));
         map.getProperties().add(new Property("sourceTerminologyVersion", metadata[6]));
         map.getProperties().add(new Property("targetTerminology", metadata[7]));
@@ -264,9 +270,10 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         String mappingDataUri =
             mappingUri + map.getName() + (map.getVersion() != null ? ("_" + map.getVersion()) : "") + ".txt"; // build
         // map
-        String mappingData =
-            IOUtils.toString(new URL(mappingDataUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
-        map.setMaps(buildMaps(mappingData, metadata));
+        try (final InputStream is = new URL(mappingDataUri).openConnection().getInputStream()) {
+          String mappingData = IOUtils.toString(is, StandardCharsets.UTF_8);
+          map.setMaps(buildMaps(mappingData, metadata));
+        }
 
       }
 
@@ -280,9 +287,10 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           String mappingDataUri =
               mappingUri + map.getName() + (map.getVersion() != null ? ("_" + map.getVersion()) : "") + ".csv"; // build
           // map
-          String mappingData =
-              IOUtils.toString(new URL(mappingDataUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
-          map.setMaps(buildMaps(mappingData, metadata));
+          try (final InputStream is = new URL(mappingDataUri).openConnection().getInputStream()) {
+            String mappingData = IOUtils.toString(is, StandardCharsets.UTF_8);
+            map.setMaps(buildMaps(mappingData, metadata));
+          }
         }
       } else {
         map.getProperties().add(new Property("downloadOnly", "false"));

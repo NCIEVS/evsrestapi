@@ -4,16 +4,33 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [1.9.0.RELEASE] - YYYY-MM-DD
+## [1.10.0.RELEASE] - YYYY-MM-DD
 ### Added
 ### Changed
-### Launch Checklist
- - Reindex for "stemName:xxx" searches (or at least update index mappings to define the field)
+
+## [1.9.0.RELEASE] - 2024-02-01
+### Added
+- Added "concept.active" flag
+- Implement MedDRA license check
+- Implement loading of NCIm "source statistics" data
+### Changed
+- Improvements to loader scripts for logging and return values
+- Changes to support new terminologies (MED-RT, CanMED, CTCAE5, UMLS Semantic Network)
+- Fixes to sample testing to properly verify (and fixes to RRF sampling data for hierarchies)
+- Cleanup of swagger to align with exactly what data to expose (and reconcile evsrestapi-client-SDK)
+- Disable internal metrics recording
+- Add stemming to concept indexes/search
+- Improvements to handling/versioning of maps (including support for simpler data representation)
+- Fix paging bugs
+
+## [1.8.1.RELEASE] - 2023-10-31
+### Added
+- Swagger update for global header
 
 ## [1.8.0.RELEASE] - 2023-05-31
 ### Added
 - Sampling QA for all terminologies loaded into the dev and deploy environments
-- Support for additional RRF terminolologies, including ICD10CM, ICD9CM.
+1.9.0-RC-master- Support for additional RRF terminolologies, including ICD10CM, ICD9CM.
 - New mapset endpoints for interacting with cross-terminology mapping data
 - Support for loading cross-terminology mapping data sets
 - New history endpoints for interacting with terminology history information

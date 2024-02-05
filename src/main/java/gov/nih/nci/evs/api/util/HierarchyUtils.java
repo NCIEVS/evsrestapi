@@ -40,7 +40,6 @@ import gov.nih.nci.evs.api.model.Terminology;
 public class HierarchyUtils {
 
   /** The Constant logger. */
-  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(HierarchyUtils.class);
 
   /** The terminology. */
@@ -87,8 +86,7 @@ public class HierarchyUtils {
   private Map<String, List<Role>> inverseRoleMap = new HashMap<>(10000);
 
   /**
-   * The path map. NOTE: if we need paths for >1 terminology, this doesn't work. Use a different
-   * HierarchyUtils.
+   * The path map. NOTE: if we need paths for >1 terminology, this doesn't work. Use a different HierarchyUtils.
    */
   @Transient
   private Map<String, Set<String>> pathsMap = new HashMap<>();
@@ -130,8 +128,8 @@ public class HierarchyUtils {
    */
   public void initialize(List<String> parentchild) {
     /*
-     * The parentchild string is expected to be in the order of parentCode, parentLabel childCode,
-     * childLabel and Tab sepearated.
+     * The parentchild string is expected to be in the order of parentCode, parentLabel childCode, childLabel and Tab
+     * sepearated.
      */
     for (String str : parentchild) {
       String[] values = str.trim().split("\t");
@@ -360,12 +358,11 @@ public class HierarchyUtils {
       return;
     }
 
-    List<HierarchyNode> nodes = new ArrayList<>();
-    level = level + 1;
-    for (String code : children) {
-      HierarchyNode newnode = new HierarchyNode(code, code2label.get(code), false);
-      getChildNodesLevel(newnode, maxLevel, level);
-      List<HierarchyNode> sortedChildren = newnode.getChildren();
+    final List<HierarchyNode> nodes = new ArrayList<>();
+    for (final String code : children) {
+      final HierarchyNode newnode = new HierarchyNode(code, code2label.get(code), false);
+      getChildNodesLevel(newnode, maxLevel, level + 1);
+      final List<HierarchyNode> sortedChildren = newnode.getChildren();
       // Sort children if they exist
       if (sortedChildren != null && sortedChildren.size() > 0) {
         sortedChildren.sort(Comparator.comparing(HierarchyNode::getLabel));

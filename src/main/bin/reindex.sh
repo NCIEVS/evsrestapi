@@ -328,7 +328,7 @@ for x in `cat /tmp/y.$$.txt`; do
         	historyClause=" -d $historyFile"
         fi
 
-        echo "    java $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause" | sed 's/^/      /'
+        echo "    java $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
         java $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error building indexes"
@@ -363,7 +363,7 @@ done
 # Reconcile mappings after loading terminologies
 export EVS_SERVER_PORT="8083"
 echo "    Generate mapping indexes"
-echo "      java $local -Xm4096M -jar $jar --terminology mapping" | sed 's/^/      /'
+echo "      java $local -Xm4096M -jar $jar --terminology mapping"
 java $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
 if [[ $? -ne 0 ]]; then
     echo "ERROR: unexpected error building mapping indexes"

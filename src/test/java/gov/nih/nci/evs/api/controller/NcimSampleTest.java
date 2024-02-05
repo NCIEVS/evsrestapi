@@ -108,7 +108,7 @@ public class NcimSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("CL547438");
     assertThat(concept.getTerminology()).isEqualTo("ncim");
-    assertThat(concept.isActive()).isTrue();
+    assertThat(concept.getActive()).isTrue();
 
     // Test inactive
     url = "/api/v1/concept/ncim/C0278390?include=full";
@@ -120,19 +120,20 @@ public class NcimSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0278390");
     assertThat(concept.getTerminology()).isEqualTo("ncim");
-    assertThat(concept.isActive()).isFalse();
+    assertThat(concept.getActive()).isFalse();
     assertThat(concept.getConceptStatus()).isEqualTo("Retired_Concept");
 
     // test that "Retired_Concept" was added to the list of concept statuses
-    url = "/api/v1/terminologies?terminology=ncim&latest=true";
+    url = "/api/v1/metadata/terminologies?terminology=ncim&latest=true";
     log.info("Testing url - " + url);
 
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    List<Terminology> list = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
-      // n/a
-    });
+    List<Terminology> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
+        });
     assertThat(list).isNotEmpty();
     Terminology term = list.get(0);
     assertThat(term.getMetadata().getConceptStatuses()).isNotEmpty();

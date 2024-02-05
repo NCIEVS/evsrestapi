@@ -52,10 +52,8 @@ public class ProxyTester {
   }
 
   /**
-   * Adds a field to the list of tested fields. If this method is called, the
-   * tester will not attempt to list all the getters and setters on the object
-   * under test, and will instead simply test all the fields in the include
-   * list.
+   * Adds a field to the list of tested fields. If this method is called, the tester will not attempt to list all the
+   * getters and setters on the object under test, and will instead simply test all the fields in the include list.
    * 
    * @param field Field name whose getter/setter should be tested.
    */
@@ -103,8 +101,8 @@ public class ProxyTester {
   }
 
   /**
-   * Walks through the methods in the class looking for getters and setters that
-   * are on our include list (if any) and are not on our exclude list.
+   * Walks through the methods in the class looking for getters and setters that are on our include list (if any) and
+   * are not on our exclude list.
    *
    * @param initializer a value that when used produces certain field values
    * @return the object
@@ -116,8 +114,7 @@ public class ProxyTester {
     try {
       o = clazz.getConstructor().newInstance();
     } catch (final Exception e) {
-      throw new Exception(
-          "Class " + clazz + " unexpectedly does not have a no-argument constructor");
+      throw new Exception("Class " + clazz + " unexpectedly does not have a no-argument constructor");
     }
     setFields(o, false, false, initializer);
     return o;
@@ -132,8 +129,8 @@ public class ProxyTester {
    * @param initializer the initializer
    * @throws Exception the exception
    */
-  protected void setFields(final Object o, final boolean reverseIncludes, final boolean logField,
-    final int initializer) throws Exception {
+  protected void setFields(final Object o, final boolean reverseIncludes, final boolean logField, final int initializer)
+    throws Exception {
     final Set<String> fieldsSeen = new HashSet<>();
     final Method[] methods = clazz.getMethods();
     for (int i = 0; i < methods.length; i++) {
@@ -248,8 +245,8 @@ public class ProxyTester {
    * @param initializer the initializer
    * @throws Exception the exception
    */
-  protected void setField(final Object o, final String fieldName, final Method get,
-    final Method set, final Class<?> argType, final int initializer) throws Exception {
+  protected void setField(final Object o, final String fieldName, final Method get, final Method set,
+    final Class<?> argType, final int initializer) throws Exception {
     final Object proxy = makeProxy(fieldName, argType, initializer);
 
     // logger
@@ -260,8 +257,8 @@ public class ProxyTester {
       });
     } catch (final InvocationTargetException e) {
       e.printStackTrace();
-      throw new RuntimeException("Setter " + set.getDeclaringClass().getName() + "." + set.getName()
-          + " threw " + e.getTargetException().toString());
+      throw new RuntimeException("Setter " + set.getDeclaringClass().getName() + "." + set.getName() + " threw "
+          + e.getTargetException().toString());
     } catch (final IllegalArgumentException e) {
       logger.debug("o=" + o.getClass().getName());
       logger.debug("proxy=" + proxy.getClass().getName());
@@ -270,9 +267,8 @@ public class ProxyTester {
   }
 
   /**
-   * Makes a proxy of a given class. If the class is an interface type, uses the
-   * standard JDK proxy mechanism. If it's not, uses cglib. The use of cglib is
-   * via reflection so that cglib is not required to use this library unless the
+   * Makes a proxy of a given class. If the class is an interface type, uses the standard JDK proxy mechanism. If it's
+   * not, uses cglib. The use of cglib is via reflection so that cglib is not required to use this library unless the
    * caller actually needs to proxy a concrete class.
    *
    * @param fieldName the field name
@@ -284,8 +280,7 @@ public class ProxyTester {
   @SuppressWarnings({
       "rawtypes", "deprecation"
   })
-  protected Object makeProxy(final String fieldName, final Class<?> type, final int initializer)
-    throws Exception {
+  protected Object makeProxy(final String fieldName, final Class<?> type, final int initializer) throws Exception {
     // Return field name proxies
     if (fieldProxyMap.containsKey(fieldName.toLowerCase())) {
       return fieldProxyMap.get(fieldName.toLowerCase()).get(initializer);
@@ -363,8 +358,8 @@ public class ProxyTester {
       callbackClass = Class.forName("net.sf.cglib.proxy.Callback");
       fixedValueClass = Class.forName("net.sf.cglib.proxy.FixedValue");
     } catch (final ClassNotFoundException e) {
-      throw new ClassNotFoundException("Need cglib to make a dummy " + type.getName()
-          + ". Make sure cglib.jar is on " + "your classpath.");
+      throw new ClassNotFoundException(
+          "Need cglib to make a dummy " + type.getName() + ". Make sure cglib.jar is on " + "your classpath.");
     }
 
     /* Make a dummy callback (proxies within proxies!) */
@@ -391,7 +386,6 @@ public class ProxyTester {
    * @return an instance of an enum
    * @throws Exception the exception
    */
-  @SuppressWarnings("static-method")
   private Object makeEnum(final Class<?> clazz1, final int initializer) throws Exception {
     final Method m = clazz1.getMethod("values", new Class[0]);
     final Object[] o = (Object[]) m.invoke(null, new Object[0]);

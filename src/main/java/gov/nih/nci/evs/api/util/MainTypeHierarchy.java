@@ -17,9 +17,9 @@ import gov.nih.nci.evs.api.model.Extensions;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.AbstractStardogLoadServiceImpl;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-import gov.nih.nci.evs.api.service.AbstractStardogLoadServiceImpl;
 
 /**
  * Handler for the main type hierarchy CTRP extension computations.
@@ -28,7 +28,6 @@ import gov.nih.nci.evs.api.service.AbstractStardogLoadServiceImpl;
 public class MainTypeHierarchy {
 
   /** The Constant logger. */
-  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(AbstractStardogLoadServiceImpl.class);
 
   /** The sparql query manager service. */
@@ -62,24 +61,22 @@ public class MainTypeHierarchy {
    * @param hierarchy the hierarchy
    * @throws Exception the exception
    */
-  public void initialize(final Terminology terminology, final HierarchyUtils hierarchy)
-    throws Exception {
+  public void initialize(final Terminology terminology, final HierarchyUtils hierarchy) throws Exception {
 
     if (terminology.getTerminology().equals("ncit") && broadCategorySet == null) {
 
-      broadCategorySet = service.getSubsetMembers("C138189", terminology).stream()
-          .map(c -> c.getCode()).collect(Collectors.toSet());
+      broadCategorySet =
+          service.getSubsetMembers("C138189", terminology).stream().map(c -> c.getCode()).collect(Collectors.toSet());
       logger.info("  Broad Category Set:");
       logCodes(broadCategorySet, terminology);
 
-      mainTypeSet = service.getSubsetMembers("C138190", terminology).stream().map(c -> c.getCode())
-          .collect(Collectors.toSet());
+      mainTypeSet =
+          service.getSubsetMembers("C138190", terminology).stream().map(c -> c.getCode()).collect(Collectors.toSet());
       logger.info("  Main Type Set:");
       logCodes(mainTypeSet, terminology);
 
       logger.info("  Compute main type hierarchy");
-      mainTypeHierarchy =
-          service.getMainTypeHierarchy(terminology, mainTypeSet, broadCategorySet, hierarchy);
+      mainTypeHierarchy = service.getMainTypeHierarchy(terminology, mainTypeSet, broadCategorySet, hierarchy);
 
     }
   }
@@ -99,9 +96,7 @@ public class MainTypeHierarchy {
     if (concept.getName() == null) {
       // If this is a retired concept, we're good, just return blank extensions
       if (concept.getProperties().stream()
-          .filter(
-              p -> p.getType().equals("Concept_Status") && p.getValue().equals("Retired_Concept"))
-          .count() > 0) {
+          .filter(p -> p.getType().equals("Concept_Status") && p.getValue().equals("Retired_Concept")).count() > 0) {
         return new Extensions();
       }
       throw new RuntimeException("Unexpectedly null concept name = " + concept.getCode());
@@ -176,8 +171,7 @@ public class MainTypeHierarchy {
   public boolean isDiseaseGrade(final Concept concept) throws Exception {
     terminologyCheck(concept.getTerminology());
     // has a "Disease_Is_Grade" role
-    boolean flag =
-        concept.getRoles().stream().filter(r -> r.getType().equals("Disease_Is_Grade")).count() > 0;
+    boolean flag = concept.getRoles().stream().filter(r -> r.getType().equals("Disease_Is_Grade")).count() > 0;
     // if (flag) {
     // logger
     // .info("QA CASE isDiseaseGrade: member of Disease_Is_Grade subset = " +
@@ -218,8 +212,8 @@ public class MainTypeHierarchy {
     terminologyCheck(concept.getTerminology());
     // Has "Concept_In_Subset" association to C142799 | CTRP Biomarker
     // Terminology
-    boolean flag = concept.getAssociations().stream().filter(
-        r -> r.getType().equals("Concept_In_Subset") && r.getRelatedCode().contentEquals("C142799"))
+    boolean flag = concept.getAssociations().stream()
+        .filter(r -> r.getType().equals("Concept_In_Subset") && r.getRelatedCode().contentEquals("C142799"))
         .count() > 0;
     // if (flag) {
     // logger.info("QA CASE isBiomarker: member of CTRP Biomarker Terminology
@@ -240,8 +234,8 @@ public class MainTypeHierarchy {
     terminologyCheck(concept.getTerminology());
     // Has "Concept_In_Subset" association to C142801 | CTRP Reference Gene
     // Terminology |
-    boolean flag = concept.getAssociations().stream().filter(
-        r -> r.getType().equals("Concept_In_Subset") && r.getRelatedCode().contentEquals("C142801"))
+    boolean flag = concept.getAssociations().stream()
+        .filter(r -> r.getType().equals("Concept_In_Subset") && r.getRelatedCode().contentEquals("C142801"))
         .count() > 0;
     // if (flag) {
     // logger.info("QA CASE isReferenceGene: member of CTRP Reference Gene
@@ -295,9 +289,8 @@ public class MainTypeHierarchy {
     }
 
     // Main type concept descendants of C2991
-    if (mainTypeSet.contains(concept.getCode()) && concept
-        .getPaths().getPaths().stream().filter(p -> p.getConcepts().stream()
-            .filter(c -> c.getCode().equals("C2991")).findFirst().orElse(null) != null)
+    if (mainTypeSet.contains(concept.getCode()) && concept.getPaths().getPaths().stream()
+        .filter(p -> p.getConcepts().stream().filter(c -> c.getCode().equals("C2991")).findFirst().orElse(null) != null)
         .findFirst().orElse(null) != null) {
       // logger.info("QA CASE !isDisease: is disease main type = " +
       // concept.getCode());
@@ -314,8 +307,7 @@ public class MainTypeHierarchy {
     if (concept.getPaths() == null) {
       return false;
     }
-    List<Paths> mma =
-        concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet, broadCategorySet);
+    List<Paths> mma = concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet, broadCategorySet);
     if (mma.isEmpty()) {
       // logger.info("QA CASE !isDisease: does not have main menu ancestors = "
       // + concept.getCode());
@@ -403,9 +395,8 @@ public class MainTypeHierarchy {
     // No main menu ancestors if is disease grade or stage or subtype.
     final boolean isDiseaseGrade =
         concept.getRoles().stream().filter(r -> r.getType().equals("Disease_Is_Grade")).count() > 0;
-    final boolean isDiseaseStage =
-        concept.getName().toLowerCase().startsWith("recurrent") || concept.getRoles().stream()
-            .filter(r -> r.getType().equals("Disease_Is_Stage")).count() > 0;
+    final boolean isDiseaseStage = concept.getName().toLowerCase().startsWith("recurrent")
+        || concept.getRoles().stream().filter(r -> r.getType().equals("Disease_Is_Stage")).count() > 0;
     final boolean subtypeFlag = isSubtype(concept);
     if (!subtypeFlag && !isDiseaseStage && !isDiseaseGrade) {
       // logger
@@ -419,8 +410,7 @@ public class MainTypeHierarchy {
     }
     // Get concept paths and check if any end at "main type" concepts
     // If so -> re-render paths as such
-    final List<Paths> paths =
-        concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet, broadCategorySet);
+    final List<Paths> paths = concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet, broadCategorySet);
 
     // if (subtypeFlag) {
     // logger.info("QA CASE mainMenuAncestors: subtype = " +
@@ -467,8 +457,7 @@ public class MainTypeHierarchy {
   private void logCodes(final Set<String> codes, final Terminology terminology) throws Exception {
     final Map<String, String> map = new TreeMap<>();
     for (final String conceptCode : codes) {
-      final Concept concept =
-          service.getConcept(conceptCode, terminology, new IncludeParam("minimal"));
+      final Concept concept = service.getConcept(conceptCode, terminology, new IncludeParam("minimal"));
       map.put(concept.getName(), concept.getCode());
     }
     for (final String name : map.keySet()) {

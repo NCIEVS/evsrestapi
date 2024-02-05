@@ -27,12 +27,12 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 
 /**
- * Med-RT samples tests.
+ * CTCAE5 samples tests.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public class MedrtSampleTest extends SampleTest {
+public class Ctcae5SampleTest extends SampleTest {
 
   /**
    * Setup class.
@@ -40,7 +40,7 @@ public class MedrtSampleTest extends SampleTest {
    */
 
   /** The logger. */
-  private static final Logger log = LoggerFactory.getLogger(MedrtSampleTest.class);
+  private static final Logger log = LoggerFactory.getLogger(Ctcae5SampleTest.class);
 
   /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
   @Autowired
@@ -53,23 +53,23 @@ public class MedrtSampleTest extends SampleTest {
    */
   @BeforeClass
   public static void setupClass() throws Exception {
-    loadSamples("medrt", "src/test/resources/samples/medrt-samples.txt");
+    loadSamples("ctcae5", "src/test/resources/samples/ctcae5-samples.txt");
   }
 
   /**
-   * Test MED-RT terminology.
+   * Test CTCAE5 terminology.
    *
    * @throws Exception the exception
    */
   @Test
-  public void testMEDRTTerminology() throws Exception {
+  public void testCTCAET5erminology() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
 
     url = "/api/v1/metadata/terminologies";
     log.info("Testing url - " + url);
-    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "medrt")).andExpect(status().isOk())
+    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "ctcae5")).andExpect(status().isOk())
         .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
@@ -79,22 +79,18 @@ public class MedrtSampleTest extends SampleTest {
           // n/a
         });
     assertThat(terminologies.size()).isGreaterThan(0);
-    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("medrt")).count()).isEqualTo(1);
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ctcae5")).count()).isEqualTo(1);
     final Terminology terminology =
-        terminologies.stream().filter(t -> t.getTerminology().equals("medrt")).findFirst().get();
-    assertThat(terminology.getTerminology()).isEqualTo("medrt");
-    assertThat(terminology.getMetadata().getUiLabel()).isEqualTo("MED-RT");
-    assertThat(terminology.getName()).isEqualTo("MED-RT 2023.07.03");
+        terminologies.stream().filter(t -> t.getTerminology().equals("ctcae5")).findFirst().get();
+    assertThat(terminology.getTerminology()).isEqualTo("ctcae5");
+    assertThat(terminology.getMetadata().getUiLabel()).isEqualTo("CTCAE 5");
+    assertThat(terminology.getName()).isEqualTo("CTCAE 5 5");
     assertThat(terminology.getDescription()).isNotEmpty();
 
     assertThat(terminology.getMetadata().getLoader()).isEqualTo("rdf");
     assertThat(terminology.getMetadata().getSourceCt()).isEqualTo(0);
-    assertThat(terminology.getMetadata().getLicenseText())
-        .isEqualTo("Government information at NLM Web sites is in the public domain. "
-            + "Public domain information may be freely distributed and copied, but it is requested that in any subsequent use the "
-            + "National Library of Medicine (NLM) be given appropriate acknowledgement as specified at "
-            + "https://lhncbc.nlm.nih.gov/semanticnetwork/terms.html");
-    assertThat(terminology.getDescription()).isEqualTo("MEDRT");
+    assertThat(terminology.getMetadata().getLicenseText()).isEqualTo(null);
+    assertThat(terminology.getDescription().trim()).isEqualTo("Common Terminology Criteria for Adverse Events");
 
     assertThat(terminology.getLatest()).isTrue();
   }
@@ -113,16 +109,16 @@ public class MedrtSampleTest extends SampleTest {
     Concept concept = null;
 
     // Test active
-    url = "/api/v1/concept/medrt/N0000175809";
+    url = "/api/v1/concept/ctcae5/C143164";
     log.info("Testing url - " + url);
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("N0000175809");
-    assertThat(concept.getName()).isEqualTo("4-Hydroxyphenyl-Pyruvate Dioxygenase Inhibitor");
-    assertThat(concept.getTerminology()).isEqualTo("medrt");
+    assertThat(concept.getCode()).isEqualTo("C143164");
+    assertThat(concept.getName()).isEqualTo("Blood and Lymphatic System Disorders");
+    assertThat(concept.getTerminology()).isEqualTo("ctcae5");
     assertThat(concept.getActive()).isTrue();
   }
 }

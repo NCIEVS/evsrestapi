@@ -59,7 +59,6 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
   /** the logger *. */
-  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(MetaElasticLoadServiceImpl.class);
 
   /** the concepts download location *. */
@@ -303,15 +302,16 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           final String code = mapsetNameMap.get(fields[0]).replaceAll(" ", "_");
           mapset.setCode(code);
           mapset.setName(mapsetNameMap.get(fields[0]));
-          mapset.setTerminology("SNOMEDCT_US");
+          mapset.setTerminology("snomedct_us");
           mapset.setVersion(mapsetVersionMap.get(fields[0]));
           // set other fields and properties as needed (to match other mapsets and needs of ui)
           mapset.getProperties().add(new Property("loader", "MetaElasticLoadServiceImpl"));
           final String mapsetUri = applicationProperties.getConfigBaseUri() + "/mapping-snomed-"
               + mapsetToTerminologyMap.get(fields[0]).split("_")[0].toLowerCase() + ".html";
-          final String welcomeText =
-              IOUtils.toString(new URL(mapsetUri).openConnection().getInputStream(), StandardCharsets.UTF_8);
-          mapset.getProperties().add(new Property("welcomeText", welcomeText));
+          try (final InputStream is = new URL(mapsetUri).openConnection().getInputStream()) {
+            final String welcomeText = IOUtils.toString(is, StandardCharsets.UTF_8);
+            mapset.getProperties().add(new Property("welcomeText", welcomeText));
+          }
           mapset.getProperties().add(new Property("mapsetLink", null));
           mapset.getProperties().add(new Property("downloadOnly", "false"));
           mapset.getProperties().add(
@@ -319,9 +319,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           mapset.getProperties().add(
               new Property("targetLoaded", Boolean.toString(terms.contains(map.getTargetTerminology().toLowerCase()))));
           mapset.getProperties().add(new Property("sourceTerminology",
-              map.getSourceTerminology() != null ? map.getSourceTerminology() : "not found"));
+              map.getSourceTerminology() != null ? map.getSourceTerminology().toLowerCase() : "not found"));
           mapset.getProperties().add(new Property("targetTerminology",
-              map.getTargetTerminology() != null ? map.getTargetTerminology() : "not found"));
+              map.getTargetTerminology() != null ? map.getTargetTerminology().toLowerCase() : "not found"));
           mapset.getProperties().add(new Property("sourceTerminologyVersion",
               map.getSourceTerminologyVersion() != null ? map.getSourceTerminologyVersion() : "not found"));
           mapset.getProperties().add(new Property("targetTerminologyVersion",
@@ -1370,10 +1370,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           term.setTerminology(terminology);
           term.setVersion(p.getProperty("umls.release.name"));
           term.setDate(p.getProperty("umls.release.date"));
-          if (line != null) {
-            // term.setName(line.split("\\|", -1)[4]);
-            term.setDescription(line.split("\\|", -1)[24]);
-          }
+
+          // term.setName(line.split("\\|", -1)[4]);
+          term.setDescription(line.split("\\|", -1)[24]);
+
           term.setGraph(null);
           term.setSource(null);
           term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());
