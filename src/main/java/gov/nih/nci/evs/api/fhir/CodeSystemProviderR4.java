@@ -572,7 +572,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     @OptionalParam(name = "date")
     final DateRangeParam date, @OptionalParam(name = "system")
     final StringParam system, @OptionalParam(name = "version")
-    final StringParam version) throws Exception {
+    final StringParam version, @OptionalParam(name = "title")
+    final StringParam title) throws Exception {
     try {
       final List<Terminology> terms = termUtils.getTerminologies(true);
 
@@ -587,6 +588,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         if (date != null && !FhirUtility.compareDateRange(date, cs.getDate())) {
           logger.info("  SKIP date mismatch = " + cs.getDate());
+          continue;
+        }
+        if (title != null && !FhirUtility.compareString(title, cs.getTitle())) {
+          logger.info("  SKIP title mismatch = " + cs.getTitle());
           continue;
         }
         if (version != null && !FhirUtility.compareString(version, cs.getVersion())) {
