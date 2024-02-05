@@ -1,4 +1,3 @@
-
 package gov.nih.nci.evs.api.repository;
 
 import gov.nih.nci.evs.api.support.es.ElasticObject;

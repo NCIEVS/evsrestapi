@@ -5,7 +5,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Represents a node in a hierarchy and is directly compatible with the primeng "TreeNode" structure.
+ * Represents a node in a hierarchy and is directly compatible with the primeng "TreeNode"
+ * structure.
  */
 @Schema(description = "Represents a node in a subtree rendering of the hierarchy")
 public class HierarchyNode extends BaseModel {

@@ -296,7 +296,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       // setting up metadata
       if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) { // welcome
 
-        try (final InputStream is = new URL(uri + "/" + metadata[3]).openConnection().getInputStream()) {
+        try (final InputStream is =
+            new URL(uri + "/" + metadata[3]).openConnection().getInputStream()) {
           // text
           String welcomeText = IOUtils.toString(is, StandardCharsets.UTF_8);
           map.getProperties().add(new Property("welcomeText", welcomeText));
@@ -321,7 +322,6 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           String mappingData = IOUtils.toString(is, StandardCharsets.UTF_8);
           map.setMaps(buildMaps(mappingData, metadata));
         }
-
       }
 
       if (metadata[1] != null && !metadata[1].isEmpty()) { // download links

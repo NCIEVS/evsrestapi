@@ -308,8 +308,11 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           mapset.setVersion(mapsetVersionMap.get(fields[0]));
           // set other fields and properties as needed (to match other mapsets and needs of ui)
           mapset.getProperties().add(new Property("loader", "MetaElasticLoadServiceImpl"));
-          final String mapsetUri = applicationProperties.getConfigBaseUri() + "/mapping-snomed-"
-              + mapsetToTerminologyMap.get(fields[0]).split("_")[0].toLowerCase() + ".html";
+          final String mapsetUri =
+              applicationProperties.getConfigBaseUri()
+                  + "/mapping-snomed-"
+                  + mapsetToTerminologyMap.get(fields[0]).split("_")[0].toLowerCase()
+                  + ".html";
           try (final InputStream is = new URL(mapsetUri).openConnection().getInputStream()) {
             final String welcomeText = IOUtils.toString(is, StandardCharsets.UTF_8);
             mapset.getProperties().add(new Property("welcomeText", welcomeText));
