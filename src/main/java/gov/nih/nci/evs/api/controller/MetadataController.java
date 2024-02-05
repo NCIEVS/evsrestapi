@@ -1656,7 +1656,6 @@ public class MetadataController extends BaseController {
     }
   }
 
-
   /**
    * Returns the source stats.
    *
