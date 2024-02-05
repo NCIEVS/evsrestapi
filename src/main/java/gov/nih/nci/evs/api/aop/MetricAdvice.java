@@ -1,34 +1,25 @@
-
 package gov.nih.nci.evs.api.aop;
 
-import java.net.InetAddress;
+import gov.nih.nci.evs.api.model.Metric;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.properties.ElasticServerProperties;
+import gov.nih.nci.evs.api.service.ElasticOperationsService;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
-
 import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
-
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-
-import gov.nih.nci.evs.api.model.Metric;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.properties.ElasticServerProperties;
-import gov.nih.nci.evs.api.service.ElasticOperationsService;
-
-/**
- * Handle record metric annotations via AOP.
- */
+/** Handle record metric annotations via AOP. */
 @Component
 @Aspect
 @ConditionalOnProperty(name = "nci.evs.application.metricsEnabled")
@@ -44,12 +35,10 @@ public class MetricAdvice {
   @Autowired ApplicationProperties applicationProperties;
 
   /** The elastic server properties. */
-  @Autowired
-  ElasticServerProperties elasticServerProperties;
+  @Autowired ElasticServerProperties elasticServerProperties;
 
   /** The operations service. */
-  @Autowired
-  ElasticOperationsService operationsService;
+  @Autowired ElasticOperationsService operationsService;
 
   /** The database found. */
   boolean databaseFound;
@@ -68,14 +57,14 @@ public class MetricAdvice {
      * this.databaseFound = file.exists(); if (databaseFound) { dbReader = new
      * DatabaseReader.Builder(file).build(); } else { logger.warn("GeoLite Database was not found =
      * " + applicationProperties.getMetricsDir()); }
-     * 
-     * String indexName = "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) +
-     * "-" + String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
-     * 
-     * boolean result = operationsService.createIndex(indexName, false); if (result) {
+     *
+     * <p>String indexName = "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR))
+     * + "-" + String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
+     *
+     * <p>boolean result = operationsService.createIndex(indexName, false); if (result) {
      * operationsService.getElasticsearchOperations().putMapping(indexName,
      * ElasticOperationsService.METRIC_TYPE, Metric.class); }
-     **/
+     */
   }
 
   /**
@@ -88,13 +77,13 @@ public class MetricAdvice {
    */
   // @Around("execution(* gov.nih.nci.evs.api.controller.*.*(..)) && @annotation(recordMetric)")
   @SuppressWarnings("unused")
-  private Object recordMetric(final ProceedingJoinPoint pjp, final RecordMetric recordMetric) throws Throwable {
+  private Object recordMetric(final ProceedingJoinPoint pjp, final RecordMetric recordMetric)
+      throws Throwable {
 
     // get the request
     final HttpServletRequest request =
         ((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest();
     return recordMetricHelper(pjp, request, request.getParameterMap());
-
   }
 
   /**
@@ -106,8 +95,11 @@ public class MetricAdvice {
    * @return the object
    * @throws Throwable the throwable
    */
-  public Object recordMetricHelper(final ProceedingJoinPoint pjp, final HttpServletRequest request,
-    final Map<String, String[]> params) throws Throwable {
+  public Object recordMetricHelper(
+      final ProceedingJoinPoint pjp,
+      final HttpServletRequest request,
+      final Map<String, String[]> params)
+      throws Throwable {
 
     // get the start time
     final Date startDate = new Date();
@@ -120,7 +112,8 @@ public class MetricAdvice {
     metric.setDuration(duration);
 
     // get the ip address of the remote user
-    final ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+    final ServletRequestAttributes attr =
+        (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
 
     final String userIpAddress = attr.getRequest().getRemoteAddr();
     metric.setRemoteIpAddress(userIpAddress);
@@ -148,11 +141,14 @@ public class MetricAdvice {
     metric.setEndTime(endDate);
 
     // get the parameters
-    operationsService.loadMetric(metric, "metrics-" + String.valueOf(Calendar.getInstance().get(Calendar.YEAR)) + "-"
-        + String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1));
+    operationsService.loadMetric(
+        metric,
+        "metrics-"
+            + String.valueOf(Calendar.getInstance().get(Calendar.YEAR))
+            + "-"
+            + String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1));
 
     logger.debug("metric = " + metric);
     return retval;
   }
-
 }

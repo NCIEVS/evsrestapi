@@ -144,7 +144,7 @@ public class Concept extends ConceptMinimal {
 
   /**
    * The parents. Given this is a List<Concept>, we will not set enabled = false, even though we
-   *  don't need most of the field data associated with parents. Otherwise, we are creating a self
+   * don't need most of the field data associated with parents. Otherwise, we are creating a self
    * circular reference that results in a StackOverflowError
    */
   @Field(
@@ -242,7 +242,8 @@ public class Concept extends ConceptMinimal {
 
   /**
    * The history. enabled = false will set the index = false, to avoid indexing the fields in this
-   * Concept model. The DynamicMappingValue.False will prevent indexing fields from the History object.
+   * Concept model. The DynamicMappingValue.False will prevent indexing fields from the History
+   * object.
    */
   @Field(type = FieldType.Object, enabled = false)
   @DynamicMapping(DynamicMappingValue.False)
@@ -250,7 +251,8 @@ public class Concept extends ConceptMinimal {
 
   /**
    * The maps. enabled = false will set the index = false, to avoid indexing the fields in this
-   * Concept model. The DynamicMappingValue.False will prevent indexing fields from the ConceptMap object.
+   * Concept model. The DynamicMappingValue.False will prevent indexing fields from the ConceptMap
+   * object.
    */
   @Field(type = FieldType.Object, enabled = false)
   @DynamicMapping(DynamicMappingValue.False)
@@ -258,7 +260,8 @@ public class Concept extends ConceptMinimal {
 
   /**
    * The paths to root. enabled = false will set the index = false, to avoid indexing the fields in
-   * this Concept model. The DynamicMappingValue.False will prevent indexing fields from the Paths object.
+   * this Concept model. The DynamicMappingValue.False will prevent indexing fields from the Paths
+   * object.
    */
   @Field(type = FieldType.Object, enabled = false)
   @DynamicMapping(DynamicMappingValue.False)
@@ -266,7 +269,8 @@ public class Concept extends ConceptMinimal {
 
   /**
    * The paths to root. enabled = false will set the index = false, to avoid indexing the fields in
-   * this Concept model. The DynamicMappingValue.False will prevent indexing fields from the Extensions object.
+   * this Concept model. The DynamicMappingValue.False will prevent indexing fields from the
+   * Extensions object.
    */
   @Field(type = FieldType.Object, enabled = false)
   @DynamicMapping(DynamicMappingValue.False)
@@ -666,7 +670,8 @@ public class Concept extends ConceptMinimal {
    */
   @Schema(
       description =
-          "Qualifiers for use when a concept is used as a parent/child - to indicate RELA for NCIm-derived content")
+          "Qualifiers for use when a concept is used as a parent/child - to indicate RELA for"
+              + " NCIm-derived content")
   public void setQualifiers(final List<Qualifier> qualifiers) {
     this.qualifiers = qualifiers;
   }

@@ -1,11 +1,8 @@
-
 package gov.nih.nci.evs.api.model.sparql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * Bindings for sparql queries.
- */
+/** Bindings for sparql queries. */
 public class Bindings {
 
   /** The property. */

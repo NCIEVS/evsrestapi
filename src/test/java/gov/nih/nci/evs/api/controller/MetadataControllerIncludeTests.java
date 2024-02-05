@@ -1,10 +1,12 @@
-
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,14 +21,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.properties.TestProperties;
-
-/**
- * Integration tests for MetadataController for "include" parameter.
- */
+/** Integration tests for MetadataController for "include" parameter. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -36,12 +31,10 @@ public class MetadataControllerIncludeTests {
   private static final Logger log = LoggerFactory.getLogger(MetadataControllerIncludeTests.class);
 
   /** The mvc. */
-  @Autowired
-  private MockMvc mvc;
+  @Autowired private MockMvc mvc;
 
   /** The test properties. */
-  @Autowired
-  TestProperties testProperties;
+  @Autowired TestProperties testProperties;
 
   /** The object mapper. */
   private ObjectMapper objectMapper;
@@ -49,9 +42,7 @@ public class MetadataControllerIncludeTests {
   /** The base url. */
   private String baseUrl = "";
 
-  /**
-   * Sets the up.
-   */
+  /** Sets the up. */
   @Before
   public void setUp() {
 
@@ -129,14 +120,18 @@ public class MetadataControllerIncludeTests {
     assertThat(concept.getMaps()).isEmpty();
     // Test for Preferred_Name and FULL_SYN
     assertThat(
-        concept.getSynonyms().stream().filter(s -> s.getType().equals("Preferred_Name")).count())
-            .isGreaterThan(0);
+            concept.getSynonyms().stream()
+                .filter(s -> s.getType().equals("Preferred_Name"))
+                .count())
+        .isGreaterThan(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getType().equals("FULL_SYN")).count())
         .isGreaterThan(0);
     // Test properties are "by label"
     assertThat(
-        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
-            .isGreaterThan(0);
+            concept.getProperties().stream()
+                .filter(p -> p.getType().equals("Semantic_Type"))
+                .count())
+        .isGreaterThan(0);
 
     // Test "summary" is equal to "synonyms,definitions,properties"
     url = baseUrl + "/ncit/association/A8?include=synonyms,definitions,properties";
@@ -181,14 +176,18 @@ public class MetadataControllerIncludeTests {
     assertThat(concept.getMaps()).isEmpty();
     // Test for Preferred_Name and FULL_SYN
     assertThat(
-        concept.getSynonyms().stream().filter(s -> "Preferred_Name".equals(s.getType())).count())
-            .isGreaterThan(0);
+            concept.getSynonyms().stream()
+                .filter(s -> "Preferred_Name".equals(s.getType()))
+                .count())
+        .isGreaterThan(0);
     assertThat(concept.getSynonyms().stream().filter(s -> "FULL_SYN".equals(s.getType())).count())
         .isGreaterThan(0);
     // Test properties are "by label"
     assertThat(
-        concept.getProperties().stream().filter(p -> "Semantic_Type".equals(p.getType())).count())
-            .isGreaterThan(0);
+            concept.getProperties().stream()
+                .filter(p -> "Semantic_Type".equals(p.getType()))
+                .count())
+        .isGreaterThan(0);
   }
 
   /**
@@ -224,11 +223,12 @@ public class MetadataControllerIncludeTests {
     assertThat(concept.getMaps()).isEmpty();
     // Test for Preferred_Name and FULL_SYN
     assertThat(
-        concept.getSynonyms().stream().filter(s -> s.getType().equals("Preferred_Name")).count())
-            .isGreaterThan(0);
+            concept.getSynonyms().stream()
+                .filter(s -> s.getType().equals("Preferred_Name"))
+                .count())
+        .isGreaterThan(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getType().equals("FULL_SYN")).count())
         .isGreaterThan(0);
-
   }
 
   /**
@@ -297,9 +297,10 @@ public class MetadataControllerIncludeTests {
     assertThat(concept.getMaps()).isEmpty();
     // Test properties are "by label"
     assertThat(
-        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
-            .isGreaterThan(0);
-
+            concept.getProperties().stream()
+                .filter(p -> p.getType().equals("Semantic_Type"))
+                .count())
+        .isGreaterThan(0);
   }
 
   /**
@@ -315,8 +316,9 @@ public class MetadataControllerIncludeTests {
     String content = null;
     Concept concept = null;
 
-    url = baseUrl
-        + "/ncit/association/A8?include=children,parents,associations,inverseAssociations,roles,inverseRoles,maps,disjointWith";
+    url =
+        baseUrl
+            + "/ncit/association/A8?include=children,parents,associations,inverseAssociations,roles,inverseRoles,maps,disjointWith";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -334,7 +336,6 @@ public class MetadataControllerIncludeTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-
   }
 
   /**
@@ -368,7 +369,5 @@ public class MetadataControllerIncludeTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-
   }
-
 }

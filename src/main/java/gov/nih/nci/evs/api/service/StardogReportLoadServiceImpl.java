@@ -1,6 +1,15 @@
-
 package gov.nih.nci.evs.api.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.MainTypeHierarchy;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -51,29 +59,25 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
   private List<String> lines = new ArrayList<>();
 
   /** the environment *. */
-  @Autowired
-  Environment env;
+  @Autowired Environment env;
 
   /** The Elasticsearch operations service instance *. */
-  @Autowired
-  ElasticOperationsService operationsService;
+  @Autowired ElasticOperationsService operationsService;
 
   /** The sparql query manager service. */
-  @Autowired
-  private SparqlQueryManagerService sparqlQueryManagerService;
+  @Autowired private SparqlQueryManagerService sparqlQueryManagerService;
 
   /** The stardog properties. */
-  @Autowired
-  StardogProperties stardogProperties;
+  @Autowired StardogProperties stardogProperties;
 
   /** The main type hierarchy. */
-  @Autowired
-  MainTypeHierarchy mainTypeHierarchy;
+  @Autowired MainTypeHierarchy mainTypeHierarchy;
 
   /* see superclass */
   @Override
-  public int loadConcepts(final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
-    throws IOException {
+  public int loadConcepts(
+      final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
+      throws IOException {
 
     final String resource = "metadata/" + terminology.getTerminology() + ".txt";
 
@@ -98,7 +102,8 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
       for (final Concept concept : concepts) {
         if (++ct < 3 || samples.contains(concept.getCode())) {
           final Concept concept2 =
-              sparqlQueryManagerService.getConcept(concept.getUri(), terminology, new IncludeParam("full"));
+              sparqlQueryManagerService.getConcept(
+                  concept.getUri(), terminology, new IncludeParam("full"));
           concept2.setUri(concept.getUri());
           logReport("    ", "concept", concept2);
         }
@@ -114,8 +119,11 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
       int ct = 0;
       for (final Concept concept : concepts) {
         if (++ct < (6 - samples.size()) || samples.contains(concept.getCode())) {
-          logReport("    ", "concept",
-              sparqlQueryManagerService.getConcept(concept.getCode(), terminology, new IncludeParam("full")));
+          logReport(
+              "    ",
+              "concept",
+              sparqlQueryManagerService.getConcept(
+                  concept.getCode(), terminology, new IncludeParam("full")));
           // logReport(" ", " paths", hierarchy.getPaths(terminology,
           // concept.getCode()));
         }
@@ -130,8 +138,9 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
 
   /* see superclass */
   @Override
-  public void loadObjects(final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
-    throws Exception {
+  public void loadObjects(
+      final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
+      throws Exception {
 
     // TODO: show hierarchy (passed in)
 
@@ -148,7 +157,8 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
     // Show qualifier values by code and by qualifier name
     final Map<String, Set<String>> map = new HashMap<>();
     for (final Concept qualifier : qualifiers) {
-      for (final String value : sparqlQueryManagerService.getQualifierValues(qualifier.getCode(), terminology)) {
+      for (final String value :
+          sparqlQueryManagerService.getQualifierValues(qualifier.getCode(), terminology)) {
         if (!map.containsKey(qualifier.getCode())) {
           map.put(qualifier.getCode(), new HashSet<>());
         }
@@ -201,8 +211,9 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
 
     // Show concept statuses
     if (terminology.getMetadata().getConceptStatus() != null) {
-      final List<String> conceptStatuses = sparqlQueryManagerService.getDistinctPropertyValues(terminology,
-          terminology.getMetadata().getConceptStatus());
+      final List<String> conceptStatuses =
+          sparqlQueryManagerService.getDistinctPropertyValues(
+              terminology, terminology.getMetadata().getConceptStatus());
       // Hack borrowed from superclass to fix "true" as a value
       if (conceptStatuses.size() == 1 && "true".equals(conceptStatuses.get(0))) {
         conceptStatuses.clear();
@@ -246,8 +257,13 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
 
   /* see superclass */
   @Override
-  public Terminology getTerminology(final ApplicationContext app, final ElasticLoadConfig config, final String filepath,
-    final String terminology, final boolean forceDelete) throws Exception {
+  public Terminology getTerminology(
+      final ApplicationContext app,
+      final ElasticLoadConfig config,
+      final String filepath,
+      final String terminology,
+      final boolean forceDelete)
+      throws Exception {
 
     // Write report header
     lines.add("--------------------------------------------------------");
@@ -300,12 +316,26 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
     logReport("  ", "hierarchy = " + hierarchy.getPathsMap(term).size());
     logReport("  ", "roots = " + hierarchy.getHierarchyRoots());
     final String minPathsCode = hierarchy.getCodeWithMinPaths(term);
-    logReport("  ", "  min paths = " + minPathsCode + ", " + hierarchy.getPathsMap(term).get(minPathsCode).size());
+    logReport(
+        "  ",
+        "  min paths = "
+            + minPathsCode
+            + ", "
+            + hierarchy.getPathsMap(term).get(minPathsCode).size());
     final String maxPathsCode = hierarchy.getCodeWithMaxPaths(term);
-    logReport("  ", "  max paths = " + maxPathsCode + ", " + hierarchy.getPathsMap(term).get(maxPathsCode).size());
+    logReport(
+        "  ",
+        "  max paths = "
+            + maxPathsCode
+            + ", "
+            + hierarchy.getPathsMap(term).get(maxPathsCode).size());
     final String maxChildrenCode = hierarchy.getCodeWithMaxChildren(term);
-    logReport("  ", "  max children = " + maxChildrenCode + ", "
-        + (maxChildrenCode == null ? "0" : hierarchy.getChildNodes(maxChildrenCode, 0).size()));
+    logReport(
+        "  ",
+        "  max children = "
+            + maxChildrenCode
+            + ", "
+            + (maxChildrenCode == null ? "0" : hierarchy.getChildNodes(maxChildrenCode, 0).size()));
 
     return hierarchy;
   }
@@ -329,17 +359,22 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
    * @param object the object
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  private void logReport(final String indent, final String label, final Object object) throws IOException {
+  private void logReport(final String indent, final String label, final Object object)
+      throws IOException {
     final String str = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(object);
     if (label != null) {
       logger.info(indent + label + " = " + object);
       lines.add(indent + label + " = ");
-      lines.addAll(Arrays.asList(str.split("\n")).stream().map(s -> indent + "  " + s).collect(Collectors.toList()));
+      lines.addAll(
+          Arrays.asList(str.split("\n")).stream()
+              .map(s -> indent + "  " + s)
+              .collect(Collectors.toList()));
     } else {
       logger.info(indent + object);
-      lines.addAll(Arrays.asList(str.split("\n")).stream().map(s -> indent + s).collect(Collectors.toList()));
-
+      lines.addAll(
+          Arrays.asList(str.split("\n")).stream()
+              .map(s -> indent + s)
+              .collect(Collectors.toList()));
     }
   }
-
 }

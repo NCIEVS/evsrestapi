@@ -1,19 +1,17 @@
 package gov.nih.nci.evs.api.support.es;
 
-import java.util.Map;
-
 import gov.nih.nci.evs.api.model.IncludeParam;
+import java.util.Map;
 
 /**
  * The base elasticsearch result mapper class with common helper methods
- * 
- * @author Arun
  *
+ * @author Arun
  */
 public abstract class BaseResultMapper {
   void applyIncludeParam(final Map<String, Object> sourceMap, IncludeParam ip) {
     if (ip == null) return;
-    
+
     if (!ip.isSynonyms()) {
       sourceMap.put("synonyms", null);
     }
@@ -57,7 +55,7 @@ public abstract class BaseResultMapper {
       sourceMap.put("extensions", null);
     }
     if (!ip.isHistory()) {
-        sourceMap.put("history", null);
-      }
+      sourceMap.put("history", null);
+    }
   }
 }

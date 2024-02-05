@@ -1,21 +1,16 @@
-
 package gov.nih.nci.evs.api.support.es;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.ElasticOperationsService;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticOperationsService;
-
-/**
- * The Class IndexMetadata.
- */
+/** The Class IndexMetadata. */
 @Document(indexName = ElasticOperationsService.METADATA_INDEX)
 @JsonInclude(Include.NON_EMPTY)
 public class IndexMetadata {
@@ -116,8 +111,7 @@ public class IndexMetadata {
    */
   @JsonIgnore
   public String getObjectIndexName() {
-    if (terminology == null)
-      return null;
+    if (terminology == null) return null;
     return terminology.getObjectIndexName();
   }
 
@@ -128,8 +122,7 @@ public class IndexMetadata {
    */
   @JsonIgnore
   public String getTerminologyVersion() {
-    if (terminology == null)
-      return null;
+    if (terminology == null) return null;
     return terminology.getTerminologyVersion();
   }
 
@@ -137,7 +130,7 @@ public class IndexMetadata {
   @Override
   public String toString() {
     return String.format(
-        "{indexName: %s, terminologyVersion: %s, totalConcepts: %d, completed: %s}", indexName,
-        getTerminologyVersion(), totalConcepts, String.valueOf(completed));
+        "{indexName: %s, terminologyVersion: %s, totalConcepts: %d, completed: %s}",
+        indexName, getTerminologyVersion(), totalConcepts, String.valueOf(completed));
   }
 }

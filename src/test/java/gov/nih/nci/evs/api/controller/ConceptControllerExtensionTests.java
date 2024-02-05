@@ -1,16 +1,18 @@
-
 package gov.nih.nci.evs.api.controller;
 
 import static org.junit.Assert.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.apache.commons.io.IOUtils;
 import org.junit.Before;
 import org.junit.Test;
@@ -26,15 +28,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.properties.TestProperties;
-
-/**
- * Integration tests for ConceptController around "extensions".
- */
+/** Integration tests for ConceptController around "extensions". */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -44,12 +38,10 @@ public class ConceptControllerExtensionTests {
   private static final Logger log = LoggerFactory.getLogger(ConceptControllerExtensionTests.class);
 
   /** The mvc. */
-  @Autowired
-  private MockMvc mvc;
+  @Autowired private MockMvc mvc;
 
   /** The test properties. */
-  @Autowired
-  TestProperties testProperties;
+  @Autowired TestProperties testProperties;
 
   /** The object mapper. */
   private ObjectMapper objectMapper;
@@ -57,9 +49,7 @@ public class ConceptControllerExtensionTests {
   /** The base url. */
   private String baseUrl = "";
 
-  /**
-   * Sets the up.
-   */
+  /** Sets the up. */
   @Before
   public void setUp() {
 
@@ -76,7 +66,8 @@ public class ConceptControllerExtensionTests {
    */
   @Test
   public void testBroadCategorySet() throws Exception {
-    testHelper("extensions-test-broad-category-set.txt", "extensions-test-broad-category-result.txt");
+    testHelper(
+        "extensions-test-broad-category-set.txt", "extensions-test-broad-category-result.txt");
   }
 
   /**
@@ -100,7 +91,9 @@ public class ConceptControllerExtensionTests {
   }
 
   /**
-   * Test full set. This doesn't need to be kept around as an actively running test The other tests are sufficient.
+   * Test full set. This doesn't need to be kept around as an actively running test The other tests
+   * are sufficient.
+   *
    * @throws Exception the exception
    */
   // @Test
@@ -131,11 +124,19 @@ public class ConceptControllerExtensionTests {
         concept = new ObjectMapper().readValue(content, Concept.class);
         // For comparing main menu ancestors, null all concept fields in paths
         // except for the codes
-        concept.getExtensions().getMainMenuAncestors().stream().flatMap(p -> p.getPaths().stream())
-            .flatMap(p -> p.getConcepts().stream()).peek(c -> c.setName(null)).peek(c -> c.setTerminology(null))
-            .peek(c -> c.setLevel(null)).peek(c -> c.setVersion(null)).collect(Collectors.toList());
+        concept.getExtensions().getMainMenuAncestors().stream()
+            .flatMap(p -> p.getPaths().stream())
+            .flatMap(p -> p.getConcepts().stream())
+            .peek(c -> c.setName(null))
+            .peek(c -> c.setTerminology(null))
+            .peek(c -> c.setLevel(null))
+            .peek(c -> c.setVersion(null))
+            .collect(Collectors.toList());
         final String pretty =
-            mapper.writerWithDefaultPrettyPrinter().writeValueAsString(concept.getExtensions()).replaceAll("\r", "")
+            mapper
+                    .writerWithDefaultPrettyPrinter()
+                    .writeValueAsString(concept.getExtensions())
+                    .replaceAll("\r", "")
                 + "\n";
         map.put(code, pretty);
         if (++ct % 1000 == 0) {
@@ -169,9 +170,16 @@ public class ConceptControllerExtensionTests {
       final StringBuilder sb = new StringBuilder();
       sb.append("\n");
       boolean match = true;
-      for (final String field : new String[] {
-          "isDisease", "isDiseaseGrade", "isDiseaseStage", "isMainType", "isSubtype", "isBiomarker", "isReferenceGene"
-      }) {
+      for (final String field :
+          new String[] {
+            "isDisease",
+            "isDiseaseGrade",
+            "isDiseaseStage",
+            "isMainType",
+            "isSubtype",
+            "isBiomarker",
+            "isReferenceGene"
+          }) {
         final String val = node.get(field) == null ? "null" : node.get(field).asText();
         final String cmpVal = cmpNode.get(field) == null ? "null" : cmpNode.get(field).asText();
         if (!val.equals(cmpVal)) {
@@ -188,11 +196,20 @@ public class ConceptControllerExtensionTests {
       final String val = node.get(field) == null ? "null" : node.get(field).asText();
       final String cmpVal = cmpNode.get(field) == null ? "null" : cmpNode.get(field).asText();
       if (!val.equals(cmpVal)) {
-        final String pretty = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(node.get("mainMenuAncestors"));
+        final String pretty =
+            mapper
+                .writerWithDefaultPrettyPrinter()
+                .writeValueAsString(node.get("mainMenuAncestors"));
         final String cmpPretty =
-            mapper.writerWithDefaultPrettyPrinter().writeValueAsString(cmpNode.get("mainMenuAncestors"));
-        sb.append("  MISMATCH mainMenuAncestors = \n").append("<<< map\n").append(pretty).append(">>> cmpMap\n")
-            .append(cmpPretty).append("\n");
+            mapper
+                .writerWithDefaultPrettyPrinter()
+                .writeValueAsString(cmpNode.get("mainMenuAncestors"));
+        sb.append("  MISMATCH mainMenuAncestors = \n")
+            .append("<<< map\n")
+            .append(pretty)
+            .append(">>> cmpMap\n")
+            .append(cmpPretty)
+            .append("\n");
         match = false;
       }
       if (!match) {

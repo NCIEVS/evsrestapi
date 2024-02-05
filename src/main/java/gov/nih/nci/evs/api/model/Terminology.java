@@ -1,17 +1,13 @@
-
 package gov.nih.nci.evs.api.model;
-
-import java.util.HashMap;
-import java.util.Map;
-
-import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
 /**
  * Represents a terminology loaded into the EVSRESTAPI.
@@ -89,9 +85,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
   /** The flag for using sparql searches. */
   private Boolean sparqlFlag;
 
-  /**
-   * Instantiates an empty {@link Terminology}.
-   */
+  /** Instantiates an empty {@link Terminology}. */
   public Terminology() {
     // n/a
     this.terminology = "ncit";
@@ -267,8 +261,10 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @return the terminology version
    */
-  @Schema(description = "Underscore-separated value for terminology and version"
-      + " used by the API to precisely pinpoint a particular version, e.g. 'ncit_23.11d'")
+  @Schema(
+      description =
+          "Underscore-separated value for terminology and version"
+              + " used by the API to precisely pinpoint a particular version, e.g. 'ncit_23.11d'")
   public String getTerminologyVersion() {
     if (StringUtils.isEmpty(terminologyVersion)) {
       terminologyVersion = terminology + "_" + version;
@@ -347,7 +343,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
 
   /**
    * Returns the index name for concepts belonging to this terminology.
-   * 
+   *
    * @return the index name
    */
   // @Schema(hidden = true)
@@ -362,7 +358,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
 
   /**
    * Sets the index name for concepts belonging to this terminology.
-   * 
+   *
    * @param indexName the index name
    */
   public void setIndexName(String indexName) {
@@ -371,7 +367,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
 
   /**
    * Returns the index name for objects.
-   * 
+   *
    * @return the object index name
    */
   // @Schema(hidden = true)
@@ -387,7 +383,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
 
   /**
    * Sets the index name for objects.
-   * 
+   *
    * @param objectIndexName the object index name
    */
   public void setObjectIndexName(String objectIndexName) {
@@ -538,5 +534,4 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
   public int compareTo(Terminology o) {
     return (terminology + version).compareToIgnoreCase(o.getTerminology() + o.getVersion());
   }
-
 }

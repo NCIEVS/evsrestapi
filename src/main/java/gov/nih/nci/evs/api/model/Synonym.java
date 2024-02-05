@@ -1,12 +1,4 @@
-
 package gov.nih.nci.evs.api.model;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.data.annotation.Transient;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
@@ -14,12 +6,14 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.ArrayList;
+import java.util.List;
+import org.springframework.data.annotation.Transient;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
-/**
- * Represents a synonym of a concept.
- */
+/** Represents a synonym of a concept. */
 @Schema(description = "Represents one of the (potentially many) names for a concept")
 @JsonInclude(Include.NON_EMPTY)
 public class Synonym extends BaseModel implements Comparable<Synonym> {
@@ -39,10 +33,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   private String stemName;
 
   /** The highlight. */
-  @Transient
-  @JsonSerialize
-  @JsonDeserialize
-  private String highlight;
+  @Transient @JsonSerialize @JsonDeserialize private String highlight;
 
   /** The term type. */
   @Field(type = FieldType.Keyword)
@@ -77,9 +68,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   @Field(type = FieldType.Boolean)
   private Boolean active;
 
-  /**
-   * Instantiates an empty {@link Synonym}.
-   */
+  /** Instantiates an empty {@link Synonym}. */
   public Synonym() {
     // n/a
   }
@@ -148,7 +137,6 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    *
    * @param normName the normName
    */
-
   public void setNormName(String normName) {
     this.normName = normName;
   }
@@ -177,7 +165,9 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    *
    * @return the highlight
    */
-  @Schema(description = "Used by search calls to provide information for highlighting a view of results")
+  @Schema(
+      description =
+          "Used by search calls to provide information for highlighting a view of results")
   public String getHighlight() {
     return highlight;
   }
@@ -272,8 +262,10 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    *
    * @return the code
    */
-  @Schema(description = "Code of the synonym, used in particular for "
-      + "Metathesaurus data where the source of the synonym is not the terminology itself")
+  @Schema(
+      description =
+          "Code of the synonym, used in particular for "
+              + "Metathesaurus data where the source of the synonym is not the terminology itself")
   public String getCode() {
     return code;
   }
@@ -435,7 +427,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    */
   @Override
   public int compareTo(Synonym other) {
-    return (source + type + name).compareToIgnoreCase(other.getSource() + other.getType() + other.getName());
+    return (source + type + name)
+        .compareToIgnoreCase(other.getSource() + other.getType() + other.getName());
   }
-
 }

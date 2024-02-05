@@ -1,13 +1,10 @@
-
 package gov.nih.nci.evs.api.configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Rest template configuration.
- */
+/** Rest template configuration. */
 @Configuration
 public class RestTemplateConfiguration {
 

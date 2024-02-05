@@ -1,4 +1,3 @@
-
 package gov.nih.nci.evs.api.controller;
 
 import gov.nih.nci.evs.api.ConceptSampleTester;
@@ -22,24 +21,19 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-/**
- * Superclass for the terminology sample tests.
- */
+/** Superclass for the terminology sample tests. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Ignore
 public class SampleTest {
 
-  @Autowired
-  ApplicationProperties applicationProperties;
+  @Autowired ApplicationProperties applicationProperties;
 
   /** The mvc. */
-  @Autowired
-  private MockMvc mvc;
+  @Autowired private MockMvc mvc;
 
   /** The elastic query service. */
-  @Autowired
-  ElasticQueryService esQueryService;
+  @Autowired ElasticQueryService esQueryService;
 
   /** The samples. */
   private static Map<String, List<SampleRecord>> samples;
@@ -65,14 +59,15 @@ public class SampleTest {
    * @throws Exception the exception
    */
   public static void loadSamples(final String terminology, final String sampleFile, Charset encode)
-    throws Exception {
+      throws Exception {
 
     samples = new HashMap<>();
     SampleTest.terminology = terminology;
-    // load tab separated txt file, with their corresponding character encoding, as resource and load into samples
+    // load tab separated txt file, with their corresponding character encoding, as resource and
+    // load into samples
     try (FileInputStream fileInput = new FileInputStream(sampleFile);
-         InputStreamReader inputStreamReader = new InputStreamReader(fileInput, encode);
-         BufferedReader fileReader = new BufferedReader(inputStreamReader);) {
+        InputStreamReader inputStreamReader = new InputStreamReader(fileInput, encode);
+        BufferedReader fileReader = new BufferedReader(inputStreamReader); ) {
       String line;
       while ((line = fileReader.readLine()) != null) {
         String[] parts = line.split("\t");
@@ -81,8 +76,7 @@ public class SampleTest {
           record.setUri(parts[0]);
           record.setCode(parts[1]);
           record.setKey(parts[2]);
-          if (parts.length > 3)
-            record.setValue(parts[3]);
+          if (parts.length > 3) record.setValue(parts[3]);
           if (samples.containsKey(parts[1])) {
             List<SampleRecord> sampleList = samples.get(parts[1]);
             sampleList.add(record);
@@ -162,5 +156,4 @@ public class SampleTest {
     conceptSampleTester.setLicenseKey(applicationProperties.getUiLicense());
     conceptSampleTester.performAssociationEntryTests(terminology, samples, mvc);
   }
-
 }

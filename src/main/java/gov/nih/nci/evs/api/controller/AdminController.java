@@ -1,6 +1,9 @@
-
 package gov.nih.nci.evs.api.controller;
 
+import gov.nih.nci.evs.api.configuration.CacheConfiguration;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,11 +15,6 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import gov.nih.nci.evs.api.configuration.CacheConfiguration;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
-import io.swagger.v3.oas.annotations.Hidden;
-import io.swagger.v3.oas.annotations.tags.Tag;
-
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
 @Tag(name = "Admin endpoints")
@@ -27,11 +25,9 @@ public class AdminController {
   @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(AdminController.class);
 
-  @Autowired
-  CacheConfiguration cacheConfig;
+  @Autowired CacheConfiguration cacheConfig;
 
-  @Autowired
-  Environment env;
+  @Autowired Environment env;
 
   /**
    * Clear cache.
@@ -42,8 +38,7 @@ public class AdminController {
   @SuppressWarnings("rawtypes")
   @RequestMapping(method = RequestMethod.DELETE, value = "/admin/cache")
   @Hidden
-  public ResponseEntity clearCache(@RequestParam(name = "key", required = true)
-  final String key) {
+  public ResponseEntity clearCache(@RequestParam(name = "key", required = true) final String key) {
 
     String adminKey = env.getProperty("nci.evs.application.adminKey").toString();
 

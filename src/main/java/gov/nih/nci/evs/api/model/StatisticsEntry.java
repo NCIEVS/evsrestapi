@@ -1,13 +1,9 @@
-
 package gov.nih.nci.evs.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
-/**
- * Represents an etry in a stats table.
- */
+/** Represents an etry in a stats table. */
 @Schema(description = "Represents an entry in a statistics table")
 public class StatisticsEntry {
   /** The code. */
@@ -19,9 +15,7 @@ public class StatisticsEntry {
   /** The terminology. */
   private String value;
 
-  /**
-   * Instantiates an empty {@link StatisticsEntry}.
-   */
+  /** Instantiates an empty {@link StatisticsEntry}. */
   public StatisticsEntry() {
     // n/a
   }
@@ -125,14 +119,12 @@ public class StatisticsEntry {
   /* see superclass */
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
     StatisticsEntry other = (StatisticsEntry) obj;
-    return Objects.equals(code, other.code) && Objects.equals(key, other.key) && Objects.equals(value, other.value);
+    return Objects.equals(code, other.code)
+        && Objects.equals(key, other.key)
+        && Objects.equals(value, other.value);
   }
-
 }

@@ -1,4 +1,3 @@
-
 package gov.nih.nci.evs.api.util;
 
 import java.io.File;
@@ -7,7 +6,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +69,7 @@ public class RrfSampleGenerator {
 
   /**
    * Instantiates an empty {@link RrfSampleGenerator}.
+   *
    * @throws Exception if anything goes wrong
    */
   public RrfSampleGenerator() throws Exception {
@@ -113,8 +112,11 @@ public class RrfSampleGenerator {
       if (!new File(cuisFile).exists()) {
         throw new Exception("Codes file does not exist = " + cuisFile);
       }
-      final Set<String> inputCuis = new HashSet<>(FileUtils.readLines(new File(cuisFile), "UTF-8").stream()
-          .filter(s -> !s.isEmpty() && !s.startsWith("#")).collect(Collectors.toList()));
+      final Set<String> inputCuis =
+          new HashSet<>(
+              FileUtils.readLines(new File(cuisFile), "UTF-8").stream()
+                  .filter(s -> !s.isEmpty() && !s.startsWith("#"))
+                  .collect(Collectors.toList()));
       logger.info("  input cuis = " + inputCuis);
 
       // Open the readers
@@ -127,8 +129,11 @@ public class RrfSampleGenerator {
 
       // Verify input codes
       if (inputCuis.stream().filter(c -> !allcuis.contains(c)).count() > 0) {
-        throw new Exception("INVALID input cuis = "
-            + inputCuis.stream().filter(c -> !allcuis.contains(c)).collect(Collectors.toList()));
+        throw new Exception(
+            "INVALID input cuis = "
+                + inputCuis.stream()
+                    .filter(c -> !allcuis.contains(c))
+                    .collect(Collectors.toList()));
       }
       logger.info("    chdPar count = " + chdParMap.size());
       // logger.info(" chdPar = " + chdParMap);
@@ -138,7 +143,10 @@ public class RrfSampleGenerator {
       logger.info("  Find initial codes");
       // 1. Find initial concepts
       final Set<String> codesabs = new HashSet<>();
-      codesabs.addAll(inputCuis.stream().flatMap(c -> cuiCodesabsMap.get(c).stream()).collect(Collectors.toSet()));
+      codesabs.addAll(
+          inputCuis.stream()
+              .flatMap(c -> cuiCodesabsMap.get(c).stream())
+              .collect(Collectors.toSet()));
       logger.info("    count = " + codesabs.size());
 
       // 1b. Get descendants if indicated
@@ -165,8 +173,10 @@ public class RrfSampleGenerator {
           if (otherMap.containsKey(codesabAuiMap.get(codesab))) {
             logger.info("    add auis = " + otherMap.get(codesabAuiMap.get(codesab)));
             // Map auis back to codes
-            codesabs.addAll(otherMap.get(codesabAuiMap.get(codesab)).stream().map(a -> auiCodesabMap.get(a))
-                .collect(Collectors.toSet()));
+            codesabs.addAll(
+                otherMap.get(codesabAuiMap.get(codesab)).stream()
+                    .map(a -> auiCodesabMap.get(a))
+                    .collect(Collectors.toSet()));
           }
         }
         logger.info("    distance one count = " + codesabs.size());
@@ -215,11 +225,15 @@ public class RrfSampleGenerator {
       } while (codesabs.size() != prevCt);
 
       // Add descendants of original code list back in here
-      codesabs.addAll(descendants.stream().map(a -> auiCodesabMap.get(a)).collect(Collectors.toSet()));
+      codesabs.addAll(
+          descendants.stream().map(a -> auiCodesabMap.get(a)).collect(Collectors.toSet()));
 
       // Map codes to CUIs
-      final Set<String> cuis = codesabs.stream().filter(s -> s != null).flatMap(c -> codesabCuisMap.get(c).stream())
-          .collect(Collectors.toSet());
+      final Set<String> cuis =
+          codesabs.stream()
+              .filter(s -> s != null)
+              .flatMap(c -> codesabCuisMap.get(c).stream())
+              .collect(Collectors.toSet());
 
       // Add in original CUIs
       cuis.addAll(inputCuis);
@@ -256,7 +270,7 @@ public class RrfSampleGenerator {
     final Map<String, Integer> ttyMap = new HashMap<>();
 
     // Lookup term ranks
-    try (final PushBackReader reader = readers.getReader(RrfReaders.Keys.MRRANK);) {
+    try (final PushBackReader reader = readers.getReader(RrfReaders.Keys.MRRANK); ) {
       while ((line = reader.readLine()) != null) {
 
         // 0096|RXNORM|SY|N|
@@ -276,7 +290,7 @@ public class RrfSampleGenerator {
     }
 
     // Cache atom/code/cui info
-    try (final PushBackReader reader = readers.getReader(RrfReaders.Keys.MRCONSO);) {
+    try (final PushBackReader reader = readers.getReader(RrfReaders.Keys.MRCONSO); ) {
       while ((line = reader.readLine()) != null) {
 
         // CUI,LAT,TS,LUI,STT,SUI,ISPREF,AUI,SAUI,SCUI,SDUI,
@@ -290,8 +304,10 @@ public class RrfSampleGenerator {
         final String codesab = fields[13] + "|" + sab;
 
         // Match this source OR the SRC for this terminology (or input cuis)
-        if (!inputCuis.contains(cui) && !terminologies.contains(sab)
-            && !(sab.equals("SRC") && terminologies.stream().filter(t -> code.contains(t)).count() > 0)) {
+        if (!inputCuis.contains(cui)
+            && !terminologies.contains(sab)
+            && !(sab.equals("SRC")
+                && terminologies.stream().filter(t -> code.contains(t)).count() > 0)) {
           continue;
         }
 
@@ -320,13 +336,11 @@ public class RrfSampleGenerator {
           codesabAuiMap.put(codesab, aui);
           codesabTtyMap.put(codesab, tty);
         }
-
       }
-
     }
 
     // Cache relationship info
-    try (final PushBackReader reader = readers.getReader(RrfReaders.Keys.MRREL);) {
+    try (final PushBackReader reader = readers.getReader(RrfReaders.Keys.MRREL); ) {
       // Iterate over relationships
       while ((line = reader.readLine()) != null) {
 
@@ -346,8 +360,11 @@ public class RrfSampleGenerator {
         final String reldir = fields[13];
 
         // Keep only entries matching terminology (or input cuis)
-        if (!inputCuis.contains(cui1) && !inputCuis.contains(cui2) && !terminologies.contains("*")
-            && !terminologies.contains(sab) && !sab.equals("SRC")) {
+        if (!inputCuis.contains(cui1)
+            && !inputCuis.contains(cui2)
+            && !terminologies.contains("*")
+            && !terminologies.contains(sab)
+            && !sab.equals("SRC")) {
           continue;
         }
 
@@ -477,5 +494,4 @@ public class RrfSampleGenerator {
   public void setCuisFile(final String cuisFile) {
     this.cuisFile = cuisFile;
   }
-
 }

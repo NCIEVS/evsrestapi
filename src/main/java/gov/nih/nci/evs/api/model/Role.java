@@ -1,20 +1,14 @@
-
 package gov.nih.nci.evs.api.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- * Represents a role relationship between two concepts.
- */
+/** Represents a role relationship between two concepts. */
 @Schema(description = "Represents a (logically) defining relationship between two concepts")
 @JsonInclude(Include.NON_EMPTY)
 public class Role extends Relationship {
-  /**
-   * Instantiates an empty {@link Role}.
-   */
+  /** Instantiates an empty {@link Role}. */
   public Role() {
     // n/a
   }
@@ -36,5 +30,4 @@ public class Role extends Relationship {
   public void populateFrom(final Role other) {
     super.populateFrom(other);
   }
-
 }
