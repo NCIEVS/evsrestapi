@@ -67,7 +67,6 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   /** the term utils. */
   @Autowired TerminologyUtils termUtils;
 
-
   /**
    * see superclass *.
    *

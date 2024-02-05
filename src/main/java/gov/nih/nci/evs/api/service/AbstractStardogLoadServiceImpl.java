@@ -94,10 +94,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   /** The sparql query cache service */
   @Autowired SparqlQueryCacheService sparqlQueryCacheService;
 
-  /** The sparql query cache service */
-  @Autowired
-  SparqlQueryCacheService sparqlQueryCacheService;
-
   /** The name map. */
   private Map<String, String> nameMap = new HashMap<>();
 
@@ -117,17 +113,18 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   @Override
   public int loadConcepts(
       ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
-      throws Exception {
+      throws IOException {
 
-    logger.debug("ElasticLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName());
+    logger.debug(
+        "ElasticLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName());
 
     boolean result =
         operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
     if (result) {
       operationsService
-              .getElasticsearchOperations()
-              .indexOps(IndexCoordinates.of(terminology.getIndexName()))
-              .putMapping(Concept.class);
+          .getElasticsearchOperations()
+          .indexOps(IndexCoordinates.of(terminology.getIndexName()))
+          .putMapping(Concept.class);
     }
 
     // Get complex roles and inverse roles

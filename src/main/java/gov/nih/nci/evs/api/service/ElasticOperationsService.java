@@ -61,7 +61,7 @@ public interface ElasticOperationsService {
    * @throws IOException the io exception
    */
   void index(Object object, String index, @SuppressWarnings("rawtypes") Class clazz)
-    throws IOException;
+      throws IOException;
 
   /**
    * load metrics.

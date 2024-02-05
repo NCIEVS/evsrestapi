@@ -63,7 +63,7 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
   @Override
   public int loadConcepts(
       final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
-      throws Exception {
+      throws IOException {
 
     final String resource = "metadata/" + terminology.getTerminology() + ".txt";
 
