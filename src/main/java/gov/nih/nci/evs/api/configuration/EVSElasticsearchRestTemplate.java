@@ -33,8 +33,6 @@ public class EVSElasticsearchRestTemplate extends ElasticsearchRestTemplate {
 
   /* see superclass */
   public <T> SearchHits<T> search(Query query, Class<T> clazz, IndexCoordinates index) {
-  public <T> SearchHits<T> search(Query query, Class<T> clazz,
-                                  IndexCoordinates index) {
 
     if (logger.isDebugEnabled() && ((NativeSearchQuery) query).getQuery() != null) {
       logger.debug("  elasticsearch query = \n" + ((NativeSearchQuery) query).getQuery());
