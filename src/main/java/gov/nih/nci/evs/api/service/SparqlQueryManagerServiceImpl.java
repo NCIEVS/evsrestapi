@@ -103,14 +103,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /** The elastic search service. */
   @Autowired
-  @org.springframework.beans.factory.annotation.Qualifier("elasticSearchServiceImpl")
-  ElasticSearchService elasticSearchService;
+  @org.springframework.beans.factory.annotation.Qualifier("elasticSearchServiceImpl") ElasticSearchService elasticSearchService;
 
   /** The elastic search service. */
   @Autowired ElasticQueryService elasticQueryService;
-
-  /** The sparql query cache service */
-  @Autowired SparqlQueryCacheService sparqlQueryCacheService;
 
   /** The sparql query cache service */
   @Autowired SparqlQueryCacheService sparqlQueryCacheService;
@@ -155,6 +151,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public String getQueryURL() {
     return stardogProperties.getQueryUrl();
   }
+
   // Here check the qualified form as well as the URI
 
   // Here check the qualified form as well as the URI
