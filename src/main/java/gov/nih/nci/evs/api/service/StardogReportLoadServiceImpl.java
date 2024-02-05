@@ -31,21 +31,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMinimal;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.properties.StardogProperties;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.MainTypeHierarchy;
-
-/**
- * The implementation for {@link ElasticLoadService} that just generates a report.
- */
+/** The implementation for {@link ElasticLoadService} that just generates a report. */
 @Service
 public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl {
 
@@ -83,7 +69,8 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
 
     // Load samples from file
     final Set<String> samples = new HashSet<>();
-    try (final InputStream is = terminology.getClass().getClassLoader().getResourceAsStream(resource)) {
+    try (final InputStream is =
+        terminology.getClass().getClassLoader().getResourceAsStream(resource)) {
       for (final String line : IOUtils.toString(is, "UTF-8").split("[\r\n]")) {
         if (line.isEmpty() || line.startsWith("# ")) {
           continue;
@@ -177,7 +164,8 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
     logReport("  ", "qualifier values", map);
 
     // Show properties
-    final List<Concept> properties = sparqlQueryManagerService.getAllProperties(terminology, new IncludeParam("full"));
+    final List<Concept> properties =
+        sparqlQueryManagerService.getAllProperties(terminology, new IncludeParam("full"));
     logReport("  ", "properties", properties);
 
     // Show remodeled properties
@@ -196,16 +184,19 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
     logReport("  ", "associations", associations);
 
     // Show roles
-    final List<Concept> roles = sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("full"));
+    final List<Concept> roles =
+        sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("full"));
     logReport("  ", "roles", roles);
 
     // Show synonym sources
-    final List<ConceptMinimal> synonymSources = sparqlQueryManagerService.getSynonymSources(terminology);
+    final List<ConceptMinimal> synonymSources =
+        sparqlQueryManagerService.getSynonymSources(terminology);
     logReport("  ", "synonym sources", synonymSources);
 
     // Show definition sources
     if (terminology.getMetadata().getDefinitionSource() != null) {
-      final List<ConceptMinimal> definitionSources = sparqlQueryManagerService.getDefinitionSources(terminology);
+      final List<ConceptMinimal> definitionSources =
+          sparqlQueryManagerService.getDefinitionSources(terminology);
       logReport("  ", "definition sources", definitionSources);
     }
 

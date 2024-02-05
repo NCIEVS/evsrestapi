@@ -111,7 +111,8 @@ public class ProxyTester {
     try {
       o = clazz.getConstructor().newInstance();
     } catch (final Exception e) {
-      throw new Exception("Class " + clazz + " unexpectedly does not have a no-argument constructor");
+      throw new Exception(
+          "Class " + clazz + " unexpectedly does not have a no-argument constructor");
     }
     setFields(o, false, false, initializer);
     return o;
