@@ -156,8 +156,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   // Here check the qualified form as well as the URI
 
-  // Here check the qualified form as well as the URI
-
   /* see superclass */
   @Override
   public List<String> getAllGraphNames() throws Exception {
