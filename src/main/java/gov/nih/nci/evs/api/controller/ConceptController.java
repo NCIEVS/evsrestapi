@@ -609,27 +609,51 @@ public class ConceptController extends BaseController {
                 schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
-      @Parameter(name = "code",
-          description = "Code for a subset concept in the specified "
-              + "terminology, e.g. 'C157225' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, schema = @Schema(implementation = String.class)),
-      @Parameter(name = "include",
-          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-              + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
-              + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
-              + "for detailed information</a>.",
-          required = false, schema = @Schema(implementation = String.class), example = "minimal"),
-      @Parameter(name = "fromRecord", description = "Start index of the search results", required = false,
-          schema = @Schema(implementation = Integer.class), example = "0"),
-      @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
-          schema = @Schema(implementation = Integer.class), example = "10000"),
-      @Parameter(name = "X-EVSRESTAPI-License-Key",
-          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
-              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
-          required = false, schema = @Schema(implementation = String.class))
+    @Parameter(
+        name = "terminology",
+        description = "Terminology, e.g. 'ncit'",
+        required = true,
+        schema = @Schema(implementation = String.class),
+        example = "ncit"),
+    @Parameter(
+        name = "code",
+        description =
+            "Code for a subset concept in the specified terminology, e.g. 'C157225' for"
+                + " <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
+        required = true,
+        schema = @Schema(implementation = String.class)),
+    @Parameter(
+        name = "include",
+        description =
+            "Indicator of how much data to return. Comma-separated list of any of the following"
+                + " values: minimal, summary, full, associations, children, definitions,"
+                + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
+                + " properties, roles, synonyms. <a"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " target='_blank'>See here for detailed information</a>.",
+        required = false,
+        schema = @Schema(implementation = String.class),
+        example = "minimal"),
+    @Parameter(
+        name = "fromRecord",
+        description = "Start index of the search results",
+        required = false,
+        schema = @Schema(implementation = Integer.class),
+        example = "0"),
+    @Parameter(
+        name = "pageSize",
+        description = "Max number of results to return",
+        required = false,
+        schema = @Schema(implementation = Integer.class),
+        example = "10000"),
+    @Parameter(
+        name = "X-EVSRESTAPI-License-Key",
+        description =
+            "Required license information for restricted terminologies. <a"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " target='_blank'>See here for detailed information</a>.",
+        required = false,
+        schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(
@@ -709,16 +733,27 @@ public class ConceptController extends BaseController {
                 schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
-      @Parameter(name = "code",
-          description = "Code in the specified terminology, e.g. "
-              + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, schema = @Schema(implementation = String.class)),
-      @Parameter(name = "X-EVSRESTAPI-License-Key",
-          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
-              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
-          required = false, schema = @Schema(implementation = String.class))
+    @Parameter(
+        name = "terminology",
+        description = "Terminology, e.g. 'ncit'",
+        required = true,
+        schema = @Schema(implementation = String.class),
+        example = "ncit"),
+    @Parameter(
+        name = "code",
+        description =
+            "Code in the specified terminology, e.g. "
+                + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
+        required = true,
+        schema = @Schema(implementation = String.class)),
+    @Parameter(
+        name = "X-EVSRESTAPI-License-Key",
+        description =
+            "Required license information for restricted terminologies. <a"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " target='_blank'>See here for detailed information</a>.",
+        required = false,
+        schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(
@@ -1130,16 +1165,27 @@ public class ConceptController extends BaseController {
                 schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
-      @Parameter(name = "code",
-          description = "Code in the specified terminology, e.g. "
-              + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
-          required = true, schema = @Schema(implementation = String.class)),
-      @Parameter(name = "X-EVSRESTAPI-License-Key",
-          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
-              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
-          required = false, schema = @Schema(implementation = String.class))
+    @Parameter(
+        name = "terminology",
+        description = "Terminology, e.g. 'ncit'",
+        required = true,
+        schema = @Schema(implementation = String.class),
+        example = "ncit"),
+    @Parameter(
+        name = "code",
+        description =
+            "Code in the specified terminology, e.g. "
+                + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
+        required = true,
+        schema = @Schema(implementation = String.class)),
+    @Parameter(
+        name = "X-EVSRESTAPI-License-Key",
+        description =
+            "Required license information for restricted terminologies. <a"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " target='_blank'>See here for detailed information</a>.",
+        required = false,
+        schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(
@@ -1347,20 +1393,32 @@ public class ConceptController extends BaseController {
                 schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology",
-          description = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
-      @Parameter(name = "include",
-          description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
-              + "minimal, summary, full, associations, children, definitions, disjointWith, history, inverseAssociations, "
-              + "inverseRoles, maps, parents, properties, roles, synonyms. "
-              + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md' target='_blank'>See here "
-              + "for detailed information</a>.",
-          required = false, schema = @Schema(implementation = String.class), example = "minimal"),
-      @Parameter(name = "X-EVSRESTAPI-License-Key",
-          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
-              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
-          required = false, schema = @Schema(implementation = String.class))
+    @Parameter(
+        name = "terminology",
+        description = "Terminology, e.g. 'ncit'.  This call is only meaningful for <i>ncit</i>.",
+        required = true,
+        schema = @Schema(implementation = String.class),
+        example = "ncit"),
+    @Parameter(
+        name = "include",
+        description =
+            "Indicator of how much data to return. Comma-separated list of any of the following"
+                + " values: minimal, summary, full, associations, children, definitions,"
+                + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
+                + " properties, roles, synonyms. <a"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " target='_blank'>See here for detailed information</a>.",
+        required = false,
+        schema = @Schema(implementation = String.class),
+        example = "minimal"),
+    @Parameter(
+        name = "X-EVSRESTAPI-License-Key",
+        description =
+            "Required license information for restricted terminologies. <a"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " target='_blank'>See here for detailed information</a>.",
+        required = false,
+        schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(
