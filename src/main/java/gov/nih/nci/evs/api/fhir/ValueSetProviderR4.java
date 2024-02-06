@@ -137,6 +137,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
       vsExpansion.setTotal(subsetMembers.size());
       if (subsetMembers.size() > 0) {
         for (Concept subset : subsetMembers) {
+          if (activeOnly != null && activeOnly.getValue() && !subset.getActive()) {
+            continue;
+          }
           ValueSetExpansionContainsComponent vsContains = new ValueSetExpansionContainsComponent();
           vsContains.setSystem(url.getValue());
           vsContains.setCode(subset.getCode());
@@ -226,6 +229,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
       vsExpansion.setTotal(subsetMembers.size());
       if (subsetMembers.size() > 0) {
         for (Concept subset : subsetMembers) {
+          if (activeOnly != null && activeOnly.getValue() && !subset.getActive()) {
+            continue;
+          }
           ValueSetExpansionContainsComponent vsContains = new ValueSetExpansionContainsComponent();
           vsContains.setSystem(url.getValue());
           vsContains.setCode(subset.getCode());

@@ -3,7 +3,6 @@ package gov.nih.nci.evs.api.fhir;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -89,7 +88,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param coding the coding
    * @param date the date
    * @param displayLanguage the display language
-   * @param properties the properties
    * @return the parameters
    * @throws Exception the exception
    */
@@ -102,8 +100,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     final StringType version, @OperationParam(name = "coding")
     final Coding coding, @OperationParam(name = "date")
     final DateRangeParam date, @OperationParam(name = "displayLanguage")
-    final StringType displayLanguage, @OperationParam(name = "property")
-    final Set<String> properties) throws Exception {
+    final StringType displayLanguage) throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
@@ -165,7 +162,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param coding the coding
    * @param date the date
    * @param displayLanguage the display language
-   * @param properties the properties
    * @return the parameters
    * @throws Exception the exception
    */
@@ -178,8 +174,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     final StringType version, @OperationParam(name = "coding")
     final Coding coding, @OperationParam(name = "date")
     final DateRangeParam date, @OperationParam(name = "displayLanguage")
-    final StringType displayLanguage, @OperationParam(name = "property")
-    final Set<String> properties) throws Exception {
+    final StringType displayLanguage) throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
@@ -227,12 +222,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * 
    * <pre>
    * https://hl7.org/fhir/R4/codesystem-operation-validate-code.html
-   * The following parameters are not used:
-   * &#64;OperationParam(name = "codeSystem") CodeSystem codeSystem
-   * &#64;OperationParam(name = "date") DateTimeType date, 
-   * &#64;OperationParam(name = "codeableConcept") CodeableConcept codeableConcept
-   * &#64;OperationParam(name = "abstract") BooleanType abstract
-   * &#64;OperationParam(name = "displayLanguage") String displayLanguage
    * </pre>
    *
    * @param request the request
@@ -240,6 +229,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param details the details
    * @param url the url
    * @param code the code
+   * @param system the system
    * @param display the display
    * @param version the version
    * @param coding the coding
@@ -306,12 +296,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * 
    * <pre>
    * https://hl7.org/fhir/R4/codesystem-operation-validate-code.html
-   * The following parameters are not used:
-   * &#64;OperationParam(name = "codeSystem") CodeSystem codeSystem
-   * &#64;OperationParam(name = "date") DateTimeType date, 
-   * &#64;OperationParam(name = "codeableConcept") CodeableConcept codeableConcept
-   * &#64;OperationParam(name = "abstract") BooleanType abstract
-   * &#64;OperationParam(name = "displayLanguage") String displayLanguage
    * </pre>
    *
    * @param request the request
@@ -320,6 +304,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param id the id
    * @param url the url
    * @param code the code
+   * @param system the system
    * @param display the display
    * @param version the version
    * @param coding the coding

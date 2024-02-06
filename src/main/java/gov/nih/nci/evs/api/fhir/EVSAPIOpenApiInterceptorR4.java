@@ -647,7 +647,9 @@ public class EVSAPIOpenApiInterceptorR4 {
         final Operation operation =
             getPathItem(paths, "/" + resourceType + "/{id}", PathItem.HttpMethod.GET);
         operation.addTagsItem(resourceType);
-        operation.setSummary("Read " + unCamelCase(resourceType) + " instance");
+        operation.setSummary("Get " + unCamelCase(resourceType)
+            + " by ID. For more information see the R4 spec for this resource at https://hl7.org/fhir/R4/"
+            + resourceType + ".html");
         addResourceIdParameter(operation);
         addFhirResourceResponse(ctx, openApi, operation, null);
       }
@@ -768,7 +770,9 @@ public class EVSAPIOpenApiInterceptorR4 {
     final CapabilityStatement.CapabilityStatementRestResourceComponent nextResource) {
     operation.addTagsItem(resourceType);
     operation.setDescription("This is a search type");
-    operation.setSummary("Search for " + unCamelCase(resourceType) + " instances");
+    operation.setSummary("Search for " + unCamelCase(resourceType)
+        + " instances. For more information see the R4 spec for this resource at https://hl7.org/fhir/R4/"
+        + resourceType + ".html");
     addFhirResourceResponse(ctx, openApi, operation, null);
 
     for (final CapabilityStatement.CapabilityStatementRestResourceSearchParamComponent nextSearchParam : nextResource
@@ -895,7 +899,9 @@ public class EVSAPIOpenApiInterceptorR4 {
                 operation, true);
             operation.setSummary(operationDefinition.getCode());
             operation.setSummary(unCamelCase(theResourceType) + " operation to perform "
-                + operationDefinition.getCode());
+                + operationDefinition.getCode()
+                + ". For more information on this operation, see the R4 spec at https://hl7.org/fhir/R4/"
+                + theResourceType + "-operation-" + operationDefinition.getCode() + ".html");
           }
           if (operationDefinition.getInstance()) {
             final Operation operation = getPathItem(thePaths,
@@ -907,7 +913,9 @@ public class EVSAPIOpenApiInterceptorR4 {
                 operation, true);
             operation.setSummary(operationDefinition.getCode());
             operation.setSummary(unCamelCase(theResourceType) + " operation to perform "
-                + operationDefinition.getCode());
+                + operationDefinition.getCode()
+                + ". For more information on this operation, see the R4 spec at https://hl7.org/fhir/R4/"
+                + theResourceType + "-operation-" + operationDefinition.getCode() + ".html");
           }
         } else {
           if (operationDefinition.getSystem()) {
@@ -917,7 +925,9 @@ public class EVSAPIOpenApiInterceptorR4 {
                 true);
             operation.setSummary(operationDefinition.getCode());
             operation.setSummary(unCamelCase(theResourceType) + " operation to perform "
-                + operationDefinition.getCode());
+                + operationDefinition.getCode()
+                + ". For more information on this operation, see the R4 spec at https://hl7.org/fhir/R4/"
+                + theResourceType + "-operation-" + operationDefinition.getCode() + ".html");
           }
         }
       }
