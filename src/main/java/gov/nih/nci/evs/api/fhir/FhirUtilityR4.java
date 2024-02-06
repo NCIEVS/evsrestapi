@@ -286,12 +286,12 @@ public final class FhirUtilityR4 {
 
   public static void requireAtLeastOneOf(final String param1Name, final Object param1,
     final String param2Name, final Object param2, final String param3Name, final Object param3,
-    final String param4Name, final Object param4, final String param5Name, final Object param5) {
+    final String param4Name, final Object param4) {
 
-    if (param1 == null && param2 == null && param3 == null && param4 == null && param5 == null) {
+    if (param1 == null && param2 == null && param3 == null && param4 == null) {
       throw exception(
-          format("At least one of '%s', '%s', '%s', '%s', or '%s' parameters must be supplied.",
-              param1Name, param2Name, param3Name, param4Name, param5Name),
+          format("At least one of '%s', '%s', '%s', or '%s' parameters must be supplied.",
+              param1Name, param2Name, param3Name, param4Name),
           IssueType.INVARIANT, 400);
     }
   }
