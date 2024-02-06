@@ -377,6 +377,9 @@ public class EVSAPIOpenApiInterceptorR4 {
     if (url.contains("localhost")) {
       return url;
     }
+    if (url.contains("http://nci")) {
+      return url;
+    }
     return url.replaceFirst("http", "https");
   }
 
