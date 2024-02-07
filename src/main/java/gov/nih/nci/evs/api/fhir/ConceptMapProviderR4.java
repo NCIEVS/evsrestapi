@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.CodeType;
+import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ConceptMap;
 import org.hl7.fhir.r4.model.IdType;
@@ -85,23 +86,41 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @param targetSystem the target system
    * @return the parameters
    * @throws Exception the exception
+   * 
+   *           no support for dependency parameter
    */
   @Operation(name = "$translate", idempotent = true)
   public Parameters translateInstance(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details, @IdParam
     final IdType id, @OperationParam(name = "url")
-    final UriType url, @OperationParam(name = "code")
+    final UriType url, @OperationParam(name = "conceptMap")
+    final ConceptMap conceptMap, @OperationParam(name = "conceptMapVersion")
+    final StringType conceptMapVersion, @OperationParam(name = "code")
     final CodeType code, @OperationParam(name = "system")
     final UriType system, @OperationParam(name = "version")
-    final StringType version, @OperationParam(name = "reverse", type = BooleanType.class)
+    final StringType version, @OperationParam(name = "source")
+    final UriType source, @OperationParam(name = "coding") Coding coding,
+    @OperationParam(name = "codeableConcept") CodeableConcept codeableConcept,
+    @OperationParam(name = "target")
+    final UriType target, @OperationParam(name = "targetsystem")
+    final UriType targetsystem,
+    @OperationParam(name = "dependency.element") UriType dependency_element,
+    @OperationParam(name = "dependency.concept") CodeableConcept dependency_concept,
+    @OperationParam(name = "reverse", type = BooleanType.class)
     final BooleanType reverse) throws Exception {
 
     try {
       FhirUtilityR4.required("code", code);
-      FhirUtilityR4.notSupported("version", version);
+      FhirUtilityR4.notSupported("conceptMap", conceptMap);
+      FhirUtilityR4.notSupported("conceptMapVersion", conceptMapVersion);
+      FhirUtilityR4.notSupported("coding", coding);
+      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
+      FhirUtilityR4.notSupported("targetsystem", targetsystem);
+      FhirUtilityR4.notSupported("dependency_element", dependency_element);
+      FhirUtilityR4.notSupported("dependency_concept", dependency_concept);
       codeToTranslate = code.getCode().toLowerCase();
       Parameters params = new Parameters();
-      List<ConceptMap> cm = findPossibleConceptMaps(id, null, system, url, version);
+      List<ConceptMap> cm = findPossibleConceptMaps(id, null, system, url, version, source, target);
       for (ConceptMap mapping : cm) {
         List<gov.nih.nci.evs.api.model.ConceptMap> maps =
             queryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
@@ -185,23 +204,42 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @param targetSystem the target system
    * @return the parameters
    * @throws Exception the exception
+   * 
+   *           no support for dependency parameter
    */
   @Operation(name = "$translate", idempotent = true)
   public Parameters translateImplicit(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details,
     @OperationParam(name = "url")
-    final UriType url, @OperationParam(name = "code")
+    final UriType url, @OperationParam(name = "conceptMap")
+    final ConceptMap conceptMap, @OperationParam(name = "conceptMapVersion")
+    final StringType conceptMapVersion, @OperationParam(name = "code")
     final CodeType code, @OperationParam(name = "system")
     final UriType system, @OperationParam(name = "version")
-    final StringType version, @OperationParam(name = "reverse", type = BooleanType.class)
+    final StringType version, @OperationParam(name = "source")
+    final UriType source, @OperationParam(name = "coding") Coding coding,
+    @OperationParam(name = "codeableConcept") CodeableConcept codeableConcept,
+    @OperationParam(name = "target")
+    final UriType target, @OperationParam(name = "targetsystem")
+    final UriType targetsystem,
+    @OperationParam(name = "dependency.element") UriType dependency_element,
+    @OperationParam(name = "dependency.concept") CodeableConcept dependency_concept,
+    @OperationParam(name = "reverse", type = BooleanType.class)
     final BooleanType reverse) throws Exception {
 
     try {
       FhirUtilityR4.required("code", code);
-      FhirUtilityR4.notSupported("version", version);
+      FhirUtilityR4.notSupported("conceptMap", conceptMap);
+      FhirUtilityR4.notSupported("conceptMapVersion", conceptMapVersion);
+      FhirUtilityR4.notSupported("coding", coding);
+      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
+      FhirUtilityR4.notSupported("targetsystem", targetsystem);
+      FhirUtilityR4.notSupported("dependency_element", dependency_element);
+      FhirUtilityR4.notSupported("dependency_concept", dependency_concept);
       codeToTranslate = code.getCode().toLowerCase();
       Parameters params = new Parameters();
-      List<ConceptMap> cm = findPossibleConceptMaps(null, null, system, url, version);
+      List<ConceptMap> cm =
+          findPossibleConceptMaps(null, null, system, url, version, source, target);
       for (ConceptMap mapping : cm) {
         List<gov.nih.nci.evs.api.model.ConceptMap> maps =
             queryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
@@ -320,7 +358,9 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     final DateRangeParam date, @OptionalParam(name = "system")
     final UriType system, @OptionalParam(name = "url")
     final UriType url, @OptionalParam(name = "version")
-    final StringType version) throws Exception {
+    final StringType version, @OptionalParam(name = "version")
+    final UriType source, @OptionalParam(name = "version")
+    final UriType target) throws Exception {
     try {
       final List<Concept> mapsets = queryService.getMapsets(new IncludeParam("properties"));
 
@@ -354,6 +394,16 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           logger.info("  SKIP version mismatch = " + cm.getVersion());
           continue;
         }
+        if (source != null
+            && !source.getValue().equals(cm.getGroup().get(0).getSourceElement().getValue())) {
+          logger.info("  SKIP source mismatch = " + cm.getVersion());
+          continue;
+        }
+        if (target != null
+            && !target.getValue().equals(cm.getGroup().get(0).getTargetElement().getValue())) {
+          logger.info("  SKIP target mismatch = " + cm.getVersion());
+          continue;
+        }
 
         list.add(cm);
       }
@@ -372,7 +422,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   final IdType id) throws Exception {
     try {
 
-      final List<ConceptMap> candidates = findPossibleConceptMaps(id, null, null, null, null);
+      final List<ConceptMap> candidates =
+          findPossibleConceptMaps(id, null, null, null, null, null, null);
       for (final ConceptMap set : candidates) {
         if (id.getIdPart().equals(set.getId())) {
           return set;
