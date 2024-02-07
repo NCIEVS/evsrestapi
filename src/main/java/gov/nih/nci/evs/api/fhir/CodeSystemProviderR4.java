@@ -7,9 +7,12 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.CodeType;
+import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
@@ -100,12 +103,14 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     final StringType version, @OperationParam(name = "coding")
     final Coding coding, @OperationParam(name = "date")
     final DateRangeParam date, @OperationParam(name = "displayLanguage")
-    final StringType displayLanguage) throws Exception {
+    final StringType displayLanguage, @OperationParam(name = "property") CodeType property)
+    throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
+      FhirUtilityR4.notSupported("property", property);
       List<CodeSystem> cs = findPossibleCodeSystems(null, date, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
@@ -174,12 +179,14 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     final StringType version, @OperationParam(name = "coding")
     final Coding coding, @OperationParam(name = "date")
     final DateRangeParam date, @OperationParam(name = "displayLanguage")
-    final StringType displayLanguage) throws Exception {
+    final StringType displayLanguage, @OperationParam(name = "property") CodeType property)
+    throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
+      FhirUtilityR4.notSupported("property", property);
       List<CodeSystem> cs = findPossibleCodeSystems(id, date, system, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
@@ -240,16 +247,27 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   public Parameters validateCodeImplicit(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details,
     @OperationParam(name = "url")
-    final UriType url, @OperationParam(name = "code")
-    final CodeType code, @OperationParam(name = "system")
-    final UriType system, @OperationParam(name = "version")
-    final StringType version, @OperationParam(name = "systemVersion") StringType systemVersion)
-    throws Exception {
+    final UriType url, @OperationParam(name = "codeSystem") CodeSystem codeSystem,
+    @OperationParam(name = "code")
+    final CodeType code, @OperationParam(name = "version")
+    final StringType version, @OperationParam(name = "display")
+    final StringType display, @OperationParam(name = "coding") Coding coding,
+    @OperationParam(name = "codeableConcept") CodeableConcept codeableConcept,
+    @OperationParam(name = "date") DateTimeType date,
+    @OperationParam(name = "abstract") BooleanType abstractt,
+    @OperationParam(name = "displayLanguage") StringType displayLanguage,
+    @OperationParam(name = "systemVersion") StringType systemVersion) throws Exception {
 
     try {
-      FhirUtilityR4.mutuallyRequired("code", code, "system", system);
+      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
+      FhirUtilityR4.notSupported("codeSystem", codeSystem);
+      FhirUtilityR4.notSupported("coding", coding);
+      FhirUtilityR4.notSupported("display", display);
+      FhirUtilityR4.notSupported("date", date);
+      FhirUtilityR4.notSupported("abstract", abstractt);
+      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
       FhirUtilityR4.notSupported("systemVersion", systemVersion);
-      List<CodeSystem> cs = findPossibleCodeSystems(null, null, system, version);
+      List<CodeSystem> cs = findPossibleCodeSystems(null, null, url, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
         String codeToValidate = code.getCode();
@@ -309,16 +327,27 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   public Parameters validateCodeInstance(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details, @IdParam IdType id,
     @OperationParam(name = "url")
-    final UriType url, @OperationParam(name = "code")
-    final CodeType code, @OperationParam(name = "system")
-    final UriType system, @OperationParam(name = "version")
-    final StringType version, @OperationParam(name = "systemVersion") StringType systemVersion)
-    throws Exception {
+    final UriType url, @OperationParam(name = "codeSystem") CodeSystem codeSystem,
+    @OperationParam(name = "code")
+    final CodeType code, @OperationParam(name = "version")
+    final StringType version, @OperationParam(name = "display")
+    final StringType display, @OperationParam(name = "coding") Coding coding,
+    @OperationParam(name = "codeableConcept") CodeableConcept codeableConcept,
+    @OperationParam(name = "date") DateTimeType date,
+    @OperationParam(name = "abstract") BooleanType abstractt,
+    @OperationParam(name = "displayLanguage") StringType displayLanguage,
+    @OperationParam(name = "systemVersion") StringType systemVersion) throws Exception {
 
     try {
-      FhirUtilityR4.mutuallyRequired("code", code, "system", system);
+      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
+      FhirUtilityR4.notSupported("codeSystem", codeSystem);
+      FhirUtilityR4.notSupported("coding", coding);
+      FhirUtilityR4.notSupported("display", display);
+      FhirUtilityR4.notSupported("date", date);
+      FhirUtilityR4.notSupported("abstract", abstractt);
+      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
       FhirUtilityR4.notSupported("systemVersion", systemVersion);
-      List<CodeSystem> cs = findPossibleCodeSystems(id, null, system, version);
+      List<CodeSystem> cs = findPossibleCodeSystems(null, null, url, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
         String codeToValidate = code.getCode();
@@ -586,8 +615,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
 
   public List<CodeSystem> findPossibleCodeSystems(@OptionalParam(name = "_id") IdType id,
     @OptionalParam(name = "date")
-    final DateRangeParam date, @OptionalParam(name = "system")
-    final UriType system, @OptionalParam(name = "version")
+    final DateRangeParam date, @OptionalParam(name = "url")
+    final UriType url, @OptionalParam(name = "version")
     final StringType version) throws Exception {
     try {
       final List<Terminology> terms = termUtils.getTerminologies(true);
@@ -597,7 +626,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         final CodeSystem cs = FhirUtilityR4.toR4(terminology);
         // Skip non-matching
         if ((id != null && !id.getIdPart().equals(cs.getId()))
-            || (system != null && !system.getValue().equals(cs.getUrl()))) {
+            || (url != null && !url.getValue().equals(cs.getUrl()))) {
           logger.info("  SKIP url mismatch = " + cs.getUrl());
           continue;
         }
