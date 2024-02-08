@@ -942,7 +942,9 @@ public class EVSAPIOpenApiInterceptorR4 {
               operation, false);
           operation.setSummary(operationDefinition.getCode());
           operation.setSummary(unCamelCase(theResourceType) + " operation to perform "
-              + operationDefinition.getCode());
+              + operationDefinition.getCode()
+              + ". For more information on this operation, see the R4 spec at https://hl7.org/fhir/R4/"
+              + theResourceType + "-operation-" + operationDefinition.getCode() + ".html");
         }
         if (operationDefinition.getInstance()) {
           final Operation operation = getPathItem(thePaths,
@@ -953,7 +955,9 @@ public class EVSAPIOpenApiInterceptorR4 {
               operation, false);
           operation.setSummary(operationDefinition.getCode());
           operation.setSummary(unCamelCase(theResourceType) + " operation to perform "
-              + operationDefinition.getCode());
+              + operationDefinition.getCode()
+              + ". For more information on this operation, see the R4 spec at https://hl7.org/fhir/R4/"
+              + theResourceType + "-operation-" + operationDefinition.getCode() + ".html");
         }
       } else {
         if (operationDefinition.getSystem()) {
@@ -963,7 +967,9 @@ public class EVSAPIOpenApiInterceptorR4 {
               false);
           operation.setSummary(operationDefinition.getCode());
           operation.setSummary(unCamelCase(theResourceType) + " operation to perform "
-              + operationDefinition.getCode());
+              + operationDefinition.getCode()
+              + ". For more information on this operation, see the R4 spec at https://hl7.org/fhir/R4/"
+              + theResourceType + "-operation-" + operationDefinition.getCode() + ".html");
         }
       }
     }
