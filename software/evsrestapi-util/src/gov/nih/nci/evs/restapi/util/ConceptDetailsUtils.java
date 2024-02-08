@@ -1,4 +1,4 @@
-package gov.nih.nci.evs.restapi.util;
+import gov.nih.nci.evs.restapi.util.*;
 
 import gov.nih.nci.evs.restapi.bean.*;
 import java.io.*;
@@ -39,7 +39,13 @@ public class ConceptDetailsUtils {
 	String username = null;
 	String password = null;
 	static {
-		serviceUrl_vec = Utils.readFile(SERVICE_URL_DATA_FILE);
+		if (new File(SERVICE_URL_DATA_FILE).exists()) {
+			serviceUrl_vec = Utils.readFile(SERVICE_URL_DATA_FILE);
+		}
+	}
+
+	public ConceptDetailsUtils() {
+
 	}
 
 	private static final Logger log = LoggerFactory.getLogger(ConceptDetailsUtils.class);
@@ -115,7 +121,6 @@ public class ConceptDetailsUtils {
 		}
 	}
 
-//NCI_Thesaurus|20.05a --> http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl
     public Vector searchAvailableServiceUrl(String codingScheme, String version) {
         Vector w = new Vector();
         String target = codingScheme + "|" + version;
@@ -159,9 +164,9 @@ public class ConceptDetailsUtils {
 		Utils.dumpMultiValuedHashMap("prop_map", prop_map);
 
 		Vector axioms = owlSPARQLUtils.getAxiomsByCode(named_graph, concept_code, "FULL_SYN");
-		Utils.dumpVector("axioms", axioms);
+        Utils.dumpVector("axioms", axioms);
 
-		Vector syns = parser.parseSynonymData(axioms);
+		Vector syns = parser.parseSynonymData2(axioms);
 		for (int k=0; k<syns.size(); k++) {
 			Synonym syn = (Synonym) syns.get(k);
 			System.out.println(syn.toJson());
@@ -196,16 +201,68 @@ public class ConceptDetailsUtils {
 	}
 
 
+    public void getConceptDetails(String serviceUrl, String named_graph, String username, String password, String concept_code) {
+		OWLSPARQLUtils owlSPARQLUtils = null;
+		ParserUtils parser = new ParserUtils();
+		if (serviceUrl.indexOf("?") != -1) {
+			owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, null, null);
+		} else {
+			owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
+		}
+		owlSPARQLUtils.set_named_graph(named_graph);
+
+		Vector w = owlSPARQLUtils.getLabelByCode(named_graph, concept_code);
+		w = parser.getResponseValues(w);
+		String label = (String) w.elementAt(0);
+		System.out.println(label + " (" + concept_code + ")");
+		HashMap prop_map = owlSPARQLUtils.getPropertyHashMapByCode(named_graph, concept_code);
+		Utils.dumpMultiValuedHashMap("prop_map", prop_map);
+
+		Vector axioms = owlSPARQLUtils.getAxiomsByCode(named_graph, concept_code, "FULL_SYN");
+		Utils.dumpVector("axioms", axioms);
+
+		Vector syns = parser.parseSynonymData2(axioms);
+		for (int k=0; k<syns.size(); k++) {
+			Synonym syn = (Synonym) syns.get(k);
+			System.out.println(syn.toJson());
+		}
+
+		Vector superconcept_vec = owlSPARQLUtils.getSuperclassesByCode(named_graph, concept_code);
+		if (superconcept_vec != null) Utils.dumpVector("superconcept_vec", superconcept_vec);
+		Vector subconcept_vec = owlSPARQLUtils.getSubclassesByCode(named_graph, concept_code);
+		if (subconcept_vec != null) Utils.dumpVector("subconcept_vec", subconcept_vec);
+
+		Vector role_vec = owlSPARQLUtils.getOutboundRolesByCode(named_graph, concept_code);
+		//role_vec = parser.getResponseValues(role_vec);
+		if (role_vec != null) Utils.dumpVector("role_vec", role_vec);
+		Vector inv_role_vec = owlSPARQLUtils.getInboundRolesByCode(named_graph, concept_code);
+		//inv_role_vec = parser.getResponseValues(inv_role_vec);
+		if (inv_role_vec != null) Utils.dumpVector("inv_role_vec", inv_role_vec);
+
+		Vector asso_vec = owlSPARQLUtils.getAssociationsByCode(named_graph, concept_code);
+		if (asso_vec != null) Utils.dumpVector("asso_vec", asso_vec);
+		Vector inv_asso_vec = owlSPARQLUtils.getInverseAssociationsByCode(named_graph, concept_code);
+		if (inv_asso_vec != null) Utils.dumpVector("inv_asso_vec", inv_asso_vec);
+	}
 
     public static void main(String[] args) {
-		String username = args[0];
-		String password = args[1];
-		String version = args[2];
-		String concept_code = args[3];
+		String serviceUrl = args[0];
+		String named_graph = args[1];
+		String username = args[2];
+		String password = args[3];
+		String concept_code = args[4];
+        if (named_graph.compareTo("null") == 0) named_graph = null;
+		if (username.compareTo("null") == 0) username = null;
+		if (password.compareTo("null") == 0) password = null;
+/*
 		ConceptDetailsUtils cdu = new ConceptDetailsUtils(username, password);
 		String codingScheme = "NCI_Thesaurus";
 		Vector v = cdu.searchAvailableServiceUrl(codingScheme, version);
 		Utils.dumpVector("Service URLs supporting " + version, v);
 		cdu.getConceptDetails(codingScheme, version, concept_code);
+*/
+//      public void getConceptDetails(String serviceUrl, String named_graph, String username, String password, String concept_code) {
+
+		new ConceptDetailsUtils().getConceptDetails(serviceUrl, named_graph, username, password, concept_code);
 	}
 }
