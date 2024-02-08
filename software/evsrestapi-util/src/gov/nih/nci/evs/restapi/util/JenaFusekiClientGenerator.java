@@ -380,12 +380,4 @@ public class JenaFusekiClientGenerator {
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 
-	public static void main1(String[] args) {
-		String s = "?y :NHC0 \"C178725\"^^xsd:string .";
-		System.out.println(s);
-		String t = replaceDoubleQuotes(s);
-		System.out.println(t);
-	}
-
-
 }
