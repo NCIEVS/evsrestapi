@@ -66,6 +66,14 @@ springBoot {
     buildInfo()
 }
 
+// Java Toolchain to detect which version of Java to use, if not present
+// it will automatically download and install the required version of Java
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
 dependencies {
 
   // Use version 2 with spring boot 3
