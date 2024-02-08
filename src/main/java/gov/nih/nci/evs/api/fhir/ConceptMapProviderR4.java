@@ -300,6 +300,17 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     return ConceptMap.class;
   }
 
+  /**
+   * Find concept maps.
+   * 
+   *
+   * @param id the id
+   * @param system the system
+   * @param url the url
+   * @param version the version
+   * @return the list
+   * @throws Exception the exception
+   */
   @Search
   public List<ConceptMap> findConceptMaps(@OptionalParam(name = "_id") TokenParam id,
     @OptionalParam(name = "date")

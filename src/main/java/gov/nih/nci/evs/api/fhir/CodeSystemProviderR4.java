@@ -79,7 +79,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * 
    * <pre>
    * https://build.fhir.org/codesystem-operation-lookup.html
-   * All properties implemented.
    * </pre>
    *
    * @param request the request
@@ -88,9 +87,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param code the code
    * @param system the system
    * @param version the version
-   * @param coding the coding
-   * @param date the date
-   * @param displayLanguage the display language
    * @return the parameters
    * @throws Exception the exception
    */
@@ -154,7 +150,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * 
    * <pre>
    * https://build.fhir.org/codesystem-operation-lookup.html
-   * All properties implemented.
    * </pre>
    *
    * @param request the request
@@ -164,9 +159,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param code the code
    * @param system the system
    * @param version the version
-   * @param coding the coding
-   * @param date the date
-   * @param displayLanguage the display language
    * @return the parameters
    * @throws Exception the exception
    */
@@ -237,9 +229,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param url the url
    * @param code the code
    * @param system the system
-   * @param display the display
    * @param version the version
-   * @param coding the coding
    * @return the parameters
    * @throws Exception the exception
    */
@@ -317,9 +307,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param url the url
    * @param code the code
    * @param system the system
-   * @param display the display
    * @param version the version
-   * @param coding the coding
    * @return the parameters
    * @throws Exception the exception
    */
@@ -389,7 +377,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * Subsumes implicit.
    *
    * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-subsumes.html All parameters supported. </pre
+   * https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
+   * </pre>
    *
    * @param request the request
    * @param response the response
@@ -463,7 +452,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * Subsumes instance.
    * 
    * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-subsumes.html All parameters supported. </pre
+   * https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
+   * </pre>
    *
    * @param request the request
    * @param response the response
@@ -538,31 +528,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Find code systems.
    * 
-   * <pre>
-   * Parameters for all resources 
-   *   used: _id
-   *   not used: _content, _filter, _has, _in, _language, _lastUpdated, 
-   *             _list, _profile, _query, _security, _source, _tag, _text, _type
-   * https://hl7.org/fhir/R4/codesystem.html (see Search Parameters)
-   * The following parameters in the registry are not used
-   * &#64;OptionalParam(name="code") String code,
-   * &#64;OptionalParam(name="context") TokenParam context,
-   * &#64;OptionalParam(name="context-quantity") QuantityParam contextQuantity,
-   * &#64;OptionalParam(name="context-type") String contextType,
-   * &#64;OptionalParam(name="context-type-quantity") QuantityParam contextTypeQuantity,
-   * &#64;OptionalParam(name="context-type-value") String contextTypeValue,
-   * &#64;OptionalParam(name="identifier") StringParam identifier,
-   * &#64;OptionalParam(name="jurisdiction") StringParam jurisdiction,
-   * &#64;OptionalParam(name="status") String status,
-   * </pre>
    *
    * @param request the request
    * @param details the details
    * @param id the id
-   * @param date the date
-   * @param description the description
    * @param name the name
-   * @param publisher the publisher
    * @param title the title
    * @param url the url
    * @param version the version

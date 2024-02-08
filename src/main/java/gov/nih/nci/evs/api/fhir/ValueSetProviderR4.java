@@ -79,18 +79,16 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
   /**
    * Expand implicit.
+   * 
+   * <pre>
+   * https://hl7.org/fhir/R4/valueset-operation-expand.html
+   * </pre>
    *
-   * @param request the request
-   * @param details the details
-   * @param rawBody the raw body
    * @param url the url
    * @param version the version
    * @param filter the filter
    * @param offset the offset
    * @param count the count
-   * @param includeDesignationsType the include designations type
-   * @param designations the designations
-   * @param activeOnly the active only
    * @return the value set
    * @throws Exception the exception
    */
@@ -201,17 +199,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * https://hl7.org/fhir/R4/valueset-operation-expand.html
    * </pre>
    *
-   * @param request the request
-   * @param details the details
    * @param id the id
-   * @param rawBody the raw body
    * @param version the version
    * @param filter the filter
    * @param offset the offset
    * @param count the count
-   * @param includeDesignationsType the include designations type
-   * @param designations the designations
-   * @param activeOnly the active only
    * @return the value set
    * @throws Exception the exception
    */
@@ -440,40 +432,16 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Find value sets.
    * 
-   * <pre>
-   * Parameters for all resources 
-   *   used: _id
-   *   not used: _content, _filter, _has, _in, _language, _lastUpdated, 
-   *             _list, _profile, _query, _security, _source, _tag, _text, _type
-   * https://hl7.org/fhir/R4/valueset.html (see Search Parameters)
-   * The following parameters in the registry are not used
-   * &#64;OptionalParam(name="context-quantity") QuantityParam contextQuantity,
-   * &#64;OptionalParam(name="context-type") TokenParam contextType,
-   * &#64;OptionalParam(name="context-type-quantity") QuantityParam contextTypeQuantity,
-   * &#64;OptionalParam(name="context-type-value") CompositeParam contextTypeValue,
-   * &#64;OptionalParam(name="date") DateParam date,
-   * &#64;OptionalParam(name="expansion") String expansion,
-   * &#64;OptionalParam(name="identifier") TokenParam identifier,
-   * &#64;OptionalParam(name="jurisdiction") TokenParam jurisdiction,
-   * &#64;OptionalParam(name="reference") String reference,
-   * </pre>
    *
    * @param request the request
    * @param details the details
    * @param id the id
-   * @param date the date
    * @param code the code
-   * @param description the description
-   * @param identifier the identifier
    * @param name the name
-   * @param publisher the publisher
-   * @param title the title
    * @param url the url
    * @param version the version
    * @return the list
    * @throws Exception the exception
-   * @OptionalParam(name="status") String status,
-   *                               </pre>
    */
   @Search
   public List<ValueSet> findValueSets(@OptionalParam(name = "_id") TokenParam id,
