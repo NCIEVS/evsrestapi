@@ -347,7 +347,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupported("abstract", abstractt);
       FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
       FhirUtilityR4.notSupported("systemVersion", systemVersion);
-      List<CodeSystem> cs = findPossibleCodeSystems(null, null, url, version);
+      List<CodeSystem> cs = findPossibleCodeSystems(id, null, url, version);
       Parameters params = new Parameters();
       if (cs.size() > 0) {
         String codeToValidate = code.getCode();
