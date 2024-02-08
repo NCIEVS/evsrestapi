@@ -15,12 +15,17 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import gov.nih.nci.evs.api.ConceptSampleTester;
 import gov.nih.nci.evs.api.SampleRecord;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * Superclass for the terminology sample tests.
  */
 @Ignore
 public class SampleTest {
+
+  @Autowired
+  ApplicationProperties applicationProperties;
 
   /** The mvc. */
   @Autowired
@@ -30,10 +35,16 @@ public class SampleTest {
   private static Map<String, List<SampleRecord>> samples;
 
   /** The test properties. */
-  ConceptSampleTester conceptSampleTester = new ConceptSampleTester();
+  ConceptSampleTester conceptSampleTester = null;
 
   /** The terminology. */
   private static String terminology;
+
+  /** Constructor */
+  @Autowired
+  public void setTermUtils(TerminologyUtils termUtils) {
+    conceptSampleTester = new ConceptSampleTester(termUtils);
+  }
 
   /**
    * Returns the samples.
@@ -43,7 +54,8 @@ public class SampleTest {
    * @return the samples
    * @throws Exception the exception
    */
-  public static void loadSamples(final String terminology, final String sampleFile) throws Exception {
+  public static void loadSamples(final String terminology, final String sampleFile)
+    throws Exception {
 
     samples = new HashMap<>();
     SampleTest.terminology = terminology;
@@ -80,6 +92,7 @@ public class SampleTest {
    */
   @Test
   public void testMetadata() throws Exception {
+    conceptSampleTester.setLicenseKey(applicationProperties.getUiLicense());
     conceptSampleTester.performMetadataTests(terminology, samples, mvc);
   }
 
@@ -90,6 +103,7 @@ public class SampleTest {
    */
   @Test
   public void testContent() throws Exception {
+    conceptSampleTester.setLicenseKey(applicationProperties.getUiLicense());
     conceptSampleTester.performContentTests(terminology, samples, mvc);
   }
 
@@ -100,6 +114,7 @@ public class SampleTest {
    */
   @Test
   public void testPathsSubtreeAndRoots() throws Exception {
+    conceptSampleTester.setLicenseKey(applicationProperties.getUiLicense());
     conceptSampleTester.performPathsSubtreeAndRootsTests(terminology, samples, mvc);
   }
 
@@ -110,6 +125,7 @@ public class SampleTest {
    */
   @Test
   public void testSearch() throws Exception {
+    conceptSampleTester.setLicenseKey(applicationProperties.getUiLicense());
     conceptSampleTester.performSearchTests(terminology, samples, mvc);
   }
 
@@ -120,6 +136,7 @@ public class SampleTest {
    */
   @Test
   public void testSubsets() throws Exception {
+    conceptSampleTester.setLicenseKey(applicationProperties.getUiLicense());
     conceptSampleTester.performSubsetsTests(terminology, samples, mvc);
   }
 
@@ -130,6 +147,7 @@ public class SampleTest {
    */
   @Test
   public void testAssociationEntries() throws Exception {
+    conceptSampleTester.setLicenseKey(applicationProperties.getUiLicense());
     conceptSampleTester.performAssociationEntryTests(terminology, samples, mvc);
   }
 

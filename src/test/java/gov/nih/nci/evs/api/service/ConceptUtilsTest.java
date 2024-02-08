@@ -23,13 +23,15 @@ import gov.nih.nci.evs.api.util.ConceptUtils;
 public class ConceptUtilsTest {
 
   /** The logger. */
-  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(ConceptUtilsTest.class);
 
   /** The test properties. */
   @Autowired
   TestProperties testProperties;
 
+  /**
+   * Test is code.
+   */
   @Test
   public void testIsCode() {
     assert (ConceptUtils.isCode(null) == false);
@@ -59,6 +61,33 @@ public class ConceptUtilsTest {
     assert (ConceptUtils.isCode("HIJK:L?5678/AB_C_") == false);
     assert (ConceptUtils.isCode("MNO:1234/5678.90.12") == false);
 
+  }
+
+  /**
+   * Test normalize with stemming.
+   */
+  @Test
+  public void testNormalizeWithStemming() {
+    // change working into asserts
+    // two categories of working and not working
+    // cancerous > 100 contains
+    // connecting tissue none in match, phrase, startswith
+    // >100 in AND
+    log.info(ConceptUtils.normalizeWithStemming("fungi"));
+    log.info(ConceptUtils.normalizeWithStemming("fungal growth"));
+    log.info(ConceptUtils.normalizeWithStemming("fungal"));
+    log.info(ConceptUtils.normalizeWithStemming("cactus"));
+    log.info(ConceptUtils.normalizeWithStemming("cacti"));
+    log.info(ConceptUtils.normalizeWithStemming("appendix"));
+
+    assert (ConceptUtils.normalizeWithStemming("appendices").equals("appendic"));
+    assert (ConceptUtils.normalizeWithStemming("connecting").equals("connect"));
+    assert (ConceptUtils.normalizeWithStemming("connective").equals("connect"));
+    assert (ConceptUtils.normalizeWithStemming("connecting tissue").equals("connect tissu"));
+    assert (ConceptUtils.normalizeWithStemming("cancerous sites").equals("cancer site"));
+    assert (ConceptUtils.normalizeWithStemming("subsets displays").equals("subset display"));
+    assert (ConceptUtils.normalizeWithStemming("All sites").equals("all site"));
+    assert (ConceptUtils.normalizeWithStemming("cancerous").equals("cancer"));
   }
 
 }

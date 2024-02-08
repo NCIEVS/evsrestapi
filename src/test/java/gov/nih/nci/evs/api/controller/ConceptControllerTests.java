@@ -33,14 +33,15 @@ import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.History;
-import gov.nih.nci.evs.api.model.Map;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
@@ -61,6 +62,10 @@ public class ConceptControllerTests {
   /** The test properties. */
   @Autowired
   TestProperties testProperties;
+
+  /** The application properties. */
+  @Autowired
+  ApplicationProperties appProperties;
 
   /** The object mapper. */
   private ObjectMapper objectMapper;
@@ -271,7 +276,8 @@ public class ConceptControllerTests {
         + "10030182,10017924&include=minimal";
     log.info("Testing url - " + url);
 
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
@@ -287,7 +293,7 @@ public class ConceptControllerTests {
     url = baseUrl + "/mdr?list=10021428,10021994,10036030,10009729,10066874,10017885,10053567,10015389,"
         + "10030182,10017924,10017884&include=minimal";
     log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isBadRequest()).andReturn();
+    result = mvc.perform(get(url)).andExpect(status().isForbidden()).andReturn();
 
   }
 
@@ -656,7 +662,7 @@ public class ConceptControllerTests {
     String url = null;
     MvcResult result = null;
     String content = null;
-    List<Map> list = null;
+    List<ConceptMap> list = null;
 
     // NOTE, this includes a middle concept code that is bougs
     url = baseUrl + "/ncit/C3224/maps";
@@ -665,7 +671,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<Map>>() {
+    list = new ObjectMapper().readValue(content, new TypeReference<List<ConceptMap>>() {
       // n/a
     });
     log.info("  list = " + list.size());
@@ -677,7 +683,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<Map>>() {
+    list = new ObjectMapper().readValue(content, new TypeReference<List<ConceptMap>>() {
       // n/a
     });
     assertThat(list).isEmpty();
@@ -1600,6 +1606,7 @@ public class ConceptControllerTests {
         .andReturn();
     content = result.getResponse().getContentAsString();
     Terminology terminology = new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+      // n/a
     }).get(0);
     String weeklyTerm = terminology.getTerminologyVersion();
     String baseWeeklyUrl = baseUrl + "/" + weeklyTerm;

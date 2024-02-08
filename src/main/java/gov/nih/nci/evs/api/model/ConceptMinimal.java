@@ -8,9 +8,10 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
- * Represents a concept with a code from a terminology with the smallest amount
- * of information.
+ * Represents a concept with a code from a terminology with the smallest amount of information.
  * 
  * <pre>
  * {
@@ -19,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  * }
  * </pre>
  */
+@Schema(description = "Represents minimal information about a concept in a terminology")
 @JsonInclude(Include.NON_EMPTY)
 public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinimal> {
 
@@ -102,6 +104,7 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
 
   /* see superclass */
   @Override
+  @Schema(description = "URI for this element in an rdf-based source file")
   public String getUri() {
     return uri;
   }
@@ -117,6 +120,7 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
    *
    * @return the code
    */
+  @Schema(description = "Code (unique identifier) for this meaning")
   public String getCode() {
     return code;
   }
@@ -135,6 +139,7 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
    *
    * @return the name
    */
+  @Schema(description = "Preferred name for the code")
   public String getName() {
     return name;
   }
@@ -153,6 +158,7 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
    *
    * @return the terminology
    */
+  @Schema(description = "Terminology abbreviation, e.g. 'nci'")
   public String getTerminology() {
     return terminology;
   }
@@ -171,6 +177,7 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
    *
    * @return the version
    */
+  @Schema(description = "Terminology version, e.g. '23.11d'")
   public String getVersion() {
     return version;
   }
@@ -189,6 +196,7 @@ public class ConceptMinimal extends BaseModel implements Comparable<ConceptMinim
    *
    * @return the level
    */
+  @Schema(description = "Level of depth in a hierarchy (when this object is used to represent an element in a path)")
   public Integer getLevel() {
     return level;
   }

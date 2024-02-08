@@ -4,8 +4,10 @@ package gov.nih.nci.evs.api;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import gov.nih.nci.evs.api.model.BaseModel;
+
 @JsonInclude(Include.NON_EMPTY)
-public class SampleRecord {
+public class SampleRecord extends BaseModel {
 
     /** The uri. */
     private String uri;

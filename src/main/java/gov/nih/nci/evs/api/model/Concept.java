@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
 import org.springframework.data.annotation.Transient;
@@ -21,6 +22,7 @@ import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Represents a concept with a code from a terminology.
@@ -49,6 +51,7 @@ import gov.nih.nci.evs.api.service.ElasticOperationsService;
  * }
  * </pre>
  */
+@Schema(description = "Represents a concept in a terminology")
 @Document(indexName = "default", type = ElasticOperationsService.CONCEPT_TYPE)
 @JsonInclude(Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
@@ -64,12 +67,17 @@ public class Concept extends ConceptMinimal {
   @Transient
   @JsonSerialize
   @JsonDeserialize
-  private java.util.Map<String, String> highlights;
+  private Map<String, String> highlights;
 
   /** The normName. */
   @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Keyword)
   private String normName;
+
+  /** The stemName. */
+  @JsonProperty(access = Access.READ_ONLY)
+  @Field(type = FieldType.Text)
+  private String stemName;
 
   /** The subset Link. */
   @Field(type = FieldType.Keyword)
@@ -80,7 +88,6 @@ public class Concept extends ConceptMinimal {
   private String mapsetLink;
 
   /** The concept status. */
-  @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Keyword)
   private String conceptStatus;
 
@@ -92,6 +99,13 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Boolean)
   private Boolean leaf;
 
+  /**
+   * The active flag. Intentionally not on ConceptMinimal to avoid parents/children having to have
+   * flag maintained
+   */
+  @Field(type = FieldType.Boolean)
+  private Boolean active;
+
   /** The synonyms. */
   @Field(type = FieldType.Nested)
   private List<Synonym> synonyms;
@@ -99,7 +113,7 @@ public class Concept extends ConceptMinimal {
   /** The definitions. */
   @Field(type = FieldType.Nested)
   private List<Definition> definitions;
-  
+
   /** The history. */
   @Field(type = FieldType.Nested)
   private List<History> history;
@@ -116,22 +130,22 @@ public class Concept extends ConceptMinimal {
 
   /** The children. */
   @Field(type = FieldType.Nested, ignoreFields = {
-      "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles",
-      "inverseRoles", "descendants", "paths", "qualifiers", "extensions", "disjointWith"
+      "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles", "inverseRoles",
+      "descendants", "paths", "qualifiers", "extensions", "disjointWith"
   })
   private List<Concept> children;
 
   /** The parents. */
   @Field(type = FieldType.Nested, ignoreFields = {
-      "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles",
-      "inverseRoles", "descendants", "paths", "qualifiers", "extensions", "disjointWith"
+      "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles", "inverseRoles",
+      "descendants", "paths", "qualifiers", "extensions", "disjointWith"
   })
   private List<Concept> parents;
 
   /** The descendants. */
   @Field(type = FieldType.Nested, ignoreFields = {
-      "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles",
-      "inverseRoles", "descendants", "paths", "qualifiers", "extensions", "disjointWith"
+      "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles", "inverseRoles",
+      "descendants", "paths", "qualifiers", "extensions", "disjointWith"
   })
   private List<Concept> descendants;
 
@@ -169,7 +183,7 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Nested, ignoreFields = {
       "qualifiers"
   })
-  private List<Map> maps;
+  private List<ConceptMap> maps;
 
   /** The paths to root. */
   @Field(type = FieldType.Nested, ignoreFields = {
@@ -264,7 +278,9 @@ public class Concept extends ConceptMinimal {
     highlights = new HashMap<>(other.getHighlights());
     conceptStatus = other.getConceptStatus();
     leaf = other.getLeaf();
+    active = other.getActive();
     normName = other.getNormName();
+    stemName = other.getStemName();
     if (!subsetFlag) {
       subsetLink = other.getSubsetLink();
     }
@@ -297,6 +313,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the highlight
    */
+  @Schema(description = "Used by search calls to provide information for highlighting a view of results")
   public String getHighlight() {
     return highlight;
   }
@@ -315,7 +332,8 @@ public class Concept extends ConceptMinimal {
    *
    * @return the highlights
    */
-  public java.util.Map<String, String> getHighlights() {
+  @Schema(hidden = true)
+  public Map<String, String> getHighlights() {
     if (highlights == null) {
       highlights = new HashMap<>();
     }
@@ -327,7 +345,7 @@ public class Concept extends ConceptMinimal {
    *
    * @param highlights the highlights
    */
-  public void setHighlights(final java.util.Map<String, String> highlights) {
+  public void setHighlights(final Map<String, String> highlights) {
     this.highlights = highlights;
   }
 
@@ -336,6 +354,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the normName
    */
+  @Schema(hidden = true)
   public String getNormName() {
     return normName;
   }
@@ -350,10 +369,26 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
+   * @return the stemName
+   */
+  @Schema(hidden = true)
+  public String getStemName() {
+    return stemName;
+  }
+
+  /**
+   * @param stemName the stemName to set
+   */
+  public void setStemName(String stemName) {
+    this.stemName = stemName;
+  }
+
+  /**
    * Returns the subset link.
    *
    * @return the subsetLink
    */
+  @Schema(description = "Link to download data for a subset, used when the concept represents subset metadata")
   public String getSubsetLink() {
     return subsetLink;
   }
@@ -372,6 +407,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the mapsetLink
    */
+  @Schema(description = "Metadata for downloading a mapset")
   public String getMapsetLink() {
     return mapsetLink;
   }
@@ -390,6 +426,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the conceptStatus
    */
+  @Schema(description = "Status value for the concept, e.g. Retired_Concept")
   public String getConceptStatus() {
     return conceptStatus;
   }
@@ -408,6 +445,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the leaf
    */
+  @Schema(description = "Indicates whether concept is a leaf node")
   public Boolean getLeaf() {
     return leaf;
   }
@@ -422,10 +460,30 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
+   * Returns the active flag.
+   *
+   * @return the active flag
+   */
+  @Schema(description = "Indicates whether the concept is active")
+  public Boolean getActive() {
+    return active;
+  }
+
+  /**
+   * Sets the active flag.
+   *
+   * @param active the active flag
+   */
+  public void setActive(final Boolean active) {
+    this.active = active;
+  }
+
+  /**
    * Returns the synonyms.
    *
    * @return the synonyms
    */
+  @Schema(description = "Synonyms, or all of the names for this concept, including the preferred name")
   public List<Synonym> getSynonyms() {
     if (synonyms == null) {
       synonyms = new ArrayList<>();
@@ -447,6 +505,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the definitions
    */
+  @Schema(description = "Text definitions")
   public List<Definition> getDefinitions() {
     if (definitions == null) {
       definitions = new ArrayList<>();
@@ -462,26 +521,27 @@ public class Concept extends ConceptMinimal {
   public void setDefinitions(final List<Definition> definitions) {
     this.definitions = definitions;
   }
-  
+
   /**
    * Returns the history.
    *
    * @return the history
    */
+  @Schema(description = "History records")
   public List<History> getHistory() {
-      if (history == null) {
-          history = new ArrayList<>();
-      }
-      return history;
+    if (history == null) {
+      history = new ArrayList<>();
+    }
+    return history;
   }
-  
+
   /**
    * Sets the history.
    *
    * @param history the history
    */
   public void setHistory(final List<History> history) {
-      this.history = history;
+    this.history = history;
   }
 
   /**
@@ -489,6 +549,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the properties
    */
+  @Schema(description = "Key/value properties")
   public List<Property> getProperties() {
     if (properties == null) {
       properties = new ArrayList<>();
@@ -510,6 +571,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the qualifiers
    */
+  @Schema(hidden = true)
   public List<Qualifier> getQualifiers() {
     if (qualifiers == null) {
       qualifiers = new ArrayList<>();
@@ -522,6 +584,8 @@ public class Concept extends ConceptMinimal {
    *
    * @param qualifiers the qualifiers
    */
+  @Schema(
+      description = "Qualifiers for use when a concept is used as a parent/child - to indicate RELA for NCIm-derived content")
   public void setQualifiers(final List<Qualifier> qualifiers) {
     this.qualifiers = qualifiers;
   }
@@ -531,6 +595,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the source
    */
+  @Schema(description = "Associations from this concept to other ones")
   public String getSource() {
     return source;
   }
@@ -549,6 +614,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the children
    */
+  @Schema(description = "Child concepts in the hierarchy")
   public List<Concept> getChildren() {
     if (children == null) {
       children = new ArrayList<>();
@@ -570,6 +636,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the parents
    */
+  @Schema(description = "Parent concepts in the hierarchy")
   public List<Concept> getParents() {
     if (parents == null) {
       parents = new ArrayList<>();
@@ -591,6 +658,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the descendants
    */
+  @Schema(description = "Descendant concepts in the hierarchy")
   public List<Concept> getDescendants() {
     if (descendants == null) {
       descendants = new ArrayList<>();
@@ -612,6 +680,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the associations
    */
+  @Schema(description = "Associations from this concept to other ones")
   public List<Association> getAssociations() {
     if (associations == null) {
       associations = new ArrayList<>();
@@ -633,6 +702,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the inverse associations
    */
+  @Schema(description = "Associations to this concept from other ones")
   public List<Association> getInverseAssociations() {
     if (inverseAssociations == null) {
       inverseAssociations = new ArrayList<>();
@@ -654,6 +724,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the roles
    */
+  @Schema(description = "Roles from this concept to other ones")
   public List<Role> getRoles() {
     if (roles == null) {
       roles = new ArrayList<>();
@@ -666,6 +737,7 @@ public class Concept extends ConceptMinimal {
    *
    * @param roles the roles
    */
+
   public void setRoles(final List<Role> roles) {
     this.roles = roles;
   }
@@ -675,6 +747,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the inverse roles
    */
+  @Schema(description = "Roles to this concept from other ones")
   public List<Role> getInverseRoles() {
     if (inverseRoles == null) {
       inverseRoles = new ArrayList<>();
@@ -696,6 +769,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the disjoint with
    */
+  @Schema(description = "Assertions of disjointness with respect to other concepts")
   public List<DisjointWith> getDisjointWith() {
     if (disjointWith == null) {
       disjointWith = new ArrayList<>();
@@ -717,7 +791,8 @@ public class Concept extends ConceptMinimal {
    *
    * @return the maps
    */
-  public List<Map> getMaps() {
+  @Schema(description = "Maps from this concept to concepts in other terminologies")
+  public List<ConceptMap> getMaps() {
     if (maps == null) {
       maps = new ArrayList<>();
     }
@@ -729,7 +804,7 @@ public class Concept extends ConceptMinimal {
    *
    * @param maps the maps
    */
-  public void setMaps(final List<Map> maps) {
+  public void setMaps(final List<ConceptMap> maps) {
     this.maps = maps;
   }
 
@@ -738,6 +813,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the paths
    */
+  @Schema(description = "Paths for this concept in the hierarchy")
   public Paths getPaths() {
     return paths;
   }
@@ -756,6 +832,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the extensions
    */
+  @Schema(hidden = true)
   public Extensions getExtensions() {
     return extensions;
   }
@@ -781,7 +858,7 @@ public class Concept extends ConceptMinimal {
       Collections.sort(definitions);
     }
     if (history != null) {
-        Collections.sort(history);
+      Collections.sort(history);
     }
     if (properties != null) {
       Collections.sort(properties);
@@ -824,8 +901,7 @@ public class Concept extends ConceptMinimal {
    * @return the stream
    */
   public Stream<Concept> streamSelfAndChildren() {
-    return Stream.concat(Stream.of(this),
-        getChildren().stream().flatMap(Concept::streamSelfAndChildren));
+    return Stream.concat(Stream.of(this), getChildren().stream().flatMap(Concept::streamSelfAndChildren));
   }
 
 }

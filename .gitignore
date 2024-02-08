@@ -20,3 +20,4 @@ WEB-INF/*
 .vscode/settings.json
 .idea/.gitignore
 
+/.idea/

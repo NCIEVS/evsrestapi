@@ -158,7 +158,7 @@ chmod 755 $dir/x.sh
 chmod ag+rwx $dir
 pid=`docker ps | grep stardog/stardog | cut -f 1 -d\  `
 # note: //data is required for gitbash
-docker exec -it $pid //data/UnitTestData/x.sh
+docker exec $pid //data/UnitTestData/x.sh
 if [[ $? -ne 0 ]]; then
     echo "ERROR: problem connecting to docker elasticsearch"
     exit 1
@@ -188,25 +188,27 @@ for i in `cat /tmp/x.$$.txt`; do
     fi
 done
 
-# Reindex ncim
-echo "  Reindex ncim"
-src/main/bin/ncim-part.sh --noconfig $dir/NCIM | sed 's/^/    /'
-if [[ $? -ne 0 ]]; then
-    echo "ERROR: problem running ncim-part.sh"
-    exit 1
-fi
-
 # Reindex ncim - individual terminologies
-for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US; do
+for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX; do
 
     # Keep the NCIM folder around while we run
     echo "Load $t (from downloaded data)"
-    src/main/bin/ncim-part.sh --noconfig $dir/NCIM --keep --terminology $t | sed 's/^/    /'
+    src/main/bin/ncim-part.sh --noconfig $dir/NCIM --keep --terminology $t > /tmp/x.$$.txt 2>&1
     if [[ $? -ne 0 ]]; then
+        cat /tmp/x.$$.txt | sed 's/^/    /'
         echo "ERROR: loading $t"
         exit 1
     fi
 done
+
+# Reindex ncim - must run after the prior section so that maps can connect to loaded terminologies
+echo "  Reindex ncim"
+src/main/bin/ncim-part.sh --noconfig $dir/NCIM > /tmp/x.$$.txt 2>&1
+if [[ $? -ne 0 ]]; then
+    cat /tmp/x.$$.txt | sed 's/^/    /'
+    echo "ERROR: problem running ncim-part.sh"
+    exit 1
+fi
 
 # Clean and load stardog
 echo "  Remove stardog databases and load monthly/weekly"
@@ -228,6 +230,10 @@ echo "    load data"
 /opt/stardog/bin/stardog data add --named-graph http://GO_monthly NCIT2 /data/UnitTestData/GO/go.2022-07-01.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://HGNC_monthly NCIT2 /data/UnitTestData/HGNC/HGNC_202209.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://ChEBI_monthly NCIT2 /data/UnitTestData/ChEBI/chebi_213.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://UmlsSemNet NCIT2 /data/UnitTestData/UmlsSemNet/umlssemnet.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://MEDRT NCIT2 /data/UnitTestData/MED-RT/medrt.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://Canmed NCIT2 /data/UnitTestData/Canmed/canmed.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://CTCAE NCIT2 /data/UnitTestData/CTCAE/ctcae5.owl | sed 's/^/      /'
 echo "    optimize databases"
 /opt/stardog/bin/stardog-admin db optimize -n CTRP | sed 's/^/      /'
 /opt/stardog/bin/stardog-admin db optimize -n NCIT2 | sed 's/^/      /'
@@ -236,7 +242,7 @@ chmod 755 $dir/x.sh
 chmod ag+rwx $dir
 pid=`docker ps | grep stardog/stardog | cut -f 1 -d\  `
 # note: //data is required for gitbash
-docker exec -it $pid //data/UnitTestData/x.sh
+docker exec $pid //data/UnitTestData/x.sh
 if [[ $? -ne 0 ]]; then
     echo "ERROR: problem loading stardog"
     exit 1
@@ -248,8 +254,9 @@ historyFile=$dir/cumulative_history_21.06e.txt
 
 # Reindex stardog terminologies
 echo "  Reindex stardog terminologies"
-src/main/bin/reindex.sh --noconfig --history $historyFile | sed 's/^/    /'
+src/main/bin/reindex.sh --noconfig --history $historyFile > /tmp/x.$$.txt 2>&1 
 if [[ $? -ne 0 ]]; then
+    cat /tmp/x.$$.txt | sed 's/^/    /'
     echo "ERROR: problem running reindex.sh script"
     exit 1
 fi

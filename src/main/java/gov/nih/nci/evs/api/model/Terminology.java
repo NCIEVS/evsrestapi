@@ -11,6 +11,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents a terminology loaded into the EVSAPI.
  * 
@@ -25,6 +27,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
  *  }
  * </pre>
  */
+@Schema(description = "Represents a terminology loaded into the API")
 @JsonInclude(Include.NON_EMPTY)
 public class Terminology extends BaseModel implements Comparable<Terminology> {
 
@@ -77,9 +80,9 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
   private String objectIndexName;
 
   /** The metadata. */
-  // TODO: we really should leave this off, but requires 4.1.RC 
+  // TODO: we really should leave this off, but requires 4.1.RC
   // or greater (spring data elasticsearch)
-  //  @Field(type = FieldType.Object, enabled = false)
+  // @Field(type = FieldType.Object, enabled = false)
   @Field(type = FieldType.Object)
   private TerminologyMetadata metadata;
 
@@ -131,6 +134,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @return the terminology
    */
+  @Schema(description = "Terminology abbreviation, e.g. 'ncit'")
   public String getTerminology() {
     return terminology;
   }
@@ -149,6 +153,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @return the version
    */
+  @Schema(description = "Terminology version, e.g. '23.11d'")
   public String getVersion() {
     return version;
   }
@@ -167,6 +172,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @return the date
    */
+  @Schema(description = "Terminology publication/release date")
   public String getDate() {
     return date;
   }
@@ -185,6 +191,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @return the name
    */
+  @Schema(description = "Terminology name")
   public String getName() {
     return name;
   }
@@ -203,6 +210,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @return the description
    */
+  @Schema(description = "Terminology description")
   public String getDescription() {
     return description;
   }
@@ -221,6 +229,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @return the graph
    */
+  @Schema(description = "Name of the RDF triplestore graph if this data is backed by a triplestore")
   public String getGraph() {
     return graph;
   }
@@ -239,6 +248,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @return the source
    */
+  @Schema(hidden = true)
   public String getSource() {
     return source;
   }
@@ -257,6 +267,8 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @return the terminology version
    */
+  @Schema(description = "Underscore-separated value for terminology and version"
+      + " used by the API to precisely pinpoint a particular version, e.g. 'ncit_23.11d'")
   public String getTerminologyVersion() {
     if (StringUtils.isEmpty(terminologyVersion)) {
       terminologyVersion = terminology + "_" + version;
@@ -278,6 +290,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @return the latest
    */
+  @Schema(description = "Indicates whether this is the latest version")
   public Boolean getLatest() {
     return latest;
   }
@@ -296,6 +309,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @return the metadata
    */
+  @Schema(description = "Additional terminology metadata")
   public TerminologyMetadata getMetadata() {
     return metadata;
   }
@@ -314,6 +328,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @return the tags
    */
+  @Schema(description = "Additional terminology tags")
   public Map<String, String> getTags() {
     if (tags == null) {
       tags = new HashMap<>();
@@ -335,9 +350,11 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    * 
    * @return the index name
    */
+  // @Schema(hidden = true)
+  @Schema(description = "for internal use")
   public String getIndexName() {
     if (StringUtils.isEmpty(indexName)) {
-      indexName = "concept_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "");
+      indexName = "concept_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "").toLowerCase();
     }
     return indexName;
   }
@@ -356,9 +373,12 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    * 
    * @return the object index name
    */
+  // @Schema(hidden = true)
+  @Schema(description = "for internal use")
   public String getObjectIndexName() {
     if (StringUtils.isEmpty(objectIndexName)) {
-      objectIndexName = "evs_object_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "");
+      // Replace non-alphanumeric and _ chars and also lowercase
+      objectIndexName = "evs_object_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "").toLowerCase();
     }
     return objectIndexName;
   }
@@ -377,6 +397,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @return the sparql flag
    */
+  @Schema(description = "Indicates whether the terminology can be used with SPARQL")
   public Boolean getSparqlFlag() {
     return sparqlFlag;
   }
@@ -510,12 +531,6 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
     return true;
   }
 
-  /**
-   * Compare to.
-   *
-   * @param o the o
-   * @return the int
-   */
   /* see superclass */
   @Override
   public int compareTo(Terminology o) {

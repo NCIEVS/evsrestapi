@@ -8,9 +8,12 @@ import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents choices about how much data to include when reading content.
  */
+@Schema(hidden = true)
 public class IncludeParam extends BaseModel {
 
   /** The synonyms. */
@@ -239,7 +242,8 @@ public class IncludeParam extends BaseModel {
    * @return the included fields
    */
   public String[] getIncludedFields() {
-    List<String> fields = new ArrayList<>(Arrays.asList("name", "code", "terminology", "leaf", "version", "uri"));
+    List<String> fields = new ArrayList<>(
+        Arrays.asList("name", "code", "terminology", "leaf", "version", "uri", "active", "conceptStatus"));
     if (synonyms) {
       fields.add("synonyms");
     }
@@ -305,6 +309,7 @@ public class IncludeParam extends BaseModel {
   public String[] getExcludedFields() {
     List<String> fields = new ArrayList<>();
     fields.add("normName"); // normName always excluded
+    fields.add("stemName"); // stemName always excluded
     if (!synonyms) {
       fields.add("synonyms");
     }

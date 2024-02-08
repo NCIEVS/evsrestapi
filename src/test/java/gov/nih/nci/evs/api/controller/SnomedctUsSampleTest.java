@@ -27,10 +27,10 @@ import gov.nih.nci.evs.api.model.Concept;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public class SnomedctSampleTest extends SampleTest {
+public class SnomedctUsSampleTest extends SampleTest {
 
   /** The logger. */
-  private static final Logger log = LoggerFactory.getLogger(SnomedctSampleTest.class);
+  private static final Logger log = LoggerFactory.getLogger(SnomedctUsSampleTest.class);
 
   /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
   @Autowired
@@ -43,7 +43,7 @@ public class SnomedctSampleTest extends SampleTest {
    */
   @BeforeClass
   public static void setupClass() throws Exception {
-    loadSamples("snomedct", "src/test/resources/samples/snomedct-samples.txt");
+    loadSamples("snomedct_us", "src/test/resources/samples/snomedct_us-samples.txt");
   }
 
   /**
@@ -59,7 +59,7 @@ public class SnomedctSampleTest extends SampleTest {
     Concept concept = null;
 
     // Test with "by code"
-    url = "/api/v1/concept/snomedct/36138009?include=maps";
+    url = "/api/v1/concept/snomedct_us/36138009?include=maps";
     log.info("Testing url - " + url);
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -67,7 +67,7 @@ public class SnomedctSampleTest extends SampleTest {
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("36138009");
-    assertThat(concept.getTerminology()).isEqualTo("snomedct");
+    assertThat(concept.getTerminology()).isEqualTo("snomedct_us");
     assertThat(concept.getMaps().size()).isEqualTo(2);
     assertThat(concept.getMaps().get(0).getTargetCode()).isEqualTo("D84.8");
     assertThat(concept.getMaps().get(0).getGroup()).isEqualTo("1");
@@ -79,5 +79,31 @@ public class SnomedctSampleTest extends SampleTest {
     assertThat(concept.getMaps().get(1).getRule()).isEqualTo("TRUE");
 
     // TODO: test what the maps are
+  }
+  
+  /**
+   * Test concept active status.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testActive() throws Exception {
+      
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // Test active
+    url = "/api/v1/concept/snomedct_us/36138009";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("36138009");
+    assertThat(concept.getTerminology()).isEqualTo("snomedct_us");
+    assertThat(concept.getActive()).isTrue();
   }
 }

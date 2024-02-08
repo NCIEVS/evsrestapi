@@ -14,7 +14,7 @@ import org.slf4j.LoggerFactory;
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
-import gov.nih.nci.evs.api.model.Map;
+import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;
@@ -230,13 +230,13 @@ public class EVSUtils {
    * @param axioms the axioms
    * @return the maps to
    */
-  public static List<Map> getMapsTo(Terminology terminology, List<Axiom> axioms) {
-    ArrayList<Map> results = new ArrayList<Map>();
+  public static List<ConceptMap> getMapsTo(Terminology terminology, List<Axiom> axioms) {
+    ArrayList<ConceptMap> results = new ArrayList<ConceptMap>();
     final String mapCode = terminology.getMetadata().getMap();
     for (Axiom axiom : axioms) {
       final String axiomCode = EVSUtils.getQualifiedCodeFromUri(axiom.getAnnotatedProperty());
       if (axiomCode.equals(mapCode)) {
-        Map mapsTo = new Map();
+        ConceptMap mapsTo = new ConceptMap();
         mapsTo.setTargetName(axiom.getAnnotatedTarget());
         mapsTo.setType(axiom.getRelationshipToTarget());
         mapsTo.setTargetTermType(axiom.getTargetTermType());

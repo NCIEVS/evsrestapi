@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.controller;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -21,6 +22,7 @@ import org.springframework.web.server.ResponseStatusException;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
@@ -56,7 +58,6 @@ public class MetadataController extends BaseController {
   ElasticQueryService esQueryService;
 
   /** The term utils. */
-  /* The terminology utils */
   @Autowired
   TerminologyUtils termUtils;
 
@@ -82,7 +83,10 @@ public class MetadataController extends BaseController {
       @Parameter(name = "tag",
           description = "Return terminologies with matching tag. e.g. 'monthly' or 'weekly' for <i>ncit</i>",
           required = false, schema = @Schema(implementation = String.class)),
-      @Parameter(name = "terminology", description = "Return entries with matching terminology, e.g. 'ncit' or 'ncim'",
+      @Parameter(name = "terminology",
+          description = "Return entries with matching terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
           required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
@@ -96,7 +100,8 @@ public class MetadataController extends BaseController {
       List<Terminology> terms = termUtils.getTerminologies(true);
 
       if (latest.isPresent()) {
-        terms = terms.stream().filter(f -> f.getLatest().equals(latest.get())).collect(Collectors.toList());
+        terms = terms.stream().filter(f -> f.getLatest() != null && f.getLatest().equals(latest.get()))
+            .collect(Collectors.toList());
       }
 
       if (tag.isPresent() && tagList.contains(tag.get())) {
@@ -107,7 +112,11 @@ public class MetadataController extends BaseController {
         terms = terms.stream().filter(f -> f.getTerminology().equals(terminology.get())).collect(Collectors.toList());
       }
 
-      for (Terminology term : terms) {
+      for (final Terminology term : terms) {
+        // For internal use
+        term.setSource(null);
+        term.setIndexName(null);
+        term.setObjectIndexName(null);
         final TerminologyMetadata meta = term.getMetadata();
         // Some terminologies may not have metadata
         if (meta != null) {
@@ -120,6 +129,40 @@ public class MetadataController extends BaseController {
           meta.setConceptStatus(null);
           meta.setDefinitionSourceSet(null);
           meta.setWelcomeText(null);
+          meta.setLicenseCheck(null);
+
+          // Various other metadata things (schema=hidden)
+          meta.setSources(null);
+          meta.setDefinitionSourceSet(null);
+          meta.setSynonymSourceSet(null);
+          meta.setSubsetPrefix(null);
+          meta.setSourcesToRemove(null);
+          meta.setSubsetMember(null);
+          meta.setUnpublished(null);
+          meta.setMonthlyDb(null);
+          meta.setLicenseCheck(null);
+          meta.setMapsets(null);
+          meta.setRelationshipToTarget(null);
+          meta.setCode(null);
+          meta.setConceptStatus(null);
+          meta.setPreferredName(null);
+          meta.setSynonym(null);
+          meta.setSynonymTermType(null);
+          meta.setSynonymSource(null);
+          meta.setSynonymCode(null);
+          meta.setSynonymSubSource(null);
+          meta.setDefinitionSource(null);
+          meta.setDefinition(null);
+          meta.setMapRelation(null);
+          meta.setMap(null);
+          meta.setMapTarget(null);
+          meta.setMapTargetTermType(null);
+          meta.setMapTargetTermGroup(null);
+          meta.setMapTargetTerminology(null);
+          meta.setMapTargetTerminologyVersion(null);
+          meta.setTermTypes(null);
+          meta.setPreferredTermTypes(null);
+          meta.setSubset(null);
         }
       }
 
@@ -148,8 +191,11 @@ public class MetadataController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "include",
           description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
@@ -194,8 +240,11 @@ public class MetadataController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "codeOrName",
           description = "Association code (or name), e.g. " + "<ul><li>'A10' or 'Has_CDRH_Parent' for <i>ncit</i></li>"
               + "<li>'RB' or 'has a broader relationship' for <i>ncim</i></li></ul>",
@@ -354,8 +403,11 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/properties",
       produces = "application/json")
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "include",
           description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
@@ -401,8 +453,11 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/qualifiers",
       produces = "application/json")
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "include",
           description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
@@ -446,8 +501,11 @@ public class MetadataController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "codeOrName",
           description = "Qualifier code (or name), e.g." + "<ul><li>'P390' or 'go-source' for <i>ncit</i></li>"
               + "<li>'RG' or 'Relationship group' for <i>ncim</i></li></ul>",
@@ -501,8 +559,11 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/termTypes",
       produces = "application/json")
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit")
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit")
   })
   @RecordMetric
   public @ResponseBody List<ConceptMinimal> getTermTypes(@PathVariable(value = "terminology")
@@ -530,8 +591,11 @@ public class MetadataController extends BaseController {
   })
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/welcomeText", produces = "text/html")
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit")
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit")
   })
   @RecordMetric
   public @ResponseBody String getWelcomeText(@PathVariable(value = "terminology")
@@ -562,8 +626,11 @@ public class MetadataController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "codeOrName",
           description = "Property code (or name), e.g. " + "<ul><li>'P216' or 'BioCarta_ID' for <i>ncit</i></li>"
               + "<li>'BioCarta_ID' or ''BioCarta ID' for <i>ncim</i></li></ul>",
@@ -652,8 +719,11 @@ public class MetadataController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit")
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/definitionSources",
@@ -682,8 +752,11 @@ public class MetadataController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit")
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit")
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/synonymSources",
@@ -713,8 +786,11 @@ public class MetadataController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "codeOrName",
           description = "Qualifier code (or name), e.g." + "<ul><li>'P390' or 'go-source' for <i>ncit</i></li>"
               + "<li>'RG' or 'Relationship group' for <i>ncim</i></li></ul>",
@@ -763,8 +839,11 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/synonymTypes",
       produces = "application/json")
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "include",
           description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
@@ -808,8 +887,11 @@ public class MetadataController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "codeOrName",
           description = "Synonym type code (or name), e.g." + "<ul><li>'P90' or 'FULL_SYN' for <i>ncit</i></li>"
               + "<li>'Preferred_Name' or 'Preferred name' for <i>ncim</i></li></ul>",
@@ -867,8 +949,11 @@ public class MetadataController extends BaseController {
   @RequestMapping(method = RequestMethod.GET, value = "/metadata/{terminology}/definitionTypes",
       produces = "application/json")
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "include",
           description = "Indicator of how much data to return. Comma-separated list of any of the following values: "
               + "minimal, summary, full, associations, children, definitions, disjointWith, inverseAssociations, "
@@ -912,8 +997,11 @@ public class MetadataController extends BaseController {
           content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
-      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit' or 'ncim'", required = true,
-          schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "terminology",
+          description = "Terminology, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
       @Parameter(name = "codeOrName",
           description = "Definition type code (or name), e.g." + "<ul><li>'P325' or 'DEFINITION' for <i>ncit</i></li>"
               + "<li>'DEFINITION' for <i>ncim</i></li></ul>",
@@ -1047,6 +1135,45 @@ public class MetadataController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset " + code + " not found");
       return concept.get();
     } catch (Exception e) {
+      handleException(e);
+      return null;
+    }
+  }
+
+  /**
+   * Returns the source stats.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param include the include
+   * @return the subset
+   * @throws Exception the exception
+   */
+  @Operation(summary = "Get statistics for the source within the specified terminology.",
+      description = "This endpoint is mostly for NCIm to make source overlap statistics available.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "404", description = "Resource not found",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+      @Parameter(name = "terminology", description = "Terminology, e.g. 'ncit'.", required = true,
+          schema = @Schema(implementation = String.class), example = "ncim"),
+      @Parameter(name = "source", description = "terminology source code, e.g. 'LNC' for <i>ncim</i>.", required = true,
+          schema = @Schema(implementation = String.class))
+  })
+  @RecordMetric
+  @RequestMapping(method = RequestMethod.GET, value = "metadata/{terminology}/stats/{source}",
+      produces = "application/json")
+  public @ResponseBody Map<String, List<StatisticsEntry>> getSourceStats(@PathVariable(value = "terminology")
+  final String terminology, @PathVariable(value = "source")
+  final String source) throws Exception {
+    try {
+      return metadataService.getSourceStats(terminology, source);
+    } catch (Exception e) {
+      logger.error(source + " search in " + terminology + " failed.");
       handleException(e);
       return null;
     }

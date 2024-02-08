@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -36,8 +37,10 @@ import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.History;
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
+import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
@@ -47,6 +50,7 @@ import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PushBackReader;
 import gov.nih.nci.evs.api.util.RrfReaders;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * The implementation for {@link MetaElasticLoadServiceImpl}.
@@ -93,7 +97,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   private Map<String, String> mapsetVersionMap = new HashMap<>();
 
   /** The maps. */
-  private Map<String, Set<gov.nih.nci.evs.api.model.Map>> maps = new HashMap<>();
+  private Map<String, Set<gov.nih.nci.evs.api.model.ConceptMap>> maps = new HashMap<>();
 
   /** The rui inverse map. */
   private Map<String, String> ruiInverseMap = new HashMap<>();
@@ -144,6 +148,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   /** The elastic query service. */
   @Autowired
   ElasticQueryService elasticQueryService;
+
+  /** The terminology utils */
+  @Autowired
+  TerminologyUtils termUtils;
 
   /**
    * Returns the filepath.
@@ -236,11 +244,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         // TORULE,TORES,MAPRULE,MAPRES,MAPTYPE,MAPATN,MAPATV,CVF
         final String[] fields = line.split("\\|", -1);
 
-        // Skip map sets not being tracked
-        if (!mapsetToTerminologyMap.containsKey(fields[0])) {
-          continue;
-        }
-
         // Skip empty maps (or maps to the empty target: 100051
         if (fields[16].isEmpty() || fields[16].equals("100051")) {
           continue;
@@ -255,16 +258,17 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           continue;
         }
 
-        final gov.nih.nci.evs.api.model.Map map = new gov.nih.nci.evs.api.model.Map();
+        final gov.nih.nci.evs.api.model.ConceptMap map = new gov.nih.nci.evs.api.model.ConceptMap();
         map.setSource("SNOMEDCT_US");
         map.setSourceCode(fields[8]);
         map.setSourceTerminology(fields[1]);
         map.setSourceName(mapsetNameMap.get(fields[6]));
-        map.setTargetCode(fields[16]);
+        map.setTargetCode(fields[16].isEmpty() || fields[16].equals("100051") ? "" : fields[16]);
         map.setTargetTermType("PT");
         map.setTargetTerminology(mapsetToTerminologyMap.get(fields[0]).split("_")[0]);
         map.setTargetTerminologyVersion(mapsetToTerminologyMap.get(fields[0]).split("_")[1]);
-        map.setTargetName(mapsetNameMap.get(map.getTargetTerminology() + fields[16]));
+        map.setTargetName(fields[16].isEmpty() || fields[16].equals("100051") ? ""
+            : mapsetNameMap.get(map.getTargetTerminology() + fields[16]));
         map.setType(fields[12]);
         map.setGroup(fields[2]);
         map.setRank(fields[3]);
@@ -292,12 +296,14 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
         // Handle mapsets
         if (!mapsetMap.containsKey(fields[0])) {
+          List<String> terms =
+              termUtils.getTerminologies(true).stream().map(Terminology::getTerminology).collect(Collectors.toList());
           final Concept mapset = new Concept();
           // populate the mapset details.
           final String code = mapsetNameMap.get(fields[0]).replaceAll(" ", "_");
           mapset.setCode(code);
           mapset.setName(mapsetNameMap.get(fields[0]));
-          mapset.setTerminology("SNOMEDCT_US");
+          mapset.setTerminology("snomedct_us");
           mapset.setVersion(mapsetVersionMap.get(fields[0]));
           // set other fields and properties as needed (to match other mapsets and needs of ui)
           mapset.getProperties().add(new Property("loader", "MetaElasticLoadServiceImpl"));
@@ -308,6 +314,18 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           mapset.getProperties().add(new Property("welcomeText", welcomeText));
           mapset.getProperties().add(new Property("mapsetLink", null));
           mapset.getProperties().add(new Property("downloadOnly", "false"));
+          mapset.getProperties().add(
+              new Property("sourceLoaded", Boolean.toString(terms.contains(map.getSourceTerminology().toLowerCase()))));
+          mapset.getProperties().add(
+              new Property("targetLoaded", Boolean.toString(terms.contains(map.getTargetTerminology().toLowerCase()))));
+          mapset.getProperties().add(new Property("sourceTerminology",
+              map.getSourceTerminology() != null ? map.getSourceTerminology().toLowerCase() : "not found"));
+          mapset.getProperties().add(new Property("targetTerminology",
+              map.getTargetTerminology() != null ? map.getTargetTerminology().toLowerCase() : "not found"));
+          mapset.getProperties().add(new Property("sourceTerminologyVersion",
+              map.getSourceTerminologyVersion() != null ? map.getSourceTerminologyVersion() : "not found"));
+          mapset.getProperties().add(new Property("targetTerminologyVersion",
+              map.getTargetTerminologyVersion() != null ? map.getTargetTerminologyVersion() : "not found"));
           mapsetMap.put(fields[0], mapset);
           mapsetCt++;
         }
@@ -320,10 +338,42 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         operationsService.getElasticsearchOperations().putMapping(ElasticOperationsService.MAPPING_INDEX,
             ElasticOperationsService.CONCEPT_TYPE, Concept.class);
       }
+      // current snomed mapset codes
+      List<String> currentMapsetCodes = elasticQueryService.getMapsets(new IncludeParam("properties")).stream()
+          .filter(concept -> concept.getProperties().stream()
+              .anyMatch(property -> property.getType().equals("loader")
+                  && property.getValue().contains("MetaElasticLoadServiceImpl")))
+          .map(Concept::getCode).collect(Collectors.toList());
+      List<String> currentMapsetVersions = elasticQueryService.getMapsets(new IncludeParam("properties")).stream()
+          .filter(concept -> concept.getProperties().stream()
+              .anyMatch(property -> property.getType().equals("loader")
+                  && property.getValue().contains("MetaElasticLoadServiceImpl")))
+          .map(Concept::getVersion).collect(Collectors.toList());
+      logger.info("currentMapsetCodes = " + currentMapsetCodes.toString());
+      logger.info("currentMapsetVersions = " + currentMapsetVersions.toString());
+      // all found snomed codes
+      List<String> allCodes = mapsetMap.values().parallelStream().map(Concept::getCode).collect(Collectors.toList());
+      List<String> allVersions =
+          mapsetMap.values().parallelStream().map(Concept::getVersion).collect(Collectors.toList());
+      logger.info("allCodes = " + allCodes.toString());
+      logger.info("allVersions = " + allVersions.toString());
+      // mapsets to remove (in current index and shouldn't be)
+      List<String> mapsetsToRemove =
+          currentMapsetCodes.stream().filter(l -> !allCodes.contains(l)).collect(Collectors.toList());
+      logger.info("mapsetsToRemove = " + mapsetsToRemove.toString());
+      List<String> mapsetsToAdd =
+          allCodes.stream().filter(l -> !currentMapsetCodes.contains(l)).collect(Collectors.toList());
+      logger.info("mapsetsToAdd = " + mapsetsToAdd);
+      // remove old mappings by code
+      for (String mapsetCode : mapsetsToRemove) {
+        operationsService.delete(ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
+            mapsetCode);
+      }
       for (final Concept mapset : mapsetMap.values()) {
-        Collections.sort(mapset.getMaps(), new Comparator<gov.nih.nci.evs.api.model.Map>() {
+        Collections.sort(mapset.getMaps(), new Comparator<gov.nih.nci.evs.api.model.ConceptMap>() {
           @Override
-          public int compare(final gov.nih.nci.evs.api.model.Map o1, final gov.nih.nci.evs.api.model.Map o2) {
+          public int compare(final gov.nih.nci.evs.api.model.ConceptMap o1,
+            final gov.nih.nci.evs.api.model.ConceptMap o2) {
             // Assume maps are not null
             return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank() + o1.getTargetName())
                 .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank() + o2.getTargetName());
@@ -467,6 +517,24 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
   }
 
+  public Boolean mappingNeedsUpdate(String code, String version, Map<String, String> currentMapsets) {
+
+    // adding for first time
+    if (currentMapsets.keySet().isEmpty() || !currentMapsets.keySet().contains(code)) {
+      return true;
+    }
+
+    Optional<String> currentMapVersion = Optional.ofNullable(currentMapsets.get(code));
+    // version number while current version number is null
+    if (!version.isEmpty() && currentMapVersion.isPresent() && currentMapVersion.get().isEmpty()) {
+      return true;
+    }
+    // different version
+    if (!version.isEmpty() && currentMapVersion.isPresent() && !version.equals(currentMapVersion.get()))
+      return true;
+    return false;
+  }
+
   /* see superclass */
   @Override
   public int loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
@@ -538,10 +606,12 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           concept.setCode(cui);
           concept.setName(nameMap.get(cui));
           concept.setNormName(ConceptUtils.normalize(nameMap.get(cui)));
+          concept.setStemName(ConceptUtils.normalizeWithStemming(nameMap.get(cui)));
           concept.setTerminology(terminology.getTerminology());
           concept.setVersion(terminology.getVersion());
           // NO hierarchies for NCIM concepts, so set leaf to null
           concept.setLeaf(null);
+          concept.setActive(true);
         }
 
         // Each line of MRCONSO is a synonym
@@ -743,6 +813,48 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       // handle definitions
       buildDefinition(terminology, concept, fields);
     }
+  }
+
+  /**
+   * Handle statistics.
+   *
+   * @param terminologyName the terminologyName
+   * @param sourceList the source list
+   * @throws Exception the exception
+   */
+  private void handleStatistics(final Terminology terminology, final Set<String> sourceList) throws Exception {
+    if (terminology.getTerminology().equals("ncim")) {
+      for (String source : sourceList) {
+        // create elastic object
+        ElasticObject newStatsEntry = new ElasticObject("ncim-stats-" + source);
+
+        // get source overlap stats
+        String filePath = this.getFilepath() + "/stats/" + source + "/" + source + ".txt";
+        // read the source overlap file
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+          Map<String, List<StatisticsEntry>> sourceStatsEntry = new HashMap<>();
+          List<StatisticsEntry> statsList = new ArrayList<StatisticsEntry>();
+
+          String line;
+          while ((line = reader.readLine()) != null) {
+            String[] parts = line.split("\\|");
+            StatisticsEntry statisticsEntry = new StatisticsEntry(parts[0], parts[1], parts[2]);
+            statsList.add(statisticsEntry);
+            System.out.println(line);
+          }
+          sourceStatsEntry.put("Source Overlap", statsList);
+          newStatsEntry.setStatisticsMap(sourceStatsEntry);
+          operationsService.index(newStatsEntry, terminology.getObjectIndexName(), ElasticOperationsService.OBJECT_TYPE,
+              ElasticObject.class);
+        } catch (IOException e) {
+          // Handle the file not found exception and log a warning
+          logger.warn(source + " source overlap stats file not found for ncim");
+        }
+
+        // any future stats additions go here
+      }
+    }
+
   }
 
   /**
@@ -1190,6 +1302,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     // Handle termTypes - n/a - handled inline
     //
 
+    // Handle stats
+    handleStatistics(terminology, terminology.getMetadata().getSynonymSourceSet());
+
   }
 
   /**
@@ -1262,7 +1377,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           term.setGraph(null);
           term.setSource(null);
           term.setTerminologyVersion(term.getTerminology() + "_" + term.getVersion());
-          term.setIndexName("concept_" + term.getTerminologyVersion());
+          term.setIndexName("concept_" + term.getTerminologyVersion().toLowerCase());
           term.setLatest(true);
           term.setSparqlFlag(false);
           // if (forceDelete) {
@@ -1377,12 +1492,13 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           concept = new Concept();
           concept.setName("Retired concept");
           concept.setNormName(ConceptUtils.normalize("Retired concept"));
+          concept.setStemName(ConceptUtils.normalizeWithStemming("Retired concept"));
           concept.setCode(cui);
           concept.setTerminology(terminology.getTerminology());
           concept.setVersion(terminology.getVersion());
           // NO hierarchies for NCIM concepts, so set leaf to null
           concept.setLeaf(null);
-
+          setConceptInactive(terminology, concept);
         }
 
         // Make a history entry from this line

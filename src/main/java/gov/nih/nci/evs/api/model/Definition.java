@@ -15,9 +15,12 @@ import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents a synonym of a concept.
  */
+@Schema(description = "Represents a text definition for a concept")
 @JsonInclude(Include.NON_EMPTY)
 public class Definition extends BaseModel implements Comparable<Definition> {
 
@@ -84,6 +87,7 @@ public class Definition extends BaseModel implements Comparable<Definition> {
    *
    * @return the definition
    */
+  @Schema(description = "Text definition value")
   public String getDefinition() {
     return definition;
   }
@@ -102,6 +106,7 @@ public class Definition extends BaseModel implements Comparable<Definition> {
    *
    * @return the highlight
    */
+  @Schema(description = "Used by search calls to provide information for highlighting a view of results")
   public String getHighlight() {
     return highlight;
   }
@@ -120,6 +125,7 @@ public class Definition extends BaseModel implements Comparable<Definition> {
    *
    * @return the code
    */
+  @Schema(hidden = true)
   public String getCode() {
     return code;
   }
@@ -138,6 +144,7 @@ public class Definition extends BaseModel implements Comparable<Definition> {
    *
    * @return the type
    */
+  @Schema(description = "Definition type")
   public String getType() {
     return type;
   }
@@ -156,6 +163,7 @@ public class Definition extends BaseModel implements Comparable<Definition> {
    *
    * @return the source
    */
+  @Schema(description = "Definition source")
   public String getSource() {
     return source;
   }
@@ -174,6 +182,7 @@ public class Definition extends BaseModel implements Comparable<Definition> {
    *
    * @return the qualifiers
    */
+  @Schema(description = "Type/value qualifiers on the definition")
   public List<Qualifier> getQualifiers() {
     if (qualifiers == null) {
       qualifiers = new ArrayList<>();
@@ -190,11 +199,6 @@ public class Definition extends BaseModel implements Comparable<Definition> {
     this.qualifiers = qualifiers;
   }
 
-  /**
-   * Hash code.
-   *
-   * @return the int
-   */
   /* see superclass */
   @Override
   public int hashCode() {
@@ -206,12 +210,6 @@ public class Definition extends BaseModel implements Comparable<Definition> {
     return result;
   }
 
-  /**
-   * Equals.
-   *
-   * @param obj the obj
-   * @return true, if successful
-   */
   /* see superclass */
   @Override
   public boolean equals(final Object obj) {

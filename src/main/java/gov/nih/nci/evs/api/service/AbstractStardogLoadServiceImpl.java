@@ -230,10 +230,10 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           c.setExtensions(mainTypeHierarchy.getExtensions(c));
           handleHistory(terminology, c);
           if (c.getMaps().size() > 0) {
-            for (final gov.nih.nci.evs.api.model.Map map : c.getMaps()) {
+            for (final gov.nih.nci.evs.api.model.ConceptMap map : c.getMaps()) {
               final String mapterm = map.getTargetTerminology().split(" ")[0];
               if (mapsets.containsKey(mapterm)) {
-                final gov.nih.nci.evs.api.model.Map copy = new gov.nih.nci.evs.api.model.Map(map);
+                final gov.nih.nci.evs.api.model.ConceptMap copy = new gov.nih.nci.evs.api.model.ConceptMap(map);
                 copy.setSourceCode(c.getCode());
                 copy.setSourceName(c.getName());
                 copy.setSourceTerminology(c.getTerminology());
@@ -287,9 +287,10 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       for (Map.Entry<String, Concept> mapset : mapsets.entrySet()) {
         operationsService.delete(ElasticOperationsService.MAPPING_INDEX, ElasticOperationsService.CONCEPT_TYPE,
             "NCIt_Maps_To_" + mapset.getKey());
-        Collections.sort(mapset.getValue().getMaps(), new Comparator<gov.nih.nci.evs.api.model.Map>() {
+        Collections.sort(mapset.getValue().getMaps(), new Comparator<gov.nih.nci.evs.api.model.ConceptMap>() {
           @Override
-          public int compare(final gov.nih.nci.evs.api.model.Map o1, final gov.nih.nci.evs.api.model.Map o2) {
+          public int compare(final gov.nih.nci.evs.api.model.ConceptMap o1,
+            final gov.nih.nci.evs.api.model.ConceptMap o2) {
             // Assume maps are not null
             return (o1.getSourceName() + o1.getType() + o1.getGroup() + o1.getRank() + o1.getTargetName())
                 .compareTo(o2.getSourceName() + o2.getType() + o2.getGroup() + o2.getRank() + o2.getTargetName());
@@ -331,7 +332,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       ElasticObject hierarchyObject = new ElasticObject("hierarchy");
       hierarchyObject.setHierarchy(hierarchy);
       operationsService.index(hierarchyObject, indexName, ElasticOperationsService.OBJECT_TYPE, ElasticObject.class);
-      logger.info("  Hierarchy loaded");
+      logger.info("  Hierarchy loaded = " + hierarchy.getHierarchyRoots());
     } else {
       logger.info("  Hierarchy skipped");
     }
@@ -542,12 +543,12 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       if (term.getTerminology() == "ncit" && stardogProperties.getDb().equals(term.getMetadata().getMonthlyDb())) {
 
         // setup mappings
-        Concept ncitMapsToGdc = setupMap("GDC", term.getTerminologyVersion());
-        Concept ncitMapsToIcd10 = setupMap("ICD10", term.getTerminologyVersion());
-        Concept ncitMapsToIcd10cm = setupMap("ICD10CM", term.getTerminologyVersion());
-        Concept ncitMapsToIcd9cm = setupMap("ICD9CM", term.getTerminologyVersion());
-        Concept ncitMapsToIcdo3 = setupMap("ICDO3", term.getTerminologyVersion());
-        Concept ncitMapsToMeddra = setupMap("MedDRA", term.getTerminologyVersion());
+        Concept ncitMapsToGdc = setupMap("GDC", term.getVersion());
+        Concept ncitMapsToIcd10 = setupMap("ICD10", term.getVersion());
+        Concept ncitMapsToIcd10cm = setupMap("ICD10CM", term.getVersion());
+        Concept ncitMapsToIcd9cm = setupMap("ICD9CM", term.getVersion());
+        Concept ncitMapsToIcdo3 = setupMap("ICDO3", term.getVersion());
+        Concept ncitMapsToMeddra = setupMap("MedDRA", term.getVersion());
         mapsets.put("GDC", ncitMapsToGdc);
         mapsets.put("ICD10", ncitMapsToIcd10);
         mapsets.put("ICD10CM", ncitMapsToIcd10cm);
@@ -571,16 +572,18 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
-   * 
-   * @param term the terminology
+   * Setup map.
+   *
+   * @param term the term
    * @param version the version
-   * @return
+   * @return the concept
    */
   private Concept setupMap(String term, String version) {
     Concept map = new Concept();
     map.setCode("NCIt_Maps_To_" + term);
     map.setName("NCIt_Maps_To_" + term);
     map.setVersion(version);
+    map.setActive(true);
     map.getProperties().add(new Property("downloadOnly", "true"));
     map.getProperties().add(new Property("mapsetLink", null));
     map.getProperties().add(new Property("loader", "AbstractStardogLoadServiceImpl"));
@@ -663,8 +666,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
    * Handle history.
    *
    * @param terminology the terminology
-   * @param Concept the concept
-   * @throws Exception the exception
+   * @param concept the concept
    */
   private void handleHistory(final Terminology terminology, final Concept concept) {
 

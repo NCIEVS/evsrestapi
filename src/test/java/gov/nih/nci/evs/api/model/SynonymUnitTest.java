@@ -86,6 +86,7 @@ public class SynonymUnitTest {
     tester.include("type");
     tester.include("source");
     tester.include("code");
+    tester.include("active");
     tester.include("subSource");
 
     assertTrue(tester.testIdentityFieldEquals());

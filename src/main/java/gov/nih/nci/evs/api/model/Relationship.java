@@ -15,9 +15,12 @@ import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents a connection between two concepts.
  */
+@Schema(description = "Represents a connection between two concepts")
 @JsonInclude(Include.NON_EMPTY)
 public class Relationship extends BaseModel implements Comparable<Relationship> {
 
@@ -85,11 +88,11 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
   }
 
   /**
-   * Returns the code. This is really for internal use for connecting qualifiers
-   * to properties.
+   * Returns the code. This is really for internal use for connecting qualifiers to properties.
    *
    * @return the code
    */
+  @Schema(hidden = true)
   public String getCode() {
     return code;
   }
@@ -108,6 +111,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
    *
    * @return the type
    */
+  @Schema(description = "Relationship type")
   public String getType() {
     return type;
   }
@@ -126,6 +130,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
    *
    * @return the related code
    */
+  @Schema(description = "Related code (the code on the other side of the relationship)")
   public String getRelatedCode() {
     return relatedCode;
   }
@@ -144,6 +149,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
    *
    * @return the related name
    */
+  @Schema(description = "Preferred name of the related code")
   public String getRelatedName() {
     return relatedName;
   }
@@ -162,6 +168,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
    *
    * @return the source
    */
+  @Schema(description = "Relationship source")
   public String getSource() {
     return source;
   }
@@ -180,6 +187,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
    *
    * @return the highlight
    */
+  @Schema(description = "Used by search calls to provide information for highlighting a view of results")
   public String getHighlight() {
     return highlight;
   }
@@ -198,6 +206,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
    *
    * @return the qualifiers
    */
+  @Schema(description = "Type/value qualifiers on the relationship")
   public List<Qualifier> getQualifiers() {
     if (qualifiers == null) {
       qualifiers = new ArrayList<>();

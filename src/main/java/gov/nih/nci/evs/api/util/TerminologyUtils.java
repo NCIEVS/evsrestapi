@@ -7,14 +7,23 @@ import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.apache.commons.text.StringSubstitutor;
+import org.apache.http.HttpEntity;
+import org.apache.http.client.methods.CloseableHttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClients;
+import org.apache.http.util.EntityUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +33,7 @@ import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ResponseStatusException;
 
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
@@ -36,7 +46,6 @@ import gov.nih.nci.evs.api.support.es.IndexMetadata;
 public final class TerminologyUtils {
 
   /** The Constant logger. */
-  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(TerminologyUtils.class);
 
   /** The sparql query manager service. */
@@ -52,11 +61,22 @@ public final class TerminologyUtils {
   @Autowired
   StardogProperties stardogProperties;
 
+  /** The application properties. */
+  @Autowired
+  ApplicationProperties applicationProperties;
+
+  /** The license cache. */
+  private static Map<String, String> licenseCache = new LinkedHashMap<String, String>(1000 * 4 / 3, 0.75f, true) {
+    @Override
+    protected boolean removeEldestEntry(final Map.Entry<String, String> eldest) {
+      return size() > 1000;
+    }
+  };
+
   /**
    * Returns all terminologies.
    * 
-   * @param indexed use {@literal true} to get indexed terminologies as opposed to terminologies
-   *          from stardog
+   * @param indexed use {@literal true} to get indexed terminologies as opposed to terminologies from stardog
    * @return the terminologies
    * @throws Exception Signals that an exception has occurred.
    */
@@ -86,6 +106,7 @@ public final class TerminologyUtils {
    * Returns the stale terminologies.
    *
    * @param dbs the dbs
+   * @param terminology the terminology
    * @return the stale terminologies
    * @throws Exception the exception
    */
@@ -164,6 +185,17 @@ public final class TerminologyUtils {
   }
 
   /**
+   * Returns the terminology name without the version.
+   *
+   * @param terminology the terminology
+   * @return the terminology name
+   * @throws Exception the exception
+   */
+  public String getTerminologyName(final String terminology) throws Exception {
+    return terminology.replaceFirst("(?<!snomedct)_.*", "");
+  }
+
+  /**
    * As set.
    *
    * @param <T> the
@@ -218,7 +250,7 @@ public final class TerminologyUtils {
     // the 5th Monday of May in 2021 but also a holiday
     else if (terminology.getMetadata() == null || terminology.getMetadata().getMonthlyDb() == null) {
       final Date d = fmt.parse(terminology.getDate());
-      Calendar cal = GregorianCalendar.getInstance();
+      Calendar cal = Calendar.getInstance();
       cal.setTime(d);
       // Count days of week; for NCI, this should be max Mondays in month
       int maxDayOfWeek = cal.getActualMaximum(Calendar.DAY_OF_WEEK_IN_MONTH);
@@ -246,4 +278,142 @@ public final class TerminologyUtils {
     terminology.getTags().put("weekly", "true");
   }
 
+  /**
+   * Check license.
+   *
+   * @param terminology the terminology
+   * @param license the license info
+   * @throws Exception the exception
+   */
+  public void checkLicense(final Terminology terminology, final String license) throws Exception {
+
+    // Nothing to do if there is no license requirement.
+    if (terminology.getMetadata().getLicenseText() == null) {
+      return;
+    }
+
+    final String licenseUrl = "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md";
+
+    // Check the license key and fail
+    if (license == null) {
+
+      // Override mechanism to support disabling the license check.
+      if (terminology.getMetadata().getLicenseCheck() == null
+          || terminology.getMetadata().getLicenseCheck().equals("DISABLED")) {
+        return;
+      }
+
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+          "API calls for terminology='" + terminology.getTerminology()
+              + "' require an X-EVSRESTAPI-License-Key header, visit " + licenseUrl + " for more information.");
+    }
+
+    // Allow the UI license to bypass this.
+    if (license.equals(applicationProperties.getUiLicense())) {
+      return;
+    }
+
+    // If cached as success already, continue to allow
+    if (licenseCache.containsKey(terminology.getTerminology() + license)) {
+      if ("true".equals(licenseCache.get(terminology.getTerminology() + license))) {
+        return;
+      } else {
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+            "Invalid X-EVSRESTAPI-License-Key header for this terminology, visit " + licenseUrl
+                + " for more information.");
+      }
+    }
+    // Handle MDR Style - meddraId:meddraApiKey
+    if (terminology.getTerminology().equals("mdr")) {
+
+      // Verify license
+      final String[] tokens = license.split(":");
+      if (tokens.length != 2) {
+        throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+            "API calls for terminology='" + terminology.getTerminology()
+                + "' require an X-EVSRESTAPI-License-Key header with 2 parts 'meddraID:meddraApiKey', visit "
+                + licenseUrl + " for more information.");
+      }
+      final String id = tokens[0];
+      final String apiKey = tokens[1];
+
+      final String[] parts = terminology.getMetadata().getLicenseCheck().split(";");
+      final String method = parts[0];
+      final String uri = parts[1];
+      final String contentType = parts[2];
+      final Map<String, String> config = new HashMap<>();
+      config.put("id", id);
+      config.put("apiKey", apiKey);
+      final String payload = new StringSubstitutor(config).replace(parts[3]);
+      try {
+        checkLicenseHttp(method, uri, contentType, payload, licenseUrl);
+      } catch (Exception e) {
+        licenseCache.put(terminology.getTerminology() + license, "false");
+        throw e;
+      }
+
+      licenseCache.put(terminology.getTerminology() + license, "true");
+    }
+
+  }
+
+  /**
+   * Check license http.
+   *
+   * @param method the method
+   * @param uri the uri
+   * @param contentType the content type
+   * @param payload the payload
+   * @param licenseUrl the license url
+   * @throws Exception the exception
+   */
+  public void checkLicenseHttp(final String method, final String uri, final String contentType, final String payload,
+    final String licenseUrl) throws Exception {
+
+    try (final CloseableHttpClient httpClient = HttpClients.createDefault()) {
+
+      HttpUriRequest request = null;
+
+      if (method.equals("POST")) {
+        // Create an instance of HttpPost
+        final HttpPost httpPost = new HttpPost(uri);
+        httpPost.addHeader("Content-type", contentType);
+        httpPost.setEntity(new StringEntity(payload));
+        request = httpPost;
+      }
+      // Handle GET when needed
+      // else {}
+
+      // Unexpected
+      else {
+        throw new Exception("Unsupported method = " + method);
+      }
+
+      // Execute the POST request
+      try (final CloseableHttpResponse response = httpClient.execute(request)) {
+        // Get the response entity
+        final HttpEntity entity = response.getEntity();
+
+        // Get the response status code
+        final int statusCode = response.getStatusLine().getStatusCode();
+        final String responseContent = EntityUtils.toString(entity);
+        if (statusCode >= 300) {
+          logger.error("uri = " + uri);
+          logger.error("payload = " + payload);
+          logger.error("Unexpected response = " + responseContent);
+          throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+              "Invalid X-EVSRESTAPI-License-Key header for this terminology, visit " + licenseUrl
+                  + " for more information.");
+        }
+
+      }
+    }
+  }
+
+  /**
+   * Clear cache.
+   */
+  public static void clearCache() {
+    licenseCache.clear();
+  }
 }

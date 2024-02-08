@@ -5,6 +5,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.List;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,9 +20,11 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
 
 /**
  * NCIt samples test.
@@ -79,5 +83,60 @@ public class NcimSampleTest extends SampleTest {
     assertThat(concept.getMaps().get(1).getRank()).isEqualTo("1");
     assertThat(concept.getMaps().get(1).getRule()).isEqualTo("TRUE");
     // TODO: test what the maps are
+  }
+
+  /**
+   * Test concept active status.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testActive() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // Test active
+    url = "/api/v1/concept/ncim/CL547438";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("CL547438");
+    assertThat(concept.getTerminology()).isEqualTo("ncim");
+    assertThat(concept.getActive()).isTrue();
+
+    // Test inactive
+    url = "/api/v1/concept/ncim/C0278390?include=full";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C0278390");
+    assertThat(concept.getTerminology()).isEqualTo("ncim");
+    assertThat(concept.getActive()).isFalse();
+    assertThat(concept.getConceptStatus()).isEqualTo("Retired_Concept");
+
+    // test that "Retired_Concept" was added to the list of concept statuses
+    url = "/api/v1/metadata/terminologies?terminology=ncim&latest=true";
+    log.info("Testing url - " + url);
+
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    List<Terminology> list =
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
+        });
+    assertThat(list).isNotEmpty();
+    Terminology term = list.get(0);
+    assertThat(term.getMetadata().getConceptStatuses()).isNotEmpty();
+    assertThat(term.getMetadata().getConceptStatuses()).contains("Retired_Concept");
   }
 }

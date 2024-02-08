@@ -24,6 +24,7 @@ import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -168,6 +169,23 @@ public class MetadataServiceImpl implements MetadataService {
     return ConceptUtils.applyList(properties, ip, list.orElse(null));
   }
 
+  /**
+   * Returns the source stats.
+   *
+   * @param terminology the terminology
+   * @param source the source
+   * @return the properties
+   * @throws Exception the exception
+   */
+  @Override
+  public Map<String, List<StatisticsEntry>> getSourceStats(String terminology, String source)
+    throws Exception {
+    final Terminology term = termUtils.getTerminology(terminology, true);
+
+    return esQueryService.getSourceStats(term, source);
+
+  }
+
   /* see superclass */
   @Override
   public List<Concept> getQualifiers(String terminology, Optional<String> include,
@@ -269,13 +287,17 @@ public class MetadataServiceImpl implements MetadataService {
   @Override
   public List<ConceptMinimal> getSynonymSources(String terminology) throws Exception {
     final Terminology term = termUtils.getTerminology(terminology, true);
-    if (!term.getTerminology().equals("ncit")) {
-      // Build the list from terminology metadata
+    // For things loaded via RRF
+    if (!term.getMetadata().getSynonymSourceSet().isEmpty()) {
       return buildList(term, term.getMetadata().getSynonymSourceSet(),
           term.getMetadata().getSources());
     }
+    // For NCIt (and other things don't have source info)
+    // Here we lookup from the db but we resolve against the metadata expansions
+    final Set<String> sources = esQueryService.getSynonymSources(term).stream()
+        .map(c -> c.getCode()).collect(Collectors.toSet());
+    return buildList(term, sources, term.getMetadata().getSources());
 
-    return esQueryService.getSynonymSources(term);
   }
 
   /**
@@ -396,6 +418,7 @@ public class MetadataServiceImpl implements MetadataService {
   }
 
   /* see superclass */
+  @Override
   public AssociationEntryResultList getAssociationEntries(String terminology, String label,
     Integer fromRecord, Integer pageSize) throws Exception {
     return esQueryService.getAssociationEntries(terminology, label, fromRecord, pageSize);
@@ -412,8 +435,8 @@ public class MetadataServiceImpl implements MetadataService {
     // subsets should always return children
     // (contributing source needed)
     ipWithProperties.setChildren(true);
-    ipWithProperties.setProperties(true);
     ipWithProperties.setSubsetLink(true);
+    ipWithProperties.setProperties(true);
     ip.setChildren(true);
     // avoid overwriting IP: ip.setProperties(false);
     ip.setSubsetLink(true);
@@ -424,6 +447,10 @@ public class MetadataServiceImpl implements MetadataService {
     // No list of codes supplied
     if (!list.isPresent()) {
 
+      if (include.orElse("minimal").equals("minimal")) {
+        return subsets;
+      }
+
       final Set<String> codes = subsets.stream().flatMap(Concept::streamSelfAndChildren)
           .map(c -> c.getCode()).collect(Collectors.toSet());
       final Map<String, Concept> conceptMap =
@@ -432,12 +459,6 @@ public class MetadataServiceImpl implements MetadataService {
       // Populate subset concepts (with properties)
       subsets.stream().flatMap(Concept::streamSelfAndChildren)
           .peek(c -> c.populateFrom(conceptMap.get(c.getCode())));
-
-      // After populating all concepts, remove non-publishable children (based on properties)
-      subsets.stream().flatMap(Concept::streamSelfAndChildren).peek(c -> c.getChildren()
-          .removeIf(chd -> chd.getProperties().stream()
-              .filter(p -> p.getType().equals("Publish_Value_Set") && !p.getValue().equals("Yes"))
-              .count() == 0));
 
       // Apply include (without properties)
       subsets.stream().flatMap(Concept::streamSelfAndChildren)

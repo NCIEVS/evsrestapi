@@ -21,6 +21,9 @@ public class ApplicationProperties {
   /** The config base Uri. */
   private String configBaseUri;
 
+  /** The ui license - passed by UI to the backend via X-EVSRESAPI-License-Key. */
+  private String uiLicense;
+
   /**
    * Returns the admin key.
    *
@@ -35,7 +38,7 @@ public class ApplicationProperties {
    *
    * @param adminKey the admin key
    */
-  public void setAdminKey(String adminKey) {
+  public void setAdminKey(final String adminKey) {
     this.adminKey = adminKey;
   }
 
@@ -53,7 +56,7 @@ public class ApplicationProperties {
    *
    * @param contextPath the context path
    */
-  public void setContextPath(String contextPath) {
+  public void setContextPath(final String contextPath) {
     this.contextPath = contextPath;
   }
 
@@ -71,7 +74,7 @@ public class ApplicationProperties {
    *
    * @param metricsEnabled the metric log directory
    */
-  public void setMetricsEnabled(Boolean metricsEnabled) {
+  public void setMetricsEnabled(final Boolean metricsEnabled) {
     this.metricsEnabled = metricsEnabled;
   }
 
@@ -89,7 +92,7 @@ public class ApplicationProperties {
    *
    * @param metricsDir the metric directory
    */
-  public void setMetricsDir(String metricsDir) {
+  public void setMetricsDir(final String metricsDir) {
     this.metricsDir = metricsDir;
   }
 
@@ -107,8 +110,26 @@ public class ApplicationProperties {
    *
    * @param configBaseUri the config base uri
    */
-  public void setConfigBaseUri(String configBaseUri) {
+  public void setConfigBaseUri(final String configBaseUri) {
     this.configBaseUri = configBaseUri;
+  }
+
+  /**
+   * Returns the ui license.
+   *
+   * @return the ui license
+   */
+  public String getUiLicense() {
+    return uiLicense;
+  }
+
+  /**
+   * Sets the ui license.
+   *
+   * @param uiLicense the ui license
+   */
+  public void setUiLicense(final String uiLicense) {
+    this.uiLicense = uiLicense;
   }
 
 }

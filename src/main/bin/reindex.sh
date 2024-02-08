@@ -192,28 +192,18 @@ if [[ $config -eq 0 ]]; then
     jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
 fi
 
-# mapping indexes
-export EVS_SERVER_PORT="8083"
-echo "    Generate mapping indexes"
-echo "      java $local -Xm4096M -jar $jar --terminology mapping" | sed 's/^/      /'
-java $local -Xmx4096M -jar $jar --terminology mapping
-if [[ $? -ne 0 ]]; then
-    echo "ERROR: unexpected error building mapping indexes"
-    exit 1
-fi
-
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
     version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/(\d+)/[a-zA-Z]+.owl#$1#;'`
-    cv=`echo $version | perl -pe 's/[\.\-]//g;'`
+    cv=`echo $version | tr '[:upper:]' '[:lower:]' | perl -pe 's/[\.\-]//g;'`
     db=`echo $x | cut -d\| -f 2`
     uri=`echo $x | cut -d\| -f 3`
-    term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/; s/.*\/chebi.owl/chebi/'`
+    term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/; s/.*\/chebi.owl/chebi/; s/.*\/umlssemnet.owl/umlssemnet/; s/.*\/MEDRT.owl/medrt/; s/.*\/CanMED.owl/canmed/; s/.*\/ctcae5.owl/ctcae5/'`
 
     # if previous version and current version match, then skip
     # this is a monthly that's in both NCIT2 and CTRP databases
-    if [[ $cv == $pv ]]; then
-        echo "    SEEN $cv, continue"
+    if [[ $cv == $pv ]] && [[ $term == $pt ]]; then
+        echo "    SEEN $cv for $pt, continue"
         continue
     fi
 
@@ -280,6 +270,15 @@ for x in `cat /tmp/y.$$.txt`; do
             echo "    MISSING $y index"
             exists=0
         fi
+
+        if [[ $y == "evs_metadata" ]]; then
+            echo "  Checking for existence of concept_${term}_$cv"
+            # Check whether the entry for this terminology exists        
+            if [[ `curl -s "${ES_SCHEME}://${ES_HOST}:${ES_PORT}/evs_metadata/_doc/concept_${term}_$cv" | grep '"found":false' | wc -l` -eq 1 ]]; then
+                echo "    MISSING evs_metadata entry for concept_${term}_$cv"
+                exists=0
+            fi
+        fi
     done
     
     if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
@@ -295,7 +294,7 @@ for x in `cat /tmp/y.$$.txt`; do
         # regardless of whether there was new data
         echo "    RECONCILE $term stale indexes and update flags"
         export EVS_SERVER_PORT="8083"
-        java $local -jar $jar --terminology ${term} --skipConcepts --skipMetadata > /tmp/x.$$.log 2>&1 
+        java $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata > /tmp/x.$$.log 2>&1 
         if [[ $? -ne 0 ]]; then
             cat /tmp/x.$$.log | sed 's/^/    /'
             echo "ERROR: unexpected error building indexes"
@@ -329,8 +328,8 @@ for x in `cat /tmp/y.$$.txt`; do
         	historyClause=" -d $historyFile"
         fi
 
-        echo "    java $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause" | sed 's/^/      /'
-        java $local -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause
+        echo "    java $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
+        java $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error building indexes"
             exit 1
@@ -354,10 +353,22 @@ for x in `cat /tmp/y.$$.txt`; do
         /bin/rm -rf $DIR/NCIT_HISTORY
 	fi
     
+    
+    
     # track previous version, if next one is the same, don't index again.
     pv=$cv
     pt=$term
 done
+
+# Reconcile mappings after loading terminologies
+export EVS_SERVER_PORT="8083"
+echo "    Generate mapping indexes"
+echo "      java $local -Xm4096M -jar $jar --terminology mapping"
+java $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
+if [[ $? -ne 0 ]]; then
+    echo "ERROR: unexpected error building mapping indexes"
+    exit 1
+fi
 
 # Cleanup
 /bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt /tmp/x.$$

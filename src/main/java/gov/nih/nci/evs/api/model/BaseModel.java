@@ -5,14 +5,15 @@ import org.springframework.data.annotation.Transient;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents the base superclass for other model objects.
  */
 public class BaseModel {
 
   /**
-   * The rdf:about - used for situations where there is not a defined code
-   * property.
+   * The rdf:about - used for situations where there is not a defined code property.
    */
   @Transient
   private String uri;
@@ -51,6 +52,7 @@ public class BaseModel {
    *
    * @return the uri
    */
+  @Schema(description = "URI for this element in an rdf-based source file")
   public String getUri() {
     return uri;
   }
@@ -69,6 +71,7 @@ public class BaseModel {
    *
    * @return the ct
    */
+  @Schema(description = "Used to indicate the total amount of data in cases where a limit is being applied")
   public Integer getCt() {
     return ct;
   }

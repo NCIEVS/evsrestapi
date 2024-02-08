@@ -12,10 +12,13 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * Represents terminology metadata, which includes information about mapping from OWL structures to
  * the terminology model.
  */
+@Schema(description = "Represents additional terminology metadata")
 @JsonInclude(Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class TerminologyMetadata extends BaseModel {
@@ -94,7 +97,7 @@ public class TerminologyMetadata extends BaseModel {
 
   /** The hierarchy flag. */
   private Boolean hierarchy;
-  
+
   /** The history flag. */
   private Boolean history;
 
@@ -137,6 +140,9 @@ public class TerminologyMetadata extends BaseModel {
 
   /** The license text. */
   private String licenseText;
+
+  /** The license check. */
+  private String licenseCheck;
 
   /** The meta concept field. */
   private String metaConceptField;
@@ -210,6 +216,7 @@ public class TerminologyMetadata extends BaseModel {
     subsetMember = new HashSet<>(other.getSubsetMember());
     unpublished = new HashSet<>(other.getUnpublished());
     monthlyDb = other.getMonthlyDb();
+    licenseCheck = other.getLicenseCheck();
     licenseText = other.getLicenseText();
     metaConceptField = other.getMetaConceptField();
     preferredTermTypes = new ArrayList<>(other.getPreferredTermTypes());
@@ -218,49 +225,14 @@ public class TerminologyMetadata extends BaseModel {
     welcomeText = other.getWelcomeText();
   }
 
-  /* see superclass */
   @Override
   public int hashCode() {
     final int prime = 31;
     int result = 1;
     result = prime * result + ((uiLabel == null) ? 0 : uiLabel.hashCode());
-    result = prime * result + ((maxVersions == null) ? 0 : maxVersions.hashCode());
-    result = prime * result + ((loader == null) ? 0 : loader.hashCode());
-    result = prime * result + ((code == null) ? 0 : code.hashCode());
-    result = prime * result + ((definitionSource == null) ? 0 : definitionSource.hashCode());
-    result = prime * result + ((mapRelation == null) ? 0 : mapRelation.hashCode());
-    result = prime * result + ((mapTarget == null) ? 0 : mapTarget.hashCode());
-    result = prime * result + ((mapTargetTermType == null) ? 0 : mapTargetTermType.hashCode());
-    result =
-        prime * result + ((mapTargetTerminology == null) ? 0 : mapTargetTerminology.hashCode());
-    result = prime * result
-        + ((mapTargetTerminologyVersion == null) ? 0 : mapTargetTerminologyVersion.hashCode());
-    result = prime * result + ((preferredName == null) ? 0 : preferredName.hashCode());
-    result = prime * result + ((sources == null) ? 0 : sources.hashCode());
-    result = prime * result + ((sourcesToRemove == null) ? 0 : sourcesToRemove.hashCode());
-    result = prime * result + ((synonym == null) ? 0 : synonym.hashCode());
-    result = prime * result + ((synonymCode == null) ? 0 : synonymCode.hashCode());
-    result = prime * result + ((synonymSource == null) ? 0 : synonymSource.hashCode());
-    result = prime * result + ((synonymSubSource == null) ? 0 : synonymSubSource.hashCode());
-    result = prime * result + ((synonymTermType == null) ? 0 : synonymTermType.hashCode());
-    result = prime * result + ((definitionSourceSet == null) ? 0 : definitionSourceSet.hashCode());
-    result = prime * result + ((synonymSourceSet == null) ? 0 : synonymSourceSet.hashCode());
-    result = prime * result + ((termTypes == null) ? 0 : termTypes.hashCode());
-    result = prime * result + ((subsetMember == null) ? 0 : subsetMember.hashCode());
-    result = prime * result + ((unpublished == null) ? 0 : unpublished.hashCode());
-    result = prime * result + ((monthlyDb == null) ? 0 : monthlyDb.hashCode());
-    result = prime * result + ((licenseText == null) ? 0 : licenseText.hashCode());
-    result = prime * result + ((metaConceptField == null) ? 0 : metaConceptField.hashCode());
-    result = prime * result + ((preferredTermTypes == null) ? 0 : preferredTermTypes.hashCode());
-    result = prime * result + ((subset == null) ? 0 : subset.hashCode());
-    result = prime * result + ((subsetLink == null) ? 0 : subsetLink.hashCode());
-    result = prime * result + ((subsetPrefix == null) ? 0 : subsetPrefix.hashCode());
-    result = prime * result + ((codeLabel == null) ? 0 : codeLabel.hashCode());
-    result = prime * result + ((welcomeText == null) ? 0 : welcomeText.hashCode());
     return result;
   }
 
-  /* see superclass */
   @Override
   public boolean equals(Object obj) {
     if (this == obj)
@@ -275,161 +247,6 @@ public class TerminologyMetadata extends BaseModel {
         return false;
     } else if (!uiLabel.equals(other.uiLabel))
       return false;
-    if (maxVersions == null) {
-      if (other.maxVersions != null)
-        return false;
-    } else if (!maxVersions.equals(other.maxVersions))
-      return false;
-    if (loader == null) {
-      if (other.loader != null)
-        return false;
-    } else if (!loader.equals(other.loader))
-      return false;
-    if (code == null) {
-      if (other.code != null)
-        return false;
-    } else if (!code.equals(other.code))
-      return false;
-    if (definitionSource == null) {
-      if (other.definitionSource != null)
-        return false;
-    } else if (!definitionSource.equals(other.definitionSource))
-      return false;
-    if (mapRelation == null) {
-      if (other.mapRelation != null)
-        return false;
-    } else if (!mapRelation.equals(other.mapRelation))
-      return false;
-    if (mapTarget == null) {
-      if (other.mapTarget != null)
-        return false;
-    } else if (!mapTarget.equals(other.mapTarget))
-      return false;
-    if (mapTargetTermType == null) {
-      if (other.mapTargetTermType != null)
-        return false;
-    } else if (!mapTargetTermType.equals(other.mapTargetTermType))
-      return false;
-    if (mapTargetTerminology == null) {
-      if (other.mapTargetTerminology != null)
-        return false;
-    } else if (!mapTargetTerminology.equals(other.mapTargetTerminology))
-      return false;
-    if (mapTargetTerminologyVersion == null) {
-      if (other.mapTargetTerminologyVersion != null)
-        return false;
-    } else if (!mapTargetTerminologyVersion.equals(other.mapTargetTerminologyVersion))
-      return false;
-    if (preferredName == null) {
-      if (other.preferredName != null)
-        return false;
-    } else if (!preferredName.equals(other.preferredName))
-      return false;
-    if (sources == null) {
-      if (other.sources != null)
-        return false;
-    } else if (!sources.equals(other.sources))
-      return false;
-    if (sourcesToRemove == null) {
-      if (other.sourcesToRemove != null)
-        return false;
-    } else if (!sourcesToRemove.equals(other.sourcesToRemove))
-      return false;
-    if (synonym == null) {
-      if (other.synonym != null)
-        return false;
-    } else if (!synonym.equals(other.synonym))
-      return false;
-    if (synonymCode == null) {
-      if (other.synonymCode != null)
-        return false;
-    } else if (!synonymCode.equals(other.synonymCode))
-      return false;
-    if (synonymSource == null) {
-      if (other.synonymSource != null)
-        return false;
-    } else if (!synonymSource.equals(other.synonymSource))
-      return false;
-    if (synonymSubSource == null) {
-      if (other.synonymSubSource != null)
-        return false;
-    } else if (!synonymSubSource.equals(other.synonymSubSource))
-      return false;
-    if (synonymTermType == null) {
-      if (other.synonymTermType != null)
-        return false;
-    } else if (!synonymTermType.equals(other.synonymTermType))
-      return false;
-    if (definitionSourceSet == null) {
-      if (other.definitionSourceSet != null)
-        return false;
-    } else if (!definitionSourceSet.equals(other.definitionSourceSet))
-      return false;
-    if (synonymSourceSet == null) {
-      if (other.synonymSourceSet != null)
-        return false;
-    } else if (!synonymSourceSet.equals(other.synonymSourceSet))
-      return false;
-    if (termTypes == null) {
-      if (other.termTypes != null)
-        return false;
-    } else if (!termTypes.equals(other.termTypes))
-      return false;
-    if (subsetMember == null) {
-      if (other.subsetMember != null)
-        return false;
-    } else if (!subsetMember.equals(other.subsetMember))
-      return false;
-    if (unpublished == null) {
-      if (other.unpublished != null)
-        return false;
-    } else if (!unpublished.equals(other.unpublished))
-      return false;
-    if (monthlyDb == null) {
-      if (other.monthlyDb != null)
-        return false;
-    } else if (!monthlyDb.equals(other.monthlyDb))
-      return false;
-    if (licenseText == null) {
-      if (other.licenseText != null)
-        return false;
-    } else if (!licenseText.equals(other.licenseText))
-      return false;
-    if (metaConceptField == null) {
-      if (other.metaConceptField != null)
-        return false;
-    } else if (!metaConceptField.equals(other.metaConceptField))
-      return false;
-    if (preferredTermTypes == null) {
-      if (other.preferredTermTypes != null)
-        return false;
-    } else if (!preferredTermTypes.equals(other.preferredTermTypes))
-      return false;
-    if (subset == null) {
-      if (other.subset != null)
-        return false;
-    } else if (!subset.equals(other.subset))
-      return false;
-    if (subsetLink == null) {
-      if (other.subsetLink != null)
-        return false;
-    } else if (!subsetLink.equals(other.subsetLink))
-      return false;
-    if (subsetPrefix == null) {
-      if (other.subsetPrefix != null)
-        return false;
-    } else if (!subsetPrefix.equals(other.subsetPrefix))
-      return false;
-    if (codeLabel == null) {
-      if (other.codeLabel != null)
-        return false;
-    } else if (!codeLabel.equals(other.codeLabel))
-      return false;
-    if (welcomeText == null) {
-      if (other.welcomeText != null)
-        return false;
-    } else if (!welcomeText.equals(other.welcomeText))
-      return false;
     return true;
   }
 
@@ -438,6 +255,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the relationship to target
    */
+  @Schema(hidden = true)
   public String getRelationshipToTarget() {
     return relationshipToTarget;
   }
@@ -447,7 +265,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param relationshipToTarget the relationship to target
    */
-  public void setRelationshipToTarget(String relationshipToTarget) {
+  public void setRelationshipToTarget(final String relationshipToTarget) {
     this.relationshipToTarget = relationshipToTarget;
   }
 
@@ -456,6 +274,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the ui label
    */
+  @Schema(description = "Human-readable name for the terminology to use in a UI label")
   public String getUiLabel() {
     return uiLabel;
   }
@@ -465,7 +284,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param uiLabel the ui label
    */
-  public void setUiLabel(String uiLabel) {
+  public void setUiLabel(final String uiLabel) {
     this.uiLabel = uiLabel;
   }
 
@@ -474,6 +293,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the max versions
    */
+  @Schema(description = "Max number of versions to keep at the same time")
   public Integer getMaxVersions() {
     return maxVersions;
   }
@@ -483,7 +303,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param maxVersions the max versions
    */
-  public void setMaxVersions(Integer maxVersions) {
+  public void setMaxVersions(final Integer maxVersions) {
     this.maxVersions = maxVersions;
   }
 
@@ -492,6 +312,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the loader
    */
+  @Schema(description = "Label for the loader used to populate this data")
   public String getLoader() {
     return loader;
   }
@@ -501,7 +322,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param loader the loader
    */
-  public void setLoader(String loader) {
+  public void setLoader(final String loader) {
     this.loader = loader;
   }
 
@@ -510,6 +331,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the code
    */
+  @Schema(hidden = true)
   public String getCode() {
     return code;
   }
@@ -519,7 +341,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param code the code
    */
-  public void setCode(String code) {
+  public void setCode(final String code) {
     this.code = code;
   }
 
@@ -528,6 +350,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the concept status
    */
+  @Schema(hidden = true)
   public String getConceptStatus() {
     return conceptStatus;
   }
@@ -537,7 +360,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param conceptStatus the concept status
    */
-  public void setConceptStatus(String conceptStatus) {
+  public void setConceptStatus(final String conceptStatus) {
     this.conceptStatus = conceptStatus;
   }
 
@@ -546,6 +369,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the concept statuses
    */
+  @Schema(description = "Concept status values used by the terminology")
   public List<String> getConceptStatuses() {
     if (conceptStatuses == null) {
       conceptStatuses = new ArrayList<>();
@@ -558,7 +382,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param conceptStatuses the concept statuses
    */
-  public void setConceptStatuses(List<String> conceptStatuses) {
+  public void setConceptStatuses(final List<String> conceptStatuses) {
     this.conceptStatuses = conceptStatuses;
   }
 
@@ -567,6 +391,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the retired status value
    */
+  @Schema(description = "Concept status value for retired concepts")
   public String getRetiredStatusValue() {
     return retiredStatusValue;
   }
@@ -576,7 +401,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param retiredStatusValue the retired status value
    */
-  public void setRetiredStatusValue(String retiredStatusValue) {
+  public void setRetiredStatusValue(final String retiredStatusValue) {
     this.retiredStatusValue = retiredStatusValue;
   }
 
@@ -585,6 +410,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the preferred name
    */
+  @Schema(hidden = true)
   public String getPreferredName() {
     return preferredName;
   }
@@ -594,7 +420,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param preferredName the preferred name
    */
-  public void setPreferredName(String preferredName) {
+  public void setPreferredName(final String preferredName) {
     this.preferredName = preferredName;
   }
 
@@ -603,6 +429,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym
    */
+  @Schema(hidden = true)
   public Set<String> getSynonym() {
     if (synonym == null) {
       synonym = new HashSet<>();
@@ -615,7 +442,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param synonym the synonym
    */
-  public void setSynonym(Set<String> synonym) {
+  public void setSynonym(final Set<String> synonym) {
     this.synonym = synonym;
   }
 
@@ -624,6 +451,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym term type
    */
+  @Schema(hidden = true)
   public String getSynonymTermType() {
     return synonymTermType;
   }
@@ -633,7 +461,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param synonymTermType the synonym term type
    */
-  public void setSynonymTermType(String synonymTermType) {
+  public void setSynonymTermType(final String synonymTermType) {
     this.synonymTermType = synonymTermType;
   }
 
@@ -642,7 +470,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param synonymTermGroup the synonym term group
    */
-  public void setSynonymTermGroup(String synonymTermGroup) {
+  public void setSynonymTermGroup(final String synonymTermGroup) {
     this.synonymTermType = synonymTermGroup;
   }
 
@@ -651,6 +479,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym source
    */
+  @Schema(hidden = true)
   public String getSynonymSource() {
     return synonymSource;
   }
@@ -660,7 +489,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param synonymSource the synonym source
    */
-  public void setSynonymSource(String synonymSource) {
+  public void setSynonymSource(final String synonymSource) {
     this.synonymSource = synonymSource;
   }
 
@@ -669,6 +498,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym code
    */
+  @Schema(hidden = true)
   public String getSynonymCode() {
     return synonymCode;
   }
@@ -678,7 +508,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param synonymCode the synonym code
    */
-  public void setSynonymCode(String synonymCode) {
+  public void setSynonymCode(final String synonymCode) {
     this.synonymCode = synonymCode;
   }
 
@@ -687,6 +517,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym sub source
    */
+  @Schema(hidden = true)
   public String getSynonymSubSource() {
     return synonymSubSource;
   }
@@ -696,7 +527,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param synonymSubSource the synonym sub source
    */
-  public void setSynonymSubSource(String synonymSubSource) {
+  public void setSynonymSubSource(final String synonymSubSource) {
     this.synonymSubSource = synonymSubSource;
   }
 
@@ -705,6 +536,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the definition source
    */
+  @Schema(hidden = true)
   public String getDefinitionSource() {
     return definitionSource;
   }
@@ -714,7 +546,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param definitionSource the definition source
    */
-  public void setDefinitionSource(String definitionSource) {
+  public void setDefinitionSource(final String definitionSource) {
     this.definitionSource = definitionSource;
   }
 
@@ -723,6 +555,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the definition
    */
+  @Schema(hidden = true)
   public Set<String> getDefinition() {
     if (definition == null) {
       definition = new HashSet<>();
@@ -735,7 +568,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param definition the definition
    */
-  public void setDefinition(Set<String> definition) {
+  public void setDefinition(final Set<String> definition) {
     this.definition = definition;
   }
 
@@ -744,6 +577,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map relation
    */
+  @Schema(hidden = true)
   public String getMapRelation() {
     return mapRelation;
   }
@@ -753,7 +587,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param mapRelation the map relation
    */
-  public void setMapRelation(String mapRelation) {
+  public void setMapRelation(final String mapRelation) {
     this.mapRelation = mapRelation;
   }
 
@@ -762,6 +596,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map
    */
+  @Schema(hidden = true)
   public String getMap() {
     return map;
   }
@@ -771,7 +606,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param map the map
    */
-  public void setMap(String map) {
+  public void setMap(final String map) {
     this.map = map;
   }
 
@@ -780,6 +615,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map target
    */
+  @Schema(hidden = true)
   public String getMapTarget() {
     return mapTarget;
   }
@@ -789,7 +625,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param mapTarget the map target
    */
-  public void setMapTarget(String mapTarget) {
+  public void setMapTarget(final String mapTarget) {
     this.mapTarget = mapTarget;
   }
 
@@ -798,6 +634,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map target term type
    */
+  @Schema(hidden = true)
   public String getMapTargetTermType() {
     return mapTargetTermType;
   }
@@ -807,7 +644,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param mapTargetTermType the map target term type
    */
-  public void setMapTargetTermType(String mapTargetTermType) {
+  public void setMapTargetTermType(final String mapTargetTermType) {
     this.mapTargetTermType = mapTargetTermType;
   }
 
@@ -816,7 +653,8 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param mapTargetTermGroup the map target term group
    */
-  public void setMapTargetTermGroup(String mapTargetTermGroup) {
+  @Schema(hidden = true)
+  public void setMapTargetTermGroup(final String mapTargetTermGroup) {
     this.mapTargetTermType = mapTargetTermGroup;
   }
 
@@ -825,6 +663,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map target terminology
    */
+  @Schema(hidden = true)
   public String getMapTargetTerminology() {
     return mapTargetTerminology;
   }
@@ -834,7 +673,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param mapTargetTerminology the map target terminology
    */
-  public void setMapTargetTerminology(String mapTargetTerminology) {
+  public void setMapTargetTerminology(final String mapTargetTerminology) {
     this.mapTargetTerminology = mapTargetTerminology;
   }
 
@@ -843,6 +682,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map target terminology version
    */
+  @Schema(hidden = true)
   public String getMapTargetTerminologyVersion() {
     return mapTargetTerminologyVersion;
   }
@@ -852,7 +692,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param mapTargetTerminologyVersion the map target terminology version
    */
-  public void setMapTargetTerminologyVersion(String mapTargetTerminologyVersion) {
+  public void setMapTargetTerminologyVersion(final String mapTargetTerminologyVersion) {
     this.mapTargetTerminologyVersion = mapTargetTerminologyVersion;
   }
 
@@ -861,6 +701,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the sources
    */
+  @Schema(hidden = true)
   public Map<String, String> getSources() {
     if (sources == null) {
       sources = new HashMap<>();
@@ -873,6 +714,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the source ct
    */
+  @Schema(description = "Count of included sources")
   public int getSourceCt() {
     return sourceCt;
   }
@@ -891,7 +733,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param sources the sources
    */
-  public void setSources(Map<String, String> sources) {
+  public void setSources(final Map<String, String> sources) {
     this.sources = sources;
   }
 
@@ -900,6 +742,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the details columns
    */
+  @Schema(description = "Metadata for displaying concept")
   public Map<String, Boolean> getDetailsColumns() {
     if (detailsColumns == null) {
       detailsColumns = new HashMap<>();
@@ -912,7 +755,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param detailsColumns the details columns
    */
-  public void setDetailsColumns(Map<String, Boolean> detailsColumns) {
+  public void setDetailsColumns(final Map<String, Boolean> detailsColumns) {
     this.detailsColumns = detailsColumns;
   }
 
@@ -921,6 +764,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the definition source set
    */
+  @Schema(hidden = true)
   public Set<String> getDefinitionSourceSet() {
     if (definitionSourceSet == null) {
       definitionSourceSet = new HashSet<>();
@@ -933,7 +777,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param definitionSourceSet the definition source set
    */
-  public void setDefinitionSourceSet(Set<String> definitionSourceSet) {
+  public void setDefinitionSourceSet(final Set<String> definitionSourceSet) {
     this.definitionSourceSet = definitionSourceSet;
   }
 
@@ -942,6 +786,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym source set
    */
+  @Schema(hidden = true)
   public Set<String> getSynonymSourceSet() {
     if (synonymSourceSet == null) {
       synonymSourceSet = new HashSet<>();
@@ -954,7 +799,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param synonymSourceSet the synonym source set
    */
-  public void setSynonymSourceSet(Set<String> synonymSourceSet) {
+  public void setSynonymSourceSet(final Set<String> synonymSourceSet) {
     this.synonymSourceSet = synonymSourceSet;
   }
 
@@ -963,6 +808,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the term types
    */
+  @Schema(hidden = true)
   public Map<String, String> getTermTypes() {
     if (termTypes == null) {
       termTypes = new HashMap<>();
@@ -975,7 +821,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param termTypes the term types
    */
-  public void setTermTypes(Map<String, String> termTypes) {
+  public void setTermTypes(final Map<String, String> termTypes) {
     this.termTypes = termTypes;
   }
 
@@ -984,7 +830,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param termGroups the term groups
    */
-  public void setTermGroups(Map<String, String> termGroups) {
+  public void setTermGroups(final Map<String, String> termGroups) {
     this.termTypes = termGroups;
   }
 
@@ -993,6 +839,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the subset link property
    */
+  @Schema(description = "Metadata for downloading a subset")
   public String getSubsetLink() {
     return subsetLink;
   }
@@ -1002,7 +849,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param subsetLink the subset link property
    */
-  public void setSubsetLink(String subsetLink) {
+  public void setSubsetLink(final String subsetLink) {
     this.subsetLink = subsetLink;
   }
 
@@ -1011,6 +858,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the subsetPrefix
    */
+  @Schema(hidden = true)
   public String getSubsetPrefix() {
     return subsetPrefix;
   }
@@ -1020,7 +868,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param subsetPrefix the subsetPrefix to set
    */
-  public void setSubsetPrefix(String subsetPrefix) {
+  public void setSubsetPrefix(final String subsetPrefix) {
     this.subsetPrefix = subsetPrefix;
   }
 
@@ -1029,6 +877,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the sources to remove
    */
+  @Schema(hidden = true)
   public Set<String> getSourcesToRemove() {
     if (sourcesToRemove == null) {
       sourcesToRemove = new HashSet<>();
@@ -1041,7 +890,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param sourcesToRemove the sources to remove
    */
-  public void setSourcesToRemove(Set<String> sourcesToRemove) {
+  public void setSourcesToRemove(final Set<String> sourcesToRemove) {
     this.sourcesToRemove = sourcesToRemove;
   }
 
@@ -1050,6 +899,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the subsetMember
    */
+  @Schema(hidden = true)
   public Set<String> getSubsetMember() {
     if (subsetMember == null) {
       subsetMember = new HashSet<>();
@@ -1062,7 +912,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param subsetMember the subsetMember to set
    */
-  public void setSubsetMember(Set<String> subsetMember) {
+  public void setSubsetMember(final Set<String> subsetMember) {
     this.subsetMember = subsetMember;
   }
 
@@ -1072,6 +922,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the unpublished
    */
+  @Schema(hidden = true)
   public Set<String> getUnpublished() {
     if (unpublished == null) {
       unpublished = new HashSet<>();
@@ -1084,7 +935,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param unpublished the unpublished to set
    */
-  public void setUnpublished(Set<String> unpublished) {
+  public void setUnpublished(final Set<String> unpublished) {
     this.unpublished = unpublished;
   }
 
@@ -1093,6 +944,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the monthly db
    */
+  @Schema(hidden = true)
   public String getMonthlyDb() {
     return monthlyDb;
   }
@@ -1102,7 +954,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param monthlyDb the monthly db
    */
-  public void setMonthlyDb(String monthlyDb) {
+  public void setMonthlyDb(final String monthlyDb) {
     this.monthlyDb = monthlyDb;
   }
 
@@ -1111,6 +963,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the license text
    */
+  @Schema(description = "License text for the UI")
   public String getLicenseText() {
     return licenseText;
   }
@@ -1120,8 +973,27 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param licenseText the license text
    */
-  public void setLicenseText(String licenseText) {
+  public void setLicenseText(final String licenseText) {
     this.licenseText = licenseText;
+  }
+
+  /**
+   * Returns the license check.
+   *
+   * @return the license check
+   */
+  @Schema(hidden = true)
+  public String getLicenseCheck() {
+    return licenseCheck;
+  }
+
+  /**
+   * Sets the license check.
+   *
+   * @param licenseCheck the license check
+   */
+  public void setLicenseCheck(final String licenseCheck) {
+    this.licenseCheck = licenseCheck;
   }
 
   /**
@@ -1129,6 +1001,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the meta concept field
    */
+  @Schema(description = "Metadata for concept display")
   public String getMetaConceptField() {
     return metaConceptField;
   }
@@ -1138,7 +1011,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param metaConceptField the meta concept field
    */
-  public void setMetaConceptField(String metaConceptField) {
+  public void setMetaConceptField(final String metaConceptField) {
     this.metaConceptField = metaConceptField;
   }
 
@@ -1147,6 +1020,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the preferred term types
    */
+  @Schema(hidden = true)
   public List<String> getPreferredTermTypes() {
     if (preferredTermTypes == null) {
       preferredTermTypes = new ArrayList<>();
@@ -1159,7 +1033,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param preferredTermTypes the preferred term types
    */
-  public void setPreferredTermTypes(List<String> preferredTermTypes) {
+  public void setPreferredTermTypes(final List<String> preferredTermTypes) {
     this.preferredTermTypes = preferredTermTypes;
   }
 
@@ -1168,6 +1042,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the codeLabel
    */
+  @Schema(description = "Metadata for concept display")
   public String getCodeLabel() {
     return codeLabel;
   }
@@ -1177,7 +1052,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param codeLabel the codeLabel to set
    */
-  public void setCodeLabel(String codeLabel) {
+  public void setCodeLabel(final String codeLabel) {
     this.codeLabel = codeLabel;
   }
 
@@ -1186,6 +1061,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the welcomeText
    */
+  @Schema(description = "Metadata for landing page welcome text")
   public String getWelcomeText() {
     return welcomeText;
   }
@@ -1195,7 +1071,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param welcomeText the welcomeText to set
    */
-  public void setWelcomeText(String welcomeText) {
+  public void setWelcomeText(final String welcomeText) {
     this.welcomeText = welcomeText;
   }
 
@@ -1204,7 +1080,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param preferredTermGroups the preferred term groups
    */
-  public void setPreferredTermGroups(List<String> preferredTermGroups) {
+  public void setPreferredTermGroups(final List<String> preferredTermGroups) {
     this.preferredTermTypes = preferredTermGroups;
   }
 
@@ -1213,6 +1089,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the subset
    */
+  @Schema(hidden = true)
   public Set<String> getSubset() {
     if (subset == null) {
       subset = new HashSet<>();
@@ -1225,7 +1102,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param subset the subset to set
    */
-  public void setSubset(Set<String> subset) {
+  public void setSubset(final Set<String> subset) {
     this.subset = subset;
   }
 
@@ -1234,6 +1111,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the hierarchy
    */
+  @Schema(description = "Indicates whether or not the terminology has a hierarchy")
   public Boolean getHierarchy() {
     if (hierarchy == null) {
       hierarchy = false;
@@ -1246,42 +1124,48 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param hierarchy the hierarchy to set
    */
-  public void setHierarchy(Boolean hierarchy) {
+  public void setHierarchy(final Boolean hierarchy) {
     this.hierarchy = hierarchy;
   }
-  
+
   /**
    * Returns the history.
    *
    * @return the history
    */
+  @Schema(description = "Indicates whether or not the terminology has history records")
   public Boolean getHistory() {
-      if (history == null) {
-          history = false;
-      }
-      return history;
+    if (history == null) {
+      history = false;
+    }
+    return history;
   }
-  
+
   /**
    * Sets the history.
    *
    * @param history the history to set
    */
-  public void setHistory(Boolean history) {
-      this.history = history;
+  public void setHistory(final Boolean history) {
+    this.history = history;
   }
 
   /**
+   * Returns the mapsets.
+   *
    * @return the mapsets
    */
+  @Schema(hidden = true)
   public Boolean getMapsets() {
     return mapsets;
   }
 
   /**
+   * Sets the mapsets.
+   *
    * @param mapsets the mapsets to set
    */
-  public void setMapsets(Boolean mapsets) {
+  public void setMapsets(final Boolean mapsets) {
     this.mapsets = mapsets;
   }
 
@@ -1314,9 +1198,9 @@ public class TerminologyMetadata extends BaseModel {
       return false;
     }
     return code.equals(synonymTermType) || code.equals(synonymSource) || code.equals(synonymCode)
-        || code.equals(synonymSubSource) || code.equals(definitionSource)
-        || code.equals(mapRelation) || code.equals(mapTarget) || code.equals(mapTargetTermType)
-        || code.equals(mapTargetTerminology) || code.equals(mapTargetTerminologyVersion);
+        || code.equals(synonymSubSource) || code.equals(definitionSource) || code.equals(mapRelation)
+        || code.equals(mapTarget) || code.equals(mapTargetTermType) || code.equals(mapTargetTerminology)
+        || code.equals(mapTargetTerminologyVersion);
   }
 
   /**
@@ -1329,14 +1213,23 @@ public class TerminologyMetadata extends BaseModel {
     return getUnpublished().contains(code);
   }
 
-  public String getRemodeledAsType(Property prop, Qualifier qual, TerminologyMetadata md) {
+  /**
+   * Returns the remodeled as type.
+   *
+   * @param prop the prop
+   * @param qual the qual
+   * @param md the md
+   * @return the remodeled as type
+   */
+  public String getRemodeledAsType(final Property prop, final Qualifier qual, final TerminologyMetadata md) {
     String code = null;
     if (prop != null) {
       code = prop.getCode();
     } else if (qual != null) {
       code = qual.getCode();
-    } else
+    } else {
       return " other";
+    }
 
     if (code.equals(preferredName)) {
       return "a preferred name";

@@ -65,6 +65,11 @@ public class SubsetControllerTests {
     baseUrl = "/api/v1/";
   }
 
+  /**
+   * Test include subsets.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testIncludeSubsets() throws Exception {
 
@@ -115,20 +120,16 @@ public class SubsetControllerTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-    assertThat(
-        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
+    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
         .isGreaterThan(0);
 
-    // /subset - minimal
-    url = baseUrl + "subset/ncit?include=properties";
+    // /subset - properties
+    url = baseUrl + "subset/ncit/C167405?include=properties";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    List<Concept> list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
-    concept = list.get(0);
+    concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("ACC/AHA EHR Terminology");
     assertThat(concept.getCode()).isEqualTo("C167405");
     assertThat(concept.getSynonyms()).isEmpty();
@@ -139,27 +140,23 @@ public class SubsetControllerTests {
     assertThat(concept.getChildren()).isNotEmpty();
     // Check the first child also for just properties
     assertThat(concept.getChildren().get(0).getSynonyms()).isEmpty();
-    assertThat(concept.getChildren().get(0).getProperties()).isNotEmpty();
+    assertThat(concept.getChildren().get(0).getProperties()).isEmpty();
     assertThat(concept.getParents()).isEmpty();
     assertThat(concept.getAssociations()).isEmpty();
     assertThat(concept.getInverseAssociations()).isEmpty();
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-    assertThat(
-        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
+    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
         .isGreaterThan(0);
 
-    // /subset - properties
-    url = baseUrl + "subset/ncit?include=synonyms,properties";
+    // /subset - synonyms,properties
+    url = baseUrl + "subset/ncit/C167405?include=synonyms,properties";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
-    concept = list.get(0);
+    concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("ACC/AHA EHR Terminology");
     assertThat(concept.getCode()).isEqualTo("C167405");
     assertThat(concept.getSynonyms()).isNotEmpty();
@@ -170,16 +167,15 @@ public class SubsetControllerTests {
     // Check the first child also for just properties
     assertThat(concept.getChildren().get(0).getParents()).isEmpty();
     assertThat(concept.getChildren().get(0).getChildren()).isEmpty();
-    assertThat(concept.getChildren().get(0).getSynonyms()).isNotEmpty();
-    assertThat(concept.getChildren().get(0).getProperties()).isNotEmpty();
+    assertThat(concept.getChildren().get(0).getSynonyms()).isEmpty();
+    assertThat(concept.getChildren().get(0).getProperties()).isEmpty();
     assertThat(concept.getParents()).isEmpty();
     assertThat(concept.getAssociations()).isEmpty();
     assertThat(concept.getInverseAssociations()).isEmpty();
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-    assertThat(
-        concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
+    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
         .isGreaterThan(0);
 
   }
@@ -189,6 +185,7 @@ public class SubsetControllerTests {
    *
    * @throws Exception the exception
    */
+  @SuppressWarnings("null")
   @Test
   public void testTopLevelSubsetSearch() throws Exception {
     String url = baseUrl + "subset/ncit?include=properties";
@@ -200,12 +197,12 @@ public class SubsetControllerTests {
     list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
       // n/a
     });
-    assertThat(list != null && list.size() > 0).isTrue();
+    assertThat(list != null).isTrue();
+    assertThat(list.size() > 0).isTrue();
     // No subsets or children should have Publish_Value_Set set to something other than "Yes".
     assertThat(list.stream().flatMap(Concept::streamSelfAndChildren)
         .filter(c -> c.getProperties().stream()
-            .filter(p -> p.getType().equals("Publish_Value_Set") && !p.getValue().equals("Yes"))
-            .count() > 0)
+            .filter(p -> p.getType().equals("Publish_Value_Set") && !p.getValue().equals("Yes")).count() > 0)
         .count()).isEqualTo(0);
 
   }

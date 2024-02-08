@@ -45,7 +45,15 @@ public class EVSConceptResultMapper extends BaseResultMapper implements SearchRe
     this.mapper = new ObjectMapper();
   }
 
-  /** see superclass **/
+  /**
+   * see superclass *.
+   *
+   * @param <T> the
+   * @param response the response
+   * @param clazz the clazz
+   * @param pageable the pageable
+   * @return the aggregated page
+   */
   @SuppressWarnings({
       "rawtypes", "unchecked"
   })
@@ -61,8 +69,8 @@ public class EVSConceptResultMapper extends BaseResultMapper implements SearchRe
       content.add(concept);
     }
 
-    return new AggregatedPageImpl((List<T>) content, pageable, response.getHits().getTotalHits(),
-        response.getAggregations(), response.getScrollId(), response.getHits().getMaxScore());
+    return new AggregatedPageImpl(content, pageable, response.getHits().getTotalHits(), response.getAggregations(),
+        response.getScrollId(), response.getHits().getMaxScore());
   }
 
   /** see superclass **/
