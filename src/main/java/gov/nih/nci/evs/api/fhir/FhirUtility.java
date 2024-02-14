@@ -12,7 +12,6 @@ package gov.nih.nci.evs.api.fhir;
 import static java.lang.String.format;
 
 import java.util.Date;
-import java.util.Map;
 
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r5.model.CodeType;
@@ -44,7 +43,7 @@ public final class FhirUtility {
    * @return the code
    * @throws Exception the exception
    */
-  public static String getCode(CodeType code, Coding coding) throws Exception {
+  public static String getCode(final CodeType code, final Coding coding) throws Exception {
     if (code != null) {
       return code.getCode();
     }
@@ -64,8 +63,8 @@ public final class FhirUtility {
    * @param param2Name the param 2 name
    * @param param2 the param 2
    */
-  public static void mutuallyExclusive(String param1Name, Object param1, String param2Name,
-    Object param2) {
+  public static void mutuallyExclusive(final String param1Name, final Object param1,
+    final String param2Name, final Object param2) {
     if (param1 != null && param2 != null) {
       throw exception(format("Use one of '%s' or '%s' parameters.", param1Name, param2Name),
           OperationOutcome.IssueType.INVARIANT, 400);
@@ -78,7 +77,7 @@ public final class FhirUtility {
    * @param paramName the param name
    * @param obj the obj
    */
-  public static void notSupported(String paramName, Object obj) {
+  public static void notSupported(final String paramName, final Object obj) {
     notSupported(paramName, obj, null);
   }
 
@@ -89,9 +88,10 @@ public final class FhirUtility {
    * @param obj the obj
    * @param additionalDetail the additional detail
    */
-  public static void notSupported(String paramName, Object obj, String additionalDetail) {
+  public static void notSupported(final String paramName, final Object obj,
+    final String additionalDetail) {
     if (obj != null) {
-      String message = format("Input parameter '%s' is not supported%s", paramName,
+      final String message = format("Input parameter '%s' is not supported%s", paramName,
           (additionalDetail == null ? "." : format(" %s", additionalDetail)));
       throw exception(message, OperationOutcome.IssueType.NOTSUPPORTED, 400);
     }
@@ -105,8 +105,8 @@ public final class FhirUtility {
    * @param param2Name the param 2 name
    * @param param2 the param 2
    */
-  public static void requireExactlyOneOf(String param1Name, Object param1, String param2Name,
-    Object param2) {
+  public static void requireExactlyOneOf(final String param1Name, final Object param1,
+    final String param2Name, final Object param2) {
     if (param1 == null && param2 == null) {
       throw exception(
           format("One of '%s' or '%s' parameters must be supplied.", param1Name, param2Name),
@@ -126,8 +126,8 @@ public final class FhirUtility {
    * @param param3Name the param 3 name
    * @param param3 the param 3
    */
-  public static void requireExactlyOneOf(String param1Name, Object param1, String param2Name,
-    Object param2, String param3Name, Object param3) {
+  public static void requireExactlyOneOf(final String param1Name, final Object param1,
+    final String param2Name, final Object param2, final String param3Name, final Object param3) {
     if (param1 == null && param2 == null && param3 == null) {
       throw exception(format("One of '%s' or '%s' or '%s' parameters must be supplied.", param1Name,
           param2Name, param3Name), OperationOutcome.IssueType.INVARIANT, 400);
@@ -146,8 +146,8 @@ public final class FhirUtility {
    * @param param2Name the param 2 name
    * @param param2 the param 2
    */
-  public static void mutuallyRequired(String param1Name, Object param1, String param2Name,
-    Object param2) {
+  public static void mutuallyRequired(final String param1Name, final Object param1,
+    final String param2Name, final Object param2) {
     if (param1 != null && param2 == null) {
       throw exception(
           format("Input parameter '%s' can only be used in conjunction with parameter '%s'.",
@@ -166,8 +166,8 @@ public final class FhirUtility {
    * @param param3Name the param 3 name
    * @param param3 the param 3
    */
-  public static void mutuallyRequired(String param1Name, Object param1, String param2Name,
-    Object param2, String param3Name, Object param3) {
+  public static void mutuallyRequired(final String param1Name, final Object param1,
+    final String param2Name, final Object param2, final String param3Name, final Object param3) {
     if (param1 != null && param2 == null && param3 == null) {
       throw exception(
           format("Use of input parameter '%s' only allowed if '%s' or '%s' is also present.",
@@ -183,7 +183,7 @@ public final class FhirUtility {
    * @param coding the coding
    * @return the string
    */
-  public static String recoverCode(CodeType code, Coding coding) {
+  public static String recoverCode(final CodeType code, final Coding coding) {
     if (code == null && coding == null) {
       throw exception("Use either 'code' or 'coding' parameters, not both.",
           OperationOutcome.IssueType.INVARIANT, 400);
@@ -205,7 +205,7 @@ public final class FhirUtility {
    * @param message the message
    * @return the FHIR server response exception
    */
-  public static FHIRServerResponseException exceptionNotSupported(String message) {
+  public static FHIRServerResponseException exceptionNotSupported(final String message) {
     return exception(message, OperationOutcome.IssueType.NOTSUPPORTED, 501);
   }
 
@@ -217,8 +217,8 @@ public final class FhirUtility {
    * @param theStatusCode the the status code
    * @return the FHIR server response exception
    */
-  public static FHIRServerResponseException exception(String message,
-    OperationOutcome.IssueType issueType, int theStatusCode) {
+  public static FHIRServerResponseException exception(final String message,
+    final OperationOutcome.IssueType issueType, final int theStatusCode) {
     return exception(message, issueType, theStatusCode, null);
   }
 
@@ -231,10 +231,10 @@ public final class FhirUtility {
    * @param e the e
    * @return the FHIR server response exception
    */
-  public static FHIRServerResponseException exception(String message,
-    OperationOutcome.IssueType issueType, int theStatusCode, Throwable e) {
-    OperationOutcome outcome = new OperationOutcome();
-    OperationOutcome.OperationOutcomeIssueComponent component =
+  public static FHIRServerResponseException exception(final String message,
+    final OperationOutcome.IssueType issueType, final int theStatusCode, final Throwable e) {
+    final OperationOutcome outcome = new OperationOutcome();
+    final OperationOutcome.OperationOutcomeIssueComponent component =
         new OperationOutcome.OperationOutcomeIssueComponent();
     component.setSeverity(OperationOutcome.IssueSeverity.ERROR);
     component.setCode(issueType);
@@ -250,7 +250,7 @@ public final class FhirUtility {
    * @return the type name
    */
   @SuppressWarnings("unused")
-  private static String getTypeName(Object obj) {
+  private static String getTypeName(final Object obj) {
     if (obj instanceof String) {
       return "valueString";
     } else if (obj instanceof Boolean) {
@@ -373,18 +373,4 @@ public final class FhirUtility {
 
   }
 
-  /**
-   * Gets the code.
-   *
-   * @param code the code
-   * @param terms the terms
-   * @return the code
-   */
-  private static String getCode(String code, Map<String, String> terms) {
-    if (terms != null) {
-      return format("%s|%s|", code, terms.get(code));
-    } else {
-      return code;
-    }
-  }
 }

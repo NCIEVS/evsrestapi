@@ -25,7 +25,7 @@ public class FHIRConfig {
 
     final ServletRegistrationBean<HapiR4RestfulServlet> servletRegistrationBean =
         new ServletRegistrationBean<>(hapiServlet, "/fhir/r4/*");
-    hapiServlet.setServerName("EVSAPI R4 FHIR Terminology Server");
+    hapiServlet.setServerName("EVSRESTAPI R4 FHIR Terminology Server");
     hapiServlet.setServerVersion(getClass().getPackage().getImplementationVersion());
     hapiServlet.setDefaultResponseEncoding(EncodingEnum.JSON);
 

@@ -1,12 +1,4 @@
-/*
- * Copyright 2021 West Coast Informatics - All Rights Reserved.
- *
- * NOTICE:  All information contained herein is, and remains the property of West Coast Informatics
- * The intellectual and technical concepts contained herein are proprietary to
- * West Coast Informatics and may be covered by U.S. and Foreign Patents, patents in process,
- * and are protected by trade secret or copyright law.  Dissemination of this information
- * or reproduction of this material is strictly forbidden.
- */
+
 package gov.nih.nci.evs.api.fhir;
 
 import static java.lang.String.format;
@@ -44,8 +36,10 @@ public final class FhirUtilityR4 {
   @SuppressWarnings("unused")
   private static Logger logger = LoggerFactory.getLogger(FhirUtilityR4.class);
 
+  /** The publishers. */
   private static HashMap<String, String> publishers = generatePublishers();
 
+  /** The uris. */
   private static HashMap<String, String> uris = generateUris();
 
   /**
@@ -55,8 +49,13 @@ public final class FhirUtilityR4 {
     // n/a
   }
 
+  /**
+   * Generate publishers.
+   *
+   * @return the hash map
+   */
   private static HashMap<String, String> generatePublishers() {
-    HashMap<String, String> publish = new HashMap<>();
+    final HashMap<String, String> publish = new HashMap<>();
     publish.put("mdr",
         "MedDRA Maintenance and Support Services Organization (MedDRA MSSO); Mr. Patrick Revelle; MSSO Director");
     publish.put("umlssemnet", "National Library of Medicine");
@@ -78,8 +77,13 @@ public final class FhirUtilityR4 {
     return publish;
   }
 
+  /**
+   * Generate uris.
+   *
+   * @return the hash map
+   */
   private static HashMap<String, String> generateUris() {
-    HashMap<String, String> uri = new HashMap<>();
+    final HashMap<String, String> uri = new HashMap<>();
     uri.put("mdr", "https://www.meddra.org");
     uri.put("umlssemnet", "http://www.nlm.nih.gov/research/umls/umlssemnet.owl");
     uri.put("go", "http://purl.obolibrary.org/obo/go.owl");
@@ -101,11 +105,23 @@ public final class FhirUtilityR4 {
     return uri;
   }
 
-  private static String getPublisher(String terminology) {
+  /**
+   * Returns the publisher.
+   *
+   * @param terminology the terminology
+   * @return the publisher
+   */
+  private static String getPublisher(final String terminology) {
     return publishers.get(terminology);
   }
 
-  private static String getUri(String terminology) {
+  /**
+   * Returns the uri.
+   *
+   * @param terminology the terminology
+   * @return the uri
+   */
+  private static String getUri(final String terminology) {
     return uris.get(terminology.toLowerCase());
   }
 
@@ -139,8 +155,14 @@ public final class FhirUtilityR4 {
 
   }
 
-  public static CodeSystem toR4(Terminology term) {
-    CodeSystem cs = new CodeSystem();
+  /**
+   * To R 4.
+   *
+   * @param term the term
+   * @return the code system
+   */
+  public static CodeSystem toR4(final Terminology term) {
+    final CodeSystem cs = new CodeSystem();
     cs.setId(term.getTerminologyVersion());
     cs.setName(term.getName());
     cs.setTitle(term.getTerminology());
@@ -153,8 +175,14 @@ public final class FhirUtilityR4 {
     return cs;
   }
 
-  public static ConceptMap toR4(Concept mapset) {
-    ConceptMap cm = new ConceptMap();
+  /**
+   * To R 4.
+   *
+   * @param mapset the mapset
+   * @return the concept map
+   */
+  public static ConceptMap toR4(final Concept mapset) {
+    final ConceptMap cm = new ConceptMap();
     cm.setId(mapset.getCode() + "_" + mapset.getVersion());
     cm.setName(mapset.getName());
     cm.setTitle(mapset.getCode());
@@ -164,7 +192,7 @@ public final class FhirUtilityR4 {
     cm.setPublisher(getPublisher(mapset.getProperties().stream()
         .filter(m -> m.getType().equals("sourceTerminology")).findFirst().orElse(null).getValue()));
 
-    ConceptMapGroupComponent group = new ConceptMapGroupComponent();
+    final ConceptMapGroupComponent group = new ConceptMapGroupComponent();
     group.setSourceVersion(mapset.getProperties().stream()
         .filter(m -> m.getType().equals("sourceTerminologyVersion")).findFirst().get().getValue());
     group.setTargetVersion(mapset.getProperties().stream()
@@ -178,8 +206,14 @@ public final class FhirUtilityR4 {
     return cm;
   }
 
-  public static ValueSet toR4VS(Terminology term) {
-    ValueSet vs = new ValueSet();
+  /**
+   * To R 4 VS.
+   *
+   * @param term the term
+   * @return the value set
+   */
+  public static ValueSet toR4VS(final Terminology term) {
+    final ValueSet vs = new ValueSet();
     vs.setId(term.getTerminology() + "_" + term.getVersion());
     vs.setName(term.getName());
     vs.setVersion(term.getVersion());
@@ -192,8 +226,14 @@ public final class FhirUtilityR4 {
     return vs;
   }
 
-  public static ValueSet toR4VS(Concept subset) {
-    ValueSet vs = new ValueSet();
+  /**
+   * To R 4 VS.
+   *
+   * @param subset the subset
+   * @return the value set
+   */
+  public static ValueSet toR4VS(final Concept subset) {
+    final ValueSet vs = new ValueSet();
     vs.setId(subset.getTerminology() + "_" + subset.getCode());
     vs.setUrl(getUri(subset.getTerminology()) + "?fhir_vs=$" + subset.getCode());
     vs.setName(subset.getName());
@@ -213,8 +253,6 @@ public final class FhirUtilityR4 {
    *
    * @param param1Name the param 1 name
    * @param param1 the param 1
-   * @param param2Name the param 2 name
-   * @param param2 the param 2
    */
   public static void required(final String param1Name, final Object param1) {
     if (param1 == null) {
@@ -284,6 +322,18 @@ public final class FhirUtilityR4 {
     }
   }
 
+  /**
+   * Require at least one of.
+   *
+   * @param param1Name the param 1 name
+   * @param param1 the param 1
+   * @param param2Name the param 2 name
+   * @param param2 the param 2
+   * @param param3Name the param 3 name
+   * @param param3 the param 3
+   * @param param4Name the param 4 name
+   * @param param4 the param 4
+   */
   public static void requireAtLeastOneOf(final String param1Name, final Object param1,
     final String param2Name, final Object param2, final String param3Name, final Object param3,
     final String param4Name, final Object param4) {
@@ -463,22 +513,6 @@ public final class FhirUtilityR4 {
       property.addPart().setName("value").setValue(value);
     }
     return property;
-  }
-
-  /**
-   * Gets the type name.
-   *
-   * @param obj the obj
-   * @return the type name
-   */
-  @SuppressWarnings("unused")
-  private static String getTypeName(final Object obj) {
-    if (obj instanceof String) {
-      return "valueString";
-    } else if (obj instanceof Boolean) {
-      return "valueBoolean";
-    }
-    return null;
   }
 
 }

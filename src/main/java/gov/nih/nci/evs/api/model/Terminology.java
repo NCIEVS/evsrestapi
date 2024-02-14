@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Represents a terminology loaded into the EVSAPI.
+ * Represents a terminology loaded into the EVSRESTAPI.
  * 
  * <pre>
  *   {
@@ -354,7 +354,8 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
   @Schema(description = "for internal use")
   public String getIndexName() {
     if (StringUtils.isEmpty(indexName)) {
-      indexName = "concept_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "").toLowerCase();
+      indexName =
+          "concept_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "").toLowerCase();
     }
     return indexName;
   }
@@ -378,7 +379,8 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
   public String getObjectIndexName() {
     if (StringUtils.isEmpty(objectIndexName)) {
       // Replace non-alphanumeric and _ chars and also lowercase
-      objectIndexName = "evs_object_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "").toLowerCase();
+      objectIndexName =
+          "evs_object_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "").toLowerCase();
     }
     return objectIndexName;
   }

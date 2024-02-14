@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.fhir;
 
 import java.util.Collections;
@@ -37,9 +38,9 @@ public class FHIRTerminologyCapabilitiesR4 extends TerminologyCapabilities
   public FHIRTerminologyCapabilitiesR4 withDefaults() {
     setContact();
     setCodeSystem();
-    setName("EVSAPITerminologyCapabilities");
+    setName("EVSRESTAPITerminologyCapabilities");
     setStatus(PublicationStatus.DRAFT);
-    setTitle("EVSAPI Terminology Capability Statement");
+    setTitle("EVSRESTAPI Terminology Capability Statement");
     setVersion(getClass().getPackage().getImplementationVersion());
     return this;
   }
@@ -50,7 +51,7 @@ public class FHIRTerminologyCapabilitiesR4 extends TerminologyCapabilities
   private void setCodeSystem() {
     final TerminologyCapabilitiesCodeSystemComponent tccsc =
         new TerminologyCapabilitiesCodeSystemComponent();
-    tccsc.setUri("https://api-evsrest.nci.nih.gov/swagger-ui.html");
+    tccsc.setUri("https://api-evsrest.nci.nih.gov");
     setCodeSystem(Collections.singletonList(tccsc));
   }
 

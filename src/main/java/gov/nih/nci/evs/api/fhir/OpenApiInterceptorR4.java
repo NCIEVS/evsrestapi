@@ -107,14 +107,14 @@ import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
 
 /**
- * EVSAPI Api interceptor to fix header, inject header auth token. Borrowed from OpenApiInterceptor
- * and modified.
+ * EVSRESTAPI Api interceptor to fix header, inject header auth token. Borrowed from
+ * OpenApiInterceptor and modified.
  */
-public class EVSAPIOpenApiInterceptorR4 {
+public class OpenApiInterceptorR4 {
 
   /** The logger. */
   @SuppressWarnings("unused")
-  private static Logger logger = LoggerFactory.getLogger(EVSAPIOpenApiInterceptorR4.class);
+  private static Logger logger = LoggerFactory.getLogger(OpenApiInterceptorR4.class);
 
   /** The Constant FHIR_JSON_RESOURCE. */
   public static final String FHIR_JSON_RESOURCE = "FHIR-JSON-RESOURCE";
@@ -164,7 +164,7 @@ public class EVSAPIOpenApiInterceptorR4 {
   /**
    * Constructor.
    */
-  public EVSAPIOpenApiInterceptorR4() {
+  public OpenApiInterceptorR4() {
 
     mySwaggerUiVersion = initSwaggerUiWebJar();
 
@@ -186,11 +186,11 @@ public class EVSAPIOpenApiInterceptorR4 {
    * Inits the resources.
    */
   private void initResources() {
-    setBannerImage("EVSAPI.png");
+    setBannerImage("EVSRESTAPI.png");
     setUseResourcePages(true);
 
     addResourcePathToClasspath("/swagger-ui/index.html", "swagger-ui/index.html");
-    addResourcePathToClasspath("/swagger-ui/EVSAPI.png", "swagger-ui/EVSAPI.png");
+    addResourcePathToClasspath("/swagger-ui/EVSRESTAPI.png", "swagger-ui/EVSRESTAPI.png");
     addResourcePathToClasspath("/swagger-ui/index.css", "swagger-ui/index.css");
 
     myExtensionToContentType.put(".png", "image/png");
@@ -374,10 +374,7 @@ public class EVSAPIOpenApiInterceptorR4 {
     while (url != null && url.endsWith("/")) {
       url = url.substring(0, url.length() - 1);
     }
-    if (url.contains("localhost")) {
-      return url;
-    }
-    if (url.contains("http://nci")) {
+    if (url.contains("localhost") || url.contains("http://nci")) {
       return url;
     }
     return url.replaceFirst("http", "https");
@@ -1317,7 +1314,7 @@ public class EVSAPIOpenApiInterceptorR4 {
    * @param theBannerImage the the banner image
    * @return the open api interceptor
    */
-  public EVSAPIOpenApiInterceptorR4 setBannerImage(final String theBannerImage) {
+  public OpenApiInterceptorR4 setBannerImage(final String theBannerImage) {
     myBannerImage = StringUtils.defaultIfBlank(theBannerImage, null);
     return this;
   }

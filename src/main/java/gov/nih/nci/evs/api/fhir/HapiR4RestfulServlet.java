@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.fhir;
 
 import javax.servlet.ServletException;
@@ -36,17 +37,21 @@ public class HapiR4RestfulServlet extends RestfulServer {
     final FhirContext fhirContext = FhirContext.forR4();
     final LenientErrorHandler delegateHandler = new LenientErrorHandler();
     fhirContext.setParserErrorHandler(new StrictErrorHandler() {
+
+      /* see superclass */
       @Override
       public void unknownAttribute(final IParseLocation theLocation,
         final String theAttributeName) {
         delegateHandler.unknownAttribute(theLocation, theAttributeName);
       }
 
+      /* see superclass */
       @Override
       public void unknownElement(final IParseLocation theLocation, final String theElementName) {
         delegateHandler.unknownElement(theLocation, theElementName);
       }
 
+      /* see superclass */
       @Override
       public void unknownReference(final IParseLocation theLocation, final String theReference) {
         delegateHandler.unknownReference(theLocation, theReference);
@@ -68,7 +73,7 @@ public class HapiR4RestfulServlet extends RestfulServer {
     setServerConformanceProvider(new FHIRTerminologyCapabilitiesProviderR4(this));
 
     // Register interceptors
-    registerInterceptor(new EVSAPIOpenApiInterceptorR4());
+    registerInterceptor(new OpenApiInterceptorR4());
 
     logger.info("FHIR Resource providers and interceptors registered");
   }

@@ -1,4 +1,4 @@
 /**
- * Rest service implementations.
+ * FHIR implementation.
  */
 package gov.nih.nci.evs.api.fhir;

@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api.fhir;
 
 import java.util.ArrayList;
@@ -58,7 +59,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   @Autowired
   ElasticOperationsService operationsService;
 
-  /** the query service */
+  /** the query service. */
   @Autowired
   ElasticQueryService queryService;
 
@@ -66,10 +67,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   @Autowired
   ElasticSearchService searchService;
 
-  /** The concept controller */
+  /** The concept controller. */
   @Autowired
   ConceptController conceptController;
 
+  /** The term utils. */
   /* The terminology utils */
   @Autowired
   TerminologyUtils termUtils;
@@ -87,28 +89,32 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param code the code
    * @param system the system
    * @param version the version
+   * @param coding the coding
+   * @param date the date
+   * @param displayLanguage the display language
+   * @param property the property
    * @return the parameters
    * @throws Exception the exception
    */
   @Operation(name = "$lookup", idempotent = true)
   public Parameters lookupImplicit(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details,
-    @OperationParam(name = "code")
-    final CodeType code, @OperationParam(name = "system")
-    final UriType system, @OperationParam(name = "version")
-    final StringType version, @OperationParam(name = "coding")
-    final Coding coding, @OperationParam(name = "date")
-    final DateRangeParam date, @OperationParam(name = "displayLanguage")
-    final StringType displayLanguage, @OperationParam(name = "property") CodeType property)
-    throws Exception {
+    @OperationParam(name = "code") final CodeType code,
+    @OperationParam(name = "system") final UriType system,
+    @OperationParam(name = "version") final StringType version,
+    @OperationParam(name = "coding") final Coding coding,
+    @OperationParam(name = "date") final DateRangeParam date,
+    @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+    @OperationParam(name = "property")
+    final CodeType property) throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
       FhirUtilityR4.notSupported("property", property);
-      List<CodeSystem> cs = findPossibleCodeSystems(null, date, system, version);
-      Parameters params = new Parameters();
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, date, system, version);
+      final Parameters params = new Parameters();
       if (cs.size() > 0) {
         String codeToLookup = "";
         if (code != null) {
@@ -116,9 +122,9 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         } else if (coding != null) {
           codeToLookup = coding.getCode();
         }
-        CodeSystem codeSys = cs.get(0);
-        Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
-        Concept conc =
+        final CodeSystem codeSys = cs.get(0);
+        final Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        final Concept conc =
             queryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
         params.addParameter("code", "code");
         params.addParameter("system", codeSys.getUrl());
@@ -126,10 +132,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         params.addParameter("version", codeSys.getVersion());
         params.addParameter("display", conc.getName());
         params.addParameter("active", codeSys.getStatus().toString());
-        for (Concept parent : conc.getParents()) {
+        for (final Concept parent : conc.getParents()) {
           params.addParameter(FhirUtilityR4.createProperty("parent", parent.getCode(), true));
         }
-        for (Concept child : conc.getChildren()) {
+        for (final Concept child : conc.getChildren()) {
           params.addParameter(FhirUtilityR4.createProperty("child", child.getCode(), true));
         }
 
@@ -159,28 +165,32 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param code the code
    * @param system the system
    * @param version the version
+   * @param coding the coding
+   * @param date the date
+   * @param displayLanguage the display language
+   * @param property the property
    * @return the parameters
    * @throws Exception the exception
    */
   @Operation(name = "$lookup", idempotent = true)
   public Parameters lookupInstance(final HttpServletRequest request,
-    final HttpServletResponse response, final ServletRequestDetails details, @IdParam
-    final IdType id, @OperationParam(name = "code")
-    final CodeType code, @OperationParam(name = "system")
-    final UriType system, @OperationParam(name = "version")
-    final StringType version, @OperationParam(name = "coding")
-    final Coding coding, @OperationParam(name = "date")
-    final DateRangeParam date, @OperationParam(name = "displayLanguage")
-    final StringType displayLanguage, @OperationParam(name = "property") CodeType property)
-    throws Exception {
+    final HttpServletResponse response, final ServletRequestDetails details,
+    @IdParam final IdType id, @OperationParam(name = "code") final CodeType code,
+    @OperationParam(name = "system") final UriType system,
+    @OperationParam(name = "version") final StringType version,
+    @OperationParam(name = "coding") final Coding coding,
+    @OperationParam(name = "date") final DateRangeParam date,
+    @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+    @OperationParam(name = "property")
+    final CodeType property) throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
       FhirUtilityR4.notSupported("property", property);
-      List<CodeSystem> cs = findPossibleCodeSystems(id, date, system, version);
-      Parameters params = new Parameters();
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, date, system, version);
+      final Parameters params = new Parameters();
       if (cs.size() > 0) {
         String codeToLookup = "";
         if (code != null) {
@@ -188,9 +198,9 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         } else if (coding != null) {
           codeToLookup = coding.getCode();
         }
-        CodeSystem codeSys = cs.get(0);
-        Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
-        Concept conc =
+        final CodeSystem codeSys = cs.get(0);
+        final Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        final Concept conc =
             queryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
         params.addParameter("code", "code");
         params.addParameter("system", codeSys.getUrl());
@@ -198,10 +208,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         params.addParameter("version", codeSys.getVersion());
         params.addParameter("display", conc.getName());
         params.addParameter("active", codeSys.getStatus().toString());
-        for (Concept parent : conc.getParents()) {
+        for (final Concept parent : conc.getParents()) {
           params.addParameter(FhirUtilityR4.createProperty("parent", parent.getCode(), true));
         }
-        for (Concept child : conc.getChildren()) {
+        for (final Concept child : conc.getChildren()) {
           params.addParameter(FhirUtilityR4.createProperty("child", child.getCode(), true));
         }
 
@@ -227,26 +237,40 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param response the response
    * @param details the details
    * @param url the url
+   * @param codeSystem the code system
    * @param code the code
-   * @param system the system
    * @param version the version
+   * @param display the display
+   * @param coding the coding
+   * @param codeableConcept the codeable concept
+   * @param date the date
+   * @param abstractt the abstractt
+   * @param displayLanguage the display language
+   * @param systemVersion the system version
    * @return the parameters
    * @throws Exception the exception
    */
   @Operation(name = JpaConstants.OPERATION_VALIDATE_CODE, idempotent = true)
   public Parameters validateCodeImplicit(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details,
-    @OperationParam(name = "url")
-    final UriType url, @OperationParam(name = "codeSystem") CodeSystem codeSystem,
-    @OperationParam(name = "code")
-    final CodeType code, @OperationParam(name = "version")
-    final StringType version, @OperationParam(name = "display")
-    final StringType display, @OperationParam(name = "coding") Coding coding,
-    @OperationParam(name = "codeableConcept") CodeableConcept codeableConcept,
-    @OperationParam(name = "date") DateTimeType date,
-    @OperationParam(name = "abstract") BooleanType abstractt,
-    @OperationParam(name = "displayLanguage") StringType displayLanguage,
-    @OperationParam(name = "systemVersion") StringType systemVersion) throws Exception {
+    @OperationParam(name = "url") final UriType url,
+    @OperationParam(name = "codeSystem")
+    final CodeSystem codeSystem,
+    @OperationParam(name = "code") final CodeType code,
+    @OperationParam(name = "version") final StringType version,
+    @OperationParam(name = "display") final StringType display,
+    @OperationParam(name = "coding")
+    final Coding coding,
+    @OperationParam(name = "codeableConcept")
+    final CodeableConcept codeableConcept,
+    @OperationParam(name = "date")
+    final DateTimeType date,
+    @OperationParam(name = "abstract")
+    final BooleanType abstractt,
+    @OperationParam(name = "displayLanguage")
+    final StringType displayLanguage,
+    @OperationParam(name = "systemVersion")
+    final StringType systemVersion) throws Exception {
 
     try {
       FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
@@ -257,16 +281,16 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupported("abstract", abstractt);
       FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
       FhirUtilityR4.notSupported("systemVersion", systemVersion);
-      List<CodeSystem> cs = findPossibleCodeSystems(null, null, url, version);
-      Parameters params = new Parameters();
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, url, version);
+      final Parameters params = new Parameters();
       if (cs.size() > 0) {
-        String codeToValidate = code.getCode();
-        CodeSystem codeSys = cs.get(0);
-        Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
-        Optional<Concept> check =
+        final String codeToValidate = code.getCode();
+        final CodeSystem codeSys = cs.get(0);
+        final Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        final Optional<Concept> check =
             queryService.getConcept(codeToValidate, term, new IncludeParam("children"));
         if (check.get() != null) {
-          Concept conc =
+          final Concept conc =
               queryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
           params.addParameter("result", "true");
           params.addParameter("code", "code");
@@ -305,26 +329,41 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param details the details
    * @param id the id
    * @param url the url
+   * @param codeSystem the code system
    * @param code the code
-   * @param system the system
    * @param version the version
+   * @param display the display
+   * @param coding the coding
+   * @param codeableConcept the codeable concept
+   * @param date the date
+   * @param abstractt the abstractt
+   * @param displayLanguage the display language
+   * @param systemVersion the system version
    * @return the parameters
    * @throws Exception the exception
    */
   @Operation(name = "$validate-code", idempotent = true)
   public Parameters validateCodeInstance(final HttpServletRequest request,
-    final HttpServletResponse response, final ServletRequestDetails details, @IdParam IdType id,
-    @OperationParam(name = "url")
-    final UriType url, @OperationParam(name = "codeSystem") CodeSystem codeSystem,
-    @OperationParam(name = "code")
-    final CodeType code, @OperationParam(name = "version")
-    final StringType version, @OperationParam(name = "display")
-    final StringType display, @OperationParam(name = "coding") Coding coding,
-    @OperationParam(name = "codeableConcept") CodeableConcept codeableConcept,
-    @OperationParam(name = "date") DateTimeType date,
-    @OperationParam(name = "abstract") BooleanType abstractt,
-    @OperationParam(name = "displayLanguage") StringType displayLanguage,
-    @OperationParam(name = "systemVersion") StringType systemVersion) throws Exception {
+    final HttpServletResponse response, final ServletRequestDetails details, @IdParam
+    final IdType id,
+    @OperationParam(name = "url") final UriType url,
+    @OperationParam(name = "codeSystem")
+    final CodeSystem codeSystem,
+    @OperationParam(name = "code") final CodeType code,
+    @OperationParam(name = "version") final StringType version,
+    @OperationParam(name = "display") final StringType display,
+    @OperationParam(name = "coding")
+    final Coding coding,
+    @OperationParam(name = "codeableConcept")
+    final CodeableConcept codeableConcept,
+    @OperationParam(name = "date")
+    final DateTimeType date,
+    @OperationParam(name = "abstract")
+    final BooleanType abstractt,
+    @OperationParam(name = "displayLanguage")
+    final StringType displayLanguage,
+    @OperationParam(name = "systemVersion")
+    final StringType systemVersion) throws Exception {
 
     try {
       FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
@@ -335,16 +374,16 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupported("abstract", abstractt);
       FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
       FhirUtilityR4.notSupported("systemVersion", systemVersion);
-      List<CodeSystem> cs = findPossibleCodeSystems(id, null, url, version);
-      Parameters params = new Parameters();
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, url, version);
+      final Parameters params = new Parameters();
       if (cs.size() > 0) {
-        String codeToValidate = code.getCode();
-        CodeSystem codeSys = cs.get(0);
-        Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
-        Optional<Concept> check =
+        final String codeToValidate = code.getCode();
+        final CodeSystem codeSys = cs.get(0);
+        final Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        final Optional<Concept> check =
             queryService.getConcept(codeToValidate, term, new IncludeParam("children"));
         if (check.get() != null) {
-          Concept conc =
+          final Concept conc =
               queryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
           params.addParameter("result", "true");
           params.addParameter("code", "code");
@@ -395,21 +434,20 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   @Operation(name = "$subsumes", idempotent = true)
   public Parameters subsumesImplicit(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details,
-    @OperationParam(name = "codeA")
-    final CodeType codeA, @OperationParam(name = "codeB")
-    final CodeType codeB, @OperationParam(name = "system")
-    final UriType system, @OperationParam(name = "version")
-    final StringType version, @OperationParam(name = "codingA")
-    final Coding codingA, @OperationParam(name = "codingB")
-    final Coding codingB) throws Exception {
+    @OperationParam(name = "codeA") final CodeType codeA,
+    @OperationParam(name = "codeB") final CodeType codeB,
+    @OperationParam(name = "system") final UriType system,
+    @OperationParam(name = "version") final StringType version,
+    @OperationParam(name = "codingA") final Coding codingA,
+    @OperationParam(name = "codingB") final Coding codingB) throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("codeA", codeA, "system", system);
       FhirUtilityR4.mutuallyRequired("codeB", codeB, "system", system);
       FhirUtilityR4.mutuallyExclusive("codingB", codingB, "codeB", codeB);
       FhirUtilityR4.mutuallyExclusive("codingA", codingA, "codeA", codeA);
-      List<CodeSystem> cs = findPossibleCodeSystems(null, null, system, version);
-      Parameters params = new Parameters();
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, system, version);
+      final Parameters params = new Parameters();
       if (cs.size() > 0) {
         String code1 = "";
         String code2 = "";
@@ -420,11 +458,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           code1 = codingA.getCode();
           code2 = codingB.getCode();
         }
-        CodeSystem codeSys = cs.get(0);
-        Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
-        Optional<Concept> checkA =
+        final CodeSystem codeSys = cs.get(0);
+        final Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        final Optional<Concept> checkA =
             queryService.getConcept(code1, term, new IncludeParam("minimal"));
-        Optional<Concept> checkB =
+        final Optional<Concept> checkB =
             queryService.getConcept(code2, term, new IncludeParam("minimal"));
         if (checkA.get() != null && checkB.get() != null) {
           params.addParameter("system", codeSys.getUrl());
@@ -470,22 +508,22 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    */
   @Operation(name = "$subsumes", idempotent = true)
   public Parameters subsumesInstance(final HttpServletRequest request,
-    final HttpServletResponse response, final ServletRequestDetails details, @IdParam IdType id,
-    @OperationParam(name = "codeA")
-    final CodeType codeA, @OperationParam(name = "codeB")
-    final CodeType codeB, @OperationParam(name = "system")
-    final UriType system, @OperationParam(name = "version")
-    final StringType version, @OperationParam(name = "codingA")
-    final Coding codingA, @OperationParam(name = "codingB")
-    final Coding codingB) throws Exception {
+    final HttpServletResponse response, final ServletRequestDetails details, @IdParam
+    final IdType id,
+    @OperationParam(name = "codeA") final CodeType codeA,
+    @OperationParam(name = "codeB") final CodeType codeB,
+    @OperationParam(name = "system") final UriType system,
+    @OperationParam(name = "version") final StringType version,
+    @OperationParam(name = "codingA") final Coding codingA,
+    @OperationParam(name = "codingB") final Coding codingB) throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("codeA", codeA, "system", system);
       FhirUtilityR4.mutuallyRequired("codeB", codeB, "system", system);
       FhirUtilityR4.mutuallyExclusive("codingB", codingB, "codeB", codeB);
       FhirUtilityR4.mutuallyExclusive("codeA", codingA, "codeA", codeA);
-      List<CodeSystem> cs = findPossibleCodeSystems(id, null, system, version);
-      Parameters params = new Parameters();
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, system, version);
+      final Parameters params = new Parameters();
       if (cs.size() > 0) {
         String code1 = "";
         String code2 = "";
@@ -496,11 +534,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           code1 = codingA.getCode();
           code2 = codingB.getCode();
         }
-        CodeSystem codeSys = cs.get(0);
-        Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
-        Optional<Concept> checkA =
+        final CodeSystem codeSys = cs.get(0);
+        final Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        final Optional<Concept> checkA =
             queryService.getConcept(code1, term, new IncludeParam("minimal"));
-        Optional<Concept> checkB =
+        final Optional<Concept> checkB =
             queryService.getConcept(code2, term, new IncludeParam("minimal"));
         if (checkA.get() != null && checkB.get() != null) {
           params.addParameter("system", codeSys.getUrl());
@@ -527,25 +565,22 @@ public class CodeSystemProviderR4 implements IResourceProvider {
 
   /**
    * Find code systems.
-   * 
    *
-   * @param request the request
-   * @param details the details
    * @param id the id
-   * @param name the name
-   * @param title the title
-   * @param url the url
+   * @param date the date
+   * @param system the system
    * @param version the version
+   * @param title the title
    * @return the list
    * @throws Exception the exception
    */
   @Search
-  public List<CodeSystem> findCodeSystems(@OptionalParam(name = "_id") TokenParam id,
-    @OptionalParam(name = "date")
-    final DateRangeParam date, @OptionalParam(name = "system")
-    final StringParam system, @OptionalParam(name = "version")
-    final StringParam version, @OptionalParam(name = "title")
-    final StringParam title) throws Exception {
+  public List<CodeSystem> findCodeSystems(@OptionalParam(name = "_id")
+  final TokenParam id,
+    @OptionalParam(name = "date") final DateRangeParam date,
+    @OptionalParam(name = "system") final StringParam system,
+    @OptionalParam(name = "version") final StringParam version,
+    @OptionalParam(name = "title") final StringParam title) throws Exception {
     try {
       final List<Terminology> terms = termUtils.getTerminologies(true);
 
@@ -583,11 +618,21 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     }
   }
 
-  public List<CodeSystem> findPossibleCodeSystems(@OptionalParam(name = "_id") IdType id,
-    @OptionalParam(name = "date")
-    final DateRangeParam date, @OptionalParam(name = "url")
-    final UriType url, @OptionalParam(name = "version")
-    final StringType version) throws Exception {
+  /**
+   * Find possible code systems.
+   *
+   * @param id the id
+   * @param date the date
+   * @param url the url
+   * @param version the version
+   * @return the list
+   * @throws Exception the exception
+   */
+  public List<CodeSystem> findPossibleCodeSystems(@OptionalParam(name = "_id")
+  final IdType id,
+    @OptionalParam(name = "date") final DateRangeParam date,
+    @OptionalParam(name = "url") final UriType url,
+    @OptionalParam(name = "version") final StringType version) throws Exception {
     try {
       final List<Terminology> terms = termUtils.getTerminologies(true);
 
@@ -621,9 +666,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     }
   }
 
+  /**
+   * Returns the concept map for the specified details.
+   *
+   * @param details the details
+   * @param id the id
+   * @return the concept map
+   * @throws Exception the exception
+   */
   @Read
-  public CodeSystem getConceptMap(final ServletRequestDetails details, @IdParam
-  final IdType id) throws Exception {
+  public CodeSystem getConceptMap(final ServletRequestDetails details, @IdParam final IdType id)
+    throws Exception {
     try {
 
       final List<CodeSystem> candidates = findPossibleCodeSystems(id, null, null, null);
