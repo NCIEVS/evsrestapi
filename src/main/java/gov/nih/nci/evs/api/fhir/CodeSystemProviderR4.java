@@ -99,13 +99,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   @Operation(name = "$lookup", idempotent = true)
   public Parameters lookupImplicit(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details,
-    @OperationParam(name = "code") final CodeType code,
-    @OperationParam(name = "system") final UriType system,
-    @OperationParam(name = "version") final StringType version,
-    @OperationParam(name = "coding") final Coding coding,
-    @OperationParam(name = "date") final DateRangeParam date,
-    @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-    @OperationParam(name = "property")
+    @OperationParam(name = "code")
+    final CodeType code, @OperationParam(name = "system")
+    final UriType system, @OperationParam(name = "version")
+    final StringType version, @OperationParam(name = "coding")
+    final Coding coding, @OperationParam(name = "date")
+    final DateRangeParam date, @OperationParam(name = "displayLanguage")
+    final StringType displayLanguage, @OperationParam(name = "property")
     final CodeType property) throws Exception {
 
     try {
@@ -174,14 +174,14 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    */
   @Operation(name = "$lookup", idempotent = true)
   public Parameters lookupInstance(final HttpServletRequest request,
-    final HttpServletResponse response, final ServletRequestDetails details,
-    @IdParam final IdType id, @OperationParam(name = "code") final CodeType code,
-    @OperationParam(name = "system") final UriType system,
-    @OperationParam(name = "version") final StringType version,
-    @OperationParam(name = "coding") final Coding coding,
-    @OperationParam(name = "date") final DateRangeParam date,
-    @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-    @OperationParam(name = "property")
+    final HttpServletResponse response, final ServletRequestDetails details, @IdParam
+    final IdType id, @OperationParam(name = "code")
+    final CodeType code, @OperationParam(name = "system")
+    final UriType system, @OperationParam(name = "version")
+    final StringType version, @OperationParam(name = "coding")
+    final Coding coding, @OperationParam(name = "date")
+    final DateRangeParam date, @OperationParam(name = "displayLanguage")
+    final StringType displayLanguage, @OperationParam(name = "property")
     final CodeType property) throws Exception {
 
     try {
@@ -253,30 +253,23 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   @Operation(name = JpaConstants.OPERATION_VALIDATE_CODE, idempotent = true)
   public Parameters validateCodeImplicit(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details,
-    @OperationParam(name = "url") final UriType url,
-    @OperationParam(name = "codeSystem")
-    final CodeSystem codeSystem,
-    @OperationParam(name = "code") final CodeType code,
-    @OperationParam(name = "version") final StringType version,
-    @OperationParam(name = "display") final StringType display,
-    @OperationParam(name = "coding")
-    final Coding coding,
-    @OperationParam(name = "codeableConcept")
-    final CodeableConcept codeableConcept,
-    @OperationParam(name = "date")
-    final DateTimeType date,
-    @OperationParam(name = "abstract")
-    final BooleanType abstractt,
-    @OperationParam(name = "displayLanguage")
-    final StringType displayLanguage,
-    @OperationParam(name = "systemVersion")
+    @OperationParam(name = "url")
+    final UriType url, @OperationParam(name = "codeSystem")
+    final CodeSystem codeSystem, @OperationParam(name = "code")
+    final CodeType code, @OperationParam(name = "version")
+    final StringType version, @OperationParam(name = "display")
+    final StringType display, @OperationParam(name = "coding")
+    final Coding coding, @OperationParam(name = "codeableConcept")
+    final CodeableConcept codeableConcept, @OperationParam(name = "date")
+    final DateTimeType date, @OperationParam(name = "abstract")
+    final BooleanType abstractt, @OperationParam(name = "displayLanguage")
+    final StringType displayLanguage, @OperationParam(name = "systemVersion")
     final StringType systemVersion) throws Exception {
 
     try {
       FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
       FhirUtilityR4.notSupported("codeSystem", codeSystem);
       FhirUtilityR4.notSupported("coding", coding);
-      FhirUtilityR4.notSupported("display", display);
       FhirUtilityR4.notSupported("date", date);
       FhirUtilityR4.notSupported("abstract", abstractt);
       FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
@@ -289,13 +282,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         final Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
         final Optional<Concept> check =
             queryService.getConcept(codeToValidate, term, new IncludeParam("children"));
-        if (check.get() != null) {
+        if (check.isPresent()) {
           final Concept conc =
               queryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
           params.addParameter("result", "true");
-          params.addParameter("code", "code");
+          if (display == null || conc.getName().equals(display.getValue())) {
+            params.addParameter("code", conc.getCode());
+          } else {
+            params.addParameter("message", "The code " + conc.getCode()
+                + " exists in this value set but the display is not valid");
+          }
           params.addParameter("system", codeSys.getUrl());
-          params.addParameter("code", codeSys.getName());
           params.addParameter("version", codeSys.getVersion());
           params.addParameter("display", conc.getName());
           params.addParameter("active", codeSys.getStatus().toString());
@@ -306,6 +303,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
         }
+      } else {
+        params.addParameter("result", "false");
+        params.addParameter("message", "The given url does not exist");
+        params.addParameter("system", url);
+        params.addParameter("version", version);
       }
       return params;
 
@@ -345,31 +347,23 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   @Operation(name = "$validate-code", idempotent = true)
   public Parameters validateCodeInstance(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details, @IdParam
-    final IdType id,
-    @OperationParam(name = "url") final UriType url,
-    @OperationParam(name = "codeSystem")
-    final CodeSystem codeSystem,
-    @OperationParam(name = "code") final CodeType code,
-    @OperationParam(name = "version") final StringType version,
-    @OperationParam(name = "display") final StringType display,
-    @OperationParam(name = "coding")
-    final Coding coding,
-    @OperationParam(name = "codeableConcept")
-    final CodeableConcept codeableConcept,
-    @OperationParam(name = "date")
-    final DateTimeType date,
-    @OperationParam(name = "abstract")
-    final BooleanType abstractt,
-    @OperationParam(name = "displayLanguage")
-    final StringType displayLanguage,
-    @OperationParam(name = "systemVersion")
+    final IdType id, @OperationParam(name = "url")
+    final UriType url, @OperationParam(name = "codeSystem")
+    final CodeSystem codeSystem, @OperationParam(name = "code")
+    final CodeType code, @OperationParam(name = "version")
+    final StringType version, @OperationParam(name = "display")
+    final StringType display, @OperationParam(name = "coding")
+    final Coding coding, @OperationParam(name = "codeableConcept")
+    final CodeableConcept codeableConcept, @OperationParam(name = "date")
+    final DateTimeType date, @OperationParam(name = "abstract")
+    final BooleanType abstractt, @OperationParam(name = "displayLanguage")
+    final StringType displayLanguage, @OperationParam(name = "systemVersion")
     final StringType systemVersion) throws Exception {
 
     try {
       FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
       FhirUtilityR4.notSupported("codeSystem", codeSystem);
       FhirUtilityR4.notSupported("coding", coding);
-      FhirUtilityR4.notSupported("display", display);
       FhirUtilityR4.notSupported("date", date);
       FhirUtilityR4.notSupported("abstract", abstractt);
       FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
@@ -382,13 +376,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         final Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
         final Optional<Concept> check =
             queryService.getConcept(codeToValidate, term, new IncludeParam("children"));
-        if (check.get() != null) {
+        if (check.isPresent()) {
           final Concept conc =
               queryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
           params.addParameter("result", "true");
-          params.addParameter("code", "code");
+          if (display == null || conc.getName().equals(display.getValue())) {
+            params.addParameter("code", conc.getCode());
+          } else {
+            params.addParameter("message", "The code " + conc.getCode()
+                + " exists in this value set but the display is not valid");
+          }
           params.addParameter("system", codeSys.getUrl());
-          params.addParameter("code", codeSys.getName());
           params.addParameter("version", codeSys.getVersion());
           params.addParameter("display", conc.getName());
           params.addParameter("active", codeSys.getStatus().toString());
@@ -399,7 +397,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
         }
-
+      } else {
+        params.addParameter("result", "false");
+        params.addParameter("message", "The given url does not exist");
+        params.addParameter("system", url);
+        params.addParameter("version", version);
       }
       return params;
 
@@ -434,12 +436,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   @Operation(name = "$subsumes", idempotent = true)
   public Parameters subsumesImplicit(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details,
-    @OperationParam(name = "codeA") final CodeType codeA,
-    @OperationParam(name = "codeB") final CodeType codeB,
-    @OperationParam(name = "system") final UriType system,
-    @OperationParam(name = "version") final StringType version,
-    @OperationParam(name = "codingA") final Coding codingA,
-    @OperationParam(name = "codingB") final Coding codingB) throws Exception {
+    @OperationParam(name = "codeA")
+    final CodeType codeA, @OperationParam(name = "codeB")
+    final CodeType codeB, @OperationParam(name = "system")
+    final UriType system, @OperationParam(name = "version")
+    final StringType version, @OperationParam(name = "codingA")
+    final Coding codingA, @OperationParam(name = "codingB")
+    final Coding codingB) throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("codeA", codeA, "system", system);
@@ -509,13 +512,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   @Operation(name = "$subsumes", idempotent = true)
   public Parameters subsumesInstance(final HttpServletRequest request,
     final HttpServletResponse response, final ServletRequestDetails details, @IdParam
-    final IdType id,
-    @OperationParam(name = "codeA") final CodeType codeA,
-    @OperationParam(name = "codeB") final CodeType codeB,
-    @OperationParam(name = "system") final UriType system,
-    @OperationParam(name = "version") final StringType version,
-    @OperationParam(name = "codingA") final Coding codingA,
-    @OperationParam(name = "codingB") final Coding codingB) throws Exception {
+    final IdType id, @OperationParam(name = "codeA")
+    final CodeType codeA, @OperationParam(name = "codeB")
+    final CodeType codeB, @OperationParam(name = "system")
+    final UriType system, @OperationParam(name = "version")
+    final StringType version, @OperationParam(name = "codingA")
+    final Coding codingA, @OperationParam(name = "codingB")
+    final Coding codingB) throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("codeA", codeA, "system", system);
@@ -576,11 +579,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    */
   @Search
   public List<CodeSystem> findCodeSystems(@OptionalParam(name = "_id")
-  final TokenParam id,
-    @OptionalParam(name = "date") final DateRangeParam date,
-    @OptionalParam(name = "system") final StringParam system,
-    @OptionalParam(name = "version") final StringParam version,
-    @OptionalParam(name = "title") final StringParam title) throws Exception {
+  final TokenParam id, @OptionalParam(name = "date")
+  final DateRangeParam date, @OptionalParam(name = "system")
+  final StringParam system, @OptionalParam(name = "version")
+  final StringParam version, @OptionalParam(name = "title")
+  final StringParam title) throws Exception {
     try {
       final List<Terminology> terms = termUtils.getTerminologies(true);
 
@@ -629,10 +632,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   public List<CodeSystem> findPossibleCodeSystems(@OptionalParam(name = "_id")
-  final IdType id,
-    @OptionalParam(name = "date") final DateRangeParam date,
-    @OptionalParam(name = "url") final UriType url,
-    @OptionalParam(name = "version") final StringType version) throws Exception {
+
+  final IdType id, @OptionalParam(name = "date")
+  final DateRangeParam date, @OptionalParam(name = "url")
+  final UriType url, @OptionalParam(name = "version")
+  final StringType version) throws Exception {
     try {
       final List<Terminology> terms = termUtils.getTerminologies(true);
 
@@ -675,8 +679,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Read
-  public CodeSystem getConceptMap(final ServletRequestDetails details, @IdParam final IdType id)
-    throws Exception {
+  public CodeSystem getConceptMap(final ServletRequestDetails details, @IdParam
+  final IdType id) throws Exception {
     try {
 
       final List<CodeSystem> candidates = findPossibleCodeSystems(id, null, null, null);
