@@ -2,6 +2,7 @@
 package gov.nih.nci.evs.api.fhir;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -151,7 +152,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupported("system-version", system_version);
       FhirUtilityR4.notSupported("check-system-version", check_system_version);
       FhirUtilityR4.notSupported("force-system-version", force_system_version);
-      final List<ValueSet> vsList = findPossibleValueSets(null, null, null, url, version);
+      final List<ValueSet> vsList = findPossibleValueSets(null, null, url, version);
       if (vsList.size() == 0) {
         throw FhirUtilityR4.exception("Value set " + url + " not found",
             OperationOutcome.IssueType.EXCEPTION, 500);
@@ -286,7 +287,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupported("system-version", system_version);
       FhirUtilityR4.notSupported("check-system-version", check_system_version);
       FhirUtilityR4.notSupported("force-system-version", force_system_version);
-      final List<ValueSet> vsList = findPossibleValueSets(id, null, null, url, version);
+      final List<ValueSet> vsList = findPossibleValueSets(id, null, url, version);
       if (vsList.size() == 0) {
         throw FhirUtilityR4.exception("Value set " + url + " not found",
             OperationOutcome.IssueType.EXCEPTION, 500);
@@ -388,8 +389,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
   final StringType displayLanguage) throws Exception {
 
     try {
-      FhirUtilityR4.requireAtLeastOneOf("code", code, "system", system, "systemVersion",
-          systemVersion, "url", url);
+      FhirUtilityR4.required("code", code);
+      FhirUtilityR4.mutuallyRequired("code", code, "system", system, "url", url);
+      FhirUtilityR4.mutuallyRequired("system", system, "systemVersion", systemVersion);
       FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
       FhirUtilityR4.notSupported("coding", coding);
       FhirUtilityR4.notSupported("context", context);
@@ -399,12 +401,38 @@ public class ValueSetProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupported("version", version);
       FhirUtilityR4.notSupported("valueSet", valueSet);
       FhirUtilityR4.notSupported("valueSetVersion", valueSetVersion);
-      final List<ValueSet> list = findPossibleValueSets(null, code, system, url, systemVersion);
+      final List<ValueSet> list = findPossibleValueSets(null, system, url, systemVersion);
       final Parameters params = new Parameters();
 
       if (list.size() > 0) {
-        params.addParameter("result", true);
-        params.addParameter("display", list.get(0).getName());
+        ValueSet vs = list.get(0);
+        SearchCriteria sc = new SearchCriteria();
+        sc.setTerm(code.getCode());
+        sc.setInclude("minimal");
+        sc.setType("exact");
+        sc.setFromRecord(0);
+        sc.setPageSize(1);
+        if (vs.getIdentifier() != null && !vs.getIdentifier().isEmpty()) {
+          sc.setSubset(Arrays.asList(vs.getIdentifier().get(0).getValue()));
+        }
+        final Terminology term = termUtils.getTerminology(vs.getTitle(), true);
+        sc.setTerminology(Arrays.asList(vs.getTitle()));
+        sc.validate(term, metadataService);
+        List<Terminology> terms = Arrays.asList(term);
+        List<Concept> conc = searchService.search(terms, sc).getConcepts();
+        if (conc.size() > 0) {
+          params.addParameter("result", true);
+          params.addParameter("display", list.get(0).getName());
+          if (display != null && !display.getValue().equals(list.get(0).getName())) {
+            params.addParameter("message",
+                "The code '" + code + "' was found in this value set, however the display '"
+                    + display + "'  did not match any designations.");
+          }
+        } else {
+          params.addParameter("result", false);
+          params.addParameter("message", "The code '" + code.getCode() + "' was not found.");
+        }
+
       } else {
         params.addParameter("result", false);
         params.addParameter("message", "The value set was not found.");
@@ -475,11 +503,35 @@ public class ValueSetProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupported("version", version);
       FhirUtilityR4.notSupported("valueSet", valueSet);
       FhirUtilityR4.notSupported("valueSetVersion", valueSetVersion);
-      final List<ValueSet> list = findPossibleValueSets(null, code, system, url, systemVersion);
+      final List<ValueSet> list = findPossibleValueSets(id, system, url, systemVersion);
       final Parameters params = new Parameters();
       if (list.size() > 0) {
-        params.addParameter("result", true);
-        params.addParameter("display", list.get(0).getName());
+        ValueSet vs = list.get(0);
+        SearchCriteria sc = new SearchCriteria();
+        sc.setTerm(code.getCode());
+        sc.setInclude("minimal");
+        sc.setType("exact");
+        sc.setTerm(vs.getTitle());
+        if (vs.getIdentifier() != null && !vs.getIdentifier().isEmpty()) {
+          sc.setSubset(Arrays.asList(vs.getIdentifier().get(0).getValue()));
+        }
+        final Terminology term = termUtils.getTerminology(vs.getTitle(), true);
+        sc.validate(term, metadataService);
+        List<Terminology> terms = Arrays.asList(term);
+        List<Concept> conc = searchService.search(terms, sc).getConcepts();
+        if (conc.size() > 0) {
+          params.addParameter("result", true);
+          params.addParameter("display", list.get(0).getName());
+          if (display != null && !display.getValue().equals(list.get(0).getName())) {
+            params.addParameter("message",
+                "The code '" + code + "' was found in this value set, however the display '"
+                    + display + "'  did not match any designations.");
+          }
+        } else {
+          params.addParameter("result", false);
+          params.addParameter("message", "The code '" + code.getCode() + "' was not found.");
+        }
+
       } else {
         params.addParameter("result", false);
         params.addParameter("message", "The value set was not found.");
@@ -596,7 +648,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
   final IdType id) throws Exception {
     try {
 
-      final List<ValueSet> candidates = findPossibleValueSets(id, null, null, null, null);
+      final List<ValueSet> candidates = findPossibleValueSets(id, null, null, null);
       for (final ValueSet set : candidates) {
         if (id.getIdPart().equals(set.getId())) {
           return set;
@@ -628,8 +680,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   public List<ValueSet> findPossibleValueSets(@OptionalParam(name = "_id")
-  final IdType id, @OptionalParam(name = "code")
-  final StringType code, @OptionalParam(name = "system")
+  final IdType id, @OptionalParam(name = "system")
   final UriType system, @OptionalParam(name = "url")
   final UriType url, @OptionalParam(name = "version")
   final StringType version) throws Exception {
@@ -637,29 +688,27 @@ public class ValueSetProviderR4 implements IResourceProvider {
     final List<Terminology> terms = termUtils.getTerminologies(true);
 
     final List<ValueSet> list = new ArrayList<ValueSet>();
-    if (code == null) {
-      for (final Terminology terminology : terms) {
-        final ValueSet vs = FhirUtilityR4.toR4VS(terminology);
-        // Skip non-matching
-        if (id != null && !id.getIdPart().equals(vs.getId())) {
-          logger.info("  SKIP id mismatch = " + vs.getId());
-          continue;
-        }
-        if (url != null && !url.getValue().equals(vs.getUrl())) {
-          logger.info("  SKIP url mismatch = " + vs.getUrl());
-          continue;
-        }
-        if (system != null && !system.getValue().equals(vs.getTitle())) {
-          logger.info("  SKIP system mismatch = " + vs.getTitle());
-          continue;
-        }
-        if (version != null && !version.getValue().equals(vs.getVersion())) {
-          logger.info("  SKIP version mismatch = " + vs.getVersion());
-          continue;
-        }
-
-        list.add(vs);
+    for (final Terminology terminology : terms) {
+      final ValueSet vs = FhirUtilityR4.toR4VS(terminology);
+      // Skip non-matching
+      if (id != null && !id.getIdPart().equals(vs.getId())) {
+        logger.info("  SKIP id mismatch = " + vs.getId());
+        continue;
       }
+      if (url != null && !url.getValue().equals(vs.getUrl())) {
+        logger.info("  SKIP url mismatch = " + vs.getUrl());
+        continue;
+      }
+      if (system != null && !system.getValue().equals(vs.getTitle())) {
+        logger.info("  SKIP system mismatch = " + vs.getTitle());
+        continue;
+      }
+      if (version != null && !version.getValue().equals(vs.getVersion())) {
+        logger.info("  SKIP version mismatch = " + vs.getVersion());
+        continue;
+      }
+
+      list.add(vs);
     }
     final List<Concept> subsets =
         metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.ofNullable(null));
@@ -680,11 +729,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
       }
       if (system != null && !system.getValue().equals(vs.getTitle())) {
         logger.info("  SKIP system mismatch = " + vs.getTitle());
-        continue;
-      }
-      if (code != null && !vs.getIdentifier().stream()
-          .filter(i -> i.getValue().equals(code.getValue())).findAny().isPresent()) {
-        logger.info("  SKIP code mismatch = " + vs.getTitle());
         continue;
       }
       list.add(vs);
