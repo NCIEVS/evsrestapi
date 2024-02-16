@@ -131,7 +131,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         params.addParameter("code", codeSys.getName());
         params.addParameter("version", codeSys.getVersion());
         params.addParameter("display", conc.getName());
-        params.addParameter("active", codeSys.getStatus().toString());
+        params.addParameter("active", true);
         for (final Concept parent : conc.getParents()) {
           params.addParameter(FhirUtilityR4.createProperty("parent", parent.getCode(), true));
         }
@@ -207,7 +207,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         params.addParameter("code", codeSys.getName());
         params.addParameter("version", codeSys.getVersion());
         params.addParameter("display", conc.getName());
-        params.addParameter("active", codeSys.getStatus().toString());
+        params.addParameter("active", true);
         for (final Concept parent : conc.getParents()) {
           params.addParameter(FhirUtilityR4.createProperty("parent", parent.getCode(), true));
         }

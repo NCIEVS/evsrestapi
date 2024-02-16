@@ -194,8 +194,7 @@ public class FhirR4Tests {
         .isEqualTo(retiredCode);
     assertThat(((StringType) params.getParameter("display").getValue()).getValue())
         .isEqualTo(retiredName);
-    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue())
-        .isEqualTo(false);
+    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
 
     content = this.restTemplate
         .getForObject("http://localhost:" + port + "/fhir/r4/CodeSystem/$validate-code?url="
@@ -206,8 +205,7 @@ public class FhirR4Tests {
         .isEqualTo(retiredCode);
     assertThat(((StringType) params.getParameter("display").getValue()).getValue())
         .isEqualTo(retiredName);
-    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue())
-        .isEqualTo(false);
+    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
 
     content = this.restTemplate.getForObject(
         "http://localhost:" + port + "/fhir/r4/CodeSystem/" + retiredId + "/$validate-code?url="
@@ -219,8 +217,7 @@ public class FhirR4Tests {
         .isEqualTo(retiredCode);
     assertThat(((StringType) params.getParameter("display").getValue()).getValue())
         .isEqualTo(retiredName);
-    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue())
-        .isEqualTo(false);
+    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
   }
 
   /**
