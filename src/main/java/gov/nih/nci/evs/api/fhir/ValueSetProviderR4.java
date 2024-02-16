@@ -422,11 +422,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
         List<Concept> conc = searchService.search(terms, sc).getConcepts();
         if (conc.size() > 0) {
           params.addParameter("result", true);
-          params.addParameter("display", list.get(0).getName());
-          if (display != null && !display.getValue().equals(list.get(0).getName())) {
+          params.addParameter("display", conc.get(0).getName());
+          if (display != null && !display.getValue().equals(conc.get(0).getName())) {
             params.addParameter("message",
                 "The code '" + code + "' was found in this value set, however the display '"
-                    + display + "'  did not match any designations.");
+                    + display + "' did not match any designations.");
           }
         } else {
           params.addParameter("result", false);
@@ -511,7 +511,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
         sc.setTerm(code.getCode());
         sc.setInclude("minimal");
         sc.setType("exact");
-        sc.setTerm(vs.getTitle());
         if (vs.getIdentifier() != null && !vs.getIdentifier().isEmpty()) {
           sc.setSubset(Arrays.asList(vs.getIdentifier().get(0).getValue()));
         }
@@ -521,11 +520,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
         List<Concept> conc = searchService.search(terms, sc).getConcepts();
         if (conc.size() > 0) {
           params.addParameter("result", true);
-          params.addParameter("display", list.get(0).getName());
-          if (display != null && !display.getValue().equals(list.get(0).getName())) {
+          params.addParameter("display", conc.get(0).getName());
+          if (display != null && !display.getValue().equals(conc.get(0).getName())) {
             params.addParameter("message",
                 "The code '" + code + "' was found in this value set, however the display '"
-                    + display + "'  did not match any designations.");
+                    + display + "' did not match any designations.");
           }
         } else {
           params.addParameter("result", false);
