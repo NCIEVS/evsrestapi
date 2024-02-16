@@ -295,7 +295,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
           params.addParameter("display", conc.getName());
-          params.addParameter("active", codeSys.getStatus().toString());
+          params.addParameter("active", conc.getActive());
         } else {
           params.addParameter("result", false);
           params.addParameter("message",
@@ -389,7 +389,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
           params.addParameter("display", conc.getName());
-          params.addParameter("active", codeSys.getStatus().toString());
+          params.addParameter("active", conc.getActive());
         } else {
           params.addParameter("result", false);
           params.addParameter("message",

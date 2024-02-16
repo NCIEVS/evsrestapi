@@ -127,6 +127,7 @@ public class FhirR4Tests {
         .isEqualTo(activeCode);
     assertThat(((StringType) params.getParameter("display").getValue()).getValue())
         .isEqualTo(displayString);
+    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
 
     content = this.restTemplate.getForObject(
         "http://localhost:" + port + "/fhir/r4/CodeSystem/" + activeID + "/$validate-code?url="
@@ -138,6 +139,7 @@ public class FhirR4Tests {
         .isEqualTo(activeCode);
     assertThat(((StringType) params.getParameter("display").getValue()).getValue())
         .isEqualTo(displayString);
+    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
 
     content = this.restTemplate
         .getForObject("http://localhost:" + port + "/fhir/r4/CodeSystem/$validate-code?url=" + url
@@ -148,6 +150,7 @@ public class FhirR4Tests {
         .isEqualTo(activeCode);
     assertThat(((StringType) params.getParameter("display").getValue()).getValue())
         .isEqualTo(displayString);
+    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
 
     // code not found
     content = this.restTemplate.getForObject("http://localhost:" + port
@@ -176,6 +179,48 @@ public class FhirR4Tests {
         .isEqualTo(false);
     assertThat(((StringType) params.getParameter("message").getValue()).getValue())
         .isEqualTo(messageNotFound);
+
+    // retired code
+    String retiredCode = "C45683";
+    String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
+    String retiredId = "ncit_21.06e";
+    String retiredName = "ABCB1 1 Allele";
+    content = this.restTemplate.getForObject("http://localhost:" + port
+        + "/fhir/r4/CodeSystem/$validate-code?url=" + retiredUrl + "&code=" + retiredCode,
+        String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
+    assertThat(((StringType) params.getParameter("code").getValue()).getValue())
+        .isEqualTo(retiredCode);
+    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
+        .isEqualTo(retiredName);
+    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue())
+        .isEqualTo(false);
+
+    content = this.restTemplate
+        .getForObject("http://localhost:" + port + "/fhir/r4/CodeSystem/$validate-code?url="
+            + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName, String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
+    assertThat(((StringType) params.getParameter("code").getValue()).getValue())
+        .isEqualTo(retiredCode);
+    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
+        .isEqualTo(retiredName);
+    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue())
+        .isEqualTo(false);
+
+    content = this.restTemplate.getForObject(
+        "http://localhost:" + port + "/fhir/r4/CodeSystem/" + retiredId + "/$validate-code?url="
+            + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName,
+        String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
+    assertThat(((StringType) params.getParameter("code").getValue()).getValue())
+        .isEqualTo(retiredCode);
+    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
+        .isEqualTo(retiredName);
+    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue())
+        .isEqualTo(false);
   }
 
   /**
@@ -275,6 +320,36 @@ public class FhirR4Tests {
         .isEqualTo(false);
     assertThat(((StringType) params.getParameter("message").getValue()).getValue())
         .isEqualTo(messageNotFound);
+
+    // retired code
+    String retiredCode = "C45683";
+    String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
+    String retiredId = "ncit_21.06e";
+    String retiredName = "ABCB1 1 Allele";
+    content = this.restTemplate.getForObject("http://localhost:" + port
+        + "/fhir/r4/ValueSet/$validate-code?url=" + retiredUrl + "&code=" + retiredCode,
+        String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
+    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
+        .isEqualTo(retiredName);
+
+    content = this.restTemplate
+        .getForObject("http://localhost:" + port + "/fhir/r4/ValueSet/$validate-code?url="
+            + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName, String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
+    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
+        .isEqualTo(retiredName);
+
+    content = this.restTemplate.getForObject(
+        "http://localhost:" + port + "/fhir/r4/ValueSet/" + retiredId + "/$validate-code?url="
+            + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName,
+        String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
+    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
+        .isEqualTo(retiredName);
 
   }
 
