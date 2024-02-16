@@ -5,12 +5,15 @@ import static org.assertj.core.api.Assertions.assertThat;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.ConceptMap;
+import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ResourceType;
+import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.junit.Before;
 import org.junit.Test;
@@ -106,6 +109,73 @@ public class FhirR4Tests {
     assertThat(codeSystem.getName()).isEqualTo(((CodeSystem) codeSystems.get(0)).getName());
     assertThat(codeSystem.getPublisher())
         .isEqualTo(((CodeSystem) codeSystems.get(0)).getPublisher());
+
+    // test validate-code
+    String activeCode = "T100";
+    String activeID = "umlssemnet_2023AA";
+    String codeNotFound = "T10";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    String displayString = "Age Group";
+    String messageNotFound = "The code does not exist for the supplied code system and/or version";
+
+    // active code
+    content = this.restTemplate.getForObject("http://localhost:" + port
+        + "/fhir/r4/CodeSystem/$validate-code?url=" + url + "&code=" + activeCode, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
+    assertThat(((StringType) params.getParameter("code").getValue()).getValue())
+        .isEqualTo(activeCode);
+    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
+        .isEqualTo(displayString);
+
+    content = this.restTemplate.getForObject(
+        "http://localhost:" + port + "/fhir/r4/CodeSystem/" + activeID + "/$validate-code?url="
+            + url + "&code=" + activeCode + "&display=" + displayString,
+        String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
+    assertThat(((StringType) params.getParameter("code").getValue()).getValue())
+        .isEqualTo(activeCode);
+    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
+        .isEqualTo(displayString);
+
+    content = this.restTemplate
+        .getForObject("http://localhost:" + port + "/fhir/r4/CodeSystem/$validate-code?url=" + url
+            + "&code=" + activeCode + "&display=" + displayString, String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
+    assertThat(((StringType) params.getParameter("code").getValue()).getValue())
+        .isEqualTo(activeCode);
+    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
+        .isEqualTo(displayString);
+
+    // code not found
+    content = this.restTemplate.getForObject("http://localhost:" + port
+        + "/fhir/r4/CodeSystem/$validate-code?url=" + url + "&code=" + codeNotFound, String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
+        .isEqualTo(false);
+    assertThat(((StringType) params.getParameter("message").getValue()).getValue())
+        .isEqualTo(messageNotFound);
+
+    content = this.restTemplate
+        .getForObject("http://localhost:" + port + "/fhir/r4/CodeSystem/$validate-code?url=" + url
+            + "&code=" + codeNotFound + "&display=" + displayString, String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
+        .isEqualTo(false);
+    assertThat(((StringType) params.getParameter("message").getValue()).getValue())
+        .isEqualTo(messageNotFound);
+
+    content = this.restTemplate.getForObject(
+        "http://localhost:" + port + "/fhir/r4/CodeSystem/" + activeID + "/$validate-code?url="
+            + url + "&code=" + codeNotFound + "&display=" + displayString,
+        String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
+        .isEqualTo(false);
+    assertThat(((StringType) params.getParameter("message").getValue()).getValue())
+        .isEqualTo(messageNotFound);
   }
 
   /**
@@ -144,6 +214,68 @@ public class FhirR4Tests {
     assertThat(valueSet.getIdPart()).isEqualTo(firstValueSetId);
     assertThat(valueSet.getName()).isEqualTo(((ValueSet) valueSets.get(0)).getName());
     assertThat(valueSet.getPublisher()).isEqualTo(((ValueSet) valueSets.get(0)).getPublisher());
+
+    // test validate-code
+    String activeCode = "T100";
+    String activeID = "umlssemnet_2023AA";
+    String codeNotFound = "T10";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    String displayString = "Age Group";
+    String messageNotFound = "The code '" + codeNotFound + "' was not found.";
+
+    // active code
+    content = this.restTemplate.getForObject("http://localhost:" + port
+        + "/fhir/r4/ValueSet/$validate-code?url=" + url + "&code=" + activeCode, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
+    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
+        .isEqualTo(displayString);
+
+    content = this.restTemplate.getForObject(
+        "http://localhost:" + port + "/fhir/r4/ValueSet/" + activeID + "/$validate-code?url=" + url
+            + "&code=" + activeCode + "&display=" + displayString,
+        String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
+    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
+        .isEqualTo(displayString);
+
+    content = this.restTemplate
+        .getForObject("http://localhost:" + port + "/fhir/r4/ValueSet/$validate-code?url=" + url
+            + "&code=" + activeCode + "&display=" + displayString, String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
+    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
+        .isEqualTo(displayString);
+
+    // code not found
+    content = this.restTemplate.getForObject("http://localhost:" + port
+        + "/fhir/r4/ValueSet/$validate-code?url=" + url + "&code=" + codeNotFound, String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
+        .isEqualTo(false);
+    assertThat(((StringType) params.getParameter("message").getValue()).getValue())
+        .isEqualTo(messageNotFound);
+
+    content = this.restTemplate
+        .getForObject("http://localhost:" + port + "/fhir/r4/ValueSet/$validate-code?url=" + url
+            + "&code=" + codeNotFound + "&display=" + displayString, String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
+        .isEqualTo(false);
+    assertThat(((StringType) params.getParameter("message").getValue()).getValue())
+        .isEqualTo(messageNotFound);
+
+    content = this.restTemplate.getForObject(
+        "http://localhost:" + port + "/fhir/r4/ValueSet/" + activeID + "/$validate-code?url=" + url
+            + "&code=" + codeNotFound + "&display=" + displayString,
+        String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
+        .isEqualTo(false);
+    assertThat(((StringType) params.getParameter("message").getValue()).getValue())
+        .isEqualTo(messageNotFound);
+
   }
 
   /**

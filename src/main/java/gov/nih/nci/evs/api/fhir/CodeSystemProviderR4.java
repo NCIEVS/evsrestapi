@@ -285,7 +285,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         if (check.isPresent()) {
           final Concept conc =
               queryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
-          params.addParameter("result", "true");
+          params.addParameter("result", true);
           if (display == null || conc.getName().equals(display.getValue())) {
             params.addParameter("code", conc.getCode());
           } else {
@@ -297,14 +297,14 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           params.addParameter("display", conc.getName());
           params.addParameter("active", codeSys.getStatus().toString());
         } else {
-          params.addParameter("result", "false");
+          params.addParameter("result", false);
           params.addParameter("message",
               "The code does not exist for the supplied code system and/or version");
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
         }
       } else {
-        params.addParameter("result", "false");
+        params.addParameter("result", false);
         params.addParameter("message", "The given url does not exist");
         params.addParameter("system", url);
         params.addParameter("version", version);
@@ -379,7 +379,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         if (check.isPresent()) {
           final Concept conc =
               queryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
-          params.addParameter("result", "true");
+          params.addParameter("result", true);
           if (display == null || conc.getName().equals(display.getValue())) {
             params.addParameter("code", conc.getCode());
           } else {
@@ -391,14 +391,14 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           params.addParameter("display", conc.getName());
           params.addParameter("active", codeSys.getStatus().toString());
         } else {
-          params.addParameter("result", "false");
+          params.addParameter("result", false);
           params.addParameter("message",
               "The code does not exist for the supplied code system and/or version");
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
         }
       } else {
-        params.addParameter("result", "false");
+        params.addParameter("result", false);
         params.addParameter("message", "The given url does not exist");
         params.addParameter("system", url);
         params.addParameter("version", version);
