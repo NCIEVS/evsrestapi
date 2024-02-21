@@ -15,8 +15,8 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Represents terminology metadata, which includes information about mapping from OWL structures to
- * the terminology model.
+ * Represents terminology metadata, which includes information about mapping from OWL structures to the terminology
+ * model.
  */
 @Schema(description = "Represents additional terminology metadata")
 @JsonInclude(Include.NON_EMPTY)
@@ -105,7 +105,6 @@ public class TerminologyMetadata extends BaseModel {
   private Boolean mapsets;
 
   /** The source ct. */
-  @SuppressWarnings("unused")
   private int sourceCt;
 
   /** The definition source set. */
@@ -255,7 +254,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the relationship to target
    */
-  @Schema(description = "OWL property metadata for building maps")
+  @Schema(hidden = true)
   public String getRelationshipToTarget() {
     return relationshipToTarget;
   }
@@ -331,7 +330,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the code
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public String getCode() {
     return code;
   }
@@ -350,7 +349,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the concept status
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public String getConceptStatus() {
     return conceptStatus;
   }
@@ -410,7 +409,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the preferred name
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public String getPreferredName() {
     return preferredName;
   }
@@ -429,7 +428,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public Set<String> getSynonym() {
     if (synonym == null) {
       synonym = new HashSet<>();
@@ -451,7 +450,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym term type
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public String getSynonymTermType() {
     return synonymTermType;
   }
@@ -479,7 +478,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym source
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public String getSynonymSource() {
     return synonymSource;
   }
@@ -498,7 +497,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym code
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public String getSynonymCode() {
     return synonymCode;
   }
@@ -517,7 +516,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the synonym sub source
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public String getSynonymSubSource() {
     return synonymSubSource;
   }
@@ -536,7 +535,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the definition source
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public String getDefinitionSource() {
     return definitionSource;
   }
@@ -555,7 +554,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the definition
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public Set<String> getDefinition() {
     if (definition == null) {
       definition = new HashSet<>();
@@ -577,7 +576,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map relation
    */
-  @Schema(description = "OWL property metadata for building maps")
+  @Schema(hidden = true)
   public String getMapRelation() {
     return mapRelation;
   }
@@ -596,7 +595,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map
    */
-  @Schema(description = "OWL property metadata for building maps")
+  @Schema(hidden = true)
   public String getMap() {
     return map;
   }
@@ -615,7 +614,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map target
    */
-  @Schema(description = "OWL property metadata for building maps")
+  @Schema(hidden = true)
   public String getMapTarget() {
     return mapTarget;
   }
@@ -634,7 +633,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map target term type
    */
-  @Schema(description = "OWL property metadata for building maps")
+  @Schema(hidden = true)
   public String getMapTargetTermType() {
     return mapTargetTermType;
   }
@@ -653,7 +652,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param mapTargetTermGroup the map target term group
    */
-  @Schema(description = "OWL property metadata for building maps")
+  @Schema(hidden = true)
   public void setMapTargetTermGroup(final String mapTargetTermGroup) {
     this.mapTargetTermType = mapTargetTermGroup;
   }
@@ -663,7 +662,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map target terminology
    */
-  @Schema(description = "OWL property metadata for building maps")
+  @Schema(hidden = true)
   public String getMapTargetTerminology() {
     return mapTargetTerminology;
   }
@@ -682,7 +681,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the map target terminology version
    */
-  @Schema(description = "OWL property metadata for building maps")
+  @Schema(hidden = true)
   public String getMapTargetTerminologyVersion() {
     return mapTargetTerminologyVersion;
   }
@@ -742,7 +741,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the details columns
    */
-  @Schema(hidden = true)
+  @Schema(description = "Metadata for displaying concept")
   public Map<String, Boolean> getDetailsColumns() {
     if (detailsColumns == null) {
       detailsColumns = new HashMap<>();
@@ -755,7 +754,6 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @param detailsColumns the details columns
    */
-  @Schema(description = "Metadata for displaying concept")
   public void setDetailsColumns(final Map<String, Boolean> detailsColumns) {
     this.detailsColumns = detailsColumns;
   }
@@ -809,7 +807,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the term types
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public Map<String, String> getTermTypes() {
     if (termTypes == null) {
       termTypes = new HashMap<>();
@@ -918,8 +916,8 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Returns the unpublished properties or qualifiers. These are things where the data defines the
-   * metadata but then no uses of that metadata occur.
+   * Returns the unpublished properties or qualifiers. These are things where the data defines the metadata but then no
+   * uses of that metadata occur.
    *
    * @return the unpublished
    */
@@ -1021,7 +1019,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the preferred term types
    */
-  @Schema(description = "OWL property metadata for building concept")
+  @Schema(hidden = true)
   public List<String> getPreferredTermTypes() {
     if (preferredTermTypes == null) {
       preferredTermTypes = new ArrayList<>();
@@ -1090,7 +1088,7 @@ public class TerminologyMetadata extends BaseModel {
    *
    * @return the subset
    */
-  @Schema(description = "OWL property metadata for building subsets")
+  @Schema(hidden = true)
   public Set<String> getSubset() {
     if (subset == null) {
       subset = new HashSet<>();
@@ -1199,9 +1197,9 @@ public class TerminologyMetadata extends BaseModel {
       return false;
     }
     return code.equals(synonymTermType) || code.equals(synonymSource) || code.equals(synonymCode)
-        || code.equals(synonymSubSource) || code.equals(definitionSource)
-        || code.equals(mapRelation) || code.equals(mapTarget) || code.equals(mapTargetTermType)
-        || code.equals(mapTargetTerminology) || code.equals(mapTargetTerminologyVersion);
+        || code.equals(synonymSubSource) || code.equals(definitionSource) || code.equals(mapRelation)
+        || code.equals(mapTarget) || code.equals(mapTargetTermType) || code.equals(mapTargetTerminology)
+        || code.equals(mapTargetTerminologyVersion);
   }
 
   /**
@@ -1222,8 +1220,7 @@ public class TerminologyMetadata extends BaseModel {
    * @param md the md
    * @return the remodeled as type
    */
-  public String getRemodeledAsType(final Property prop, final Qualifier qual,
-    final TerminologyMetadata md) {
+  public String getRemodeledAsType(final Property prop, final Qualifier qual, final TerminologyMetadata md) {
     String code = null;
     if (prop != null) {
       code = prop.getCode();

@@ -18,8 +18,7 @@ import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 
 /**
- * Reference implementation of {@link QueryBuilderService}. Includes hibernate
- * tags for MEME database.
+ * Reference implementation of {@link QueryBuilderService}. Includes hibernate tags for MEME database.
  *
  */
 @Service
@@ -27,7 +26,6 @@ import gov.nih.nci.evs.api.util.ConceptUtils;
 public class QueryBuilderServiceImpl implements QueryBuilderService {
 
   /** The Constant log. */
-  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(QueryBuilderServiceImpl.class);
 
   /** The stardog properties. */
@@ -63,8 +61,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
       // Otherwise use prefix.graph + prefix.common
       else {
-        prefix = getResolvedProperty("prefix.graph", values) + System.getProperty("line.separator")
-            + prefix;
+        prefix = getResolvedProperty("prefix.graph", values) + System.getProperty("line.separator") + prefix;
       }
 
     }
@@ -93,12 +90,11 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    */
   @Override
   public String constructQuery(final String queryProp, final Terminology terminology) {
-    Map<String, String> values = ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(),
-        "namedGraph", terminology.getGraph(), "preferredNameCode",
-        terminology.getMetadata().getPreferredName());
+    Map<String, String> values = ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(), "namedGraph",
+        terminology.getGraph(), "preferredNameCode", terminology.getMetadata().getPreferredName());
     final String queryPropTerminology = queryProp + "." + terminology.getTerminology();
-    String query = getResolvedProperty(
-        env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);
+    String query =
+        getResolvedProperty(env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);
     // log.debug("construct " + queryProp + " - " + query);
     return query;
   }
@@ -112,16 +108,14 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * @return the string
    */
   @Override
-  public String constructQuery(final String queryProp, final Terminology terminology,
-    final String conceptCode) {
+  public String constructQuery(final String queryProp, final Terminology terminology, final String conceptCode) {
     checkCode(conceptCode);
-    final Map<String, String> values =
-        ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(), "conceptCode",
-            conceptCode, "conceptAbout", conceptCode, "namedGraph", terminology.getGraph(),
-            "preferredNameCode", terminology.getMetadata().getPreferredName());
+    final Map<String, String> values = ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(),
+        "conceptCode", conceptCode, "conceptAbout", conceptCode, "namedGraph", terminology.getGraph(),
+        "preferredNameCode", terminology.getMetadata().getPreferredName());
     final String queryPropTerminology = queryProp + "." + terminology.getTerminology();
-    final String query = getResolvedProperty(
-        env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);
+    final String query =
+        getResolvedProperty(env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);
     return query;
   }
 
@@ -138,16 +132,15 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     final List<String> conceptCodes) {
     final String inClause = getInClause(conceptCodes);
     final String aboutClause = getAboutClause(conceptCodes);
-    final Map<String, String> values =
-        ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(), "namedGraph",
-            terminology.getGraph(), "inClause", inClause, "aboutClause", aboutClause,
-            "preferredNameCode", terminology.getMetadata().getPreferredName());
+    final Map<String, String> values = ConceptUtils.asMap("codeCode", terminology.getMetadata().getCode(), "namedGraph",
+        terminology.getGraph(), "inClause", inClause, "aboutClause", aboutClause, "preferredNameCode",
+        terminology.getMetadata().getPreferredName());
     final String queryPropTerminology = queryProp + "." + terminology.getTerminology();
     if (env.containsProperty(queryPropTerminology)) {
       log.info("    use terminology-specific query = " + queryPropTerminology);
     }
-    String query = getResolvedProperty(
-        env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);
+    String query =
+        getResolvedProperty(env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);
     // log.debug("construct " + queryProp + " - " + query);
     return query;
   }
@@ -161,8 +154,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * @return the string
    */
   @Override
-  public String constructQuery(String queryProp, Terminology terminology,
-    Map<String, String> values) {
+  public String constructQuery(String queryProp, Terminology terminology, Map<String, String> values) {
     // Validate codes
     for (final Map.Entry<String, String> entry : values.entrySet()) {
       if (entry.getKey().toLowerCase().contains("code")) {
@@ -170,8 +162,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
       }
     }
     final String queryPropTerminology = queryProp + "." + terminology.getTerminology();
-    String query = getResolvedProperty(
-        env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);
+    String query =
+        getResolvedProperty(env.containsProperty(queryPropTerminology) ? queryPropTerminology : queryProp, values);
     // log.debug("construct " + queryProp + " - " + query);
     return query;
   }
@@ -196,8 +188,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   private String getInClause(List<String> values) {
     checkCodes(values);
     return new StringBuilder().append("'")
-        .append(String.join("','",
-            values.stream().filter(v -> !v.startsWith("http")).collect(Collectors.toList())))
+        .append(String.join("','", values.stream().filter(v -> !v.startsWith("http")).collect(Collectors.toList())))
         .append("'").toString();
   }
 
@@ -208,8 +199,9 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * @return the about clause
    */
   private String getAboutClause(final List<String> values) {
-    final String result = new StringBuilder().append(String.join(",", values.stream()
-        .filter(v -> v.startsWith("http")).map(v -> "<" + v + ">").collect(Collectors.toList())))
+    final String result = new StringBuilder()
+        .append(String.join(",",
+            values.stream().filter(v -> v.startsWith("http")).map(v -> "<" + v + ">").collect(Collectors.toList())))
         .toString();
     return result.isEmpty() ? "<empty>" : result;
   }

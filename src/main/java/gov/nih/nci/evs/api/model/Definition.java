@@ -106,7 +106,7 @@ public class Definition extends BaseModel implements Comparable<Definition> {
    *
    * @return the highlight
    */
-  @Schema(hidden = true)
+  @Schema(description = "Used by search calls to provide information for highlighting a view of results")
   public String getHighlight() {
     return highlight;
   }

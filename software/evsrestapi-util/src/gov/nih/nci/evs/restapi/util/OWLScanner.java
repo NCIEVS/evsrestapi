@@ -1083,6 +1083,12 @@ C4910|<NHC0>C4910</NHC0>
 	}
 
     public Vector extractProperties(Vector class_vec, String propertyCode) {
+		Vector w = ScannerUtils.extractProperties(class_vec, propertyCode);
+		return w;
+	}
+
+/*
+    public Vector extractProperties(Vector class_vec, String propertyCode) {
         Vector w = new Vector();
         boolean istart = false;
         boolean istart0 = false;
@@ -1162,6 +1168,7 @@ C4910|<NHC0>C4910</NHC0>
 		}
 		return w;
 	}
+*/
 
     public Vector extractSuperclasses(Vector class_vec) {
         Vector w = new Vector();
@@ -1395,7 +1402,7 @@ C4910|<NHC0>C4910</NHC0>
 	}
 
     public Vector extractAssociations(Vector class_vec) {
-		Vector v = ScannerUtils.extractProperties(class_vec);
+		Vector v = ScannerUtils.extractAssociations(class_vec);
 		Vector w = new Vector();
 		for (int i=0; i<v.size(); i++) {
 			String t = (String) v.elementAt(i);
@@ -3122,13 +3129,13 @@ C4910|<NHC0>C4910</NHC0>
 
     public HashMap getPropertyCode2CountMap() {
 		HashMap hmap = new HashMap();
-		Vector w = extractProperties(get_owl_vec());
+		//Vector w = extractProperties(get_owl_vec());
+		Vector w = extractAllProperties(get_owl_vec());
 		for (int i=0; i<w.size(); i++) {
 			String line = (String) w.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
 			String code = (String) u.elementAt(0);
 			String prop_code = (String) u.elementAt(1);
-			//prop_code = prop_code.replace(NAMESPACE, "");
 			Integer int_obj = new Integer(0);
 			if (hmap.containsKey(prop_code)) {
 				int_obj = (Integer) hmap.get(prop_code);
@@ -3141,16 +3148,55 @@ C4910|<NHC0>C4910</NHC0>
 		return hmap;
 	}
 
+	public Vector extractAllProperties(Vector owl_vec) {
+		return ScannerUtils.extractAllProperties(owl_vec);
+	}
+
+    public HashMap getPropertyQualifier2CountMap() {
+        Vector w = ScannerUtils.extractAxioms(get_owl_vec());
+        HashMap hmap = new HashMap();
+        for (int i=0; i<w.size(); i++) {
+			String line = (String) w.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String s0 = (String) u.elementAt(0);
+			if (ScannerUtils.isConceptCode(s0)) {
+				String propertyCode = (String) u.elementAt(1);
+				if (u.size() > 3) {
+					for (int j=3; j<u.size(); j++) {
+						String q = (String) u.elementAt(j);
+						Vector u2 = StringUtils.parseData(q, '$');
+						String q_code = (String) u2.elementAt(0);
+						int count = 0;
+						if (hmap.containsKey(propertyCode + "|" + q_code)) {
+							Integer int_obj = (Integer) hmap.get(propertyCode + "|" + q_code);
+							count = int_obj.intValue();
+						}
+						count++;
+						hmap.put(propertyCode + "|" + q_code, new Integer(count));
+					}
+			    }
+			}
+		}
+		return hmap;
+	}
+
+	public static void dumpPropertyQualifier2CountMap(HashMap hmap) {
+		ScannerUtils.dumpPropertyQualifier2CountMap(hmap);
+	}
+
 
     public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
         String owlfile = args[0];
 		OWLScanner scanner = new OWLScanner(owlfile);
-		//scanner.extractProperties(scanner.get_owl_vec());
-		//HashMap hmap = scanner.getPropertyCode2CountMap();
-		//scanner.dumpPropertyCode2CountMap(hmap);
-		Vector roles = scanner.extractOWLRestrictions(scanner.get_owl_vec());
-		Utils.saveToFile("roles.txt", roles);
+		scanner.extractProperties(scanner.get_owl_vec());
+		HashMap hmap = scanner.getPropertyCode2CountMap();
+		scanner.dumpPropertyCode2CountMap(hmap);
+		//Vector roles = scanner.extractOWLRestrictions(scanner.get_owl_vec());
+		//Utils.saveToFile("roles.txt", roles);
+		//Vector associations = scanner.extractAssociations(scanner.get_owl_vec());
+		//Utils.saveToFile("associations.txt", associations);
+         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 
 }

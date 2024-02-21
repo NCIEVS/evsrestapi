@@ -76,6 +76,7 @@ public class HgncSampleTest extends SampleTest {
 
     final List<Terminology> terminologies =
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
         });
     assertThat(terminologies.size()).isGreaterThan(0);
     assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("hgnc")).count()).isEqualTo(1);
@@ -117,6 +118,6 @@ public class HgncSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("HGNC:11231");
     assertThat(concept.getTerminology()).isEqualTo("hgnc");
-    assertThat(concept.isActive()).isTrue();
+    assertThat(concept.getActive()).isTrue();
   }
 }

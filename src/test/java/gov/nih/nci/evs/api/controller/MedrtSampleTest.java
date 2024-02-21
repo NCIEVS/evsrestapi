@@ -76,10 +76,12 @@ public class MedrtSampleTest extends SampleTest {
 
     final List<Terminology> terminologies =
         new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
         });
     assertThat(terminologies.size()).isGreaterThan(0);
     assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("medrt")).count()).isEqualTo(1);
-    final Terminology terminology = terminologies.stream().filter(t -> t.getTerminology().equals("medrt")).findFirst().get();
+    final Terminology terminology =
+        terminologies.stream().filter(t -> t.getTerminology().equals("medrt")).findFirst().get();
     assertThat(terminology.getTerminology()).isEqualTo("medrt");
     assertThat(terminology.getMetadata().getUiLabel()).isEqualTo("MED-RT");
     assertThat(terminology.getName()).isEqualTo("MED-RT 2023.07.03");
@@ -87,10 +89,11 @@ public class MedrtSampleTest extends SampleTest {
 
     assertThat(terminology.getMetadata().getLoader()).isEqualTo("rdf");
     assertThat(terminology.getMetadata().getSourceCt()).isEqualTo(0);
-    assertThat(terminology.getMetadata().getLicenseText()).isEqualTo("Government information at NLM Web sites is in the public domain. " 
-        + "Public domain information may be freely distributed and copied, but it is requested that in any subsequent use the " 
-        + "National Library of Medicine (NLM) be given appropriate acknowledgement as specified at " 
-        + "https://lhncbc.nlm.nih.gov/semanticnetwork/terms.html");
+    assertThat(terminology.getMetadata().getLicenseText())
+        .isEqualTo("Government information at NLM Web sites is in the public domain. "
+            + "Public domain information may be freely distributed and copied, but it is requested that in any subsequent use the "
+            + "National Library of Medicine (NLM) be given appropriate acknowledgement as specified at "
+            + "https://lhncbc.nlm.nih.gov/semanticnetwork/terms.html");
     assertThat(terminology.getDescription()).isEqualTo("MEDRT");
 
     assertThat(terminology.getLatest()).isTrue();
@@ -120,6 +123,6 @@ public class MedrtSampleTest extends SampleTest {
     assertThat(concept.getCode()).isEqualTo("N0000175809");
     assertThat(concept.getName()).isEqualTo("4-Hydroxyphenyl-Pyruvate Dioxygenase Inhibitor");
     assertThat(concept.getTerminology()).isEqualTo("medrt");
-    assertThat(concept.isActive()).isTrue();
+    assertThat(concept.getActive()).isTrue();
   }
 }

@@ -73,7 +73,7 @@ public class LncSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("LA26702-3");
     assertThat(concept.getTerminology()).isEqualTo("lnc");
-    assertThat(concept.isActive()).isTrue();
+    assertThat(concept.getActive()).isTrue();
     
     // Test inactive
     url = "/api/v1/concept/lnc/36926-4?include=full";
@@ -85,7 +85,7 @@ public class LncSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("36926-4");
     assertThat(concept.getTerminology()).isEqualTo("lnc");
-    assertThat(concept.isActive()).isFalse();
+    assertThat(concept.getActive()).isFalse();
     assertThat(concept.getConceptStatus()).isEqualTo("Retired_Concept");
    
     // test that "Retired_Concept" was added to the list of concept statuses

@@ -29,11 +29,11 @@ import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Role;
@@ -61,7 +61,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 public class ConceptController extends BaseController {
 
   /** Logger. */
-  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(ConceptController.class);
 
   /** The sparql query manager service. */
@@ -92,6 +91,7 @@ public class ConceptController extends BaseController {
    * @param terminology the terminology
    * @param include the include
    * @param list the list
+   * @param license the license
    * @return the associations
    * @throws Exception the exception
    */
@@ -161,6 +161,7 @@ public class ConceptController extends BaseController {
    * @param code the code
    * @param limit the limit
    * @param include the include
+   * @param license the license
    * @return the concept
    * @throws Exception the exception
    */
@@ -242,6 +243,7 @@ public class ConceptController extends BaseController {
    *
    * @param terminology the terminology
    * @param code the code
+   * @param license the license
    * @return the associations
    * @throws Exception the exception
    */
@@ -298,6 +300,7 @@ public class ConceptController extends BaseController {
    * @param codeOrLabel the code or label
    * @param fromRecord the from record
    * @param pageSize the page size
+   * @param license the license
    * @return the association antries
    * @throws Exception the exception
    */
@@ -363,6 +366,7 @@ public class ConceptController extends BaseController {
    *
    * @param terminology the terminology
    * @param code the code
+   * @param license the license
    * @return the inverse associations
    * @throws Exception the exception
    */
@@ -421,6 +425,7 @@ public class ConceptController extends BaseController {
    * @param pageSize the page size
    * @param code the code
    * @param include the include
+   * @param license the license
    * @return the subsets
    * @throws Exception the exception
    */
@@ -452,9 +457,9 @@ public class ConceptController extends BaseController {
       @Parameter(name = "pageSize", description = "Max number of results to return", required = false,
           schema = @Schema(implementation = Integer.class), example = "10000"),
       @Parameter(name = "X-EVSRESTAPI-License-Key",
-      description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
-          + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
-      required = false, schema = @Schema(implementation = String.class))
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/subsetMembers/{code}",
@@ -508,6 +513,7 @@ public class ConceptController extends BaseController {
    *
    * @param terminology the terminology
    * @param code the code
+   * @param license the license
    * @return the roles
    * @throws Exception the exception
    */
@@ -525,9 +531,9 @@ public class ConceptController extends BaseController {
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
           required = true, schema = @Schema(implementation = String.class)),
       @Parameter(name = "X-EVSRESTAPI-License-Key",
-      description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
-          + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
-      required = false, schema = @Schema(implementation = String.class))
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/roles",
@@ -560,6 +566,7 @@ public class ConceptController extends BaseController {
    *
    * @param terminology the terminology
    * @param code the code
+   * @param license the license
    * @return the inverse roles
    * @throws Exception the exception
    */
@@ -611,6 +618,7 @@ public class ConceptController extends BaseController {
    *
    * @param terminology the terminology
    * @param code the code
+   * @param license the license
    * @return the parents
    * @throws Exception the exception
    */
@@ -665,6 +673,7 @@ public class ConceptController extends BaseController {
    *
    * @param terminology the terminology
    * @param code the code
+   * @param license the license
    * @return the children
    * @throws Exception the exception
    */
@@ -722,6 +731,7 @@ public class ConceptController extends BaseController {
    * @param fromRecord the from record
    * @param pageSize the page size
    * @param maxLevel the max level
+   * @param license the license
    * @return the descendants
    * @throws Exception the exception
    */
@@ -806,6 +816,7 @@ public class ConceptController extends BaseController {
    *
    * @param terminology the terminology
    * @param code the code
+   * @param license the license
    * @return the maps
    * @throws Exception the exception
    */
@@ -823,9 +834,9 @@ public class ConceptController extends BaseController {
               + "'C3224' for <i>ncit</i>. This call is only meaningful for <i>ncit</i>.",
           required = true, schema = @Schema(implementation = String.class)),
       @Parameter(name = "X-EVSRESTAPI-License-Key",
-      description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
-          + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
-      required = false, schema = @Schema(implementation = String.class))
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/{code}/maps",
@@ -858,6 +869,7 @@ public class ConceptController extends BaseController {
    *
    * @param terminology the terminology
    * @param code the code
+   * @param license the license
    * @return the concept with history
    * @throws Exception the exception
    */
@@ -910,6 +922,7 @@ public class ConceptController extends BaseController {
    *
    * @param terminology the terminology
    * @param code the code
+   * @param license the license
    * @return the disjoint with
    * @throws Exception the exception
    */
@@ -960,6 +973,7 @@ public class ConceptController extends BaseController {
    *
    * @param terminology the terminology
    * @param include the include
+   * @param license the license
    * @return the roots
    * @throws Exception the exception
    */
@@ -983,9 +997,9 @@ public class ConceptController extends BaseController {
               + "for detailed information</a>.",
           required = false, schema = @Schema(implementation = String.class), example = "minimal"),
       @Parameter(name = "X-EVSRESTAPI-License-Key",
-      description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
-          + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
-      required = false, schema = @Schema(implementation = String.class))
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/roots", produces = "application/json")
@@ -1024,6 +1038,7 @@ public class ConceptController extends BaseController {
    * @param include the include
    * @param fromRecord the from record
    * @param pageSize the page size
+   * @param license the license
    * @return the paths from root
    * @throws Exception the exception
    */
@@ -1103,6 +1118,7 @@ public class ConceptController extends BaseController {
    * @param terminology the terminology
    * @param code the code
    * @param limit the limit
+   * @param license the license
    * @return the subtree
    * @throws Exception the exception
    */
@@ -1248,6 +1264,7 @@ public class ConceptController extends BaseController {
    * @param terminology the terminology
    * @param code the code
    * @param limit the limit
+   * @param license the license
    * @return the subtree children
    * @throws Exception the exception
    */
@@ -1325,6 +1342,7 @@ public class ConceptController extends BaseController {
    * @param include the include
    * @param fromRecord the from record
    * @param pageSize the page size
+   * @param license the license
    * @return the paths to root
    * @throws Exception the exception
    */
@@ -1404,6 +1422,7 @@ public class ConceptController extends BaseController {
    * @param include the include
    * @param fromRecord the from record
    * @param pageSize the page size
+   * @param license the license
    * @return the paths to ancestor
    * @throws Exception the exception
    */

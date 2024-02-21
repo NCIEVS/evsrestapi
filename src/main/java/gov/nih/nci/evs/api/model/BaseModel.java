@@ -71,7 +71,7 @@ public class BaseModel {
    *
    * @return the ct
    */
-  @Schema(hidden = true)
+  @Schema(description = "Used to indicate the total amount of data in cases where a limit is being applied")
   public Integer getCt() {
     return ct;
   }

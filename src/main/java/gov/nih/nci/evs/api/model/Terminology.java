@@ -14,7 +14,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
- * Represents a terminology loaded into the EVSAPI.
+ * Represents a terminology loaded into the EVSRESTAPI.
  * 
  * <pre>
  *   {
@@ -229,7 +229,7 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @return the graph
    */
-  @Schema(hidden = true)
+  @Schema(description = "Name of the RDF triplestore graph if this data is backed by a triplestore")
   public String getGraph() {
     return graph;
   }
@@ -258,7 +258,6 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    *
    * @param source the source
    */
-  @Schema(hidden = true)
   public void setSource(final String source) {
     this.source = source;
   }
@@ -351,10 +350,12 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    * 
    * @return the index name
    */
-  @Schema(hidden = true)
+  // @Schema(hidden = true)
+  @Schema(description = "for internal use")
   public String getIndexName() {
     if (StringUtils.isEmpty(indexName)) {
-      indexName = "concept_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "").toLowerCase();
+      indexName =
+          "concept_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "").toLowerCase();
     }
     return indexName;
   }
@@ -373,11 +374,13 @@ public class Terminology extends BaseModel implements Comparable<Terminology> {
    * 
    * @return the object index name
    */
-  @Schema(hidden = true)
+  // @Schema(hidden = true)
+  @Schema(description = "for internal use")
   public String getObjectIndexName() {
     if (StringUtils.isEmpty(objectIndexName)) {
       // Replace non-alphanumeric and _ chars and also lowercase
-      objectIndexName = "evs_object_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "").toLowerCase();
+      objectIndexName =
+          "evs_object_" + getTerminologyVersion().replaceAll("[^a-zA-Z0-9_]", "").toLowerCase();
     }
     return objectIndexName;
   }

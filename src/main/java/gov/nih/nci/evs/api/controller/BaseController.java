@@ -16,7 +16,6 @@ import org.springframework.web.server.ResponseStatusException;
 public class BaseController {
 
   /** The Constant log. */
-  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(BaseController.class);
 
   /**

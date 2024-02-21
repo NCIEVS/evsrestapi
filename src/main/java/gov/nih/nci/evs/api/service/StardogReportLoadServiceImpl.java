@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.service;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -35,8 +36,7 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.MainTypeHierarchy;
 
 /**
- * The implementation for {@link ElasticLoadService} that just generates a
- * report.
+ * The implementation for {@link ElasticLoadService} that just generates a report.
  */
 @Service
 public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl {
@@ -72,20 +72,20 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
 
   /* see superclass */
   @Override
-  public int loadConcepts(final ElasticLoadConfig config, final Terminology terminology,
-    final HierarchyUtils hierarchy) throws IOException {
+  public int loadConcepts(final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
+    throws IOException {
 
     final String resource = "metadata/" + terminology.getTerminology() + ".txt";
 
     // Load samples from file
     final Set<String> samples = new HashSet<>();
-    for (final String line : IOUtils
-        .toString(terminology.getClass().getClassLoader().getResourceAsStream(resource), "UTF-8")
-        .split("[\r\n]")) {
-      if (line.isEmpty() || line.startsWith("# ")) {
-        continue;
+    try (final InputStream is = terminology.getClass().getClassLoader().getResourceAsStream(resource)) {
+      for (final String line : IOUtils.toString(is, "UTF-8").split("[\r\n]")) {
+        if (line.isEmpty() || line.startsWith("# ")) {
+          continue;
+        }
+        samples.add(line);
       }
-      samples.add(line);
     }
     logReport("  ", "samples = " + samples.size());
 
@@ -97,8 +97,8 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
       int ct = 0;
       for (final Concept concept : concepts) {
         if (++ct < 3 || samples.contains(concept.getCode())) {
-          final Concept concept2 = sparqlQueryManagerService.getConcept(concept.getUri(),
-              terminology, new IncludeParam("full"));
+          final Concept concept2 =
+              sparqlQueryManagerService.getConcept(concept.getUri(), terminology, new IncludeParam("full"));
           concept2.setUri(concept.getUri());
           logReport("    ", "concept", concept2);
         }
@@ -114,8 +114,8 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
       int ct = 0;
       for (final Concept concept : concepts) {
         if (++ct < (6 - samples.size()) || samples.contains(concept.getCode())) {
-          logReport("    ", "concept", sparqlQueryManagerService.getConcept(concept.getCode(),
-              terminology, new IncludeParam("full")));
+          logReport("    ", "concept",
+              sparqlQueryManagerService.getConcept(concept.getCode(), terminology, new IncludeParam("full")));
           // logReport(" ", " paths", hierarchy.getPaths(terminology,
           // concept.getCode()));
         }
@@ -130,14 +130,13 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
 
   /* see superclass */
   @Override
-  public void loadObjects(final ElasticLoadConfig config, final Terminology terminology,
-    final HierarchyUtils hierarchy) throws Exception {
+  public void loadObjects(final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
+    throws Exception {
 
     // TODO: show hierarchy (passed in)
 
     // Show qualifiers
-    final List<Concept> qualifiers =
-        sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("full"));
+    final List<Concept> qualifiers = sparqlQueryManagerService.getAllQualifiers(terminology, new IncludeParam("full"));
     logReport("  ", "qualifiers", qualifiers);
 
     // Show remodeled qualifiers
@@ -148,8 +147,7 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
     // Show qualifier values by code and by qualifier name
     final Map<String, Set<String>> map = new HashMap<>();
     for (final Concept qualifier : qualifiers) {
-      for (final String value : sparqlQueryManagerService.getQualifierValues(qualifier.getCode(),
-          terminology)) {
+      for (final String value : sparqlQueryManagerService.getQualifierValues(qualifier.getCode(), terminology)) {
         if (!map.containsKey(qualifier.getCode())) {
           map.put(qualifier.getCode(), new HashSet<>());
         }
@@ -168,8 +166,7 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
     logReport("  ", "qualifier values", map);
 
     // Show properties
-    final List<Concept> properties =
-        sparqlQueryManagerService.getAllProperties(terminology, new IncludeParam("full"));
+    final List<Concept> properties = sparqlQueryManagerService.getAllProperties(terminology, new IncludeParam("full"));
     logReport("  ", "properties", properties);
 
     // Show remodeled properties
@@ -188,26 +185,23 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
     logReport("  ", "associations", associations);
 
     // Show roles
-    final List<Concept> roles =
-        sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("full"));
+    final List<Concept> roles = sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("full"));
     logReport("  ", "roles", roles);
 
     // Show synonym sources
-    final List<ConceptMinimal> synonymSources =
-        sparqlQueryManagerService.getSynonymSources(terminology);
+    final List<ConceptMinimal> synonymSources = sparqlQueryManagerService.getSynonymSources(terminology);
     logReport("  ", "synonym sources", synonymSources);
 
     // Show definition sources
     if (terminology.getMetadata().getDefinitionSource() != null) {
-      final List<ConceptMinimal> definitionSources =
-          sparqlQueryManagerService.getDefinitionSources(terminology);
+      final List<ConceptMinimal> definitionSources = sparqlQueryManagerService.getDefinitionSources(terminology);
       logReport("  ", "definition sources", definitionSources);
     }
 
     // Show concept statuses
     if (terminology.getMetadata().getConceptStatus() != null) {
-      final List<String> conceptStatuses = sparqlQueryManagerService
-          .getDistinctPropertyValues(terminology, terminology.getMetadata().getConceptStatus());
+      final List<String> conceptStatuses = sparqlQueryManagerService.getDistinctPropertyValues(terminology,
+          terminology.getMetadata().getConceptStatus());
       // Hack borrowed from superclass to fix "true" as a value
       if (conceptStatuses.size() == 1 && "true".equals(conceptStatuses.get(0))) {
         conceptStatuses.clear();
@@ -251,8 +245,8 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
 
   /* see superclass */
   @Override
-  public Terminology getTerminology(final ApplicationContext app, final ElasticLoadConfig config,
-    final String filepath, final String terminology, final boolean forceDelete) throws Exception {
+  public Terminology getTerminology(final ApplicationContext app, final ElasticLoadConfig config, final String filepath,
+    final String terminology, final boolean forceDelete) throws Exception {
 
     // Write report header
     lines.add("--------------------------------------------------------");
@@ -305,11 +299,9 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
     logReport("  ", "hierarchy = " + hierarchy.getPathsMap(term).size());
     logReport("  ", "roots = " + hierarchy.getHierarchyRoots());
     final String minPathsCode = hierarchy.getCodeWithMinPaths(term);
-    logReport("  ", "  min paths = " + minPathsCode + ", "
-        + hierarchy.getPathsMap(term).get(minPathsCode).size());
+    logReport("  ", "  min paths = " + minPathsCode + ", " + hierarchy.getPathsMap(term).get(minPathsCode).size());
     final String maxPathsCode = hierarchy.getCodeWithMaxPaths(term);
-    logReport("  ", "  max paths = " + maxPathsCode + ", "
-        + hierarchy.getPathsMap(term).get(maxPathsCode).size());
+    logReport("  ", "  max paths = " + maxPathsCode + ", " + hierarchy.getPathsMap(term).get(maxPathsCode).size());
     final String maxChildrenCode = hierarchy.getCodeWithMaxChildren(term);
     logReport("  ", "  max children = " + maxChildrenCode + ", "
         + (maxChildrenCode == null ? "0" : hierarchy.getChildNodes(maxChildrenCode, 0).size()));
@@ -320,6 +312,7 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
   /**
    * Log report.
    *
+   * @param indent the indent
    * @param line the line
    */
   private void logReport(final String indent, final String line) {
@@ -333,20 +326,17 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
    * @param indent the indent
    * @param label the label
    * @param object the object
-   * @throws Exception the exception
+   * @throws IOException Signals that an I/O exception has occurred.
    */
-  private void logReport(final String indent, final String label, final Object object)
-    throws IOException {
+  private void logReport(final String indent, final String label, final Object object) throws IOException {
     final String str = mapper.writerWithDefaultPrettyPrinter().writeValueAsString(object);
     if (label != null) {
       logger.info(indent + label + " = " + object);
       lines.add(indent + label + " = ");
-      lines.addAll(Arrays.asList(str.split("\n")).stream().map(s -> indent + "  " + s)
-          .collect(Collectors.toList()));
+      lines.addAll(Arrays.asList(str.split("\n")).stream().map(s -> indent + "  " + s).collect(Collectors.toList()));
     } else {
       logger.info(indent + object);
-      lines.addAll(Arrays.asList(str.split("\n")).stream().map(s -> indent + s)
-          .collect(Collectors.toList()));
+      lines.addAll(Arrays.asList(str.split("\n")).stream().map(s -> indent + s).collect(Collectors.toList()));
 
     }
   }

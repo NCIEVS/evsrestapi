@@ -191,7 +191,7 @@ public class EVSStatistics {
 			Vector u = StringUtils.parseData(line, '|');
 			String status = (String) u.elementAt(u.size()-1);
 			if (status.compareTo(property_value) == 0) {
-				String code = (String) u.elementAt(0);
+				String code = (String) u.elementAt(1);
 				retired_concepts.add(code);
 			}
 		}
@@ -304,9 +304,10 @@ public class EVSStatistics {
 	}
 
     public void run(String queryfile) {
-		String query = loadQuery(queryfile);
-		boolean parsevalues = true;
-		Vector w = httpUtils.execute(serviceUrl, username, password, query, parsevalues);
+		String query = HTTPUtils.loadQuery(queryfile);
+		//boolean parsevalues = true;
+		//Vector w = httpUtils.execute(serviceUrl, username, password, query, parsevalues);
+		Vector w = HTTPUtils.runQuery(serviceUrl,  username, password, query);
 		if (w != null && w.size() > 0) {
 			int n = queryfile.lastIndexOf("_query");
 			if(n ==  -1) {
