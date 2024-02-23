@@ -71,7 +71,7 @@ Next, put your query into a file.  Make sure to include prefixes and the correct
 
 ```
 cat > query.txt << EOF
-PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl> 
+PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#> 
 PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>
 PREFIX owl:<http://www.w3.org/2002/07/owl#>
 PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
@@ -80,12 +80,12 @@ PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>
 PREFIX dc:<http://purl.org/dc/elements/1.1/>
 PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>
 PREFIX xml:<http://www.w3.org/2001/XMLSchema#>
-SELECT ?conceptCode ?conceptLabel
+SELECT ?code
 { GRAPH <http://NCI_T_monthly> 
     { 
-        ?concept a owl:Class . 
-        OPTIONAL { ?concept :P108 ?conceptLabel } .
-        ?concept :NHC0 ?conceptCode
+      ?x a owl:Class . 
+      ?x :NHC0 ?code .
+      ?x :P108 "Melanoma"
     }
 }
 ORDER BY ?conceptCode
