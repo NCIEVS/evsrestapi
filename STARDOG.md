@@ -54,3 +54,47 @@ Information on downloading and using stardog with EVSRESTAPI.
 
       docker exec -it <container_id, e.g. 3c29d72babc2> /bin/bash
 
+* Running a sparql query (assumes stardog running on localhost and curl and jq are installed)
+
+Start by configuring your environment
+
+```
+STARDOG_HOST=localhost
+STARDOG_PORT=5820
+STARDOG_USERNAME=admin
+STARDOG_PASSWORD=admin
+STARDOG_URL=http://${STARDOG_HOST}:${STARDOG_PORT}
+STARDOG_DB=NCIT2
+```
+
+Next, put your query into a file.  Make sure to include prefixes and the correct graph name.
+
+```
+cat > query.txt << EOF
+PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#> 
+PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>
+PREFIX owl:<http://www.w3.org/2002/07/owl#>
+PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>
+PREFIX dc:<http://purl.org/dc/elements/1.1/>
+PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>
+PREFIX xml:<http://www.w3.org/2001/XMLSchema#>
+SELECT ?code
+{ GRAPH <http://NCI_T_monthly> 
+    { 
+      ?x a owl:Class . 
+      ?x :NHC0 ?code .
+      ?x :P108 "Melanoma"
+    }
+}
+ORDER BY ?conceptCode
+EOF
+```
+
+Then, run the query.
+
+```
+q=`cat query.txt`
+curl -v -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" "$STARDOG_URL/NCIT2/query" --data-urlencode "query=$q" -H "Accept: application/sparql-results+json" | jq
+```
