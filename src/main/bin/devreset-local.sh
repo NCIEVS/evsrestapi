@@ -131,13 +131,6 @@ for i in `cat /tmp/x.$$.txt`; do
     fi
 done
 
-# Reindex ncim
-echo "  Reindex ncim"
-src/main/bin/ncim-part.sh --noconfig $dir/NCIM | sed 's/^/    /'
-if [[ $? -ne 0 ]]; then
-    echo "ERROR: problem running ncim-part.sh"
-    exit 1
-fi
 
 # Reindex ncim - individual terminologies
 for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX; do
@@ -150,6 +143,14 @@ for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX; do
         exit 1
     fi
 done
+
+# Reindex ncim
+echo "  Reindex ncim"
+src/main/bin/ncim-part.sh --noconfig $dir/NCIM | sed 's/^/    /'
+if [[ $? -ne 0 ]]; then
+    echo "ERROR: problem running ncim-part.sh"
+    exit 1
+fi
 
 # Reindex stardog terminologies
 echo "  Reindex stardog terminologies"
