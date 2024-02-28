@@ -617,7 +617,8 @@ public class SearchController extends BaseController {
 
     try {
 
-      final String queryPrefix = queryBuilderService.constructPrefix(term);
+      final String queryPrefix =
+          !query.startsWith("PREFIX ") ? queryBuilderService.constructPrefix(term) : "";
       String sparqlQuery = query.replaceAll("\\{\\s*GRAPH(\\s*<.*>\\s*|\\s*)\\{",
           "{ GRAPH <" + term.getGraph() + "> {");
       sparqlQuery += " LIMIT 1000";
