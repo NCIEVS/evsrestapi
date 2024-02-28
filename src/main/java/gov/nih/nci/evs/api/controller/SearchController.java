@@ -642,12 +642,12 @@ public class SearchController extends BaseController {
 
       for (final Bindings b : bindings) {
 
-        if (b.getConceptCode() == null || b.getConceptCode().getValue().isEmpty()) {
+        if (b.getCode() == null || b.getCode().getValue().isEmpty()) {
           throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
               "SPARQL query must return concept codes");
         }
 
-        codes.add(b.getConceptCode().getValue());
+        codes.add(b.getCode().getValue());
       }
 
       if (codes.size() == 0) {
