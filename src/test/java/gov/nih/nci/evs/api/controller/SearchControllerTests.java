@@ -2584,6 +2584,98 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test search with sparql.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchWithSparql() throws Exception {
+    String url = "/api/v1/concept/ncit/search/sparql/";
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // check basic query
+    String query = "SELECT ?code\n" + "{ GRAPH <http://NCI_T_monthly> \n" + "  { \n"
+        + "    ?x a owl:Class . \n" + "    ?x :NHC0 ?code .\n" + "    ?x :P108 \"Melanoma\"\n"
+        + "  } \n" + "}";
+
+    log.info("Testing url - " + url + "?query=" + query
+        + "&terminology=ncit&type=contains&include=minimal");
+    result = mvc
+        .perform(
+            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 0);
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
+
+    // check query with malformed graph
+    query =
+        "SELECT ?code\n" + "{ GRAPH <http://blablablabla> \n" + "  { \n" + "    ?x a owl:Class . \n"
+            + "    ?x :NHC0 ?code .\n" + "    ?x :P108 \"Melanoma\"\n" + "  } \n" + "}";
+
+    log.info("Testing url - " + url + "?query=" + query
+        + "&terminology=ncit&type=contains&include=minimal");
+    result = mvc
+        .perform(
+            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 0);
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
+
+    // check another valid query
+    query = "SELECT ?code\n" + "{ GRAPH <http://NCI_T_monthly> \n" + "  { \n"
+        + "    ?x a owl:Class . \n" + "    ?x :NHC0 ?code .\n"
+        + "    ?x :P108 \"Melanoma Pathway\"\n" + "  } \n" + "}";
+    log.info("Testing url - " + url + "?query=" + query
+        + "&terminology=ncit&type=contains&include=minimal");
+    result = mvc
+        .perform(
+            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 0);
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C91477");
+
+    // check non-existent term
+    query = "SELECT ?code\n" + "{ GRAPH <http://NCI_T_monthly> \n" + "  { \n"
+        + "    ?x a owl:Class . \n" + "    ?x :NHC0 ?code .\n" + "    ?x :P108 \"ZZZZZ\"\n"
+        + "  } \n" + "}";
+    log.info("Testing url - " + url + "?query=" + query
+        + "&terminology=ncit&type=contains&include=minimal");
+    result = mvc
+        .perform(
+            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
+        .andExpect(status().isBadRequest()).andReturn();
+
+    url = "/api/v1/concept/umlssemnet/search/sparql/";
+    // check a valid query in another terminology (with malformed graph)
+    query =
+        "SELECT ?code\n" + "{ GRAPH <http://blablabla> \n" + "  { \n" + "    ?x a owl:Class . \n"
+            + "    ?x :Code ?code .\n" + "    ?x :Preferred_Name \"Behavior\"\n" + "  } \n" + "}";
+    log.info("Testing url - " + url + "?query=" + query
+        + "&terminology=ncit&type=contains&include=minimal");
+    result = mvc
+        .perform(
+            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 0);
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("T053");
+
+  }
+
+  /**
    * Removes the time taken.
    *
    * @param response the response
