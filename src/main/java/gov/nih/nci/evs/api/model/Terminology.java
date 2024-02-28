@@ -11,7 +11,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 
 /**
  * Represents a terminology loaded into the EVSRESTAPI.
- * 
+ *
  * <pre>
  *   {
  *    "terminology": "ncit",
