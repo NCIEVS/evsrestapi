@@ -1,8 +1,8 @@
-
 package gov.nih.nci.evs.api.fhir;
 
+import ca.uhn.fhir.model.api.annotation.ChildOrder;
+import ca.uhn.fhir.model.api.annotation.ResourceDef;
 import java.util.Collections;
-
 import org.hl7.fhir.instance.model.api.IBaseConformance;
 import org.hl7.fhir.r4.model.ContactDetail;
 import org.hl7.fhir.r4.model.ContactPoint;
@@ -10,20 +10,37 @@ import org.hl7.fhir.r4.model.ContactPoint.ContactPointSystem;
 import org.hl7.fhir.r4.model.Enumerations.PublicationStatus;
 import org.hl7.fhir.r4.model.TerminologyCapabilities;
 
-import ca.uhn.fhir.model.api.annotation.ChildOrder;
-import ca.uhn.fhir.model.api.annotation.ResourceDef;
-
-/**
- * Specification of the FHIR TerminologyCapabilities.
- */
-@ResourceDef(name = "TerminologyCapabilities",
+/** Specification of the FHIR TerminologyCapabilities. */
+@ResourceDef(
+    name = "TerminologyCapabilities",
     profile = "http://hl7.org/fhir/StructureDefinition/TerminologyCapabilities")
-@ChildOrder(names = {
-    "url", "version", "name", "title", "status", "experimental", "date", "publisher", "contact",
-    "description", "useContext", "jurisdiction", "purpose", "copyright", "kind", "software",
-    "implementation", "lockedDate", "codeSystem", "expansion", "codeSearch", "validateCode",
-    "translation", "closure"
-})
+@ChildOrder(
+    names = {
+      "url",
+      "version",
+      "name",
+      "title",
+      "status",
+      "experimental",
+      "date",
+      "publisher",
+      "contact",
+      "description",
+      "useContext",
+      "jurisdiction",
+      "purpose",
+      "copyright",
+      "kind",
+      "software",
+      "implementation",
+      "lockedDate",
+      "codeSystem",
+      "expansion",
+      "codeSearch",
+      "validateCode",
+      "translation",
+      "closure"
+    })
 public class FHIRTerminologyCapabilitiesR4 extends TerminologyCapabilities
     implements IBaseConformance {
 
@@ -45,9 +62,7 @@ public class FHIRTerminologyCapabilitiesR4 extends TerminologyCapabilities
     return this;
   }
 
-  /**
-   * Sets the code system.
-   */
+  /** Sets the code system. */
   private void setCodeSystem() {
     final TerminologyCapabilitiesCodeSystemComponent tccsc =
         new TerminologyCapabilitiesCodeSystemComponent();
@@ -55,9 +70,7 @@ public class FHIRTerminologyCapabilitiesR4 extends TerminologyCapabilities
     setCodeSystem(Collections.singletonList(tccsc));
   }
 
-  /**
-   * Sets the contact.
-   */
+  /** Sets the contact. */
   private void setContact() {
     final ContactPoint contactPoint = new ContactPoint();
     contactPoint.setSystem(ContactPointSystem.EMAIL);
@@ -65,5 +78,4 @@ public class FHIRTerminologyCapabilitiesR4 extends TerminologyCapabilities
     contactDetail.addTelecom(contactPoint);
     setContact(Collections.singletonList(contactDetail));
   }
-
 }
