@@ -2612,6 +2612,31 @@ public class SearchControllerTests {
     assert (list.getTotal() > 0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
 
+    // check basic query with pre-formed prefix
+    query = "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
+        + "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
+        + "PREFIX owl:<http://www.w3.org/2002/07/owl#>\n"
+        + "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+        + "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>\n"
+        + "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"
+        + "PREFIX dc:<http://purl.org/dc/elements/1.1/>\n"
+        + "PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>\n"
+        + "PREFIX xml:<http://www.w3.org/2001/XMLSchema#>\n" + "SELECT ?code\n"
+        + "{ GRAPH <http://NCI_T_monthly>\n" + "{\n" + "  ?x a owl:Class .\n"
+        + "  ?x :NHC0 ?code .\n" + "  ?x :P108 \"Melanoma\"\n" + "}\n" + "}";
+
+    log.info("Testing url - " + url + "?query=" + query
+        + "&terminology=ncit&type=contains&include=minimal");
+    result = mvc
+        .perform(
+            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 0);
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
+
     // check query with malformed graph
     query =
         "SELECT ?code\n" + "{ GRAPH <http://blablablabla> \n" + "  { \n" + "    ?x a owl:Class . \n"
