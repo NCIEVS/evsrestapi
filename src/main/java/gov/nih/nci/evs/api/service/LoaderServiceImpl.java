@@ -120,7 +120,7 @@ public class LoaderServiceImpl {
    *
    * @param args the command line arguments
    */
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     Options options = prepareOptions();
     CommandLine cmd;
     try {
@@ -161,6 +161,8 @@ public class LoaderServiceImpl {
       } else {
         loadService = app.getBean(StardogElasticLoadServiceImpl.class);
       }
+
+      loadService.initialize();
       final ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
       final Terminology term =
           loadService.getTerminology(

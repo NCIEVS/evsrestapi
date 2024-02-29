@@ -369,15 +369,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         mapsetMap.get(fields[0]).getMaps().add(map);
       }
 
-      // Here - create the map index and index the mapsets
-      boolean created =
-          operationsService.createIndex(ElasticOperationsService.MAPPING_INDEX, false);
-      if (created) {
-        operationsService
-            .getElasticsearchOperations()
-            .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPING_INDEX))
-            .putMapping(Concept.class);
-      }
       // current snomed mapset codes
       List<String> currentMapsetCodes =
           elasticQueryService.getMapsets(new IncludeParam("properties")).stream()

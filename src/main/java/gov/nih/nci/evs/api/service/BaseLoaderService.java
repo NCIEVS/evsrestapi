@@ -110,6 +110,39 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   }
 
   /**
+   * Initialize the service to ensure indexes are created before getting Terminologies
+   *
+   * @throws Exception
+   */
+  @Override
+  public void initialize() throws IOException {
+    try {
+      // Create the metadata index if it doesn't exist
+      boolean createdIndex =
+          operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
+      if (createdIndex) {
+        operationsService
+            .getElasticsearchOperations()
+            .indexOps(IndexCoordinates.of(ElasticOperationsService.METADATA_INDEX))
+            .putMapping(IndexMetadata.class);
+      }
+
+      // Create the mapping index if it doesn't exist
+      boolean createdMapset =
+          operationsService.createIndex(ElasticOperationsService.MAPPING_INDEX, false);
+      if (createdMapset) {
+        operationsService
+            .getElasticsearchOperations()
+            .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPING_INDEX))
+            .putMapping(Concept.class);
+      }
+    } catch (IOException e) {
+      logger.error(e.getMessage(), e);
+      throw new IOException(e);
+    }
+  }
+
+  /**
    * Clean stale indexes.
    *
    * @param terminology the terminology
@@ -315,14 +348,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     logger.info("  ADD terminology = " + iMeta);
     iMeta.setTerminology(term);
 
-    // boolean created =
-    operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
-    // if (created) {
-    operationsService
-        .getElasticsearchOperations()
-        .indexOps(IndexCoordinates.of(ElasticOperationsService.METADATA_INDEX))
-        .putMapping(IndexMetadata.class);
-    // }
+    // create the metadata and mappings index
+    initialize();
 
     // Non-blocking index approach
     // operationsService.index(iMeta, ElasticOperationsService.METADATA_INDEX,
