@@ -614,7 +614,7 @@ public class SearchController extends BaseController {
     final IncludeParam ip = new IncludeParam(include.orElse("summary"));
     String res = null;
     termUtils.checkLicense(term, license);
-
+    final ObjectMapper mapper = new ObjectMapper();
     try {
 
       final String queryPrefix =
@@ -625,16 +625,13 @@ public class SearchController extends BaseController {
       res = restUtils.runSPARQL(queryPrefix + sparqlQuery, stardogProperties.getQueryUrl());
 
     } catch (final Exception e) {
+      String errorMessage = extractErrorMessage(e.getMessage()).replace("\\", "");
 
-      final String replaceString =
-          "{\"message\":\"com.complexible.stardog.plan.eval.ExecutionException:";
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          e.getMessage().replace(replaceString, "\""));
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
     }
 
     try {
 
-      final ObjectMapper mapper = new ObjectMapper();
       mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
       final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
@@ -666,6 +663,16 @@ public class SearchController extends BaseController {
     } catch (final Exception e) {
       handleException(e);
       return null;
+    }
+  }
+
+  private static String extractErrorMessage(String errorString) {
+    int startIndex = errorString.indexOf("Invalid SPARQL query");
+    if (startIndex != -1) {
+      String substring = errorString.substring(startIndex);
+      return substring;
+    } else {
+      return errorString;
     }
   }
 }
