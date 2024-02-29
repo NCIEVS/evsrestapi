@@ -128,10 +128,12 @@ public class ConceptControllerTests {
     assertThat(concept.getDescendants()).isEmpty();
     assertThat(concept.getPaths()).isNull();
 
-    // check that normName and property codes are not showing up in searches, as
+    // check that normName, stemName, and property codes are not showing up in searches, as
     // is intended
     assertThat(concept.getNormName()).isNull();
+    assertThat(concept.getStemName()).isNull();
     assertThat(concept.getSynonyms().get(0).getNormName()).isNull();
+    assertThat(concept.getSynonyms().get(0).getStemName()).isNull();
     assertThat(concept.getProperties().get(0).getCode()).isNull();
   }
 
