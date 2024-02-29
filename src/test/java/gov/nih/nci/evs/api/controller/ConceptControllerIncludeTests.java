@@ -189,6 +189,11 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getChildren()).isNotEmpty();
     assertThat(concept.getParents()).isNotEmpty();
     assertThat(concept.getAssociations()).isNotEmpty();
+    // check that normName and stemName are not showing up in searches, as is intended
+    assertThat(concept.getNormName()).isNull();
+    assertThat(concept.getStemName()).isNull();
+    assertThat(concept.getSynonyms().get(0).getNormName()).isNull();
+    assertThat(concept.getSynonyms().get(0).getStemName()).isNull();
     // C3224 no longer has associations
     // assertThat(concept.getInverseAssociations()).isNotEmpty();
     assertThat(concept.getRoles()).isNotEmpty();
@@ -244,6 +249,11 @@ public class ConceptControllerIncludeTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
+    // check that normName and stemName are not showing up in searches, as is intended
+    assertThat(concept.getNormName()).isNull();
+    assertThat(concept.getStemName()).isNull();
+    assertThat(concept.getSynonyms().get(0).getNormName()).isNull();
+    assertThat(concept.getSynonyms().get(0).getStemName()).isNull();
     // Test for Preferred_Name and FULL_SYN
     assertThat(
             concept.getSynonyms().stream()
