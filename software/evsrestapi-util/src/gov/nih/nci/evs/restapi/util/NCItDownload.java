@@ -6,6 +6,10 @@ import java.util.zip.ZipInputStream;
 import java.net.*;
 import java.util.*;
 
+import javax.net.ssl.*;
+import java.security.cert.*;
+import java.security.*;
+
 /**
  * <!-- LICENSE_TEXT_START -->
  * Copyright 2020, MSC. This software was developed in conjunction
@@ -62,24 +66,13 @@ import java.util.*;
 
 public class NCItDownload {
 
-    public static String NCI_THESAURUS_URI = "https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/";
-    public static String NCIT_FLAT_ZIP_FILE = "Thesaurus.FLAT.zip";
-
     public static String NCIt_URI = "https://evs.nci.nih.gov/ftp1/upload/";
     public static String NCIT_ZIP_FILE = "ThesaurusInferred_forTS.zip";
 
 	public static void download(String uri, String outputfile) {
-		try (BufferedInputStream in = new BufferedInputStream(new URL(uri).openStream());
-		  FileOutputStream fileOutputStream = new FileOutputStream(outputfile)) {
-			byte dataBuffer[] = new byte[1024];
-			int bytesRead;
-			while ((bytesRead = in.read(dataBuffer, 0, 1024)) != -1) {
-				fileOutputStream.write(dataBuffer, 0, bytesRead);
-			}
-		} catch (IOException e) {
-			// handle exception
-		}
+		download(uri, new File(outputfile));
 	}
+
 
     public static void unzip(String zipFilePath, String destDir) {
         File dir = new File(destDir);
@@ -142,48 +135,109 @@ public class NCItDownload {
 
     public static void download() {
 		String currentWorkingDirectory = System.getProperty("user.dir");
-        download(NCIt_URI + NCIT_ZIP_FILE, NCIT_ZIP_FILE);
-        String zipFilePath = currentWorkingDirectory + "/" + NCIT_ZIP_FILE;
-        unzip(zipFilePath, currentWorkingDirectory);
+		try {
+			download(NCIt_URI + NCIT_ZIP_FILE, NCIT_ZIP_FILE);
+			String zipFilePath = currentWorkingDirectory + "/" + NCIT_ZIP_FILE;
+			unzip(zipFilePath, currentWorkingDirectory);
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+
 	}
 
-    public static void downloadFlatfile() {
-		String currentWorkingDirectory = System.getProperty("user.dir");
-        download(NCI_THESAURUS_URI + NCIT_FLAT_ZIP_FILE, NCIT_FLAT_ZIP_FILE);
-        String zipFilePath = currentWorkingDirectory + "/" + NCIT_FLAT_ZIP_FILE;
-        unzip(zipFilePath, currentWorkingDirectory);
-	}
+	 public static void doTrustToCertificates() throws Exception {
+        Security.addProvider(new com.sun.net.ssl.internal.ssl.Provider());
+        TrustManager[] trustAllCerts = new TrustManager[]{
+			new X509TrustManager() {
+				public X509Certificate[] getAcceptedIssuers() {
+					return null;
+				}
 
-    public static void downLoadNCIt(String year, String version) {
-		String currentWorkingDirectory = System.getProperty("user.dir");
-		String NCIT_ZIP_FILE = "ThesaurusInf_" + version + ".OWL.zip";
-		String zipFilePath = currentWorkingDirectory + "/" + NCIT_ZIP_FILE;
-		System.out.println(zipFilePath);
-		String NCIt_URI = "https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/archive/" + year + "/" + version + "_Release/";
-        download(NCIt_URI + NCIT_ZIP_FILE, NCIT_ZIP_FILE);
-        unzip(zipFilePath, currentWorkingDirectory);
-        Vector files = listFilesInDirectory();
-        Utils.dumpVector("listFilesInDirectory", files);
-        String from = "ThesaurusInferred.owl";
-        String to = "ThesaurusInferred_forTS_" + version + ".owl";
-        copyFile(from, to);
-	}
+				public void checkServerTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+					return;
+				}
 
-	public static void copyFile(String from, String to) {
-		Vector v = Utils.readFile(from);
-		Utils.saveToFile(to, v);
+				public void checkClientTrusted(X509Certificate[] certs, String authType) throws CertificateException {
+					return;
+				}
+			}
+        };
+
+        SSLContext sc = SSLContext.getInstance("SSL");
+        sc.init(null, trustAllCerts, new SecureRandom());
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+        HostnameVerifier hv = new HostnameVerifier() {
+            public boolean verify(String urlHostName, SSLSession session) {
+                if (!urlHostName.equalsIgnoreCase(session.getPeerHost())) {
+                    System.out.println("Warning: URL host '" + urlHostName + "' is different to SSLSession host '" + session.getPeerHost() + "'.");
+                }
+                return true;
+            }
+        };
+        HttpsURLConnection.setDefaultHostnameVerifier(hv);
+    }
+
+	public static void download(String download_url, File file) {
+		try {
+			byte[] buffer = new byte[1024];
+			double TotalDownload = 0.00;
+			int readbyte = 0;
+			double percentOfDownload = 0.00;
+
+			try {
+				doTrustToCertificates();
+			} catch (Exception ex) {
+				ex.printStackTrace();
+			}
+
+			URL url = new URL(download_url);
+			HttpURLConnection http = (HttpURLConnection)url.openConnection();
+			double filesize = (double)http.getContentLengthLong();
+
+			BufferedInputStream input = new BufferedInputStream(http.getInputStream());
+			FileOutputStream ouputfile = new FileOutputStream(file);
+			BufferedOutputStream bufferOut = new BufferedOutputStream(ouputfile, 1024);
+
+			while((readbyte = input.read(buffer, 0, 1024)) >= 0) {
+				bufferOut.write(buffer,0,readbyte);
+				TotalDownload += readbyte;
+				percentOfDownload = (TotalDownload*100)/filesize;
+				String percent = String.format("%.2f", percentOfDownload);
+				//System.out.println("Downloaded "+ percent + "%");
+			}
+
+			System.out.println("Download is complete.");
+			bufferOut.close();
+			input.close();
+		}
+		catch(IOException e){
+			e.printStackTrace();
+		}
 	}
 
     public static void main(String[] args) {
+		long ms = System.currentTimeMillis();
 		String currentWorkingDirectory = System.getProperty("user.dir");
 
         if (args.length == 1) {
 			NCIt_URI = args[0];
 		}
-        download(NCIt_URI + NCIT_ZIP_FILE, NCIT_ZIP_FILE);
+		String url = NCIt_URI + NCIT_ZIP_FILE;
+		System.out.println("NCIt_URI + NCIT_ZIP_FILE: " + url);
+		System.out.println("NCIT_ZIP_FILE: " + NCIT_ZIP_FILE);
 
-        String zipFilePath = currentWorkingDirectory + "/" + NCIT_ZIP_FILE;
-        unzip(zipFilePath, currentWorkingDirectory);
+		try {
+        	download(NCIt_URI + NCIT_ZIP_FILE, NCIT_ZIP_FILE);
+			String zipFilePath = currentWorkingDirectory + "/" + NCIT_ZIP_FILE;
+			unzip(zipFilePath, currentWorkingDirectory);
+
+			Vector files = listFilesInDirectory();
+			Utils.dumpVector("listFilesInDirectory", files);
+
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 }
 
