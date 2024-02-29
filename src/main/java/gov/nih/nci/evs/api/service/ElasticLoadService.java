@@ -14,6 +14,14 @@ import org.springframework.context.ApplicationContext;
  * @author Arun
  */
 public interface ElasticLoadService {
+
+  /**
+   * Initialize the service to ensure indexes are created.
+   *
+   * @throws Exception
+   */
+  public void initialize() throws IOException;
+
   /**
    * Load cached objects to elasticsearch.
    *
