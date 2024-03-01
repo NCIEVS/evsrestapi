@@ -7,6 +7,9 @@ import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 
+import org.apache.jena.query.Query;
+import org.apache.jena.query.QueryException;
+import org.apache.jena.query.QueryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -622,8 +625,16 @@ public class SearchController extends BaseController {
       String sparqlQuery = query.replaceAll("\\{\\s*GRAPH(\\s*<.*>\\s*|\\s*)\\{",
           "{ GRAPH <" + term.getGraph() + "> {");
       sparqlQuery += " LIMIT 1000";
+      // validate query
+      Query q = QueryFactory.create(queryPrefix + sparqlQuery);
       res = restUtils.runSPARQL(queryPrefix + sparqlQuery, stardogProperties.getQueryUrl());
 
+    } catch (final QueryException e) {
+      String errorMessage =
+          extractErrorMessage(e.getMessage()).replace("\\", "").replace("\r\n", " ");
+
+      throw new QueryException(
+          "SPARQL query failed validation. Please review your query for syntax mistakes.");
     } catch (final Exception e) {
       String errorMessage = extractErrorMessage(e.getMessage()).replace("\\", "");
 
