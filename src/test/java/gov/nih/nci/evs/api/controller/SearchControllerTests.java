@@ -4,6 +4,7 @@ package gov.nih.nci.evs.api.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -23,6 +24,7 @@ import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.web.util.NestedServletException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -2722,15 +2724,19 @@ public class SearchControllerTests {
         + "  ?x :NHC0 ?code .\n" + "  ?x :P108 \"Melanoma\"\n" + "}\n" + "}";
     log.info("Testing url - " + url + "?query=" + query
         + "&terminology=ncit&type=contains&include=minimal");
-    result = mvc
-        .perform(
-            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
-        .andExpect(status().isInternalServerError()).andReturn();
-    assertThat(result.getResponse().getErrorMessage()).isNotNull();
-    content = result.getResponse().getErrorMessage();
-    log.info("  content = " + content);
-    assertThat(content).isNotNull();
-    assertThat(content.contains("SPARQL query failed validation:")).isTrue();
+
+    final String exceptionUrl = new String(url);
+    final String exceptionQuery = new String(query);
+    assertThrows(NestedServletException.class, () -> {
+      MvcResult resultException =
+          mvc.perform(get(exceptionUrl).param("query", exceptionQuery).param("include", "minimal")
+              .param("type", "contains")).andExpect(status().is5xxServerError()).andReturn();
+      assertThat(resultException.getResponse().getErrorMessage()).isNotNull();
+      String contentException = resultException.getResponse().getErrorMessage();
+      log.info("  content = " + contentException);
+      assertThat(contentException).isNotNull();
+      assertThat(contentException.contains("SPARQL query failed validation:")).isTrue();
+    });
 
     url = "/api/v1/concept/umlssemnet/search/sparql/";
     // check a valid query in another terminology (with malformed graph)
