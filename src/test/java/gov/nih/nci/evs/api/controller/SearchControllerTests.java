@@ -2708,7 +2708,7 @@ public class SearchControllerTests {
         content.contains("Invalid SPARQL query: Multiple prefix declarations for prefix 'xml'"))
             .isTrue();
 
-    // check query with a different type of malformed prefix
+    // check query with a query that fails initial validation
     query = "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
         + "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
         + "PREFIX owl:<http://www.w3.org/2002/07/owl#>\n"
