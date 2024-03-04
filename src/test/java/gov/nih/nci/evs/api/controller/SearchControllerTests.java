@@ -36,6 +36,7 @@ import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.RESTUtils;
 
 /**
  * Integration tests for SearchController.
@@ -2737,6 +2738,39 @@ public class SearchControllerTests {
       assertThat(contentException).isNotNull();
       assertThat(contentException.contains("SPARQL query failed validation:")).isTrue();
     });
+
+    // check query that takes too long
+    query = "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#> \n"
+        + "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
+        + "PREFIX owl:<http://www.w3.org/2002/07/owl#>\n"
+        + "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+        + "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>\n"
+        + "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"
+        + "PREFIX dc:<http://purl.org/dc/elements/1.1/>\n"
+        + "PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>\n"
+        + "PREFIX xml:<http://www.w3.org/2001/XMLSchema#>\n" + "SELECT DISTINCT ?code\n"
+        + "{ GRAPH <#{namedGraph}> \n" + "  { \n" + "      ?relatedConcept a owl:Class .\n"
+        + "      ?relatedConcept (owl:equivalentClass|rdfs:subClassOf) ?z .\n"
+        + "      ?z (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first/\n"
+        + "        ( owl:unionOf/rdf:rest*/rdf:first |\n"
+        + "          (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first/owl:unionOf/rdf:rest*/rdf:first \n"
+        + "        ) ?rs . \n" + "      ?rs a owl:Restriction . \n"
+        + "      ?rs owl:onProperty ?relationship . \n"
+        + "      ?rs owl:someValuesFrom ?x_concept . \n" + "      ?x_concept a owl:Class . \n"
+        + "      ?x_concept :NHC0 ?code . \n" + "      ?relatedConcept :NHC0 ?relatedConceptCode\n"
+        + "  } \n" + "}";
+    log.info("Testing url - " + url + "?query=" + query
+        + "&terminology=ncit&type=contains&include=minimal");
+    RESTUtils.setTimeoutSeconds(5);
+    result = mvc
+        .perform(
+            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
+        .andExpect(status().isBadRequest()).andReturn();
+    assertThat(result.getResponse().getErrorMessage()).isNotNull();
+    content = result.getResponse().getErrorMessage();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+    assertThat(content.contains("SPARQL query timed out")).isTrue();
 
     url = "/api/v1/concept/umlssemnet/search/sparql/";
     // check a valid query in another terminology (with malformed graph)

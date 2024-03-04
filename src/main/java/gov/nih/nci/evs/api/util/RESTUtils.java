@@ -3,6 +3,11 @@ package gov.nih.nci.evs.api.util;
 
 import java.nio.charset.Charset;
 import java.util.Arrays;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,11 +40,22 @@ public class RESTUtils {
   /** The connect timeout. */
   // private Duration connectTimeout;
 
+  /** The timeout in seconds. */
+  private static int timeoutSeconds = 30;
+
   /**
    * Instantiates an empty {@link RESTUtils}.
    */
   public RESTUtils() {
     // n/a
+  }
+
+  public static int getTimeoutSeconds() {
+    return RESTUtils.timeoutSeconds;
+  }
+
+  public static void setTimeoutSeconds(int timeout) {
+    RESTUtils.timeoutSeconds = timeout;
   }
 
   /**
@@ -67,20 +83,47 @@ public class RESTUtils {
    * @param restURL the rest URL
    * @return the string
    */
-  public String runSPARQL(String query, String restURL) {
+  public String runSPARQL(String query, String restURL) throws Exception {
 
     try {
       RestTemplate restTemplate = new RestTemplate();
       restTemplate.getInterceptors().add(new BasicAuthenticationInterceptor(username, password));
-      restTemplate.getMessageConverters().add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
+      restTemplate.getMessageConverters().add(0,
+          new StringHttpMessageConverter(Charset.forName("UTF-8")));
       MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
       body.add("query", query);
       HttpHeaders headers = new HttpHeaders();
       headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
       headers.setAccept(Arrays.asList(new MediaType("application", "sparql-results+json")));
       HttpEntity<?> entity = new HttpEntity<Object>(body, headers);
-      String results = restTemplate.postForObject(restURL, entity, String.class);
-      return results;
+      ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+      // create the task for the executor
+      Callable<String> task = () -> {
+        return restTemplate.postForObject(restURL, entity, String.class);
+      };
+      try {
+        // invoke postForObject with executor
+        long startTime = System.currentTimeMillis();
+        String result = executor.invokeAny(Arrays.asList(task), timeoutSeconds, TimeUnit.SECONDS);
+        long endTime = System.currentTimeMillis();
+        long elapsedTime = endTime - startTime;
+
+        System.out.println("Time taken: " + elapsedTime + " milliseconds");
+        return result;
+
+      } catch (TimeoutException e) {
+        // Handle timeout exception
+        throw new TimeoutException("SPARQL query timed out after " + timeoutSeconds + " second"
+            + (timeoutSeconds > 1 ? "s" : "")
+            + ". Consider changing your query to return fewer results.");
+      } catch (Exception e) {
+        // Handle other exceptions
+        throw new Exception(
+            "SPARQL query failed. Consider verifying your query syntax: \n" + e.getMessage());
+      } finally {
+        // Shutdown the executor
+        executor.shutdown();
+      }
     } catch (Exception e) {
       log.error("Unexpected error running query = \n" + query);
       throw e;

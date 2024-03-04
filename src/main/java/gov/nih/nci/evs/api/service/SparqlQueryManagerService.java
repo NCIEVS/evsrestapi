@@ -320,8 +320,8 @@ public interface SparqlQueryManagerService {
    * @return the maps to
    * @throws Exception the exception
    */
-  public List<gov.nih.nci.evs.api.model.ConceptMap> getMapsTo(String conceptCode, Terminology terminology)
-    throws Exception;
+  public List<gov.nih.nci.evs.api.model.ConceptMap> getMapsTo(String conceptCode,
+    Terminology terminology) throws Exception;
 
   /**
    * Returns the root nodes.
@@ -451,8 +451,7 @@ public interface SparqlQueryManagerService {
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @param qualifierFlag the qualifier flag - used to avoid Q-P-Q-P infinite
-   *          loop
+   * @param qualifierFlag the qualifier flag - used to avoid Q-P-Q-P infinite loop
    * @return the axioms
    * @throws Exception the exception
    */
@@ -515,8 +514,10 @@ public interface SparqlQueryManagerService {
    * @param terminology the terminology
    * @return the all concepts without code
    * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception
    */
-  public List<Concept> getAllConceptsWithoutCode(Terminology terminology) throws IOException;
+  public List<Concept> getAllConceptsWithoutCode(Terminology terminology)
+    throws IOException, Exception;
 
   /**
    * Returns the path in hierarchy.
@@ -557,6 +558,8 @@ public interface SparqlQueryManagerService {
    * @param terminology the terminology
    * @param association the association
    * @return list of AssociationEntries
+   * @throws Exception
    */
-  public List<AssociationEntry> getAssociationEntries(Terminology terminology, Concept association);
+  public List<AssociationEntry> getAssociationEntries(Terminology terminology, Concept association)
+    throws Exception;
 }

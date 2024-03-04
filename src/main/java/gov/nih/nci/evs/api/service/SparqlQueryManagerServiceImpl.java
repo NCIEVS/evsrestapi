@@ -2366,7 +2366,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("all.concepts.with.code", terminology);
     log.debug("query = {}", query);
     log.debug("query url = {}", getQueryURL());
-    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+    String res = null;
+    try {
+      res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -2405,7 +2410,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructQuery("all.concepts.without.code", terminology);
     log.debug("query = {}", query);
     log.debug("query url = {}", getQueryURL());
-    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+    String res = null;
+    try {
+      res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+    } catch (Exception e) {
+      e.printStackTrace();
+    }
 
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -2489,7 +2499,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("association.entries", terminology,
         association.getCode());
-    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+    String res = null;
+    try {
+      res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+    } catch (Exception e1) {
+      e1.printStackTrace();
+    }
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<AssociationEntry> entries = new ArrayList<>();
