@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import ca.uhn.fhir.rest.api.EncodingEnum;
+import ca.uhn.fhir.rest.server.ApacheProxyAddressStrategy;
 import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
 
 /**
@@ -28,6 +29,9 @@ public class FHIRConfig {
     hapiServlet.setServerName("EVSRESTAPI R4 FHIR Terminology Server");
     hapiServlet.setServerVersion(getClass().getPackage().getImplementationVersion());
     hapiServlet.setDefaultResponseEncoding(EncodingEnum.JSON);
+
+    // Use apache proxy address strategy
+    hapiServlet.setServerAddressStrategy(new ApacheProxyAddressStrategy(true));
 
     final ResponseHighlighterInterceptor interceptor = new ResponseHighlighterInterceptor();
     hapiServlet.registerInterceptor(interceptor);

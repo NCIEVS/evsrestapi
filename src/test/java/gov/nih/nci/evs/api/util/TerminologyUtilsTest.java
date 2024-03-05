@@ -48,13 +48,30 @@ public class TerminologyUtilsTest {
   @Test
   public void testRemodeledQualifiers() throws Exception {
 
-    final Terminology ncit =
-        termUtils.getTerminologies(true).stream().filter(t -> t.getLatest() != null && t.getLatest()
-            && t.getTags().containsKey("monthly") && t.getTags().get("monthly").equals("true")).findFirst().get();
+    final Terminology ncit = termUtils
+        .getTerminologies(true).stream().filter(t -> t.getLatest() != null && t.getLatest()
+            && t.getTags().containsKey("monthly") && t.getTags().get("monthly").equals("true"))
+        .findFirst().get();
     final IncludeParam ip = new IncludeParam((String) null);
 
     final List<Concept> list = esQueryService.getQualifiers(ncit, ip);
 
-    assertThat(list.stream().filter(c -> ncit.getMetadata().isRemodeledQualifier(c.getCode())).count()).isEqualTo(10);
+    assertThat(
+        list.stream().filter(c -> ncit.getMetadata().isRemodeledQualifier(c.getCode())).count())
+            .isEqualTo(10);
+  }
+
+  /**
+   * Test paging.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPaging() throws Exception {
+
+    // Verify more than one default page of data comes back
+    final List<Terminology> list = termUtils.getTerminologies(true);
+    assertThat(list.size()).isGreaterThan(10);
+
   }
 }
