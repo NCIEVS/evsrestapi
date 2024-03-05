@@ -21,6 +21,7 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -36,7 +37,6 @@ import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
-import gov.nih.nci.evs.api.util.RESTUtils;
 
 /**
  * Integration tests for SearchController.
@@ -44,6 +44,7 @@ import gov.nih.nci.evs.api.util.RESTUtils;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 public class SearchControllerTests {
 
   /** The logger. */
@@ -2761,7 +2762,6 @@ public class SearchControllerTests {
         + "  } \n" + "}";
     log.info("Testing url - " + url + "?query=" + query
         + "&terminology=ncit&type=contains&include=minimal");
-    RESTUtils.setTimeoutSeconds(5);
     result = mvc
         .perform(
             get(url).param("query", query).param("include", "minimal").param("type", "contains"))

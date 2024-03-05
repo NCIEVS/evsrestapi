@@ -40,22 +40,11 @@ public class RESTUtils {
   /** The connect timeout. */
   // private Duration connectTimeout;
 
-  /** The timeout in seconds. */
-  private static int timeoutSeconds = 30;
-
   /**
    * Instantiates an empty {@link RESTUtils}.
    */
   public RESTUtils() {
     // n/a
-  }
-
-  public static int getTimeoutSeconds() {
-    return RESTUtils.timeoutSeconds;
-  }
-
-  public static void setTimeoutSeconds(int timeout) {
-    RESTUtils.timeoutSeconds = timeout;
   }
 
   /**
@@ -77,13 +66,13 @@ public class RESTUtils {
   }
 
   /**
-   * Run SPARQL.
+   * Run direct SPARQL queries with timeout.
    *
    * @param query the query
    * @param restURL the rest URL
    * @return the string
    */
-  public String runSPARQL(String query, String restURL) throws Exception {
+  public String runSPARQL(String query, String restURL, Integer sparqlTimeout) throws Exception {
 
     try {
       RestTemplate restTemplate = new RestTemplate();
@@ -104,7 +93,7 @@ public class RESTUtils {
       try {
         // invoke postForObject with executor
         long startTime = System.currentTimeMillis();
-        String result = executor.invokeAny(Arrays.asList(task), timeoutSeconds, TimeUnit.SECONDS);
+        String result = executor.invokeAny(Arrays.asList(task), sparqlTimeout, TimeUnit.SECONDS);
         long endTime = System.currentTimeMillis();
         long elapsedTime = endTime - startTime;
 
@@ -113,8 +102,8 @@ public class RESTUtils {
 
       } catch (TimeoutException e) {
         // Handle timeout exception
-        throw new TimeoutException("SPARQL query timed out after " + timeoutSeconds + " second"
-            + (timeoutSeconds > 1 ? "s" : "")
+        throw new TimeoutException("SPARQL query timed out after " + sparqlTimeout + " second"
+            + (sparqlTimeout > 1 ? "s" : "")
             + ". Consider changing your query to return fewer results.");
       } catch (Exception e) {
         // Handle other exceptions
@@ -124,6 +113,35 @@ public class RESTUtils {
         // Shutdown the executor
         executor.shutdown();
       }
+    } catch (Exception e) {
+      log.error("Unexpected error running query = \n" + query);
+      throw e;
+    }
+
+  }
+
+  /**
+   * Run SPARQL.
+   *
+   * @param query the query
+   * @param restURL the rest URL
+   * @return the string
+   */
+  public String runSPARQL(String query, String restURL) {
+
+    try {
+      RestTemplate restTemplate = new RestTemplate();
+      restTemplate.getInterceptors().add(new BasicAuthenticationInterceptor(username, password));
+      restTemplate.getMessageConverters().add(0,
+          new StringHttpMessageConverter(Charset.forName("UTF-8")));
+      MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
+      body.add("query", query);
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+      headers.setAccept(Arrays.asList(new MediaType("application", "sparql-results+json")));
+      HttpEntity<?> entity = new HttpEntity<Object>(body, headers);
+      String results = restTemplate.postForObject(restURL, entity, String.class);
+      return results;
     } catch (Exception e) {
       log.error("Unexpected error running query = \n" + query);
       throw e;

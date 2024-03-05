@@ -13,6 +13,7 @@ import org.apache.jena.query.QueryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
@@ -99,6 +100,10 @@ public class SearchController extends BaseController {
 
   /** The rest utils. */
   private RESTUtils restUtils = null;
+
+  /** The sparql timeout. */
+  @Value("${nci.evs.sparql.timeoutSeconds}")
+  private int sparqlTimeout;
 
   /**
    * Post init.
@@ -627,7 +632,8 @@ public class SearchController extends BaseController {
       sparqlQuery += " LIMIT 1000";
       // validate query
       Query q = QueryFactory.create(queryPrefix + sparqlQuery);
-      res = restUtils.runSPARQL(queryPrefix + sparqlQuery, stardogProperties.getQueryUrl());
+      res = restUtils.runSPARQL(queryPrefix + sparqlQuery, stardogProperties.getQueryUrl(),
+          sparqlTimeout);
 
     } catch (final QueryException e) {
       String errorMessage =
