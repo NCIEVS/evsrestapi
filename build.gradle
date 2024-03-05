@@ -127,7 +127,9 @@ dependencies {
      * Test Dependencies
     */
     testCompile 'org.springframework.boot:spring-boot-starter-test'
-    
+    testRuntimeOnly "org.junit.platform:junit-platform-commons:1.7.0"
+    testRuntimeOnly "org.junit.platform:junit-platform-runner:1.7.0"
+
 }
 
 test {
