@@ -1,4 +1,3 @@
-
 package gov.nih.nci.evs.api.fhir;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
@@ -421,9 +420,10 @@ public class OpenApiInterceptorR4 {
     // final String baseUrl = removeTrailingSlash(cs.getImplementation().getUrl());
     final IServerAddressStrategy addressStrategy =
         theRequestDetails.getServer().getServerAddressStrategy();
-    final String baseUrl = addressStrategy.determineServerBase(
-        theRequestDetails.getServletRequest().getServletContext(),
-        theRequestDetails.getServletRequest());
+    final String baseUrl =
+        addressStrategy.determineServerBase(
+            theRequestDetails.getServletRequest().getServletContext(),
+            theRequestDetails.getServletRequest());
 
     theResponse.setStatus(200);
     theResponse.setContentType(Constants.CT_HTML);
@@ -577,9 +577,10 @@ public class OpenApiInterceptorR4 {
     // final String baseUrl = removeTrailingSlash(cs.getImplementation().getUrl());
     final IServerAddressStrategy addressStrategy =
         theRequestDetails.getServer().getServerAddressStrategy();
-    final String baseUrl = addressStrategy.determineServerBase(
-        theRequestDetails.getServletRequest().getServletContext(),
-        theRequestDetails.getServletRequest());
+    final String baseUrl =
+        addressStrategy.determineServerBase(
+            theRequestDetails.getServletRequest().getServletContext(),
+            theRequestDetails.getServletRequest());
 
     server.setUrl(baseUrl);
     server.setDescription(cs.getSoftware().getName());

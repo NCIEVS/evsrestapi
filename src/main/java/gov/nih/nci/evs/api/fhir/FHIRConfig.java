@@ -1,18 +1,13 @@
 package gov.nih.nci.evs.api.fhir;
 
 import ca.uhn.fhir.rest.api.EncodingEnum;
+import ca.uhn.fhir.rest.server.ApacheProxyAddressStrategy;
 import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import ca.uhn.fhir.rest.api.EncodingEnum;
-import ca.uhn.fhir.rest.server.ApacheProxyAddressStrategy;
-import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
-
-/**
- * Servlet registration bean.
- */
+/** Servlet registration bean. */
 @Configuration
 public class FHIRConfig {
 

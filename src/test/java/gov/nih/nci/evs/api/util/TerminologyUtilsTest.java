@@ -56,8 +56,8 @@ public class TerminologyUtilsTest {
     final List<Concept> list = esQueryService.getQualifiers(ncit, ip);
 
     assertThat(
-        list.stream().filter(c -> ncit.getMetadata().isRemodeledQualifier(c.getCode())).count())
-            .isEqualTo(10);
+            list.stream().filter(c -> ncit.getMetadata().isRemodeledQualifier(c.getCode())).count())
+        .isEqualTo(10);
   }
 
   /**
@@ -71,6 +71,5 @@ public class TerminologyUtilsTest {
     // Verify more than one default page of data comes back
     final List<Terminology> list = termUtils.getIndexedTerminologies(esQueryService);
     assertThat(list.size()).isGreaterThan(10);
-
   }
 }
