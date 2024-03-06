@@ -1,4 +1,3 @@
-
 package gov.nih.nci.evs.api.support.es;
 
 import org.springframework.data.domain.PageRequest;

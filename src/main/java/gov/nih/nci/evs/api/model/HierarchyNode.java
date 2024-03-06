@@ -1,13 +1,12 @@
-
 package gov.nih.nci.evs.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
 /**
- * Represents a node in a hierarchy and is directly compatible with the primeng "TreeNode" structure.
+ * Represents a node in a hierarchy and is directly compatible with the primeng "TreeNode"
+ * structure.
  */
 @Schema(description = "Represents a node in a subtree rendering of the hierarchy")
 public class HierarchyNode extends BaseModel {
@@ -33,12 +32,9 @@ public class HierarchyNode extends BaseModel {
   /** The children. */
   private List<HierarchyNode> children = null;
 
-  /**
-   * Instantiates an empty {@link HierarchyNode}.
-   */
-  public HierarchyNode() {
-    // n/a
-  }
+  /** Instantiates an empty {@link HierarchyNode}. */
+  public HierarchyNode() {}
+  ;
 
   /**
    * Instantiates a {@link HierarchyNode} from the specified parameters.
@@ -203,5 +199,4 @@ public class HierarchyNode extends BaseModel {
   public void setChildren(List<HierarchyNode> children) {
     this.children = children;
   }
-
 }

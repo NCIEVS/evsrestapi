@@ -1,24 +1,18 @@
-
 package gov.nih.nci.evs.api;
 
 import java.lang.reflect.Method;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/**
- * Automates JUnit testing of equals and hashcode methods.
- */
+/** Automates JUnit testing of equals and hashcode methods. */
 public class EqualsHashcodeTester extends ProxyTester {
 
   /** The logger. */
-  private final Logger logger =
-      LoggerFactory.getLogger(EqualsHashcodeTester.class);
+  private final Logger logger = LoggerFactory.getLogger(EqualsHashcodeTester.class);
 
   /**
-   * Constructs a new getter/setter tester to test objects of a particular
-   * class.
-   * 
+   * Constructs a new getter/setter tester to test objects of a particular class.
+   *
    * @param obj Object to test.
    */
   public EqualsHashcodeTester(final Object obj) {
@@ -45,8 +39,8 @@ public class EqualsHashcodeTester extends ProxyTester {
   }
 
   /**
-   * Creates two objects and verifies for each that changing the non-included or
-   * excluded fields makes no difference to equality testing.
+   * Creates two objects and verifies for each that changing the non-included or excluded fields
+   * makes no difference to equality testing.
    *
    * @return true, if successful
    * @throws Exception the exception
@@ -66,8 +60,7 @@ public class EqualsHashcodeTester extends ProxyTester {
   }
 
   /**
-   * Creates two objects and verifies that any difference in identity fields
-   * produces inequality.
+   * Creates two objects and verifies that any difference in identity fields produces inequality.
    *
    * @return true, if successful
    * @throws Exception the exception
@@ -94,8 +87,7 @@ public class EqualsHashcodeTester extends ProxyTester {
       }
 
       /* Check the field name against our include/exclude list. */
-      if (!getIncludes().isEmpty()
-          && !getIncludes().contains(fieldName.toLowerCase())) {
+      if (!getIncludes().isEmpty() && !getIncludes().contains(fieldName.toLowerCase())) {
         continue;
       }
       if (getExcludes().contains(fieldName.toLowerCase())) {
@@ -130,17 +122,14 @@ public class EqualsHashcodeTester extends ProxyTester {
         // if equals, fail here
         logger.info("  o1 = " + o1.hashCode() + ", " + o1);
         logger.info("  o2 = " + o2.hashCode() + ", " + o2);
-        throw new Exception(
-            "Equality did not change when field " + fieldName + " was changed");
+        throw new Exception("Equality did not change when field " + fieldName + " was changed");
       }
-
     }
     return true;
   }
 
   /**
-   * Creates two objects with the same field values and verifies they have equal
-   * hashcodes.
+   * Creates two objects with the same field values and verifies they have equal hashcodes.
    *
    * @return true, if successful
    * @throws Exception the exception
@@ -153,8 +142,8 @@ public class EqualsHashcodeTester extends ProxyTester {
   }
 
   /**
-   * Creates two objects and verifies for each that changing the non-included or
-   * excluded fields does not affect the hashcode.
+   * Creates two objects and verifies for each that changing the non-included or excluded fields
+   * does not affect the hashcode.
    *
    * @return true, if successful
    * @throws Exception the exception
@@ -172,15 +161,14 @@ public class EqualsHashcodeTester extends ProxyTester {
   }
 
   /**
-   * Creates two objects and verifies that any difference in identity fields
-   * produces different hashcodes.
+   * Creates two objects and verifies that any difference in identity fields produces different
+   * hashcodes.
    *
    * @return true, if successful
    * @throws Exception the exception
    */
   public boolean testIdentityFieldDifferentHashcode() throws Exception {
-    logger.debug(
-        "Test identity field different hashcode - " + getClazz().getName());
+    logger.debug("Test identity field different hashcode - " + getClazz().getName());
 
     // Create an object
     final Object o1 = createObject(1);
@@ -201,8 +189,7 @@ public class EqualsHashcodeTester extends ProxyTester {
       }
 
       /* Check the field name against our include/exclude list. */
-      if (!getIncludes().isEmpty()
-          && !getIncludes().contains(fieldName.toLowerCase())) {
+      if (!getIncludes().isEmpty() && !getIncludes().contains(fieldName.toLowerCase())) {
         continue;
       }
       if (getExcludes().contains(fieldName.toLowerCase())) {
@@ -239,12 +226,9 @@ public class EqualsHashcodeTester extends ProxyTester {
         // if equals, fail here
         logger.info("  o1 = " + o1.hashCode() + ", " + o1);
         logger.info("  o2 = " + o2.hashCode() + ", " + o2);
-        throw new Exception(
-            "Hashcode did not change when field " + fieldName + " was changed");
+        throw new Exception("Hashcode did not change when field " + fieldName + " was changed");
       }
-
     }
     return true;
   }
-
 }

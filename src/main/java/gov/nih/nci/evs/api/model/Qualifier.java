@@ -1,15 +1,10 @@
-
 package gov.nih.nci.evs.api.model;
-
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonProperty.Access;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
@@ -17,9 +12,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * as a first-class attribute.
  */
 @Schema(description = "Represents a type/value qualifier on a concept element")
-@JsonIgnoreProperties(value = {
-    "code"
-})
+@JsonIgnoreProperties(value = {"code"})
 @JsonInclude(Include.NON_EMPTY)
 public class Qualifier extends BaseModel implements Comparable<Qualifier> {
 
@@ -27,20 +20,15 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
   @JsonProperty(access = Access.READ_ONLY)
   // index=false marks these fields as such in elasticsearch
   // thus making qualifiers not indexed and not searchable
-  @Field(type = FieldType.Keyword, index = false)
   private String code;
 
   /** The type. */
-  @Field(type = FieldType.Keyword, index = false)
   private String type;
 
   /** The value. */
-  @Field(type = FieldType.Keyword, index = false)
   private String value;
 
-  /**
-   * Instantiates an empty {@link Qualifier}.
-   */
+  /** Instantiates an empty {@link Qualifier}. */
   public Qualifier() {
     // n/a
   }
@@ -179,5 +167,4 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
   public int compareTo(Qualifier o) {
     return (type + value).compareToIgnoreCase(o.getType() + o.getValue());
   }
-
 }

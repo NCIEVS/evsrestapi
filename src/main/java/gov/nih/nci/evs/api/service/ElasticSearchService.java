@@ -1,18 +1,12 @@
-
 package gov.nih.nci.evs.api.service;
-
-import java.util.List;
-
-import org.springframework.web.client.HttpClientErrorException;
 
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
+import java.util.List;
+import org.springframework.web.client.HttpClientErrorException;
 
-/**
- * Represents a service that performs a search against an elasticsearch
- * endpoint.
- */
+/** Represents a service that performs a search against an elasticsearch endpoint. */
 public interface ElasticSearchService {
 
   /**
@@ -25,5 +19,5 @@ public interface ElasticSearchService {
    * @throws HttpClientErrorException the http client error exception
    */
   public ConceptResultList search(List<Terminology> terminologies, SearchCriteria searchCriteria)
-    throws Exception;
+      throws Exception;
 }

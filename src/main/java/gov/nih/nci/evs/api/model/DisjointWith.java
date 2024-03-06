@@ -1,20 +1,14 @@
-
 package gov.nih.nci.evs.api.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- * Represents an disjointness association between two concepts.
- */
+/** Represents an disjointness association between two concepts. */
 @Schema(description = "Represents an assertion of disjointness between two concepts")
 @JsonInclude(Include.NON_EMPTY)
 public class DisjointWith extends Relationship {
-  /**
-   * Instantiates an empty {@link DisjointWith}.
-   */
+  /** Instantiates an empty {@link DisjointWith}. */
   public DisjointWith() {
     // n/a
   }
@@ -36,5 +30,4 @@ public class DisjointWith extends Relationship {
   public void populateFrom(final DisjointWith other) {
     super.populateFrom(other);
   }
-
 }

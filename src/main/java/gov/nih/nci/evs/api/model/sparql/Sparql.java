@@ -1,9 +1,6 @@
-
 package gov.nih.nci.evs.api.model.sparql;
 
-/**
- * The Class Sparql.
- */
+/** The Class Sparql. */
 public class Sparql {
 
   /** The results. */

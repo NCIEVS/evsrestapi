@@ -1,62 +1,42 @@
-
 package gov.nih.nci.evs.api.model;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.ArrayList;
+import java.util.List;
 
-/**
- * Represents a synonym of a concept.
- */
+/** Represents a synonym of a concept. */
 @Schema(hidden = true)
 // Show the empty brackets because it's clearer what happened
 @JsonInclude(Include.NON_NULL)
 public class Extensions extends BaseModel implements Comparable<Extensions> {
 
   /** CTRP "is disease" flag. */
-  @Field(type = FieldType.Boolean)
   private Boolean isDisease;
 
   /** The is disease grade. */
-  @Field(type = FieldType.Boolean)
   private Boolean isDiseaseGrade;
 
   /** The is disease stage. */
-  @Field(type = FieldType.Boolean)
   private Boolean isDiseaseStage;
 
   /** The is main type. */
-  @Field(type = FieldType.Boolean)
   private Boolean isMainType;
 
   /** CTRP "is subtype" flag. */
-  @Field(type = FieldType.Boolean)
   private Boolean isSubtype;
 
   /** The is biomarker. */
-  @Field(type = FieldType.Boolean)
   private Boolean isBiomarker;
 
   /** The is reference gene. */
-  @Field(type = FieldType.Boolean)
   private Boolean isReferenceGene;
 
   /** The paths to root. */
-  @Field(type = FieldType.Object, ignoreFields = {
-      "paths"
-  })
   private List<Paths> mainMenuAncestors;
 
-  /**
-   * Instantiates an empty {@link Extensions}.
-   */
+  /** Instantiates an empty {@link Extensions}. */
   public Extensions() {
     // n/a
   }
@@ -232,53 +212,34 @@ public class Extensions extends BaseModel implements Comparable<Extensions> {
   /* see superclass */
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
     Extensions other = (Extensions) obj;
     if (isBiomarker == null) {
-      if (other.isBiomarker != null)
-        return false;
-    } else if (!isBiomarker.equals(other.isBiomarker))
-      return false;
+      if (other.isBiomarker != null) return false;
+    } else if (!isBiomarker.equals(other.isBiomarker)) return false;
     if (isDisease == null) {
-      if (other.isDisease != null)
-        return false;
-    } else if (!isDisease.equals(other.isDisease))
-      return false;
+      if (other.isDisease != null) return false;
+    } else if (!isDisease.equals(other.isDisease)) return false;
     if (isDiseaseGrade == null) {
-      if (other.isDiseaseGrade != null)
-        return false;
-    } else if (!isDiseaseGrade.equals(other.isDiseaseGrade))
-      return false;
+      if (other.isDiseaseGrade != null) return false;
+    } else if (!isDiseaseGrade.equals(other.isDiseaseGrade)) return false;
     if (isDiseaseStage == null) {
-      if (other.isDiseaseStage != null)
-        return false;
-    } else if (!isDiseaseStage.equals(other.isDiseaseStage))
-      return false;
+      if (other.isDiseaseStage != null) return false;
+    } else if (!isDiseaseStage.equals(other.isDiseaseStage)) return false;
     if (isMainType == null) {
-      if (other.isMainType != null)
-        return false;
-    } else if (!isMainType.equals(other.isMainType))
-      return false;
+      if (other.isMainType != null) return false;
+    } else if (!isMainType.equals(other.isMainType)) return false;
     if (isReferenceGene == null) {
-      if (other.isReferenceGene != null)
-        return false;
-    } else if (!isReferenceGene.equals(other.isReferenceGene))
-      return false;
+      if (other.isReferenceGene != null) return false;
+    } else if (!isReferenceGene.equals(other.isReferenceGene)) return false;
     if (isSubtype == null) {
-      if (other.isSubtype != null)
-        return false;
-    } else if (!isSubtype.equals(other.isSubtype))
-      return false;
+      if (other.isSubtype != null) return false;
+    } else if (!isSubtype.equals(other.isSubtype)) return false;
     if (mainMenuAncestors == null) {
-      if (other.mainMenuAncestors != null)
-        return false;
-    } else if (!mainMenuAncestors.equals(other.mainMenuAncestors))
-      return false;
+      if (other.mainMenuAncestors != null) return false;
+    } else if (!mainMenuAncestors.equals(other.mainMenuAncestors)) return false;
     return true;
   }
 
@@ -308,5 +269,4 @@ public class Extensions extends BaseModel implements Comparable<Extensions> {
   public int compareTo(Extensions o) {
     return (o + "").compareTo(o + "");
   }
-
 }

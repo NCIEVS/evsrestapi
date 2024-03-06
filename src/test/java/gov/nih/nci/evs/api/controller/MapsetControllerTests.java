@@ -1,12 +1,16 @@
-
 package gov.nih.nci.evs.api.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.ConceptMapResultList;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.List;
 import java.util.stream.Stream;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -19,29 +23,17 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
-import gov.nih.nci.evs.api.model.ConceptMapResultList;
-import gov.nih.nci.evs.api.properties.TestProperties;
-
-/**
- * mapset tests.
- */
+/** mapset tests. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class MapsetControllerTests {
 
   /** The test properties. */
-  @Autowired
-  TestProperties testProperties;
+  @Autowired TestProperties testProperties;
 
   /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
-  @Autowired
-  private MockMvc mvc;
+  @Autowired private MockMvc mvc;
 
   /** The base url. */
   private String baseUrl = "";
@@ -49,9 +41,7 @@ public class MapsetControllerTests {
   /** The object mapper. */
   private ObjectMapper objectMapper;
 
-  /**
-   * Sets the up.
-   */
+  /** Sets the up. */
   @Before
   public void setUp() {
 
@@ -73,33 +63,48 @@ public class MapsetControllerTests {
     result = mvc.perform(get(baseUrl)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     List<Concept> metadataMappings =
-        new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-          // n/a
-        });
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
 
     // test /mapset
     assert (metadataMappings.size() > 0);
-    assert (metadataMappings.stream().map(Concept::getName)
+    assert (metadataMappings.stream()
+        .map(Concept::getName)
         .noneMatch(name -> name == null || name.isEmpty()));
-    assert (metadataMappings.stream().map(Concept::getCode)
+    assert (metadataMappings.stream()
+        .map(Concept::getCode)
         .noneMatch(code -> code == null || code.isEmpty()));
     // properties should be empty since not included
-    assert (metadataMappings.stream().map(Concept::getProperties)
+    assert (metadataMappings.stream()
+        .map(Concept::getProperties)
         .allMatch(properties -> properties == null || properties.isEmpty()));
 
     // /mapset with include params
-    result = mvc.perform(get(baseUrl).param("include", "properties")).andExpect(status().isOk())
-        .andReturn();
+    result =
+        mvc.perform(get(baseUrl).param("include", "properties"))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
-    metadataMappings = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
+    metadataMappings =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
     assert (metadataMappings.size() > 0);
-    assert (metadataMappings.stream().map(Concept::getName)
+    assert (metadataMappings.stream()
+        .map(Concept::getName)
         .noneMatch(name -> name == null || name.isEmpty()));
-    assert (metadataMappings.stream().map(Concept::getCode)
+    assert (metadataMappings.stream()
+        .map(Concept::getCode)
         .noneMatch(code -> code == null || code.isEmpty()));
-    assert (metadataMappings.stream().map(Concept::getProperties)
+    assert (metadataMappings.stream()
+        .map(Concept::getProperties)
         .noneMatch(properties -> properties == null || properties.isEmpty()));
   }
 
@@ -115,8 +120,10 @@ public class MapsetControllerTests {
     result = mvc.perform(get(baseUrl)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     // test mapset/{code} - downloadOnly = false, include param properties
-    result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping").param("include", "properties"))
-        .andExpect(status().isOk()).andReturn();
+    result =
+        mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping").param("include", "properties"))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     Concept singleMetadataMap = new ObjectMapper().readValue(content, Concept.class);
     assert (singleMetadataMap != null);
@@ -125,19 +132,23 @@ public class MapsetControllerTests {
     assert (singleMetadataMap.getCode() != null
         && singleMetadataMap.getCode().equals("GO_to_NCIt_Mapping"));
     assert (singleMetadataMap.getProperties().stream()
-        .filter(property -> property.getType().equals("downloadOnly")
-            && property.getValue().equals("false"))
-        .findFirst().isPresent());
+        .filter(
+            property ->
+                property.getType().equals("downloadOnly") && property.getValue().equals("false"))
+        .findFirst()
+        .isPresent());
     assert (singleMetadataMap.getProperties().stream()
         .filter(property -> property.getType().equals("welcomeText") && property.getValue() != null)
-        .findFirst().isPresent());
+        .findFirst()
+        .isPresent());
     assert (singleMetadataMap.getProperties() != null);
 
     // test mapset/{code} - downloadOnly = true, mapsetLink available, include param maps +
     // properties
     result =
         mvc.perform(get(baseUrl + "/ICDO_TO_NCI_TOPOGRAPHY").param("include", "maps,properties"))
-            .andExpect(status().isOk()).andReturn();
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     singleMetadataMap = new ObjectMapper().readValue(content, Concept.class);
     assert (singleMetadataMap != null);
@@ -145,19 +156,28 @@ public class MapsetControllerTests {
         && singleMetadataMap.getName().equals("ICDO_TO_NCI_TOPOGRAPHY"));
     assert (singleMetadataMap.getCode() != null
         && singleMetadataMap.getCode().equals("ICDO_TO_NCI_TOPOGRAPHY"));
-    assert (singleMetadataMap.getProperties().stream().filter(
-        property -> property.getType().equals("downloadOnly") && "true".equals(property.getValue()))
-        .findFirst().isPresent());
-    assert (singleMetadataMap
-        .getProperties().stream().filter(property -> property.getType().equals("mapsetLink")
-            && property.getValue() != null && property.getValue().endsWith(".txt"))
-        .findFirst().isPresent());
+    assert (singleMetadataMap.getProperties().stream()
+        .filter(
+            property ->
+                property.getType().equals("downloadOnly") && "true".equals(property.getValue()))
+        .findFirst()
+        .isPresent());
+    assert (singleMetadataMap.getProperties().stream()
+        .filter(
+            property ->
+                property.getType().equals("mapsetLink")
+                    && property.getValue() != null
+                    && property.getValue().endsWith(".txt"))
+        .findFirst()
+        .isPresent());
     // should be no maps indexed because of ftp storage
     assert (singleMetadataMap.getMaps().isEmpty());
 
     // test mapset/{code} - downloadOnly = true, mapsetLink = null, include param maps + properties
-    result = mvc.perform(get(baseUrl + "/NCIt_Maps_To_GDC").param("include", "maps,properties"))
-        .andExpect(status().isOk()).andReturn();
+    result =
+        mvc.perform(get(baseUrl + "/NCIt_Maps_To_GDC").param("include", "maps,properties"))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     singleMetadataMap = new ObjectMapper().readValue(content, Concept.class);
     assert (singleMetadataMap != null);
@@ -166,11 +186,16 @@ public class MapsetControllerTests {
     assert (singleMetadataMap.getCode() != null
         && singleMetadataMap.getCode().equals("NCIt_Maps_To_GDC"));
     assert (!singleMetadataMap.getVersion().contains("ncit_"));
-    assert (singleMetadataMap.getProperties().stream().filter(
-        property -> property.getType().equals("downloadOnly") && "true".equals(property.getValue()))
-        .findFirst().isPresent());
     assert (singleMetadataMap.getProperties().stream()
-        .filter(property -> property.getType().equals("mapsetLink")).findFirst().isPresent());
+        .filter(
+            property ->
+                property.getType().equals("downloadOnly") && "true".equals(property.getValue()))
+        .findFirst()
+        .isPresent());
+    assert (singleMetadataMap.getProperties().stream()
+        .filter(property -> property.getType().equals("mapsetLink"))
+        .findFirst()
+        .isPresent());
     assert (singleMetadataMap.getMaps() != null);
 
     // test mapset/{code} - invalid code param
@@ -192,17 +217,22 @@ public class MapsetControllerTests {
     content = result.getResponse().getContentAsString();
 
     // test mapset/{code}/maps
-    result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps")).andExpect(status().isOk())
-        .andReturn();
+    result =
+        mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps"))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
-    ConceptMapResultList mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    ConceptMapResultList mapList =
+        new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() > 0);
     assert (mapList.getMaps().size() == 10);
     ConceptMap tenFromZero = mapList.getMaps().get(9);
 
     // testing fromRecord and pageSize
-    result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?fromRecord=9&pageSize=23"))
-        .andExpect(status().isOk()).andReturn();
+    result =
+        mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?fromRecord=9&pageSize=23"))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() > 0);
@@ -211,8 +241,10 @@ public class MapsetControllerTests {
     assert (tenFromTen.equals(tenFromZero));
 
     // test mapset/{code}/maps, fromRecord off page size
-    result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?fromRecord=1&pageSize=10"))
-        .andExpect(status().isOk()).andReturn();
+    result =
+        mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?fromRecord=1&pageSize=10"))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() > 0);
@@ -220,65 +252,75 @@ public class MapsetControllerTests {
     assert (tenFromTen.equals(tenFromOne));
 
     // test mapset/{code}/maps, fromRecord past the end
-    result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?fromRecord=100000"))
-        .andExpect(status().isOk()).andReturn();
+    result =
+        mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?fromRecord=100000"))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() == 0);
     assert (mapList.getMaps() == null);
 
     // test mapset/{code}/maps, term with zero matches
-    result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?term=XXXXXXX"))
-        .andExpect(status().isOk()).andReturn();
+    result =
+        mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?term=XXXXXXX"))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() == 0);
     assert (mapList.getMaps() == null);
 
     // test mapset/{code}/maps, term with non-zero matches
-    result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?term=act"))
-        .andExpect(status().isOk()).andReturn();
+    result =
+        mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?term=act"))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() != 0);
     assert (mapList.getMaps().stream()
-        .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
-            .anyMatch(name -> name.contains("act"));
+            .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
+        .anyMatch(name -> name.contains("act"));
     ConceptMap sixFromZero = mapList.getMaps().get(5);
 
     // test mapset/{code}/maps, term with non-zero matches, trim spacing
-    result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?term=   act   "))
-        .andExpect(status().isOk()).andReturn();
+    result =
+        mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?term=   act   "))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() != 0);
     assert (mapList.getMaps().stream()
-        .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
-            .anyMatch(name -> name.contains("act"));
+            .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
+        .anyMatch(name -> name.contains("act"));
 
     // test mapset/{code}/maps, term with non-zero matches and different fromRecord/pageSize
     result =
         mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?term=act&fromRecord=3&pageSize=12"))
-            .andExpect(status().isOk()).andReturn();
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() != 0);
     assert (mapList.getMaps().size() == 12);
     assert (mapList.getMaps().stream()
-        .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
-            .anyMatch(name -> name.contains("act"));
+            .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
+        .anyMatch(name -> name.contains("act"));
     ConceptMap sixFromThree = mapList.getMaps().get(2);
     assert (sixFromThree.equals(sixFromZero));
 
     // test mapset/{code}/maps, code with non-zero matches
-    result = mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?term=C17087"))
-        .andExpect(status().isOk()).andReturn();
+    result =
+        mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?term=C17087"))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() != 0);
     assert (mapList.getMaps().stream()
-        .flatMap(map -> Stream.of(map.getSourceCode(), map.getTargetCode())))
-            .anyMatch(name -> name.contains("C17087"));
-
+            .flatMap(map -> Stream.of(map.getSourceCode(), map.getTargetCode())))
+        .anyMatch(name -> name.contains("C17087"));
   }
 }
