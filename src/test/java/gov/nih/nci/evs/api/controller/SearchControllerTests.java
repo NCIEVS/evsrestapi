@@ -2674,6 +2674,47 @@ public class SearchControllerTests {
     assert (list.getTotal() > 0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C91477");
 
+    // check a query with a term
+    query = "SELECT ?code {\n" + "  GRAPH <http://NCI_T_monthly> {\n" + "    ?x a owl:Class .\n"
+        + "    ?x :NHC0 ?code .\n" + "    ?x :P108 ?label .\n"
+        + "    FILTER(CONTAINS(?label, \"Melanoma\"))\n" + "  }\n" + "}";
+    log.info("Testing url - " + url + "?query=" + query
+        + "&terminology=ncit&type=contains&include=minimal&term=Theraccine");
+    result = mvc
+        .perform(get(url).param("query", query).param("include", "minimal")
+            .param("type", "contains").param("term", "Theraccine"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getTotal()).isGreaterThan(0);
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C1830");
+    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Melanoma Theraccine");
+
+    // check another query with a term
+    query = "SELECT ?code {\n" + "  GRAPH <http://NCI_T_monthly> {\n" + "    ?x a owl:Class .\n"
+        + "    ?x :NHC0 ?code .\n" + "    ?x :P108 ?label .\n"
+        + "    FILTER(CONTAINS(?label, \"Cancer\"))\n" + "  }\n" + "}";
+    log.info("Testing url - " + url + "?query=" + query
+        + "&terminology=ncit&type=contains&include=minimal&term=Liver");
+    result = mvc
+        .perform(get(url).param("query", query).param("include", "minimal")
+            .param("type", "contains").param("term", "Liver"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getTotal()).isGreaterThan(0);
+    for (Concept conc : list.getConcepts()) {
+      Boolean name = conc.getName().toLowerCase().contains("liver");
+      Boolean definitions = conc.getDefinitions().stream()
+          .anyMatch(definition -> definition.getDefinition().toLowerCase().contains("liver"));
+      Boolean synonyms = conc.getSynonyms().stream()
+          .anyMatch(synonym -> synonym.getName().toLowerCase().contains("liver"));
+      log.info(conc.getCode() + " " + conc.getName());
+      assertThat(name || definitions || synonyms).isTrue();
+    }
+
     // check non-existent term
     query = "SELECT ?code\n" + "{ GRAPH <http://NCI_T_monthly> \n" + "  { \n"
         + "    ?x a owl:Class . \n" + "    ?x :NHC0 ?code .\n" + "    ?x :P108 \"ZZZZZ\"\n"
@@ -2740,6 +2781,23 @@ public class SearchControllerTests {
       assertThat(contentException.contains("SPARQL query failed validation:")).isTrue();
     });
 
+    url = "/api/v1/concept/umlssemnet/search/sparql/";
+    // check a valid query in another terminology (with malformed graph)
+    query =
+        "SELECT ?code\n" + "{ GRAPH <http://blablabla> \n" + "  { \n" + "    ?x a owl:Class . \n"
+            + "    ?x :Code ?code .\n" + "    ?x :Preferred_Name \"Behavior\"\n" + "  } \n" + "}";
+    log.info("Testing url - " + url + "?query=" + query
+        + "&terminology=ncit&type=contains&include=minimal");
+    result = mvc
+        .perform(
+            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
+        .andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assert (list.getTotal() > 0);
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("T053");
+
     // check query that takes too long
     query = "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#> \n"
         + "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
@@ -2771,23 +2829,6 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
     assertThat(content.contains("SPARQL query timed out")).isTrue();
-
-    url = "/api/v1/concept/umlssemnet/search/sparql/";
-    // check a valid query in another terminology (with malformed graph)
-    query =
-        "SELECT ?code\n" + "{ GRAPH <http://blablabla> \n" + "  { \n" + "    ?x a owl:Class . \n"
-            + "    ?x :Code ?code .\n" + "    ?x :Preferred_Name \"Behavior\"\n" + "  } \n" + "}";
-    log.info("Testing url - " + url + "?query=" + query
-        + "&terminology=ncit&type=contains&include=minimal");
-    result = mvc
-        .perform(
-            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
-        .andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info("  content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
-    assert (list.getTotal() > 0);
-    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("T053");
 
   }
 

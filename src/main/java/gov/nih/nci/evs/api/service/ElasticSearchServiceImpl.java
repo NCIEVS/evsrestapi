@@ -353,8 +353,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
           // definition match
           .should(nestedDefinitionQuery);
     }
-
-    return termQuery;
+    return (term.isBlank()) ? termQuery : termQuery.minimumShouldMatch(1);
   }
 
   /**
