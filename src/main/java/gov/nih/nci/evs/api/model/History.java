@@ -1,50 +1,34 @@
-
 package gov.nih.nci.evs.api.model;
-
-import java.util.Objects;
-
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Objects;
 
-/**
- * Represents a synonym of a concept.
- */
+/** Represents a synonym of a concept. */
 @Schema(description = "Represents a history record, generally for a retired concept")
 @JsonInclude(Include.NON_EMPTY)
 public class History extends BaseModel implements Comparable<History> {
 
   /** The concept code. */
-  @Field(type = FieldType.Keyword)
   private String code;
 
   /** The concept name. */
-  @Field(type = FieldType.Keyword)
   private String name;
 
   /** The action. */
-  @Field(type = FieldType.Keyword)
   private String action;
 
   /** The date. */
-  @Field(type = FieldType.Keyword)
   private String date;
 
   /** The code of the replacement concept. */
-  @Field(type = FieldType.Keyword)
   private String replacementCode;
 
   /** The name of the replacement concept. */
-  @Field(type = FieldType.Text)
   private String replacementName;
 
-  /**
-   * Instantiates an empty {@link History}.
-   */
+  /** Instantiates an empty {@link History}. */
   public History() {
     // n/a
   }
@@ -78,7 +62,9 @@ public class History extends BaseModel implements Comparable<History> {
    *
    * @return the action
    */
-  @Schema(description = "Indicates the history action, e.g. 'merge', 'active', 'retire', 'SY', 'RB', etc.")
+  @Schema(
+      description =
+          "Indicates the history action, e.g. 'merge', 'active', 'retire', 'SY', 'RB', etc.")
   public String getAction() {
     return action;
   }
@@ -278,5 +264,4 @@ public class History extends BaseModel implements Comparable<History> {
     return (code + action + date + replacementCode)
         .compareTo(o.getCode() + o.getAction() + o.getDate() + o.getReplacementCode());
   }
-
 }

@@ -1,16 +1,11 @@
-
 package gov.nih.nci.evs.api.model;
-
-import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import io.swagger.v3.oas.annotations.media.Schema;
+import java.util.Objects;
 
-/**
- * Represents a map to a concept in another terminology.
- */
+/** Represents a map to a concept in another terminology. */
 @Schema(description = "Represents a map from a concept to concepts in other terminologies")
 @JsonInclude(Include.NON_EMPTY)
 public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
@@ -66,9 +61,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
   /** Is target terminology loaded */
   private Boolean targetLoaded;
 
-  /**
-   * Instantiates an empty {@link ConceptMap}.
-   */
+  /** Instantiates an empty {@link ConceptMap}. */
   public ConceptMap() {
     // n/a
   }
@@ -426,39 +419,62 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
   /* see superclass */
   @Override
   public int hashCode() {
-    return Objects.hash(group, rank, rule, source, sourceCode, sourceName, sourceTermType, sourceTerminology,
-        sourceTerminologyVersion, sourceLoaded, targetCode, targetName, targetTermType, targetTerminology,
-        targetTerminologyVersion, targetLoaded, type);
+    return Objects.hash(
+        group,
+        rank,
+        rule,
+        source,
+        sourceCode,
+        sourceName,
+        sourceTermType,
+        sourceTerminology,
+        sourceTerminologyVersion,
+        sourceLoaded,
+        targetCode,
+        targetName,
+        targetTermType,
+        targetTerminology,
+        targetTerminologyVersion,
+        targetLoaded,
+        type);
   }
 
   /* see superclass */
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
     ConceptMap other = (ConceptMap) obj;
-    return Objects.equals(group, other.group) && Objects.equals(rank, other.rank) && Objects.equals(rule, other.rule)
-        && Objects.equals(source, other.source) && Objects.equals(sourceCode, other.sourceCode)
-        && Objects.equals(sourceName, other.sourceName) && Objects.equals(sourceTermType, other.sourceTermType)
+    return Objects.equals(group, other.group)
+        && Objects.equals(rank, other.rank)
+        && Objects.equals(rule, other.rule)
+        && Objects.equals(source, other.source)
+        && Objects.equals(sourceCode, other.sourceCode)
+        && Objects.equals(sourceName, other.sourceName)
+        && Objects.equals(sourceTermType, other.sourceTermType)
         && Objects.equals(sourceTerminology, other.sourceTerminology)
         && Objects.equals(sourceTerminologyVersion, other.sourceTerminologyVersion)
-        && Objects.equals(sourceLoaded, other.sourceLoaded) && Objects.equals(targetCode, other.targetCode)
-        && Objects.equals(targetName, other.targetName) && Objects.equals(targetTermType, other.targetTermType)
+        && Objects.equals(sourceLoaded, other.sourceLoaded)
+        && Objects.equals(targetCode, other.targetCode)
+        && Objects.equals(targetName, other.targetName)
+        && Objects.equals(targetTermType, other.targetTermType)
         && Objects.equals(targetTerminology, other.targetTerminology)
         && Objects.equals(targetTerminologyVersion, other.targetTerminologyVersion)
-        && Objects.equals(targetLoaded, other.targetLoaded) && Objects.equals(type, other.type);
+        && Objects.equals(targetLoaded, other.targetLoaded)
+        && Objects.equals(type, other.type);
   }
 
   /* see superclass */
   @Override
   public int compareTo(ConceptMap o) {
     return (sourceCode + sourceTerminology + group + rank + targetName + targetCode)
-        .compareToIgnoreCase(o.getSourceCode() + o.getSourceTerminology() + o.getGroup() + o.getRank()
-            + o.getTargetName() + o.getTargetCode());
+        .compareToIgnoreCase(
+            o.getSourceCode()
+                + o.getSourceTerminology()
+                + o.getGroup()
+                + o.getRank()
+                + o.getTargetName()
+                + o.getTargetCode());
   }
-
 }

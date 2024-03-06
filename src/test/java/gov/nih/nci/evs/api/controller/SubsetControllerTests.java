@@ -1,12 +1,15 @@
-
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,16 +24,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.properties.TestProperties;
-
-/**
- * subset tests.
- */
+/** subset tests. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -40,12 +34,10 @@ public class SubsetControllerTests {
   private static final Logger log = LoggerFactory.getLogger(MetadataControllerTests.class);
 
   /** The mvc. */
-  @Autowired
-  private MockMvc mvc;
+  @Autowired private MockMvc mvc;
 
   /** The test properties. */
-  @Autowired
-  TestProperties testProperties;
+  @Autowired TestProperties testProperties;
 
   /** The object mapper. */
   private ObjectMapper objectMapper;
@@ -53,9 +45,7 @@ public class SubsetControllerTests {
   /** The base url. */
   private String baseUrl = "";
 
-  /**
-   * Sets the up.
-   */
+  /** Sets the up. */
   @Before
   public void setUp() {
 
@@ -120,7 +110,10 @@ public class SubsetControllerTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
+    assertThat(
+            concept.getProperties().stream()
+                .filter(p -> p.getType().equals("Semantic_Type"))
+                .count())
         .isGreaterThan(0);
 
     // /subset - properties
@@ -147,7 +140,10 @@ public class SubsetControllerTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
+    assertThat(
+            concept.getProperties().stream()
+                .filter(p -> p.getType().equals("Semantic_Type"))
+                .count())
         .isGreaterThan(0);
 
     // /subset - synonyms,properties
@@ -175,9 +171,11 @@ public class SubsetControllerTests {
     assertThat(concept.getRoles()).isEmpty();
     assertThat(concept.getInverseRoles()).isEmpty();
     assertThat(concept.getMaps()).isEmpty();
-    assertThat(concept.getProperties().stream().filter(p -> p.getType().equals("Semantic_Type")).count())
+    assertThat(
+            concept.getProperties().stream()
+                .filter(p -> p.getType().equals("Semantic_Type"))
+                .count())
         .isGreaterThan(0);
-
   }
 
   /**
@@ -194,17 +192,30 @@ public class SubsetControllerTests {
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     final String content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, new TypeReference<List<Concept>>() {
-      // n/a
-    });
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
     assertThat(list != null).isTrue();
     assertThat(list.size() > 0).isTrue();
     // No subsets or children should have Publish_Value_Set set to something other than "Yes".
-    assertThat(list.stream().flatMap(Concept::streamSelfAndChildren)
-        .filter(c -> c.getProperties().stream()
-            .filter(p -> p.getType().equals("Publish_Value_Set") && !p.getValue().equals("Yes")).count() > 0)
-        .count()).isEqualTo(0);
-
+    assertThat(
+            list.stream()
+                .flatMap(Concept::streamSelfAndChildren)
+                .filter(
+                    c ->
+                        c.getProperties().stream()
+                                .filter(
+                                    p ->
+                                        p.getType().equals("Publish_Value_Set")
+                                            && !p.getValue().equals("Yes"))
+                                .count()
+                            > 0)
+                .count())
+        .isEqualTo(0);
   }
 
   /**
@@ -248,7 +259,5 @@ public class SubsetControllerTests {
         break;
       }
     }
-
   }
-
 }

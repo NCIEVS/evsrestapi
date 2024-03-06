@@ -1,11 +1,8 @@
-
 package gov.nih.nci.evs.api.properties;
 
 import java.util.HashMap;
 
-/**
- * Elasticsearch query properties.
- */
+/** Elasticsearch query properties. */
 public class ElasticQueryProperties {
 
   /** The shortsourcefields. */
@@ -154,8 +151,7 @@ public class ElasticQueryProperties {
   /**
    * Sets the exactstartswithassociationfields.
    *
-   * @param exactstartswithassociationfields the
-   *          exactstartswithassociationfields
+   * @param exactstartswithassociationfields the exactstartswithassociationfields
    */
   public void setExactstartswithassociationfields(String exactstartswithassociationfields) {
     this.exactstartswithassociationfields = exactstartswithassociationfields;
@@ -695,8 +691,7 @@ public class ElasticQueryProperties {
   /**
    * Sets the main nested query without highlights.
    *
-   * @param mainNestedQueryWithoutHighlights the main nested query without
-   *          highlights
+   * @param mainNestedQueryWithoutHighlights the main nested query without highlights
    */
   public void setMainNestedQueryWithoutHighlights(String mainNestedQueryWithoutHighlights) {
     this.mainNestedQueryWithoutHighlights = mainNestedQueryWithoutHighlights;
@@ -822,11 +817,11 @@ public class ElasticQueryProperties {
   /**
    * Sets the main multiple nested query without highlights.
    *
-   * @param mainMultipleNestedQueryWithoutHighlights the main multiple nested
-   *          query without highlights
+   * @param mainMultipleNestedQueryWithoutHighlights the main multiple nested query without
+   *     highlights
    */
   public void setMainMultipleNestedQueryWithoutHighlights(
-    String mainMultipleNestedQueryWithoutHighlights) {
+      String mainMultipleNestedQueryWithoutHighlights) {
     this.mainMultipleNestedQueryWithoutHighlights = mainMultipleNestedQueryWithoutHighlights;
   }
 
@@ -878,12 +873,10 @@ public class ElasticQueryProperties {
   /**
    * Sets the main nested with non nested querywithout HL.
    *
-   * @param mainNestedWithNonNestedQuerywithoutHL the main nested with non
-   *          nested querywithout HL
+   * @param mainNestedWithNonNestedQuerywithoutHL the main nested with non nested querywithout HL
    */
   public void setMainNestedWithNonNestedQuerywithoutHL(
-    String mainNestedWithNonNestedQuerywithoutHL) {
+      String mainNestedWithNonNestedQuerywithoutHL) {
     this.mainNestedWithNonNestedQuerywithoutHL = mainNestedWithNonNestedQuerywithoutHL;
   }
-
 }

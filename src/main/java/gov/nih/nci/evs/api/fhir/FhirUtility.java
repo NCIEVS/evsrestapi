@@ -11,26 +11,20 @@ package gov.nih.nci.evs.api.fhir;
 
 import static java.lang.String.format;
 
+import ca.uhn.fhir.rest.param.DateParam;
+import ca.uhn.fhir.rest.param.DateRangeParam;
+import ca.uhn.fhir.rest.param.StringParam;
 import java.util.Date;
-
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.r5.model.CodeType;
 import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
 
-import ca.uhn.fhir.rest.param.DateParam;
-import ca.uhn.fhir.rest.param.DateRangeParam;
-import ca.uhn.fhir.rest.param.StringParam;
-
-/**
- * Utility for fhir data building.
- */
+/** Utility for fhir data building. */
 public final class FhirUtility {
 
-  /**
-   * Instantiates an empty {@link FhirUtility}.
-   */
+  /** Instantiates an empty {@link FhirUtility}. */
   private FhirUtility() {
     // n/a
   }
@@ -52,7 +46,6 @@ public final class FhirUtility {
     }
 
     return null;
-
   }
 
   /**
@@ -63,11 +56,13 @@ public final class FhirUtility {
    * @param param2Name the param 2 name
    * @param param2 the param 2
    */
-  public static void mutuallyExclusive(final String param1Name, final Object param1,
-    final String param2Name, final Object param2) {
+  public static void mutuallyExclusive(
+      final String param1Name, final Object param1, final String param2Name, final Object param2) {
     if (param1 != null && param2 != null) {
-      throw exception(format("Use one of '%s' or '%s' parameters.", param1Name, param2Name),
-          OperationOutcome.IssueType.INVARIANT, 400);
+      throw exception(
+          format("Use one of '%s' or '%s' parameters.", param1Name, param2Name),
+          OperationOutcome.IssueType.INVARIANT,
+          400);
     }
   }
 
@@ -88,11 +83,13 @@ public final class FhirUtility {
    * @param obj the obj
    * @param additionalDetail the additional detail
    */
-  public static void notSupported(final String paramName, final Object obj,
-    final String additionalDetail) {
+  public static void notSupported(
+      final String paramName, final Object obj, final String additionalDetail) {
     if (obj != null) {
-      final String message = format("Input parameter '%s' is not supported%s", paramName,
-          (additionalDetail == null ? "." : format(" %s", additionalDetail)));
+      final String message =
+          format(
+              "Input parameter '%s' is not supported%s",
+              paramName, (additionalDetail == null ? "." : format(" %s", additionalDetail)));
       throw exception(message, OperationOutcome.IssueType.NOTSUPPORTED, 400);
     }
   }
@@ -105,12 +102,13 @@ public final class FhirUtility {
    * @param param2Name the param 2 name
    * @param param2 the param 2
    */
-  public static void requireExactlyOneOf(final String param1Name, final Object param1,
-    final String param2Name, final Object param2) {
+  public static void requireExactlyOneOf(
+      final String param1Name, final Object param1, final String param2Name, final Object param2) {
     if (param1 == null && param2 == null) {
       throw exception(
           format("One of '%s' or '%s' parameters must be supplied.", param1Name, param2Name),
-          IssueType.INVARIANT, 400);
+          IssueType.INVARIANT,
+          400);
     } else {
       mutuallyExclusive(param1Name, param1, param2Name, param2);
     }
@@ -126,11 +124,20 @@ public final class FhirUtility {
    * @param param3Name the param 3 name
    * @param param3 the param 3
    */
-  public static void requireExactlyOneOf(final String param1Name, final Object param1,
-    final String param2Name, final Object param2, final String param3Name, final Object param3) {
+  public static void requireExactlyOneOf(
+      final String param1Name,
+      final Object param1,
+      final String param2Name,
+      final Object param2,
+      final String param3Name,
+      final Object param3) {
     if (param1 == null && param2 == null && param3 == null) {
-      throw exception(format("One of '%s' or '%s' or '%s' parameters must be supplied.", param1Name,
-          param2Name, param3Name), OperationOutcome.IssueType.INVARIANT, 400);
+      throw exception(
+          format(
+              "One of '%s' or '%s' or '%s' parameters must be supplied.",
+              param1Name, param2Name, param3Name),
+          OperationOutcome.IssueType.INVARIANT,
+          400);
     } else {
       mutuallyExclusive(param1Name, param1, param2Name, param2);
       mutuallyExclusive(param1Name, param1, param3Name, param3);
@@ -146,13 +153,15 @@ public final class FhirUtility {
    * @param param2Name the param 2 name
    * @param param2 the param 2
    */
-  public static void mutuallyRequired(final String param1Name, final Object param1,
-    final String param2Name, final Object param2) {
+  public static void mutuallyRequired(
+      final String param1Name, final Object param1, final String param2Name, final Object param2) {
     if (param1 != null && param2 == null) {
       throw exception(
-          format("Input parameter '%s' can only be used in conjunction with parameter '%s'.",
+          format(
+              "Input parameter '%s' can only be used in conjunction with parameter '%s'.",
               param1Name, param2Name),
-          IssueType.INVARIANT, 400);
+          IssueType.INVARIANT,
+          400);
     }
   }
 
@@ -166,13 +175,20 @@ public final class FhirUtility {
    * @param param3Name the param 3 name
    * @param param3 the param 3
    */
-  public static void mutuallyRequired(final String param1Name, final Object param1,
-    final String param2Name, final Object param2, final String param3Name, final Object param3) {
+  public static void mutuallyRequired(
+      final String param1Name,
+      final Object param1,
+      final String param2Name,
+      final Object param2,
+      final String param3Name,
+      final Object param3) {
     if (param1 != null && param2 == null && param3 == null) {
       throw exception(
-          format("Use of input parameter '%s' only allowed if '%s' or '%s' is also present.",
+          format(
+              "Use of input parameter '%s' only allowed if '%s' or '%s' is also present.",
               param1Name, param2Name, param3Name),
-          IssueType.INVARIANT, 400);
+          IssueType.INVARIANT,
+          400);
     }
   }
 
@@ -185,14 +201,17 @@ public final class FhirUtility {
    */
   public static String recoverCode(final CodeType code, final Coding coding) {
     if (code == null && coding == null) {
-      throw exception("Use either 'code' or 'coding' parameters, not both.",
-          OperationOutcome.IssueType.INVARIANT, 400);
+      throw exception(
+          "Use either 'code' or 'coding' parameters, not both.",
+          OperationOutcome.IssueType.INVARIANT,
+          400);
     } else if (code != null) {
       if (code.getCode().contains("|")) {
         throw exception(
             "The 'code' parameter cannot supply a codeSystem. "
                 + "Use 'coding' or provide CodeSystem in 'system' parameter.",
-            OperationOutcome.IssueType.NOTSUPPORTED, 400);
+            OperationOutcome.IssueType.NOTSUPPORTED,
+            400);
       }
       return code.getCode();
     }
@@ -217,8 +236,8 @@ public final class FhirUtility {
    * @param theStatusCode the the status code
    * @return the FHIR server response exception
    */
-  public static FHIRServerResponseException exception(final String message,
-    final OperationOutcome.IssueType issueType, final int theStatusCode) {
+  public static FHIRServerResponseException exception(
+      final String message, final OperationOutcome.IssueType issueType, final int theStatusCode) {
     return exception(message, issueType, theStatusCode, null);
   }
 
@@ -231,8 +250,11 @@ public final class FhirUtility {
    * @param e the e
    * @return the FHIR server response exception
    */
-  public static FHIRServerResponseException exception(final String message,
-    final OperationOutcome.IssueType issueType, final int theStatusCode, final Throwable e) {
+  public static FHIRServerResponseException exception(
+      final String message,
+      final OperationOutcome.IssueType issueType,
+      final int theStatusCode,
+      final Throwable e) {
     final OperationOutcome outcome = new OperationOutcome();
     final OperationOutcome.OperationOutcomeIssueComponent component =
         new OperationOutcome.OperationOutcomeIssueComponent();
@@ -313,35 +335,44 @@ public final class FhirUtility {
       return d1.getValue().equals(d2);
     }
     switch (d1.getPrefix()) {
-      case APPROXIMATE: {
-        return d1.getValue().equals(d2);
-      }
-      case ENDS_BEFORE: {
-        // doesn't really make sense for a single date
-        return d2.compareTo(d1.getValue()) < 0;
-      }
-      case EQUAL: {
-        return d1.getValue().equals(d2);
-      }
-      case GREATERTHAN: {
-        return d2.compareTo(d1.getValue()) > 0;
-      }
-      case GREATERTHAN_OR_EQUALS: {
-        return d2.compareTo(d1.getValue()) >= 0;
-      }
-      case LESSTHAN: {
-        return d2.compareTo(d1.getValue()) < 0;
-      }
-      case LESSTHAN_OR_EQUALS: {
-        return d2.compareTo(d1.getValue()) <= 0;
-      }
-      case NOT_EQUAL: {
-        return !d1.getValue().equals(d2);
-      }
-      case STARTS_AFTER: {
-        // doesn't really make sense for a single date
-        return d2.compareTo(d1.getValue()) > 0;
-      }
+      case APPROXIMATE:
+        {
+          return d1.getValue().equals(d2);
+        }
+      case ENDS_BEFORE:
+        {
+          // doesn't really make sense for a single date
+          return d2.compareTo(d1.getValue()) < 0;
+        }
+      case EQUAL:
+        {
+          return d1.getValue().equals(d2);
+        }
+      case GREATERTHAN:
+        {
+          return d2.compareTo(d1.getValue()) > 0;
+        }
+      case GREATERTHAN_OR_EQUALS:
+        {
+          return d2.compareTo(d1.getValue()) >= 0;
+        }
+      case LESSTHAN:
+        {
+          return d2.compareTo(d1.getValue()) < 0;
+        }
+      case LESSTHAN_OR_EQUALS:
+        {
+          return d2.compareTo(d1.getValue()) <= 0;
+        }
+      case NOT_EQUAL:
+        {
+          return !d1.getValue().equals(d2);
+        }
+      case STARTS_AFTER:
+        {
+          // doesn't really make sense for a single date
+          return d2.compareTo(d1.getValue()) > 0;
+        }
       default:
         break;
     }
@@ -370,7 +401,5 @@ public final class FhirUtility {
 
     // Check that date is in range
     return compareDate(d1.getLowerBound(), d2) && compareDate(d1.getUpperBound(), d2);
-
   }
-
 }

@@ -1,23 +1,17 @@
-
 package gov.nih.nci.evs.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
-/**
- * Represents a list of results with paging parameters.
- */
+/** Represents a list of results with paging parameters. */
 @Schema(description = "Represents a list of concepts returned from a search or find call")
 public class ConceptResultList extends ResultList {
 
   /** The concepts. */
   private List<Concept> concepts;
 
-  /**
-   * Instantiates an empty {@link ConceptResultList}.
-   */
+  /** Instantiates an empty {@link ConceptResultList}. */
   public ConceptResultList() {
     // n/a
   }
@@ -62,5 +56,4 @@ public class ConceptResultList extends ResultList {
   public void setConcepts(final List<Concept> concepts) {
     this.concepts = concepts;
   }
-
 }

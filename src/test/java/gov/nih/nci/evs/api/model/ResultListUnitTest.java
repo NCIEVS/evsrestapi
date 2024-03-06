@@ -1,8 +1,13 @@
-
 package gov.nih.nci.evs.api.model;
 
 import static org.junit.Assert.assertTrue;
 
+import gov.nih.nci.evs.api.CopyConstructorTester;
+import gov.nih.nci.evs.api.EqualsHashcodeTester;
+import gov.nih.nci.evs.api.GetterSetterTester;
+import gov.nih.nci.evs.api.ProxyTester;
+import gov.nih.nci.evs.api.SerializationTester;
+import gov.nih.nci.evs.api.configuration.TestConfiguration;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -11,24 +16,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import gov.nih.nci.evs.api.CopyConstructorTester;
-import gov.nih.nci.evs.api.EqualsHashcodeTester;
-import gov.nih.nci.evs.api.GetterSetterTester;
-import gov.nih.nci.evs.api.ProxyTester;
-import gov.nih.nci.evs.api.SerializationTester;
-import gov.nih.nci.evs.api.configuration.TestConfiguration;
-
-/**
- * Unit test for {@link ResultList}.
- */
+/** Unit test for {@link ResultList}. */
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestConfiguration.class)
 public class ResultListUnitTest {
 
   /** The logger. */
   @SuppressWarnings("unused")
-  private static final Logger log =
-      LoggerFactory.getLogger(ResultListUnitTest.class);
+  private static final Logger log = LoggerFactory.getLogger(ResultListUnitTest.class);
 
   /** The model object to test. */
   private ResultList object;
@@ -61,8 +56,8 @@ public class ResultListUnitTest {
   @Test
   public void testModelGetSet() throws Exception {
     final GetterSetterTester tester = new GetterSetterTester(object);
-    tester.proxy(SearchCriteria.class,1,sc1);
-    tester.proxy(SearchCriteria.class,2,sc2);
+    tester.proxy(SearchCriteria.class, 1, sc1);
+    tester.proxy(SearchCriteria.class, 2, sc2);
     tester.test();
   }
 
@@ -76,8 +71,8 @@ public class ResultListUnitTest {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
     tester.include("total");
     tester.include("parameters");
-    tester.proxy(SearchCriteria.class,1,sc1);
-    tester.proxy(SearchCriteria.class,2,sc2);
+    tester.proxy(SearchCriteria.class, 1, sc1);
+    tester.proxy(SearchCriteria.class, 2, sc2);
 
     assertTrue(tester.testIdentityFieldEquals());
     assertTrue(tester.testNonIdentityFieldEquals());
@@ -95,7 +90,7 @@ public class ResultListUnitTest {
   @Test
   public void testModelCopy() throws Exception {
     final CopyConstructorTester tester = new CopyConstructorTester(object);
-    tester.proxy(SearchCriteria.class,1,sc1);
+    tester.proxy(SearchCriteria.class, 1, sc1);
     assertTrue(tester.testCopyConstructor(ResultList.class));
   }
 
@@ -107,7 +102,7 @@ public class ResultListUnitTest {
   @Test
   public void testModelSerialization() throws Exception {
     final SerializationTester tester = new SerializationTester(object);
-    tester.proxy(SearchCriteria.class,1,sc1);
+    tester.proxy(SearchCriteria.class, 1, sc1);
 
     assertTrue(tester.testJsonSerialization());
   }

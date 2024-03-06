@@ -1,8 +1,6 @@
-
 package gov.nih.nci.evs.api;
 
 import java.util.Map;
-
 import org.springdoc.core.SpringDocUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,15 +10,14 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-/**
- * Entry point for webapp.
- */
-@SpringBootApplication(exclude = {
-    // This is to avoid "Failed to configure a DataSource: 'url' attribute is not specified and no
-    // embedded datasource could be configured" error
-    // that arose when FHIR libraries were added
-    DataSourceAutoConfiguration.class
-})
+/** Entry point for webapp. */
+@SpringBootApplication(
+    exclude = {
+      // This is to avoid "Failed to configure a DataSource: 'url' attribute is not specified and no
+      // embedded datasource could be configured" error
+      // that arose when FHIR libraries were added
+      DataSourceAutoConfiguration.class
+    })
 @EnableCaching
 @EnableScheduling
 public class Application extends SpringBootServletInitializer {
@@ -45,5 +42,4 @@ public class Application extends SpringBootServletInitializer {
   public static void main(String[] args) {
     SpringApplication.run(Application.class, args);
   }
-
 }

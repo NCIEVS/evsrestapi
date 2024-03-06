@@ -1,20 +1,15 @@
-
 package gov.nih.nci.evs.api.model;
 
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Represents a list of results with paging parameters.
- */
+/** Represents a list of results with paging parameters. */
 public class AssociationEntryResultList extends ResultList {
 
   /** The concepts. */
   private List<AssociationEntry> concepts;
 
-  /**
-   * Instantiates an empty {@link AssociationEntryResultList}.
-   */
+  /** Instantiates an empty {@link AssociationEntryResultList}. */
   public AssociationEntryResultList() {
     // n/a
   }
@@ -58,5 +53,4 @@ public class AssociationEntryResultList extends ResultList {
   public void setAssociationEntries(final List<AssociationEntry> concepts) {
     this.concepts = concepts;
   }
-
 }
