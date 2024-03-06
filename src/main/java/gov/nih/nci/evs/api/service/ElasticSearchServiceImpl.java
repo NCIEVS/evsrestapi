@@ -274,6 +274,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         QueryBuilders.queryStringQuery(codeTerm + codeList).field("synonyms.code"), ScoreMode.Max)
         .boost(50f);
 
+    // Name queries
+
     // -- fuzzy case
     if ("fuzzy".equalsIgnoreCase(type)) {
       fixNameQuery.fuzziness(Fuzziness.ONE);
@@ -311,9 +313,15 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     BoolQueryBuilder termQuery = new BoolQueryBuilder();
 
     // Avoid searching codes with spaces in search query
-    if (!term.contains(" ")) {
+    if (!term.contains(" ") || hasCodeList) {
       // Code match
-      termQuery.should(codeQuery).should(synonymCodeQuery);
+      if (hasCodeList) {
+        BoolQueryBuilder codeQueries =
+            QueryBuilders.boolQuery().should(codeQuery).should(synonymCodeQuery);
+        termQuery.must(codeQueries);
+      } else {
+        termQuery.should(codeQuery).should(synonymCodeQuery);
+      }
 
     }
 
