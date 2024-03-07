@@ -752,6 +752,7 @@ public class SearchController extends BaseController {
         List<String> fields = new ArrayList<>();
         node.forEach(field -> {
           // String currentField = field.fieldNames().next();
+          // fields.put(currentField, field.get("value").asText();
           fields.add(field.get("value").asText());
         });
         results.add(fields);
