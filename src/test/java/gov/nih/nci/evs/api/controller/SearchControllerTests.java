@@ -2690,6 +2690,7 @@ public class SearchControllerTests {
     assertThat(list.getTotal()).isGreaterThan(0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C1830");
     assertThat(list.getConcepts().get(0).getName()).isEqualTo("Melanoma Theraccine");
+    assertThat(list.getParameters().getCodeList().contains("C1830"));
 
     // check another query with a term
     query = "SELECT ?code {\n" + "  GRAPH <http://NCI_T_monthly> {\n" + "    ?x a owl:Class .\n"
@@ -2713,6 +2714,7 @@ public class SearchControllerTests {
           .anyMatch(synonym -> synonym.getName().toLowerCase().contains("liver"));
       log.info(conc.getCode() + " " + conc.getName());
       assertThat(name || definitions || synonyms).isTrue();
+      assertThat(list.getParameters().getCodeList().contains(conc.getCode()));
     }
 
     // check non-existent term
