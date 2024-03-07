@@ -92,12 +92,8 @@ public class RESTUtils {
       };
       try {
         // invoke postForObject with executor
-        long startTime = System.currentTimeMillis();
         String result = executor.invokeAny(Arrays.asList(task), sparqlTimeout, TimeUnit.SECONDS);
-        long endTime = System.currentTimeMillis();
-        long elapsedTime = endTime - startTime;
 
-        System.out.println("Time taken: " + elapsedTime + " milliseconds");
         return result;
 
       } catch (TimeoutException e) {

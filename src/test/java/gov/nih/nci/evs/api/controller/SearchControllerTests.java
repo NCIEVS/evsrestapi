@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -25,8 +26,10 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.util.NestedServletException;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Association;
@@ -2594,7 +2597,7 @@ public class SearchControllerTests {
    */
   @Test
   public void testSearchWithSparql() throws Exception {
-    String url = "/api/v1/concept/ncit/search/sparql/";
+    String url = "/api/v1/concept/ncit/search/";
     MvcResult result = null;
     String content = null;
     ConceptResultList list = null;
@@ -2831,6 +2834,42 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
     assertThat(content.contains("SPARQL query timed out")).isTrue();
+
+  }
+
+  /**
+   * Test sparql.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSparql() throws Exception {
+    String url = "/api/v1/sparql/ncit";
+    MvcResult result = null;
+    String content = null;
+    final ObjectMapper mapper = new ObjectMapper();
+    String query =
+        "SELECT ?code ?x { GRAPH <http://NCI_T_monthly> { ?x a owl:Class . ?x :NHC0 ?code . } }";
+    log.info(
+        "Testing url - " + url + "?query=" + query + "&terminology=ncit&fromRecord=0&pageSize=10");
+    result = mvc.perform(MockMvcRequestBuilders.post(url).param("query", query)
+        .param("fromRecord", "0").param("pageSize", "10")).andExpect(status().isOk()).andReturn();
+    JsonNode bindings = mapper.readTree(result.getResponse().getContentAsString());
+    assertThat(bindings.size()).isEqualTo(10);
+    Iterator<JsonNode> results = bindings.elements();
+    results.next();
+    JsonNode node = results.next();
+
+    // verify fromRecord and pageSize
+    query =
+        "SELECT ?code ?x { GRAPH <http://NCI_T_monthly> { ?x a owl:Class . ?x :NHC0 ?code . } }";
+    log.info(
+        "Testing url - " + url + "?query=" + query + "&terminology=ncit&fromRecord=1&pageSize=5");
+    result = mvc.perform(MockMvcRequestBuilders.post(url).param("query", query)
+        .param("fromRecord", "1").param("pageSize", "5")).andExpect(status().isOk()).andReturn();
+    bindings = mapper.readTree(result.getResponse().getContentAsString());
+    assertThat(bindings.size()).isEqualTo(5);
+    assertThat(bindings.elements().next()).isEqualTo(node);
 
   }
 

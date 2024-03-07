@@ -7,9 +7,7 @@ import java.util.Optional;
 
 import javax.annotation.PostConstruct;
 
-import org.apache.jena.query.Query;
 import org.apache.jena.query.QueryException;
-import org.apache.jena.query.QueryFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,12 +26,12 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
-import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.SearchCriteriaWithoutTerminology;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -474,6 +472,7 @@ public class SearchController extends BaseController {
    * Search within a single terminology by SPARQL query.
    *
    * @param terminology the terminology
+   * @param query the SPARQL query to run
    * @param searchCriteria the filter criteria elastic fields
    * @param bindingResult the binding result
    * @return the string
@@ -607,7 +606,7 @@ public class SearchController extends BaseController {
       // String.class)
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/concept/{terminology}/search/sparql",
+  @RequestMapping(method = RequestMethod.POST, value = "/concept/{terminology}/search",
       produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminologySparql(
     @PathVariable(value = "terminology")
@@ -619,7 +618,6 @@ public class SearchController extends BaseController {
     final String license) throws ResponseStatusException, Exception {
 
     final Terminology term = termUtils.getTerminology(terminology, true);
-    final IncludeParam ip = new IncludeParam(include.orElse("summary"));
     String res = null;
     termUtils.checkLicense(term, license);
     final ObjectMapper mapper = new ObjectMapper();
@@ -631,7 +629,6 @@ public class SearchController extends BaseController {
           "{ GRAPH <" + term.getGraph() + "> {");
       sparqlQuery += " LIMIT 1000";
       // validate query
-      Query q = QueryFactory.create(queryPrefix + sparqlQuery);
       res = restUtils.runSPARQL(queryPrefix + sparqlQuery, stardogProperties.getQueryUrl(),
           sparqlTimeout);
 
@@ -640,7 +637,8 @@ public class SearchController extends BaseController {
           extractErrorMessage(e.getMessage()).replace("\\", "").replace("\r\n", " ");
 
       throw new QueryException(
-          "SPARQL query failed validation. Please review your query for syntax mistakes.");
+          "SPARQL query failed validation. Please review your query for syntax mistakes.\n"
+              + errorMessage);
     } catch (final Exception e) {
       String errorMessage = extractErrorMessage(e.getMessage()).replace("\\", "");
 
@@ -674,12 +672,103 @@ public class SearchController extends BaseController {
       }
 
       searchCriteria.setCodeList(codes);
+      searchCriteria.setInclude(include.orElse("summary"));
 
       return search(new SearchCriteria(searchCriteria, terminology), bindingResult, license);
 
     } catch (final Exception e) {
       handleException(e);
       return null;
+    }
+  }
+
+  /**
+   * get SPARQL query bindings from a single terminology and query.
+   *
+   * @param terminology the terminology
+   * @param query the SPARQL query to run
+   * @return the string
+   * @throws ResponseStatusException
+   * @throws Exception the exception
+   */
+  @Operation(summary = "Get SPARQL query bindings from a single terminology and query",
+      description = "Simple use case: Get bindings from given sparql query given the terminology to search.")
+  @ApiResponses({
+      @ApiResponse(responseCode = "200",
+          description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "400", description = "Bad request",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = RestException.class))),
+      @ApiResponse(responseCode = "417", description = "Expectation failed",
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+      @Parameter(name = "searchCriteria", hidden = true),
+      @Parameter(name = "query", description = "The SPARQL query to run"),
+      @Parameter(name = "terminology",
+          description = "Single terminology to search, e.g. 'ncit' or 'ncim'"
+              + " (<a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">"
+              + "See here for complete list</a>)",
+          required = true, schema = @Schema(implementation = String.class), example = "ncit"),
+      @Parameter(name = "fromRecord", description = "Start index of the search results",
+          required = false, schema = @Schema(implementation = Integer.class), example = "0"),
+      @Parameter(name = "pageSize", description = "Max number of results to return",
+          required = false, schema = @Schema(implementation = Integer.class), example = "10"),
+      @Parameter(name = "X-EVSRESTAPI-License-Key",
+          description = "Required license information for restricted terminologies. <a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/"
+              + "master/doc/LICENSE.md' target='_blank'>See here for detailed information</a>.",
+          required = false, schema = @Schema(implementation = String.class))
+  })
+  @RecordMetric
+  @RequestMapping(method = RequestMethod.POST, value = "/sparql/{terminology}",
+      produces = "application/json")
+  public @ResponseBody List<List<String>> getSparqlBindings(@PathVariable(value = "terminology")
+  final String terminology, @RequestParam(required = true, name = "query")
+  final String query, @RequestParam(required = false, name = "fromRecord")
+  final Integer fromRecord, @RequestParam(required = false, name = "pageSize")
+  final Integer pageSize, @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false)
+  final String license) {
+
+    try {
+      final Terminology term = termUtils.getTerminology(terminology, true);
+      String res = null;
+      termUtils.checkLicense(term, license);
+      final ObjectMapper mapper = new ObjectMapper();
+
+      final String queryPrefix =
+          !query.startsWith("PREFIX ") ? queryBuilderService.constructPrefix(term) : "";
+      String sparqlQuery = query.replaceAll("\\{\\s*GRAPH(\\s*<.*>\\s*|\\s*)\\{",
+          "{ GRAPH <" + term.getGraph() + "> {");
+      sparqlQuery += " LIMIT " + (pageSize != null ? pageSize : 10);
+      sparqlQuery += ((fromRecord != null && fromRecord != 0) ? " OFFSET " + fromRecord : "");
+      // validate query
+      res = restUtils.runSPARQL(queryPrefix + sparqlQuery, stardogProperties.getQueryUrl(),
+          sparqlTimeout);
+      mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+      JsonNode bindings = mapper.readTree(res).findValue("bindings");
+      List<List<String>> results = new ArrayList<>();
+      for (JsonNode node : bindings) {
+        List<String> fields = new ArrayList<>();
+        node.forEach(field -> {
+          // String currentField = field.fieldNames().next();
+          fields.add(field.get("value").asText());
+        });
+        results.add(fields);
+      }
+      return results;
+
+    } catch (final QueryException e) {
+      String errorMessage =
+          extractErrorMessage(e.getMessage()).replace("\\", "").replace("\r\n", " ");
+
+      throw new QueryException(
+          "SPARQL query failed validation. Please review your query for syntax mistakes.\n"
+              + errorMessage);
+    } catch (final Exception e) {
+      String errorMessage = extractErrorMessage(e.getMessage()).replace("\\", "");
+
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
     }
   }
 
