@@ -198,8 +198,7 @@ get_terminology(){
     echo "ncit"
   else
     lower_terminology=$(basename "$1" | sed 's/.owl//g' | tr '[:upper:]' '[:lower:]')
-    stripped_digits=${lower_terminology//[[:digit:]]/}
-    IFS='_' read -r -a array <<<"$stripped_digits"
+    IFS='_' read -r -a array <<<"$lower_terminology"
     echo $array
   fi
 }
