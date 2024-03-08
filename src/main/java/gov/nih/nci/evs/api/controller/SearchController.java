@@ -2,7 +2,10 @@
 package gov.nih.nci.evs.api.controller;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
@@ -32,6 +35,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.MapResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.SearchCriteriaWithoutTerminology;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -723,7 +727,7 @@ public class SearchController extends BaseController {
   @RecordMetric
   @RequestMapping(method = RequestMethod.POST, value = "/sparql/{terminology}",
       produces = "application/json")
-  public @ResponseBody List<List<String>> getSparqlBindings(@PathVariable(value = "terminology")
+  public @ResponseBody MapResultList getSparqlBindings(@PathVariable(value = "terminology")
   final String terminology, @RequestParam(required = true, name = "query")
   final String query, @RequestParam(required = false, name = "fromRecord")
   final Integer fromRecord, @RequestParam(required = false, name = "pageSize")
@@ -740,24 +744,24 @@ public class SearchController extends BaseController {
           !query.startsWith("PREFIX ") ? queryBuilderService.constructPrefix(term) : "";
       String sparqlQuery = query.replaceAll("\\{\\s*GRAPH(\\s*<.*>\\s*|\\s*)\\{",
           "{ GRAPH <" + term.getGraph() + "> {");
-      sparqlQuery += " LIMIT " + (pageSize != null ? pageSize : 10);
-      sparqlQuery += ((fromRecord != null && fromRecord != 0) ? " OFFSET " + fromRecord : "");
+      sparqlQuery += " LIMIT 1000";
+      // sparqlQuery += " LIMIT " + (pageSize != null ? pageSize : 10);
+      // sparqlQuery += ((fromRecord != null && fromRecord != 0) ? " OFFSET " + fromRecord : "");
       // validate query
       res = restUtils.runSPARQL(queryPrefix + sparqlQuery, stardogProperties.getQueryUrl(),
           sparqlTimeout);
       mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
       JsonNode bindings = mapper.readTree(res).findValue("bindings");
-      List<List<String>> results = new ArrayList<>();
-      for (JsonNode node : bindings) {
-        List<String> fields = new ArrayList<>();
-        node.forEach(field -> {
-          // String currentField = field.fieldNames().next();
-          // fields.put(currentField, field.get("value").asText();
-          fields.add(field.get("value").asText());
-        });
-        results.add(fields);
-      }
-      return results;
+      int total = bindings.size();
+      List<Map<String, String>> results = getJsonSubset(bindings, fromRecord, pageSize);
+      MapResultList resultList = new MapResultList();
+      resultList.setResults(results);
+      resultList.setTotal(total);
+      SearchCriteria sc = new SearchCriteria();
+      sc.setPageSize(pageSize);
+      sc.setFromRecord(fromRecord);
+      resultList.setParameters(sc);
+      return resultList;
 
     } catch (final QueryException e) {
       String errorMessage =
@@ -771,6 +775,28 @@ public class SearchController extends BaseController {
 
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
     }
+  }
+
+  public List<Map<String, String>> getJsonSubset(JsonNode bindings, int fromRecord, int pageSize) {
+    int endIndex = fromRecord + pageSize;
+    int currentIndex = 0;
+    List<Map<String, String>> results = new ArrayList<>();
+    for (JsonNode node : bindings) {
+      if (fromRecord <= currentIndex && currentIndex < endIndex) {
+        Map<String, String> fields = new HashMap<>();
+        Iterator<String> fieldNames = node.fieldNames();
+        node.forEach(field -> {
+          String currentField = fieldNames.next();
+          fields.put(currentField, field.get("value").asText());
+        });
+        results.add(fields);
+
+      } else if (currentIndex >= endIndex) {
+        break;
+      }
+      currentIndex++;
+    }
+    return results;
   }
 
   private static String extractErrorMessage(String errorString) {

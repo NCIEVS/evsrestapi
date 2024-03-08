@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.junit.Before;
@@ -29,13 +29,13 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.util.NestedServletException;
 
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.MapResultList;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
@@ -2854,11 +2854,11 @@ public class SearchControllerTests {
         "Testing url - " + url + "?query=" + query + "&terminology=ncit&fromRecord=0&pageSize=10");
     result = mvc.perform(MockMvcRequestBuilders.post(url).param("query", query)
         .param("fromRecord", "0").param("pageSize", "10")).andExpect(status().isOk()).andReturn();
-    JsonNode bindings = mapper.readTree(result.getResponse().getContentAsString());
-    assertThat(bindings.size()).isEqualTo(10);
-    Iterator<JsonNode> results = bindings.elements();
-    results.next();
-    JsonNode node = results.next();
+    MapResultList results = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
+        MapResultList.class);
+    assertThat(results.getParameters().getPageSize()).isEqualTo(10);
+    assertThat(results.getResults().size()).isEqualTo(results.getParameters().getPageSize());
+    Map<String, String> node = results.getResults().get(1);
 
     // verify fromRecord and pageSize
     query =
@@ -2867,9 +2867,11 @@ public class SearchControllerTests {
         "Testing url - " + url + "?query=" + query + "&terminology=ncit&fromRecord=1&pageSize=5");
     result = mvc.perform(MockMvcRequestBuilders.post(url).param("query", query)
         .param("fromRecord", "1").param("pageSize", "5")).andExpect(status().isOk()).andReturn();
-    bindings = mapper.readTree(result.getResponse().getContentAsString());
-    assertThat(bindings.size()).isEqualTo(5);
-    assertThat(bindings.elements().next()).isEqualTo(node);
+    results = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
+        MapResultList.class);
+    assertThat(results.getParameters().getPageSize()).isEqualTo(5);
+    assertThat(results.getResults().size()).isEqualTo(results.getParameters().getPageSize());
+    assertThat(results.getResults().get(0)).isEqualTo(node);
 
   }
 
