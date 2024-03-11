@@ -88,6 +88,13 @@ if [[ ! -e "$dir/ChEBI/chebi_213.owl" ]]; then
     exit 1
 fi
 
+# Check DUO monthly
+echo "    check DUO monthly"
+if [[ ! -e "$dir/DUO/duo_Feb21.owl" ]]; then
+    echo "ERROR: unexpectedly missing DUO/duo_Feb21.owl file"
+    exit 1
+fi
+
 # Verify docker stardog is running
 echo "    verify docker stardog is running"
 ct=`sudo docker ps | grep 'stardog/stardog' | wc -l`
