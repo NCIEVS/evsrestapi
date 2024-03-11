@@ -73,6 +73,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
   /** The subset group. */
   private List<String> subset;
+  
+  /** The code list. */
+  private List<String> codeList;
 
   /** The inverse. */
   // private Boolean inverse = null;
@@ -125,6 +128,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     term = other.getTerm();
     type = other.getType();
     subset = new ArrayList<>(other.getSubset());
+    codeList = new ArrayList<>(other.getCodeList()); 
   }
 
   /**
@@ -512,6 +516,26 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   public void setSubset(List<String> subset) {
     this.subset = subset;
   }
+  
+  /**
+   * @return the list of codes to limit the search to
+   */
+  @Schema(description = "Comma-separated list of concept codes to restrict search results by, e.g. 'C157225'")
+  public List<String> getCodeList() {
+    if (codeList == null) {
+      codeList = new ArrayList<>();
+    }
+    return codeList;
+  }
+
+  /**
+   * Sets the list of codes to limit the search to.
+   *
+   * @param codeList the list of codes to limit the search to
+   */
+  public void setCodeList(List<String> codeList) {
+    this.codeList = codeList;
+  }
 
   /**
    * Compute include param.
@@ -528,7 +552,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * @return true, if successful
    */
   public boolean checkRequiredFields() {
-    if (term == null) {
+    if (term == null && codeList == null) {
       return false;
     }
     return true;
@@ -668,6 +692,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     result = prime * result + ((term == null) ? 0 : term.hashCode());
     result = prime * result + ((type == null) ? 0 : type.hashCode());
     result = prime * result + ((subset == null) ? 0 : subset.hashCode());
+    result = prime * result + ((codeList == null) ? 0 : codeList.hashCode());
     return result;
   }
 
@@ -790,6 +815,13 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
         return false;
       }
     } else if (!subset.equals(other.subset)) {
+      return false;
+    }
+    if (codeList == null) {
+      if (other.codeList != null) {
+        return false;
+      }
+    } else if (!codeList.equals(other.codeList)) {
       return false;
     }
     if (term == null) {

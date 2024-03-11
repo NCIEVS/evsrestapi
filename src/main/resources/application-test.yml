@@ -21,6 +21,9 @@ spring:
     cache:
         jcache:
             config: classpath:ehcache.xml
+            
+    # test profile
+    profiles: test
 
 management:
   endpoints:
@@ -85,7 +88,7 @@ nci:
         scheme: ${ES_SCHEME:http}
       timeout: 200000
     sparql:
-      timeoutSeconds: 30
+      timeoutSeconds: 5
 
 # Springdoc
 springdoc:
