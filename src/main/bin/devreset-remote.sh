@@ -88,8 +88,8 @@ if [[ ! -e "$dir/ChEBI/chebi_213.owl" ]]; then
     exit 1
 fi
 
-# Check DUO monthly
-echo "    check DUO monthly"
+# Check DUO
+echo "    check DUO"
 if [[ ! -e "$dir/DUO/duo_Feb21.owl" ]]; then
     echo "ERROR: unexpectedly missing DUO/duo_Feb21.owl file"
     exit 1
