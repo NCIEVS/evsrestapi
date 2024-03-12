@@ -33,23 +33,26 @@ public class VersionController extends BaseController {
 
   @Operation(summary = "Get the application version information")
   @ApiResponses({
-      @ApiResponse(responseCode = "200", description = "Successfully retrieved the requested information"),
+      @ApiResponse(responseCode = "200",
+          description = "Successfully retrieved the requested information"),
       @ApiResponse(responseCode = "400", description = "Bad request",
-          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class))),
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = RestException.class))),
       @ApiResponse(responseCode = "404", description = "Resource not found",
-          content = @Content(mediaType = "application/json", schema = @Schema(implementation = RestException.class)))
+          content = @Content(mediaType = "application/json",
+              schema = @Schema(implementation = RestException.class)))
   })
   @RecordMetric
   @RequestMapping(method = RequestMethod.GET, value = "/version", produces = "application/json")
   public @ResponseBody ApplicationVersion getApplicationVersion() throws IOException {
     final ApplicationVersion homePageData = new ApplicationVersion();
     homePageData.setName("NCI EVS Rest API");
-    homePageData
-        .setDescription("Endpoints to support searching, metadata, and content retrieval for EVS terminologies. "
+    homePageData.setDescription(
+        "Endpoints to support searching, metadata, and content retrieval for EVS terminologies. "
             + "To learn more about how to interact with this api, see the  "
             + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK' "
             + "target='_blank'>Github evsrestapi-client-SDK project</a>.<br/><br/>");
-    homePageData.setVersion("1.9.0.RELEASE");
+    homePageData.setVersion("1.9.1.RELEASE");
     return homePageData;
   }
 
