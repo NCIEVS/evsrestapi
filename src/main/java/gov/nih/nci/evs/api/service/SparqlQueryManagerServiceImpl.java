@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
+import org.apache.commons.io.FilenameUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -189,27 +190,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       term.setDate((b.getDate() == null) ? b.getVersion().getValue() : b.getDate().getValue());
       term.setGraph(graphName);
       term.setSource(b.getSource().getValue());
-
-      // TODO: this definitely needs to be turned into configuration
-      if (term.getSource().endsWith("Thesaurus.owl")) {
-        term.setTerminology("ncit");
-      } else if (term.getSource().endsWith("obo/go.owl")) {
-        term.setTerminology("go");
-      } else if (term.getSource().endsWith("/HGNC.owl")) {
-        term.setTerminology("hgnc");
-      } else if (term.getSource().endsWith("/chebi.owl")) {
-        term.setTerminology("chebi");
-      } else if (term.getSource().endsWith("/umlssemnet.owl")) {
-        term.setTerminology("umlssemnet");
-      } else if (term.getSource().endsWith("/MEDRT.owl")) {
-        term.setTerminology("medrt");
-      } else if (term.getSource().endsWith("/CanMED.owl")) {
-        term.setTerminology("canmed");
-      } else if (term.getSource().endsWith("/ctcae5.owl")) {
-        term.setTerminology("ctcae5");
-      } else {
-        log.info("  UNKNOWN ontology = " + term.getSource());
-      }
+      term.setTerminology(getTerm(term.getSource()));
       termList.add(term);
     }
 
@@ -236,6 +217,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     return results;
+  }
+
+  private String getTerm(String source){
+    String term = FilenameUtils.getBaseName(source);
+    if (term.equals("Thesaurus")) {
+      return "ncit";
+    }
+    return term.toLowerCase();
   }
 
   /* see superclass */
