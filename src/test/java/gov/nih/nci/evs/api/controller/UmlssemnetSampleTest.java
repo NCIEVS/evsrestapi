@@ -57,12 +57,12 @@ public class UmlssemnetSampleTest extends SampleTest {
   }
 
   /**
-   * Test HGNC terminology.
+   * Test UMLSSEMNET terminology.
    *
    * @throws Exception the exception
    */
   @Test
-  public void testHGNCTerminology() throws Exception {
+  public void testUMLSSEMNETTerminology() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
