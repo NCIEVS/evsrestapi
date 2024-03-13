@@ -2369,7 +2369,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
 
     final List<Concept> concepts = new ArrayList<>();
-    for (final Bindings b : bindings) { 
+    for (final Bindings b : bindings) {
 
       // Skip anything without a concept code (it's not a class we care about)
       if (b.getConceptCode() == null) {
