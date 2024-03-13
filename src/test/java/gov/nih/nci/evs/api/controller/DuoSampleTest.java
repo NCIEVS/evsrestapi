@@ -76,8 +76,7 @@ public class DuoSampleTest extends SampleTest {
         terminologies.stream().filter(t -> t.getTerminology().equals("duo")).findFirst().get();
     assertThat(duo.getTerminology()).isEqualTo("duo");
     assertThat(duo.getMetadata().getUiLabel()).isEqualTo("DUO: Data Use Ontology");
-    assertThat(duo.getName()).isEqualTo(
-        "DUO: Data Use Ontology http://purl.obolibrary.org/obo/duo/releases/2021-02-23/duo.owl");
+    assertThat(duo.getName()).isEqualTo("DUO: Data Use Ontology 2021-02-23");
     assertThat(duo.getDescription()).isNotEmpty();
 
     assertThat(duo.getMetadata().getLoader()).isEqualTo("rdf");
