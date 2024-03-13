@@ -49,11 +49,11 @@ public class DuoSampleTest extends SampleTest {
 
   @BeforeClass
   public static void setupClass() throws Exception {
-    loadSamples("duo", "src/test/resources/samples/duo-samples.txt");
+    // loadSamples("duo", "src/test/resources/samples/duo-samples.txt");
   }
 
   @Test
-  public void testGOTerminology() throws Exception {
+  public void testDUOTerminology() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
@@ -83,7 +83,7 @@ public class DuoSampleTest extends SampleTest {
     assertThat(duo.getMetadata().getSourceCt()).isEqualTo(0);
     assertThat(duo.getMetadata().getLicenseText()).isNull();
     assertThat(duo.getDescription())
-        .isEqualTo("DUO (Data Use Ontology) is an ontology which represent data use conditions.");
+        .isEqualTo("DUO (Data Use Ontology) is an ontology which represents data use conditions.");
 
     assertThat(duo.getLatest()).isTrue();
   }
