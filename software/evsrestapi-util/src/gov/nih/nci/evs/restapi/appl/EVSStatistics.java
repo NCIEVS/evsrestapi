@@ -128,6 +128,16 @@ public class EVSStatistics {
 		scanner.get_owl_vec().clear();
 	}
 
+	public String get_ncit_version() {
+		Vector v = owlSPARQLUtils.get_ontology_info(named_graph);
+		Utils.dumpVector("get_ncit_version", v);
+		String line = (String) v.elementAt(0);
+		Vector u = StringUtils.parseData(line, '|');
+		String ncit_version = (String) u.elementAt(0);
+		System.out.println(ncit_version);
+		return ncit_version;
+	}
+
 	public EVSStatistics(String serviceUrl, String named_graph, String username, String password) {
 		this.serviceUrl = serviceUrl;
 		this.named_graph = named_graph;
@@ -139,7 +149,7 @@ public class EVSStatistics {
 
 		this.owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
 		this.owlSPARQLUtils.set_named_graph(named_graph);
-		this.version  = metadataUtils.getVocabularyVersion(named_graph);
+		this.version  = get_ncit_version();//metadataUtils.getVocabularyVersion(named_graph);
         System.out.println("NCI Thesaurus version: " + version);
         try {
 			httpUtils = new HTTPUtils();
@@ -298,7 +308,8 @@ public class EVSStatistics {
 		//boolean parsevalues = true;
 		//Vector w = httpUtils.execute(serviceUrl, username, password, query, parsevalues);
 
-		Vector w = HTTPUtils.runQuery(serviceUrl, username, password, query);
+		//Vector w = HTTPUtils.runQuery(serviceUrl, username, password, query);
+		Vector w = owlSPARQLUtils.executeQuery(query);
 
 		return w;
 	}
