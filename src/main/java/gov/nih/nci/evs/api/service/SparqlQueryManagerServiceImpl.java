@@ -219,7 +219,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return results;
   }
 
-  private String getTerm(String source){
+  private String getTerm(String source) {
     String term = FilenameUtils.getBaseName(source);
     if (term.equals("Thesaurus")) {
       return "ncit";
@@ -2372,12 +2372,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (final Bindings b : bindings) {
 
       // Skip anything without a concept code (it's not a class we care about)
-      if (b.getCode() == null) {
+      if (b.getConceptCode() == null) {
         throw new IOException("This should not happen, it is 'with code' only");
       }
       final Concept c = new Concept();
       // Code is guaranteed to be set here
-      c.setCode(b.getCode().getValue());
+      c.setCode(b.getConceptCode().getValue());
       c.setTerminology(terminology.getTerminology());
       c.setVersion(terminology.getVersion());
       // Use label if found, or compute from rdf:about otherwise

@@ -26,6 +26,9 @@ public class Bindings {
   /** The code. */
   private Property code;
 
+  /** The concept code. */
+  private Property conceptCode;
+
   /** The concept label. */
   private Property conceptLabel;
 
@@ -175,6 +178,20 @@ public class Bindings {
    */
   public void setCode(Property code) {
     this.code = code;
+  }
+
+  /**
+   * @return the conceptCode
+   */
+  public Property getConceptCode() {
+    return conceptCode;
+  }
+
+  /**
+   * @param conceptCode the conceptCode to set
+   */
+  public void setConceptCode(Property conceptCode) {
+    this.conceptCode = conceptCode;
   }
 
   /**
