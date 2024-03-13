@@ -721,7 +721,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
-      final String conceptCode = b.getCode().getValue();
+      final String conceptCode = b.getConceptCode().getValue();
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
       }
@@ -888,7 +888,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
-      final String conceptCode = b.getCode().getValue();
+      final String conceptCode = b.getConceptCode().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -925,7 +925,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (final Bindings b : bindings) {
 
       final String conceptCode =
-          inverse ? EVSUtils.getRelatedConceptCode(b) : b.getCode().getValue();
+          inverse ? EVSUtils.getRelatedConceptCode(b) : b.getConceptCode().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -936,7 +936,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       association.setType(EVSUtils.getRelationshipType(b));
 
       if (inverse) {
-        association.setRelatedCode(b.getCode().getValue());
+        association.setRelatedCode(b.getConceptCode().getValue());
         // assumes the query has ?concept or that label is guaranteed to be set
         association.setRelatedName(EVSUtils.getConceptLabel(b));
       } else {
@@ -1000,7 +1000,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
-      final String conceptCode = b.getCode().getValue();
+      final String conceptCode = b.getConceptCode().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -1076,7 +1076,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
-      final String conceptCode = b.getCode().getValue();
+      final String conceptCode = b.getConceptCode().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -1153,7 +1153,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
-      final String conceptCode = b.getCode().getValue();
+      final String conceptCode = b.getConceptCode().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -1196,7 +1196,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (final Bindings b : bindings) {
 
       final String conceptCode =
-          inverseFlag ? b.getRelatedConceptCode().getValue() : b.getCode().getValue();
+          inverseFlag ? b.getRelatedConceptCode().getValue() : b.getConceptCode().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -1207,7 +1207,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       role.setType(EVSUtils.getRelationshipType(b));
       if (inverseFlag) {
         // reverse code and related code
-        role.setRelatedCode(b.getCode().getValue());
+        role.setRelatedCode(b.getConceptCode().getValue());
         role.setRelatedName(EVSUtils.getConceptLabel(b));
         // distinct roles only
         final String key = conceptCode + role.getCode() + role.getRelatedCode();
@@ -1252,9 +1252,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
+      log.info(b.toString());
 
       final String conceptCode =
-          inverseFlag ? b.getRelatedConceptCode().getValue() : b.getCode().getValue();
+          inverseFlag ? b.getRelatedConceptCode().getValue() : b.getConceptCode().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -1265,7 +1266,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       role.setType(EVSUtils.getRelationshipType(b));
       if (inverseFlag) {
         // reverse code and related code
-        role.setRelatedCode(b.getCode().getValue());
+        role.setRelatedCode(b.getConceptCode().getValue());
         role.setRelatedName(EVSUtils.getConceptLabel(b));
         // distinct roles only
         final String key = conceptCode + role.getCode() + role.getRelatedCode();
@@ -1336,7 +1337,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
-      final String conceptCode = b.getCode().getValue();
+      final String conceptCode = b.getConceptCode().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -1421,7 +1422,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final Map<String, List<Bindings>> bindingsMap = new HashMap<>();
     for (final Bindings b : bindings) {
-      conceptCode = b.getCode().getValue();
+      conceptCode = b.getConceptCode().getValue();
       if (bindingsMap.get(conceptCode) == null) {
         bindingsMap.put(conceptCode, new ArrayList<>());
       }
@@ -2016,7 +2017,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
-      final String code = b.getCode().getValue();
+      final String code = b.getConceptCode().getValue();
       final String name = b.getConceptLabel().getValue();
       subsetMembers.add(new Concept(terminology.getTerminology(), code, name));
     }
@@ -2511,7 +2512,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         entry.setTerminology(terminology.getTerminology());
         entry.setVersion(terminology.getVersion());
         entry.setAssociation(association.getName());
-        entry.setCode(b.getCode().getValue());
+        entry.setCode(b.getConceptCode().getValue());
         entry.setName(b.getConceptLabel().getValue());
         entry.setRelatedCode(b.getRelatedConceptCode().getValue());
         entry.setRelatedName(b.getRelatedConceptLabel().getValue());
