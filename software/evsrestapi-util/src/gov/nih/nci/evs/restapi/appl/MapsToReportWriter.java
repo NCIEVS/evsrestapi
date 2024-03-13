@@ -61,9 +61,10 @@ public class MapsToReportWriter {
         owlSPARQLUtils.set_named_graph(namedGraph);
         Vector concept_status_vec = owlSPARQLUtils.getPropertyValues(namedGraph, "Concept_Status");
         if (concept_status_vec == null) {
+			System.out.println("namedGraph: " + namedGraph);
 			System.out.println("WARNING: concept_status_vec == null???");
 		} else {
-			concept_status_vec = new ParserUtils().getResponseValues(concept_status_vec);
+			//concept_status_vec = new ParserUtils().getResponseValues(concept_status_vec);
 			retired = new HashSet();
 			for (int i=0; i<concept_status_vec.size(); i++) {
 				String line = (String) concept_status_vec.elementAt(i);
@@ -78,6 +79,7 @@ public class MapsToReportWriter {
         metadataUtils = new MetadataUtils(serviceUrl, username, password);
         ncit_version = get_ncit_version();
         System.out.println("NCI Thesaurus version: " + ncit_version);
+
         String propertyName = MAPS_TO;
         System.out.println("Initialization in progress. Please wait...");
 		raw_maps_to_data = retrievePropertyQualifierData(propertyName);
@@ -103,7 +105,7 @@ public class MapsToReportWriter {
 	public Vector retrievePropertyQualifierData(String property_name) {
         long ms = System.currentTimeMillis();
         Vector v = owlSPARQLUtils.getPropertyQualifiersByCode(this.namedGraph, null, property_name);
-        v = new ParserUtils().getResponseValues(v);
+        //v = new ParserUtils().getResponseValues(v);
         v = removeRetired(v);
         return v;
 	}
@@ -111,7 +113,7 @@ public class MapsToReportWriter {
 	public Vector retrievePropertyQualifierData(String property_name, String property_value) {
         long ms = System.currentTimeMillis();
         Vector v = owlSPARQLUtils.getPropertyQualifiersByCode(this.namedGraph, null, property_name, property_value);
-        v = new ParserUtils().getResponseValues(v);
+        //v = new ParserUtils().getResponseValues(v);
         return v;
 	}
 
@@ -154,7 +156,7 @@ public class MapsToReportWriter {
 
 	public String getLabelByCode(String code) {
 		Vector v = owlSPARQLUtils.getLabelByCode(this.namedGraph, code);
-		v = new ParserUtils().getResponseValues(v);
+		//v = new ParserUtils().getResponseValues(v);
 		if (v == null || v.size() == 0) return null;
 		return (String) v.elementAt(0);
 	}
@@ -234,6 +236,7 @@ public class MapsToReportWriter {
 				}
 			}
 		}
+
 		return v;
 	}
 
@@ -269,6 +272,8 @@ public class MapsToReportWriter {
 
     public Vector generateMapsToReport(String code, String terminology_name, String terminology_version) {
 		Vector v = getMapsToData(terminology_name, terminology_version);
+		//Utils.dumpVector(terminology_name + " (" + terminology_version + ")", v);
+		Utils.saveToFile(terminology_name + "_" + terminology_version + ".txt", v);
 		//Utils.saveToFile("MapsTo_" + terminology_name + "_" + terminology_version + ".txt", v);
 		boolean codeOnly = true;
 		Vector members = owlSPARQLUtils.getSubsetMembership(namedGraph, code, codeOnly);
@@ -292,6 +297,13 @@ public class MapsToReportWriter {
 	}
 
 	public String get_ncit_version() {
+		Vector v = owlSPARQLUtils.get_ontology_info(namedGraph);
+		Utils.dumpVector("get_ncit_version", v);
+		String line = (String) v.elementAt(0);
+		Vector u = StringUtils.parseData(line, '|');
+		ncit_version = (String) u.elementAt(0);
+		System.out.println(ncit_version);
+		/*
 		if(ncit_version == null) {
 			HashMap hmap = metadataUtils.getNameVersion2NamedGraphMap();
 			String version = null;
@@ -307,6 +319,8 @@ public class MapsToReportWriter {
 				}
 			}
 		}
+		*/
+
 		return ncit_version;
 	}
 
@@ -318,17 +332,17 @@ public class MapsToReportWriter {
         if (v == null) {
 			System.out.println("ERROR: getCodeByLabel return null???");
 		} else {
-             v = new ParserUtils().getResponseValues(v);
+             //v = new ParserUtils().getResponseValues(v);
              w.add((String) v.elementAt(0));
 		}
         label = "Mapped ICDO" + version + " Morphology Terminology";
         v = owlSPARQLUtils.getCodeByLabel(this.namedGraph, label);
-        v = new ParserUtils().getResponseValues(v);
+        //v = new ParserUtils().getResponseValues(v);
         w.add((String) v.elementAt(0));
 
         label = "Mapped ICDO" + version + " Morphology PT Terminology";
         v = owlSPARQLUtils.getCodeByLabel(this.namedGraph, label);
-        v = new ParserUtils().getResponseValues(v);
+        //v = new ParserUtils().getResponseValues(v);
         w.add((String) v.elementAt(0));
 
 /*
@@ -347,12 +361,12 @@ Mapped ICDO3.1 Morphology PT Terminology (C168658)
         //To be modified:
         label = "Mapped ICDO" + version + " Topography Terminology";
         v = owlSPARQLUtils.getCodeByLabel(this.namedGraph, label);
-        v = new ParserUtils().getResponseValues(v);
+        //v = new ParserUtils().getResponseValues(v);
         w.add((String) v.elementAt(0));
 
         label = "Mapped ICDO" + version + " Topography PT Terminology";
         v = owlSPARQLUtils.getCodeByLabel(this.namedGraph, label);
-        v = new ParserUtils().getResponseValues(v);
+        //v = new ParserUtils().getResponseValues(v);
         w.add((String) v.elementAt(0));
 
         StringUtils.dumpVector("codes", w);

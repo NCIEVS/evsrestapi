@@ -125,9 +125,9 @@ public class MetadataUtils {
 	    } else {
 			this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint, username, password);
 		}
-		this.nameVersion2NamedGraphMap = owlSPARQLUtils.getNameVersion2NamedGraphMap();
-		this.nameGraph2PredicateHashMap = createNameGraph2PredicateHashMap();
-		this.basePrefixUIDHashMap = createBasePrefixUIDHashMap();
+		//this.nameVersion2NamedGraphMap = owlSPARQLUtils.getNameVersion2NamedGraphMap();
+		//this.nameGraph2PredicateHashMap = createNameGraph2PredicateHashMap();
+		//this.basePrefixUIDHashMap = createBasePrefixUIDHashMap();
     }
 
 
@@ -614,7 +614,9 @@ public class MetadataUtils {
 			return "<http://cbiit.nci.nih.gov/caDSR#>|publicId";
 		}
 		String basePrefix = getNamedGraphBasePrefix(line);
+		System.out.println("basePrefix: " + basePrefix);
 		String uid = getNamedGraphUniqueIdentifier(line);
+		System.out.println("uid: " + uid);
 		return basePrefix + "|" + uid;
 	}
 

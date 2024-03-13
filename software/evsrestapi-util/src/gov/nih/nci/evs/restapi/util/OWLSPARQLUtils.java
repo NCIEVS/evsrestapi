@@ -351,6 +351,10 @@ public class OWLSPARQLUtils {
 		return v;
 	}
 
+	public Vector get_ontology_info(String named_graph) {
+		Vector v = executeQuery(construct_get_ontology_info(named_graph));
+		return v;
+	}
 
 	public String construct_get_ontology_info(String named_graph) {
 		StringBuffer buf = new StringBuffer();
@@ -392,12 +396,13 @@ public class OWLSPARQLUtils {
 		return buf.toString();
 	}
 
+/*
 	public Vector get_ontology_info(String named_graph) {
 		Vector v = executeQuery(construct_get_ontology_info(named_graph));
 		// v = new ParserUtils().getResponseValues(v);
 		return v;
 	}
-
+*/
 
 
 	public HashMap getGraphName2VersionHashMap() {
@@ -1530,7 +1535,8 @@ public class OWLSPARQLUtils {
 
 	public Vector getSubsetMembership(String named_graph, String code, boolean codeOnly) {
 		Vector w = executeQuery(construct_get_subset_membership(named_graph, code, codeOnly));
-		return new ParserUtils().getResponseValues(w);
+		//return new ParserUtils().getResponseValues(w);
+		return w;
 	}
 
 	public String construct_get_associated_concepts(String named_graph, String association) {
@@ -2526,6 +2532,7 @@ public class OWLSPARQLUtils {
 	public Vector getPropertyValues(String named_graph, String property_name) {
 	    String query = generate_get_property_values(named_graph, property_name);
         Vector v = executeQuery(query);
+        //Utils.dumpVector(property_name, v);
         if (v == null) return null;
         if (v.size() == 0) return v;
         // v = new ParserUtils().getResponseValues(v);
@@ -5872,6 +5879,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 	}
 
     public String getLatestVersionOfCodingScheme(String codingScheme) {
+		/*
 		HashMap nameVersion2NamedGraphMap = getNameVersion2NamedGraphMap();
 		if (nameVersion2NamedGraphMap == null) return null;
 		Iterator it = nameVersion2NamedGraphMap.keySet().iterator();
@@ -5888,6 +5896,8 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		}
 		versions = new SortUtils().quickSort(versions);
         return (String) versions.elementAt(versions.size()-1);
+        */
+        return null;
 	}
 
 	public Vector getRestrictions(String named_graph) {
