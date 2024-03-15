@@ -185,8 +185,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // String version = b.getVersion().getValue();
       term.setDescription(comment);
       // Extract a version if a owl:versionIRI was used
-      term.setVersion(
-          b.getVersion().getValue().replaceFirst(".*/([\\d\\D]*\\d[\\d\\D]*)/[a-zA-Z]+.owl", "$1"));
+      term.setVersion(b.getVersion().getValue().replaceFirst(".*/([\\d\\-]+)/[a-zA-Z]+.owl", "$1"));
       // term.setName(TerminologyUtils.constructName(comment, version));
       term.setDate((b.getDate() == null) ? term.getVersion() : b.getDate().getValue());
       term.setGraph(graphName);
@@ -624,7 +623,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           concept.getProperties().add(property);
         }
       }
-
+      
       concept.setDefinitions(EVSUtils.getDefinitions(terminology, properties, axioms));
       concept.setChildren(childMap.get(conceptCode));
       for (final Concept child : concept.getChildren()) {
