@@ -191,7 +191,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       term.setGraph(graphName);
       term.setSource(b.getSource().getValue());
       term.setTerminology(getTerm(term.getSource()));
-      log.info("XXX");
       termList.add(term);
     }
 
