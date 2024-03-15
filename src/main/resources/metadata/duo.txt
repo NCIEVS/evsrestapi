@@ -1,0 +1,8 @@
+# Sample concepts to include in report
+DUO:0000001
+MONDO:0000001
+topic:0003
+IAO_0000024
+OBI_0000011
+PATO_0001241
+BFO_0000019

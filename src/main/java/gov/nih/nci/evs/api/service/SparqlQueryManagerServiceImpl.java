@@ -185,12 +185,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // String version = b.getVersion().getValue();
       term.setDescription(comment);
       // Extract a version if a owl:versionIRI was used
-      term.setVersion(b.getVersion().getValue().replaceFirst(".*/([\\d\\-]+)/[a-zA-Z]+.owl", "$1"));
+      term.setVersion(b.getVersion().getValue().replaceFirst(".*/([\\d-]+)/[a-zA-Z]+.owl", "$1"));
       // term.setName(TerminologyUtils.constructName(comment, version));
       term.setDate((b.getDate() == null) ? term.getVersion() : b.getDate().getValue());
       term.setGraph(graphName);
       term.setSource(b.getSource().getValue());
       term.setTerminology(getTerm(term.getSource()));
+      log.info("XXX");
       termList.add(term);
     }
 

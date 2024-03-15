@@ -180,10 +180,10 @@ else
     # Verify db/termionlogy/version is valid
     passed=0
     for x in `cat /tmp/y.$$.txt`; do
-        v=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/(\d+)/[a-zA-Z]+.owl#$1#;'`
+        v=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
         d=`echo $x | cut -d\| -f 2`
         uri=`echo $x | cut -d\| -f 3`
-        t=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/; s/.*\/chebi.owl/chebi/'`
+        t=$(get_terminology "$uri")
         if [ $v == $version ] && [ $t == $terminology ] && [ $d == $db ]; then
             passed=1
         fi	
