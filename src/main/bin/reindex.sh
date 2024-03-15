@@ -205,7 +205,7 @@ get_terminology(){
 
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
-    version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/(\d+)/[a-zA-Z]+.owl#$1#;'`
+    version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
     cv=`echo $version | tr '[:upper:]' '[:lower:]' | perl -pe 's/[\.\-]//g;'`
     db=`echo $x | cut -d\| -f 2`
     uri=`echo $x | cut -d\| -f 3`

@@ -151,16 +151,27 @@ done
 # defined in ncit.json
 sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
 
+# Here determine the parts for each case
+get_terminology(){
+  lower_terminology=$(basename "$1" | sed 's/.owl//g' | tr '[:upper:]' '[:lower:]')
+  if [[ $lower_terminology =~ "thesaurus" ]]; then
+    echo "ncit"
+  else
+    lower_terminology=$(basename "$1" | sed 's/.owl//g' | tr '[:upper:]' '[:lower:]')
+    IFS='_' read -r -a array <<<"$lower_terminology"
+    echo $array
+  fi
+}
 
 if [ $list -eq 1 ]; then
 
     echo "  List stardog graphs"
     for x in `cat /tmp/y.$$.txt`; do
-        version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/(\d+)/[a-zA-Z]+.owl#$1#;'`
+        version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
         cv=`echo $version | perl -pe 's/\.//;'`
         db=`echo $x | cut -d\| -f 2`
         uri=`echo $x | cut -d\| -f 3`
-        term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/; s/.*\/chebi.owl/chebi/'`
+        term=$(get_terminology "$uri")
         echo "    $db $term $version"
     done
     exit 0
