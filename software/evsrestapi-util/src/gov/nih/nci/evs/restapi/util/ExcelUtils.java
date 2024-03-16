@@ -46,7 +46,7 @@ public class ExcelUtils {
 		if (cell == null) {
 			return "";
 		}
-        switch (cell.getCellTypeEnum()) {
+        switch (cell.getCellType()) {
             case BOOLEAN:
                 System.out.print(cell.getBooleanCellValue());
                 Boolean bool_obj = cell.getBooleanCellValue();
@@ -221,9 +221,14 @@ public class ExcelUtils {
 		int sheetNumber = 0;
 		int rowNumber = 0;
 	    CellStyle style = getCellStype(excelfile, 0, 0);
+	    /*
 	    short al = style.getAlignment();
 	    short bb = style.getBorderBottom();
 	    short bl = style.getBorderLeft();
+	    */
+	    short al = style.getAlignment().getCode();
+	    short bb = style.getBorderBottom().getCode();
+  	    short bl = style.getBorderLeft().getCode();
 
 	    System.out.println("getAlignment: " + al);
 	    System.out.println("getBorderBottom: " + bb);
@@ -235,8 +240,10 @@ public class ExcelUtils {
         short fillBackgroundColor = style.getFillBackgroundColor();
         System.out.println("fillBackgroundColor: " + fillBackgroundColor);
 
-        int fps = style.getFillPattern();
-        System.out.println("getFillPattern: " + fps);
+        //int fps = style.getFillPattern();
+
+        //int fps = style.getFillPattern().getCode();
+        //System.out.println("getFillPattern: " + fps);
     }
 
     public static CellStyle createWrappedCellStyle(Sheet sheet, boolean wrapped) {
@@ -394,6 +401,7 @@ public class ExcelUtils {
         return workbook;
     }
 
+/*
 	private static void cloneCell( Cell cNew, Cell cOld ){
 		cNew.setCellComment( cOld.getCellComment() );
 		cNew.setCellStyle( cOld.getCellStyle() );
@@ -415,6 +423,35 @@ public class ExcelUtils {
 				break;
 			}
 			case Cell.CELL_TYPE_FORMULA:{
+				cNew.setCellFormula( cOld.getCellFormula() );
+			   break;
+			}
+		}
+
+	}
+*/
+
+	private static void cloneCell( Cell cNew, Cell cOld ){
+		cNew.setCellComment( cOld.getCellComment() );
+		cNew.setCellStyle( cOld.getCellStyle() );
+		switch ( cNew.getCellType() ){
+			case BOOLEAN:{
+				cNew.setCellValue( cOld.getBooleanCellValue() );
+				break;
+			}
+			case NUMERIC:{
+				cNew.setCellValue( cOld.getNumericCellValue() );
+				break;
+			}
+			case STRING:{
+				cNew.setCellValue( cOld.getStringCellValue() );
+				break;
+			}
+			case ERROR:{
+				cNew.setCellValue( cOld.getErrorCellValue() );
+				break;
+			}
+			case FORMULA:{
 				cNew.setCellFormula( cOld.getCellFormula() );
 			   break;
 			}

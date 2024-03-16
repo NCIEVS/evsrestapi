@@ -27,7 +27,7 @@ import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
-import org.apache.poi.POIXMLDocument;
+//import org.apache.poi.POIXMLDocument;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -49,6 +49,8 @@ import org.apache.poi.xssf.usermodel.XSSFSheet;
 import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 import org.apache.poi.ss.usermodel.FillPatternType;
+import org.apache.poi.hssf.util.HSSFColor.HSSFColorPredefined;
+
 
 
 public class ExcelWriter {
@@ -109,6 +111,8 @@ public class ExcelWriter {
 	public static final String WHITE1 = "WHITE1";
 	public static final String YELLOW = "YELLOW";
 	public static final String YELLOW1 = "YELLOW1";
+
+
 
 	static int XLSX = 1;
 	static int XLS = 2;
@@ -390,8 +394,19 @@ public class ExcelWriter {
 
 
     public static void writeHeading(XSSFWorkbook workbook, XSSFSheet spreadsheet, String line, char delim){
+
+HSSFColorPredefined ref = HSSFColorPredefined.WHITE;
+short white_index = ref.getIndex();
+
+
+		//new HSSFColor.BLACK()).getIndex();
+		//short white_index = (new HSSFColor.WHITE()).getIndex();
+//		short white_index = (new WHITE()).getIndex();
+
         CellStyle cellStyle = createCellStyle(workbook, spreadsheet, IndexedColors.GREEN.getIndex(),
-                                              HSSFColor.WHITE.index, HorizontalAlignment.LEFT, (short)14, true);
+        //                                      HSSFColor.WHITE.index, HorizontalAlignment.LEFT, (short)14, true);
+                                              white_index, HorizontalAlignment.LEFT, (short)14, true);
+
         Vector u = StringUtils.parseData(line, delim);
 		XSSFRow row = spreadsheet.createRow(0);
 		for (int i=0; i<u.size(); i++) {
@@ -419,6 +434,9 @@ public class ExcelWriter {
 		CellStyle dateCellStyle = workbook.createCellStyle();
 		dateCellStyle.setDataFormat(createHelper.createDataFormat().getFormat("dd-MM-yyyy"));
 
+HSSFColorPredefined ref = HSSFColorPredefined.BLACK;
+short black_index = ref.getIndex();
+
 		for (int lcv=0; lcv<datafile_vec.size(); lcv++) {
 			String datafile = (String) datafile_vec.elementAt(lcv);
 			System.out.println(datafile);
@@ -426,10 +444,12 @@ public class ExcelWriter {
 				XSSFSheet sheet = workbook.createSheet((String) sheetLabel_vec.elementAt(lcv));
 
 				CellStyle cellStyle_odd = createCellStyle(workbook, sheet, oddRowForegroundColor,
-													  HSSFColor.BLACK.index, HorizontalAlignment.LEFT, 12, false);
+//													  HSSFColor.BLACK.getIndex(), HorizontalAlignment.LEFT, 12, false);
+                                                      black_index, HorizontalAlignment.LEFT, 12, false);
 
 				CellStyle cellStyle_even = createCellStyle(workbook, sheet, evenRowForegroundColor,
-													  HSSFColor.BLACK.index, HorizontalAlignment.LEFT, 12, false);
+//													  HSSFColor.BLACK.index, HorizontalAlignment.LEFT, 12, false);
+													  black_index, HorizontalAlignment.LEFT, 12, false);
 
 
 				Vector lines = Utils.readFile(datafile);

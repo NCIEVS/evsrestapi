@@ -116,7 +116,7 @@ public class ExcelEditor {
             outputStream.close();
 
         } catch (IOException | EncryptedDocumentException
-                | InvalidFormatException ex) {
+                 ex) {
             ex.printStackTrace();
         }
     }
