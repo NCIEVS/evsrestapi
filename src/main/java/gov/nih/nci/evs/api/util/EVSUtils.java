@@ -13,8 +13,8 @@ import org.slf4j.LoggerFactory;
 
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;
