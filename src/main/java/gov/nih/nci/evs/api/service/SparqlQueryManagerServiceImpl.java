@@ -286,7 +286,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     concept.setTerminology(terminology.getTerminology());
     concept.setVersion(terminology.getVersion());
     concept.setActive(true);
-
     final List<Property> properties = getProperties(conceptCode, terminology);
 
     // always set code (if it's an rdf:about, strip after the #)
@@ -487,6 +486,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     executor.submit(() -> {
       try {
         log.info("      start main");
+        // send in URIs for about clause if available
         propertyMap
             .putAll(getProperties(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
         disjointWithMap.putAll(getDisjointWith(conceptCodes, terminology));
@@ -553,7 +553,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final String conceptCode = concept.getCode();
       List<Property> properties =
           propertyMap.containsKey(conceptCode) ? propertyMap.get(conceptCode) : new ArrayList<>(0);
-      if (properties.size() == 0) {
+      if (properties.size() == 0 && concept.getUri() != null) {
         final String conceptUri = concept.getUri();
         properties =
             propertyMap.containsKey(conceptUri) ? propertyMap.get(conceptUri) : new ArrayList<>(0);
