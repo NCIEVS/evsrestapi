@@ -467,6 +467,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final ExecutorService executor = Executors.newFixedThreadPool(4);
     final List<Exception> exceptions = new ArrayList<>();
 
+    final List<String> conceptUris = concepts.stream().filter(c -> c.getUri() != null)
+        .map(c -> c.getUri()).collect(Collectors.toList());
     final List<String> conceptCodes =
         concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
     final Map<String, List<Property>> propertyMap = new HashMap<>();
@@ -485,7 +487,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     executor.submit(() -> {
       try {
         log.info("      start main");
-        propertyMap.putAll(getProperties(conceptCodes, terminology));
+        propertyMap
+            .putAll(getProperties(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
         disjointWithMap.putAll(getDisjointWith(conceptCodes, terminology));
         log.info("      finish main");
       } catch (final Exception e) {
@@ -548,8 +551,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
     for (final Concept concept : concepts) {
       final String conceptCode = concept.getCode();
-      final List<Property> properties =
+      List<Property> properties =
           propertyMap.containsKey(conceptCode) ? propertyMap.get(conceptCode) : new ArrayList<>(0);
+      if (properties.size() == 0) {
+        final String conceptUri = concept.getUri();
+        properties =
+            propertyMap.containsKey(conceptUri) ? propertyMap.get(conceptUri) : new ArrayList<>(0);
+      }
 
       // minimal, always do these
       final String pn =
@@ -623,7 +631,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           concept.getProperties().add(property);
         }
       }
-      
+
       concept.setDefinitions(EVSUtils.getDefinitions(terminology, properties, axioms));
       concept.setChildren(childMap.get(conceptCode));
       for (final Concept child : concept.getChildren()) {
