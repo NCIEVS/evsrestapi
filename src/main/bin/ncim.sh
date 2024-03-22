@@ -29,7 +29,7 @@ if [[ $? -ne 0 ]]; then
 fi
 
 # Keep LNC out of this for now.
-for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX; do
+for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10; do
     # show memory usage
     free
     # Keep the NCIM folder around while we run
