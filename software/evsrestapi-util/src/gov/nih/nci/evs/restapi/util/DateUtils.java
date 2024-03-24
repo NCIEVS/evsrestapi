@@ -70,17 +70,6 @@ public class DateUtils {
 	static String ALPHABETICS = "abcdefg";
 	static String NCI_THESAURUS_URI = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus";
 
-/*
-	public static String getNCItMonthlyVersion() {
-		String t = getToday(); //2011-11
-		t = t.substring(2, t.length());
-		t = t.replace("-", ".");
-		int n = getNumberOfWeeks();
-		char c = ALPHABETICS.charAt(n-1);
-		return t + c;
-	}
-*/
-
 	public static String getToday() {
 		return getToday("yyyy-MM");
 	}
@@ -270,12 +259,102 @@ public class DateUtils {
 		return hmap;
 	}
 
+////////////////////////////////////////////////////////////////////////////////////////////
+	public static Vector getWeekdayOfAMonth(int year, int month, String weekDay) {
+		int m = 0;
+		Locale locale = Locale.getDefault();
+		int num_days = getDaysInMonth(year, month);
+		Vector weekday_vec = new Vector();
+		for (int day=1; day<=num_days; day++) {
+			LocalDate date = getLocalDate(year, month, day);
+			DayOfWeek dow = date.getDayOfWeek();
+			String fullName = dow.getDisplayName(TextStyle.FULL, locale);
+			if (fullName.compareTo(weekDay) == 0) {
+				weekday_vec.add(Integer.valueOf(day));
+			}
+		}
+		return weekday_vec;
+	}
+
+
+	public static String getNCItVersion(int year, int month, int week) {
+		char c = ALPHABETICS.charAt(week);
+		StringBuffer buf = new StringBuffer();
+		String year_str = "" + year;
+		String t = year_str.substring(2, 4);
+		buf.append(t).append(".");
+		if (month < 10) {
+			buf.append("0").append("" + month);
+			buf.append(c);
+		} else {
+			buf.append("" + month);
+			buf.append(c);
+		}
+		return buf.toString();
+	}
+
+    public static String getNCIThesaurusGraphName(int year, int month, int week) {
+		 String version = getNCItVersion(year, month, week);
+		 return NCI_THESAURUS_URI + version + ".owl";
+	}
+
+
+	public int getWeekdayOfAMonth(int year, int month, int n) {
+		Vector weekday_vec = getWeekdayOfAMonth(year, month, "Monday");
+		Integer int_obj = (Integer) weekday_vec.elementAt(n);
+		return int_obj.intValue();
+	}
+
+
+	public static String getNCItReleaseDate(int year, int month, int n) {
+		String weekDay = "Monday";
+		Vector weekday_vec = getWeekdayOfAMonth(year, month, weekDay);
+		Integer int_obj = (Integer) weekday_vec.elementAt(n);
+		n = int_obj.intValue();
+
+		StringBuffer buf = new StringBuffer();
+		if (month < 10) {
+			buf.append("0");
+		}
+        buf.append(month).append("/");
+		if (n < 10) {
+			buf.append("0");
+		}
+        buf.append(n).append("/");
+        buf.append(year);
+        return buf.toString();
+	}
+
+	public static Vector getNCItReleaseSchedule(int year, boolean monthlyOnly) {
+		Vector w = new Vector();
+		w.add("Year|Month|Version|Graph Name|Release Data");
+		if (monthlyOnly) {
+			for (int i=1; i<=12; i++) {
+				String version = getNCItMonthlyVersion(year, i);
+				String graphName = getNCIThesaurusGraphName(year, i);
+				w.add("" + year + "|" + getMonthString(i) + "|" + version + "|" + graphName + "|" + getMonthlyNCItReleaseDate(year, i));
+			}
+		} else {
+			String weekDay = "Monday";
+			for (int i=1; i<=12; i++) {
+				Vector weekday_vec = getWeekdayOfAMonth(year, i, weekDay);
+				for (int j=0; j<weekday_vec.size(); j++) {
+					Integer int_obj = (Integer) weekday_vec.elementAt(j);
+					String version = getNCItVersion(year, i, j);
+					String graphName = getNCIThesaurusGraphName(year, i, j);
+					w.add("" + year + "|" + getMonthString(i) + "|" + version + "|" + graphName + "|" + getNCItReleaseDate(year, i, j));
+				}
+
+			}
+		}
+		return w;
+	}
+
 	public static void main(String[] args) throws Exception {
 		int currentYear = getCurrentYear();
 		int currentMonth = getCurrentMonth();
-        Vector w = getNCItReleaseSchedule(currentYear);
+        Vector w = getNCItReleaseSchedule(currentYear, false);
         Utils.dumpVector("NCIt Release Schedule (Year " + currentYear + ")", w);
-
 	}
 
 }
