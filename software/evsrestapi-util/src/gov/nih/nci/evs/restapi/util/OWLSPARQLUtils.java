@@ -5490,7 +5490,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 
 	public Vector getValueSetData(String named_graph) {
 		Vector v = executeQuery(construct_get_value_set_data(named_graph));
-		// v = new ParserUtils().getResponseValues(v);
+		// v = new ParserUtils().getResponseValues(v);
 		Vector w = new Vector();
 		for (int i=0; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
