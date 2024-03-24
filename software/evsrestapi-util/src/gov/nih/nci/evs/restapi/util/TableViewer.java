@@ -12,13 +12,17 @@ public class TableViewer extends JFrame
 	public String datafile = null;
 	public String[] columns = null;
 	public String title = null;
+	public char delim = '\t';
 
 	public String[] getTableHeadings() {
 	    Vector v = Utils.readFile(datafile);
 	    int m = datafile.lastIndexOf(".");
 	    title = datafile.substring(0, m);
 	    String firstLine = (String) v.elementAt(0);
-	    Vector u = StringUtils.parseData(firstLine, '\t');
+	    if (firstLine.indexOf("\t") == -1) {
+			delim = '|';
+		}
+	    Vector u = StringUtils.parseData(firstLine, delim);
 	    String[] headings = new String[u.size()];
 	    for (int i=0; i<u.size(); i++) {
 			String heading = (String) u.elementAt(i);
@@ -34,7 +38,7 @@ public class TableViewer extends JFrame
 		Object[][] data = new Object[num_rows][num_cols];
 		for (int i=1; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
-			Vector u = StringUtils.parseData(line, '\t');
+			Vector u = StringUtils.parseData(line, delim);
 			for (int j=0; j<u.size(); j++) {
 				data[i-1][j] = u.elementAt(j);
 			}
