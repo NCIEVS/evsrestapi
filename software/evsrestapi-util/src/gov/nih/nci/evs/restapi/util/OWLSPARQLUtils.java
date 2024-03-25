@@ -1346,8 +1346,8 @@ public class OWLSPARQLUtils {
 	public Vector getObjectValuedAnnotationProperties(String named_graph) {
 		String query = construct_get_object_valued_annotation_properties(named_graph);
 		Vector v = executeQuery(query);
-		Vector w = new ParserUtils().getResponseValues(v);
-		w = new SortUtils().quickSort(w);
+		//Vector w = new ParserUtils().getResponseValues(v);
+		Vector w = new SortUtils().quickSort(v);
 		return w;
 	}
 
@@ -1400,8 +1400,8 @@ public class OWLSPARQLUtils {
 
 	public Vector getSupportedRoles(String named_graph) {
 		Vector v = getObjectProperties(named_graph);
-		Vector w = new ParserUtils().getResponseValues(v);
-		w = new SortUtils().quickSort(w);
+		//Vector w = new ParserUtils().getResponseValues(v);
+		Vector w = new SortUtils().quickSort(v);
 		return w;
 	}
 
