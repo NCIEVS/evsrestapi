@@ -778,6 +778,34 @@ public class HierarchyHelper implements Serializable {
 		return w;
 	}
 
+    public Vector get_transitive_closure_v4(String code) {
+		Vector w = new Vector();
+		Vector v = null;
+		Stack stack = new Stack();
+		stack.push(code);
+		//w.add(code);
+		HashSet hset = new HashSet();
+		while (!stack.isEmpty()) {
+			String next_code = (String) stack.pop();
+			String parentLabel = getLabel(next_code);
+			if (!hset.contains(next_code)) {
+				hset.add(next_code);
+				//w.add(next_code);
+			}
+			v = getSubclassCodes(next_code);
+			if (v != null) {
+				for (int i=0; i<v.size(); i++) {
+					String child_code = (String) v.elementAt(i);
+					stack.push(child_code);
+					String childLabel = getLabel(child_code);
+					w.add(parentLabel + "|" + next_code + "|" + childLabel + "|" + child_code);
+				}
+			}
+		}
+		hset.clear();
+		return w;
+	}
+
     public void printPath2Roots(PrintWriter pw, String line) {
         Vector v = StringUtils.parseData(line, '|');
         String indent = "";

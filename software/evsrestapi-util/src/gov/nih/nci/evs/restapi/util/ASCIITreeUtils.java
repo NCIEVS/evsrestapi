@@ -366,7 +366,7 @@ public class ASCIITreeUtils {
 	public Vector getLeafNodes(String asciifile) {
 		gov.nih.nci.evs.restapi.bean.TreeItem root = createTreeItem(asciifile);
 		Vector parent_child_vec = exportTree(root);
-		gov.nih.nci.evs.restapi.util.HierarchyHelper hh = new HierarchyHelper(parent_child_vec);
+		gov.nih.nci.evs.restapi.util.HierarchyHelper hh = new gov.nih.nci.evs.restapi.util.HierarchyHelper(parent_child_vec);
 		hh.findRootAndLeafNodes();
 		Vector leaves = hh.getLeaves();
 		return leaves;
