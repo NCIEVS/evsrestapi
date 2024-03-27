@@ -500,7 +500,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     executor.submit(() -> {
       try {
         log.info("      start roles");
-        roleMap.putAll(getRoles(conceptCodes, terminology));
+        roleMap.putAll(getRoles(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
         log.info("      finish roles");
       } catch (final Exception e) {
         log.error("Unexpected error on roles", e);
@@ -511,7 +511,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     executor.submit(() -> {
       try {
         log.info("      start inverse roles");
-        inverseRoleMap.putAll(getInverseRoles(conceptCodes, terminology));
+        inverseRoleMap.putAll(
+            getInverseRoles(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
         log.info("      finish inverse roles");
       } catch (final Exception e) {
         log.error("Unexpected error on inverse roles", e);
@@ -896,7 +897,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
-      final String conceptCode = b.getConceptCode().getValue();
+      final String conceptCode = b.getConceptCode() != null ? b.getConceptCode().getValue()
+          : b.getRelatedConcept().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -1008,7 +1010,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
-      final String conceptCode = b.getConceptCode().getValue();
+      final String conceptCode = b.getConceptCode() != null ? b.getConceptCode().getValue()
+          : b.getRelatedConcept().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -1084,7 +1087,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
-      final String conceptCode = b.getConceptCode().getValue();
+      final String conceptCode = b.getConceptCode() != null ? b.getConceptCode().getValue()
+          : b.getRelatedConcept().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -1161,7 +1165,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
-      final String conceptCode = b.getConceptCode().getValue();
+      final String conceptCode = b.getConceptCode() != null ? b.getConceptCode().getValue()
+          : b.getRelatedConcept().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
