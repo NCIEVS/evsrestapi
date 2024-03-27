@@ -523,7 +523,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     executor.submit(() -> {
       try {
         log.info("      start axioms");
-        axiomMap.putAll(getAxioms(conceptCodes, terminology, true));
+        axiomMap.putAll(
+            getAxioms(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology, true));
         log.info("      finish axioms");
       } catch (final Exception e) {
         log.error("Unexpected error on axioms", e);
@@ -1434,7 +1435,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final Map<String, List<Bindings>> bindingsMap = new HashMap<>();
     for (final Bindings b : bindings) {
-      conceptCode = b.getConceptCode().getValue();
+      conceptCode =
+          b.getConceptCode() != null ? b.getConceptCode().getValue() : b.getAxiomValue().getValue();
       if (bindingsMap.get(conceptCode) == null) {
         bindingsMap.put(conceptCode, new ArrayList<>());
       }
