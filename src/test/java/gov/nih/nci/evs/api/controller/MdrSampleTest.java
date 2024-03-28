@@ -156,7 +156,6 @@ public class MdrSampleTest extends SampleTest {
             + "[electronic resource] : Medical Dictionary for Regulatory Activities Terminology");
 
     assertThat(mdr.getLatest()).isTrue();
-    log.info("XXX = " + mdr.getMetadata().getLicenseCheck());
 
     // Load from config
     final JsonNode node = getMetadataAsNode("mdr");
