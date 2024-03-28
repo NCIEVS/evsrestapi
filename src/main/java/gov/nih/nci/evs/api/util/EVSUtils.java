@@ -87,6 +87,7 @@ public class EVSUtils {
     // If 'axioms' is null here, it's likely because the "main" query didn't
     // finish
     for (Axiom axiom : axioms) {
+      // log.info("AXIOM: {}", axiom);
       final String axiomCode = EVSUtils.getQualifiedCodeFromUri(axiom.getAnnotatedProperty());
       if (syCode.contains(axiomCode)) {
         Synonym synonym = new Synonym();

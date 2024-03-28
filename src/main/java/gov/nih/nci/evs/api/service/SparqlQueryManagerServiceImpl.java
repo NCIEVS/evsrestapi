@@ -551,6 +551,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     if (!exceptions.isEmpty()) {
       throw new RuntimeException(exceptions.get(0));
     }
+    ObjectMapper mapper = new ObjectMapper();
     for (final Concept concept : concepts) {
       final String conceptCode = concept.getCode();
       List<Property> properties =
@@ -574,8 +575,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setStemName(ConceptUtils.normalizeWithStemming(pn));
 
       // If loading a qualifier, don't look for additional qualifiers
-      final List<Axiom> axioms =
+      List<Axiom> axioms =
           axiomMap.get(conceptCode) == null ? new ArrayList<>(0) : axiomMap.get(conceptCode);
+      if (axioms.size() == 0) {
+        axioms = axiomMap.get(concept.getUri()) == null ? new ArrayList<>(0)
+            : axiomMap.get(concept.getUri());
+      }
 
       // adding all synonyms
       final List<Synonym> synonyms = EVSUtils.getSynonyms(terminology, properties, axioms);
@@ -1420,7 +1425,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query =
         queryBuilderService.constructBatchQuery("axioms.batch", terminology, conceptCodes);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
+    // log.info("AXIOM QUERY: {}", queryPrefix + query);
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Axiom>> resultMap = new HashMap<>();
@@ -1434,9 +1439,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String conceptCode = "";
 
     final Map<String, List<Bindings>> bindingsMap = new HashMap<>();
+    boolean hasConceptCode = false;
     for (final Bindings b : bindings) {
+      hasConceptCode = b.getConceptCode() != null;
       conceptCode =
-          b.getConceptCode() != null ? b.getConceptCode().getValue() : b.getAxiomValue().getValue();
+          b.getConceptCode() != null ? b.getConceptCode().getValue() : b.getAxiom().getValue();
       if (bindingsMap.get(conceptCode) == null) {
         bindingsMap.put(conceptCode, new ArrayList<>());
       }
@@ -1445,8 +1452,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     for (final String code : bindingsMap.keySet()) {
+      // log.info("CODE: {}", code);
       final List<Bindings> bindingsList = bindingsMap.get(code);
-
+      // log.info("bindingsList: {}", bindingsList);
       final Map<String, Axiom> axiomMap = new HashMap<>();
       for (final Bindings b : bindingsList) {
         final String axiom = b.getAxiom().getValue();
@@ -1463,10 +1471,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         setAxiomProperty(propertyCode, propertyUri, value, qualifierFlag, axiomObject, terminology);
       }
       for (final Axiom axiom : axiomMap.values()) {
-        if (resultMap.get(code) == null) {
-          resultMap.put(code, new ArrayList<>());
+        String realCode =
+            hasConceptCode ? code : EVSUtils.getCodeFromUri(axiom.getAnnotatedSource());
+
+        if (resultMap.get(realCode) == null) {
+          resultMap.put(realCode, new ArrayList<>());
         }
-        resultMap.get(code).add(axiom);
+        // log.debug(" ADD Axiom = " + axiom);
+        resultMap.get(realCode).add(axiom);
       }
 
     }
@@ -1489,10 +1501,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Terminology terminology) throws Exception {
 
     // Look at the qualified code form of the property for the switch
+    // log.info("PROPERTY CODE: {}", propertyCode);
     switch (propertyCode) {
       case "owl:annotatedSource":
-        // This is never used
-        // axiomObject.setAnnotatedSource(value);
+        // This is used when concepts don't have real codes
+        axiomObject.setAnnotatedSource(value);
         break;
       case "owl:annotatedTarget":
         // use the actual value
@@ -1502,8 +1515,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       case "owl:annotatedProperty":
         // Use the code value
         axiomObject.setAnnotatedProperty(EVSUtils.getQualifiedCodeFromUri(value));
-        // log.debug(" annotated property = " +
-        // EVSUtils.getQualifiedCodeFromUri(value));
+        // log.debug(" annotated property = " + EVSUtils.getQualifiedCodeFromUri(value));
         break;
       default:
 
@@ -1553,6 +1565,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           }
           // log.debug(" qualifier = " + name + ", " + labelValue + ", " +
           // propertyCode);
+        } else {
+          log.info("Unexpected property code = {}", propertyCode);
         }
         break;
     }
