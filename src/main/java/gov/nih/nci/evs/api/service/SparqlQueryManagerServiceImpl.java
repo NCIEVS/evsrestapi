@@ -648,10 +648,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setAssociations(associationMap.get(conceptCode));
       concept.setInverseAssociations(inverseAssociationMap.get(conceptCode));
       concept.setRoles(roleMap.get(conceptCode));
+      // check uris
+      if (concept.getRoles().size() == 0) {
+        concept.setRoles(roleMap.get(concept.getUri()));
+      }
       if (complexRoleMap.containsKey(conceptCode)) {
         concept.getRoles().addAll(complexRoleMap.get(conceptCode));
       }
+      // check uris
       concept.setInverseRoles(inverseRoleMap.get(conceptCode));
+      if (concept.getInverseRoles().size() == 0) {
+        concept.setInverseRoles(inverseRoleMap.get(concept.getUri()));
+      }
+      // log.info("INVERSE ROLES FOR {}: {}", concept.getUri(),
+      // mapper.writeValueAsString(concept.getInverseRoles()));
       if (complexInverseRoleMap.containsKey(conceptCode)) {
         concept.getInverseRoles().addAll(complexInverseRoleMap.get(conceptCode));
       }
@@ -1171,6 +1181,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
+      if (b.getRelatedConcept().getValue().contains("MONDO")) {
+        log.info("BINDING: {}", b);
+      }
       final String conceptCode = b.getConceptCode() != null ? b.getConceptCode().getValue()
           : b.getRelatedConcept().getValue();
 

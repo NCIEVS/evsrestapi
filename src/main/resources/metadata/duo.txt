@@ -1,5 +1,6 @@
 # Sample concepts to include in report
 DUO_0000001
+DUO_0000007
 DUO_0000031
 MONDO_0000001
 topic_0003
