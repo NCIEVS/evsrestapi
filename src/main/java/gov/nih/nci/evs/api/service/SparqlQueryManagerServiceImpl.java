@@ -1051,6 +1051,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructQuery("inverse.roles", terminology, conceptCode);
+    // log.info("INVERSE ROLE REPORT QUERY = {}", query);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     final ObjectMapper mapper = new ObjectMapper();
@@ -1061,6 +1062,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
+      // log.info("BINDING = {}", b);
       final Role role = new Role();
       role.setCode(EVSUtils.getRelationshipCode(b));
       role.setType(EVSUtils.getRelationshipType(b));
@@ -1074,7 +1076,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
       seen.add(key);
     }
-
+    // log.info("ROLES = {}", roles);
     return roles;
   }
 
@@ -1145,7 +1147,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final Role role = new Role();
       role.setCode(EVSUtils.getRelationshipCode(b));
       role.setType(EVSUtils.getRelationshipType(b));
-      role.setRelatedCode(b.getRelatedConceptCode().getValue());
+      role.setRelatedCode(b.getRelatedConceptCode() != null ? b.getRelatedConceptCode().getValue()
+          : b.getRelatedConcept().getValue());
       role.setRelatedName(b.getRelatedConceptLabel().getValue());
       // distinct roles only
       final String key = role.getCode() + role.getRelatedCode();
@@ -1181,9 +1184,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
-      if (b.getRelatedConcept().getValue().contains("MONDO")) {
-        log.info("BINDING: {}", b);
-      }
       final String conceptCode = b.getConceptCode() != null ? b.getConceptCode().getValue()
           : b.getRelatedConcept().getValue();
 
