@@ -291,6 +291,10 @@ for x in `cat /tmp/y.$$.txt`; do
             fi
         fi
     done
+
+    # Set up environment
+    export STARDOG_DB=$db
+    export EVS_SERVER_PORT="8083"
     
     if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
         echo "    FOUND indexes for $term $version"
@@ -329,8 +333,6 @@ for x in `cat /tmp/y.$$.txt`; do
         fi
 
         # Run reindexing process (choose a port other than the one that it runs on)
-        export STARDOG_DB=$db
-        export EVS_SERVER_PORT="8083"
         echo "    Generate indexes for $STARDOG_DB ${term} $version"
         
         # Set the history clause for "ncit"

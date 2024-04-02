@@ -151,8 +151,8 @@ if [[ $config -eq 0 ]]; then
 fi
 export EVS_SERVER_PORT="8083"
 
-# Compute version
-lcterm=`echo $terminology | perl -ne 'print lc($_);'`
+# Compute version (remove '.' from lcterm)
+lcterm=`echo $terminology | perl -ne 's/\.//; print lc($_);'`
 if [[ $terminology == "ncim" ]]; then
     version=`grep umls.release.name $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
 else
@@ -160,7 +160,7 @@ else
 fi
 
 ## check whether this index exists already, and if so skip indexing call
-echo "  Check whether indexes exist already"
+echo "  Check whether indexes exist already ($lcterm $version)"
 ct1=`curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/concept_${lcterm}_${version} | grep '"found":false' | wc -l`
 ct2=`curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices | grep concept | grep ${lcterm} | grep ${version} | wc -l`
 if [[ $ct1 -eq 0 ]] && [[ $ct2 -eq 1 ]]; then
@@ -194,7 +194,7 @@ if [[ $skip -eq 0 ]]; then
 fi
 
 # compute maxVersions from config
-echo "  Remove older versions indexes ($terminology $version)"
+echo "  Remove older versions indexes ($lcterm $version)"
 maxVersions=1
 curl -s $ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/concept_${lcterm}_${version} > /tmp/x.$$
 if [[ `grep -c maxVersions /tmp/x.$$` -gt 0 ]]; then
@@ -213,7 +213,7 @@ fi
 
 # Remove the top $ct versions (which may be zero)
 for i in `cat /tmp/x.$$ | head -$ct`; do
-    lv=`echo $i | perl -pe 's/.*'${terminology}'_//i;'`
+    lv=`echo $i | perl -pe 's/.*'${lcterm}'_//i;'`
     # string compare versions
     if [ "$lv" \> "$version" ]; then
         echo "    skip $lv - later than $version"
