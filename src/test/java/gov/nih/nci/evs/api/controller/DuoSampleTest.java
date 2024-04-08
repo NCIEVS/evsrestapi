@@ -49,7 +49,7 @@ public class DuoSampleTest extends SampleTest {
 
   @BeforeClass
   public static void setupClass() throws Exception {
-    // loadSamples("duo", "src/test/resources/samples/duo-samples.txt");
+    loadSamples("duo", "src/test/resources/samples/duo-samples.txt");
   }
 
   @Test
