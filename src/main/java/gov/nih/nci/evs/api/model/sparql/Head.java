@@ -1,11 +1,8 @@
-
 package gov.nih.nci.evs.api.model.sparql;
 
 import java.util.List;
 
-/**
- * The Class Property.
- */
+/** The Class Property. */
 public class Head {
 
   /** The value. */
@@ -38,5 +35,4 @@ public class Head {
   public String toString() {
     return "[vars = " + vars + " ]";
   }
-
 }

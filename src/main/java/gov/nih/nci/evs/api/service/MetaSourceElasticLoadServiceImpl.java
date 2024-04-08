@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -564,9 +563,15 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
             concept.setActive(true);
             if (concept.getName() == null) {
               throw new Exception(
-                  "Unable to find preferred name, likely TTY issue (" + terminology.getTerminology()
-                      + ".json) = " + terminology.getTerminology().toUpperCase() + ", " + code
-                      + ", " + concept.getSynonyms().stream().map(s -> s.getTermType())
+                  "Unable to find preferred name, likely TTY issue ("
+                      + terminology.getTerminology()
+                      + ".json) = "
+                      + terminology.getTerminology().toUpperCase()
+                      + ", "
+                      + code
+                      + ", "
+                      + concept.getSynonyms().stream()
+                          .map(s -> s.getTermType())
                           .collect(Collectors.toSet()));
             }
             codeConceptMap.put(code, concept);

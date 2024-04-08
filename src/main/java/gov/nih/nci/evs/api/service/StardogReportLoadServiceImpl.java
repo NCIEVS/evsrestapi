@@ -63,7 +63,7 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
   @Override
   public int loadConcepts(
       final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
-      throws IOException {
+      throws Exception {
 
     final String resource = "metadata/" + terminology.getTerminology() + ".txt";
 
@@ -106,8 +106,11 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
       int ct = 0;
       for (final Concept concept : concepts) {
         if (++ct < (6 - samples.size()) || samples.contains(concept.getCode())) {
-          logReport("    ", "concept", sparqlQueryManagerService.getConcept(concept.getCode(),
-              terminology, new IncludeParam("full")));
+          logReport(
+              "    ",
+              "concept",
+              sparqlQueryManagerService.getConcept(
+                  concept.getCode(), terminology, new IncludeParam("full")));
           // logReport(" ", " paths", hierarchy.getPaths(terminology,
           // concept.getCode()));
         }
@@ -122,8 +125,9 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
 
   /* see superclass */
   @Override
-  public void loadObjects(final ElasticLoadConfig config, final Terminology terminology,
-    final HierarchyUtils hierarchy) throws Exception {
+  public void loadObjects(
+      final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
+      throws Exception {
 
     // TODO: show hierarchy (passed in)
 
@@ -303,13 +307,25 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
     logReport("  ", "hierarchy = " + hierarchy.getPathsMap(term).size());
     logReport("  ", "roots = " + hierarchy.getHierarchyRoots());
     final String minPathsCode = hierarchy.getCodeWithMinPaths(term);
-    logReport("  ", "  min paths = " + minPathsCode + ", "
-        + hierarchy.getPathsMap(term).get(minPathsCode).size());
+    logReport(
+        "  ",
+        "  min paths = "
+            + minPathsCode
+            + ", "
+            + hierarchy.getPathsMap(term).get(minPathsCode).size());
     final String maxPathsCode = hierarchy.getCodeWithMaxPaths(term);
-    logReport("  ", "  max paths = " + maxPathsCode + ", "
-        + hierarchy.getPathsMap(term).get(maxPathsCode).size());
+    logReport(
+        "  ",
+        "  max paths = "
+            + maxPathsCode
+            + ", "
+            + hierarchy.getPathsMap(term).get(maxPathsCode).size());
     final String maxChildrenCode = hierarchy.getCodeWithMaxChildren(term);
-    logReport("  ", "  max children = " + maxChildrenCode + ", "
+    logReport(
+        "  ",
+        "  max children = "
+            + maxChildrenCode
+            + ", "
             + (maxChildrenCode == null ? "0" : hierarchy.getChildNodes(maxChildrenCode, 0).size()));
 
     return hierarchy;

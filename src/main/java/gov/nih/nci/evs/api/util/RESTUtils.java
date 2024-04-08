@@ -7,7 +7,6 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpEntity;
@@ -72,8 +71,9 @@ public class RESTUtils {
     try {
       RestTemplate restTemplate = new RestTemplate();
       restTemplate.getInterceptors().add(new BasicAuthenticationInterceptor(username, password));
-      restTemplate.getMessageConverters().add(0,
-          new StringHttpMessageConverter(Charset.forName("UTF-8")));
+      restTemplate
+          .getMessageConverters()
+          .add(0, new StringHttpMessageConverter(Charset.forName("UTF-8")));
       MultiValueMap<String, String> body = new LinkedMultiValueMap<String, String>();
       body.add("query", query);
       HttpHeaders headers = new HttpHeaders();
@@ -82,9 +82,10 @@ public class RESTUtils {
       HttpEntity<?> entity = new HttpEntity<Object>(body, headers);
       ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
       // create the task for the executor
-      Callable<String> task = () -> {
-        return restTemplate.postForObject(restURL, entity, String.class);
-      };
+      Callable<String> task =
+          () -> {
+            return restTemplate.postForObject(restURL, entity, String.class);
+          };
       try {
         // invoke postForObject with executor
         String result = executor.invokeAny(Arrays.asList(task), sparqlTimeout, TimeUnit.SECONDS);
@@ -93,9 +94,12 @@ public class RESTUtils {
 
       } catch (TimeoutException e) {
         // Handle timeout exception
-        throw new TimeoutException("SPARQL query timed out after " + sparqlTimeout + " second"
-            + (sparqlTimeout > 1 ? "s" : "")
-            + ". Consider changing your query to return fewer results.");
+        throw new TimeoutException(
+            "SPARQL query timed out after "
+                + sparqlTimeout
+                + " second"
+                + (sparqlTimeout > 1 ? "s" : "")
+                + ". Consider changing your query to return fewer results.");
       } catch (Exception e) {
         // Handle other exceptions
         throw new Exception(
@@ -108,7 +112,6 @@ public class RESTUtils {
       log.error("Unexpected error running query = \n" + query);
       throw e;
     }
-
   }
 
   /**

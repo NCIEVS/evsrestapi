@@ -69,7 +69,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
   /** The subset group. */
   private List<String> subset;
-  
+
   /** The code list. */
   private List<String> codeList;
 
@@ -122,7 +122,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     term = other.getTerm();
     type = other.getType();
     subset = new ArrayList<>(other.getSubset());
-    codeList = new ArrayList<>(other.getCodeList()); 
+    codeList = new ArrayList<>(other.getCodeList());
   }
 
   /**
@@ -517,11 +517,13 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   public void setSubset(List<String> subset) {
     this.subset = subset;
   }
-  
+
   /**
    * @return the list of codes to limit the search to
    */
-  @Schema(description = "Comma-separated list of concept codes to restrict search results by, e.g. 'C157225'")
+  @Schema(
+      description =
+          "Comma-separated list of concept codes to restrict search results by, e.g. 'C157225'")
   public List<String> getCodeList() {
     if (codeList == null) {
       codeList = new ArrayList<>();
