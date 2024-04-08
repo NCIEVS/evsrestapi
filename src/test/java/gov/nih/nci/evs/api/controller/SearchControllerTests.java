@@ -8,6 +8,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.MapResultList;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.Synonym;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -28,21 +38,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Association;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptResultList;
-import gov.nih.nci.evs.api.model.Definition;
-import gov.nih.nci.evs.api.model.MapResultList;
-import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.model.Synonym;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.properties.TestProperties;
-
-/**
- * Integration tests for SearchController.
- */
+/** Integration tests for SearchController. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -2618,7 +2614,6 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assert (list.getTotal() > 0);
-
   }
 
   /**
@@ -2634,9 +2629,15 @@ public class SearchControllerTests {
     ConceptResultList list = null;
 
     // check basic query
-    String query = "SELECT ?code\n" + "{ GRAPH <http://NCI_T_monthly> \n" + "  { \n"
-        + "    ?x a owl:Class . \n" + "    ?x :NHC0 ?code .\n" + "    ?x :P108 \"Melanoma\"\n"
-        + "  } \n" + "}";
+    String query =
+        "SELECT ?code\n"
+            + "{ GRAPH <http://NCI_T_monthly> \n"
+            + "  { \n"
+            + "    ?x a owl:Class . \n"
+            + "    ?x :NHC0 ?code .\n"
+            + "    ?x :P108 \"Melanoma\"\n"
+            + "  } \n"
+            + "}";
 
     log.info("Testing url - " + url + "?query=" + query
         + "&terminology=ncit&type=contains&include=minimal");
@@ -2650,17 +2651,24 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
 
     // check basic query with pre-formed prefix
-    query = "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
-        + "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
-        + "PREFIX owl:<http://www.w3.org/2002/07/owl#>\n"
-        + "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
-        + "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>\n"
-        + "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"
-        + "PREFIX dc:<http://purl.org/dc/elements/1.1/>\n"
-        + "PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>\n"
-        + "PREFIX xml:<http://www.w3.org/2001/XMLSchema#>\n" + "SELECT ?code\n"
-        + "{ GRAPH <http://NCI_T_monthly>\n" + "{\n" + "  ?x a owl:Class .\n"
-        + "  ?x :NHC0 ?code .\n" + "  ?x :P108 \"Melanoma\"\n" + "}\n" + "}";
+    query =
+        "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
+            + "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
+            + "PREFIX owl:<http://www.w3.org/2002/07/owl#>\n"
+            + "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            + "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>\n"
+            + "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"
+            + "PREFIX dc:<http://purl.org/dc/elements/1.1/>\n"
+            + "PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>\n"
+            + "PREFIX xml:<http://www.w3.org/2001/XMLSchema#>\n"
+            + "SELECT ?code\n"
+            + "{ GRAPH <http://NCI_T_monthly>\n"
+            + "{\n"
+            + "  ?x a owl:Class .\n"
+            + "  ?x :NHC0 ?code .\n"
+            + "  ?x :P108 \"Melanoma\"\n"
+            + "}\n"
+            + "}";
 
     log.info("Testing url - " + url + "?query=" + query
         + "&terminology=ncit&type=contains&include=minimal");
@@ -2675,8 +2683,14 @@ public class SearchControllerTests {
 
     // check query with malformed graph
     query =
-        "SELECT ?code\n" + "{ GRAPH <http://blablablabla> \n" + "  { \n" + "    ?x a owl:Class . \n"
-            + "    ?x :NHC0 ?code .\n" + "    ?x :P108 \"Melanoma\"\n" + "  } \n" + "}";
+        "SELECT ?code\n"
+            + "{ GRAPH <http://blablablabla> \n"
+            + "  { \n"
+            + "    ?x a owl:Class . \n"
+            + "    ?x :NHC0 ?code .\n"
+            + "    ?x :P108 \"Melanoma\"\n"
+            + "  } \n"
+            + "}";
 
     log.info("Testing url - " + url + "?query=" + query
         + "&terminology=ncit&type=contains&include=minimal");
@@ -2738,10 +2752,12 @@ public class SearchControllerTests {
     assertThat(list.getTotal()).isGreaterThan(0);
     for (Concept conc : list.getConcepts()) {
       Boolean name = conc.getName().toLowerCase().contains("liver");
-      Boolean definitions = conc.getDefinitions().stream()
-          .anyMatch(definition -> definition.getDefinition().toLowerCase().contains("liver"));
-      Boolean synonyms = conc.getSynonyms().stream()
-          .anyMatch(synonym -> synonym.getName().toLowerCase().contains("liver"));
+      Boolean definitions =
+          conc.getDefinitions().stream()
+              .anyMatch(definition -> definition.getDefinition().toLowerCase().contains("liver"));
+      Boolean synonyms =
+          conc.getSynonyms().stream()
+              .anyMatch(synonym -> synonym.getName().toLowerCase().contains("liver"));
       log.info(conc.getCode() + " " + conc.getName());
       assertThat(name || definitions || synonyms).isTrue();
       assertThat(list.getParameters().getCodeList().contains(conc.getCode()));
@@ -2780,23 +2796,34 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     assertThat(content).isNotNull();
     assertThat(
-        content.contains("Invalid SPARQL query: Multiple prefix declarations for prefix 'xml'"))
-            .isTrue();
+            content.contains("Invalid SPARQL query: Multiple prefix declarations for prefix 'xml'"))
+        .isTrue();
 
     // check query with a query that fails initial validation
-    query = "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
-        + "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
-        + "PREFIX owl:<http://www.w3.org/2002/07/owl#>\n"
-        + "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
-        + "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>\n"
-        + "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"
-        + "PREFIX dc:<http://purl.org/dc/elements/1.1/>\n"
-        + "PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>\n"
-        + " xml:<http://www.w3.org/2001/XMLSchema#>\n" + "SELECT ?code\n"
-        + "{ GRAPH <http://NCI_T_monthly>\n" + "{\n" + "  ?x a owl:Class .\n"
-        + "  ?x :NHC0 ?code .\n" + "  ?x :P108 \"Melanoma\"\n" + "}\n" + "}";
-    log.info("Testing url - " + url + "?query=" + query
-        + "&terminology=ncit&type=contains&include=minimal");
+    query =
+        "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
+            + "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
+            + "PREFIX owl:<http://www.w3.org/2002/07/owl#>\n"
+            + "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+            + "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>\n"
+            + "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"
+            + "PREFIX dc:<http://purl.org/dc/elements/1.1/>\n"
+            + "PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>\n"
+            + " xml:<http://www.w3.org/2001/XMLSchema#>\n"
+            + "SELECT ?code\n"
+            + "{ GRAPH <http://NCI_T_monthly>\n"
+            + "{\n"
+            + "  ?x a owl:Class .\n"
+            + "  ?x :NHC0 ?code .\n"
+            + "  ?x :P108 \"Melanoma\"\n"
+            + "}\n"
+            + "}";
+    log.info(
+        "Testing url - "
+            + url
+            + "?query="
+            + query
+            + "&terminology=ncit&type=contains&include=minimal");
 
     final String exceptionUrl = new String(url);
     final String exceptionQuery = new String(query);
@@ -2875,10 +2902,17 @@ public class SearchControllerTests {
         "SELECT ?code ?x { GRAPH <http://NCI_T_monthly> { ?x a owl:Class . ?x :NHC0 ?code . } }";
     log.info(
         "Testing url - " + url + "?query=" + query + "&terminology=ncit&fromRecord=0&pageSize=10");
-    result = mvc.perform(MockMvcRequestBuilders.post(url).param("query", query)
-        .param("fromRecord", "0").param("pageSize", "10")).andExpect(status().isOk()).andReturn();
-    MapResultList results = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
-        MapResultList.class);
+    result =
+        mvc.perform(
+                MockMvcRequestBuilders.post(url)
+                    .param("query", query)
+                    .param("fromRecord", "0")
+                    .param("pageSize", "10"))
+            .andExpect(status().isOk())
+            .andReturn();
+    MapResultList results =
+        new ObjectMapper()
+            .readValue(result.getResponse().getContentAsString(), MapResultList.class);
     assertThat(results.getParameters().getPageSize()).isEqualTo(10);
     assertThat(results.getResults().size()).isEqualTo(results.getParameters().getPageSize());
     Map<String, String> node = results.getResults().get(1);
@@ -2888,14 +2922,20 @@ public class SearchControllerTests {
         "SELECT ?code ?x { GRAPH <http://NCI_T_monthly> { ?x a owl:Class . ?x :NHC0 ?code . } }";
     log.info(
         "Testing url - " + url + "?query=" + query + "&terminology=ncit&fromRecord=1&pageSize=5");
-    result = mvc.perform(MockMvcRequestBuilders.post(url).param("query", query)
-        .param("fromRecord", "1").param("pageSize", "5")).andExpect(status().isOk()).andReturn();
-    results = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
-        MapResultList.class);
+    result =
+        mvc.perform(
+                MockMvcRequestBuilders.post(url)
+                    .param("query", query)
+                    .param("fromRecord", "1")
+                    .param("pageSize", "5"))
+            .andExpect(status().isOk())
+            .andReturn();
+    results =
+        new ObjectMapper()
+            .readValue(result.getResponse().getContentAsString(), MapResultList.class);
     assertThat(results.getParameters().getPageSize()).isEqualTo(5);
     assertThat(results.getResults().size()).isEqualTo(results.getParameters().getPageSize());
     assertThat(results.getResults().get(0)).isEqualTo(node);
-
   }
 
   /**

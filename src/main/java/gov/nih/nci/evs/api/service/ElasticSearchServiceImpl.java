@@ -132,12 +132,13 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
         searchQuery.withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
       } else {
-        searchQuery
-            .withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.DESC));
+        searchQuery.withSort(
+            SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.DESC));
       }
 
     } else {
-      searchQuery.withSort(SortBuilders.scoreSort())
+      searchQuery
+          .withSort(SortBuilders.scoreSort())
           .withSort(SortBuilders.fieldSort("code").order(SortOrder.ASC));
     }
 
@@ -208,7 +209,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @throws Exception the exception
    */
   private BoolQueryBuilder getTermQuery(final SearchCriteria searchCriteria, final String term)
-    throws Exception {
+      throws Exception {
 
     final String type = searchCriteria.getType();
 
@@ -241,8 +242,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @return the contains query
    * @throws Exception the exception
    */
-  private BoolQueryBuilder getContainsQuery(final SearchCriteria searchCriteria, final String term,
-    boolean fuzzyFlag, boolean andFlag) throws Exception {
+  private BoolQueryBuilder getContainsQuery(
+      final SearchCriteria searchCriteria, final String term, boolean fuzzyFlag, boolean andFlag)
+      throws Exception {
 
     // Generate variants to search with
     final String type = searchCriteria.getType();
@@ -260,14 +262,18 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     // Exact match queries
     final MatchQueryBuilder normNameQuery =
         QueryBuilders.matchQuery("normName", normTerm).boost(40f);
-    final NestedQueryBuilder nestedSynonymNormNameQuery = QueryBuilders.nestedQuery("synonyms",
-        QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(39f), ScoreMode.Max);
+    final NestedQueryBuilder nestedSynonymNormNameQuery =
+        QueryBuilders.nestedQuery(
+            "synonyms",
+            QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(39f),
+            ScoreMode.Max);
 
     // Boosting matches with words next to each other
     final QueryStringQueryBuilder phraseNormNameQuery =
         QueryBuilders.queryStringQuery("\"" + term + "\"").field("name").boost(30f);
     final NestedQueryBuilder nestedSynonymPhraseNormNameQuery =
-        QueryBuilders.nestedQuery("synonyms",
+        QueryBuilders.nestedQuery(
+            "synonyms",
             QueryBuilders.queryStringQuery("\"" + term + "\"").field("synonyms.name").boost(29f),
             ScoreMode.Max);
 
@@ -281,7 +287,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     final QueryStringQueryBuilder synonymFixNameAndQuery =
         QueryBuilders.queryStringQuery(String.join(" AND ", normTerm.split("\\s+")))
-            .field("synonyms.name").defaultOperator(Operator.AND).boost(15f);
+            .field("synonyms.name")
+            .defaultOperator(Operator.AND)
+            .boost(15f);
     final NestedQueryBuilder nestedSynonymFixNameAndQuery =
         QueryBuilders.nestedQuery("synonyms", synonymFixNameAndQuery, ScoreMode.Max);
     final QueryStringQueryBuilder synonymFixNormNameQuery =
@@ -304,16 +312,18 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if (hasCodeList) {
       if (!codeTerm.isEmpty())
         codeList = " OR " + String.join(" OR ", searchCriteria.getCodeList());
-      else
-        codeList = String.join(" OR ", searchCriteria.getCodeList());
+      else codeList = String.join(" OR ", searchCriteria.getCodeList());
     }
 
     // Code queries
     final QueryStringQueryBuilder codeQuery =
         QueryBuilders.queryStringQuery(codeTerm + codeList).field("code").boost(50f);
-    final NestedQueryBuilder synonymCodeQuery = QueryBuilders.nestedQuery("synonyms",
-        QueryBuilders.queryStringQuery(codeTerm + codeList).field("synonyms.code"), ScoreMode.Max)
-        .boost(50f);
+    final NestedQueryBuilder synonymCodeQuery =
+        QueryBuilders.nestedQuery(
+                "synonyms",
+                QueryBuilders.queryStringQuery(codeTerm + codeList).field("synonyms.code"),
+                ScoreMode.Max)
+            .boost(50f);
 
     // Name queries
 
@@ -363,7 +373,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       } else {
         termQuery.should(codeQuery).should(synonymCodeQuery);
       }
-
     }
 
     // contains, and/or
@@ -439,15 +448,21 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
                         .analyzeWildcard(startsWithFlag),
                     ScoreMode.Max))
             // exact match to code (uppercase the code)
-            .should(QueryBuilders.queryStringQuery(codeTerm).field("code")
-                .analyzeWildcard(startsWithFlag).boost(20f));
+            .should(
+                QueryBuilders.queryStringQuery(codeTerm)
+                    .field("code")
+                    .analyzeWildcard(startsWithFlag)
+                    .boost(20f));
 
     // If startsWith flag, boost exact matches to the top
     if (startsWithFlag) {
-      termQuery = termQuery
-          .should(
-              QueryBuilders.matchQuery("normName", ConceptUtils.normalize(exactTerm)).boost(40f))
-          .should(QueryBuilders.queryStringQuery(exactTerm.toUpperCase()).field("code").boost(40f));
+      termQuery =
+          termQuery
+              .should(
+                  QueryBuilders.matchQuery("normName", ConceptUtils.normalize(exactTerm))
+                      .boost(40f))
+              .should(
+                  QueryBuilders.queryStringQuery(exactTerm.toUpperCase()).field("code").boost(40f));
     }
     return termQuery;
   }
@@ -558,12 +573,14 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     BoolQueryBuilder terminologyQuery = QueryBuilders.boolQuery();
 
     if (terminologies.size() == 1) {
-      terminologyQuery = terminologyQuery
-          .must(QueryBuilders.matchQuery("terminology", terminologies.get(0).getTerminology()));
+      terminologyQuery =
+          terminologyQuery.must(
+              QueryBuilders.matchQuery("terminology", terminologies.get(0).getTerminology()));
     } else {
       for (Terminology terminology : terminologies) {
-        terminologyQuery = terminologyQuery
-            .should(QueryBuilders.matchQuery("terminology", terminology.getTerminology()));
+        terminologyQuery =
+            terminologyQuery.should(
+                QueryBuilders.matchQuery("terminology", terminology.getTerminology()));
       }
     }
 
@@ -576,8 +593,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @param searchCriteria the search criteria
    * @return list of nested queries
    */
-  private List<QueryBuilder> getCriteriaQueries(List<Terminology> terminologies,
-    SearchCriteria searchCriteria) {
+  private List<QueryBuilder> getCriteriaQueries(
+      List<Terminology> terminologies, SearchCriteria searchCriteria) {
     List<QueryBuilder> queries = new ArrayList<>();
 
     // concept status
@@ -781,10 +798,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @param searchCriteria the search criteria
    * @return the synonym type query builder
    */
-  private QueryBuilder getSynonymTypeQueryBuilder(List<Terminology> terminologies,
-    SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getSynonymType()))
-      return null;
+  private QueryBuilder getSynonymTypeQueryBuilder(
+      List<Terminology> terminologies, SearchCriteria searchCriteria) {
+    if (CollectionUtils.isEmpty(searchCriteria.getSynonymType())) return null;
 
     // bool query to match synonym.type
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
@@ -845,10 +861,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @param searchCriteria the search criteria
    * @return the definition type query builder
    */
-  private QueryBuilder getDefinitionTypeQueryBuilder(List<Terminology> terminologies,
-    SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getDefinitionType()))
-      return null;
+  private QueryBuilder getDefinitionTypeQueryBuilder(
+      List<Terminology> terminologies, SearchCriteria searchCriteria) {
+    if (CollectionUtils.isEmpty(searchCriteria.getDefinitionType())) return null;
 
     // bool query to match definition.type
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();

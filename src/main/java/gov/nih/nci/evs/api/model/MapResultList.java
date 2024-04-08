@@ -1,23 +1,17 @@
-
 package gov.nih.nci.evs.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.List;
 import java.util.Map;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
-/**
- * Represents a list of results with paging parameters.
- */
+/** Represents a list of results with paging parameters. */
 @Schema(description = "Represents a list of objects returned from a find call")
 public class MapResultList extends ResultList {
 
   /** The total. */
   private List<Map<String, String>> results;
 
-  /**
-   * Instantiates an empty {@link MapResultList}.
-   */
+  /** Instantiates an empty {@link MapResultList}. */
   public MapResultList() {
     // n/a
   }
@@ -82,18 +76,13 @@ public class MapResultList extends ResultList {
    */
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
     MapResultList other = (MapResultList) obj;
     if (results == null) {
-      if (other.results != null)
-        return false;
+      if (other.results != null) return false;
     }
     return true;
   }
-
 }

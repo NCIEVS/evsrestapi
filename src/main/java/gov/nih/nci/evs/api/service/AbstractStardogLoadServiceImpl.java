@@ -113,9 +113,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   @Override
   public int loadConcepts(
       ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
-      throws IOException {
-  public int loadConcepts(ElasticLoadConfig config, Terminology terminology,
-    HierarchyUtils hierarchy) throws Exception {
+      throws Exception {
 
     logger.debug(
         "ElasticLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName());
@@ -452,8 +450,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     // associationEntries
     for (Concept association : associations) {
       logger.info(association.getName());
-      if (association.getName().equals("Concept_In_Subset"))
-        continue;
+      if (association.getName().equals("Concept_In_Subset")) continue;
       List<AssociationEntry> entries =
           sparqlQueryManagerService.getAssociationEntries(terminology, association);
       ElasticObject associationEntriesObject =

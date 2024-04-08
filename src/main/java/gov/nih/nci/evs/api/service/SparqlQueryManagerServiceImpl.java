@@ -1,4 +1,3 @@
-
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
@@ -36,7 +35,6 @@ import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
-
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.Axiom;
@@ -62,6 +60,27 @@ import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import javax.annotation.PostConstruct;
+import org.apache.commons.io.FilenameUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 /**
  * Reference implementation of {@link SparqlQueryManagerService}. Includes hibernate tags for MEME
@@ -74,16 +93,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   private static final Logger log = LoggerFactory.getLogger(SparqlQueryManagerServiceImpl.class);
 
   /** The stardog properties. */
-  @Autowired
-  StardogProperties stardogProperties;
+  @Autowired StardogProperties stardogProperties;
 
   /** The query builder service. */
-  @Autowired
-  QueryBuilderService queryBuilderService;
+  @Autowired QueryBuilderService queryBuilderService;
 
   /** The application properties. */
-  @Autowired
-  ApplicationProperties applicationProperties;
+  @Autowired ApplicationProperties applicationProperties;
 
   /** The elastic search service. */
   @Autowired
@@ -91,15 +107,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   ElasticSearchService elasticSearchService;
 
   /** The elastic search service. */
-  @Autowired
-  ElasticQueryService elasticQueryService;
+  @Autowired ElasticQueryService elasticQueryService;
 
   /** The sparql query cache service */
   @Autowired SparqlQueryCacheService sparqlQueryCacheService;
 
   /** The utils. */
-  @Autowired
-  TerminologyUtils utils;
+  @Autowired TerminologyUtils utils;
 
   /** The rest utils. */
   private RESTUtils restUtils = null;
@@ -111,8 +125,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    */
   @PostConstruct
   public void postInit() throws Exception {
-    restUtils = new RESTUtils(stardogProperties.getUsername(), stardogProperties.getPassword(),
-        stardogProperties.getReadTimeout(), stardogProperties.getConnectTimeout());
+    restUtils =
+        new RESTUtils(
+            stardogProperties.getUsername(),
+            stardogProperties.getPassword(),
+            stardogProperties.getReadTimeout(),
+            stardogProperties.getConnectTimeout());
 
     // NOTE: see TerminologyCacheLoader for other caching.
 
@@ -134,6 +152,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public String getQueryURL() {
     return stardogProperties.getQueryUrl();
   }
+
   // Here check the qualified form as well as the URI
 
   /* see superclass */
@@ -204,18 +223,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     if (CollectionUtils.isEmpty(termList)) {
-      return Collections.<Terminology> emptyList();
+      return Collections.<Terminology>emptyList();
     }
 
     final List<Terminology> results = new ArrayList<>();
 
     // Reverse sort by version
-    Collections.sort(termList, new Comparator<Terminology>() {
-      @Override
-      public int compare(final Terminology o1, final Terminology o2) {
-        return -1 * o1.getVersion().compareTo(o2.getVersion());
-      }
-    });
+    Collections.sort(
+        termList,
+        new Comparator<Terminology>() {
+          @Override
+          public int compare(final Terminology o1, final Terminology o2) {
+            return -1 * o1.getVersion().compareTo(o2.getVersion());
+          }
+        });
 
     for (int i = 0; i < termList.size(); i++) {
       final Terminology term = termList.get(i);
@@ -238,44 +259,45 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public Concept getConcept(final String conceptCode, final Terminology terminology,
-    final IncludeParam ip) throws Exception {
+  public Concept getConcept(
+      final String conceptCode, final Terminology terminology, final IncludeParam ip)
+      throws Exception {
     return getConceptByType("concept", conceptCode, terminology, ip);
   }
 
   /* see superclass */
   @Override
-  public List<gov.nih.nci.evs.api.model.ConceptMap> getMapsTo(final String conceptCode,
-    final Terminology terminology) throws Exception {
+  public List<gov.nih.nci.evs.api.model.ConceptMap> getMapsTo(
+      final String conceptCode, final Terminology terminology) throws Exception {
     final List<Axiom> axioms = getAxioms(conceptCode, terminology, true);
     return EVSUtils.getMapsTo(terminology, axioms);
   }
 
   /* see superclass */
   @Override
-  public Concept getProperty(final String code, final Terminology terminology,
-    final IncludeParam ip) throws Exception {
+  public Concept getProperty(
+      final String code, final Terminology terminology, final IncludeParam ip) throws Exception {
     return getConceptByType("property", code, terminology, ip);
   }
 
   /* see superclass */
   @Override
-  public Concept getQualifier(final String code, final Terminology terminology,
-    final IncludeParam ip) throws Exception {
+  public Concept getQualifier(
+      final String code, final Terminology terminology, final IncludeParam ip) throws Exception {
     return getConceptByType("qualifier", code, terminology, ip);
   }
 
   /* see superclass */
   @Override
-  public Concept getAssociation(final String code, final Terminology terminology,
-    final IncludeParam ip) throws Exception {
+  public Concept getAssociation(
+      final String code, final Terminology terminology, final IncludeParam ip) throws Exception {
     return getConceptByType("association", code, terminology, ip);
   }
 
   /* see superclass */
   @Override
   public Concept getRole(final String code, final Terminology terminology, final IncludeParam ip)
-    throws Exception {
+      throws Exception {
     return getConceptByType("role", code, terminology, ip);
   }
 
@@ -289,8 +311,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the concept by type
    * @throws Exception the exception
    */
-  private Concept getConceptByType(final String conceptType, final String conceptCode,
-    final Terminology terminology, final IncludeParam ip) throws Exception {
+  private Concept getConceptByType(
+      final String conceptType,
+      final String conceptCode,
+      final Terminology terminology,
+      final IncludeParam ip)
+      throws Exception {
     final Concept concept = new Concept();
     concept.setTerminology(terminology.getTerminology());
     concept.setVersion(terminology.getVersion());
@@ -352,7 +378,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           concept.getSynonyms().add(sy);
           // syNameType.add("default" + pn);
         }
-
       }
 
       // Properties ending in "Name" are rendered as synonyms here.
@@ -398,14 +423,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           if (ip.isProperties()
               && !terminology.getMetadata().isRemodeledProperty(property.getCode())) {
             // Add any qualifiers to the property
-            property.getQualifiers()
+            property
+                .getQualifiers()
                 .addAll(EVSUtils.getQualifiers(property.getCode(), property.getValue(), axioms));
             // add property
             concept.getProperties().add(property);
           }
-
         }
-
       }
 
       if (ip.isDefinitions()) {
@@ -456,16 +480,18 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     concept.sortLists();
 
     return concept;
-
   }
 
   /* see superclass */
   @Override
-  public List<Concept> getConcepts(final List<Concept> origConcepts, final Terminology terminology,
-    final HierarchyUtils hierarchy) throws Exception {
+  public List<Concept> getConcepts(
+      final List<Concept> origConcepts,
+      final Terminology terminology,
+      final HierarchyUtils hierarchy)
+      throws Exception {
 
     if (CollectionUtils.isEmpty(origConcepts)) {
-      return Collections.<Concept> emptyList();
+      return Collections.<Concept>emptyList();
     }
     final List<Concept> concepts = new ArrayList<>();
     // Copy the original concepts to avoid keeping references around
@@ -553,8 +579,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     if (axiomMap.isEmpty()) {
       // This likely occurs if the 10 minute awaitTermination isn't long enough
-      log.warn("Missing axioms, likely because awaitTermination was not long enough "
-          + "(or there are no axioms).");
+      log.warn(
+          "Missing axioms, likely because awaitTermination was not long enough "
+              + "(or there are no axioms).");
     }
 
     // Throw an
@@ -642,7 +669,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         // Handle if not a remodeled property (e.g. synonym or definition)
         if (!terminology.getMetadata().isRemodeledProperty(property.getCode())) {
           // Add any qualifiers to the property
-          property.getQualifiers()
+          property
+              .getQualifiers()
               .addAll(EVSUtils.getQualifiers(property.getCode(), property.getValue(), axioms));
           // add property
           concept.getProperties().add(property);
@@ -690,17 +718,15 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // Free memory in "all roles" maps
       roleMap.remove(concept.getCode());
       inverseRoleMap.remove(concept.getCode());
-
     }
 
     return concepts;
-
   }
 
   /* see superclass */
   @Override
   public List<Property> getProperties(final String conceptCode, final Terminology terminology)
-    throws Exception {
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("properties", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
@@ -740,8 +766,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the properties
    * @throws Exception the exception
    */
-  private Map<String, List<Property>> getProperties(final List<String> conceptCodes,
-    final Terminology terminology) throws Exception {
+  private Map<String, List<Property>> getProperties(
+      final List<String> conceptCodes, final Terminology terminology) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructBatchQuery("properties.batch", terminology, conceptCodes);
@@ -768,7 +794,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       property.setType(EVSUtils.getPropertyLabel(b));
       property.setValue(b.getPropertyValue().getValue());
       resultMap.get(conceptCode).add(property);
-
     }
 
     return resultMap;
@@ -777,7 +802,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Concept> getChildren(final String conceptCode, final Terminology terminology)
-    throws Exception {
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("children", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
@@ -807,8 +832,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the children
    * @throws Exception the exception
    */
-  public Map<String, List<Concept>> getChildren(final List<String> conceptCodes,
-    final Terminology terminology, final HierarchyUtils hierarchy) throws Exception {
+  public Map<String, List<Concept>> getChildren(
+      final List<String> conceptCodes,
+      final Terminology terminology,
+      final HierarchyUtils hierarchy)
+      throws Exception {
 
     final Map<String, List<Concept>> resultMap = new HashMap<>();
 
@@ -828,7 +856,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Concept> getParents(final String conceptCode, final Terminology terminology)
-    throws Exception {
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("parents", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
@@ -858,8 +886,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the parents
    * @throws Exception the exception
    */
-  public Map<String, List<Concept>> getParents(final List<String> conceptCodes,
-    final Terminology terminology, final HierarchyUtils hierarchy) throws Exception {
+  public Map<String, List<Concept>> getParents(
+      final List<String> conceptCodes,
+      final Terminology terminology,
+      final HierarchyUtils hierarchy)
+      throws Exception {
 
     final Map<String, List<Concept>> resultMap = new HashMap<>();
 
@@ -879,7 +910,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Association> getAssociations(final String conceptCode, final Terminology terminology)
-    throws Exception {
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructQuery("associations", terminology, conceptCode);
@@ -911,8 +942,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the associations
    * @throws Exception the exception
    */
-  public Map<String, List<Association>> getAssociations(final List<String> conceptCodes,
-    final Terminology terminology) throws Exception {
+  public Map<String, List<Association>> getAssociations(
+      final List<String> conceptCodes, final Terminology terminology) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructBatchQuery("associations.batch", terminology, conceptCodes);
@@ -939,7 +970,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       association.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
       resultMap.get(conceptCode).add(association);
-
     }
 
     return resultMap;
@@ -947,8 +977,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public Map<String, List<Association>> getAssociationsForAllCodes(final Terminology terminology,
-    final boolean inverse) throws Exception {
+  public Map<String, List<Association>> getAssociationsForAllCodes(
+      final Terminology terminology, final boolean inverse) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructBatchQuery("associations.all", terminology, new ArrayList<>());
@@ -982,7 +1012,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         association.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
       }
       resultMap.get(conceptCode).add(association);
-
     }
 
     return resultMap;
@@ -990,8 +1019,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<Association> getInverseAssociations(final String conceptCode,
-    final Terminology terminology) throws Exception {
+  public List<Association> getInverseAssociations(
+      final String conceptCode, final Terminology terminology) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructQuery("inverse.associations", terminology, conceptCode);
@@ -1024,11 +1053,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws Exception the exception
    */
   /* see superclass */
-  public Map<String, List<Association>> getInverseAssociations(final List<String> conceptCodes,
-    final Terminology terminology) throws Exception {
+  public Map<String, List<Association>> getInverseAssociations(
+      final List<String> conceptCodes, final Terminology terminology) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
-    final String query = queryBuilderService.constructBatchQuery("inverse.associations.batch",
-        terminology, conceptCodes);
+    final String query =
+        queryBuilderService.constructBatchQuery(
+            "inverse.associations.batch", terminology, conceptCodes);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     final ObjectMapper mapper = new ObjectMapper();
@@ -1059,7 +1089,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Role> getInverseRoles(final String conceptCode, final Terminology terminology)
-    throws Exception {
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructQuery("inverse.roles", terminology, conceptCode);
@@ -1101,8 +1131,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws Exception the exception
    */
   /* see superclass */
-  public Map<String, List<Role>> getInverseRoles(final List<String> conceptCodes,
-    final Terminology terminology) throws Exception {
+  public Map<String, List<Role>> getInverseRoles(
+      final List<String> conceptCodes, final Terminology terminology) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructBatchQuery("inverse.roles.batch", terminology, conceptCodes);
@@ -1143,7 +1173,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Role> getRoles(final String conceptCode, final Terminology terminology)
-    throws Exception {
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("roles", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
@@ -1181,8 +1211,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the roles
    * @throws Exception the exception
    */
-  public Map<String, List<Role>> getRoles(final List<String> conceptCodes,
-    final Terminology terminology) throws Exception {
+  public Map<String, List<Role>> getRoles(
+      final List<String> conceptCodes, final Terminology terminology) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructBatchQuery("roles.batch", terminology, conceptCodes);
@@ -1222,8 +1252,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public Map<String, List<Role>> getRolesForAllCodes(final Terminology terminology,
-    boolean inverseFlag) throws Exception {
+  public Map<String, List<Role>> getRolesForAllCodes(
+      final Terminology terminology, boolean inverseFlag) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructBatchQuery("roles.all", terminology, new ArrayList<>());
@@ -1276,11 +1306,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public Map<String, List<Role>> getComplexRolesForAllCodes(final Terminology terminology,
-    boolean inverseFlag) throws Exception {
+  public Map<String, List<Role>> getComplexRolesForAllCodes(
+      final Terminology terminology, boolean inverseFlag) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
-    final String query = queryBuilderService.constructBatchQuery("roles.all.complex", terminology,
-        new ArrayList<>());
+    final String query =
+        queryBuilderService.constructBatchQuery(
+            "roles.all.complex", terminology, new ArrayList<>());
 
     // escape hatch for terminologies without complex roles
     if (query.equals("SKIP")) {
@@ -1335,7 +1366,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<DisjointWith> getDisjointWith(final String conceptCode, final Terminology terminology)
-    throws Exception {
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructQuery("disjoint.with", terminology, conceptCode);
@@ -1366,8 +1397,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the disjoint with
    * @throws Exception the exception
    */
-  public Map<String, List<DisjointWith>> getDisjointWith(final List<String> conceptCodes,
-    final Terminology terminology) throws Exception {
+  public Map<String, List<DisjointWith>> getDisjointWith(
+      final List<String> conceptCodes, final Terminology terminology) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructBatchQuery("disjoint.with.batch", terminology, conceptCodes);
@@ -1401,8 +1432,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<Axiom> getAxioms(final String conceptCode, final Terminology terminology,
-    final boolean qualifierFlag) throws Exception {
+  public List<Axiom> getAxioms(
+      final String conceptCode, final Terminology terminology, final boolean qualifierFlag)
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("axioms", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
@@ -1447,8 +1479,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the axioms
    * @throws Exception the exception
    */
-  private Map<String, List<Axiom>> getAxioms(final List<String> conceptCodes,
-    final Terminology terminology, final boolean qualifierFlag) throws Exception {
+  private Map<String, List<Axiom>> getAxioms(
+      final List<String> conceptCodes, final Terminology terminology, final boolean qualifierFlag)
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructBatchQuery("axioms.batch", terminology, conceptCodes);
@@ -1461,7 +1494,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     if (bindings.length == 0) {
-      return Collections.<String, List<Axiom>> emptyMap();
+      return Collections.<String, List<Axiom>>emptyMap();
     }
 
     String conceptCode = "";
@@ -1508,7 +1541,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         // log.debug(" ADD Axiom = " + axiom);
         resultMap.get(realCode).add(axiom);
       }
-
     }
     return resultMap;
   }
@@ -1524,9 +1556,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @param terminology the terminology
    * @throws Exception the exception
    */
-  private void setAxiomProperty(final String propertyCode, final String propertyUri,
-    final String value, final boolean qualifierFlag, final Axiom axiomObject,
-    final Terminology terminology) throws Exception {
+  private void setAxiomProperty(
+      final String propertyCode,
+      final String propertyUri,
+      final String value,
+      final boolean qualifierFlag,
+      final Axiom axiomObject,
+      final Terminology terminology)
+      throws Exception {
 
     // Look at the qualified code form of the property for the switch
     // log.info("PROPERTY CODE: {}", propertyCode);
@@ -1565,8 +1602,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           axiomObject.setTargetTermType(labelValue);
         } else if (propertyCode.equals(terminology.getMetadata().getMapTargetTerminology())) {
           axiomObject.setTargetTerminology(labelValue);
-        } else if (propertyCode
-            .equals(terminology.getMetadata().getMapTargetTerminologyVersion())) {
+        } else if (propertyCode.equals(
+            terminology.getMetadata().getMapTargetTerminologyVersion())) {
           axiomObject.setTargetTerminologyVersion(labelValue);
         } else if (propertyCode.equals(terminology.getMetadata().getDefinitionSource())) {
           axiomObject.setDefSource(labelValue);
@@ -1585,9 +1622,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         } else if (qualifierFlag) {
           // Here check the qualified form as well as the URI
 
-          final String name = EVSUtils.getQualifierName(
-              sparqlQueryCacheService.getAllQualifiers(terminology, new IncludeParam("minimal"), restUtils, this), propertyCode,
-              propertyUri);
+          final String name =
+              EVSUtils.getQualifierName(
+                  sparqlQueryCacheService.getAllQualifiers(
+                      terminology, new IncludeParam("minimal"), restUtils, this),
+                  propertyCode,
+                  propertyUri);
           if (name != null) {
             axiomObject.getQualifiers().add(new Qualifier(name, labelValue));
           }
@@ -1611,21 +1651,28 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @throws Exception the exception
    */
   @Override
-  public Map<String, Paths> getMainTypeHierarchy(final Terminology terminology,
-    final Set<String> mainTypeSet, final Set<String> broadCategorySet,
-    final HierarchyUtils hierarchy) throws Exception {
+  public Map<String, Paths> getMainTypeHierarchy(
+      final Terminology terminology,
+      final Set<String> mainTypeSet,
+      final Set<String> broadCategorySet,
+      final HierarchyUtils hierarchy)
+      throws Exception {
 
     final Set<String> combined = Sets.union(mainTypeSet, broadCategorySet);
     // For each mainTypeSet concept find "shortest paths" to root
     final Map<String, Paths> map = new HashMap<>();
-    for (final Map.Entry<String, Paths> entry : hierarchy
-        .getPathsMap(terminology, new ArrayList<>(combined)).entrySet()) {
+    for (final Map.Entry<String, Paths> entry :
+        hierarchy.getPathsMap(terminology, new ArrayList<>(combined)).entrySet()) {
       final String code = entry.getKey();
       final Paths paths = entry.getValue();
 
       // Determine if paths go through C2991 "Diseases and Disorders"
-      final boolean diseaseFlag = paths.getPaths().stream().flatMap(p -> p.getConcepts().stream())
-          .filter(c -> c.getCode().equals("C2991")).count() > 0;
+      final boolean diseaseFlag =
+          paths.getPaths().stream()
+                  .flatMap(p -> p.getConcepts().stream())
+                  .filter(c -> c.getCode().equals("C2991"))
+                  .count()
+              > 0;
       if (!diseaseFlag) {
         log.debug("  SKIP Main type hierarchy = " + code);
         // Leave the return value empty for this code
@@ -1640,8 +1687,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // }
       // Rewrite paths
       final Paths rewritePaths = new Paths();
-      rewritePaths.setPaths(paths.getPaths().stream().map(p -> p.rewritePath(combined, true))
-          .collect(Collectors.toList()));
+      rewritePaths.setPaths(
+          paths.getPaths().stream()
+              .map(p -> p.rewritePath(combined, true))
+              .collect(Collectors.toList()));
       // for (final Path path : rewritePaths.getPaths()) {
       // log.debug(" rewrite = "
       // + path.getConcepts().stream().map(c ->
@@ -1650,17 +1699,23 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       // Remove all but the longest paths
       final Paths longestPaths = new Paths();
-      final int longest = rewritePaths.getPaths().stream().map(p -> p.getConcepts().size())
-          .max(Integer::compare).get();
+      final int longest =
+          rewritePaths.getPaths().stream()
+              .map(p -> p.getConcepts().size())
+              .max(Integer::compare)
+              .get();
       // log.debug(" longest = " + longest);
       final Set<String> seen = new HashSet<>();
       longestPaths.setPaths(
-          rewritePaths.getPaths().stream().filter(p -> !seen.contains(p.getConcepts().toString()))
+          rewritePaths.getPaths().stream()
+              .filter(p -> !seen.contains(p.getConcepts().toString()))
               .filter(p -> p.getConcepts().size() == longest)
-              .peek(p -> seen.add(p.getConcepts().toString())).collect(Collectors.toList()));
+              .peek(p -> seen.add(p.getConcepts().toString()))
+              .collect(Collectors.toList()));
       for (final Path path : longestPaths.getPaths()) {
-        log.debug("    longest = "
-            + path.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
+        log.debug(
+            "    longest = "
+                + path.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
       }
       // Save the pre-trimmed paths, this is the full hierarchy
       // Copy longest paths because the next section is going to trim them.
@@ -1673,13 +1728,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
         // If the path contains main type concepts, remove broad category
         // concepts
-        if (path.getConcepts().stream().filter(c -> mainTypeSet.contains(c.getCode()))
-            .count() > 0) {
+        if (path.getConcepts().stream().filter(c -> mainTypeSet.contains(c.getCode())).count()
+            > 0) {
           path.getConcepts().removeIf(c -> broadCategorySet.contains(c.getCode()));
         }
         // If there is more than one broad category concept, keep only the first
-        if (path.getConcepts().stream().filter(c -> broadCategorySet.contains(c.getCode()))
-            .count() > 1) {
+        if (path.getConcepts().stream().filter(c -> broadCategorySet.contains(c.getCode())).count()
+            > 1) {
           path.getConcepts()
               .removeIf(c -> !c.getCode().equals(path.getConcepts().get(0).getCode()));
         }
@@ -1688,7 +1743,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
       for (final Path path : trimmedPaths.getPaths()) {
         log.debug(
-            "    trimmed = " + map.get(code + "-FULL").getPaths().get(0).getConcepts().size() + ", "
+            "    trimmed = "
+                + map.get(code + "-FULL").getPaths().get(0).getConcepts().size()
+                + ", "
                 + path.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
       }
 
@@ -1702,7 +1759,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Concept> getAllProperties(final Terminology terminology, final IncludeParam ip)
-    throws Exception {
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("all.properties", terminology);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
@@ -1757,13 +1814,18 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (final Property property : properties) {
 
       // Send URI or code
-      final Concept concept = getProperty(
-          property.getUri() != null ? property.getUri() : property.getCode(), terminology, ip);
+      final Concept concept =
+          getProperty(
+              property.getUri() != null ? property.getUri() : property.getCode(), terminology, ip);
       if (md.isRemodeledProperty(property.getCode()) || md.isRemodeledProperty(property.getUri())) {
         concept.getProperties().add(new Property("remodeled", "true"));
         if (property.getCode() != null) {
-          concept.getProperties().add(new Property("remodeledDescription",
-              "Remodeled as " + md.getRemodeledAsType(property, null, md)));
+          concept
+              .getProperties()
+              .add(
+                  new Property(
+                      "remodeledDescription",
+                      "Remodeled as " + md.getRemodeledAsType(property, null, md)));
         }
       }
       concepts.add(concept);
@@ -1775,7 +1837,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Concept> getRemodeledProperties(final Terminology terminology, final IncludeParam ip)
-    throws Exception {
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("all.properties", terminology);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
@@ -1804,8 +1866,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (md.isRemodeledProperty(property.getCode()) || md.isRemodeledProperty(property.getUri())) {
 
         // Send URI or code
-        final Concept concept = getProperty(
-            property.getUri() != null ? property.getUri() : property.getCode(), terminology, ip);
+        final Concept concept =
+            getProperty(
+                property.getUri() != null ? property.getUri() : property.getCode(),
+                terminology,
+                ip);
         concepts.add(concept);
       }
     }
@@ -1816,7 +1881,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Concept> getNeverUsedProperties(final Terminology terminology, final IncludeParam ip)
-    throws Exception {
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructQuery("all.properties.never.used", terminology);
@@ -1855,14 +1920,17 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (final Property property : properties) {
       // Exclude properties that are redefined as synonyms or definitions
       // any qualifiers, and also properties defined in the OWL but never used
-      if (md.isRemodeledProperty(property.getCode()) || md.isRemodeledProperty(property.getUri())
-          || qualifiers.contains(property.getCode()) || qualifiers.contains(property.getUri())) {
+      if (md.isRemodeledProperty(property.getCode())
+          || md.isRemodeledProperty(property.getUri())
+          || qualifiers.contains(property.getCode())
+          || qualifiers.contains(property.getUri())) {
         continue;
       }
 
       // Send URI or code
-      final Concept concept = getProperty(
-          property.getUri() != null ? property.getUri() : property.getCode(), terminology, ip);
+      final Concept concept =
+          getProperty(
+              property.getUri() != null ? property.getUri() : property.getCode(), terminology, ip);
       concepts.add(concept);
     }
 
@@ -1871,8 +1939,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<String> getDistinctPropertyValues(final Terminology terminology,
-    final String propertyCode) throws Exception {
+  public List<String> getDistinctPropertyValues(
+      final Terminology terminology, final String propertyCode) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final Map<String, String> values =
         ConceptUtils.asMap("propertyCode", propertyCode, "namedGraph", terminology.getGraph());
@@ -1897,7 +1965,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Concept> getRemodeledQualifiers(final Terminology terminology, final IncludeParam ip)
-    throws Exception {
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("all.qualifiers", terminology);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
@@ -1922,11 +1990,15 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (final Qualifier qualifier : qualifiers) {
       // Exclude properties that are redefined as synonyms or definitions
       if (md.isRemodeledQualifier(qualifier.getCode())
-          || md.isRemodeledQualifier(qualifier.getUri()) || md.isUnpublished(qualifier.getCode())
+          || md.isRemodeledQualifier(qualifier.getUri())
+          || md.isUnpublished(qualifier.getCode())
           || md.isUnpublished(qualifier.getUri())) {
         // Send URI or code
-        final Concept concept = getQualifier(
-            qualifier.getUri() != null ? qualifier.getUri() : qualifier.getCode(), terminology, ip);
+        final Concept concept =
+            getQualifier(
+                qualifier.getUri() != null ? qualifier.getUri() : qualifier.getCode(),
+                terminology,
+                ip);
         concepts.add(concept);
       }
     }
@@ -1937,7 +2009,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<String> getQualifierValues(final String propertyCode, final Terminology terminology)
-    throws Exception {
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final Map<String, String> values =
         ConceptUtils.asMap("propertyCode", propertyCode, "namedGraph", terminology.getGraph());
@@ -1966,14 +2038,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the subset members
    * @throws Exception the exception
    */
-
   @Override
   public List<Concept> getSubsetMembers(final String subsetCode, final Terminology terminology)
-    throws Exception {
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
-    final Map<String, String> values = ConceptUtils.asMap("codeCode",
-        terminology.getMetadata().getCode(), "conceptCode", subsetCode, "namedGraph",
-        terminology.getGraph(), "preferredNameCode", terminology.getMetadata().getPreferredName());
+    final Map<String, String> values =
+        ConceptUtils.asMap(
+            "codeCode",
+            terminology.getMetadata().getCode(),
+            "conceptCode",
+            subsetCode,
+            "namedGraph",
+            terminology.getGraph(),
+            "preferredNameCode",
+            terminology.getMetadata().getPreferredName());
     final String query = queryBuilderService.constructQuery("subset", terminology, values);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
@@ -1995,7 +2073,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Concept> getAllAssociations(final Terminology terminology, final IncludeParam ip)
-    throws Exception {
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("all.associations", terminology);
 
@@ -2020,9 +2098,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (final Association association : associations) {
 
       // Send URI or code
-      final Concept concept = getAssociation(
-          association.getUri() != null ? association.getUri() : association.getCode(), terminology,
-          ip);
+      final Concept concept =
+          getAssociation(
+              association.getUri() != null ? association.getUri() : association.getCode(),
+              terminology,
+              ip);
       concepts.add(concept);
     }
 
@@ -2032,7 +2112,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Concept> getAllRoles(final Terminology terminology, final IncludeParam ip)
-    throws Exception {
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("all.roles", terminology);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
@@ -2059,7 +2139,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final Concept concept =
           getRole(role.getUri() != null ? role.getUri() : role.getCode(), terminology, ip);
       concepts.add(concept);
-
     }
 
     return concepts;
@@ -2068,7 +2147,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Concept> getAllSynonymTypes(final Terminology terminology, final IncludeParam ip)
-    throws Exception {
+      throws Exception {
 
     final List<Concept> properties = this.getRemodeledProperties(terminology, ip);
     final List<Concept> concepts = new ArrayList<>();
@@ -2084,7 +2163,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Concept> getAllDefinitionTypes(final Terminology terminology, final IncludeParam ip)
-    throws Exception {
+      throws Exception {
 
     final List<Concept> properties = this.getRemodeledProperties(terminology, ip);
     final List<Concept> concepts = new ArrayList<>();
@@ -2106,28 +2185,35 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<HierarchyNode> getChildNodes(final String parent, final Terminology terminology)
-    throws Exception {
-    return sparqlQueryCacheService.getHierarchyUtils(terminology, restUtils, this).getChildNodes(parent, 0);
+      throws Exception {
+    return sparqlQueryCacheService
+        .getHierarchyUtils(terminology, restUtils, this)
+        .getChildNodes(parent, 0);
   }
 
   /* see superclass */
   @Override
-  public List<HierarchyNode> getChildNodes(final String parent, final int maxLevel,
-    final Terminology terminology) throws Exception {
-    return sparqlQueryCacheService.getHierarchyUtils(terminology, restUtils, this).getChildNodes(parent, maxLevel);
+  public List<HierarchyNode> getChildNodes(
+      final String parent, final int maxLevel, final Terminology terminology) throws Exception {
+    return sparqlQueryCacheService
+        .getHierarchyUtils(terminology, restUtils, this)
+        .getChildNodes(parent, maxLevel);
   }
 
   /* see superclass */
   @Override
   public List<String> getAllChildNodes(final String parent, final Terminology terminology)
-    throws Exception {
-    return sparqlQueryCacheService.getHierarchyUtils(terminology, restUtils, this).getAllChildNodes(parent);
+      throws Exception {
+    return sparqlQueryCacheService
+        .getHierarchyUtils(terminology, restUtils, this)
+        .getAllChildNodes(parent);
   }
 
   /* see superclass */
   @Override
-  public void checkPathInHierarchy(final String code, final HierarchyNode node, final Path path,
-    final Terminology terminology) throws Exception {
+  public void checkPathInHierarchy(
+      final String code, final HierarchyNode node, final Path path, final Terminology terminology)
+      throws Exception {
 
     // check for empty path
     if (path.getConcepts().size() == 0) {
@@ -2169,15 +2255,17 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     else {
       node.setChildren(null); // we don't care about its children
     }
-
   }
 
   /* see superclass */
   @Override
   public List<HierarchyNode> getPathInHierarchy(final String code, final Terminology terminology)
-    throws Exception {
+      throws Exception {
     final List<HierarchyNode> rootNodes = elasticQueryService.getRootNodesHierarchy(terminology);
-    final Paths paths = sparqlQueryCacheService.getHierarchyUtils(terminology, restUtils, this).getPaths(terminology, code);
+    final Paths paths =
+        sparqlQueryCacheService
+            .getHierarchyUtils(terminology, restUtils, this)
+            .getPaths(terminology, code);
 
     for (final HierarchyNode rootNode : rootNodes) {
       for (final Path path : paths.getPaths()) {
@@ -2197,11 +2285,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       return new ArrayList<>(0);
     }
 
-    final String query = queryBuilderService.constructQuery("axiom.qualifier.values", terminology,
-        ConceptUtils.asMap("namedGraph", terminology.getGraph(), "propertyCode",
-            terminology.getMetadata().getSynonymSource(), "conceptStatusCode",
-            terminology.getMetadata().getConceptStatus(), "retiredStatusValue",
-            terminology.getMetadata().getRetiredStatusValue()));
+    final String query =
+        queryBuilderService.constructQuery(
+            "axiom.qualifier.values",
+            terminology,
+            ConceptUtils.asMap(
+                "namedGraph",
+                terminology.getGraph(),
+                "propertyCode",
+                terminology.getMetadata().getSynonymSource(),
+                "conceptStatusCode",
+                terminology.getMetadata().getConceptStatus(),
+                "retiredStatusValue",
+                terminology.getMetadata().getRetiredStatusValue()));
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     final ObjectMapper mapper = new ObjectMapper();
@@ -2218,8 +2314,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         concept.setName(map.get(concept.getCode()));
       } else if (concept.getCode().contains(" ")
           && map.containsKey(concept.getCode().substring(0, concept.getCode().indexOf(" ")))) {
-        concept.setName(map.get(concept.getCode().substring(0, concept.getCode().indexOf(" ")))
-            + ", version " + concept.getCode().substring(concept.getCode().indexOf(" ") + 1));
+        concept.setName(
+            map.get(concept.getCode().substring(0, concept.getCode().indexOf(" ")))
+                + ", version "
+                + concept.getCode().substring(concept.getCode().indexOf(" ") + 1));
       }
 
       sources.add(concept);
@@ -2232,14 +2330,23 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public List<ConceptMinimal> getTermTypes(final Terminology terminology) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
-    final String query = queryBuilderService.constructQuery("axiom.qualifier.values", terminology,
-        ConceptUtils.asMap("namedGraph", terminology.getGraph(), "conceptCode",
-            // Temporary legacy patch for termType/Type
-            // Can be removed after 1.6.0 is deployed
-            terminology.getMetadata().getSynonymTermType() != null
-                ? terminology.getMetadata().getSynonymTermType() : "P383",
-            "conceptStatusCode", terminology.getMetadata().getConceptStatus(), "retiredStatusValue",
-            terminology.getMetadata().getRetiredStatusValue()));
+    final String query =
+        queryBuilderService.constructQuery(
+            "axiom.qualifier.values",
+            terminology,
+            ConceptUtils.asMap(
+                "namedGraph",
+                terminology.getGraph(),
+                "conceptCode",
+                // Temporary legacy patch for termType/Type
+                // Can be removed after 1.6.0 is deployed
+                terminology.getMetadata().getSynonymTermType() != null
+                    ? terminology.getMetadata().getSynonymTermType()
+                    : "P383",
+                "conceptStatusCode",
+                terminology.getMetadata().getConceptStatus(),
+                "retiredStatusValue",
+                terminology.getMetadata().getRetiredStatusValue()));
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     final ObjectMapper mapper = new ObjectMapper();
@@ -2274,11 +2381,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
-    final String query = queryBuilderService.constructQuery("axiom.qualifier.values", terminology,
-        ConceptUtils.asMap("namedGraph", terminology.getGraph(), "propertyCode",
-            terminology.getMetadata().getDefinitionSource(), "conceptStatusCode",
-            terminology.getMetadata().getConceptStatus(), "retiredStatusValue",
-            terminology.getMetadata().getRetiredStatusValue()));
+    final String query =
+        queryBuilderService.constructQuery(
+            "axiom.qualifier.values",
+            terminology,
+            ConceptUtils.asMap(
+                "namedGraph",
+                terminology.getGraph(),
+                "propertyCode",
+                terminology.getMetadata().getDefinitionSource(),
+                "conceptStatusCode",
+                terminology.getMetadata().getConceptStatus(),
+                "retiredStatusValue",
+                terminology.getMetadata().getRetiredStatusValue()));
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     final ObjectMapper mapper = new ObjectMapper();
@@ -2297,8 +2412,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         concept.setName(map.get(concept.getCode()));
       } else if (concept.getCode().contains(" ")
           && map.containsKey(concept.getCode().substring(0, concept.getCode().indexOf(" ")))) {
-        concept.setName(map.get(concept.getCode().substring(0, concept.getCode().indexOf(" ")))
-            + ", version " + concept.getCode().substring(concept.getCode().indexOf(" ") + 1));
+        concept.setName(
+            map.get(concept.getCode().substring(0, concept.getCode().indexOf(" ")))
+                + ", version "
+                + concept.getCode().substring(concept.getCode().indexOf(" ") + 1));
       }
       sources.add(concept);
     }
@@ -2351,7 +2468,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Concept> getAllConceptsWithoutCode(final Terminology terminology)
-    throws JsonMappingException, JsonProcessingException {
+      throws JsonMappingException, JsonProcessingException {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     log.debug("query prefix = {}", queryPrefix);
     final String query =
@@ -2411,8 +2528,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the subsets helper
    * @throws Exception the exception
    */
-  private void getSubsetsHelper(final Concept concept, final Terminology terminology,
-    final int level) throws Exception {
+  private void getSubsetsHelper(
+      final Concept concept, final Terminology terminology, final int level) throws Exception {
     final List<Concept> children = new ArrayList<>();
     for (final Concept child : concept.getChildren()) {
       final Concept childFull =
@@ -2437,16 +2554,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       getSubsetsHelper(childFull, terminology, level + 1);
     }
     concept.setChildren(children);
-
   }
 
   /* see superclass */
   @Override
-  public List<AssociationEntry> getAssociationEntries(final Terminology terminology,
-    final Concept association) {
+  public List<AssociationEntry> getAssociationEntries(
+      final Terminology terminology, final Concept association) {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
-    final String query = queryBuilderService.constructQuery("association.entries", terminology,
-        association.getCode());
+    final String query =
+        queryBuilderService.constructQuery(
+            "association.entries", terminology, association.getCode());
     String res = null;
     try {
       res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
@@ -2489,7 +2606,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   public List<Concept> getAllQualifiersCache(Terminology terminology, IncludeParam ip)
-          throws Exception {
+      throws Exception {
     return sparqlQueryCacheService.getAllQualifiers(terminology, ip, restUtils, this);
   }
 

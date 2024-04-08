@@ -488,7 +488,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception
    */
   public List<Concept> getAllConceptsWithoutCode(Terminology terminology)
-    throws IOException, Exception;
+      throws IOException, Exception;
 
   /**
    * Returns the path in hierarchy.
@@ -532,7 +532,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception
    */
   public List<AssociationEntry> getAssociationEntries(Terminology terminology, Concept association)
-    throws Exception;
+      throws Exception;
 
   /**
    * Helper method for calling the get Hierarchy with caching enabled
