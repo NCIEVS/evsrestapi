@@ -2,12 +2,9 @@ http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	IAO_0000115
 http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	IAO_0000119	http://en.wikipedia.org/wiki/Software_development
 http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	IAO_0000600	A planned process resulting in a software product involving the creation of source code.
 http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	rdfs:label	software development
-http://purl.obolibrary.org/obo/APOLLO_SV_00000032	APOLLO_SV_00000032	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~OBI_0000312	APOLLO_SV_00000033
-http://purl.obolibrary.org/obo/APOLLO_SV_00000033	APOLLO_SV_00000033	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~OBI_0000299	APOLLO_SV_00000032
 http://purl.obolibrary.org/obo/APOLLO_SV_00000522	APOLLO_SV_00000522	rdfs:subClassOf/owl:Restriction~BFO_0000051	IAO_0000096
 http://purl.obolibrary.org/obo/APOLLO_SV_00000522	APOLLO_SV_00000522	IAO_0000111	software source code version control repository
 http://purl.obolibrary.org/obo/APOLLO_SV_00000522	APOLLO_SV_00000522	rdfs:comment	Refers to the stuff that lives on GitHub, not to GitHub or the git software on which it is based
-http://purl.obolibrary.org/obo/APOLLO_SV_00000524	APOLLO_SV_00000524	rdfs:subClassOf/owl:Class/owl:intersectionOf/owl:Restriction~OBI_0000299	IAO_0000010
 http://purl.obolibrary.org/obo/APOLLO_SV_00000796	APOLLO_SV_00000796	IAO_0000118	data set creation
 http://purl.obolibrary.org/obo/BFO_0000001	BFO_0000001	BFO_0000179	entity
 http://purl.obolibrary.org/obo/BFO_0000001	BFO_0000001	BFO_0000180	Entity
@@ -18,7 +15,6 @@ http://purl.obolibrary.org/obo/BFO_0000002	BFO_0000002	IAO_0000601	if b is a con
 http://purl.obolibrary.org/obo/BFO_0000002	BFO_0000002	IAO_0000602	(forall (x y) (if (and (Continuant x) (exists (t) (continuantPartOfAt y x t))) (Continuant y))) // axiom label in BFO2 CLIF: [009-002] 
 http://purl.obolibrary.org/obo/IAO_0000001	IAO_0000001	IAO_0000114	http://purl.obolibrary.org/obo/IAO_0000120
 http://purl.obolibrary.org/obo/IAO_0000013	IAO_0000013	rdfs:subClassOf/owl:Restriction~OBI_0000312	IAO_0000444
-http://purl.obolibrary.org/obo/IAO_0000015	IAO_0000015	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~RO_0000059	IAO_0000030
 http://purl.obolibrary.org/obo/IAO_0000030	IAO_0000030	rdfs:subClassOf/owl:Restriction~IAO_0000136	BFO_0000001
 http://purl.obolibrary.org/obo/IAO_0000311	IAO_0000311	IAO_0000233	https://github.com/information-artifact-ontology/IAO/issues/232
 http://purl.obolibrary.org/obo/IAO_0000314	IAO_0000314	rdfs:subClassOf/owl:Restriction~BFO_0000050	IAO_0000310
@@ -30,8 +26,6 @@ http://purl.obolibrary.org/obo/IAO_0000443	IAO_0000443	rdfs:subClassOf/owl:Restr
 http://purl.obolibrary.org/obo/IAO_0000443	IAO_0000443	rdfs:subClassOf/owl:Restriction~OBI_0000299	IAO_0000027
 http://purl.obolibrary.org/obo/IAO_0000444	IAO_0000444	IAO_0000234	VEuPathDB
 http://purl.obolibrary.org/obo/IAO_0000574	IAO_0000574	rdfs:subClassOf/owl:Restriction~RO_0000057	IAO_0000579
-http://purl.obolibrary.org/obo/IAO_0000582	IAO_0000582	rdfs:subClassOf/owl:Class/owl:intersectionOf/owl:Restriction~IAO_0000581	IAO_0000416
-http://purl.obolibrary.org/obo/IAO_0000582	IAO_0000582	rdfs:subClassOf/owl:Class/owl:intersectionOf/owl:Restriction~IAO_0000583	IAO_0000109
 http://purl.obolibrary.org/obo/IAO_0000650	IAO_0000650	foaf:page	https://en.wikipedia.org/wiki/Extract,_transform,_load
 http://purl.obolibrary.org/obo/IAO_0020000	IAO_0020000	IAO_0000412	http://purl.obolibrary.org/obo/iao/pno.owl
 http://purl.obolibrary.org/obo/DUO_0000001	DUO_0000001	oboInOwl:id	DUO:0000001
@@ -44,11 +38,6 @@ http://purl.obolibrary.org/obo/MONDO_0000001	MONDO_0000001	oboInOwl:hasExactSyno
 http://purl.obolibrary.org/obo/MONDO_0000001	MONDO_0000001	skos:exactMatch	http://identifiers.org/mesh/D004194
 http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	parent-style1	OBI_0000011
 http://purl.obolibrary.org/obo/APOLLO_SV_00000008	OBI_0000011	child-style1	APOLLO_SV_00000008
-http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	parent-style2	OBI_0000011
-http://purl.obolibrary.org/obo/APOLLO_SV_00000008	OBI_0000011	child-style2	APOLLO_SV_00000008
 http://purl.obolibrary.org/obo/IAO_0000314	IAO_0000314	max-children	39
-http://purl.obolibrary.org/obo/APOLLO_SV_00000522	APOLLO_SV_00000522	parent-count1
-http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	parent-count2
-http://purl.obolibrary.org/obo/IAO_0000409	IAO_0000409	parent-count4
-http://purl.obolibrary.org/obo/IAO_0000225	IAO_0000225	parent-count6
-http://purl.obolibrary.org/obo/IAO_0000078	IAO_0000078	parent-count10
+http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	parent-count1
+http://purl.obolibrary.org/obo/IAO_0000013	IAO_0000013	parent-count2
