@@ -108,8 +108,10 @@ if [[ $download -eq 1 ]]; then
 	fi
 	mkdir $DOWNLOAD_DIR/NCIM
     
+    #url=https://wci1.s3.amazonaws.com/NCI/Metathesaurus.RRF.zip
     url=https://evs.nci.nih.gov/ftp1/NCI_Metathesaurus/Metathesaurus.RRF.zip
-	echo "  Download latest NCI Metathesaurus"
+
+    echo "  Download latest NCI Metathesaurus"
     echo "    url = $url"
     curl -o $DOWNLOAD_DIR/Metathesaurus.RRF.zip $url
 	if [[ $? -ne 0 ]]; then
