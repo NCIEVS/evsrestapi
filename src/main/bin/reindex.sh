@@ -8,7 +8,6 @@
 config=1
 force=0
 historyFileOverride=
-metadata_config_url=${CONFIG_BASE_URI:-"https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata"}
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
   --force) force=1;;
@@ -85,6 +84,8 @@ elif [[ $ES_CLEAN == "true" ]]; then
     echo "  force = 1 (ES_CLEAN=true)"
     force=1
 fi
+
+metadata_config_url=${CONFIG_BASE_URI:-"https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata"}
 
 curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
     "http://${STARDOG_HOST}:${STARDOG_PORT}/admin/databases" |\
