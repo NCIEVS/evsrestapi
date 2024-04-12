@@ -528,7 +528,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   public Terminology getTerminology(ApplicationContext app, ElasticLoadConfig config,
     String filepath, String terminology, boolean forceDelete) throws Exception {
     TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
-    final Terminology term = termUtils.getTerminology(config.getTerminology(), false);
+    // temp hack until generalized
+    if (terminology.contains("iao")) {
+      terminology = "duo_2021-02-23";
+    }
+    final Terminology term = termUtils.getTerminology(
+        terminology.contains("duo") ? "duo_2021-02-23" : config.getTerminology(), false);
+    // temp hack until generalized
 
     // Attempt to read the config, if anything goes wrong
     // the config file is probably not there

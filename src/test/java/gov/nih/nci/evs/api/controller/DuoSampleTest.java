@@ -102,14 +102,14 @@ public class DuoSampleTest extends SampleTest {
     Concept concept = null;
 
     // Test active
-    url = "/api/v1/concept/duo/DUO:0000001";
+    url = "/api/v1/concept/duo/DUO_0000001";
     log.info("Testing url - " + url);
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("DUO:0000001");
+    assertThat(concept.getCode()).isEqualTo("DUO_0000001");
     assertThat(concept.getTerminology()).isEqualTo("duo");
     assertThat(concept.getActive()).isTrue();
   }

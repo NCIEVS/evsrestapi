@@ -498,7 +498,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         // send in URIs for about clause if available
         propertyMap
             .putAll(getProperties(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
-        disjointWithMap.putAll(getDisjointWith(conceptCodes, terminology));
+        disjointWithMap.putAll(
+            getDisjointWith(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
         log.info("      finish main");
       } catch (final Exception e) {
         log.error("Unexpected error on main", e);
@@ -669,13 +670,15 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (concept.getInverseRoles().size() == 0) {
         concept.setInverseRoles(inverseRoleMap.get(concept.getUri()));
       }
-      // log.info("INVERSE ROLES FOR {}: {}", concept.getUri(),
-      // mapper.writeValueAsString(concept.getInverseRoles()));
       if (complexInverseRoleMap.containsKey(conceptCode)) {
         concept.getInverseRoles().addAll(complexInverseRoleMap.get(conceptCode));
       }
       concept.setMaps(EVSUtils.getMapsTo(terminology, axioms));
       concept.setDisjointWith(disjointWithMap.get(conceptCode));
+      if (concept.getDisjointWith().size() == 0) {
+        // log.info(mapper.writeValueAsString(disjointWithMap.get(concept.getUri())));
+        concept.setDisjointWith(disjointWithMap.get(concept.getUri()));
+      }
       concept.setPaths(hierarchy.getPaths(terminology, conceptCode));
       concept.setDescendants(hierarchy.getDescendants(conceptCode));
       concept.setLeaf(concept.getChildren().isEmpty());
@@ -1385,11 +1388,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       final DisjointWith disjointWith = new DisjointWith();
       disjointWith.setType("disjointWith");
-      disjointWith.setRelatedCode(b.getRelatedConceptCode().getValue());
-      disjointWith.setRelatedName(b.getRelatedConceptLabel().getValue());
+      disjointWith.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
+      if (disjointWith.getRelatedCode().contains("anon-genid")) { // skip complex roles
+        continue;
+      }
+      disjointWith.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
       resultMap.get(conceptCode).add(disjointWith);
     }
-
+    // log.info("RESULT MAP: {}", mapper.writeValueAsString(resultMap));
     return resultMap;
   }
 

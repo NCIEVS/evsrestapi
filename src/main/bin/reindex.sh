@@ -260,6 +260,7 @@ for x in `cat /tmp/y.$$.txt`; do
     uri=`echo $x | cut -d\| -f 3`
     term=$(get_terminology "$uri")
 
+
     # if previous version and current version match, then skip
     # this is a monthly that's in both NCIT2 and CTRP databases
     if [[ $cv == $pv ]] && [[ $term == $pt ]]; then
