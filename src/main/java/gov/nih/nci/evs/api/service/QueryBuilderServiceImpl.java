@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,8 +78,16 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * @return the string
    */
   @Override
-  public String constructGraphQuery(final String queryProp) {
-    return env.getProperty(queryProp);
+  public String constructGraphQuery(final String queryProp, final List<String> ignoreSources) {
+    if (CollectionUtils.isNotEmpty(ignoreSources)) {
+      String strIgnoreSources = ignoreSources.stream().map(s -> "<" + s + ">,").collect(Collectors.joining());
+      strIgnoreSources = strIgnoreSources.substring(0, strIgnoreSources.lastIndexOf(','));
+      String query =
+              getResolvedProperty(queryProp, Map.of("ignoredSources", strIgnoreSources));
+      return query;
+    } else {
+      return env.getProperty(queryProp);
+    }
   }
 
   /**

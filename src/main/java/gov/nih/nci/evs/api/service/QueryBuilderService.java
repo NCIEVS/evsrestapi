@@ -17,7 +17,8 @@ public interface QueryBuilderService {
    * @param queryProp the query prop
    * @return the string
    */
-  public String constructGraphQuery(String queryProp);
+  public String constructGraphQuery(String queryProp, List<String> ignoreSources);
+
 
   /**
    * Construct query.

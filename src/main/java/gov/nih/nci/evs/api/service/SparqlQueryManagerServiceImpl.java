@@ -2,6 +2,8 @@
 package gov.nih.nci.evs.api.service;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,6 +22,8 @@ import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
 
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -137,7 +141,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<String> getAllGraphNames() throws Exception {
     final List<String> graphNames = new ArrayList<>();
     final String queryPrefix = queryBuilderService.constructPrefix(null);
-    final String query = queryBuilderService.constructGraphQuery("all.graph.names");
+    final String query = queryBuilderService.constructGraphQuery("all.graph.names", null);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     log.debug("getAllGraphNames response - " + res);
@@ -160,8 +164,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Terminology> getTerminologies(final String db) throws Exception, ParseException {
+    final List<String> ignoreSources = getIgnoreSourceUrls();
     final String queryPrefix = queryBuilderService.constructPrefix(null);
-    final String query = queryBuilderService.constructGraphQuery("all.graphs.and.versions");
+    final String query = ignoreSources.isEmpty() ?
+            queryBuilderService.constructGraphQuery("all.graphs.and.versions", ignoreSources) :
+            queryBuilderService.constructGraphQuery("all.graphs.and.versions.ignore.sources", ignoreSources);
+
+
     // NOTE: this is not a hardened approach
     final String queryURL = getQueryURL().replace(stardogProperties.getDb(), db);
     final String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
@@ -2565,4 +2574,21 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return entries;
   }
 
+  private List<String> getIgnoreSourceUrls() {
+    String uri = applicationProperties.getConfigBaseUri()+"/ignore-source.txt";
+    if(StringUtils.isNotBlank(uri)) {
+      log.info("Ignore source file URL:{}", uri);
+      try {
+        final URL url = new URL(uri);
+
+        try (final InputStream is = url.openConnection().getInputStream()) {
+          return IOUtils.readLines(is, "UTF-8");
+        }
+      } catch (Throwable t){
+        // Should not fail here if there are no ignore sources. Log and move on.
+        log.warn("Error occurred when getting ignore sources", t);
+      }
+    }
+    return Collections.emptyList();
+  }
 }
