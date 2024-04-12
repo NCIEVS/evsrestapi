@@ -8,6 +8,7 @@
 config=1
 force=0
 historyFileOverride=
+metadata_config_url=${CONFIG_BASE_URI:-"https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata"}
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
   --force) force=1;;
@@ -106,11 +107,11 @@ fi
 exec 3>&1
 
 get_ignored_sources(){
-  if [[ -z $METADATA_CONFIG_URL ]]; then
+  if [[ -z $metadata_config_url ]]; then
     echo "METADATA_CONFIG_URL not set" 1>&3
     echo ""
   else
-    curl -s -g -f "$METADATA_CONFIG_URL" -o /tmp/is.$$.txt
+    curl -s -g -f "$metadata_config_url" -o /tmp/is.$$.txt
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unable to obtain ignore-source.txt. Assuming no source URLs to ignore" 1>&3
     fi
