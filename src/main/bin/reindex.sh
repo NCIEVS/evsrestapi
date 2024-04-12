@@ -8,6 +8,7 @@
 config=1
 force=0
 historyFileOverride=
+metadata_config_url=${CONFIG_BASE_URI:-"https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata"}
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
   --force) force=1;;
@@ -102,30 +103,80 @@ if [[ $ct -eq 0 ]]; then
     exit 1
 fi
 
+# Open a new file descriptor that redirects to stdout:
+exec 3>&1
+
+get_ignored_sources(){
+  if [[ -z $metadata_config_url ]]; then
+    echo "METADATA_CONFIG_URL not set" 1>&3
+    echo ""
+  else
+    curl -s -g -f "$metadata_config_url" -o /tmp/is.$$.txt
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: unable to obtain ignore-source.txt. Assuming no source URLs to ignore" 1>&3
+    fi
+
+    if [ -f "/tmp/is.$$.txt" ]; then
+      echo $(cat "/tmp/is.$$.txt" | awk -vORS=">,<" '{ print $1 }' | sed 's/,<$//' | sed 's/^/</')
+    else
+      echo ""
+    fi
+  fi
+}
+ignored_sources=$(get_ignored_sources)
+echo "Ignored source URLs:${ignored_sources}"
+
 # Prep query to read all version info
 echo "  Lookup terminology, version info in stardog"
+if [ -n "$ignored_sources" ];then
 cat > /tmp/x.$$.txt << EOF
-query=PREFIX owl:<http://www.w3.org/2002/07/owl#> 
-PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
-PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#> 
-PREFIX xsd:<http://www.w3.org/2001/XMLSchema#> 
-PREFIX dc:<http://purl.org/dc/elements/1.1/> 
+query=PREFIX owl:<http://www.w3.org/2002/07/owl#>
+PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>
+PREFIX dc:<http://purl.org/dc/elements/1.1/>
 PREFIX xml:<http://www.w3.org/2001/XMLSchema>
 select distinct ?source ?graphName ?version where {
   graph ?graphName {
     {
       ?source a owl:Ontology .
-      ?source owl:versionInfo ?version
+      ?source owl:versionInfo ?version .
+      FILTER (?source NOT IN ($ignored_sources))
     }
     UNION
     {
       ?source a owl:Ontology .
       ?source owl:versionIRI ?version .
-      FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo }
+      FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo } .
+      FILTER (?source NOT IN ($ignored_sources))
     }
   }
 }
 EOF
+else
+cat > /tmp/x.$$.txt << EOF
+query=PREFIX owl:<http://www.w3.org/2002/07/owl#>
+PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>
+PREFIX dc:<http://purl.org/dc/elements/1.1/>
+PREFIX xml:<http://www.w3.org/2001/XMLSchema>
+select distinct ?source ?graphName ?version where {
+  graph ?graphName {
+    {
+      ?source a owl:Ontology .
+      ?source owl:versionInfo ?version .
+    }
+    UNION
+    {
+      ?source a owl:Ontology .
+      ?source owl:versionIRI ?version .
+      FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo } .
+    }
+  }
+}
+EOF
+fi
 query=`cat /tmp/x.$$.txt`
 
 # Run the query against each of the databases
@@ -149,7 +200,6 @@ for db in `cat /tmp/db.$$.txt`; do
         exit 1
     fi
 done
-
 # Sort by version then reverse by DB (NCIT2 goes before CTRP)
 # this is because we need "monthly" to be indexed from the "monthlyDb"
 # defined in ncit.json
