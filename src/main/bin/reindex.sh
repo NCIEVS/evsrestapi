@@ -111,7 +111,7 @@ get_ignored_sources(){
     echo "METADATA_CONFIG_URL not set" 1>&3
     echo ""
   else
-    curl -s -g -f "$metadata_config_url" -o /tmp/is.$$.txt
+    curl -s -g -f "$metadata_config_url/ignore-source.txt" -o /tmp/is.$$.txt
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unable to obtain ignore-source.txt. Assuming no source URLs to ignore" 1>&3
     fi
