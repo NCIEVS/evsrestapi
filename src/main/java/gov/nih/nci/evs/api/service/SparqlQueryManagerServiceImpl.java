@@ -2470,7 +2470,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<Concept> getAllConceptsWithoutCode(final Terminology terminology)
-      throws JsonMappingException, JsonProcessingException {
+      throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     log.debug("query prefix = {}", queryPrefix);
     final String query =
