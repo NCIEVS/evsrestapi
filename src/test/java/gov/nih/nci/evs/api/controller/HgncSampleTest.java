@@ -46,7 +46,7 @@ public class HgncSampleTest extends SampleTest {
   @BeforeClass
   public static void setupClass() throws Exception {
     Charset encode = StandardCharsets.US_ASCII;
-    loadSamples("hgnc", "src/test/resources/samples/hgnc-samples.txt", encode);
+    loadSamples("hgnc", "src/test/resources/samples/hgnc-samples.txt");
   }
 
   /**

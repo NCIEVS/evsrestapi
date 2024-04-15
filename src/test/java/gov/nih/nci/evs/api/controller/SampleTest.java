@@ -8,7 +8,6 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -58,7 +57,7 @@ public class SampleTest {
    * @return the samples
    * @throws Exception the exception
    */
-  public static void loadSamples(final String terminology, final String sampleFile, Charset encode)
+  public static void loadSamples(final String terminology, final String sampleFile)
       throws Exception {
 
     samples = new HashMap<>();
@@ -66,7 +65,7 @@ public class SampleTest {
     // load tab separated txt file, with their corresponding character encoding, as resource and
     // load into samples
     try (FileInputStream fileInput = new FileInputStream(sampleFile);
-        InputStreamReader inputStreamReader = new InputStreamReader(fileInput, encode);
+        InputStreamReader inputStreamReader = new InputStreamReader(fileInput);
         BufferedReader fileReader = new BufferedReader(inputStreamReader); ) {
       String line;
       while ((line = fileReader.readLine()) != null) {

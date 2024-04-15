@@ -45,7 +45,7 @@ public class GoSampleTest extends SampleTest {
   @BeforeClass
   public static void setupClass() throws Exception {
     Charset encode = StandardCharsets.US_ASCII;
-    loadSamples("go", "src/test/resources/samples/go-samples.txt", encode);
+    loadSamples("go", "src/test/resources/samples/go-samples.txt");
   }
 
   @Test

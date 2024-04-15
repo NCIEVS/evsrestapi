@@ -44,7 +44,7 @@ public class NcimSampleTest extends SampleTest {
   @BeforeClass
   public static void setupClass() throws Exception {
     Charset encode = StandardCharsets.US_ASCII;
-    loadSamples("ncim", "src/test/resources/samples/ncim-samples.txt", encode);
+    loadSamples("ncim", "src/test/resources/samples/ncim-samples.txt");
   }
 
   /**

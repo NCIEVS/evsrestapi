@@ -29,6 +29,6 @@ public class RadlexSampleTest extends SampleTest {
   @BeforeClass
   public static void setupClass() throws Exception {
     Charset encode = StandardCharsets.UTF_8;
-    loadSamples("radlex", "src/test/resources/samples/radlex-samples.txt", encode);
+    loadSamples("radlex", "src/test/resources/samples/radlex-samples.txt");
   }
 }

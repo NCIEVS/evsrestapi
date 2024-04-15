@@ -46,7 +46,7 @@ public class CanmedSampleTest extends SampleTest {
   @BeforeClass
   public static void setupClass() throws Exception {
     Charset encode = StandardCharsets.US_ASCII;
-    loadSamples("canmed", "src/test/resources/samples/canmed-samples.txt", encode);
+    loadSamples("canmed", "src/test/resources/samples/canmed-samples.txt");
   }
 
   /**

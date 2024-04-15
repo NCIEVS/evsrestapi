@@ -46,7 +46,7 @@ public class MedrtSampleTest extends SampleTest {
   @BeforeClass
   public static void setupClass() throws Exception {
     Charset encode = StandardCharsets.US_ASCII;
-    loadSamples("medrt", "src/test/resources/samples/medrt-samples.txt", encode);
+    loadSamples("medrt", "src/test/resources/samples/medrt-samples.txt");
   }
 
   /**

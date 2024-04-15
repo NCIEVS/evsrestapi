@@ -53,7 +53,7 @@ public class MdrSampleTest extends SampleTest {
   @BeforeClass
   public static void setupClass() throws Exception {
     Charset encode = StandardCharsets.US_ASCII;
-    loadSamples("mdr", "src/test/resources/samples/mdr-samples.txt", encode);
+    loadSamples("mdr", "src/test/resources/samples/mdr-samples.txt");
   }
 
   /**

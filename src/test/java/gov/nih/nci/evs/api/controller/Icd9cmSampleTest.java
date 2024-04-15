@@ -41,7 +41,7 @@ public class Icd9cmSampleTest extends SampleTest {
   @BeforeClass
   public static void setupClass() throws Exception {
     Charset encode = StandardCharsets.US_ASCII;
-    loadSamples("icd9cm", "src/test/resources/samples/icd9cm-samples.txt", encode);
+    loadSamples("icd9cm", "src/test/resources/samples/icd9cm-samples.txt");
   }
 
   /**

@@ -41,7 +41,7 @@ public class ChebiSampleTest extends SampleTest {
   @BeforeClass
   public static void setupClass() throws Exception {
     Charset encode = StandardCharsets.US_ASCII;
-    loadSamples("chebi", "src/test/resources/samples/chebi-samples.txt", encode);
+    loadSamples("chebi", "src/test/resources/samples/chebi-samples.txt");
   }
 
   /**

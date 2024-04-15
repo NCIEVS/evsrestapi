@@ -15,7 +15,6 @@ public interface QueryBuilderService {
    */
   public String constructGraphQuery(String queryProp, List<String> ignoreSources);
 
-
   /**
    * Construct query.
    *

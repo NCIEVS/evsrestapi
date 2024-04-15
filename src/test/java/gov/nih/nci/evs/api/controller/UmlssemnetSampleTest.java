@@ -46,7 +46,7 @@ public class UmlssemnetSampleTest extends SampleTest {
   @BeforeClass
   public static void setupClass() throws Exception {
     Charset encode = StandardCharsets.US_ASCII;
-    loadSamples("umlssemnet", "src/test/resources/samples/umlssemnet-samples.txt", encode);
+    loadSamples("umlssemnet", "src/test/resources/samples/umlssemnet-samples.txt");
   }
 
   /**

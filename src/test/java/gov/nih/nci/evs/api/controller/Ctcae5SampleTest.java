@@ -46,7 +46,7 @@ public class Ctcae5SampleTest extends SampleTest {
   @BeforeClass
   public static void setupClass() throws Exception {
     Charset encode = StandardCharsets.US_ASCII;
-    loadSamples("ctcae5", "src/test/resources/samples/ctcae5-samples.txt", encode);
+    loadSamples("ctcae5", "src/test/resources/samples/ctcae5-samples.txt");
   }
 
   /**

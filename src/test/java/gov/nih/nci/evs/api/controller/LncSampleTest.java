@@ -44,7 +44,7 @@ public class LncSampleTest extends SampleTest {
   @BeforeClass
   public static void setupClass() throws Exception {
     Charset encode = StandardCharsets.US_ASCII;
-    loadSamples("lnc", "src/test/resources/samples/lnc-samples.txt", encode);
+    loadSamples("lnc", "src/test/resources/samples/lnc-samples.txt");
   }
 
   /**

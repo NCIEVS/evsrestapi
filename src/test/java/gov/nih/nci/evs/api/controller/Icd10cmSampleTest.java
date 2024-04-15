@@ -41,7 +41,7 @@ public class Icd10cmSampleTest extends SampleTest {
   @BeforeClass
   public static void setupClass() throws Exception {
     Charset encode = StandardCharsets.ISO_8859_1;
-    loadSamples("icd10cm", "src/test/resources/samples/icd10cm-samples.txt", encode);
+    loadSamples("icd10cm", "src/test/resources/samples/icd10cm-samples.txt");
   }
 
   /**

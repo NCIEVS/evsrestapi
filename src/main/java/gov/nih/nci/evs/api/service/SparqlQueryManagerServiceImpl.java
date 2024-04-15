@@ -1,38 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-
-import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
-
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
-
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import gov.nih.nci.evs.api.model.Association;
@@ -61,6 +29,8 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -76,6 +46,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -187,10 +159,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public List<Terminology> getTerminologies(final String db) throws Exception, ParseException {
     final List<String> ignoreSources = getIgnoreSourceUrls();
     final String queryPrefix = queryBuilderService.constructPrefix(null);
-    final String query = ignoreSources.isEmpty() ?
-            queryBuilderService.constructGraphQuery("all.graphs.and.versions", ignoreSources) :
-            queryBuilderService.constructGraphQuery("all.graphs.and.versions.ignore.sources", ignoreSources);
-
+    final String query =
+        ignoreSources.isEmpty()
+            ? queryBuilderService.constructGraphQuery("all.graphs.and.versions", ignoreSources)
+            : queryBuilderService.constructGraphQuery(
+                "all.graphs.and.versions.ignore.sources", ignoreSources);
 
     // NOTE: this is not a hardened approach
     final String queryURL = getQueryURL().replace(stardogProperties.getDb(), db);
@@ -503,8 +476,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final ExecutorService executor = Executors.newFixedThreadPool(4);
     final List<Exception> exceptions = new ArrayList<>();
 
-    final List<String> conceptUris = concepts.stream().filter(c -> c.getUri() != null)
-        .map(c -> c.getUri()).collect(Collectors.toList());
+    final List<String> conceptUris =
+        concepts.stream()
+            .filter(c -> c.getUri() != null)
+            .map(c -> c.getUri())
+            .collect(Collectors.toList());
     final List<String> conceptCodes =
         concepts.stream().map(c -> c.getCode()).collect(Collectors.toList());
     final Map<String, List<Property>> propertyMap = new HashMap<>();
@@ -520,55 +496,60 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Map<String, List<Role>> complexInverseRoleMap = hierarchy.getInverseRoleMap();
     final Map<String, List<DisjointWith>> disjointWithMap = new HashMap<>();
 
-    executor.submit(() -> {
-      try {
-        log.info("      start main");
-        // send in URIs for about clause if available
-        propertyMap
-            .putAll(getProperties(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
-        disjointWithMap.putAll(
-            getDisjointWith(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
-        log.info("      finish main");
-      } catch (final Exception e) {
-        log.error("Unexpected error on main", e);
-        exceptions.add(e);
-      }
-    });
+    executor.submit(
+        () -> {
+          try {
+            log.info("      start main");
+            // send in URIs for about clause if available
+            propertyMap.putAll(
+                getProperties(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
+            disjointWithMap.putAll(
+                getDisjointWith(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
+            log.info("      finish main");
+          } catch (final Exception e) {
+            log.error("Unexpected error on main", e);
+            exceptions.add(e);
+          }
+        });
 
-    executor.submit(() -> {
-      try {
-        log.info("      start roles");
-        roleMap.putAll(getRoles(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
-        log.info("      finish roles");
-      } catch (final Exception e) {
-        log.error("Unexpected error on roles", e);
-        exceptions.add(e);
-      }
-    });
+    executor.submit(
+        () -> {
+          try {
+            log.info("      start roles");
+            roleMap.putAll(
+                getRoles(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
+            log.info("      finish roles");
+          } catch (final Exception e) {
+            log.error("Unexpected error on roles", e);
+            exceptions.add(e);
+          }
+        });
 
-    executor.submit(() -> {
-      try {
-        log.info("      start inverse roles");
-        inverseRoleMap.putAll(
-            getInverseRoles(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
-        log.info("      finish inverse roles");
-      } catch (final Exception e) {
-        log.error("Unexpected error on inverse roles", e);
-        exceptions.add(e);
-      }
-    });
+    executor.submit(
+        () -> {
+          try {
+            log.info("      start inverse roles");
+            inverseRoleMap.putAll(
+                getInverseRoles(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
+            log.info("      finish inverse roles");
+          } catch (final Exception e) {
+            log.error("Unexpected error on inverse roles", e);
+            exceptions.add(e);
+          }
+        });
 
-    executor.submit(() -> {
-      try {
-        log.info("      start axioms");
-        axiomMap.putAll(
-            getAxioms(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology, true));
-        log.info("      finish axioms");
-      } catch (final Exception e) {
-        log.error("Unexpected error on axioms", e);
-        exceptions.add(e);
-      }
-    });
+    executor.submit(
+        () -> {
+          try {
+            log.info("      start axioms");
+            axiomMap.putAll(
+                getAxioms(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology, true));
+            log.info("      finish axioms");
+          } catch (final Exception e) {
+            log.error("Unexpected error on axioms", e);
+            exceptions.add(e);
+          }
+        });
     // Shutdown executor
     executor.shutdown();
 
@@ -617,8 +598,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       List<Axiom> axioms =
           axiomMap.get(conceptCode) == null ? new ArrayList<>(0) : axiomMap.get(conceptCode);
       if (axioms.size() == 0) {
-        axioms = axiomMap.get(concept.getUri()) == null ? new ArrayList<>(0)
-            : axiomMap.get(concept.getUri());
+        axioms =
+            axiomMap.get(concept.getUri()) == null
+                ? new ArrayList<>(0)
+                : axiomMap.get(concept.getUri());
       }
 
       // adding all synonyms
@@ -958,8 +941,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
-      final String conceptCode = b.getConceptCode() != null ? b.getConceptCode().getValue()
-          : b.getRelatedConcept().getValue();
+      final String conceptCode =
+          b.getConceptCode() != null
+              ? b.getConceptCode().getValue()
+              : b.getRelatedConcept().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -1070,8 +1055,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
-      final String conceptCode = b.getConceptCode() != null ? b.getConceptCode().getValue()
-          : b.getRelatedConcept().getValue();
+      final String conceptCode =
+          b.getConceptCode() != null
+              ? b.getConceptCode().getValue()
+              : b.getRelatedConcept().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -1149,8 +1136,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
-      final String conceptCode = b.getConceptCode() != null ? b.getConceptCode().getValue()
-          : b.getRelatedConcept().getValue();
+      final String conceptCode =
+          b.getConceptCode() != null
+              ? b.getConceptCode().getValue()
+              : b.getRelatedConcept().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -1191,8 +1180,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final Role role = new Role();
       role.setCode(EVSUtils.getRelationshipCode(b));
       role.setType(EVSUtils.getRelationshipType(b));
-      role.setRelatedCode(b.getRelatedConceptCode() != null ? b.getRelatedConceptCode().getValue()
-          : b.getRelatedConcept().getValue());
+      role.setRelatedCode(
+          b.getRelatedConceptCode() != null
+              ? b.getRelatedConceptCode().getValue()
+              : b.getRelatedConcept().getValue());
       role.setRelatedName(b.getRelatedConceptLabel().getValue());
       // distinct roles only
       final String key = role.getCode() + role.getRelatedCode();
@@ -1228,8 +1219,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
-      final String conceptCode = b.getConceptCode() != null ? b.getConceptCode().getValue()
-          : b.getRelatedConcept().getValue();
+      final String conceptCode =
+          b.getConceptCode() != null
+              ? b.getConceptCode().getValue()
+              : b.getRelatedConcept().getValue();
 
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
@@ -2469,8 +2462,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<Concept> getAllConceptsWithoutCode(final Terminology terminology)
-      throws Exception {
+  public List<Concept> getAllConceptsWithoutCode(final Terminology terminology) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     log.debug("query prefix = {}", queryPrefix);
     final String query =
@@ -2609,8 +2601,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   }
 
   private List<String> getIgnoreSourceUrls() {
-    String uri = applicationProperties.getConfigBaseUri()+"/ignore-source.txt";
-    if(StringUtils.isNotBlank(uri)) {
+    String uri = applicationProperties.getConfigBaseUri() + "/ignore-source.txt";
+    if (StringUtils.isNotBlank(uri)) {
       log.info("Ignore source file URL:{}", uri);
       try {
         final URL url = new URL(uri);
@@ -2618,7 +2610,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         try (final InputStream is = url.openConnection().getInputStream()) {
           return IOUtils.readLines(is, "UTF-8");
         }
-      } catch (Throwable t){
+      } catch (Throwable t) {
         // Should not fail here if there are no ignore sources. Log and move on.
         log.warn("Error occurred when getting ignore sources", t);
       }

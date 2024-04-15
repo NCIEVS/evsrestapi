@@ -41,7 +41,7 @@ public class SnomedctUsSampleTest extends SampleTest {
   @BeforeClass
   public static void setupClass() throws Exception {
     Charset encode = StandardCharsets.US_ASCII;
-    loadSamples("snomedct_us", "src/test/resources/samples/snomedct_us-samples.txt", encode);
+    loadSamples("snomedct_us", "src/test/resources/samples/snomedct_us-samples.txt");
   }
 
   /**

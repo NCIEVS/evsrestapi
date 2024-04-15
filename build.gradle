@@ -227,5 +227,5 @@ bootJar {
 }
 
 zipFile.dependsOn = [ bootWar, bootJar ]
-build.dependsOn = [ spotlessCheck, test, bootWar, bootJar, zipFile ]
+build.dependsOn = [ spotlessJavaCheck, test, bootWar, bootJar, zipFile ]
 publishToMavenLocal.dependsOn = [ bootWar, bootJar, zipFile ]
