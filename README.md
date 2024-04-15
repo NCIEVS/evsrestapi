@@ -30,6 +30,7 @@ Information on the build and deployment process for the EVSRESTAPI project
   * STARDOG_DB=NCIT2
   * STARDOG_USERNAME=admin
   * STARDOG_PASSWORD=admin
+  * CONFIG_BASE_URI=https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata
 
 * Load the UnitTestData set by running `prep.sh`
   * Make sure that you can run all programs in `bash`, especially if on Mac which defaults to `zsh`
