@@ -113,7 +113,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   @Override
   public int loadConcepts(
       ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
-      throws IOException {
+      throws Exception {
 
     logger.debug(
         "ElasticLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName());
