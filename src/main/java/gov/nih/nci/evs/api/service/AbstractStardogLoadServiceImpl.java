@@ -529,7 +529,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     String filepath, String terminology, boolean forceDelete) throws Exception {
     TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
     final Terminology term = termUtils.getTerminology(config.getTerminology(), false);
-
     // Attempt to read the config, if anything goes wrong
     // the config file is probably not there
     try {

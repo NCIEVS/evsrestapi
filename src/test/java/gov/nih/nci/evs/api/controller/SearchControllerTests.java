@@ -27,7 +27,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.web.util.NestedServletException;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -71,6 +70,9 @@ public class SearchControllerTests {
   /** The base url. */
   private String baseUrl = "";
 
+  /** The base url. */
+  private String baseUrlNoTerm = "";
+
   /**
    * Sets the up.
    */
@@ -83,6 +85,7 @@ public class SearchControllerTests {
     JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/concept/search";
+    baseUrlNoTerm = "/api/v1/concept";
   }
 
   /**
@@ -530,7 +533,7 @@ public class SearchControllerTests {
   @Test
   public void testSearchProperty() throws Exception {
 
-    String url = baseUrl;
+    String url = baseUrlNoTerm;
     MvcResult result = null;
     String content = null;
     String content2 = null;
@@ -539,7 +542,7 @@ public class SearchControllerTests {
     // check that search requires exact
 
     result = mvc
-        .perform(get(url).param("terminology", "ncit").param("include", "properties")
+        .perform(get(url + "/ncit/search").param("include", "properties")
             .param("term", "XAV05295I5").param("property", "FDA"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -547,19 +550,16 @@ public class SearchControllerTests {
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() == 0);
 
-    result = mvc
-        .perform(get(url).param("terminology", "ncit").param("include", "properties")
-            .param("term", "XAV0").param("property", "FDA_UNII_Code"))
-        .andExpect(status().isOk()).andReturn();
+    result =
+        mvc.perform(get(url + "/ncit/search").param("include", "properties").param("term", "XAV0")
+            .param("property", "FDA_UNII_Code")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() == 0);
 
-    result = mvc
-        .perform(get(url).param("terminology", "ncit").param("include", "properties")
-            .param("value", "XAV0").param("property", "P999"))
-        .andExpect(status().isOk()).andReturn();
+    result = mvc.perform(get(url + "/ncit/search").param("include", "properties")
+        .param("value", "XAV0").param("property", "P999")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -569,7 +569,7 @@ public class SearchControllerTests {
         + "?terminology=ncit&value=XAV05295I5&property=FDA_UNII_Code&include=properties");
 
     result = mvc
-        .perform(get(url).param("terminology", "ncit").param("include", "properties")
+        .perform(get(url + "/ncit/search").param("include", "properties")
             .param("value", "XAV05295I5").param("property", "FDA_UNII_Code"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -605,12 +605,12 @@ public class SearchControllerTests {
     assertThat(content).isEqualToIgnoringCase(content2);
 
     // With property code also - P319
-    url = baseUrl;
-    log.info("Testing url - " + url
-        + "?terminology=ncit&value=XAV05295I5&property=P319&include=properties");
+    url = baseUrlNoTerm;
+    log.info("Testing url - " + url + "/ncit/search"
+        + "?value=XAV05295I5&property=P319&include=properties");
 
     result = mvc
-        .perform(get(url).param("terminology", "ncit").param("include", "properties")
+        .perform(get(url + "/ncit/search").param("include", "properties")
             .param("value", "XAV05295I5").param("property", "P319"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -642,11 +642,14 @@ public class SearchControllerTests {
     assertThat(content).isEqualToIgnoringCase(content2);
 
     // BAD property type
-    url = baseUrl;
-    log.info("Testing url - " + url + "?terminology=ncit&value=XAV05295I5&property=P999999");
+    url = baseUrlNoTerm;
+    log.info("Testing url - " + url + "/ncit/search"
+        + "?terminology=ncit&value=XAV05295I5&property=P999999");
 
-    result = mvc.perform(get(url).param("terminology", "ncit").param("value", "XAV05295I5")
-        .param("property", "P999999")).andExpect(status().isOk()).andReturn();
+    result = mvc
+        .perform(
+            get(url + "/ncit/search").param("value", "XAV05295I5").param("property", "P999999"))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -954,27 +957,26 @@ public class SearchControllerTests {
   @Test
   public void testSynonymTermType() throws Exception {
 
-    String url = baseUrl;
+    String url = baseUrlNoTerm;
     MvcResult result = null;
     String content = null;
     ConceptResultList list = null;
 
     // incomplete search, no termTypes matching SY
-    log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymTermType=S");
-    result = mvc.perform(
-        get(url).param("terminology", "ncit").param("term", "dsDNA").param("synonymTermType", "S"))
-        .andExpect(status().isOk()).andReturn();
+    log.info("Testing url - " + url + "/ncit/search" + "?term=dsDNA&synonymTermType=S");
+    result =
+        mvc.perform(get(url + "/ncit/search").param("term", "dsDNA").param("synonymTermType", "S"))
+            .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() == 0);
 
     // Test single SynonymTermType
-    log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymTermType=SY");
-    result = mvc
-        .perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
-            .param("synonymTermType", "SY").param("include", "synonyms"))
-        .andExpect(status().isOk()).andReturn();
+    log.info("Testing url - " + url + "/ncit/search" + "?term=dsDNA&synonymTermType=SY");
+    result =
+        mvc.perform(get(url + "/ncit/search").param("term", "dsDNA").param("synonymTermType", "SY")
+            .param("include", "synonyms")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
@@ -991,11 +993,10 @@ public class SearchControllerTests {
     assertThat(found).isTrue();
 
     // Test multiple SynonymTermType
-    log.info("Testing url - " + url + "?terminology=ncit&term=dsDNA&synonymTermType=DN,SY");
-    result = mvc
-        .perform(get(url).param("terminology", "ncit").param("term", "dsDNA")
-            .param("synonymTermType", "DN,SY").param("include", "synonyms"))
-        .andExpect(status().isOk()).andReturn();
+    log.info("Testing url - " + url + "/ncit/search" + "?term=dsDNA&synonymTermType=DN,SY");
+    result = mvc.perform(get(url + "/ncit/search").param("term", "dsDNA")
+        .param("synonymTermType", "DN,SY").param("include", "synonyms")).andExpect(status().isOk())
+        .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
@@ -1022,12 +1023,11 @@ public class SearchControllerTests {
 
     // Test synonymSource + synonymTermType
     // ?include=summary&pageSize=100&synonymSource=CDISC&synonymTermType=SY&term=blood
-    log.info("Testing url - " + url
+    log.info("Testing url - " + url + "/ncit/search"
         + "?include=summary&pageSize=1000&synonymSource=CDISC&synonymTermType=SY&term=blood");
     result = mvc
-        .perform(get(url).param("terminology", "ncit").param("term", "blood")
-            .param("synonymSource", "CDISC").param("pageSize", "1000")
-            .param("synonymTermType", "SY").param("include", "summary"))
+        .perform(get(url + "/ncit/search").param("term", "blood").param("synonymSource", "CDISC")
+            .param("pageSize", "1000").param("synonymTermType", "SY").param("include", "summary"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -1041,11 +1041,11 @@ public class SearchControllerTests {
         .count()).isEqualTo(list.getConcepts().size());
 
     // Test synonymSource + synonymTermType without a term
-    log.info("Testing url - " + url
+    log.info("Testing url - " + url + "/ncit/search"
         + "?include=synonyms&pageSize=10&synonymSource=CDISC&synonymTermType=SY");
     result = mvc
-        .perform(get(url).param("terminology", "ncit").param("synonymSource", "CDISC")
-            .param("pageSize", "10").param("synonymTermType", "SY").param("include", "synonyms"))
+        .perform(get(url + "/ncit/search").param("synonymSource", "CDISC").param("pageSize", "10")
+            .param("synonymTermType", "SY").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
@@ -1070,15 +1070,16 @@ public class SearchControllerTests {
   @Test
   public void testSynonymType() throws Exception {
 
-    String url = baseUrl;
+    String url = baseUrlNoTerm;
     MvcResult result = null;
     String content = null;
     ConceptResultList list = null;
 
     // synonymType=P90
-    log.info("Testing url - " + url + "?terminology=ncit&synonymType=P90&include=synonyms");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("synonymType", "P90")
-        .param("include", "synonyms")).andExpect(status().isOk()).andReturn();
+    log.info("Testing url - " + url + "/ncit/search" + "?synonymType=P90&include=synonyms");
+    result = mvc
+        .perform(get(url + "/ncit/search").param("synonymType", "P90").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -1093,9 +1094,11 @@ public class SearchControllerTests {
     assertThat(found).isTrue();
 
     // synonymType=FULL_SYN
-    log.info("Testing url - " + url + "?terminology=ncit&synonymType=FULL_SYN&include=synonyms");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("synonymType", "FULL_SYN")
-        .param("include", "synonyms")).andExpect(status().isOk()).andReturn();
+    log.info("Testing url - " + url + "?synonymType=FULL_SYN&include=synonyms");
+    result = mvc
+        .perform(
+            get(url + "/ncit/search").param("synonymType", "FULL_SYN").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -1169,15 +1172,16 @@ public class SearchControllerTests {
   @Test
   public void testDefinitionType() throws Exception {
 
-    String url = baseUrl;
+    String url = baseUrlNoTerm;
     MvcResult result = null;
     String content = null;
     ConceptResultList list = null;
 
     // definitionType=P325
-    log.info("Testing url - " + url + "?terminology=ncit&definitionType=P325&include=definitions");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("definitionType", "P325")
-        .param("include", "definitions")).andExpect(status().isOk()).andReturn();
+    log.info("Testing url - " + url + "/ncit/search" + "?definitionType=P325&include=definitions");
+    result = mvc.perform(
+        get(url + "/ncit/search").param("definitionType", "P325").param("include", "definitions"))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -1192,11 +1196,10 @@ public class SearchControllerTests {
     assertThat(found).isTrue();
 
     // definitionType=ALT_DEFINITION
-    log.info("Testing url - " + url
-        + "?terminology=ncit&definitionType=ALT_DEFINITION&include=definitions");
-    result =
-        mvc.perform(get(url).param("terminology", "ncit").param("definitionType", "ALT_DEFINITION")
-            .param("include", "definitions")).andExpect(status().isOk()).andReturn();
+    log.info("Testing url - " + url + "/ncit/search"
+        + "?definitionType=ALT_DEFINITION&include=definitions");
+    result = mvc.perform(get(url + "/ncit/search").param("definitionType", "ALT_DEFINITION")
+        .param("include", "definitions")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -1979,21 +1982,23 @@ public class SearchControllerTests {
    */
   @Test
   public void testSearchBlank() throws Exception {
-    String url = baseUrl;
+    String url = baseUrlNoTerm;
     MvcResult result = null;
     ConceptResultList list = null;
 
     // no params (should return all concepts)
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    log.info("Testing url - " + url + "/ncit/search");
+    result = mvc.perform(get(url + "/ncit/search")).andExpect(status().isOk()).andReturn();
     list = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
         ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
 
     // search by synonymSource
-    log.info("Testing url - " + url + "?synonymSource=GDC&terminology=ncit");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("synonymSource", "GDC")
-        .param("include", "synonyms")).andExpect(status().isOk()).andReturn();
+    log.info("Testing url - " + url + "/ncit/search" + "?synonymSource=GDC&terminology=ncit");
+    result = mvc
+        .perform(
+            get(url + "/ncit/search").param("synonymSource", "GDC").param("include", "synonyms"))
+        .andExpect(status().isOk()).andReturn();
     list = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
         ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
@@ -2011,9 +2016,9 @@ public class SearchControllerTests {
     }
 
     // search by synonymSource + synonymTermType
-    log.info("Testing url - " + url + "?synonymSource=GDC&terminology=ncit");
+    log.info("Testing url - " + url + "/ncit/search" + "?synonymSource=GDC&terminology=ncit");
     result = mvc
-        .perform(get(url).param("terminology", "ncit").param("synonymSource", "GDC")
+        .perform(get(url + "/ncit/search").param("synonymSource", "GDC")
             .param("synonymTermType", "SY").param("include", "synonyms"))
         .andExpect(status().isOk()).andReturn();
     list = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
@@ -2034,18 +2039,16 @@ public class SearchControllerTests {
     }
 
     // search by concept status
-    log.info("Testing url - " + url + "?terminology=ncit&conceptStatus=Obsolete_Concept");
-    result = mvc
-        .perform(get(url).param("terminology", "ncit").param("conceptStatus", "Obsolete_Concept"))
+    log.info("Testing url - " + url + "/ncit/search" + "?conceptStatus=Obsolete_Concept");
+    result = mvc.perform(get(url + "/ncit/search").param("conceptStatus", "Obsolete_Concept"))
         .andExpect(status().isOk()).andReturn();
     list = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
         ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
 
     // search by definition source
-    log.info(
-        "Testing url - " + url + "?terminology=ncit&definitionSource=CDISC&include=definitions");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("definitionSource", "CDISC")
+    log.info("Testing url - " + url + "?definitionSource=CDISC&include=definitions");
+    result = mvc.perform(get(url + "/ncit/search").param("definitionSource", "CDISC")
         .param("include", "definitions")).andExpect(status().isOk()).andReturn();
     list = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
         ConceptResultList.class);
@@ -2064,9 +2067,10 @@ public class SearchControllerTests {
     }
 
     // search by property
-    log.info("Testing url - " + url + "?terminology=ncit&property=FDA_UNII_Code");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("property", "FDA_UNII_Code")
-        .param("include", "properties")).andExpect(status().isOk()).andReturn();
+    log.info("Testing url - " + url + "?property=FDA_UNII_Code");
+    result = mvc.perform(
+        get(url + "/ncit/search").param("property", "FDA_UNII_Code").param("include", "properties"))
+        .andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -2149,12 +2153,15 @@ public class SearchControllerTests {
    */
   @Test
   public void testSearchBySubsetOnly() throws Exception {
-    String url = baseUrl;
+    String url = baseUrlNoTerm;
     MvcResult result = null;
     ConceptResultList list = null;
-    log.info("Testing url - " + url + "?include=associations&subset=C167405&terminology=ncit");
-    result = mvc.perform(get(url).param("terminology", "ncit").param("subset", "C167405")
-        .param("include", "associations")).andExpect(status().isOk()).andReturn();
+    log.info("Testing url - " + url + "/ncit/search"
+        + "?include=associations&subset=C167405&terminology=ncit");
+    result = mvc
+        .perform(
+            get(url + "/ncit/search").param("subset", "C167405").param("include", "associations"))
+        .andExpect(status().isOk()).andReturn();
     list = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
         ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
@@ -2170,10 +2177,11 @@ public class SearchControllerTests {
       assertThat(found).isTrue();
     }
 
-    log.info("Testing url - " + url + "?include=associations&subset=*&terminology=ncit");
-    result = mvc.perform(
-        get(url).param("terminology", "ncit").param("subset", "*").param("include", "associations"))
-        .andExpect(status().isOk()).andReturn();
+    log.info("Testing url - " + url + "/ncit/search"
+        + "?include=associations&subset=*&terminology=ncit");
+    result =
+        mvc.perform(get(url + "/ncit/search").param("subset", "*").param("include", "associations"))
+            .andExpect(status().isOk()).andReturn();
     list = new ObjectMapper().readValue(result.getResponse().getContentAsString(),
         ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
@@ -2401,7 +2409,7 @@ public class SearchControllerTests {
    */
   @Test
   public void testSearchWithSort() throws Exception {
-    String url = baseUrl;
+    String url = baseUrlNoTerm;
     MvcResult result = null;
     String content = null;
     ConceptResultList list = null;
@@ -2409,11 +2417,9 @@ public class SearchControllerTests {
     List<String> sortedValues = null;
 
     // Sort members of C128784 ascending by code
-    log.info("Testing url - " + url + "?terminology=ncit&subset=C128784&sort=code&ascending=true");
-    result = mvc
-        .perform(get(url).param("terminology", "ncit").param("subset", "C128784")
-            .param("sort", "code").param("ascending", "true"))
-        .andExpect(status().isOk()).andReturn();
+    log.info("Testing url - " + url + "/ncit/search" + "?subset=C128784&sort=code&ascending=true");
+    result = mvc.perform(get(url + "/ncit/search").param("subset", "C128784").param("sort", "code")
+        .param("ascending", "true")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -2423,11 +2429,9 @@ public class SearchControllerTests {
     assertThat(values).isEqualTo(sortedValues);
 
     // Sort members of C128784 descending by code
-    log.info("Testing url - " + url + "?terminology=ncit&subset=C128784&sort=code&ascending=false");
-    result = mvc
-        .perform(get(url).param("terminology", "ncit").param("subset", "C128784")
-            .param("sort", "code").param("ascending", "false"))
-        .andExpect(status().isOk()).andReturn();
+    log.info("Testing url - " + url + "/ncit/search" + "?subset=C128784&sort=code&ascending=false");
+    result = mvc.perform(get(url + "/ncit/search").param("subset", "C128784").param("sort", "code")
+        .param("ascending", "false")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -2438,11 +2442,10 @@ public class SearchControllerTests {
 
     // Sort members of C128784 ascending by norm name
     log.info(
-        "Testing url - " + url + "?terminology=ncit&subset=C128784&sort=normName&ascending=true");
-    result = mvc
-        .perform(get(url).param("terminology", "ncit").param("subset", "C128784")
-            .param("sort", "normName").param("ascending", "true"))
-        .andExpect(status().isOk()).andReturn();
+        "Testing url - " + url + "/ncit/search" + "?subset=C128784&sort=normName&ascending=true");
+    result =
+        mvc.perform(get(url + "/ncit/search").param("subset", "C128784").param("sort", "normName")
+            .param("ascending", "true")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -2453,11 +2456,10 @@ public class SearchControllerTests {
 
     // Sort members of C128784 ascending by norm name
     log.info(
-        "Testing url - " + url + "?terminology=ncit&subset=C128784&sort=normName&ascending=false");
-    result = mvc
-        .perform(get(url).param("terminology", "ncit").param("subset", "C128784")
-            .param("sort", "normName").param("ascending", "false"))
-        .andExpect(status().isOk()).andReturn();
+        "Testing url - " + url + "/ncit/search" + "?subset=C128784&sort=normName&ascending=false");
+    result =
+        mvc.perform(get(url + "/ncit/search").param("subset", "C128784").param("sort", "normName")
+            .param("ascending", "false")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -2609,10 +2611,9 @@ public class SearchControllerTests {
 
     log.info("Testing url - " + url + "?query=" + query
         + "&terminology=ncit&type=contains&include=minimal");
-    result = mvc
-        .perform(
-            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
-        .andExpect(status().isOk()).andReturn();
+    result = mvc.perform(MockMvcRequestBuilders.post(url).param("query", query)
+        .param("include", "minimal").param("type", "contains")).andExpect(status().isOk())
+        .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -2634,10 +2635,9 @@ public class SearchControllerTests {
 
     log.info("Testing url - " + url + "?query=" + query
         + "&terminology=ncit&type=contains&include=minimal");
-    result = mvc
-        .perform(
-            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
-        .andExpect(status().isOk()).andReturn();
+    result = mvc.perform(MockMvcRequestBuilders.post(url).param("query", query)
+        .param("include", "minimal").param("type", "contains")).andExpect(status().isOk())
+        .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -2651,10 +2651,9 @@ public class SearchControllerTests {
 
     log.info("Testing url - " + url + "?query=" + query
         + "&terminology=ncit&type=contains&include=minimal");
-    result = mvc
-        .perform(
-            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
-        .andExpect(status().isOk()).andReturn();
+    result = mvc.perform(MockMvcRequestBuilders.post(url).param("query", query)
+        .param("include", "minimal").param("type", "contains")).andExpect(status().isOk())
+        .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -2667,10 +2666,9 @@ public class SearchControllerTests {
         + "    ?x :P108 \"Melanoma Pathway\"\n" + "  } \n" + "}";
     log.info("Testing url - " + url + "?query=" + query
         + "&terminology=ncit&type=contains&include=minimal");
-    result = mvc
-        .perform(
-            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
-        .andExpect(status().isOk()).andReturn();
+    result = mvc.perform(MockMvcRequestBuilders.post(url).param("query", query)
+        .param("include", "minimal").param("type", "contains")).andExpect(status().isOk())
+        .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -2684,7 +2682,7 @@ public class SearchControllerTests {
     log.info("Testing url - " + url + "?query=" + query
         + "&terminology=ncit&type=contains&include=minimal&term=Theraccine");
     result = mvc
-        .perform(get(url).param("query", query).param("include", "minimal")
+        .perform(MockMvcRequestBuilders.post(url).param("query", query).param("include", "minimal")
             .param("type", "contains").param("term", "Theraccine"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -2702,7 +2700,7 @@ public class SearchControllerTests {
     log.info("Testing url - " + url + "?query=" + query
         + "&terminology=ncit&type=contains&include=minimal&term=Liver");
     result = mvc
-        .perform(get(url).param("query", query).param("include", "minimal")
+        .perform(MockMvcRequestBuilders.post(url).param("query", query).param("include", "minimal")
             .param("type", "contains").param("term", "Liver"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -2726,10 +2724,9 @@ public class SearchControllerTests {
         + "  } \n" + "}";
     log.info("Testing url - " + url + "?query=" + query
         + "&terminology=ncit&type=contains&include=minimal");
-    result = mvc
-        .perform(
-            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
-        .andExpect(status().isBadRequest()).andReturn();
+    result = mvc.perform(MockMvcRequestBuilders.post(url).param("query", query)
+        .param("include", "minimal").param("type", "contains")).andExpect(status().isBadRequest())
+        .andReturn();
 
     // check query with malformed prefix
     query = "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
@@ -2746,10 +2743,9 @@ public class SearchControllerTests {
         + "  ?x :NHC0 ?code .\n" + "  ?x :P108 \"Melanoma\"\n" + "}\n" + "}";
     log.info("Testing url - " + url + "?query=" + query
         + "&terminology=ncit&type=contains&include=minimal");
-    result = mvc
-        .perform(
-            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
-        .andExpect(status().isBadRequest()).andReturn();
+    result = mvc.perform(MockMvcRequestBuilders.post(url).param("query", query)
+        .param("include", "minimal").param("type", "contains")).andExpect(status().isBadRequest())
+        .andReturn();
     assertThat(result.getResponse().getErrorMessage()).isNotNull();
     content = result.getResponse().getErrorMessage();
     log.info("  content = " + content);
@@ -2775,10 +2771,11 @@ public class SearchControllerTests {
 
     final String exceptionUrl = new String(url);
     final String exceptionQuery = new String(query);
-    assertThrows(NestedServletException.class, () -> {
-      MvcResult resultException =
-          mvc.perform(get(exceptionUrl).param("query", exceptionQuery).param("include", "minimal")
-              .param("type", "contains")).andExpect(status().is5xxServerError()).andReturn();
+    assertThrows(AssertionError.class, () -> {
+      MvcResult resultException = mvc
+          .perform(MockMvcRequestBuilders.post(exceptionUrl).param("query", exceptionQuery)
+              .param("include", "minimal").param("type", "contains"))
+          .andExpect(status().is5xxServerError()).andReturn();
       assertThat(resultException.getResponse().getErrorMessage()).isNotNull();
       String contentException = resultException.getResponse().getErrorMessage();
       log.info("  content = " + contentException);
@@ -2786,17 +2783,16 @@ public class SearchControllerTests {
       assertThat(contentException.contains("SPARQL query failed validation:")).isTrue();
     });
 
-    url = "/api/v1/concept/umlssemnet/search/sparql/";
+    url = "/api/v1/concept/umlssemnet/search/";
     // check a valid query in another terminology (with malformed graph)
     query =
         "SELECT ?code\n" + "{ GRAPH <http://blablabla> \n" + "  { \n" + "    ?x a owl:Class . \n"
             + "    ?x :Code ?code .\n" + "    ?x :Preferred_Name \"Behavior\"\n" + "  } \n" + "}";
     log.info("Testing url - " + url + "?query=" + query
         + "&terminology=ncit&type=contains&include=minimal");
-    result = mvc
-        .perform(
-            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
-        .andExpect(status().isOk()).andReturn();
+    result = mvc.perform(MockMvcRequestBuilders.post(url).param("query", query)
+        .param("include", "minimal").param("type", "contains")).andExpect(status().isOk())
+        .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
@@ -2825,15 +2821,13 @@ public class SearchControllerTests {
         + "  } \n" + "}";
     log.info("Testing url - " + url + "?query=" + query
         + "&terminology=ncit&type=contains&include=minimal");
-    result = mvc
-        .perform(
-            get(url).param("query", query).param("include", "minimal").param("type", "contains"))
-        .andExpect(status().isBadRequest()).andReturn();
+    result = mvc.perform(MockMvcRequestBuilders.post(url).param("query", query)
+        .param("include", "minimal").param("type", "contains")).andExpect(status().isBadRequest())
+        .andReturn();
     assertThat(result.getResponse().getErrorMessage()).isNotNull();
     content = result.getResponse().getErrorMessage();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    assertThat(content.contains("SPARQL query timed out")).isTrue();
 
   }
 

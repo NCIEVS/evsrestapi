@@ -27,49 +27,40 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 
 /**
- * Umlssemnet samples tests.
+ * GO samples tests.
  */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public class UmlssemnetSampleTest extends SampleTest {
+public class DuoSampleTest extends SampleTest {
 
   /**
    * Setup class.
    *
+   * @throws Exception the exception
    */
 
   /** The logger. */
-  private static final Logger log = LoggerFactory.getLogger(UmlssemnetSampleTest.class);
+  private static final Logger log = LoggerFactory.getLogger(DuoSampleTest.class);
 
   /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
   @Autowired
   private MockMvc testMvc;
 
-  /**
-   * Setup class.
-   *
-   * @throws Exception the exception
-   */
   @BeforeClass
   public static void setupClass() throws Exception {
-    loadSamples("umlssemnet", "src/test/resources/samples/umlssemnet-samples.txt");
+    loadSamples("duo", "src/test/resources/samples/duo-samples.txt");
   }
 
-  /**
-   * Test UMLSSEMNET terminology.
-   *
-   * @throws Exception the exception
-   */
   @Test
-  public void testUMLSSEMNETTerminology() throws Exception {
+  public void testDUOTerminology() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
 
     url = "/api/v1/metadata/terminologies";
     log.info("Testing url - " + url);
-    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "umlssemnet"))
+    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "duo"))
         .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
@@ -79,24 +70,22 @@ public class UmlssemnetSampleTest extends SampleTest {
           // n/a
         });
     assertThat(terminologies.size()).isGreaterThan(0);
-    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("umlssemnet")).count()).isEqualTo(1);
-    final Terminology terminology =
-        terminologies.stream().filter(t -> t.getTerminology().equals("umlssemnet")).findFirst().get();
-    assertThat(terminology.getTerminology()).isEqualTo("umlssemnet");
-    assertThat(terminology.getMetadata().getUiLabel()).isEqualTo("UMLS Semantic Network");
-    assertThat(terminology.getName()).isEqualTo("UMLS Semantic Network 2023AA");
-    assertThat(terminology.getDescription()).isNotEmpty();
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("duo")).count())
+        .isEqualTo(1);
+    final Terminology duo =
+        terminologies.stream().filter(t -> t.getTerminology().equals("duo")).findFirst().get();
+    assertThat(duo.getTerminology()).isEqualTo("duo");
+    assertThat(duo.getMetadata().getUiLabel()).isEqualTo("DUO: Data Use Ontology");
+    assertThat(duo.getName()).isEqualTo("DUO: Data Use Ontology 2021-02-23");
+    assertThat(duo.getDescription()).isNotEmpty();
 
-    assertThat(terminology.getMetadata().getLoader()).isEqualTo("rdf");
-    assertThat(terminology.getMetadata().getSourceCt()).isEqualTo(0);
-    assertThat(terminology.getMetadata().getLicenseText())
-        .isEqualTo("Government information at NLM Web sites is in the public domain. "
-            + "Public domain information may be freely distributed and copied, but it is requested that in any subsequent use the "
-            + "National Library of Medicine (NLM) be given appropriate acknowledgement as specified at "
-            + "https://lhncbc.nlm.nih.gov/semanticnetwork/terms.html");
-    assertThat(terminology.getDescription()).isEqualTo("UMLS Semantic Network");
+    assertThat(duo.getMetadata().getLoader()).isEqualTo("rdf");
+    assertThat(duo.getMetadata().getSourceCt()).isEqualTo(0);
+    assertThat(duo.getMetadata().getLicenseText()).isNull();
+    assertThat(duo.getDescription())
+        .isEqualTo("DUO (Data Use Ontology) is an ontology which represents data use conditions.");
 
-    assertThat(terminology.getLatest()).isTrue();
+    assertThat(duo.getLatest()).isTrue();
   }
 
   /**
@@ -113,15 +102,16 @@ public class UmlssemnetSampleTest extends SampleTest {
     Concept concept = null;
 
     // Test active
-    url = "/api/v1/concept/umlssemnet/T001";
+    url = "/api/v1/concept/duo/DUO_0000001";
     log.info("Testing url - " + url);
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("T001");
-    assertThat(concept.getTerminology()).isEqualTo("umlssemnet");
+    assertThat(concept.getCode()).isEqualTo("DUO_0000001");
+    assertThat(concept.getTerminology()).isEqualTo("duo");
     assertThat(concept.getActive()).isTrue();
   }
+
 }

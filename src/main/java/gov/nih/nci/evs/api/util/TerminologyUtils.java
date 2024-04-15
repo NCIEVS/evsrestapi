@@ -146,6 +146,7 @@ public final class TerminologyUtils {
    * @throws Exception the exception
    */
   public Terminology getTerminology(final String terminology, boolean indexed) throws Exception {
+
     List<Terminology> terminologies = getTerminologies(indexed);
 
     // Find latest monthly match

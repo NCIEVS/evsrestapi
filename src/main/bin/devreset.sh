@@ -110,6 +110,13 @@ if [[ ! -e "$dir/ChEBI/chebi_213.owl" ]]; then
     exit 1
 fi
 
+# Check DUO
+echo "    check DUO"
+if [[ ! -e "$dir/DUO/duo_Feb21.owl" ]]; then
+    echo "ERROR: unexpectedly missing DUO/duo_Feb21.owl file"
+    exit 1
+fi
+
 # Verify docker stardog is running
 echo "    verify docker stardog is running"
 ct=`docker ps | grep 'stardog/stardog' | wc -l`
@@ -234,6 +241,8 @@ echo "    load data"
 /opt/stardog/bin/stardog data add --named-graph http://MEDRT NCIT2 /data/UnitTestData/MED-RT/medrt.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://Canmed NCIT2 /data/UnitTestData/Canmed/canmed.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://CTCAE NCIT2 /data/UnitTestData/CTCAE/ctcae5.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://DUO_monthly NCIT2 /data/UnitTestData/DUO/duo_Feb21.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://DUO_monthly NCIT2 /data/UnitTestData/DUO/iao_Dec20.owl | sed 's/^/      /'
 echo "    optimize databases"
 /opt/stardog/bin/stardog-admin db optimize -n CTRP | sed 's/^/      /'
 /opt/stardog/bin/stardog-admin db optimize -n NCIT2 | sed 's/^/      /'
