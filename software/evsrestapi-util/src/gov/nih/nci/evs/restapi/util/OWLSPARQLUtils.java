@@ -6099,206 +6099,241 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
         String prefixes = getPrefixes();
         StringBuffer buf = new StringBuffer();
         buf.append(prefixes);
-        buf.append("SELECT ?relationship ?relationshipCode ?relationshipLabel ?relatedConcept ?relatedConceptLabel ?relatedConceptCode  ").append("\n");
-
-		if (named_graph != null) {
-			buf.append("    graph <" + named_graph + ">").append("\n");
-		}
-
-        buf.append("  { ").append("\n");
+        buf.append("").append("\n");
+        buf.append("SELECT ?x_label ?x_code ?r_label ?y_label ?y_code  ").append("\n");
+        if (named_graph != null) {
+        	buf.append("graph <" + named_graph + ">").append("\n");
+	    }
+        buf.append("WHERE {").append("\n");
         buf.append("    { ").append("\n");
-        buf.append("      ?x_concept a owl:Class . ").append("\n");
-        buf.append("      ?x_concept :NHC0 \"" + code + "\" . ").append("\n");
-        buf.append("      ?x_concept (owl:equivalentClass|rdfs:subClassOf) ?rs . ").append("\n");
+        buf.append("      ?x a owl:Class . ").append("\n");
+        buf.append("      ?x :NHC0 ?x_code .").append("\n");
+        buf.append("      ?x rdfs:label ?x_label .").append("\n");
+        buf.append("      ?x :NHC0 \"" + code + "\"^^xsd:string . ").append("\n");
+        buf.append("      ?x (owl:equivalentClass|rdfs:subClassOf) ?rs . ").append("\n");
         buf.append("      ?rs a owl:Restriction . ").append("\n");
-        buf.append("      ?rs owl:onProperty ?relationship . ").append("\n");
-        buf.append("      ?rs owl:someValuesFrom ?relatedConcept . ").append("\n");
-        buf.append("      ?relatedConcept a owl:Class . ").append("\n");
-        buf.append("      OPTIONAL { ?relatedConcept rdfs:label ?relatedConceptLabel } . ").append("\n");
-        buf.append("      ?relatedConcept :NHC0 ?relatedConceptCode . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship rdfs:label ?relationshipLabel } . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship :NHC0 ?relationshipCode } . ").append("\n");
+        buf.append("      ?rs owl:onProperty ?r . ").append("\n");
+        buf.append("      ?r rdfs:label ?r_label .").append("\n");
+        buf.append("      ?rs owl:someValuesFrom ?y . ").append("\n");
+        buf.append("      ?y a owl:Class . ").append("\n");
+        buf.append("      ?y :NHC0 ?y_code . ").append("\n");
+        buf.append("      ?y rdfs:label ?y_label .").append("\n");
         buf.append("    } ").append("\n");
         buf.append("    UNION ").append("\n");
         buf.append("    { ").append("\n");
-        buf.append("      ?x_concept a owl:Class . ").append("\n");
-        buf.append("      ?x_concept :NHC0 \"" + code + "\" . ").append("\n");
-        buf.append("      ?x_concept owl:equivalentClass ?z . ").append("\n");
+        buf.append("      ?x a owl:Class . ").append("\n");
+        buf.append("      ?x :NHC0 ?x_code .").append("\n");
+        buf.append("      ?x rdfs:label ?x_label .").append("\n");
+        buf.append("      ?x :NHC0 \"" + code + "\"^^xsd:string . ").append("\n");
+        buf.append("      ?x owl:equivalentClass ?z . ").append("\n");
         buf.append("      ?z (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first ?rs . ").append("\n");
         buf.append("      ?rs a owl:Restriction . ").append("\n");
-        buf.append("      ?rs owl:onProperty ?relationship . ").append("\n");
-        buf.append("      ?rs owl:someValuesFrom ?relatedConcept . ").append("\n");
-        buf.append("      ?relatedConcept a owl:Class . ").append("\n");
-        buf.append("      OPTIONAL { ?relatedConcept rdfs:label ?relatedConceptLabel } . ").append("\n");
-        buf.append("      ?relatedConcept :NHC0 ?relatedConceptCode . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship rdfs:label ?relationshipLabel } . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship :NHC0 ?relationshipCode } . ").append("\n");
+        buf.append("      ?rs owl:onProperty ?r . ").append("\n");
+        buf.append("      ?r rdfs:label ?r_label .").append("\n");
+        buf.append("      ?rs owl:someValuesFrom ?y . ").append("\n");
+        buf.append("      ?y a owl:Class . ").append("\n");
+        buf.append("      ?y :NHC0 ?y_code . ").append("\n");
+        buf.append("      ?y rdfs:label ?y_label .").append("\n");
         buf.append("    } ").append("\n");
         buf.append("    UNION ").append("\n");
         buf.append("    { ").append("\n");
-        buf.append("      ?x_concept a owl:Class . ").append("\n");
-        buf.append("      ?x_concept :NHC0 \"" + code + "\" . ").append("\n");
-        buf.append("      ?x_concept rdfs:subClassOf ?z . ").append("\n");
+        buf.append("      ?x a owl:Class . ").append("\n");
+        buf.append("      ?x :NHC0 ?x_code .").append("\n");
+        buf.append("      ?x rdfs:label ?x_label .").append("\n");
+        buf.append("      ?x :NHC0 \"" + code + "\"^^xsd:string . ").append("\n");
+        buf.append("      ?x rdfs:subClassOf ?z . ").append("\n");
         buf.append("      ?z (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first ?rs . ").append("\n");
         buf.append("      ?rs a owl:Restriction . ").append("\n");
-        buf.append("      ?rs owl:onProperty ?relationship . ").append("\n");
-        buf.append("      ?rs owl:someValuesFrom ?relatedConcept . ").append("\n");
-        buf.append("      ?relatedConcept a owl:Class . ").append("\n");
-        buf.append("      OPTIONAL { ?relatedConcept rdfs:label ?relatedConceptLabel } . ").append("\n");
-        buf.append("      ?relatedConcept :NHC0 ?relatedConceptCode . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship rdfs:label ?relationshipLabel } . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship :NHC0 ?relationshipCode } . ").append("\n");
+        buf.append("      ?rs owl:onProperty ?r . ").append("\n");
+        buf.append("      ?r rdfs:label ?r_label .").append("\n");
+        buf.append("      ?rs owl:someValuesFrom ?y . ").append("\n");
+        buf.append("      ?y a owl:Class . ").append("\n");
+        buf.append("      ?y :NHC0 ?y_code . ").append("\n");
+        buf.append("      ?y rdfs:label ?y_label .").append("\n");
         buf.append("    } ").append("\n");
         buf.append("    UNION ").append("\n");
         buf.append("    { ").append("\n");
-        buf.append("      ?x_concept a owl:Class . ").append("\n");
-        buf.append("      ?x_concept :NHC0 \"" + code + "\" . ").append("\n");
-        buf.append("      ?x_concept owl:equivalentClass ?z . ").append("\n");
+        buf.append("      ?x a owl:Class . ").append("\n");
+        buf.append("      ?x :NHC0 ?x_code .").append("\n");
+        buf.append("      ?x rdfs:label ?x_label .").append("\n");
+        buf.append("      ?x :NHC0 \"" + code + "\"^^xsd:string . ").append("\n");
+        buf.append("      ?x owl:equivalentClass ?z . ").append("\n");
         buf.append("      ?z (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first/ ").append("\n");
         buf.append("        ( (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first | ").append("\n");
         buf.append("          (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first/(owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first ").append("\n");
         buf.append("        ) ?rs . ").append("\n");
         buf.append("      ?rs a owl:Restriction . ").append("\n");
-        buf.append("      ?rs owl:onProperty ?relationship . ").append("\n");
-        buf.append("      ?rs owl:someValuesFrom ?relatedConcept . ").append("\n");
-        buf.append("      ?relatedConcept a owl:Class . ").append("\n");
-        buf.append("      OPTIONAL { ?relatedConcept rdfs:label ?relatedConceptLabel } . ").append("\n");
-        buf.append("      ?relatedConcept :NHC0 ?relatedConceptCode . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship rdfs:label ?relationshipLabel } . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship :NHC0 ?relationshipCode } . ").append("\n");
+        buf.append("      ?rs owl:onProperty ?r . ").append("\n");
+        buf.append("      ?r rdfs:label ?r_label .").append("\n");
+        buf.append("      ?rs owl:someValuesFrom ?y . ").append("\n");
+        buf.append("      ?y a owl:Class . ").append("\n");
+        buf.append("      ?y :NHC0 ?y_code . ").append("\n");
+        buf.append("      ?y rdfs:label ?y_label .").append("\n");
         buf.append("    } ").append("\n");
         buf.append("    UNION ").append("\n");
         buf.append("    { ").append("\n");
-        buf.append("      ?x_concept a owl:Class . ").append("\n");
-        buf.append("      ?x_concept :NHC0 \"" + code + "\" . ").append("\n");
-        buf.append("      ?x_concept rdfs:subClassOf ?z . ").append("\n");
+        buf.append("      ?x a owl:Class . ").append("\n");
+        buf.append("      ?x :NHC0 ?x_code .").append("\n");
+        buf.append("      ?x rdfs:label ?x_label .").append("\n");
+        buf.append("      ?x :NHC0 \"" + code + "\"^^xsd:string . ").append("\n");
+        buf.append("      ?x rdfs:subClassOf ?z . ").append("\n");
         buf.append("      ?z (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first/ ").append("\n");
         buf.append("        ( (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first | ").append("\n");
         buf.append("          (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first/(owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first ").append("\n");
         buf.append("        ) ?rs . ").append("\n");
         buf.append("      ?rs a owl:Restriction . ").append("\n");
-        buf.append("      ?rs owl:onProperty ?relationship . ").append("\n");
-        buf.append("      ?rs owl:someValuesFrom ?relatedConcept . ").append("\n");
-        buf.append("      ?relatedConcept a owl:Class . ").append("\n");
-        buf.append("      OPTIONAL { ?relatedConcept rdfs:label ?relatedConceptLabel } . ").append("\n");
-        buf.append("      ?relatedConcept :NHC0 ?relatedConceptCode . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship rdfs:label ?relationshipLabel } . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship :NHC0 ?relationshipCode } . ").append("\n");
+        buf.append("      ?rs owl:onProperty ?r . ").append("\n");
+        buf.append("      ?r rdfs:label ?r_label .").append("\n");
+        buf.append("      ?rs owl:someValuesFrom ?y . ").append("\n");
+        buf.append("      ?y a owl:Class . ").append("\n");
+        buf.append("      ?y :NHC0 ?y_code . ").append("\n");
+        buf.append("      ?y rdfs:label ?y_label .").append("\n");
         buf.append("    } ").append("\n");
-        buf.append("  } ").append("\n");
-        String query = buf.toString();
-        return query;
+        buf.append("}").append("\n");
+        return buf.toString();
 	}
+
 
 	public Vector getRoles(String named_graph, String code) {
         String query = construct_get_roles(named_graph, code);
-        Vector v = HTTPUtils.runQuery(restURL, username, password, query);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
         return new SortUtils().quickSort(v);
 	}
 
-	public String construct_get_inv_roles(String named_graph, String code) {
+//////////////////////////
+	public String construct_get_inverse_roles(String named_graph, String code) {
         String prefixes = getPrefixes();
         StringBuffer buf = new StringBuffer();
         buf.append(prefixes);
-        buf.append("SELECT ?x_concept ?conceptCode ?conceptLabel ?relationship ?relationshipCode ?relationshipLabel   ").append("\n");
-
-		if (named_graph != null) {
-			buf.append("    graph <" + named_graph + ">").append("\n");
-		}
-
-        buf.append("  { ").append("\n");
+        buf.append("").append("\n");
+        buf.append("SELECT ?x_label ?x_code ?r_label ?y_label ?y_code  ").append("\n");
+        if (named_graph != null) {
+        	buf.append("graph <" + named_graph + ">").append("\n");
+	    }
+        buf.append("WHERE {").append("\n");
         buf.append("    { ").append("\n");
-        buf.append("      ?x_concept a owl:Class . ").append("\n");
-        buf.append("      ?x_concept :NHC0 ?conceptCode . ").append("\n");
-        buf.append("      ?x_concept rdfs:label ?conceptLabel . ").append("\n");
-        buf.append("      ?x_concept (owl:equivalentClass|rdfs:subClassOf) ?rs . ").append("\n");
+        buf.append("      ?x a owl:Class . ").append("\n");
+        buf.append("      ?x :NHC0 ?x_code .").append("\n");
+        buf.append("      ?x rdfs:label ?x_label .").append("\n");
+        buf.append("      ?x (owl:equivalentClass|rdfs:subClassOf) ?rs . ").append("\n");
         buf.append("      ?rs a owl:Restriction . ").append("\n");
-        buf.append("      ?rs owl:onProperty ?relationship . ").append("\n");
-        buf.append("      ?rs owl:someValuesFrom ?relatedConcept . ").append("\n");
-        buf.append("      ?relatedConcept a owl:Class . ").append("\n");
-        buf.append("      OPTIONAL { ?relatedConcept rdfs:label ?relatedConceptLabel } . ").append("\n");
-        buf.append("      ?relatedConcept :NHC0 \"" + code + "\" . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship rdfs:label ?relationshipLabel } . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship :NHC0 ?relationshipCode } . ").append("\n");
+        buf.append("      ?rs owl:onProperty ?r . ").append("\n");
+        buf.append("      ?r rdfs:label ?r_label .").append("\n");
+        buf.append("      ?rs owl:someValuesFrom ?y . ").append("\n");
+        buf.append("      ?y a owl:Class . ").append("\n");
+        buf.append("      ?y :NHC0 ?y_code . ").append("\n");
+        buf.append("      ?y :NHC0 \"" + code + "\"^^xsd:string . ").append("\n");
+        buf.append("      ?y rdfs:label ?y_label .").append("\n");
         buf.append("    } ").append("\n");
         buf.append("    UNION ").append("\n");
         buf.append("    { ").append("\n");
-        buf.append("      ?x_concept a owl:Class . ").append("\n");
-        buf.append("      ?x_concept :NHC0 ?conceptCode . ").append("\n");
-        buf.append("      ?x_concept rdfs:label ?conceptLabel .").append("\n");
-        buf.append("      ?x_concept owl:equivalentClass ?z . ").append("\n");
+        buf.append("      ?x a owl:Class . ").append("\n");
+        buf.append("      ?x :NHC0 ?x_code .").append("\n");
+        buf.append("      ?x rdfs:label ?x_label .").append("\n");
+        buf.append("      ?x owl:equivalentClass ?z . ").append("\n");
         buf.append("      ?z (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first ?rs . ").append("\n");
         buf.append("      ?rs a owl:Restriction . ").append("\n");
-        buf.append("      ?rs owl:onProperty ?relationship . ").append("\n");
-        buf.append("      ?rs owl:someValuesFrom ?relatedConcept . ").append("\n");
-        buf.append("      ?relatedConcept a owl:Class . ").append("\n");
-        buf.append("      OPTIONAL { ?relatedConcept rdfs:label ?relatedConceptLabel } . ").append("\n");
-        buf.append("      ?relatedConcept :NHC0 \"" + code + "\" . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship rdfs:label ?relationshipLabel } . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship :NHC0 ?relationshipCode } . ").append("\n");
+        buf.append("      ?rs owl:onProperty ?r . ").append("\n");
+        buf.append("      ?r rdfs:label ?r_label .").append("\n");
+        buf.append("      ?rs owl:someValuesFrom ?y . ").append("\n");
+        buf.append("      ?y a owl:Class . ").append("\n");
+        buf.append("      ?y :NHC0 ?y_code . ").append("\n");
+        buf.append("      ?y :NHC0 \"" + code + "\"^^xsd:string . ").append("\n");
+        buf.append("      ?y rdfs:label ?y_label .").append("\n");
         buf.append("    } ").append("\n");
         buf.append("    UNION ").append("\n");
         buf.append("    { ").append("\n");
-        buf.append("      ?x_concept a owl:Class . ").append("\n");
-        buf.append("      ?x_concept :NHC0 ?conceptCode . ").append("\n");
-        buf.append("      ?x_concept rdfs:label ?conceptLabel .").append("\n");
-        buf.append("      ?x_concept rdfs:subClassOf ?z . ").append("\n");
+        buf.append("      ?x a owl:Class . ").append("\n");
+        buf.append("      ?x :NHC0 ?x_code .").append("\n");
+        buf.append("      ?x rdfs:label ?x_label .").append("\n");
+        buf.append("      ?x rdfs:subClassOf ?z . ").append("\n");
         buf.append("      ?z (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first ?rs . ").append("\n");
         buf.append("      ?rs a owl:Restriction . ").append("\n");
-        buf.append("      ?rs owl:onProperty ?relationship . ").append("\n");
-        buf.append("      ?rs owl:someValuesFrom ?relatedConcept . ").append("\n");
-        buf.append("      ?relatedConcept a owl:Class . ").append("\n");
-        buf.append("      OPTIONAL { ?relatedConcept rdfs:label ?relatedConceptLabel } . ").append("\n");
-        buf.append("      ?relatedConcept :NHC0 \"" + code + "\" . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship rdfs:label ?relationshipLabel } . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship :NHC0 ?relationshipCode } . ").append("\n");
+        buf.append("      ?rs owl:onProperty ?r . ").append("\n");
+        buf.append("      ?r rdfs:label ?r_label .").append("\n");
+        buf.append("      ?rs owl:someValuesFrom ?y . ").append("\n");
+        buf.append("      ?y a owl:Class . ").append("\n");
+        buf.append("      ?y :NHC0 ?y_code . ").append("\n");
+        buf.append("      ?y :NHC0 \"" + code + "\"^^xsd:string . ").append("\n");
+        buf.append("      ?y rdfs:label ?y_label .").append("\n");
         buf.append("    } ").append("\n");
         buf.append("    UNION ").append("\n");
         buf.append("    { ").append("\n");
-        buf.append("      ?x_concept a owl:Class . ").append("\n");
-        buf.append("      ?x_concept :NHC0 ?conceptCode . ").append("\n");
-        buf.append("      ?x_concept rdfs:label ?conceptLabel .").append("\n");
-        buf.append("      ?x_concept owl:equivalentClass ?z . ").append("\n");
+        buf.append("      ?x a owl:Class . ").append("\n");
+        buf.append("      ?x :NHC0 ?x_code .").append("\n");
+        buf.append("      ?x rdfs:label ?x_label .").append("\n");
+        buf.append("      ?x owl:equivalentClass ?z . ").append("\n");
         buf.append("      ?z (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first/ ").append("\n");
         buf.append("        ( (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first | ").append("\n");
         buf.append("          (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first/(owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first ").append("\n");
         buf.append("        ) ?rs . ").append("\n");
         buf.append("      ?rs a owl:Restriction . ").append("\n");
-        buf.append("      ?rs owl:onProperty ?relationship . ").append("\n");
-        buf.append("      ?rs owl:someValuesFrom ?relatedConcept . ").append("\n");
-        buf.append("      ?relatedConcept a owl:Class . ").append("\n");
-        buf.append("      OPTIONAL { ?relatedConcept rdfs:label ?relatedConceptLabel } . ").append("\n");
-        buf.append("      ?relatedConcept :NHC0 \"" + code + "\" . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship rdfs:label ?relationshipLabel } . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship :NHC0 ?relationshipCode } . ").append("\n");
+        buf.append("      ?rs owl:onProperty ?r . ").append("\n");
+        buf.append("      ?r rdfs:label ?r_label .").append("\n");
+        buf.append("      ?rs owl:someValuesFrom ?y . ").append("\n");
+        buf.append("      ?y a owl:Class . ").append("\n");
+        buf.append("      ?y :NHC0 ?y_code . ").append("\n");
+        buf.append("      ?y :NHC0 \"" + code + "\"^^xsd:string . ").append("\n");
+        buf.append("      ?y rdfs:label ?y_label .").append("\n");
         buf.append("    } ").append("\n");
         buf.append("    UNION ").append("\n");
         buf.append("    { ").append("\n");
-        buf.append("      ?x_concept a owl:Class . ").append("\n");
-        buf.append("      ?x_concept :NHC0 ?conceptCode . ").append("\n");
-        buf.append("      ?x_concept rdfs:label ?conceptLabel .").append("\n");
-        buf.append("      ?x_concept rdfs:subClassOf ?z . ").append("\n");
+        buf.append("      ?x a owl:Class . ").append("\n");
+        buf.append("      ?x :NHC0 ?x_code .").append("\n");
+        buf.append("      ?x rdfs:label ?x_label .").append("\n");
+        buf.append("      ?x rdfs:subClassOf ?z . ").append("\n");
         buf.append("      ?z (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first/ ").append("\n");
         buf.append("        ( (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first | ").append("\n");
         buf.append("          (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first/(owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first ").append("\n");
         buf.append("        ) ?rs . ").append("\n");
         buf.append("      ?rs a owl:Restriction . ").append("\n");
-        buf.append("      ?rs owl:onProperty ?relationship . ").append("\n");
-        buf.append("      ?rs owl:someValuesFrom ?relatedConcept . ").append("\n");
-        buf.append("      ?relatedConcept a owl:Class . ").append("\n");
-        buf.append("      OPTIONAL { ?relatedConcept rdfs:label ?relatedConceptLabel } . ").append("\n");
-        buf.append("      ?relatedConcept :NHC0 \"" + code + "\" . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship rdfs:label ?relationshipLabel } . ").append("\n");
-        buf.append("      OPTIONAL { ?relationship :NHC0 ?relationshipCode } . ").append("\n");
+        buf.append("      ?rs owl:onProperty ?r . ").append("\n");
+        buf.append("      ?r rdfs:label ?r_label .").append("\n");
+        buf.append("      ?rs owl:someValuesFrom ?y . ").append("\n");
+        buf.append("      ?y a owl:Class . ").append("\n");
+        buf.append("      ?y :NHC0 ?y_code . ").append("\n");
+        buf.append("      ?y :NHC0 \"" + code + "\"^^xsd:string . ").append("\n");
+        buf.append("      ?y rdfs:label ?y_label .").append("\n");
         buf.append("    } ").append("\n");
-        buf.append("  } ").append("\n");
-        String query = buf.toString();
-        return query;
+        buf.append("}").append("\n");
+        return buf.toString();
 	}
 
 	public Vector getInverseRoles(String named_graph, String code) {
-        String query = construct_get_inv_roles(named_graph, code);
-        Vector v = HTTPUtils.runQuery(restURL, username, password, query);
+        String query = construct_get_inverse_roles(named_graph, code);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
+        return new SortUtils().quickSort(v);
+	}
+
+
+	public String construct_get_roots(String named_graph) {
+        String prefixes = getPrefixes();
+        StringBuffer buf = new StringBuffer();
+        buf.append(prefixes);
+        buf.append("select distinct ?x_label ?x_code").append("\n");
+        if (named_graph != null) {
+       	    buf.append("graph <" + named_graph + ">").append("\n");
+		}
+        buf.append("where  { ").append("\n");
+        buf.append("                ?x a owl:Class .").append("\n");
+        buf.append("                ?x :NHC0 ?x_code .").append("\n");
+        buf.append("                ?x rdfs:label ?x_label .").append("\n");
+        buf.append("       filter not exists { ?x rdfs:subClassOf|owl:equivalentClass ?y}").append("\n");
+        buf.append("}").append("\n");
+        buf.append("order by ?x_label").append("\n");
+        return buf.toString();
+	}
+
+
+	public Vector getRoots(String named_graph) {
+        String query = construct_get_roots(named_graph);
+        Vector v = executeQuery(query);
+        if (v == null) return null;
+        if (v.size() == 0) return v;
         return new SortUtils().quickSort(v);
 	}
 
