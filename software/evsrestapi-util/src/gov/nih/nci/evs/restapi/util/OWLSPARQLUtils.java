@@ -6316,8 +6316,8 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
         buf.append(prefixes);
         buf.append("select distinct ?x_label ?x_code").append("\n");
         if (named_graph != null) {
-       	    buf.append("graph <" + named_graph + ">").append("\n");
-		}
+        	buf.append("from <" + named_graph + ">").append("\n");
+	    }
         buf.append("where  { ").append("\n");
         buf.append("                ?x a owl:Class .").append("\n");
         buf.append("                ?x :NHC0 ?x_code .").append("\n");
