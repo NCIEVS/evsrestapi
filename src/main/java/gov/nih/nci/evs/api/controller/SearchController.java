@@ -1022,8 +1022,9 @@ public class SearchController extends BaseController {
       mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
       JsonNode bindings = mapper.readTree(res).findValue("bindings");
       int total = bindings.size();
-      List<Map<String, String>> results = getJsonSubset(bindings,
-          fromRecord != null ? fromRecord : 0, pageSize != null ? pageSize : 10);
+      List<Map<String, String>> results =
+          getJsonSubset(
+              bindings, fromRecord != null ? fromRecord : 0, pageSize != null ? pageSize : 10);
       MapResultList resultList = new MapResultList();
       resultList.setResults(results);
       resultList.setTotal((long) total);
