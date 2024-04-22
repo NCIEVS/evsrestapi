@@ -2,6 +2,13 @@ package gov.nih.nci.evs.api;
 
 import static org.junit.Assert.assertNotNull;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.ElasticOperationsService;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,15 +19,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticOperationsService;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * Test class for ensure our field settings are being followed (enabled = false,
@@ -35,16 +33,13 @@ public class DynamicMappingTest {
   private static final Logger logger = LoggerFactory.getLogger(DynamicMappingTest.class);
 
   /** The Elasticsearch operations service instance *. */
-  @Autowired
-  ElasticOperationsService operationsService;
+  @Autowired ElasticOperationsService operationsService;
 
   /** The elastic query service */
-  @Autowired
-  ElasticQueryService elasticQueryService;
+  @Autowired ElasticQueryService elasticQueryService;
 
   /** The terminology utils */
-  @Autowired
-  TerminologyUtils termUtils;
+  @Autowired TerminologyUtils termUtils;
 
   /** index name constant */
   String indexName = "testindex";
@@ -65,9 +60,12 @@ public class DynamicMappingTest {
   @Test
   public void testConceptDynamicMapping() throws Exception {
     // SETUP
-    Concept concept = new ObjectMapper().readValue(
-        IOUtils.toString(getClass().getClassLoader().getResource("conceptTestDM.json"), "UTF-8"),
-        Concept.class);
+    Concept concept =
+        new ObjectMapper()
+            .readValue(
+                IOUtils.toString(
+                    getClass().getClassLoader().getResource("conceptTestDM.json"), "UTF-8"),
+                Concept.class);
 
     final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
     final IncludeParam ip = new IncludeParam("full,descendants,paths");
@@ -79,7 +77,9 @@ public class DynamicMappingTest {
     }
 
     if (result) {
-      operationsService.getElasticsearchOperations().indexOps(IndexCoordinates.of(indexName))
+      operationsService
+          .getElasticsearchOperations()
+          .indexOps(IndexCoordinates.of(indexName))
           .putMapping(Concept.class);
     }
     operationsService.index(concept, indexName, Concept.class);

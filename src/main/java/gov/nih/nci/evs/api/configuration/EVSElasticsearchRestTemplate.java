@@ -1,4 +1,3 @@
-
 package gov.nih.nci.evs.api.configuration;
 
 import org.elasticsearch.client.RestHighLevelClient;
@@ -13,9 +12,8 @@ import org.springframework.data.elasticsearch.core.query.Query;
 /**
  * Custom {@link ElasticsearchRestTemplate} to log queries.
  *
- * <p>
- * As of spring-data-elasticsearch version 3.2.0, only one query method logs query and honors spring
- * data logging property. This custom implementation is to cover for that gap.
+ * <p>As of spring-data-elasticsearch version 3.2.0, only one query method logs query and honors
+ * spring data logging property. This custom implementation is to cover for that gap.
  *
  * @author Arun
  */
@@ -35,8 +33,8 @@ public class EVSElasticsearchRestTemplate extends ElasticsearchRestTemplate {
 
   /* see superclass */
   @Override
-  public <T> SearchHits<T> search(final Query query, final Class<T> clazz,
-    final IndexCoordinates index) {
+  public <T> SearchHits<T> search(
+      final Query query, final Class<T> clazz, final IndexCoordinates index) {
 
     if (logger.isDebugEnabled() && ((NativeSearchQuery) query).getQuery() != null) {
       logger.debug("  elasticsearch query = \n" + ((NativeSearchQuery) query).getQuery());

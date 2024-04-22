@@ -1,9 +1,8 @@
 package gov.nih.nci.evs.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
-
-import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Represents a node in a hierarchy and is directly compatible with the primeng "TreeNode"

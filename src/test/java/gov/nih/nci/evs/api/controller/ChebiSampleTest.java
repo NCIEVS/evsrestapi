@@ -1,12 +1,14 @@
-
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,12 +22,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Terminology;
-
 /** ChEBI samples tests. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -38,8 +34,7 @@ public class ChebiSampleTest extends SampleTest {
   private static final Logger log = LoggerFactory.getLogger(ChebiSampleTest.class);
 
   /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
-  @Autowired
-  private MockMvc testMvc;
+  @Autowired private MockMvc testMvc;
 
   /**
    * Setup class.
@@ -64,15 +59,21 @@ public class ChebiSampleTest extends SampleTest {
 
     url = "/api/v1/metadata/terminologies";
     log.info("Testing url - " + url);
-    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "chebi"))
-        .andExpect(status().isOk()).andReturn();
+    result =
+        testMvc
+            .perform(get(url).param("latest", "true").param("terminology", "chebi"))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
 
     final List<Terminology> terminologies =
-        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
-          // n/a
-        });
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Terminology>>() {
+                  // n/a
+                });
     assertThat(terminologies.size()).isGreaterThan(0);
     assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("chebi")).count())
         .isEqualTo(1);
@@ -87,9 +88,10 @@ public class ChebiSampleTest extends SampleTest {
     assertThat(chebi.getMetadata().getLoader()).isEqualTo("rdf");
     assertThat(chebi.getMetadata().getSourceCt()).isEqualTo(0);
     assertThat(chebi.getMetadata().getLicenseText()).isNull();
-    assertThat(chebi.getDescription()).isEqualTo(
-        "Chemical Entities of Biological Interest (ChEBI) is a freely available dictionary"
-            + " of molecular entities focused on 'small' chemical compounds.");
+    assertThat(chebi.getDescription())
+        .isEqualTo(
+            "Chemical Entities of Biological Interest (ChEBI) is a freely available dictionary"
+                + " of molecular entities focused on 'small' chemical compounds.");
 
     assertThat(chebi.getLatest()).isTrue();
   }
