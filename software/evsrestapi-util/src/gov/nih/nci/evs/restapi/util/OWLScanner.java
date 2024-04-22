@@ -1087,89 +1087,6 @@ C4910|<NHC0>C4910</NHC0>
 		return w;
 	}
 
-/*
-    public Vector extractProperties(Vector class_vec, String propertyCode) {
-        Vector w = new Vector();
-        boolean istart = false;
-        boolean istart0 = false;
-        String classId = null;
-        boolean switch_off = false;
-
-        for (int i=0; i<class_vec.size(); i++) {
-			String t = (String) class_vec.elementAt(i);
-
-			if (t.indexOf("General axioms") != -1) break;
-			while (!t.endsWith(">") && i < class_vec.size()-1) {
-				i++;
-				String nextLine = (String) class_vec.elementAt(i);
-				nextLine = nextLine.trim();
-				t = t + " " + nextLine;
-			}
-			if (t.indexOf("// Classes") != -1) {
-				istart0 = true;
-			}
-		    if (t.indexOf("</rdf:RDF>") != -1) {
-				break;
-			}
-
-			if (t.indexOf("<owl:Axiom>") != -1) {
-				switch_off = true;
-			}
-			if (t.indexOf("</owl:Axiom>") != -1) {
-				switch_off = false;
-			}
-
-			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
-				int n = t.lastIndexOf("#");
-				t = t.substring(n, t.length());
-				n = t.lastIndexOf(" ");
-				classId = t.substring(1, n);
-				if (istart0) {
-					istart = true;
-				}
-			}
-			if (istart) {
-				t = t.trim();
-				if (t.startsWith("<") && t.indexOf("rdf:resource=") != -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
-
-					int n = t.indexOf(">");
-                    if (n != -1) {
-						//String s = t.substring(1, n-1);
-						if (!switch_off) {
-							if (propertyCode != null) {
-								String s = parseProperty(t);
-								if (s.startsWith(propertyCode+ "|")) {
-									w.add(classId + "|" + s);
-								}
-							} else {
-								w.add(classId + "|" + parseProperty(t));
-							}
-					    }
-					}
-
-
-				} else if (t.startsWith("<") && t.indexOf("rdf:resource=") == -1 && t.indexOf("owl:") == -1 && t.indexOf("rdfs:subClassOf") == -1
-				    && t.indexOf("rdf:Description") == -1 && t.indexOf("rdfs:subClassOf") == -1) {
-					int n = t.indexOf(">");
-                    if (n != -1) {
-						if (!switch_off) {
-							if (propertyCode != null) {
-								String s = parseProperty(t);
-								if (s.startsWith(propertyCode+ "|")) {
-									w.add(classId + "|" + s);
-								}
-							} else {
-								w.add(classId + "|" + parseProperty(t));
-							}
-						}
-					}
-				}
-		    }
-		}
-		return w;
-	}
-*/
-
     public Vector extractSuperclasses(Vector class_vec) {
         Vector w = new Vector();
         boolean istart = false;
@@ -1402,125 +1319,58 @@ C4910|<NHC0>C4910</NHC0>
 	}
 
     public Vector extractAssociations(Vector class_vec) {
-		Vector v = ScannerUtils.extractAssociations(class_vec);
+		boolean istart = false;
 		Vector w = new Vector();
-		for (int i=0; i<v.size(); i++) {
-			String t = (String) v.elementAt(i);
-			t = ScannerUtils.removePrefix(NAMESPACE, t);
-			w.add(t);
-		}
-		return w;
-		/*
-        Vector w = new Vector();
-        boolean istart = false;
-        boolean istart0 = false;
-        String classId = null;
-
-        for (int i=0; i<class_vec.size(); i++) {
+		String classId = null;
+		for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
-
-			if (t.indexOf("General axioms") != -1) break;
-			while (!t.endsWith(">") && i < class_vec.size()-1) {
-				i++;
-				String nextLine = (String) class_vec.elementAt(i);
-				nextLine = nextLine.trim();
-				t = t + " " + nextLine;
-			}
-
-		    if (t.indexOf("// Annotations") != -1) {
-				break;
-			}
-
 			if (t.indexOf("// Classes") != -1) {
-				istart0 = true;
-			}
-		    if (t.indexOf("</rdf:RDF>") != -1) {
-				break;
-			}
-			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
-				int n = t.lastIndexOf("#");
-				t = t.substring(n, t.length());
-				n = t.lastIndexOf(" ");
-				classId = t.substring(1, n);
-				if (istart0) {
-					istart = true;
-				}
+				istart = true;
 			}
 			if (istart) {
+				if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
+					int n = t.lastIndexOf("#");
+					t = t.substring(n, t.length());
+					n = t.lastIndexOf(" ");
+					classId = t.substring(1, n);
+				}
 				String s = t.trim();
 				if (s.indexOf("rdf:resource=") != -1 && s.startsWith("<A")) {
 					int n = s.indexOf(" ");
 					String a = s.substring(1, n);
 					w.add(classId + "|" + a + "|" + extractCode(s));
 				}
-		    }
+			}
 		}
 		return w;
-		*/
 	}
-
 
     public Vector extractAssociations(Vector class_vec, String associationCode) {
-		Vector v = ScannerUtils.extractProperties(class_vec, associationCode);
+		boolean istart = false;
 		Vector w = new Vector();
-		for (int i=0; i<v.size(); i++) {
-			String t = (String) v.elementAt(i);
-			t = ScannerUtils.removePrefix(NAMESPACE, t);
-			w.add(t);
-		}
-		return w;
-
-
-		/*
-        Vector w = new Vector();
-        boolean istart = false;
-        boolean istart0 = false;
-        String classId = null;
-
-        for (int i=0; i<class_vec.size(); i++) {
+		String classId = null;
+		for (int i=0; i<class_vec.size(); i++) {
 			String t = (String) class_vec.elementAt(i);
-
-			if (t.indexOf("General axioms") != -1) break;
-			while (!t.endsWith(">") && i < class_vec.size()-1) {
-				i++;
-				String nextLine = (String) class_vec.elementAt(i);
-				nextLine = nextLine.trim();
-				t = t + " " + nextLine;
-			}
-		    if (t.indexOf("// Annotations") != -1) {
-				break;
-			}
-
 			if (t.indexOf("// Classes") != -1) {
-				istart0 = true;
-			}
-		    if (t.indexOf("</rdf:RDF>") != -1) {
-				break;
-			}
-			if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
-				int n = t.lastIndexOf("#");
-				t = t.substring(n, t.length());
-				n = t.lastIndexOf(" ");
-				classId = t.substring(1, n);
-				if (istart0) {
-					istart = true;
-				}
+				istart = true;
 			}
 			if (istart) {
+				if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
+					int n = t.lastIndexOf("#");
+					t = t.substring(n, t.length());
+					n = t.lastIndexOf(" ");
+					classId = t.substring(1, n);
+				}
 				String s = t.trim();
-				if (s.indexOf("rdf:resource=") != -1 && s.startsWith("<A")) {
+				if (s.indexOf("rdf:resource=") != -1 && s.startsWith("<"+associationCode + " ")) {
 					int n = s.indexOf(" ");
 					String a = s.substring(1, n);
-					if (a.compareTo(associationCode) == 0) {
-						w.add(classId + "|" + a + "|" + extractCode(s));
-					}
+					w.add(classId + "|" + a + "|" + extractCode(s));
 				}
-		    }
+			}
 		}
 		return w;
-		*/
 	}
-
 
     public Vector getAssociationSources(Vector assoc_vec, String targetCode) {
 		Vector v = new Vector();
