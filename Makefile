@@ -21,6 +21,7 @@ clean:
 	./gradlew clean
 
 # Build the library without tests
+# On Windows use: git config core.eol lf
 build:
 	./gradlew clean spotlessJavaCheck build -x test
 
