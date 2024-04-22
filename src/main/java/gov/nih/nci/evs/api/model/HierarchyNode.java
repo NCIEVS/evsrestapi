@@ -1,8 +1,9 @@
 package gov.nih.nci.evs.api.model;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Represents a node in a hierarchy and is directly compatible with the primeng "TreeNode"
@@ -33,8 +34,9 @@ public class HierarchyNode extends BaseModel {
   private List<HierarchyNode> children = null;
 
   /** Instantiates an empty {@link HierarchyNode}. */
-  public HierarchyNode() {}
-  ;
+  public HierarchyNode() {
+    // n/a
+  }
 
   /**
    * Instantiates a {@link HierarchyNode} from the specified parameters.

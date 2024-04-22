@@ -1,3 +1,4 @@
+
 package gov.nih.nci.evs.api;
 
 import java.lang.reflect.InvocationHandler;
@@ -14,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -127,9 +129,8 @@ public class ProxyTester {
    * @param initializer the initializer
    * @throws Exception the exception
    */
-  protected void setFields(
-      final Object o, final boolean reverseIncludes, final boolean logField, final int initializer)
-      throws Exception {
+  protected void setFields(final Object o, final boolean reverseIncludes, final boolean logField,
+    final int initializer) throws Exception {
     final Set<String> fieldsSeen = new HashSet<>();
     final Method[] methods = clazz.getMethods();
     for (int i = 0; i < methods.length; i++) {
@@ -242,29 +243,20 @@ public class ProxyTester {
    * @param initializer the initializer
    * @throws Exception the exception
    */
-  protected void setField(
-      final Object o,
-      final String fieldName,
-      final Method get,
-      final Method set,
-      final Class<?> argType,
-      final int initializer)
-      throws Exception {
+  protected void setField(final Object o, final String fieldName, final Method get,
+    final Method set, final Class<?> argType, final int initializer) throws Exception {
     final Object proxy = makeProxy(fieldName, argType, initializer);
 
     // logger
     // .info(" " + set.getName() + " = " + proxy.toString());
     try {
-      set.invoke(o, new Object[] {proxy});
+      set.invoke(o, new Object[] {
+          proxy
+      });
     } catch (final InvocationTargetException e) {
       e.printStackTrace();
-      throw new RuntimeException(
-          "Setter "
-              + set.getDeclaringClass().getName()
-              + "."
-              + set.getName()
-              + " threw "
-              + e.getTargetException().toString());
+      throw new RuntimeException("Setter " + set.getDeclaringClass().getName() + "." + set.getName()
+          + " threw " + e.getTargetException().toString());
     } catch (final IllegalArgumentException e) {
       logger.debug("o=" + o.getClass().getName());
       logger.debug("proxy=" + proxy.getClass().getName());
@@ -283,9 +275,9 @@ public class ProxyTester {
    * @return a class of the specified type
    * @throws Exception the exception
    */
-  @SuppressWarnings({"rawtypes", "deprecation"})
+  @SuppressWarnings("rawtypes")
   protected Object makeProxy(final String fieldName, final Class<?> type, final int initializer)
-      throws Exception {
+    throws Exception {
     // Return field name proxies
     if (fieldProxyMap.containsKey(fieldName.toLowerCase())) {
       return fieldProxyMap.get(fieldName.toLowerCase()).get(initializer);
@@ -303,22 +295,22 @@ public class ProxyTester {
       return new Date(10L + initializer);
     }
     if (type == Boolean.class || type == boolean.class) {
-      return new Boolean((initializer & 1) == 0);
+      return Boolean.valueOf((initializer & 1) == 0);
     }
     if (type == Integer.class || type == int.class) {
-      return new Integer(initializer);
+      return Integer.valueOf(initializer);
     }
     if (type == Long.class || type == long.class) {
-      return new Long(initializer);
+      return Long.valueOf(initializer);
     }
     if (type == Double.class || type == double.class) {
-      return new Double((initializer * 1.0) / 100);
+      return Double.valueOf((initializer * 1.0) / 100);
     }
     if (type == Float.class || type == float.class) {
-      return new Float((initializer * 1.0) / 100);
+      return (float) ((initializer * 1.0) / 100);
     }
     if (type == Character.class || type == char.class) {
-      return new Character((char) ('a' + initializer));
+      return Character.valueOf((char) ('a' + initializer));
     }
     if (type == BigDecimal.class) {
       return new BigDecimal(initializer);
@@ -349,8 +341,9 @@ public class ProxyTester {
 
     /* Use JDK dynamic proxy if the argument is an interface. */
     if (type.isInterface()) {
-      return Proxy.newProxyInstance(
-          type.getClassLoader(), new Class[] {type}, new DummyInvocationHandler());
+      return Proxy.newProxyInstance(type.getClassLoader(), new Class[] {
+          type
+      }, new DummyInvocationHandler());
     }
 
     /* Get the CGLib classes we need. */
@@ -362,30 +355,29 @@ public class ProxyTester {
       callbackClass = Class.forName("net.sf.cglib.proxy.Callback");
       fixedValueClass = Class.forName("net.sf.cglib.proxy.FixedValue");
     } catch (final ClassNotFoundException e) {
-      throw new ClassNotFoundException(
-          "Need cglib to make a dummy "
-              + type.getName()
-              + ". Make sure cglib.jar is on "
-              + "your classpath.");
+      throw new ClassNotFoundException("Need cglib to make a dummy " + type.getName()
+          + ". Make sure cglib.jar is on " + "your classpath.");
     }
 
     /* Make a dummy callback (proxies within proxies!) */
     Object callback;
-    callback =
-        Proxy.newProxyInstance(
-            callbackClass.getClassLoader(),
-            new Class[] {fixedValueClass},
-            new DummyInvocationHandler());
+    callback = Proxy.newProxyInstance(callbackClass.getClassLoader(), new Class[] {
+        fixedValueClass
+    }, new DummyInvocationHandler());
 
-    final Method createMethod =
-        enhancerClass.getMethod("create", new Class[] {Class.class, callbackClass});
-    return createMethod.invoke(null, new Object[] {type, callback});
+    final Method createMethod = enhancerClass.getMethod("create", new Class[] {
+        Class.class, callbackClass
+    });
+    return createMethod.invoke(null, new Object[] {
+        type, callback
+    });
   }
 
   /**
    * Returns an instance of an enum.
    *
-   * <p>JAVA5 - Comment out or remove this method on older Java versions.
+   * <p>
+   * JAVA5 - Comment out or remove this method on older Java versions.
    *
    * @param clazz1 the class
    * @param initializer the initializer

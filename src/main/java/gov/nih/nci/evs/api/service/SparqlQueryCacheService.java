@@ -1,7 +1,17 @@
 package gov.nih.nci.evs.api.service;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Service;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Property;
@@ -13,13 +23,6 @@ import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
-import java.util.ArrayList;
-import java.util.List;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Service;
 
 /**
  * This class will handle the Caching when querying for datasets. It has to be in a separate class
@@ -29,10 +32,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class SparqlQueryCacheService {
   /** The Constant log. */
+  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(SparqlQueryManagerServiceImpl.class);
 
   /** The query builder service. */
-  @Autowired QueryBuilderService queryBuilderService;
+  @Autowired
+  QueryBuilderService queryBuilderService;
 
   /**
    * Returns the hierarchy.
@@ -42,14 +47,10 @@ public class SparqlQueryCacheService {
    * @return the hierarchy
    * @throws Exception the exception
    */
-  @Cacheable(
-      value = "terminology",
+  @Cacheable(value = "terminology",
       key = "{#root.methodName, #terminology.getTerminologyVersion()}")
-  public List<String> getHierarchy(
-      final Terminology terminology,
-      RESTUtils restUtils,
-      SparqlQueryManagerService sparqlQueryManagerService)
-      throws Exception {
+  public List<String> getHierarchy(final Terminology terminology, RESTUtils restUtils,
+    SparqlQueryManagerService sparqlQueryManagerService) throws Exception {
     final List<String> parentchild = new ArrayList<>();
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("hierarchy", terminology);
@@ -63,17 +64,13 @@ public class SparqlQueryCacheService {
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
       final StringBuffer str = new StringBuffer();
-      str.append(
-          b.getParentCode() == null
-              ? EVSUtils.getCodeFromUri(b.getParent().getValue())
-              : b.getParentCode().getValue());
+      str.append(b.getParentCode() == null ? EVSUtils.getCodeFromUri(b.getParent().getValue())
+          : b.getParentCode().getValue());
       str.append("\t");
       str.append(EVSUtils.getParentLabel(b));
       str.append("\t");
-      str.append(
-          b.getChildCode() == null
-              ? EVSUtils.getCodeFromUri(b.getChild().getValue())
-              : b.getChildCode().getValue());
+      str.append(b.getChildCode() == null ? EVSUtils.getCodeFromUri(b.getChild().getValue())
+          : b.getChildCode().getValue());
       str.append("\t");
       str.append(EVSUtils.getChildLabel(b));
       str.append("\n");
@@ -92,15 +89,10 @@ public class SparqlQueryCacheService {
    * @return the all qualifiers
    * @throws Exception the exception
    */
-  @Cacheable(
-      value = "terminology",
+  @Cacheable(value = "terminology",
       key = "{#root.methodName, #terminology.getTerminologyVersion(),#ip.toString()}")
-  public List<Concept> getAllQualifiers(
-      final Terminology terminology,
-      final IncludeParam ip,
-      RESTUtils restUtils,
-      SparqlQueryManagerService sparqlQueryManagerService)
-      throws Exception {
+  public List<Concept> getAllQualifiers(final Terminology terminology, final IncludeParam ip,
+    RESTUtils restUtils, SparqlQueryManagerService sparqlQueryManagerService) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("all.qualifiers", terminology);
     final String res =
@@ -126,11 +118,8 @@ public class SparqlQueryCacheService {
     for (final Qualifier qualifier : qualifiers) {
 
       // Send URI or code
-      final Concept concept =
-          sparqlQueryManagerService.getQualifier(
-              qualifier.getUri() != null ? qualifier.getUri() : qualifier.getCode(),
-              terminology,
-              ip);
+      final Concept concept = sparqlQueryManagerService.getQualifier(
+          qualifier.getUri() != null ? qualifier.getUri() : qualifier.getCode(), terminology, ip);
 
       // Skip unpublished qualifiers
       if (md.isUnpublished(qualifier.getCode()) || md.isUnpublished(qualifier.getUri())) {
@@ -142,12 +131,8 @@ public class SparqlQueryCacheService {
           || md.isRemodeledQualifier(qualifier.getUri())) {
         concept.getProperties().add(new Property("remodeled", "true"));
         if (qualifier.getCode() != null) {
-          concept
-              .getProperties()
-              .add(
-                  new Property(
-                      "remodeledDescription",
-                      "Remodeled as " + md.getRemodeledAsType(null, qualifier, md)));
+          concept.getProperties().add(new Property("remodeledDescription",
+              "Remodeled as " + md.getRemodeledAsType(null, qualifier, md)));
         }
       }
 
@@ -164,14 +149,10 @@ public class SparqlQueryCacheService {
    * @return the hierarchy
    * @throws Exception the exception
    */
-  @Cacheable(
-      value = "terminology",
+  @Cacheable(value = "terminology",
       key = "{#root.methodName, #terminology.getTerminologyVersion()}")
-  public HierarchyUtils getHierarchyUtils(
-      final Terminology terminology,
-      RESTUtils restUtils,
-      SparqlQueryManagerService sparqlQueryManagerService)
-      throws Exception {
+  public HierarchyUtils getHierarchyUtils(final Terminology terminology, RESTUtils restUtils,
+    SparqlQueryManagerService sparqlQueryManagerService) throws Exception {
     final List<String> parentchild =
         this.getHierarchy(terminology, restUtils, sparqlQueryManagerService);
     return new HierarchyUtils(terminology, parentchild);

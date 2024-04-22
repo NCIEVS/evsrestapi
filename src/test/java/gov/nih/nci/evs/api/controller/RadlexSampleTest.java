@@ -1,7 +1,6 @@
+
 package gov.nih.nci.evs.api.controller;
 
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import org.junit.BeforeClass;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -28,7 +27,6 @@ public class RadlexSampleTest extends SampleTest {
    */
   @BeforeClass
   public static void setupClass() throws Exception {
-    Charset encode = StandardCharsets.UTF_8;
     loadSamples("radlex", "src/test/resources/samples/radlex-samples.txt");
   }
 }

@@ -33,8 +33,10 @@ public class CacheConfiguration {
   @Scheduled(cron = "0 0 0 * * ?", zone = "America/Los_Angeles")
   public void evictAll() {
     logger.info("evictAll()");
-    Collection<String> cacheNames = cacheManager.getCacheNames();
-    if (CollectionUtils.isEmpty(cacheNames)) return;
+    final Collection<String> cacheNames = cacheManager.getCacheNames();
+    if (CollectionUtils.isEmpty(cacheNames)) {
+      return;
+    }
 
     cacheNames.stream().forEach(name -> cacheManager.getCache(name).clear());
   }

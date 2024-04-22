@@ -13,7 +13,7 @@ public class CacheEventLogger implements CacheEventListener<Object, Object> {
 
   /* see superclass */
   @Override
-  public void onEvent(CacheEvent<? extends Object, ? extends Object> cacheEvent) {
+  public void onEvent(final CacheEvent<? extends Object, ? extends Object> cacheEvent) {
     // NOTE: enable the "<listeners>" section in ehcache.xml to report on events
     logger.info(
         "cache event {} {} {}",

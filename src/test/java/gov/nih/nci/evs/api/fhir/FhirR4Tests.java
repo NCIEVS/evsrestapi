@@ -1,13 +1,11 @@
+
 package gov.nih.nci.evs.api.fhir;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.List;
 import java.util.stream.Collectors;
+
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
@@ -29,8 +27,14 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
+import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.junit4.SpringRunner;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
+import gov.nih.nci.evs.api.properties.TestProperties;
 
 /** Integration tests for FhirR4Tests. */
 @RunWith(SpringRunner.class)
@@ -39,20 +43,23 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class FhirR4Tests {
 
   /** The logger. */
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(FhirR4Tests.class);
 
-  @LocalServerPort private int port;
+  /** The port. */
+  @LocalServerPort
+  private int port;
 
-  @Autowired private TestRestTemplate restTemplate;
+  /** The rest template. */
+  @Autowired
+  private TestRestTemplate restTemplate;
 
   /** The test properties. */
-  @Autowired TestProperties testProperties;
+  @Autowired
+  TestProperties testProperties;
 
   /** The object mapper. */
   private ObjectMapper objectMapper;
-
-  /** The base url. */
-  private String baseUrl = "";
 
   /** Sets the up. */
   @Before
@@ -74,14 +81,11 @@ public class FhirR4Tests {
     IParser parser = FhirContext.forR4().newJsonParser();
 
     // test search
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:" + port + "/fhir/r4/CodeSystem", String.class);
+    content = this.restTemplate.getForObject("http://localhost:" + port + "/fhir/r4/CodeSystem",
+        String.class);
     Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> codeSystems =
-        data.getEntry().stream()
-            .map(BundleEntryComponent::getResource)
-            .collect(Collectors.toList());
+    List<Resource> codeSystems = data.getEntry().stream().map(BundleEntryComponent::getResource)
+        .collect(Collectors.toList());
     assertThat(codeSystems.size()).isGreaterThan(0);
     for (Resource cs : codeSystems) {
       CodeSystem css = (CodeSystem) cs;
@@ -93,9 +97,8 @@ public class FhirR4Tests {
     }
     // test read
     String firstCodeSystemId = codeSystems.get(0).getIdPart();
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:" + port + "/fhir/r4/CodeSystem/" + firstCodeSystemId, String.class);
+    content = this.restTemplate.getForObject(
+        "http://localhost:" + port + "/fhir/r4/CodeSystem/" + firstCodeSystemId, String.class);
     CodeSystem codeSystem = parser.parseResource(CodeSystem.class, content);
     assertThat(codeSystem).isNotNull();
     assertThat(codeSystem.getResourceType().equals(ResourceType.CodeSystem));
@@ -113,15 +116,8 @@ public class FhirR4Tests {
     String messageNotFound = "The code does not exist for the supplied code system and/or version";
 
     // active code
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/$validate-code?url="
-                + url
-                + "&code="
-                + activeCode,
-            String.class);
+    content = this.restTemplate.getForObject("http://localhost:" + port
+        + "/fhir/r4/CodeSystem/$validate-code?url=" + url + "&code=" + activeCode, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
     assertThat(((StringType) params.getParameter("code").getValue()).getValue())
@@ -130,19 +126,10 @@ public class FhirR4Tests {
         .isEqualTo(displayString);
     assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/"
-                + activeID
-                + "/$validate-code?url="
-                + url
-                + "&code="
-                + activeCode
-                + "&display="
-                + displayString,
-            String.class);
+    content = this.restTemplate.getForObject(
+        "http://localhost:" + port + "/fhir/r4/CodeSystem/" + activeID + "/$validate-code?url="
+            + url + "&code=" + activeCode + "&display=" + displayString,
+        String.class);
     params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
     assertThat(((StringType) params.getParameter("code").getValue()).getValue())
@@ -151,17 +138,9 @@ public class FhirR4Tests {
         .isEqualTo(displayString);
     assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/$validate-code?url="
-                + url
-                + "&code="
-                + activeCode
-                + "&display="
-                + displayString,
-            String.class);
+    content = this.restTemplate
+        .getForObject("http://localhost:" + port + "/fhir/r4/CodeSystem/$validate-code?url=" + url
+            + "&code=" + activeCode + "&display=" + displayString, String.class);
     params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
     assertThat(((StringType) params.getParameter("code").getValue()).getValue())
@@ -171,51 +150,27 @@ public class FhirR4Tests {
     assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
 
     // code not found
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/$validate-code?url="
-                + url
-                + "&code="
-                + codeNotFound,
-            String.class);
+    content = this.restTemplate.getForObject("http://localhost:" + port
+        + "/fhir/r4/CodeSystem/$validate-code?url=" + url + "&code=" + codeNotFound, String.class);
     params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
         .isEqualTo(false);
     assertThat(((StringType) params.getParameter("message").getValue()).getValue())
         .isEqualTo(messageNotFound);
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/$validate-code?url="
-                + url
-                + "&code="
-                + codeNotFound
-                + "&display="
-                + displayString,
-            String.class);
+    content = this.restTemplate
+        .getForObject("http://localhost:" + port + "/fhir/r4/CodeSystem/$validate-code?url=" + url
+            + "&code=" + codeNotFound + "&display=" + displayString, String.class);
     params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
         .isEqualTo(false);
     assertThat(((StringType) params.getParameter("message").getValue()).getValue())
         .isEqualTo(messageNotFound);
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/"
-                + activeID
-                + "/$validate-code?url="
-                + url
-                + "&code="
-                + codeNotFound
-                + "&display="
-                + displayString,
-            String.class);
+    content = this.restTemplate.getForObject(
+        "http://localhost:" + port + "/fhir/r4/CodeSystem/" + activeID + "/$validate-code?url="
+            + url + "&code=" + codeNotFound + "&display=" + displayString,
+        String.class);
     params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
         .isEqualTo(false);
@@ -227,15 +182,9 @@ public class FhirR4Tests {
     String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     String retiredId = "ncit_21.06e";
     String retiredName = "ABCB1 1 Allele";
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/$validate-code?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode,
-            String.class);
+    content = this.restTemplate.getForObject("http://localhost:" + port
+        + "/fhir/r4/CodeSystem/$validate-code?url=" + retiredUrl + "&code=" + retiredCode,
+        String.class);
     params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
     assertThat(((StringType) params.getParameter("code").getValue()).getValue())
@@ -244,17 +193,9 @@ public class FhirR4Tests {
         .isEqualTo(retiredName);
     assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/$validate-code?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode
-                + "&display="
-                + retiredName,
-            String.class);
+    content = this.restTemplate
+        .getForObject("http://localhost:" + port + "/fhir/r4/CodeSystem/$validate-code?url="
+            + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName, String.class);
     params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
     assertThat(((StringType) params.getParameter("code").getValue()).getValue())
@@ -263,19 +204,10 @@ public class FhirR4Tests {
         .isEqualTo(retiredName);
     assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/"
-                + retiredId
-                + "/$validate-code?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode
-                + "&display="
-                + retiredName,
-            String.class);
+    content = this.restTemplate.getForObject(
+        "http://localhost:" + port + "/fhir/r4/CodeSystem/" + retiredId + "/$validate-code?url="
+            + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName,
+        String.class);
     params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
     assertThat(((StringType) params.getParameter("code").getValue()).getValue())
@@ -297,14 +229,11 @@ public class FhirR4Tests {
     IParser parser = FhirContext.forR4().newJsonParser();
 
     // test search
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:" + port + "/fhir/r4/ValueSet", String.class);
+    content = this.restTemplate.getForObject("http://localhost:" + port + "/fhir/r4/ValueSet",
+        String.class);
     Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> valueSets =
-        data.getEntry().stream()
-            .map(BundleEntryComponent::getResource)
-            .collect(Collectors.toList());
+    List<Resource> valueSets = data.getEntry().stream().map(BundleEntryComponent::getResource)
+        .collect(Collectors.toList());
     assertThat(valueSets.size()).isGreaterThan(0);
     for (Resource vs : valueSets) {
       ValueSet vss = (ValueSet) vs;
@@ -316,9 +245,8 @@ public class FhirR4Tests {
     }
     // test read
     String firstValueSetId = valueSets.get(0).getIdPart();
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:" + port + "/fhir/r4/ValueSet/" + firstValueSetId, String.class);
+    content = this.restTemplate.getForObject(
+        "http://localhost:" + port + "/fhir/r4/ValueSet/" + firstValueSetId, String.class);
     ValueSet valueSet = parser.parseResource(ValueSet.class, content);
     assertThat(valueSet).isNotNull();
     assertThat(valueSet.getResourceType().equals(ResourceType.ValueSet));
@@ -335,100 +263,52 @@ public class FhirR4Tests {
     String messageNotFound = "The code '" + codeNotFound + "' was not found.";
 
     // active code
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/$validate-code?url="
-                + url
-                + "&code="
-                + activeCode,
-            String.class);
+    content = this.restTemplate.getForObject("http://localhost:" + port
+        + "/fhir/r4/ValueSet/$validate-code?url=" + url + "&code=" + activeCode, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
     assertThat(((StringType) params.getParameter("display").getValue()).getValue())
         .isEqualTo(displayString);
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/"
-                + activeID
-                + "/$validate-code?url="
-                + url
-                + "&code="
-                + activeCode
-                + "&display="
-                + displayString,
-            String.class);
+    content = this.restTemplate.getForObject(
+        "http://localhost:" + port + "/fhir/r4/ValueSet/" + activeID + "/$validate-code?url=" + url
+            + "&code=" + activeCode + "&display=" + displayString,
+        String.class);
     params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
     assertThat(((StringType) params.getParameter("display").getValue()).getValue())
         .isEqualTo(displayString);
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/$validate-code?url="
-                + url
-                + "&code="
-                + activeCode
-                + "&display="
-                + displayString,
-            String.class);
+    content = this.restTemplate
+        .getForObject("http://localhost:" + port + "/fhir/r4/ValueSet/$validate-code?url=" + url
+            + "&code=" + activeCode + "&display=" + displayString, String.class);
     params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
     assertThat(((StringType) params.getParameter("display").getValue()).getValue())
         .isEqualTo(displayString);
 
     // code not found
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/$validate-code?url="
-                + url
-                + "&code="
-                + codeNotFound,
-            String.class);
+    content = this.restTemplate.getForObject("http://localhost:" + port
+        + "/fhir/r4/ValueSet/$validate-code?url=" + url + "&code=" + codeNotFound, String.class);
     params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
         .isEqualTo(false);
     assertThat(((StringType) params.getParameter("message").getValue()).getValue())
         .isEqualTo(messageNotFound);
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/$validate-code?url="
-                + url
-                + "&code="
-                + codeNotFound
-                + "&display="
-                + displayString,
-            String.class);
+    content = this.restTemplate
+        .getForObject("http://localhost:" + port + "/fhir/r4/ValueSet/$validate-code?url=" + url
+            + "&code=" + codeNotFound + "&display=" + displayString, String.class);
     params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
         .isEqualTo(false);
     assertThat(((StringType) params.getParameter("message").getValue()).getValue())
         .isEqualTo(messageNotFound);
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/"
-                + activeID
-                + "/$validate-code?url="
-                + url
-                + "&code="
-                + codeNotFound
-                + "&display="
-                + displayString,
-            String.class);
+    content = this.restTemplate.getForObject(
+        "http://localhost:" + port + "/fhir/r4/ValueSet/" + activeID + "/$validate-code?url=" + url
+            + "&code=" + codeNotFound + "&display=" + displayString,
+        String.class);
     params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
         .isEqualTo(false);
@@ -440,49 +320,26 @@ public class FhirR4Tests {
     String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     String retiredId = "ncit_21.06e";
     String retiredName = "ABCB1 1 Allele";
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/$validate-code?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode,
-            String.class);
+    content = this.restTemplate.getForObject("http://localhost:" + port
+        + "/fhir/r4/ValueSet/$validate-code?url=" + retiredUrl + "&code=" + retiredCode,
+        String.class);
     params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
     assertThat(((StringType) params.getParameter("display").getValue()).getValue())
         .isEqualTo(retiredName);
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/$validate-code?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode
-                + "&display="
-                + retiredName,
-            String.class);
+    content = this.restTemplate
+        .getForObject("http://localhost:" + port + "/fhir/r4/ValueSet/$validate-code?url="
+            + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName, String.class);
     params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
     assertThat(((StringType) params.getParameter("display").getValue()).getValue())
         .isEqualTo(retiredName);
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/"
-                + retiredId
-                + "/$validate-code?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode
-                + "&display="
-                + retiredName,
-            String.class);
+    content = this.restTemplate.getForObject(
+        "http://localhost:" + port + "/fhir/r4/ValueSet/" + retiredId + "/$validate-code?url="
+            + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName,
+        String.class);
     params = parser.parseResource(Parameters.class, content);
     assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
     assertThat(((StringType) params.getParameter("display").getValue()).getValue())
@@ -501,14 +358,11 @@ public class FhirR4Tests {
     IParser parser = FhirContext.forR4().newJsonParser();
 
     // test search
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:" + port + "/fhir/r4/ConceptMap", String.class);
+    content = this.restTemplate.getForObject("http://localhost:" + port + "/fhir/r4/ConceptMap",
+        String.class);
     Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> conceptMaps =
-        data.getEntry().stream()
-            .map(BundleEntryComponent::getResource)
-            .collect(Collectors.toList());
+    List<Resource> conceptMaps = data.getEntry().stream().map(BundleEntryComponent::getResource)
+        .collect(Collectors.toList());
     assertThat(conceptMaps.size()).isGreaterThan(0);
     for (Resource cm : conceptMaps) {
       ConceptMap cmm = (ConceptMap) cm;
@@ -521,9 +375,8 @@ public class FhirR4Tests {
     }
     // test read
     String firstConceptMapId = conceptMaps.get(0).getIdPart();
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:" + port + "/fhir/r4/ConceptMap/" + firstConceptMapId, String.class);
+    content = this.restTemplate.getForObject(
+        "http://localhost:" + port + "/fhir/r4/ConceptMap/" + firstConceptMapId, String.class);
     ConceptMap conceptMap = parser.parseResource(ConceptMap.class, content);
     assertThat(conceptMap).isNotNull();
     assertThat(conceptMap.getResourceType().equals(ResourceType.ConceptMap));
