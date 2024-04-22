@@ -125,7 +125,7 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
 
   @Override
   public void delete(String indexName, String id) {
-    operations.delete(indexName, IndexCoordinates.of(id));
+    operations.delete(id, IndexCoordinates.of(indexName));
   }
 
   /**
@@ -135,6 +135,6 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
    */
   @Override
   public void deleteIndexMetadata(String id) {
-    operations.delete(id);
+    operations.delete(id, IndexCoordinates.of(METADATA_INDEX));
   }
 }
