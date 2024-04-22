@@ -1,12 +1,10 @@
-
 package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.model.Metric;
+import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import java.io.IOException;
 import java.util.List;
-
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
-
-import gov.nih.nci.evs.api.model.Metric;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -16,20 +14,8 @@ import gov.nih.nci.evs.api.model.Metric;
  */
 public interface ElasticOperationsService {
 
-  /** The type in ES for metrics *. */
-  public static final String METRIC_TYPE = "metric";
-
-  /** The type in ES for concepts *. */
-  public static final String CONCEPT_TYPE = "concept";
-
-  /** The type in ES for cached objects *. */
-  public static final String OBJECT_TYPE = "evs_object";
-
   /** The index in ES for index metadata *. */
   public static final String METADATA_INDEX = "evs_metadata";
-
-  /** The type in ES for index metadata *. */
-  public static final String METADATA_TYPE = "evs_metadata";
 
   /** The index in ES for index metadata *. */
   public static final String MAPPING_INDEX = "evs_mapsets";
@@ -49,36 +35,33 @@ public interface ElasticOperationsService {
    *
    * @param objects the list of objects
    * @param index the index name
-   * @param type the type name
    * @param clazz the clazz
    * @throws IOException the io exception
    */
   @SuppressWarnings("rawtypes")
-  void bulkIndex(List objects, String index, String type, Class clazz) throws IOException;
+  void bulkIndex(List objects, String index, Class clazz) throws IOException;
 
   /**
    * Bulk index and wait.
    *
    * @param objects the objects
    * @param index the index
-   * @param type the type
    * @param clazz the clazz
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @SuppressWarnings("rawtypes")
-  void bulkIndexAndWait(List objects, String index, String type, Class clazz) throws IOException;
+  void bulkIndexAndWait(List objects, String index, Class clazz) throws IOException;
 
   /**
    * load object.
    *
    * @param object the object
    * @param index the index name
-   * @param type the type name
    * @param clazz the clazz
    * @throws IOException the io exception
    */
-  void index(Object object, String index, String type, @SuppressWarnings("rawtypes") Class clazz)
-    throws IOException;
+  void index(Object object, String index, @SuppressWarnings("rawtypes") Class clazz)
+      throws IOException;
 
   /**
    * load metrics.
@@ -108,9 +91,14 @@ public interface ElasticOperationsService {
    * Delete.
    *
    * @param indexName the index name
-   * @param type the type
    * @param id the id
    */
-  void delete(String indexName, String type, String id);
+  void delete(String indexName, String id);
 
+  /**
+   * Delete the {@link IndexMetadata} object.
+   *
+   * @param id the id of the {@link IndexMetadata} object
+   */
+  void deleteIndexMetadata(String id);
 }

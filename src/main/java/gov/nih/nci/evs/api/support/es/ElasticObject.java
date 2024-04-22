@@ -1,42 +1,34 @@
-
 package gov.nih.nci.evs.api.support.es;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.springframework.data.annotation.Id;
-import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
-import gov.nih.nci.evs.api.service.ElasticOperationsService;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
-/**
- * The elasticsearch wrapper object for cached objects.
- */
-@Document(indexName = "default_object", type = ElasticOperationsService.OBJECT_TYPE)
+/** The elasticsearch wrapper object for cached objects. */
+@Document(indexName = "default_object")
 @JsonInclude(content = Include.NON_EMPTY)
 public class ElasticObject extends BaseModel {
 
   /** The name. */
-  @Id
-  private String name;
+  @Id private String name;
 
   /** The hierarchy. */
   private HierarchyUtils hierarchy;
@@ -60,9 +52,7 @@ public class ElasticObject extends BaseModel {
   @Field(type = FieldType.Keyword)
   private String mapString;
 
-  /**
-   * Instantiates an empty {@link ElasticObject}.
-   */
+  /** Instantiates an empty {@link ElasticObject}. */
   public ElasticObject() {
     // n/a
   }
@@ -219,10 +209,12 @@ public class ElasticObject extends BaseModel {
       return new HashMap<>();
     }
     // Turn back into a map
-    return new ObjectMapper().readValue(mapString.substring(1),
-        new TypeReference<Map<String, Set<String>>>() {
-          // n/a
-        });
+    return new ObjectMapper()
+        .readValue(
+            mapString.substring(1),
+            new TypeReference<Map<String, Set<String>>>() {
+              // n/a
+            });
   }
 
   /**
@@ -259,5 +251,4 @@ public class ElasticObject extends BaseModel {
   public void setMapString(final String mapString) {
     this.mapString = mapString;
   }
-
 }

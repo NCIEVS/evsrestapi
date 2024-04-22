@@ -1,11 +1,11 @@
-
 package gov.nih.nci.evs.api.fhir;
 
 import static java.lang.String.format;
 
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
 import java.util.Date;
 import java.util.HashMap;
-
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.CodeType;
@@ -24,12 +24,7 @@ import org.hl7.fhir.r4.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Terminology;
-
-/**
- * Utility for fhir data building.
- */
+/** Utility for fhir data building. */
 public final class FhirUtilityR4 {
 
   /** The logger. */
@@ -42,9 +37,7 @@ public final class FhirUtilityR4 {
   /** The uris. */
   private static HashMap<String, String> uris = generateUris();
 
-  /**
-   * Instantiates an empty {@link FhirUtilityR4}.
-   */
+  /** Instantiates an empty {@link FhirUtilityR4}. */
   private FhirUtilityR4() {
     // n/a
   }
@@ -56,8 +49,10 @@ public final class FhirUtilityR4 {
    */
   private static HashMap<String, String> generatePublishers() {
     final HashMap<String, String> publish = new HashMap<>();
-    publish.put("mdr",
-        "MedDRA Maintenance and Support Services Organization (MedDRA MSSO); Mr. Patrick Revelle; MSSO Director");
+    publish.put(
+        "mdr",
+        "MedDRA Maintenance and Support Services Organization (MedDRA MSSO); Mr. Patrick Revelle;"
+            + " MSSO Director");
     publish.put("umlssemnet", "National Library of Medicine");
     publish.put("go", "GO Consortium");
     publish.put("icd10cm", "NCHS");
@@ -154,7 +149,6 @@ public final class FhirUtilityR4 {
     }
 
     return null;
-
   }
 
   /**
@@ -191,18 +185,43 @@ public final class FhirUtilityR4 {
     cm.setExperimental(false);
     cm.setStatus(Enumerations.PublicationStatus.ACTIVE);
     cm.setVersion(mapset.getVersion());
-    cm.setPublisher(getPublisher(mapset.getProperties().stream()
-        .filter(m -> m.getType().equals("sourceTerminology")).findFirst().orElse(null).getValue()));
+    cm.setPublisher(
+        getPublisher(
+            mapset.getProperties().stream()
+                .filter(m -> m.getType().equals("sourceTerminology"))
+                .findFirst()
+                .orElse(null)
+                .getValue()));
 
     final ConceptMapGroupComponent group = new ConceptMapGroupComponent();
-    group.setSourceVersion(mapset.getProperties().stream()
-        .filter(m -> m.getType().equals("sourceTerminologyVersion")).findFirst().get().getValue());
-    group.setTargetVersion(mapset.getProperties().stream()
-        .filter(m -> m.getType().equals("targetTerminologyVersion")).findFirst().get().getValue());
-    group.setSourceElement(new UriType(getUri(mapset.getProperties().stream()
-        .filter(m -> m.getType().equals("sourceTerminology")).findFirst().get().getValue())));
-    group.setTargetElement(new UriType(getUri(mapset.getProperties().stream()
-        .filter(m -> m.getType().equals("targetTerminology")).findFirst().get().getValue())));
+    group.setSourceVersion(
+        mapset.getProperties().stream()
+            .filter(m -> m.getType().equals("sourceTerminologyVersion"))
+            .findFirst()
+            .get()
+            .getValue());
+    group.setTargetVersion(
+        mapset.getProperties().stream()
+            .filter(m -> m.getType().equals("targetTerminologyVersion"))
+            .findFirst()
+            .get()
+            .getValue());
+    group.setSourceElement(
+        new UriType(
+            getUri(
+                mapset.getProperties().stream()
+                    .filter(m -> m.getType().equals("sourceTerminology"))
+                    .findFirst()
+                    .get()
+                    .getValue())));
+    group.setTargetElement(
+        new UriType(
+            getUri(
+                mapset.getProperties().stream()
+                    .filter(m -> m.getType().equals("targetTerminology"))
+                    .findFirst()
+                    .get()
+                    .getValue())));
     cm.addGroup(group);
     cm.setUrl(group.getSourceElement().asStringValue() + "?fhir_vs=$" + mapset.getCode());
     return cm;
@@ -258,8 +277,10 @@ public final class FhirUtilityR4 {
    */
   public static void required(final String param1Name, final Object param1) {
     if (param1 == null) {
-      throw exception(format("Must use '%s' parameter.", param1Name),
-          OperationOutcome.IssueType.INVARIANT, 400);
+      throw exception(
+          format("Must use '%s' parameter.", param1Name),
+          OperationOutcome.IssueType.INVARIANT,
+          400);
     }
   }
 
@@ -271,11 +292,13 @@ public final class FhirUtilityR4 {
    * @param param2Name the param 2 name
    * @param param2 the param 2
    */
-  public static void mutuallyExclusive(final String param1Name, final Object param1,
-    final String param2Name, final Object param2) {
+  public static void mutuallyExclusive(
+      final String param1Name, final Object param1, final String param2Name, final Object param2) {
     if (param1 != null && param2 != null) {
-      throw exception(format("Use one of '%s' or '%s' parameters.", param1Name, param2Name),
-          OperationOutcome.IssueType.INVARIANT, 400);
+      throw exception(
+          format("Use one of '%s' or '%s' parameters.", param1Name, param2Name),
+          OperationOutcome.IssueType.INVARIANT,
+          400);
     }
   }
 
@@ -296,11 +319,13 @@ public final class FhirUtilityR4 {
    * @param obj the obj
    * @param additionalDetail the additional detail
    */
-  public static void notSupported(final String paramName, final Object obj,
-    final String additionalDetail) {
+  public static void notSupported(
+      final String paramName, final Object obj, final String additionalDetail) {
     if (obj != null) {
-      final String message = format("Input parameter '%s' is not supported%s", paramName,
-          (additionalDetail == null ? "." : format(" %s", additionalDetail)));
+      final String message =
+          format(
+              "Input parameter '%s' is not supported%s",
+              paramName, (additionalDetail == null ? "." : format(" %s", additionalDetail)));
       throw exception(message, OperationOutcome.IssueType.NOTSUPPORTED, 400);
     }
   }
@@ -313,12 +338,13 @@ public final class FhirUtilityR4 {
    * @param param2Name the param 2 name
    * @param param2 the param 2
    */
-  public static void requireExactlyOneOf(final String param1Name, final Object param1,
-    final String param2Name, final Object param2) {
+  public static void requireExactlyOneOf(
+      final String param1Name, final Object param1, final String param2Name, final Object param2) {
     if (param1 == null && param2 == null) {
       throw exception(
           format("One of '%s' or '%s' parameters must be supplied.", param1Name, param2Name),
-          IssueType.INVARIANT, 400);
+          IssueType.INVARIANT,
+          400);
     } else {
       mutuallyExclusive(param1Name, param1, param2Name, param2);
     }
@@ -336,15 +362,23 @@ public final class FhirUtilityR4 {
    * @param param4Name the param 4 name
    * @param param4 the param 4
    */
-  public static void requireAtLeastOneOf(final String param1Name, final Object param1,
-    final String param2Name, final Object param2, final String param3Name, final Object param3,
-    final String param4Name, final Object param4) {
+  public static void requireAtLeastOneOf(
+      final String param1Name,
+      final Object param1,
+      final String param2Name,
+      final Object param2,
+      final String param3Name,
+      final Object param3,
+      final String param4Name,
+      final Object param4) {
 
     if (param1 == null && param2 == null && param3 == null && param4 == null) {
       throw exception(
-          format("At least one of '%s', '%s', '%s', or '%s' parameters must be supplied.",
+          format(
+              "At least one of '%s', '%s', '%s', or '%s' parameters must be supplied.",
               param1Name, param2Name, param3Name, param4Name),
-          IssueType.INVARIANT, 400);
+          IssueType.INVARIANT,
+          400);
     }
   }
 
@@ -358,11 +392,20 @@ public final class FhirUtilityR4 {
    * @param param3Name the param 3 name
    * @param param3 the param 3
    */
-  public static void requireExactlyOneOf(final String param1Name, final Object param1,
-    final String param2Name, final Object param2, final String param3Name, final Object param3) {
+  public static void requireExactlyOneOf(
+      final String param1Name,
+      final Object param1,
+      final String param2Name,
+      final Object param2,
+      final String param3Name,
+      final Object param3) {
     if (param1 == null && param2 == null && param3 == null) {
-      throw exception(format("One of '%s' or '%s' or '%s' parameters must be supplied.", param1Name,
-          param2Name, param3Name), OperationOutcome.IssueType.INVARIANT, 400);
+      throw exception(
+          format(
+              "One of '%s' or '%s' or '%s' parameters must be supplied.",
+              param1Name, param2Name, param3Name),
+          OperationOutcome.IssueType.INVARIANT,
+          400);
     } else {
       mutuallyExclusive(param1Name, param1, param2Name, param2);
       mutuallyExclusive(param1Name, param1, param3Name, param3);
@@ -378,13 +421,15 @@ public final class FhirUtilityR4 {
    * @param param2Name the param 2 name
    * @param param2 the param 2
    */
-  public static void mutuallyRequired(final String param1Name, final Object param1,
-    final String param2Name, final Object param2) {
+  public static void mutuallyRequired(
+      final String param1Name, final Object param1, final String param2Name, final Object param2) {
     if (param1 != null && param2 == null) {
       throw exception(
-          format("Input parameter '%s' can only be used in conjunction with parameter '%s'.",
+          format(
+              "Input parameter '%s' can only be used in conjunction with parameter '%s'.",
               param1Name, param2Name),
-          IssueType.INVARIANT, 400);
+          IssueType.INVARIANT,
+          400);
     }
   }
 
@@ -398,13 +443,20 @@ public final class FhirUtilityR4 {
    * @param param3Name the param 3 name
    * @param param3 the param 3
    */
-  public static void mutuallyRequired(final String param1Name, final Object param1,
-    final String param2Name, final Object param2, final String param3Name, final Object param3) {
+  public static void mutuallyRequired(
+      final String param1Name,
+      final Object param1,
+      final String param2Name,
+      final Object param2,
+      final String param3Name,
+      final Object param3) {
     if (param1 != null && param2 == null && param3 == null) {
       throw exception(
-          format("Use of input parameter '%s' only allowed if '%s' or '%s' is also present.",
+          format(
+              "Use of input parameter '%s' only allowed if '%s' or '%s' is also present.",
               param1Name, param2Name, param3Name),
-          IssueType.INVARIANT, 400);
+          IssueType.INVARIANT,
+          400);
     }
   }
 
@@ -417,14 +469,17 @@ public final class FhirUtilityR4 {
    */
   public static String recoverCode(final CodeType code, final Coding coding) {
     if (code == null && coding == null) {
-      throw exception("Use either 'code' or 'coding' parameters, not both.",
-          OperationOutcome.IssueType.INVARIANT, 400);
+      throw exception(
+          "Use either 'code' or 'coding' parameters, not both.",
+          OperationOutcome.IssueType.INVARIANT,
+          400);
     } else if (code != null) {
       if (code.getCode().contains("|")) {
         throw exception(
             "The 'code' parameter cannot supply a codeSystem. "
                 + "Use 'coding' or provide CodeSystem in 'system' parameter.",
-            OperationOutcome.IssueType.NOTSUPPORTED, 400);
+            OperationOutcome.IssueType.NOTSUPPORTED,
+            400);
       }
       return code.getCode();
     }
@@ -449,8 +504,8 @@ public final class FhirUtilityR4 {
    * @param theStatusCode the the status code
    * @return the FHIR server response exception
    */
-  public static FHIRServerResponseException exception(final String message,
-    final OperationOutcome.IssueType issueType, final int theStatusCode) {
+  public static FHIRServerResponseException exception(
+      final String message, final OperationOutcome.IssueType issueType, final int theStatusCode) {
     return exception(message, issueType, theStatusCode, null);
   }
 
@@ -463,8 +518,11 @@ public final class FhirUtilityR4 {
    * @param e the e
    * @return the FHIR server response exception
    */
-  public static FHIRServerResponseException exception(final String message,
-    final OperationOutcome.IssueType issueType, final int theStatusCode, final Throwable e) {
+  public static FHIRServerResponseException exception(
+      final String message,
+      final OperationOutcome.IssueType issueType,
+      final int theStatusCode,
+      final Throwable e) {
     final OperationOutcome outcome = new OperationOutcome();
     final OperationOutcome.OperationOutcomeIssueComponent component =
         new OperationOutcome.OperationOutcomeIssueComponent();
@@ -483,8 +541,8 @@ public final class FhirUtilityR4 {
    * @param isCode the is code
    * @return the parameters. parameters parameter component
    */
-  public static Parameters.ParametersParameterComponent createProperty(final String propertyName,
-    final Object propertyValue, final boolean isCode) {
+  public static Parameters.ParametersParameterComponent createProperty(
+      final String propertyName, final Object propertyValue, final boolean isCode) {
     // Make a property with code as "valueCode"
     final Parameters.ParametersParameterComponent property =
         new Parameters.ParametersParameterComponent().setName("property");
@@ -516,5 +574,4 @@ public final class FhirUtilityR4 {
     }
     return property;
   }
-
 }

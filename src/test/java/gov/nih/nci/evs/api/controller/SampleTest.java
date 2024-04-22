@@ -1,35 +1,38 @@
-
 package gov.nih.nci.evs.api.controller;
-
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.junit.Ignore;
-import org.junit.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.test.web.servlet.MockMvc;
 
 import gov.nih.nci.evs.api.ConceptSampleTester;
 import gov.nih.nci.evs.api.SampleRecord;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import java.io.BufferedReader;
+import java.io.FileInputStream;
+import java.io.InputStreamReader;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import org.junit.Ignore;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
 
-/**
- * Superclass for the terminology sample tests.
- */
+/** Superclass for the terminology sample tests. */
+@RunWith(SpringRunner.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Ignore
 public class SampleTest {
 
-  @Autowired
-  ApplicationProperties applicationProperties;
+  @Autowired ApplicationProperties applicationProperties;
 
   /** The mvc. */
-  @Autowired
-  private MockMvc mvc;
+  @Autowired private MockMvc mvc;
+
+  /** The elastic query service. */
+  @Autowired ElasticQueryService esQueryService;
 
   /** The samples. */
   private static Map<String, List<SampleRecord>> samples;
@@ -43,7 +46,7 @@ public class SampleTest {
   /** Constructor */
   @Autowired
   public void setTermUtils(TerminologyUtils termUtils) {
-    conceptSampleTester = new ConceptSampleTester(termUtils);
+    conceptSampleTester = new ConceptSampleTester(termUtils, esQueryService);
   }
 
   /**
@@ -55,12 +58,15 @@ public class SampleTest {
    * @throws Exception the exception
    */
   public static void loadSamples(final String terminology, final String sampleFile)
-    throws Exception {
+      throws Exception {
 
     samples = new HashMap<>();
     SampleTest.terminology = terminology;
-    // load tab separated txt file as resource and load into samples
-    try (BufferedReader fileReader = new BufferedReader(new FileReader(sampleFile));) {
+    // load tab separated txt file, with their corresponding character encoding, as resource and
+    // load into samples
+    try (FileInputStream fileInput = new FileInputStream(sampleFile);
+        InputStreamReader inputStreamReader = new InputStreamReader(fileInput);
+        BufferedReader fileReader = new BufferedReader(inputStreamReader); ) {
       String line;
       while ((line = fileReader.readLine()) != null) {
         String[] parts = line.split("\t");
@@ -69,8 +75,7 @@ public class SampleTest {
           record.setUri(parts[0]);
           record.setCode(parts[1]);
           record.setKey(parts[2]);
-          if (parts.length > 3)
-            record.setValue(parts[3]);
+          if (parts.length > 3) record.setValue(parts[3]);
           if (samples.containsKey(parts[1])) {
             List<SampleRecord> sampleList = samples.get(parts[1]);
             sampleList.add(record);
@@ -150,5 +155,4 @@ public class SampleTest {
     conceptSampleTester.setLicenseKey(applicationProperties.getUiLicense());
     conceptSampleTester.performAssociationEntryTests(terminology, samples, mvc);
   }
-
 }

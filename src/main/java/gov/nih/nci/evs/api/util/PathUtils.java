@@ -1,16 +1,14 @@
 package gov.nih.nci.evs.api.util;
 
-import java.util.HashSet;
-
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
+import java.util.HashSet;
 
 /**
  * Path related utility functions
- * 
- * @author Arun
  *
+ * @author Arun
  */
 public class PathUtils {
   /**

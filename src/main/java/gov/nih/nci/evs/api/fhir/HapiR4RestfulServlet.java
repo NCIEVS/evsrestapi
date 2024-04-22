@@ -1,22 +1,17 @@
-
 package gov.nih.nci.evs.api.fhir;
-
-import javax.servlet.ServletException;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.web.context.WebApplicationContext;
-import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.LenientErrorHandler;
 import ca.uhn.fhir.parser.StrictErrorHandler;
 import ca.uhn.fhir.rest.api.EncodingEnum;
 import ca.uhn.fhir.rest.server.RestfulServer;
+import javax.servlet.ServletException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.web.context.WebApplicationContext;
+import org.springframework.web.context.support.WebApplicationContextUtils;
 
-/**
- * The Hapi servlet itself.
- */
+/** The Hapi servlet itself. */
 public class HapiR4RestfulServlet extends RestfulServer {
 
   /** The logger. */
@@ -36,27 +31,30 @@ public class HapiR4RestfulServlet extends RestfulServer {
 
     final FhirContext fhirContext = FhirContext.forR4();
     final LenientErrorHandler delegateHandler = new LenientErrorHandler();
-    fhirContext.setParserErrorHandler(new StrictErrorHandler() {
+    fhirContext.setParserErrorHandler(
+        new StrictErrorHandler() {
 
-      /* see superclass */
-      @Override
-      public void unknownAttribute(final IParseLocation theLocation,
-        final String theAttributeName) {
-        delegateHandler.unknownAttribute(theLocation, theAttributeName);
-      }
+          /* see superclass */
+          @Override
+          public void unknownAttribute(
+              final IParseLocation theLocation, final String theAttributeName) {
+            delegateHandler.unknownAttribute(theLocation, theAttributeName);
+          }
 
-      /* see superclass */
-      @Override
-      public void unknownElement(final IParseLocation theLocation, final String theElementName) {
-        delegateHandler.unknownElement(theLocation, theElementName);
-      }
+          /* see superclass */
+          @Override
+          public void unknownElement(
+              final IParseLocation theLocation, final String theElementName) {
+            delegateHandler.unknownElement(theLocation, theElementName);
+          }
 
-      /* see superclass */
-      @Override
-      public void unknownReference(final IParseLocation theLocation, final String theReference) {
-        delegateHandler.unknownReference(theLocation, theReference);
-      }
-    });
+          /* see superclass */
+          @Override
+          public void unknownReference(
+              final IParseLocation theLocation, final String theReference) {
+            delegateHandler.unknownReference(theLocation, theReference);
+          }
+        });
     setFhirContext(fhirContext);
 
     /*
@@ -66,7 +64,8 @@ public class HapiR4RestfulServlet extends RestfulServer {
     final WebApplicationContext applicationContext =
         WebApplicationContextUtils.getWebApplicationContext(this.getServletContext());
 
-    setResourceProviders(applicationContext.getBean(CodeSystemProviderR4.class),
+    setResourceProviders(
+        applicationContext.getBean(CodeSystemProviderR4.class),
         applicationContext.getBean(ValueSetProviderR4.class),
         applicationContext.getBean(ConceptMapProviderR4.class));
 

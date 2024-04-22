@@ -1,30 +1,26 @@
-
 package gov.nih.nci.evs.api.model;
 
+import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
 
-import gov.nih.nci.evs.api.service.MetadataService;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
-import io.swagger.v3.oas.annotations.media.Schema;
-
-/**
- * Search criteria object for /concept/search implementation without a terminology field.
- */
+/** Search criteria object for /concept/search implementation without a terminology field. */
 @Schema(description = "Criteria for a search or find operation (except for a terminology aspect)")
 public class SearchCriteriaWithoutTerminology extends BaseModel {
 
   /** The Constant logger. */
   @SuppressWarnings("unused")
-  private static final Logger logger = LoggerFactory.getLogger(SearchCriteriaWithoutTerminology.class);
+  private static final Logger logger =
+      LoggerFactory.getLogger(SearchCriteriaWithoutTerminology.class);
 
   /** The term. */
   private String term;
@@ -73,7 +69,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
 
   /** The subset group. */
   private List<String> subset;
-  
+
   /** The code list. */
   private List<String> codeList;
 
@@ -86,9 +82,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /** The role. */
   // private List<String> role;
 
-  /**
-   * Instantiates an empty {@link SearchCriteriaWithoutTerminology}.
-   */
+  /** Instantiates an empty {@link SearchCriteriaWithoutTerminology}. */
   public SearchCriteriaWithoutTerminology() {
     // n/a
   }
@@ -128,7 +122,7 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
     term = other.getTerm();
     type = other.getType();
     subset = new ArrayList<>(other.getSubset());
-    codeList = new ArrayList<>(other.getCodeList()); 
+    codeList = new ArrayList<>(other.getCodeList());
   }
 
   /**
@@ -155,7 +149,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the type
    */
-  @Schema(description = "The match type, one of: contains, match, startsWith, phrase, AND, OR, fuzzy")
+  @Schema(
+      description = "The match type, one of: contains, match, startsWith, phrase, AND, OR, fuzzy")
   public String getType() {
     return type;
   }
@@ -174,7 +169,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the include
    */
-  @Schema(description = "Include parameter value, e.g. 'minimal', 'summary', 'synonyms,properties,children'")
+  @Schema(
+      description =
+          "Include parameter value, e.g. 'minimal', 'summary', 'synonyms,properties,children'")
   public String getInclude() {
     return include;
   }
@@ -212,7 +209,9 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the ascending
    */
-  @Schema(description = "Indicates whether sort is ascending (true), descending (false), or not specified (null)")
+  @Schema(
+      description =
+          "Indicates whether sort is ascending (true), descending (false), or not specified (null)")
   public Boolean getAscending() {
     return ascending;
   }
@@ -269,7 +268,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    *
    * @return the concept status
    */
-  @Schema(description = "Comma-separated list of concept status values to restrict search results by")
+  @Schema(
+      description = "Comma-separated list of concept status values to restrict search results by")
   public List<String> getConceptStatus() {
     if (conceptStatus == null) {
       conceptStatus = new ArrayList<>();
@@ -500,7 +500,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   /**
    * @return the
    */
-  @Schema(description = "Comma-separated list of subsets to restrict search results by, e.g. 'C157225'")
+  @Schema(
+      description = "Comma-separated list of subsets to restrict search results by, e.g. 'C157225'")
   public List<String> getSubset() {
     if (subset == null) {
       subset = new ArrayList<>();
@@ -516,11 +517,13 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   public void setSubset(List<String> subset) {
     this.subset = subset;
   }
-  
+
   /**
    * @return the list of codes to limit the search to
    */
-  @Schema(description = "Comma-separated list of concept codes to restrict search results by, e.g. 'C157225'")
+  @Schema(
+      description =
+          "Comma-separated list of concept codes to restrict search results by, e.g. 'C157225'")
   public List<String> getCodeList() {
     if (codeList == null) {
       codeList = new ArrayList<>();
@@ -566,9 +569,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    */
   public void checkPagination() throws Exception {
     if (pageSize < 1 || pageSize > 1000) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
-
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
     }
 
     // This rule is no longer required, non-aligned fromRecord/pageSize
@@ -596,33 +598,41 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * @param metadataService the metadata service
    * @throws Exception the exception
    */
-  public void validate(final Terminology terminology, final MetadataService metadataService) throws Exception {
+  public void validate(final Terminology terminology, final MetadataService metadataService)
+      throws Exception {
     // if (getTerm() == null) {
     // throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
     // "Required parameter 'term' is missing");
     // }
 
-    if (!TerminologyUtils.asSet("AND", "OR", "phrase", "exact", "contains", "fuzzy", "match", "startsWith")
+    if (!TerminologyUtils.asSet(
+            "AND", "OR", "phrase", "exact", "contains", "fuzzy", "match", "startsWith")
         .contains(getType())) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Required parameter 'type' has an invalid value = " + type);
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Required parameter 'type' has an invalid value = " + type);
     }
 
     if (fromRecord < 0) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parameter 'fromRecord' must be >= 0 = " + fromRecord);
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Parameter 'fromRecord' must be >= 0 = " + fromRecord);
     }
 
     if ((pageSize < 1) || (pageSize > 1000)) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-          "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
     }
 
     // Restrict paging for license-restricted terminologies (unless term is set)
-    if (terminology.getMetadata().getLicenseText() != null && (term == null || term.isEmpty()) && pageSize > 10) {
-      throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+    if (terminology.getMetadata().getLicenseText() != null
+        && (term == null || term.isEmpty())
+        && pageSize > 10) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST,
           terminology.getMetadata().getUiLabel().replaceFirst(":.*", "")
-              + " has license restrictions and so bulk operations are limited to working on 10 things at a time "
-              + "(page size = " + pageSize + ")");
+              + " has license restrictions and so bulk operations are limited to working on 10"
+              + " things at a time (page size = "
+              + pageSize
+              + ")");
     }
 
     // Validate concept status
@@ -631,36 +641,39 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
           new HashSet<>(metadataService.getConceptStatuses(terminology.getTerminology()).get());
       for (final String cs : getConceptStatus()) {
         if (!conceptStatuses.contains(cs)) {
-          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-              "Parameter 'conceptStatus' has an invalid value = " + cs);
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST, "Parameter 'conceptStatus' has an invalid value = " + cs);
         }
       }
     }
 
     // Validate synonym source - must be a valid synonym source
     if (getSynonymSource().size() > 0) {
-      final Set<String> synonymSources = metadataService.getSynonymSources(terminology.getTerminology()).stream()
-          .map(c -> c.getCode()).collect(Collectors.toSet());
+      final Set<String> synonymSources =
+          metadataService.getSynonymSources(terminology.getTerminology()).stream()
+              .map(c -> c.getCode())
+              .collect(Collectors.toSet());
       for (final String ss : getSynonymSource()) {
         if (!synonymSources.contains(ss)) {
-          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-              "Parameter 'synonymSource' has an invalid value = " + ss);
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST, "Parameter 'synonymSource' has an invalid value = " + ss);
         }
       }
     }
 
     // Validate definition source - must be a valid definition source
     if (getDefinitionSource().size() > 0) {
-      final Set<String> definitionSources = metadataService.getDefinitionSources(terminology.getTerminology()).stream()
-          .map(c -> c.getCode()).collect(Collectors.toSet());
+      final Set<String> definitionSources =
+          metadataService.getDefinitionSources(terminology.getTerminology()).stream()
+              .map(c -> c.getCode())
+              .collect(Collectors.toSet());
       for (final String ss : getDefinitionSource()) {
         if (!definitionSources.contains(ss)) {
-          throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-              "Parameter 'definitionSource' has an invalid value = " + ss);
+          throw new ResponseStatusException(
+              HttpStatus.BAD_REQUEST, "Parameter 'definitionSource' has an invalid value = " + ss);
         }
       }
     }
-
   }
 
   /**

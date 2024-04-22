@@ -4,6 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,25 +21,18 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Concept;
-
-/**
- * NCIt samples test.
- */
+/** NCIt samples test. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class Icd9cmSampleTest extends SampleTest {
 
-    /** The logger. */
-    private static final Logger log = LoggerFactory.getLogger(Icd9cmSampleTest.class);
+  /** The logger. */
+  private static final Logger log = LoggerFactory.getLogger(Icd9cmSampleTest.class);
 
-    /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
-    @Autowired
-    private MockMvc testMvc;
-    
+  /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
+  @Autowired private MockMvc testMvc;
+
   /**
    * Setup class.
    *
@@ -43,9 +40,10 @@ public class Icd9cmSampleTest extends SampleTest {
    */
   @BeforeClass
   public static void setupClass() throws Exception {
+    Charset encode = StandardCharsets.US_ASCII;
     loadSamples("icd9cm", "src/test/resources/samples/icd9cm-samples.txt");
   }
-  
+
   /**
    * Test concept active status.
    *
@@ -53,7 +51,7 @@ public class Icd9cmSampleTest extends SampleTest {
    */
   @Test
   public void testActive() throws Exception {
-      
+
     String url = null;
     MvcResult result = null;
     String content = null;
@@ -71,5 +69,4 @@ public class Icd9cmSampleTest extends SampleTest {
     assertThat(concept.getTerminology()).isEqualTo("icd9cm");
     assertThat(concept.getActive()).isTrue();
   }
-
 }

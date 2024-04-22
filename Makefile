@@ -22,7 +22,7 @@ clean:
 
 # Build the library without tests
 build:
-	./gradlew clean build -x test
+	./gradlew clean spotlessJavaCheck build -x test
 
 tag:
 	git tag -a "v`/bin/date +%Y-%m-%d`-${APP_VERSION}" -m "Release `/bin/date +%Y-%m-%d`"

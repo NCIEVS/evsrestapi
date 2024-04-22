@@ -1,6 +1,9 @@
-
 package gov.nih.nci.evs.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -8,15 +11,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import io.swagger.v3.oas.annotations.media.Schema;
-
 /**
- * Represents terminology metadata, which includes information about mapping from OWL structures to the terminology
- * model.
+ * Represents terminology metadata, which includes information about mapping from OWL structures to
+ * the terminology model.
  */
 @Schema(description = "Represents additional terminology metadata")
 @JsonInclude(Include.NON_EMPTY)
@@ -155,9 +152,7 @@ public class TerminologyMetadata extends BaseModel {
   /** The welcome text. */
   private String welcomeText;
 
-  /**
-   * Instantiates an empty {@link TerminologyMetadata}.
-   */
+  /** Instantiates an empty {@link TerminologyMetadata}. */
   public TerminologyMetadata() {
     // n/a
   }
@@ -234,18 +229,13 @@ public class TerminologyMetadata extends BaseModel {
 
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
     TerminologyMetadata other = (TerminologyMetadata) obj;
     if (uiLabel == null) {
-      if (other.uiLabel != null)
-        return false;
-    } else if (!uiLabel.equals(other.uiLabel))
-      return false;
+      if (other.uiLabel != null) return false;
+    } else if (!uiLabel.equals(other.uiLabel)) return false;
     return true;
   }
 
@@ -916,8 +906,8 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
-   * Returns the unpublished properties or qualifiers. These are things where the data defines the metadata but then no
-   * uses of that metadata occur.
+   * Returns the unpublished properties or qualifiers. These are things where the data defines the
+   * metadata but then no uses of that metadata occur.
    *
    * @return the unpublished
    */
@@ -1181,9 +1171,10 @@ public class TerminologyMetadata extends BaseModel {
     if (code == null) {
       return false;
     }
-    return getSynonym().contains(code) || getDefinition().contains(code) || code.equals(this.code)
+    return getSynonym().contains(code)
+        || getDefinition().contains(code)
+        || code.equals(this.code)
         || code.equals(subsetLink);
-
   }
 
   /**
@@ -1196,9 +1187,15 @@ public class TerminologyMetadata extends BaseModel {
     if (code == null) {
       return false;
     }
-    return code.equals(synonymTermType) || code.equals(synonymSource) || code.equals(synonymCode)
-        || code.equals(synonymSubSource) || code.equals(definitionSource) || code.equals(mapRelation)
-        || code.equals(mapTarget) || code.equals(mapTargetTermType) || code.equals(mapTargetTerminology)
+    return code.equals(synonymTermType)
+        || code.equals(synonymSource)
+        || code.equals(synonymCode)
+        || code.equals(synonymSubSource)
+        || code.equals(definitionSource)
+        || code.equals(mapRelation)
+        || code.equals(mapTarget)
+        || code.equals(mapTargetTermType)
+        || code.equals(mapTargetTerminology)
         || code.equals(mapTargetTerminologyVersion);
   }
 
@@ -1220,7 +1217,8 @@ public class TerminologyMetadata extends BaseModel {
    * @param md the md
    * @return the remodeled as type
    */
-  public String getRemodeledAsType(final Property prop, final Qualifier qual, final TerminologyMetadata md) {
+  public String getRemodeledAsType(
+      final Property prop, final Qualifier qual, final TerminologyMetadata md) {
     String code = null;
     if (prop != null) {
       code = prop.getCode();
@@ -1270,5 +1268,4 @@ public class TerminologyMetadata extends BaseModel {
       return " other";
     }
   }
-
 }

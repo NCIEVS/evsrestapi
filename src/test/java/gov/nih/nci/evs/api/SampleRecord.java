@@ -1,14 +1,10 @@
-
 package gov.nih.nci.evs.api;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import gov.nih.nci.evs.api.model.BaseModel;
 
-/**
- * The Class SampleRecord.
- */
+/** The Class SampleRecord. */
 @JsonInclude(Include.NON_EMPTY)
 public class SampleRecord extends BaseModel {
 
@@ -24,9 +20,7 @@ public class SampleRecord extends BaseModel {
   /** The terminology. */
   private String value;
 
-  /**
-   * Instantiates an empty {@link SampleRecord}.
-   */
+  /** Instantiates an empty {@link SampleRecord}. */
   public SampleRecord() {
     // n/a
   }
@@ -119,5 +113,4 @@ public class SampleRecord extends BaseModel {
   public void setValue(String value) {
     this.value = value;
   }
-
 }

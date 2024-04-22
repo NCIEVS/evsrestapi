@@ -1,17 +1,12 @@
-
 package gov.nih.nci.evs.api.model;
-
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
 import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
 
-/**
- * Represents an entry in a table of associations between two concepts.
- */
+/** Represents an entry in a table of associations between two concepts. */
 @Schema(description = "Represents an entry in a table of associations between two concepts")
 @JsonInclude(Include.NON_EMPTY)
 public class AssociationEntry extends Relationship {
@@ -44,9 +39,7 @@ public class AssociationEntry extends Relationship {
   @Field(type = FieldType.Text)
   private String relatedName;
 
-  /**
-   * Instantiates an empty {@link AssociationEntry}.
-   */
+  /** Instantiates an empty {@link AssociationEntry}. */
   public AssociationEntry() {
     // n/a
   }
@@ -179,5 +172,4 @@ public class AssociationEntry extends Relationship {
   public void setRelatedName(String relatedName) {
     this.relatedName = relatedName;
   }
-
 }

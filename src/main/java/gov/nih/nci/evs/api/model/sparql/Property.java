@@ -1,9 +1,6 @@
-
 package gov.nih.nci.evs.api.model.sparql;
 
-/**
- * The Class Property.
- */
+/** The Class Property. */
 public class Property {
 
   /** The value. */
@@ -57,5 +54,4 @@ public class Property {
   public String toString() {
     return "[value = " + value + ", type = " + type + "]";
   }
-
 }

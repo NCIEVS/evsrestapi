@@ -1,29 +1,19 @@
-
 package gov.nih.nci.evs.api.model;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.annotation.Transient;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.swagger.v3.oas.annotations.media.Schema;
-
-/**
- * Represents the base superclass for other model objects.
- */
+/** Represents the base superclass for other model objects. */
 public class BaseModel {
 
-  /**
-   * The rdf:about - used for situations where there is not a defined code property.
-   */
-  @Transient
-  private String uri;
+  /** The rdf:about - used for situations where there is not a defined code property. */
+  @Transient private String uri;
 
   /** The ct - only used for limit calls. */
   private Integer ct;
 
-  /**
-   * Instantiates an empty {@link BaseModel}.
-   */
+  /** Instantiates an empty {@link BaseModel}. */
   public BaseModel() {
     // n/a
   }
@@ -71,7 +61,9 @@ public class BaseModel {
    *
    * @return the ct
    */
-  @Schema(description = "Used to indicate the total amount of data in cases where a limit is being applied")
+  @Schema(
+      description =
+          "Used to indicate the total amount of data in cases where a limit is being applied")
   public Integer getCt() {
     return ct;
   }
@@ -94,5 +86,4 @@ public class BaseModel {
       return e.getMessage();
     }
   }
-
 }

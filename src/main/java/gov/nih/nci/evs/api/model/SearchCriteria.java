@@ -1,23 +1,17 @@
-
 package gov.nih.nci.evs.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
-/**
- * Search criteria object for /concept/search implementation.
- */
+/** Search criteria object for /concept/search implementation. */
 @Schema(description = "Criteria for a search or find operation")
 public class SearchCriteria extends SearchCriteriaWithoutTerminology {
 
   /** The terminology. */
   private List<String> terminology;
 
-  /**
-   * Instantiates an empty {@link SearchCriteria}.
-   */
+  /** Instantiates an empty {@link SearchCriteria}. */
   public SearchCriteria() {
     // n/a
   }
@@ -108,5 +102,4 @@ public class SearchCriteria extends SearchCriteriaWithoutTerminology {
     }
     return true;
   }
-
 }

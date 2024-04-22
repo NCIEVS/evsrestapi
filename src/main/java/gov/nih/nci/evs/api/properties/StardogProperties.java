@@ -1,9 +1,6 @@
-
 package gov.nih.nci.evs.api.properties;
 
-/**
- * Stardog properties.
- */
+/** Stardog properties. */
 public class StardogProperties {
 
   /** The username. */
@@ -173,5 +170,4 @@ public class StardogProperties {
   public void setQueryUrl(String queryUrl) {
     this.queryUrl = queryUrl;
   }
-
 }

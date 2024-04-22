@@ -1,12 +1,16 @@
-
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,15 +24,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Terminology;
-
-/**
- * NCIt samples test.
- */
+/** NCIt samples test. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -38,8 +34,7 @@ public class NcimSampleTest extends SampleTest {
   private static final Logger log = LoggerFactory.getLogger(NcimSampleTest.class);
 
   /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
-  @Autowired
-  private MockMvc testMvc;
+  @Autowired private MockMvc testMvc;
 
   /**
    * Setup class.
@@ -48,6 +43,7 @@ public class NcimSampleTest extends SampleTest {
    */
   @BeforeClass
   public static void setupClass() throws Exception {
+    Charset encode = StandardCharsets.US_ASCII;
     loadSamples("ncim", "src/test/resources/samples/ncim-samples.txt");
   }
 
@@ -131,9 +127,12 @@ public class NcimSampleTest extends SampleTest {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     List<Terminology> list =
-        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
-          // n/a
-        });
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Terminology>>() {
+                  // n/a
+                });
     assertThat(list).isNotEmpty();
     Terminology term = list.get(0);
     assertThat(term.getMetadata().getConceptStatuses()).isNotEmpty();

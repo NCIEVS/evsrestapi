@@ -1,26 +1,19 @@
-
 package gov.nih.nci.evs.api.model;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.Map;
-
 import org.springframework.data.elasticsearch.annotations.DateFormat;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.core.geo.GeoPoint;
 
-import com.fasterxml.jackson.annotation.JsonFormat;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.service.ElasticOperationsService;
-import io.swagger.v3.oas.annotations.media.Schema;
-
-/**
- * Metric.
- */
+/** Metric. */
 @Schema(hidden = true)
-@Document(indexName = "default", type = ElasticOperationsService.METRIC_TYPE)
+@Document(indexName = "default")
 public class Metric {
 
   /** The remote ip address. */
@@ -36,12 +29,20 @@ public class Metric {
   private Map<String, String[]> queryParams;
 
   /** The start time. */
-  @Field(type = FieldType.Date, store = true, format = DateFormat.custom, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  @Field(
+      type = FieldType.Date,
+      store = true,
+      format = DateFormat.custom,
+      pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   private Date startTime;
 
   /** The end time. */
-  @Field(type = FieldType.Date, store = true, format = DateFormat.custom, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
+  @Field(
+      type = FieldType.Date,
+      store = true,
+      format = DateFormat.custom,
+      pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'")
   private Date endTime;
 
@@ -205,5 +206,4 @@ public class Metric {
       return e.getMessage();
     }
   }
-
 }

@@ -1,29 +1,4 @@
-
 package gov.nih.nci.evs.api.fhir;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-
-import org.hl7.fhir.r4.model.BooleanType;
-import org.hl7.fhir.r4.model.CodeSystem;
-import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.CodeableConcept;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.DateTimeType;
-import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.UriType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.rest.annotation.IdParam;
@@ -45,10 +20,29 @@ import gov.nih.nci.evs.api.service.ElasticOperationsService;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.CodeSystem;
+import org.hl7.fhir.r4.model.CodeType;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.DateTimeType;
+import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.UriType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
-/**
- * The CodeSystem provider.
- */
+/** The CodeSystem provider. */
 @Component
 public class CodeSystemProviderR4 implements IResourceProvider {
 
@@ -56,29 +50,24 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   private static Logger logger = LoggerFactory.getLogger(CodeSystemProviderR4.class);
 
   /** The operations service. */
-  @Autowired
-  ElasticOperationsService operationsService;
+  @Autowired ElasticOperationsService operationsService;
 
   /** the query service. */
-  @Autowired
-  ElasticQueryService queryService;
+  @Autowired ElasticQueryService esQueryService;
 
   /** The search service. */
-  @Autowired
-  ElasticSearchService searchService;
+  @Autowired ElasticSearchService searchService;
 
   /** The concept controller. */
-  @Autowired
-  ConceptController conceptController;
+  @Autowired ConceptController conceptController;
 
   /** The term utils. */
   /* The terminology utils */
-  @Autowired
-  TerminologyUtils termUtils;
+  @Autowired TerminologyUtils termUtils;
 
   /**
    * Lookup implicit.
-   * 
+   *
    * <pre>
    * https://build.fhir.org/codesystem-operation-lookup.html
    * </pre>
@@ -97,16 +86,18 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Operation(name = "$lookup", idempotent = true)
-  public Parameters lookupImplicit(final HttpServletRequest request,
-    final HttpServletResponse response, final ServletRequestDetails details,
-    @OperationParam(name = "code")
-    final CodeType code, @OperationParam(name = "system")
-    final UriType system, @OperationParam(name = "version")
-    final StringType version, @OperationParam(name = "coding")
-    final Coding coding, @OperationParam(name = "date")
-    final DateRangeParam date, @OperationParam(name = "displayLanguage")
-    final StringType displayLanguage, @OperationParam(name = "property")
-    final CodeType property) throws Exception {
+  public Parameters lookupImplicit(
+      final HttpServletRequest request,
+      final HttpServletResponse response,
+      final ServletRequestDetails details,
+      @OperationParam(name = "code") final CodeType code,
+      @OperationParam(name = "system") final UriType system,
+      @OperationParam(name = "version") final StringType version,
+      @OperationParam(name = "coding") final Coding coding,
+      @OperationParam(name = "date") final DateRangeParam date,
+      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      @OperationParam(name = "property") final CodeType property)
+      throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
@@ -123,9 +114,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           codeToLookup = coding.getCode();
         }
         final CodeSystem codeSys = cs.get(0);
-        final Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        final Terminology term =
+            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
         final Concept conc =
-            queryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
+            esQueryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
         params.addParameter("code", "code");
         params.addParameter("system", codeSys.getUrl());
         params.addParameter("code", codeSys.getName());
@@ -138,7 +130,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         for (final Concept child : conc.getChildren()) {
           params.addParameter(FhirUtilityR4.createProperty("child", child.getCode(), true));
         }
-
       }
       return params;
 
@@ -146,14 +137,14 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       throw e;
     } catch (final Exception e) {
       e.printStackTrace();
-      throw FhirUtilityR4.exception("Failed to lookup code", OperationOutcome.IssueType.EXCEPTION,
-          500);
+      throw FhirUtilityR4.exception(
+          "Failed to lookup code", OperationOutcome.IssueType.EXCEPTION, 500);
     }
   }
 
   /**
    * Lookup instance. https://build.fhir.org/codesystem-operation-lookup.html
-   * 
+   *
    * <pre>
    * https://build.fhir.org/codesystem-operation-lookup.html
    * </pre>
@@ -173,16 +164,19 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Operation(name = "$lookup", idempotent = true)
-  public Parameters lookupInstance(final HttpServletRequest request,
-    final HttpServletResponse response, final ServletRequestDetails details, @IdParam
-    final IdType id, @OperationParam(name = "code")
-    final CodeType code, @OperationParam(name = "system")
-    final UriType system, @OperationParam(name = "version")
-    final StringType version, @OperationParam(name = "coding")
-    final Coding coding, @OperationParam(name = "date")
-    final DateRangeParam date, @OperationParam(name = "displayLanguage")
-    final StringType displayLanguage, @OperationParam(name = "property")
-    final CodeType property) throws Exception {
+  public Parameters lookupInstance(
+      final HttpServletRequest request,
+      final HttpServletResponse response,
+      final ServletRequestDetails details,
+      @IdParam final IdType id,
+      @OperationParam(name = "code") final CodeType code,
+      @OperationParam(name = "system") final UriType system,
+      @OperationParam(name = "version") final StringType version,
+      @OperationParam(name = "coding") final Coding coding,
+      @OperationParam(name = "date") final DateRangeParam date,
+      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      @OperationParam(name = "property") final CodeType property)
+      throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
@@ -199,9 +193,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           codeToLookup = coding.getCode();
         }
         final CodeSystem codeSys = cs.get(0);
-        final Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        final Terminology term =
+            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
         final Concept conc =
-            queryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
+            esQueryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
         params.addParameter("code", "code");
         params.addParameter("system", codeSys.getUrl());
         params.addParameter("code", codeSys.getName());
@@ -214,21 +209,20 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         for (final Concept child : conc.getChildren()) {
           params.addParameter(FhirUtilityR4.createProperty("child", child.getCode(), true));
         }
-
       }
       return params;
 
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
-      throw FhirUtilityR4.exception("Failed to lookup code", OperationOutcome.IssueType.EXCEPTION,
-          500);
+      throw FhirUtilityR4.exception(
+          "Failed to lookup code", OperationOutcome.IssueType.EXCEPTION, 500);
     }
   }
 
   /**
    * Validate code implicit.
-   * 
+   *
    * <pre>
    * https://hl7.org/fhir/R4/codesystem-operation-validate-code.html
    * </pre>
@@ -251,20 +245,22 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Operation(name = JpaConstants.OPERATION_VALIDATE_CODE, idempotent = true)
-  public Parameters validateCodeImplicit(final HttpServletRequest request,
-    final HttpServletResponse response, final ServletRequestDetails details,
-    @OperationParam(name = "url")
-    final UriType url, @OperationParam(name = "codeSystem")
-    final CodeSystem codeSystem, @OperationParam(name = "code")
-    final CodeType code, @OperationParam(name = "version")
-    final StringType version, @OperationParam(name = "display")
-    final StringType display, @OperationParam(name = "coding")
-    final Coding coding, @OperationParam(name = "codeableConcept")
-    final CodeableConcept codeableConcept, @OperationParam(name = "date")
-    final DateTimeType date, @OperationParam(name = "abstract")
-    final BooleanType abstractt, @OperationParam(name = "displayLanguage")
-    final StringType displayLanguage, @OperationParam(name = "systemVersion")
-    final StringType systemVersion) throws Exception {
+  public Parameters validateCodeImplicit(
+      final HttpServletRequest request,
+      final HttpServletResponse response,
+      final ServletRequestDetails details,
+      @OperationParam(name = "url") final UriType url,
+      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
+      @OperationParam(name = "code") final CodeType code,
+      @OperationParam(name = "version") final StringType version,
+      @OperationParam(name = "display") final StringType display,
+      @OperationParam(name = "coding") final Coding coding,
+      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      @OperationParam(name = "date") final DateTimeType date,
+      @OperationParam(name = "abstract") final BooleanType abstractt,
+      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      @OperationParam(name = "systemVersion") final StringType systemVersion)
+      throws Exception {
 
     try {
       FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
@@ -279,18 +275,22 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       if (cs.size() > 0) {
         final String codeToValidate = code.getCode();
         final CodeSystem codeSys = cs.get(0);
-        final Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        final Terminology term =
+            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
         final Optional<Concept> check =
-            queryService.getConcept(codeToValidate, term, new IncludeParam("children"));
+            esQueryService.getConcept(codeToValidate, term, new IncludeParam("children"));
         if (check.isPresent()) {
           final Concept conc =
-              queryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
+              esQueryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
           params.addParameter("result", true);
           if (display == null || conc.getName().equals(display.getValue())) {
             params.addParameter("code", conc.getCode());
           } else {
-            params.addParameter("message", "The code " + conc.getCode()
-                + " exists in this value set but the display is not valid");
+            params.addParameter(
+                "message",
+                "The code "
+                    + conc.getCode()
+                    + " exists in this value set but the display is not valid");
           }
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
@@ -298,8 +298,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           params.addParameter("active", true);
         } else {
           params.addParameter("result", false);
-          params.addParameter("message",
-              "The code does not exist for the supplied code system and/or version");
+          params.addParameter(
+              "message", "The code does not exist for the supplied code system and/or version");
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
         }
@@ -314,14 +314,14 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
-      throw FhirUtilityR4.exception("Failed to validate code", OperationOutcome.IssueType.EXCEPTION,
-          500);
+      throw FhirUtilityR4.exception(
+          "Failed to validate code", OperationOutcome.IssueType.EXCEPTION, 500);
     }
   }
 
   /**
    * Validate code implicit.
-   * 
+   *
    * <pre>
    * https://hl7.org/fhir/R4/codesystem-operation-validate-code.html
    * </pre>
@@ -345,20 +345,23 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Operation(name = "$validate-code", idempotent = true)
-  public Parameters validateCodeInstance(final HttpServletRequest request,
-    final HttpServletResponse response, final ServletRequestDetails details, @IdParam
-    final IdType id, @OperationParam(name = "url")
-    final UriType url, @OperationParam(name = "codeSystem")
-    final CodeSystem codeSystem, @OperationParam(name = "code")
-    final CodeType code, @OperationParam(name = "version")
-    final StringType version, @OperationParam(name = "display")
-    final StringType display, @OperationParam(name = "coding")
-    final Coding coding, @OperationParam(name = "codeableConcept")
-    final CodeableConcept codeableConcept, @OperationParam(name = "date")
-    final DateTimeType date, @OperationParam(name = "abstract")
-    final BooleanType abstractt, @OperationParam(name = "displayLanguage")
-    final StringType displayLanguage, @OperationParam(name = "systemVersion")
-    final StringType systemVersion) throws Exception {
+  public Parameters validateCodeInstance(
+      final HttpServletRequest request,
+      final HttpServletResponse response,
+      final ServletRequestDetails details,
+      @IdParam final IdType id,
+      @OperationParam(name = "url") final UriType url,
+      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
+      @OperationParam(name = "code") final CodeType code,
+      @OperationParam(name = "version") final StringType version,
+      @OperationParam(name = "display") final StringType display,
+      @OperationParam(name = "coding") final Coding coding,
+      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      @OperationParam(name = "date") final DateTimeType date,
+      @OperationParam(name = "abstract") final BooleanType abstractt,
+      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      @OperationParam(name = "systemVersion") final StringType systemVersion)
+      throws Exception {
 
     try {
       FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
@@ -373,18 +376,22 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       if (cs.size() > 0) {
         final String codeToValidate = code.getCode();
         final CodeSystem codeSys = cs.get(0);
-        final Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        final Terminology term =
+            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
         final Optional<Concept> check =
-            queryService.getConcept(codeToValidate, term, new IncludeParam("children"));
+            esQueryService.getConcept(codeToValidate, term, new IncludeParam("children"));
         if (check.isPresent()) {
           final Concept conc =
-              queryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
+              esQueryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
           params.addParameter("result", true);
           if (display == null || conc.getName().equals(display.getValue())) {
             params.addParameter("code", conc.getCode());
           } else {
-            params.addParameter("message", "The code " + conc.getCode()
-                + " exists in this value set but the display is not valid");
+            params.addParameter(
+                "message",
+                "The code "
+                    + conc.getCode()
+                    + " exists in this value set but the display is not valid");
           }
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
@@ -392,8 +399,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           params.addParameter("active", true);
         } else {
           params.addParameter("result", false);
-          params.addParameter("message",
-              "The code does not exist for the supplied code system and/or version");
+          params.addParameter(
+              "message", "The code does not exist for the supplied code system and/or version");
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
         }
@@ -408,10 +415,9 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
-      throw FhirUtilityR4.exception("Failed to validate code", OperationOutcome.IssueType.EXCEPTION,
-          500);
+      throw FhirUtilityR4.exception(
+          "Failed to validate code", OperationOutcome.IssueType.EXCEPTION, 500);
     }
-
   }
 
   /**
@@ -434,15 +440,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Operation(name = "$subsumes", idempotent = true)
-  public Parameters subsumesImplicit(final HttpServletRequest request,
-    final HttpServletResponse response, final ServletRequestDetails details,
-    @OperationParam(name = "codeA")
-    final CodeType codeA, @OperationParam(name = "codeB")
-    final CodeType codeB, @OperationParam(name = "system")
-    final UriType system, @OperationParam(name = "version")
-    final StringType version, @OperationParam(name = "codingA")
-    final Coding codingA, @OperationParam(name = "codingB")
-    final Coding codingB) throws Exception {
+  public Parameters subsumesImplicit(
+      final HttpServletRequest request,
+      final HttpServletResponse response,
+      final ServletRequestDetails details,
+      @OperationParam(name = "codeA") final CodeType codeA,
+      @OperationParam(name = "codeB") final CodeType codeB,
+      @OperationParam(name = "system") final UriType system,
+      @OperationParam(name = "version") final StringType version,
+      @OperationParam(name = "codingA") final Coding codingA,
+      @OperationParam(name = "codingB") final Coding codingB)
+      throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("codeA", codeA, "system", system);
@@ -462,17 +470,18 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           code2 = codingB.getCode();
         }
         final CodeSystem codeSys = cs.get(0);
-        final Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        final Terminology term =
+            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
         final Optional<Concept> checkA =
-            queryService.getConcept(code1, term, new IncludeParam("minimal"));
+            esQueryService.getConcept(code1, term, new IncludeParam("minimal"));
         final Optional<Concept> checkB =
-            queryService.getConcept(code2, term, new IncludeParam("minimal"));
+            esQueryService.getConcept(code2, term, new IncludeParam("minimal"));
         if (checkA.get() != null && checkB.get() != null) {
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
-          if (queryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
+          if (esQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumes");
-          } else if (queryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
+          } else if (esQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumed-by");
           } else {
             params.addParameter("outcome", "no-subsumption-relationship");
@@ -484,14 +493,14 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
-      throw FhirUtilityR4.exception("Failed to check if A subsumes B",
-          OperationOutcome.IssueType.EXCEPTION, 500);
+      throw FhirUtilityR4.exception(
+          "Failed to check if A subsumes B", OperationOutcome.IssueType.EXCEPTION, 500);
     }
   }
 
   /**
    * Subsumes instance.
-   * 
+   *
    * <pre>
    * https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
    * </pre>
@@ -510,15 +519,18 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Operation(name = "$subsumes", idempotent = true)
-  public Parameters subsumesInstance(final HttpServletRequest request,
-    final HttpServletResponse response, final ServletRequestDetails details, @IdParam
-    final IdType id, @OperationParam(name = "codeA")
-    final CodeType codeA, @OperationParam(name = "codeB")
-    final CodeType codeB, @OperationParam(name = "system")
-    final UriType system, @OperationParam(name = "version")
-    final StringType version, @OperationParam(name = "codingA")
-    final Coding codingA, @OperationParam(name = "codingB")
-    final Coding codingB) throws Exception {
+  public Parameters subsumesInstance(
+      final HttpServletRequest request,
+      final HttpServletResponse response,
+      final ServletRequestDetails details,
+      @IdParam final IdType id,
+      @OperationParam(name = "codeA") final CodeType codeA,
+      @OperationParam(name = "codeB") final CodeType codeB,
+      @OperationParam(name = "system") final UriType system,
+      @OperationParam(name = "version") final StringType version,
+      @OperationParam(name = "codingA") final Coding codingA,
+      @OperationParam(name = "codingB") final Coding codingB)
+      throws Exception {
 
     try {
       FhirUtilityR4.mutuallyRequired("codeA", codeA, "system", system);
@@ -538,17 +550,18 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           code2 = codingB.getCode();
         }
         final CodeSystem codeSys = cs.get(0);
-        final Terminology term = termUtils.getTerminology(codeSys.getTitle(), true);
+        final Terminology term =
+            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
         final Optional<Concept> checkA =
-            queryService.getConcept(code1, term, new IncludeParam("minimal"));
+            esQueryService.getConcept(code1, term, new IncludeParam("minimal"));
         final Optional<Concept> checkB =
-            queryService.getConcept(code2, term, new IncludeParam("minimal"));
+            esQueryService.getConcept(code2, term, new IncludeParam("minimal"));
         if (checkA.get() != null && checkB.get() != null) {
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
-          if (queryService.getPathsToParent(code1, code2, term).getCt() > 0) {
+          if (esQueryService.getPathsToParent(code1, code2, term).getCt() > 0) {
             params.addParameter("outcome", "subsumes");
-          } else if (queryService.getPathsToParent(code2, code1, term).getCt() > 0) {
+          } else if (esQueryService.getPathsToParent(code2, code1, term).getCt() > 0) {
             params.addParameter("outcome", "subsumed-by");
           } else {
             params.addParameter("outcome", "no-subsumption-relationship");
@@ -560,10 +573,9 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
-      throw FhirUtilityR4.exception("Failed to validate code", OperationOutcome.IssueType.EXCEPTION,
-          500);
+      throw FhirUtilityR4.exception(
+          "Failed to validate code", OperationOutcome.IssueType.EXCEPTION, 500);
     }
-
   }
 
   /**
@@ -578,14 +590,15 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Search
-  public List<CodeSystem> findCodeSystems(@OptionalParam(name = "_id")
-  final TokenParam id, @OptionalParam(name = "date")
-  final DateRangeParam date, @OptionalParam(name = "system")
-  final StringParam system, @OptionalParam(name = "version")
-  final StringParam version, @OptionalParam(name = "title")
-  final StringParam title) throws Exception {
+  public List<CodeSystem> findCodeSystems(
+      @OptionalParam(name = "_id") final TokenParam id,
+      @OptionalParam(name = "date") final DateRangeParam date,
+      @OptionalParam(name = "system") final StringParam system,
+      @OptionalParam(name = "version") final StringParam version,
+      @OptionalParam(name = "title") final StringParam title)
+      throws Exception {
     try {
-      final List<Terminology> terms = termUtils.getTerminologies(true);
+      final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
 
       final List<CodeSystem> list = new ArrayList<>();
       for (final Terminology terminology : terms) {
@@ -616,8 +629,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       throw e;
     } catch (final Exception e) {
       logger.error("Unexpected error", e);
-      throw FhirUtilityR4.exception("Failed to find code systems",
-          OperationOutcome.IssueType.EXCEPTION, 500);
+      throw FhirUtilityR4.exception(
+          "Failed to find code systems", OperationOutcome.IssueType.EXCEPTION, 500);
     }
   }
 
@@ -631,14 +644,14 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @return the list
    * @throws Exception the exception
    */
-  public List<CodeSystem> findPossibleCodeSystems(@OptionalParam(name = "_id")
-
-  final IdType id, @OptionalParam(name = "date")
-  final DateRangeParam date, @OptionalParam(name = "url")
-  final UriType url, @OptionalParam(name = "version")
-  final StringType version) throws Exception {
+  public List<CodeSystem> findPossibleCodeSystems(
+      @OptionalParam(name = "_id") final IdType id,
+      @OptionalParam(name = "date") final DateRangeParam date,
+      @OptionalParam(name = "url") final UriType url,
+      @OptionalParam(name = "version") final StringType version)
+      throws Exception {
     try {
-      final List<Terminology> terms = termUtils.getTerminologies(true);
+      final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
 
       final List<CodeSystem> list = new ArrayList<>();
       for (final Terminology terminology : terms) {
@@ -665,8 +678,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       throw e;
     } catch (final Exception e) {
       logger.error("Unexpected error", e);
-      throw FhirUtilityR4.exception("Failed to find code systems",
-          OperationOutcome.IssueType.EXCEPTION, 500);
+      throw FhirUtilityR4.exception(
+          "Failed to find code systems", OperationOutcome.IssueType.EXCEPTION, 500);
     }
   }
 
@@ -679,8 +692,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Read
-  public CodeSystem getConceptMap(final ServletRequestDetails details, @IdParam
-  final IdType id) throws Exception {
+  public CodeSystem getConceptMap(final ServletRequestDetails details, @IdParam final IdType id)
+      throws Exception {
     try {
 
       final List<CodeSystem> candidates = findPossibleCodeSystems(id, null, null, null);
@@ -691,15 +704,16 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       }
 
       throw FhirUtilityR4.exception(
-          "Code system not found = " + (id == null ? "null" : id.getIdPart()), IssueType.NOTFOUND,
+          "Code system not found = " + (id == null ? "null" : id.getIdPart()),
+          IssueType.NOTFOUND,
           404);
 
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
       logger.error("Unexpected exception", e);
-      throw FhirUtilityR4.exception("Failed to get code system",
-          OperationOutcome.IssueType.EXCEPTION, 500);
+      throw FhirUtilityR4.exception(
+          "Failed to get code system", OperationOutcome.IssueType.EXCEPTION, 500);
     }
   }
 

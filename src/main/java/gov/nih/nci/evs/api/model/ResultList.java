@@ -1,16 +1,13 @@
-
 package gov.nih.nci.evs.api.model;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-/**
- * Represents a list of results with paging parameters.
- */
+/** Represents a list of results with paging parameters. */
 @Schema(description = "Represents a list of objects returned from a find call")
 public class ResultList extends BaseModel {
 
   /** The total. */
-  private Integer total;
+  private Long total;
 
   /** The time taken. */
   private Long timeTaken;
@@ -18,9 +15,7 @@ public class ResultList extends BaseModel {
   /** The parameters. */
   private SearchCriteria parameters;
 
-  /**
-   * Instantiates an empty {@link ResultList}.
-   */
+  /** Instantiates an empty {@link ResultList}. */
   public ResultList() {
     // n/a
   }
@@ -53,7 +48,7 @@ public class ResultList extends BaseModel {
    * @return the total
    */
   @Schema(description = "Total nubmer of results (if paging is not considered)")
-  public Integer getTotal() {
+  public Long getTotal() {
     return total;
   }
 
@@ -62,7 +57,7 @@ public class ResultList extends BaseModel {
    *
    * @param total the total
    */
-  public void setTotal(final Integer total) {
+  public void setTotal(final Long total) {
     this.total = total;
   }
 
@@ -126,24 +121,16 @@ public class ResultList extends BaseModel {
    */
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
     ResultList other = (ResultList) obj;
     if (parameters == null) {
-      if (other.parameters != null)
-        return false;
-    } else if (!parameters.equals(other.parameters))
-      return false;
+      if (other.parameters != null) return false;
+    } else if (!parameters.equals(other.parameters)) return false;
     if (total == null) {
-      if (other.total != null)
-        return false;
-    } else if (!total.equals(other.total))
-      return false;
+      if (other.total != null) return false;
+    } else if (!total.equals(other.total)) return false;
     return true;
   }
-
 }
