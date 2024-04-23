@@ -2850,7 +2850,8 @@ public class SearchControllerTests {
                 get(url)
                     .param("terminology", "ncit")
                     .param("term", "grey")
-                    .param("include", "properties"))
+                    .param("include", "properties")
+                    .param("pageSize", "100"))
             .andExpect(status().isOk())
             .andReturn();
     list =
