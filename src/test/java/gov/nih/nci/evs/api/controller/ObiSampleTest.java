@@ -76,7 +76,7 @@ public class ObiSampleTest extends SampleTest {
     assertThat(duo.getTerminology()).isEqualTo("obi");
     assertThat(duo.getMetadata().getUiLabel())
         .isEqualTo("OBI: Ontology for Biomedical Investigations");
-    assertThat(duo.getName()).isEqualTo("OBI: Ontology for Biomedical Investigations 2022-07");
+    assertThat(duo.getName()).isEqualTo("OBI: Ontology for Biomedical Investigations 2022-07-11");
     assertThat(duo.getDescription()).isNotEmpty();
 
     assertThat(duo.getMetadata().getLoader()).isEqualTo("rdf");
