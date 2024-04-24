@@ -143,6 +143,10 @@ public class ConceptUnitTest {
     tester.proxy("roles", 2, r2);
     tester.proxy("maps", 1, m1);
     tester.proxy("maps", 2, m2);
+    tester.proxy("extensions", 1, null);
+    tester.proxy("extensions", 2, null);
+    tester.proxy("paths", 1, null);
+    tester.proxy("paths", 2, null);
 
     tester.test();
   }
@@ -175,6 +179,10 @@ public class ConceptUnitTest {
     tester.proxy("roles", 2, r2);
     tester.proxy("maps", 1, m1);
     tester.proxy("maps", 2, m2);
+    tester.proxy("extensions", 1, null);
+    tester.proxy("extensions", 2, null);
+    tester.proxy("paths", 1, null);
+    tester.proxy("paths", 2, null);
 
     assertTrue(tester.testIdentityFieldEquals());
     assertTrue(tester.testNonIdentityFieldEquals());
@@ -200,6 +208,8 @@ public class ConceptUnitTest {
     tester.proxy("associations", 1, a1);
     tester.proxy("roles", 1, r1);
     tester.proxy("maps", 1, m1);
+    tester.proxy("extensions", 1, null);
+    tester.proxy("paths", 1, null);
 
     assertTrue(tester.testCopyConstructor(Concept.class));
   }
@@ -220,6 +230,8 @@ public class ConceptUnitTest {
     tester.proxy("associations", 1, a1);
     tester.proxy("roles", 1, r1);
     tester.proxy("maps", 1, m1);
+    tester.proxy("extensions", 1, null);
+    tester.proxy("paths", 1, null);
 
     assertTrue(tester.testJsonSerialization());
   }

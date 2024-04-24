@@ -286,6 +286,7 @@ public class ProxyTester {
   @SuppressWarnings("rawtypes")
   protected Object makeProxy(final String fieldName, final Class<?> type, final int initializer)
       throws Exception {
+
     // Return field name proxies
     if (fieldProxyMap.containsKey(fieldName.toLowerCase())) {
       return fieldProxyMap.get(fieldName.toLowerCase()).get(initializer);
