@@ -478,7 +478,7 @@ public class ExcelUtils {
 			if (!isInteger(value)) {
 				cell.setCellValue(value);
 			} else {
-				cell.setCellValue(new Integer(Integer.parseInt(value)));
+				cell.setCellValue(Integer.valueOf(Integer.parseInt(value)));
 			}
 		}
 		return workbook;

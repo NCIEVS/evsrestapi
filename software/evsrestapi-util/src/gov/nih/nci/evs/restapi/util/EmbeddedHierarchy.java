@@ -151,7 +151,7 @@ public class EmbeddedHierarchy {
 			if (hmap.containsKey(code)) {
 				w = (Vector) hmap.get(code);
 			}
-			Integer int_obj = new Integer(level);
+			Integer int_obj = Integer.valueOf(level);
 			if (!w.contains(int_obj)) {
 				w.add(int_obj);
 			}
@@ -172,7 +172,7 @@ public class EmbeddedHierarchy {
 			if (hmap.containsKey(code)) {
 				w = (Vector) hmap.get(code);
 			}
-			Integer int_obj = new Integer(level);
+			Integer int_obj = Integer.valueOf(level);
 			if (!w.contains(int_obj)) {
 				w.add(int_obj);
 			}
@@ -220,7 +220,7 @@ public class EmbeddedHierarchy {
 			if (hmap.containsKey(code)) {
 				w = (Vector) hmap.get(code);
 			}
-			Integer int_obj = new Integer(level);
+			Integer int_obj = Integer.valueOf(level);
 			if (!w.contains(int_obj)) {
 				w.add(int_obj);
 			}

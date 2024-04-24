@@ -47,19 +47,19 @@ public class RelationshipHelper {
                                  boolean association,
                                  boolean inverse_association) {
 		ArrayList list = new ArrayList();
-		list.add(new Boolean(superconcept));
-		list.add(new Boolean(subconcept));
-		list.add(new Boolean(role));
-		list.add(new Boolean(inverse_role));
-		list.add(new Boolean(association));
-		list.add(new Boolean(inverse_association));
+		list.add(Boolean.valueOf(superconcept));
+		list.add(Boolean.valueOf(subconcept));
+		list.add(Boolean.valueOf(role));
+		list.add(Boolean.valueOf(inverse_role));
+		list.add(Boolean.valueOf(association));
+		list.add(Boolean.valueOf(inverse_association));
 		return list;
     }
 
     public List getDefaultOptionList() {
 		ArrayList list = new ArrayList();
 		for (int i=0; i<6; i++) {
-			list.add(new Boolean(true));
+			list.add(Boolean.valueOf(true));
 		}
 		return list;
 	}

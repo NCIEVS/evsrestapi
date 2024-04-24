@@ -1048,12 +1048,12 @@ public class EVSStatistics {
 			String line = (String)v.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
 			String propertyCode = (String) u.elementAt(1);
-			Integer int_obj = new Integer(0);
+			Integer int_obj = Integer.valueOf(0);
 			if (propertyCountHashMap.containsKey(propertyCode)) {
 				int_obj = (Integer) propertyCountHashMap.get(propertyCode);
 			}
 			int count = int_obj.intValue();
-            int_obj = new Integer(count+1);
+            int_obj = Integer.valueOf(count+1);
             propertyCountHashMap.put(propertyCode, int_obj);
 		}
 		return propertyCountHashMap;
@@ -1399,12 +1399,12 @@ line = line.replace("Contributing_Source|Publish_Value_Set|null", "Contributing_
 			String roleName = (String) u.elementAt(2);
 			String roleCode = (String) u.elementAt(3);
 			String key = roleName + " (" + roleCode + ")";
-			Integer int_obj = new Integer(0);
+			Integer int_obj = Integer.valueOf(0);
 			if (hmap.containsKey(key)) {
 				int_obj = (Integer) hmap.get(key);
 			}
 			int count = Integer.valueOf(int_obj);
-			hmap.put(key, new Integer(count+1));
+			hmap.put(key, Integer.valueOf(count+1));
 		}
 		return hmap;
 	}
@@ -1454,14 +1454,14 @@ line = line.replace("Contributing_Source|Publish_Value_Set|null", "Contributing_
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
 			String key = (String) u.elementAt(u.size()-1);
-			Integer int_obj = new Integer(0);
+			Integer int_obj = Integer.valueOf(0);
 			if (hmap.containsKey(key)) {
 			    int_obj = (Integer) hmap.get(key);
 			}
 			int knt = Integer.valueOf(int_obj);
 			knt++;
 
-			hmap.put(key, new Integer(knt));
+			hmap.put(key, Integer.valueOf(knt));
 		}
 		return hmap;
 	}
@@ -1477,7 +1477,7 @@ line = line.replace("Contributing_Source|Publish_Value_Set|null", "Contributing_
 			for (int k=0; k<values.size(); k++) {
 				String value = (String) values.elementAt(k);
 				if (!hmap.containsKey(value)) {
-					hmap.put(value, new Integer(0));
+					hmap.put(value, Integer.valueOf(0));
 				}
 			}
 		}
@@ -1745,7 +1745,7 @@ line = line.replace("Contributing_Source|Publish_Value_Set|null", "Contributing_
 		while (it.hasNext()) {
 			String source = (String) it.next();
 			HashSet hset = (HashSet) hmap.get(source);
-			source2valueSetCountHashMap.put(source, new Integer(hset.size()));
+			source2valueSetCountHashMap.put(source, Integer.valueOf(hset.size()));
 		}
 		hmap.clear();
         return source2valueSetCountHashMap;
@@ -1772,7 +1772,7 @@ line = line.replace("Contributing_Source|Publish_Value_Set|null", "Contributing_
 		while (it.hasNext()) {
 			String source = (String) it.next();
 			HashSet hset = (HashSet) hmap.get(source);
-			source2UniqueConceptCountHashMap.put(source, new Integer(hset.size()));
+			source2UniqueConceptCountHashMap.put(source, Integer.valueOf(hset.size()));
 		}
 		hmap.clear();
         return source2UniqueConceptCountHashMap;
@@ -1801,12 +1801,12 @@ line = line.replace("Contributing_Source|Publish_Value_Set|null", "Contributing_
 			                  (String) u.elementAt(4) + ")";
 
             String code = (String)u.elementAt(1);
-            Integer int_obj = new Integer(0);
+            Integer int_obj = Integer.valueOf(0);
             if (source2ConceptCountHashMap.containsKey(source)) {
 				int_obj = (Integer) source2ConceptCountHashMap.get(source);
 			}
 			int count = Integer.valueOf(int_obj);
-			int_obj = new Integer(count+1);
+			int_obj = Integer.valueOf(count+1);
 			source2ConceptCountHashMap.put(source, int_obj);
 
 			if (!valuesets.contains(valueset)) {
@@ -1826,12 +1826,12 @@ line = line.replace("Contributing_Source|Publish_Value_Set|null", "Contributing_
 			}
 			source2valueSetHashMap.put(source, w);
 
-            int_obj = new Integer(0);
+            int_obj = Integer.valueOf(0);
             if (valuesetCountHashMap.containsKey(valueset)) {
 				int_obj = (Integer) valuesetCountHashMap.get(valueset);
 			}
 			count = Integer.valueOf(int_obj);
-			int_obj = new Integer(count+1);
+			int_obj = Integer.valueOf(count+1);
 			valuesetCountHashMap.put(valueset, int_obj);
 		}
 
@@ -2015,13 +2015,13 @@ line = line.replace("Contributing_Source|Publish_Value_Set|null", "Contributing_
 			String line = (String) asso_vec.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
 			String asso_label = (String) u.elementAt(2);
-			Integer int_obj = new Integer(0);
+			Integer int_obj = Integer.valueOf(0);
 			if (hmap.containsKey(asso_label)) {
 				int_obj = (Integer) hmap.get(asso_label);
 			}
 			int count = Integer.valueOf(int_obj);
 			count++;
-			hmap.put(asso_label, new Integer(count));
+			hmap.put(asso_label, Integer.valueOf(count));
 			if (!keys.contains(asso_label)) {
 				keys.add(asso_label);
 			}

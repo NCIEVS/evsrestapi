@@ -703,7 +703,7 @@ public class HierarchyHelper implements Serializable {
 			String label = getLabel(root);
 			String key = label + " (" + root + ")";
 			Vector v = getTransitiveClosure(root, true);
-			hmap.put(key, new Integer(v.size()));
+			hmap.put(key, Integer.valueOf(v.size()));
 		}
 
 		return hmap;

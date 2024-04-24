@@ -6,7 +6,7 @@ import java.util.*;
 
 public class ResolvedConceptReferenceList implements java.io.Serializable {
 
-    private java.lang.Boolean _incomplete = new java.lang.Boolean("false");
+    private Boolean _incomplete = Boolean.valueOf("false");
     private java.util.List<ResolvedConceptReference> _resolvedConceptReferenceList;
 
 

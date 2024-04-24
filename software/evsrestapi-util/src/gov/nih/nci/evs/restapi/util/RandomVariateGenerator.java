@@ -52,7 +52,7 @@ public class RandomVariateGenerator {
     public List selectWithNoReplacement(int n, int max) {
 		ArrayList<Integer> arrayList = new ArrayList<Integer>();
 		for (int i=0; i<max; i++) {
-			arrayList.add(new Integer(i));
+			arrayList.add(Integer.valueOf(i));
 		}
 		Collections.shuffle(arrayList);
 		ArrayList<Integer> targetList = new ArrayList<Integer>();

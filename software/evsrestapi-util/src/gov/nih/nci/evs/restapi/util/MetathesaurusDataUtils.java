@@ -1537,15 +1537,15 @@ import java.util.Map.Entry;
 		for (int k2=0; k2<conceptList.size(); k2++) {
 			Concept c = (Concept) conceptList.get(k2);
             MetaTreeNode node = concept2MetaTreeNode(c);
-            hmap.put(new Integer(c.getIdx()), node);
+            hmap.put(Integer.valueOf(c.getIdx()), node);
 		}
-		MetaTreeNode root = (MetaTreeNode) hmap.get( new Integer(0));
+		MetaTreeNode root = (MetaTreeNode) hmap.get( Integer.valueOf(0));
 		for (int k2=0; k2<conceptList.size()-1; k2++) {
-            MetaTreeNode node = (MetaTreeNode) hmap.get(new Integer(k2));
-            MetaTreeNode childnode = (MetaTreeNode) hmap.get(new Integer(k2+1));
+            MetaTreeNode node = (MetaTreeNode) hmap.get(Integer.valueOf(k2));
+            MetaTreeNode childnode = (MetaTreeNode) hmap.get(Integer.valueOf(k2+1));
             node.addChild(asso, childnode);
 		}
-        return (MetaTreeNode) hmap.get(new Integer(0));
+        return (MetaTreeNode) hmap.get(Integer.valueOf(0));
 	}
 
 
@@ -1909,7 +1909,7 @@ import java.util.Map.Entry;
 			String sab = (String) u.elementAt(1);
 			String tty = (String) u.elementAt(2);
 			String suppress = (String) u.elementAt(3);
-			Integer int_obj = new Integer(Integer.parseInt(rank));
+			Integer int_obj = Integer.valueOf(Integer.parseInt(rank));
 			hmap.put(sab + "|" + tty, int_obj);
 		}
 		return hmap;

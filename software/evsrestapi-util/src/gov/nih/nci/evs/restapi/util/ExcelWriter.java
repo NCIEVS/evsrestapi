@@ -461,7 +461,7 @@ short black_index = ref.getIndex();
 				String[] columns = getColumnHeadings(heading, delim);
 
 				for (int i=1;i<lines.size(); i++) {
-					Boolean is_even = isEven(new Integer(i));
+					Boolean is_even = isEven(Integer.valueOf(i));
 					line = (String) lines.elementAt(i);
 					Vector values = StringUtils.parseData(line, delim);
 					XSSFRow row = sheet.createRow(i);

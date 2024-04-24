@@ -100,7 +100,7 @@ public class ExcelEditor {
 					cell.setCellStyle(old_style);
 					String value = (String) values.elementAt(k);
                     if (isInteger(value)) {
-						Integer int_obj = new Integer(Integer.parseInt(value));
+						Integer int_obj = Integer.valueOf(Integer.parseInt(value));
 						cell.setCellValue(int_obj);
                     } else {
                         cell.setCellValue(value);

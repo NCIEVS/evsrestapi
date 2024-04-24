@@ -76,11 +76,11 @@ public class ApachePoiPieChartCS {
 		    //1, 25-Dihydroxyvitamin D Measurement|C92267|Contributing_Source|CDISC
 		    String src = (String) u.elementAt(3);
 		    String code = (String) u.elementAt(1);
-		    Integer int_obj = new Integer(0);
+		    Integer int_obj = Integer.valueOf(0);
 		    if (hmap.containsKey(src)) {
 				int_obj = (Integer) hmap.get(src);
 			}
-			hmap.put(src, new Integer(Integer.valueOf(int_obj) + 1));
+			hmap.put(src, Integer.valueOf(Integer.valueOf(int_obj) + 1));
 		}
 
 		Iterator it = hmap.keySet().iterator();

@@ -1407,12 +1407,12 @@ C4910|<NHC0>C4910</NHC0>
 				if (s.length() > 0 && s.indexOf("owl") == -1 && s.indexOf("rdfs:subClassOf") == -1) {
 					if (t.startsWith("<" + s + ">")) {
 						System.out.println(s);
-						Integer int_obj = new Integer(0);
+						Integer int_obj = Integer.valueOf(0);
 						if (hmap.containsKey(s)) {
 							int_obj = (Integer) hmap.get(s);
 						}
 						int knt = Integer.valueOf(int_obj);
-						int_obj = new Integer(knt+1);
+						int_obj = Integer.valueOf(knt+1);
 						hmap.put(s, int_obj);
 					}
 				}
@@ -1443,12 +1443,12 @@ C4910|<NHC0>C4910</NHC0>
 					String str = parseProperty(t);
 					Vector u = StringUtils.parseData(str, '|');
 					s = (String) u.elementAt(0);
-					Integer int_obj = new Integer(0);
+					Integer int_obj = Integer.valueOf(0);
 					if (hmap.containsKey(s)) {
 						int_obj = (Integer) hmap.get(s);
 					}
 					int knt = Integer.valueOf(int_obj);
-					int_obj = new Integer(knt+1);
+					int_obj = Integer.valueOf(knt+1);
 					hmap.put(s, int_obj);
 				}
 			}
@@ -2986,12 +2986,12 @@ C4910|<NHC0>C4910</NHC0>
 			Vector u = StringUtils.parseData(line, '|');
 			String code = (String) u.elementAt(0);
 			String prop_code = (String) u.elementAt(1);
-			Integer int_obj = new Integer(0);
+			Integer int_obj = Integer.valueOf(0);
 			if (hmap.containsKey(prop_code)) {
 				int_obj = (Integer) hmap.get(prop_code);
 			}
 			int count = int_obj.intValue();
-			int_obj = new Integer(count+1);
+			int_obj = Integer.valueOf(count+1);
 			hmap.put(prop_code, int_obj);
 		}
 		w.clear();
@@ -3022,7 +3022,7 @@ C4910|<NHC0>C4910</NHC0>
 							count = int_obj.intValue();
 						}
 						count++;
-						hmap.put(propertyCode + "|" + q_code, new Integer(count));
+						hmap.put(propertyCode + "|" + q_code, Integer.valueOf(count));
 					}
 			    }
 			}

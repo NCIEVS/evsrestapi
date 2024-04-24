@@ -152,7 +152,7 @@ public class ViewGraph {
 
 		  group_node_id = graphReductionUtils.getGroupNodeId(v);
 		  int group_node_id_int = Integer.parseInt(group_node_id);
-		  group_node_id_2 = new Integer(group_node_id_int+1).toString();
+		  group_node_id_2 = Integer.valueOf(group_node_id_int+1).toString();
 		  Vector w = graphReductionUtils.reduce_graph(v, direction);
 		  boolean graph_reduced = graphReductionUtils.graph_reduced(v, w);
 		  if (graph_reduced) {

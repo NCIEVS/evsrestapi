@@ -214,13 +214,13 @@ public class ConceptDetailsBatchRunner {
 
 	public ConceptDetails createConceptDetails(String named_graph, String code) {
         List mainMenuAncestors = mth.getMainMenuAncestors(code);
-        Boolean isMainType = new Boolean(mth.isMainType(code));
-        Boolean isSubtype = new Boolean(mth.isSubtype(code));
-        Boolean isDiseaseStage = new Boolean(mth.isDiseaseStage(code));
-        Boolean isDiseaseGrade = new Boolean(mth.isDiseaseGrade(code));
-        Boolean isDisease = new Boolean(mth.isDisease(code));
-        Boolean isBiomarker = new Boolean(mth.isBiomarker(code));
-        Boolean isReferenceGene = new Boolean(mth.isReferenceGene(code));
+        Boolean isMainType = Boolean.valueOf(mth.isMainType(code));
+        Boolean isSubtype = Boolean.valueOf(mth.isSubtype(code));
+        Boolean isDiseaseStage = Boolean.valueOf(mth.isDiseaseStage(code));
+        Boolean isDiseaseGrade = Boolean.valueOf(mth.isDiseaseGrade(code));
+        Boolean isDisease = Boolean.valueOf(mth.isDisease(code));
+        Boolean isBiomarker = Boolean.valueOf(mth.isBiomarker(code));
+        Boolean isReferenceGene = Boolean.valueOf(mth.isReferenceGene(code));
 
         if (exportUtils == null) {
 			System.out.println("exportUtils == null ???");
@@ -287,7 +287,7 @@ public class ConceptDetailsBatchRunner {
         codes.add("C7834");
         codes.add("C48232");
         */
-        //Henoch-Schönlein Purpura Nephritis (Code C123181)
+        //Henoch-Schï¿½nlein Purpura Nephritis (Code C123181)
         codes.add("C123181");
         //BRCA1-A Complex Subunit RAP80 (Code C124100)
         codes.add("C124100");

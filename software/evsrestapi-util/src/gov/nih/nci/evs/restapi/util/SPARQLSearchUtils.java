@@ -258,13 +258,13 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 			for (int k=0; k<kwds.size(); k++) {
 				String keyword = (String) kwds.elementAt(k);
 				Vector w1 = new Vector();
-				Integer int_obj = new Integer(0);
+				Integer int_obj = Integer.valueOf(0);
 				if (kwd_freq_hmap.containsKey(keyword)) {
 					int_obj = (Integer) kwd_freq_hmap.get(keyword);
 				}
 				int freq = Integer.valueOf(int_obj);
 				freq++;
-				kwd_freq_hmap.put(keyword, new Integer(freq));
+				kwd_freq_hmap.put(keyword, Integer.valueOf(freq));
 			}
 
 			//Pericardial Stripping|C100004|PERICARDIAL STRIPPING|CDISC|PT
@@ -307,13 +307,13 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 				for (int k=0; k<kwds.size(); k++) {
 					String keyword = (String) kwds.elementAt(k);
 					Vector w1 = new Vector();
-					Integer int_obj = new Integer(0);
+					Integer int_obj = Integer.valueOf(0);
 					if (kwd_freq_hmap.containsKey(keyword)) {
 						int_obj = (Integer) kwd_freq_hmap.get(keyword);
 					}
 					int freq = Integer.valueOf(int_obj);
 					freq++;
-					kwd_freq_hmap.put(keyword, new Integer(freq));
+					kwd_freq_hmap.put(keyword, Integer.valueOf(freq));
 				}
 			}
 	    }
@@ -523,7 +523,7 @@ public class SPARQLSearchUtils extends OWLSPARQLUtils {
 
     public String getKey(int score) {
 		String base = "000000";
-		String score_str = new Integer(score).toString();
+		String score_str = Integer.valueOf(score).toString();
 		int len = score_str.length();
 		return base.substring(0, base.length()-len) + score_str;
 	}
