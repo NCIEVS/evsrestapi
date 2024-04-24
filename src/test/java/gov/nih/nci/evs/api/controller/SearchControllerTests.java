@@ -2873,7 +2873,7 @@ public class SearchControllerTests {
         }
         // If we've hit the last concept in the list, check it's a retired concept
         if (i == list.getConcepts().size() - 1
-                && conc.getConceptStatus().equals("Retired_Concept")) {
+            && conc.getConceptStatus().equals("Retired_Concept")) {
           found = true;
         }
       }
