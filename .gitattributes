@@ -1,8 +1,8 @@
 ## Settings for ensuring windows and mac settings are aligned for this project
 # Declare java files will have LF line ending on checkout, even on Windows
 *.java eol=lf
-# Set the default behavior to be determined by Git
-* text=auto
+# Set the default behavior for text to use LF line ending
+* text eol=lf
 # Denote all files that are truly binary and should not be modified.
 *.png binary
 *.jpg binary
