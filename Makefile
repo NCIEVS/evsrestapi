@@ -23,7 +23,7 @@ clean:
 # Build the library without tests
 # On Windows use: git config core.eol lf
 build:
-	./gradlew clean spotlessJavaCheck build -x test
+	./gradlew clean spotlessCheck build -x test
 
 tag:
 	git tag -a "v`/bin/date +%Y-%m-%d`-${APP_VERSION}" -m "Release `/bin/date +%Y-%m-%d`"
