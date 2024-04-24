@@ -140,6 +140,10 @@ public class ConceptResultListUnitTest {
     tester8.proxy("roles", 2, r2);
     tester8.proxy("maps", 1, m1);
     tester8.proxy("maps", 2, m2);
+    tester8.proxy("extensions", 1, null);
+    tester8.proxy("extensions", 2, null);
+    tester8.proxy("paths", 1, null);
+    tester8.proxy("paths", 2, null);
     c1 = new ArrayList<>();
     c1.add((Concept) tester8.createObject(1));
     c2 = new ArrayList<>();
