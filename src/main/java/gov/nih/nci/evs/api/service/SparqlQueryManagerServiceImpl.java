@@ -725,6 +725,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
      */
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    Set<String> seen = new HashSet<String>();
     for (final Bindings b : bindings) {
 
       // OLD: skip properties without a code
@@ -736,7 +737,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       property.setCode(EVSUtils.getPropertyCode(b));
       property.setType(EVSUtils.getPropertyLabel(b));
       property.setValue(b.getPropertyValue().getValue());
-      properties.add(property);
+      String key = property.getCode() + property.getValue();
+      if (!seen.contains(key)) {
+        properties.add(property);
+        seen.add(key);
+      }
     }
 
     return properties;
@@ -767,8 +772,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
      */
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    Set<String> seen = new HashSet<String>();
     for (final Bindings b : bindings) {
       final String conceptCode = b.getConceptCode().getValue();
+      if (conceptCode.contains("CLO_0000001")) {
+        log.info(mapper.writeValueAsString(conceptCode + ": " + b));
+      }
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
       }
@@ -777,7 +786,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       property.setCode(EVSUtils.getPropertyCode(b));
       property.setType(EVSUtils.getPropertyLabel(b));
       property.setValue(b.getPropertyValue().getValue());
-      resultMap.get(conceptCode).add(property);
+      String key = conceptCode + property.getCode() + property.getValue();
+      if (!seen.contains(key)) {
+        resultMap.get(conceptCode).add(property);
+        seen.add(key);
+      }
     }
 
     return resultMap;
@@ -1765,14 +1778,21 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    Set<String> seen = new HashSet<String>();
     for (final Bindings b : bindings) {
       final Property property = new Property();
       // Add the "about" if there is no explicit property code
       if (b.getPropertyCode() == null) {
         property.setUri(b.getProperty().getValue());
       }
+      if (b.getPropertyLabel() != null) {
+        property.setValue(b.getPropertyLabel().getValue());
+      }
       property.setCode(EVSUtils.getPropertyCode(b));
-      properties.add(property);
+      if (!seen.contains(property.getCode())) {
+        properties.add(property);
+        seen.add(property.getCode());
+      }
     }
 
     // BAC: remove this - something can be a qualifier AND a property
@@ -1843,6 +1863,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    Set<String> seen = new HashSet<String>();
     for (final Bindings b : bindings) {
       final Property property = new Property();
       // Add the "about" if there is no explicit property code
@@ -1850,7 +1871,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         property.setUri(b.getProperty().getValue());
       }
       property.setCode(EVSUtils.getPropertyCode(b));
-      properties.add(property);
+      if (!seen.contains(property.getCode())) {
+        properties.add(property);
+        seen.add(property.getCode());
+      }
     }
 
     final TerminologyMetadata md = terminology.getMetadata();

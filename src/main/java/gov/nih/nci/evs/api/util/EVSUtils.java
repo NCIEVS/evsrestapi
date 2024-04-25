@@ -185,7 +185,7 @@ public class EVSUtils {
           throw new RuntimeException("Unexpected missing name for definition code = " + axiomCode);
         }
 
-        defSeen.add(definition.getType() + definition.getDefinition());
+        defSeen.add(definition.getType() + definition.getDefinition().trim());
         results.add(definition);
       }
     }
@@ -193,7 +193,7 @@ public class EVSUtils {
     // Check properties for definitions if axioms didn't produce them
     for (final Property property : properties) {
       if (defCodes.contains(property.getCode())
-          && !defSeen.contains(property.getType() + property.getValue())) {
+          && !defSeen.contains(property.getType() + property.getValue().trim())) {
         final Definition definition = new Definition();
         definition.setDefinition(property.getValue());
         definition.setCode(property.getCode());
@@ -201,7 +201,7 @@ public class EVSUtils {
 
         // Definitions made here won't have qualifiers
 
-        defSeen.add(definition.getType() + definition.getDefinition());
+        defSeen.add(definition.getType() + definition.getDefinition().trim());
         results.add(definition);
       }
     }
