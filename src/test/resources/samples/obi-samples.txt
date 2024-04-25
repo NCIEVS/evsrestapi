@@ -1,0 +1,74 @@
+http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	IAO_0000115	A planned process that has specified output a software product and that involves the creation of source code.
+http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	IAO_0000117	Mathias Brochhausen
+http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	IAO_0000119	http://en.wikipedia.org/wiki/Software_development
+http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	IAO_0000600	A planned process resulting in a software product involving the creation of source code.
+http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	rdfs:label	software development
+http://purl.obolibrary.org/obo/APOLLO_SV_00000522	APOLLO_SV_00000522	rdfs:subClassOf/owl:Restriction~BFO_0000051	IAO_0000096
+http://purl.obolibrary.org/obo/APOLLO_SV_00000522	APOLLO_SV_00000522	IAO_0000111	software source code version control repository
+http://purl.obolibrary.org/obo/APOLLO_SV_00000522	APOLLO_SV_00000522	rdfs:comment	Refers to the stuff that lives on GitHub, not to GitHub or the git software on which it is based
+http://purl.obolibrary.org/obo/APOLLO_SV_00000796	APOLLO_SV_00000796	IAO_0000118	data set creation
+http://purl.obolibrary.org/obo/BFO_0000001	BFO_0000001	owl:disjointWith	ObsoleteClass
+http://purl.obolibrary.org/obo/BFO_0000001	BFO_0000001	BFO_0000179	entity
+http://purl.obolibrary.org/obo/BFO_0000001	BFO_0000001	BFO_0000180	Entity
+http://purl.obolibrary.org/obo/BFO_0000001	BFO_0000001	IAO_0000112	Julius Caesar
+http://purl.obolibrary.org/obo/BFO_0000001	BFO_0000001	IAO_0000116	BFO 2 Reference: In all areas of empirical inquiry we encounter general terms of two sorts. First are general terms which refer to universals or types:animaltuberculosissurgical procedurediseaseSecond, are general terms used to refer to groups of entities which instantiate a given universal but do not correspond to the extension of any subuniversal of that universal because there is nothing intrinsic to the entities in question by virtue of which they – and only they – are counted as belonging to the given group. Examples are: animal purchased by the Emperortuberculosis diagnosed on a Wednesdaysurgical procedure performed on a patient from Stockholmperson identified as candidate for clinical trial #2056-555person who is signatory of Form 656-PPVpainting by Leonardo da VinciSuch terms, which represent what are called ‘specializations’ in [81
+http://purl.obolibrary.org/obo/BFO_0000001	BFO_0000001	rdfs:isDefinedBy	http://purl.obolibrary.org/obo/bfo.owl
+http://purl.obolibrary.org/obo/BFO_0000002	BFO_0000002	IAO_0000412	http://purl.obolibrary.org/obo/pato.owl
+http://purl.obolibrary.org/obo/BFO_0000002	BFO_0000002	IAO_0000601	if b is a continuant and if, for some t, c has_continuant_part b at t, then c is a continuant. (axiom label in BFO2 Reference: [126-001])
+http://purl.obolibrary.org/obo/BFO_0000002	BFO_0000002	IAO_0000602	(forall (x y) (if (and (Continuant x) (exists (t) (continuantPartOfAt y x t))) (Continuant y))) // axiom label in BFO2 CLIF: [009-002] 
+http://purl.obolibrary.org/obo/CHEBI_15956	CHEBI_15956	rdfs:subClassOf/owl:Restriction~RO_0000087	OBI_0002743
+http://purl.obolibrary.org/obo/CLO_0000001	CLO_0000001	rdfs:subClassOf/owl:Restriction~RO_0001000	CL_0000001
+http://purl.obolibrary.org/obo/CLO_0000031	CLO_0000031	rdfs:subClassOf/owl:Restriction~OBI_0000643	CLO_0000001
+http://purl.obolibrary.org/obo/CL_0000578	CL_0000578	rdfs:subClassOf/owl:Restriction~OBI_0000312	OBI_0000094
+http://purl.obolibrary.org/obo/GO_0042571	GO_0042571	OBI_9991118	antibody
+http://purl.obolibrary.org/obo/IAO_0000001	IAO_0000001	IAO_0000114	http://purl.obolibrary.org/obo/IAO_0000120
+http://purl.obolibrary.org/obo/IAO_0000009	IAO_0000009	IAO_0000232	9/22/11 BP: changed the rdfs:label for this class from &apos;label&apos; to &apos;datum label&apos; to convey that this class is not intended to cover all kinds of labels (stickers, radiolabels, etc.), and not even all kind of textual labels, but rather the kind of labels occuring in a datum. 
+http://purl.obolibrary.org/obo/IAO_0000030	IAO_0000030	rdfs:subClassOf/owl:Restriction~IAO_0000136	BFO_0000001
+http://purl.obolibrary.org/obo/IAO_0000032	IAO_0000032	rdfs:subClassOf/owl:Restriction~OBI_0001938	OBI_0001931
+http://purl.obolibrary.org/obo/IAO_0000144	IAO_0000144	rdfs:subClassOf/owl:Restriction~OBI_0000124	IAO_0000027
+http://purl.obolibrary.org/obo/IAO_0000314	IAO_0000314	rdfs:subClassOf/owl:Restriction~BFO_0000050	IAO_0000310
+http://purl.obolibrary.org/obo/IAO_0000400	IAO_0000400	rdfs:subClassOf/owl:Restriction~IAO_0000219	BFO_0000018
+http://purl.obolibrary.org/obo/IAO_0000400	IAO_0000400	rdfs:seeAlso	http://groups.google.com/group/bfo-discuss/browse_thread/thread/9d04e717e39fb617
+http://purl.obolibrary.org/obo/IAO_0000408	IAO_0000408	rdfs:subClassOf/owl:Restriction~IAO_0000039	UO_0000001
+http://purl.obolibrary.org/obo/IAO_0000408	IAO_0000408	rdfs:subClassOf/owl:Restriction~IAO_0000221	PATO_0000122
+http://purl.obolibrary.org/obo/IAO_0000443	IAO_0000443	rdfs:subClassOf/owl:Restriction~OBI_0000293	IAO_0000013
+http://purl.obolibrary.org/obo/IAO_0000443	IAO_0000443	rdfs:subClassOf/owl:Restriction~OBI_0000299	IAO_0000027
+http://purl.obolibrary.org/obo/IAO_0000574	IAO_0000574	rdfs:subClassOf/owl:Restriction~RO_0000057	IAO_0000579
+http://purl.obolibrary.org/obo/IAO_0000605	IAO_0000605	IAO_0000233	https://github.com/information-artifact-ontology/IAO/issues/183
+http://purl.obolibrary.org/obo/IAO_0000650	IAO_0000650	foaf:page	https://en.wikipedia.org/wiki/Extract,_transform,_load
+http://purl.obolibrary.org/obo/OBI_0000023	OBI_0000023	owl:equivalentClass/owl:Restriction~OBI_0000312	OBI_0000663
+http://purl.obolibrary.org/obo/OBI_0000025	OBI_0000025	rdfs:subClassOf/owl:Restriction~RO_0000052	BFO_0000040
+http://purl.obolibrary.org/obo/OBI_0000041	OBI_0000041	rdfs:subClassOf/owl:Restriction~RO_0000085	OBI_0000379
+http://purl.obolibrary.org/obo/OBI_0000066	OBI_0000066	OBI_0001847	study
+http://purl.obolibrary.org/obo/OBI_0000070	OBI_0000070	owl:equivalentClass/owl:Restriction~OBI_0000417	OBI_0000441
+http://purl.obolibrary.org/obo/OBI_0000070	OBI_0000070	rdfs:subClassOf/owl:Restriction~BFO_0000055	OBI_0000067
+http://purl.obolibrary.org/obo/OBI_0000073	OBI_0000073	rdfs:subClassOf/owl:Restriction~OBI_0000417	OBI_0000456
+http://purl.obolibrary.org/obo/OBI_0000453	OBI_0000453	rdfs:subClassOf/owl:Restriction~RO_0000079	OBI_0000047
+http://purl.obolibrary.org/obo/OBI_0000732	OBI_0000732	rdfs:subClassOf/owl:Restriction~RO_0000056	GO_0003824
+http://purl.obolibrary.org/obo/OBI_0000788	OBI_0000788	rdfs:subClassOf/owl:Restriction~RO_0000053	PATO_0000018
+http://purl.obolibrary.org/obo/OBI_0000925	OBI_0000925	owl:equivalentClass/owl:Restriction~RO_0000053	OBI_1110093
+http://purl.obolibrary.org/obo/OBI_0001425	OBI_0001425	owl:equivalentClass/owl:Restriction~BFO_0000051	OBI_0001398
+http://purl.obolibrary.org/obo/OBI_0001522	OBI_0001522	OBI_0001886	Assembly Algorithm
+http://purl.obolibrary.org/obo/OBI_0001522	OBI_0001522	dc:source	NIAID GSCID-BRC
+http://purl.obolibrary.org/obo/OBI_0001563	OBI_0001563	rdfs:subClassOf/owl:Restriction~OBI_0000107	OBI_0000094
+http://purl.obolibrary.org/obo/OBI_0001834	OBI_0001834	owl:equivalentClass/owl:Restriction~OBI_0000299	IAO_0000144
+http://purl.obolibrary.org/obo/OBI_0001873	OBI_0001873	rdfs:subClassOf/owl:Restriction~OBI_0001937	http://www.w3.org/2001/XMLSchema#integer
+http://purl.obolibrary.org/obo/OBI_0001913	OBI_0001913	rdfs:subClassOf/owl:Restriction~IAO_0000413	OBI_0200000
+http://purl.obolibrary.org/obo/OBI_0001929	OBI_0001929	rdfs:subClassOf/owl:Restriction~OBI_0001927	PATO_0000125
+http://purl.obolibrary.org/obo/OBI_0002142	OBI_0002142	IAO_0000234	ENCODE DCC
+http://purl.obolibrary.org/obo/OBI_0002444	OBI_0002444	rdfs:subClassOf/owl:Restriction~RO_0000081	BFO_0000040
+http://purl.obolibrary.org/obo/OBI_0002573	OBI_0002573	dc:date	2018-05-11T16:35:11Z
+http://purl.obolibrary.org/obo/OBI_0002587	OBI_0002587	dc:contributor	https://github.com/TrisSN
+http://purl.obolibrary.org/obo/OBI_0003029	OBI_0003029	rdfs:subClassOf/owl:Restriction~BFO_0000054	OBI_0001960
+http://purl.obolibrary.org/obo/OBI_0200025	OBI_0200025	rdfs:subClassOf/owl:Restriction~RO_0002087	OBI_0200024
+http://purl.obolibrary.org/obo/OBI_0200141	OBI_0200141	rdfs:subClassOf/owl:Restriction~OBI_0000292	http://www.w3.org/2001/XMLSchema#float
+http://purl.obolibrary.org/obo/OBI_1110008	OBI_1110008	owl:equivalentClass/owl:Restriction~BFO_0000055	OBI_1110040
+http://purl.obolibrary.org/obo/OBI_1110023	OBI_1110023	owl:equivalentClass/owl:Restriction~RO_0000087	OBI_1110082
+http://purl.obolibrary.org/obo/BFO_0000147	BFO_0000147	qualifier-IAO_0000116~rdfs:comment	zero dimension continuant fiat boundaries are not spatial points. Considering the example &apos;the quadripoint where the boundaries of Colorado, Utah, New Mexico, and Arizona meet&apos; : There are many frames in which that point is zooming through many points in space. Whereas, no matter what the frame, the quadripoint is always in the same relation to the boundaries of Colorado, Utah, New Mexico, and Arizona.~requested by Melanie Courtot
+http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	parent-style1	OBI_0000011
+http://purl.obolibrary.org/obo/APOLLO_SV_00000008	OBI_0000011	child-style1	APOLLO_SV_00000008
+http://purl.obolibrary.org/obo/OBI_0000070	OBI_0000070	max-children	105
+http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	parent-count1
+http://purl.obolibrary.org/obo/CHEBI_29237	CHEBI_29237	parent-count2
+http://purl.obolibrary.org/obo/CL_0000576	CL_0000576	parent-count3
+http://purl.obolibrary.org/obo/OBI_0200079	OBI_0200079	parent-count4
