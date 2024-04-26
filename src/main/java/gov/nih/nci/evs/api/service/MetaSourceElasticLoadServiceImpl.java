@@ -512,7 +512,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
               concept = codeConceptMap.get(code);
               concept.setLeaf(concept.getChildren().size() > 0);
-              concept.setDescendants(hierarchy.getDescendants(code));
+
+              // SKIP SNOMED top-level concept for this (descendants are not important)
+              if (!code.equals("138875005")) {
+                concept.setDescendants(hierarchy.getDescendants(code));
+              }
 
               concept.setPaths(hierarchy.getPaths(terminology, concept.getCode()));
               // Clear space/memory
