@@ -154,8 +154,6 @@ test {
 }
 
 // Format the code using google-java-format: https://github.com/diffplug/spotless/blob/main/plugin-gradle/README.md
-// On Windows
-// use `git config core.eol lf`  (and set globally if you want)
 // Use ./gradlew spotlessCheck to run checks
 // Use ./gradlew spotlessApply to perform fixes
 spotless {
