@@ -155,9 +155,9 @@ test {
 
 // Format the code using google-java-format: https://github.com/diffplug/spotless/blob/main/plugin-gradle/README.md
 // On Windows
-//  use `git config core.eol lf`  (and set globally if you want)
-// Use ./gradlew spotlessJavaCheck to run checks
-// Use ./gradlew spotlessJavaApply to perform fixes
+// use `git config core.eol lf`  (and set globally if you want)
+// Use ./gradlew spotlessCheck to run checks
+// Use ./gradlew spotlessApply to perform fixes
 spotless {
     format 'misc', {
         // define the files to apply `misc` to
@@ -169,13 +169,12 @@ spotless {
         endWithNewline()
     }
     java {
+        target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
         // apply a specific flavor of google-java-format
-        googleJavaFormat('1.19.2').reflowLongStrings().formatJavadoc(true).reorderImports(true).groupArtifact('com.google.googlejavaformat:google-java-format')        // fix formatting of type annotations
+        googleJavaFormat('1.19.2').reflowLongStrings().formatJavadoc(true).reorderImports(true).groupArtifact('com.google.googlejavaformat:google-java-format')
+        removeUnusedImports()
+        // fix formatting of type annotations
 //        formatAnnotations()
-        // make sure every file has the following copyright header.
-        // optionally, Spotless can set copyright years by digging
-        // through git history (see "license" section below)
-//        licenseHeader '/* (C)$YEAR */'
     }
 }
 
@@ -231,5 +230,5 @@ bootJar {
 }
 
 zipFile.dependsOn = [ bootWar, bootJar ]
-build.dependsOn = [ spotlessJavaCheck, test, bootWar, bootJar, zipFile ]
+build.dependsOn = [ spotlessCheck, test, bootWar, bootJar, zipFile ]
 publishToMavenLocal.dependsOn = [ bootWar, bootJar, zipFile ]
