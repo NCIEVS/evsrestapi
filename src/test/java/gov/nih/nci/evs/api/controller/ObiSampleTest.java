@@ -4,11 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,6 +18,12 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
 
 /** GO samples tests. */
 @RunWith(SpringRunner.class)
@@ -38,11 +41,12 @@ public class ObiSampleTest extends SampleTest {
   private static final Logger log = LoggerFactory.getLogger(ObiSampleTest.class);
 
   /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
-  @Autowired private MockMvc testMvc;
+  @Autowired
+  private MockMvc testMvc;
 
   @BeforeClass
   public static void setupClass() throws Exception {
-    loadSamples("duo", "src/test/resources/samples/obi-samples.txt");
+    loadSamples("obi", "src/test/resources/samples/obi-samples.txt");
   }
 
   @Test
@@ -53,21 +57,15 @@ public class ObiSampleTest extends SampleTest {
 
     url = "/api/v1/metadata/terminologies";
     log.info("Testing url - " + url);
-    result =
-        testMvc
-            .perform(get(url).param("latest", "true").param("terminology", "obi"))
-            .andExpect(status().isOk())
-            .andReturn();
+    result = testMvc.perform(get(url).param("latest", "true").param("terminology", "obi"))
+        .andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
 
     final List<Terminology> terminologies =
-        new ObjectMapper()
-            .readValue(
-                content,
-                new TypeReference<List<Terminology>>() {
-                  // n/a
-                });
+        new ObjectMapper().readValue(content, new TypeReference<List<Terminology>>() {
+          // n/a
+        });
     assertThat(terminologies.size()).isGreaterThan(0);
     assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("obi")).count())
         .isEqualTo(1);
@@ -83,9 +81,8 @@ public class ObiSampleTest extends SampleTest {
     assertThat(duo.getMetadata().getSourceCt()).isEqualTo(0);
     assertThat(duo.getMetadata().getLicenseText()).isNull();
     assertThat(duo.getDescription())
-        .isEqualTo(
-            "OBI: (Ontology for Biomedical Investigations) is an integrated ontology for the"
-                + " description of biological and clinical investigations.");
+        .isEqualTo("OBI: (Ontology for Biomedical Investigations) is an integrated ontology for the"
+            + " description of biological and clinical investigations.");
 
     assertThat(duo.getLatest()).isTrue();
   }
@@ -104,14 +101,14 @@ public class ObiSampleTest extends SampleTest {
     Concept concept = null;
 
     // Test active
-    url = "/api/v1/concept/obi/DUO_0000001";
+    url = "/api/v1/concept/obi/APOLLO_SV_00000008";
     log.info("Testing url - " + url);
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("DUO_0000001");
+    assertThat(concept.getCode()).isEqualTo("APOLLO_SV_00000008");
     assertThat(concept.getTerminology()).isEqualTo("obi");
     assertThat(concept.getActive()).isTrue();
   }

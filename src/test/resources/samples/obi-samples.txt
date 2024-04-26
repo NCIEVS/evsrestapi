@@ -52,7 +52,6 @@ http://purl.obolibrary.org/obo/OBI_0001522	OBI_0001522	OBI_0001886	Assembly Algo
 http://purl.obolibrary.org/obo/OBI_0001522	OBI_0001522	dc:source	NIAID GSCID-BRC
 http://purl.obolibrary.org/obo/OBI_0001563	OBI_0001563	rdfs:subClassOf/owl:Restriction~OBI_0000107	OBI_0000094
 http://purl.obolibrary.org/obo/OBI_0001834	OBI_0001834	owl:equivalentClass/owl:Restriction~OBI_0000299	IAO_0000144
-http://purl.obolibrary.org/obo/OBI_0001873	OBI_0001873	rdfs:subClassOf/owl:Restriction~OBI_0001937	http://www.w3.org/2001/XMLSchema#integer
 http://purl.obolibrary.org/obo/OBI_0001913	OBI_0001913	rdfs:subClassOf/owl:Restriction~IAO_0000413	OBI_0200000
 http://purl.obolibrary.org/obo/OBI_0001929	OBI_0001929	rdfs:subClassOf/owl:Restriction~OBI_0001927	PATO_0000125
 http://purl.obolibrary.org/obo/OBI_0002142	OBI_0002142	IAO_0000234	ENCODE DCC
@@ -61,7 +60,6 @@ http://purl.obolibrary.org/obo/OBI_0002573	OBI_0002573	dc:date	2018-05-11T16:35:
 http://purl.obolibrary.org/obo/OBI_0002587	OBI_0002587	dc:contributor	https://github.com/TrisSN
 http://purl.obolibrary.org/obo/OBI_0003029	OBI_0003029	rdfs:subClassOf/owl:Restriction~BFO_0000054	OBI_0001960
 http://purl.obolibrary.org/obo/OBI_0200025	OBI_0200025	rdfs:subClassOf/owl:Restriction~RO_0002087	OBI_0200024
-http://purl.obolibrary.org/obo/OBI_0200141	OBI_0200141	rdfs:subClassOf/owl:Restriction~OBI_0000292	http://www.w3.org/2001/XMLSchema#float
 http://purl.obolibrary.org/obo/OBI_1110008	OBI_1110008	owl:equivalentClass/owl:Restriction~BFO_0000055	OBI_1110040
 http://purl.obolibrary.org/obo/OBI_1110023	OBI_1110023	owl:equivalentClass/owl:Restriction~RO_0000087	OBI_1110082
 http://purl.obolibrary.org/obo/BFO_0000147	BFO_0000147	qualifier-IAO_0000116~rdfs:comment	zero dimension continuant fiat boundaries are not spatial points. Considering the example &apos;the quadripoint where the boundaries of Colorado, Utah, New Mexico, and Arizona meet&apos; : There are many frames in which that point is zooming through many points in space. Whereas, no matter what the frame, the quadripoint is always in the same relation to the boundaries of Colorado, Utah, New Mexico, and Arizona.~requested by Melanie Courtot
