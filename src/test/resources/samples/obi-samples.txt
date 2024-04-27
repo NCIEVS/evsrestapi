@@ -65,7 +65,7 @@ http://purl.obolibrary.org/obo/OBI_1110023	OBI_1110023	owl:equivalentClass/owl:R
 http://purl.obolibrary.org/obo/BFO_0000147	BFO_0000147	qualifier-IAO_0000116~rdfs:comment	zero dimension continuant fiat boundaries are not spatial points. Considering the example &apos;the quadripoint where the boundaries of Colorado, Utah, New Mexico, and Arizona meet&apos; : There are many frames in which that point is zooming through many points in space. Whereas, no matter what the frame, the quadripoint is always in the same relation to the boundaries of Colorado, Utah, New Mexico, and Arizona.~requested by Melanie Courtot
 http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	parent-style1	OBI_0000011
 http://purl.obolibrary.org/obo/APOLLO_SV_00000008	OBI_0000011	child-style1	APOLLO_SV_00000008
-http://purl.obolibrary.org/obo/OBI_0000070	OBI_0000070	max-children	105
+#http://purl.obolibrary.org/obo/OBI_0000070	OBI_0000070	max-children	204 (sampling gets 105, will investigate later)
 http://purl.obolibrary.org/obo/APOLLO_SV_00000008	APOLLO_SV_00000008	parent-count1
 http://purl.obolibrary.org/obo/CHEBI_29237	CHEBI_29237	parent-count2
 http://purl.obolibrary.org/obo/CL_0000576	CL_0000576	parent-count3

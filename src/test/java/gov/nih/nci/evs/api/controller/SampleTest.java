@@ -69,6 +69,9 @@ public class SampleTest {
         BufferedReader fileReader = new BufferedReader(inputStreamReader); ) {
       String line;
       while ((line = fileReader.readLine()) != null) {
+        if (line.startsWith("#") || line.startsWith("//")) { // skip commented lines
+          continue;
+        }
         String[] parts = line.split("\t");
         if (parts.length >= 3) {
           SampleRecord record = new SampleRecord();
