@@ -196,8 +196,7 @@ for i in `cat /tmp/x.$$.txt`; do
 done
 
 # Reindex ncim - individual terminologies
-for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX; do
-
+for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V3.0; do
     # Keep the NCIM folder around while we run
     echo "Load $t (from downloaded data)"
     src/main/bin/ncim-part.sh --noconfig $dir/NCIM --keep --terminology $t > /tmp/x.$$.txt 2>&1
