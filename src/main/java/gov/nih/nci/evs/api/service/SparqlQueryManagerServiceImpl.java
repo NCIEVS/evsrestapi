@@ -744,7 +744,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
     }
 
-    return properties;
+    return properties.stream()
+        .sorted(Comparator.comparing(Property::getCode).thenComparing(Property::getValue))
+        .collect(Collectors.toList());
   }
 
   /**
@@ -775,9 +777,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     Set<String> seen = new HashSet<String>();
     for (final Bindings b : bindings) {
       final String conceptCode = b.getConceptCode().getValue();
-      if (conceptCode.contains("CLO_0000001")) {
-        log.info(mapper.writeValueAsString(conceptCode + ": " + b));
-      }
       if (resultMap.get(conceptCode) == null) {
         resultMap.put(conceptCode, new ArrayList<>());
       }
