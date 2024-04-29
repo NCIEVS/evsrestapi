@@ -510,6 +510,13 @@ public class ConceptSampleTester {
 
       for (final SampleRecord sample : entry.getValue()) {
         final String key = sample.getKey();
+        if (!(sample.getValue() == null) && !sample.getValue().isEmpty()) {
+          sample.setValue(
+              StringEscapeUtils.unescapeHtml4(sample.getValue())
+                  .replace("&apos;", "'")
+                  .strip()); // standardizing
+          // text
+        }
 
         if (key.startsWith("rdfs:subClassOf") && !key.contains("~")) {
           if (!checkParent(concept, sample)) {
@@ -819,7 +826,7 @@ public class ConceptSampleTester {
    */
   private boolean checkDefinition(final Concept concept, final SampleRecord sample) {
     return concept.getDefinitions().stream()
-        .filter(o -> o.getDefinition().equals(sample.getValue()))
+        .filter(o -> o.getDefinition().strip().equals(sample.getValue()))
         .findAny()
         .isPresent();
   }

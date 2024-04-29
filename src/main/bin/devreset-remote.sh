@@ -95,6 +95,13 @@ if [[ ! -e "$dir/DUO/duo_Feb21.owl" ]]; then
     exit 1
 fi
 
+# Check OBI
+echo "    check OBI"
+if [[ ! -e "$dir/OBI/obi_2022_07.owl" ]]; then
+    echo "ERROR: unexpectedly missing OBI/obi_2022_07.owl file"
+    exit 1
+fi
+
 # Verify docker stardog is running
 echo "    verify docker stardog is running"
 ct=`sudo docker ps | grep 'stardog/stardog' | wc -l`
