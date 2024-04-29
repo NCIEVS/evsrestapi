@@ -512,7 +512,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
               concept = codeConceptMap.get(code);
               concept.setLeaf(concept.getChildren().size() > 0);
-              concept.setDescendants(hierarchy.getDescendants(code));
+
+              // SKIP SNOMED top-level concept for this (descendants are not important)
+              if (!code.equals("138875005")) {
+                concept.setDescendants(hierarchy.getDescendants(code));
+              }
 
               concept.setPaths(hierarchy.getPaths(terminology, concept.getCode()));
               // Clear space/memory
@@ -585,6 +589,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         // Save prev cui for next round
         prevCui = cui;
       }
+      totalConcepts++;
 
       // Process the final concept and all it's connected data
       handleDefinitions(terminology, codes, mrdef, prevCui);
@@ -621,14 +626,11 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           }
         }
       }
-      // force index
-      else {
-        logger.info("    BATCH index = " + batchSize + ", " + batch.size());
-        operationsService.bulkIndex(
-            new ArrayList<>(batch), terminology.getIndexName(), Concept.class);
-      }
 
-      totalConcepts++;
+      // Always run the final batch
+      logger.info("    BATCH index = " + batchSize + ", " + batch.size());
+      operationsService.bulkIndex(
+          new ArrayList<>(batch), terminology.getIndexName(), Concept.class);
 
       logger.info("TOTAL concepts = " + totalConcepts);
       logger.info("TOTAL " + terminology.getTerminology() + " = " + sourceConcepts);
@@ -1489,14 +1491,13 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
 
   /**
    * Indicates whether the two terminology arguments match. Mostly this is about being equal, but
-   * SNOMEDCT_US<==>snomedct is an exception.
+   * may have exceptions.
    *
    * @param sab1 the sab 1
    * @param sab2 the sab 2
    * @return true, if successful
    */
   private boolean sabMatch(final String sab1, final String sab2) {
-    return sab1.toLowerCase().equals(sab2)
-        || (sab1.equals("SNOMEDCT_US") && sab2.equals("snomedct"));
+    return sab1.toLowerCase().equals(sab2) || (sab1.equals("HL7V3.0") && sab2.equals("hl7v30"));
   }
 }

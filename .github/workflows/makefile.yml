@@ -13,5 +13,5 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build Project
-        run: make build
+      - name: Run Tests for PR
+        run: make test
