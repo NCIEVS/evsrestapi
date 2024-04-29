@@ -1,0 +1,67 @@
+http://purl.obolibrary.org/obo/APOLLO_SV_00000032	APOLLO_SV_00000032	obo:IAO_0000115	A measurement datum that is the output of counting.
+http://purl.obolibrary.org/obo/APOLLO_SV_00000032	APOLLO_SV_00000032	obo:IAO_0000117	Mathias Brochhausen
+http://purl.obolibrary.org/obo/APOLLO_SV_00000032	APOLLO_SV_00000032	obo:IAO_0000412	http://purl.obolibrary.org/obo/apollo_sv.owl
+http://purl.obolibrary.org/obo/APOLLO_SV_00000032	APOLLO_SV_00000032	obo:IAO_0000600	A measurement datum that is the output of counting.
+http://purl.obolibrary.org/obo/APOLLO_SV_00000032	APOLLO_SV_00000032	APOLLO_SV_0000040	count
+http://purl.obolibrary.org/obo/APOLLO_SV_00000032	APOLLO_SV_00000032	rdfs:label	count
+http://purl.obolibrary.org/obo/APOLLO_SV_00000033	APOLLO_SV_00000033	owl:equivalentClass/owl:Restriction~OBI_0000299	APOLLO_SV_00000032
+http://purl.obolibrary.org/obo/APOLLO_SV_00000033	APOLLO_SV_00000033	obo:IAO_0000119	http://en.wikipedia.org/wiki/Counting
+http://purl.obolibrary.org/obo/APOLLO_SV_00000085	APOLLO_SV_00000085	obo:IAO_0000111	age structure data set
+http://purl.obolibrary.org/obo/BFO_0000001	BFO_0000001	obo:BFO_0000179	entity
+http://purl.obolibrary.org/obo/BFO_0000001	BFO_0000001	obo:BFO_0000180	Entity
+http://purl.obolibrary.org/obo/BFO_0000001	BFO_0000001	obo:IAO_0000112	Julius Caesar
+http://purl.obolibrary.org/obo/BFO_0000001	BFO_0000001	obo:IAO_0000116	BFO 2 Reference: In all areas of empirical inquiry we encounter general terms of two sorts. First are general terms which refer to universals or types:animaltuberculosissurgical procedurediseaseSecond, are general terms used to refer to groups of entities which instantiate a given universal but do not correspond to the extension of any subuniversal of that universal because there is nothing intrinsic to the entities in question by virtue of which they – and only they – are counted as belonging to the given group. Examples are: animal purchased by the Emperortuberculosis diagnosed on a Wednesdaysurgical procedure performed on a patient from Stockholmperson identified as candidate for clinical trial #2056-555person who is signatory of Form 656-PPVpainting by Leonardo da VinciSuch terms, which represent what are called ‘specializations’ in [81
+http://purl.obolibrary.org/obo/BFO_0000001	BFO_0000001	rdfs:isDefinedBy	http://purl.obolibrary.org/obo/bfo.owl
+http://purl.obolibrary.org/obo/BFO_0000002	BFO_0000002	owl:disjointWith	BFO_0000003
+http://purl.obolibrary.org/obo/BFO_0000002	BFO_0000002	obo:IAO_0000601	if b is a continuant and if, for some t, c has_continuant_part b at t, then c is a continuant. (axiom label in BFO2 Reference: [126-001])
+http://purl.obolibrary.org/obo/BFO_0000002	BFO_0000002	obo:IAO_0000602	(forall (x y) (if (and (Continuant x) (exists (t) (continuantPartOfAt y x t))) (Continuant y))) // axiom label in BFO2 CLIF: [009-002] 
+http://purl.obolibrary.org/obo/BFO_0000148	BFO_0000148	obo:IAO_0000118	temporal instant.
+http://purl.obolibrary.org/obo/CHEBI_42191	CHEBI_42191	rdfs:subClassOf/owl:Restriction~RO_0000087	OBIB_0000022
+http://purl.obolibrary.org/obo/ERO_0000979	ERO_0000979	rdfs:subClassOf/owl:Restriction~BFO_0000051	OBIB_0000010
+http://purl.obolibrary.org/obo/ERO_0000979	ERO_0000979	rdfs:subClassOf/owl:Restriction~RO_0000085	OBI_0000370
+http://purl.obolibrary.org/obo/GEO_000000006	GEO_000000006	rdfs:comment	Typically, the common feature is that the dependency does not conduct foreign affairs, and relegates this authority to the sovereign state.  But otherwise, it is largely or completely autonomous relative to the administrative subdivisions.  Examples include Puerto Rico (U.S.), Guam (U.S.), Greenland (Denmark), French Polynesia (France), and Falkland Islands (United Kingdom). 
+http://purl.obolibrary.org/obo/IAO_0000001	IAO_0000001	obo:IAO_0000114	http://purl.obolibrary.org/obo/IAO_0000120
+http://purl.obolibrary.org/obo/IAO_0000009	IAO_0000009	obo:IAO_0000232	9/22/11 BP: changed the rdfs:label for this class from &apos;label&apos; to &apos;datum label&apos; to convey that this class is not intended to cover all kinds of labels (stickers, radiolabels, etc.), and not even all kind of textual labels, but rather the kind of labels occuring in a datum. 
+http://purl.obolibrary.org/obo/IAO_0020016	IAO_0020016	rdfs:subClassOf/owl:Restriction~BFO_0000050	IAO_0020015
+http://purl.obolibrary.org/obo/IAO_8000001	IAO_8000001	rdfs:seeAlso	https://github.com/INCATools/ontology-starter-kit/issues/50
+http://purl.obolibrary.org/obo/IDO_0001008	IDO_0001008	obo:IAO_0000234	NCI BBRB
+http://purl.obolibrary.org/obo/OBIB_0000000	OBIB_0000000	rdfs:subClassOf/owl:Restriction~IAO_0000136	OBIB_0000616
+http://purl.obolibrary.org/obo/OBIB_0000011	OBIB_0000011	rdfs:subClassOf/owl:Restriction~OBI_0000293	BFO_0000040
+http://purl.obolibrary.org/obo/OBIB_0000025	OBIB_0000025	rdfs:subClassOf/owl:Restriction~lacks_part	IAO_0000178
+http://purl.obolibrary.org/obo/OBIB_0000035	OBIB_0000035	rdfs:subClassOf/owl:Restriction~RO_0000057	OBIB_0000030
+http://purl.obolibrary.org/obo/OBIB_0000039	OBIB_0000039	rdfs:subClassOf/owl:Restriction~OBI_0000312	OBIB_0000035
+http://purl.obolibrary.org/obo/OBIB_0000039	OBIB_0000039	rdfs:subClassOf/owl:Restriction~RO_0001025	OBIB_0000030
+http://purl.obolibrary.org/obo/OBIB_0000044	OBIB_0000044	rdfs:subClassOf/owl:Restriction~RO_0001000	OBIB_0000056
+http://purl.obolibrary.org/obo/OBIB_0000053	OBIB_0000053	rdfs:subClassOf/owl:Restriction~IAO_0000413	EFO_0004318
+http://purl.obolibrary.org/obo/OBIB_0000619	OBIB_0000619	owl:equivalentClass/owl:Restriction~IAO_0020012	OBIB_0000616
+http://purl.obolibrary.org/obo/OBIB_0000623	OBIB_0000623	rdfs:subClassOf/owl:Restriction~OBI_0001688	OBIB_0000626
+http://purl.obolibrary.org/obo/OBIB_0000625	OBIB_0000625	rdfs:subClassOf/owl:Restriction~BFO_0000054	OBIB_0000624
+http://purl.obolibrary.org/obo/OBIB_0000657	OBIB_0000657	rdfs:subClassOf/owl:Restriction~IAO_0020012	OBI_0000245
+http://purl.obolibrary.org/obo/OBIB_0000704	OBIB_0000704	owl:equivalentClass/owl:Restriction~IAO_0000136	OBIB_0000729
+http://purl.obolibrary.org/obo/OBIB_0000709	OBIB_0000709	rdfs:subClassOf/owl:Restriction~OBI_0000299	OBIB_0000681
+http://purl.obolibrary.org/obo/OBI_0000066	OBI_0000066	obo:OBI_0001847	study
+http://purl.obolibrary.org/obo/OBI_0000067	OBI_0000067	rdfs:subClassOf/owl:Restriction~RO_0000052	BFO_0000040
+http://purl.obolibrary.org/obo/OBI_0000070	OBI_0000070	owl:equivalentClass/owl:Restriction~OBI_0000417	OBI_0000441
+http://purl.obolibrary.org/obo/OBI_0000070	OBI_0000070	rdfs:subClassOf/owl:Restriction~BFO_0000055	OBI_0000067
+http://purl.obolibrary.org/obo/OBI_0000070	OBI_0000070	obo:OBI_9991118	any method
+http://purl.obolibrary.org/obo/OBI_0000443	OBI_0000443	rdfs:subClassOf/owl:Restriction~OBI_0000417	OBI_0000437
+http://purl.obolibrary.org/obo/OBI_0000453	OBI_0000453	rdfs:subClassOf/owl:Restriction~RO_0000079	OBI_0000047
+http://purl.obolibrary.org/obo/OBI_0000679	OBI_0000679	owl:equivalentClass/owl:Restriction~OBI_0000312	OBI_0200170
+http://purl.obolibrary.org/obo/OBI_0000880	OBI_0000880	rdfs:subClassOf/owl:Restriction~OBI_0000643	CHEBI_33697
+http://purl.obolibrary.org/obo/OBI_0000967	OBI_0000967	rdfs:subClassOf/owl:Restriction~OBIB_0000037	IAO_0000109
+http://purl.obolibrary.org/obo/OBI_0000967	OBI_0000967	rdfs:subClassOf/owl:Restriction~OBIB_0000038	IAO_0000109
+http://purl.obolibrary.org/obo/OBI_0001167	OBI_0001167	rdfs:subClassOf/owl:Restriction~IAO_0000221	PATO_0000011
+http://purl.obolibrary.org/obo/OBI_0001619	OBI_0001619	obo:OBI_0001886	Specimen Collection Date
+http://purl.obolibrary.org/obo/OBI_0001619	OBI_0001619	dc:source	NIAID GSCID-BRC
+http://purl.obolibrary.org/obo/OBI_0001909	OBI_0001909	rdfs:subClassOf/owl:Restriction~OBI_0000124	IAO_0000027
+http://purl.obolibrary.org/obo/OBI_0002145	OBI_0002145	obo:IAO_0000233	https://github.com/obi-ontology/obi/issues/825
+http://purl.obolibrary.org/obo/OBI_0002444	OBI_0002444	rdfs:subClassOf/owl:Restriction~RO_0000081	BFO_0000040
+http://purl.obolibrary.org/obo/OBI_1110109	OBI_1110109	owl:equivalentClass/owl:Restriction~RO_0000087	OBI_0000444
+http://purl.obolibrary.org/obo/OMRSE_00000033	OMRSE_00000033	rdfs:subClassOf/owl:Restriction~RO_0002351	OBI_0000245
+http://purl.obolibrary.org/obo/OMRSE_00000204	OMRSE_00000204	dc:contributor	Amanda Hicks
+http://purl.obolibrary.org/obo/BFO_0000147	BFO_0000147	qualifier-IAO_0000116~rdfs:comment	zero dimension continuant fiat boundaries are not spatial points. Considering the example &apos;the quadripoint where the boundaries of Colorado, Utah, New Mexico, and Arizona meet&apos; : There are many frames in which that point is zooming through many points in space. Whereas, no matter what the frame, the quadripoint is always in the same relation to the boundaries of Colorado, Utah, New Mexico, and Arizona.~requested by Melanie Courtot
+http://purl.obolibrary.org/obo/APOLLO_SV_00000032	APOLLO_SV_00000032	parent-style1	IAO_0000109
+http://purl.obolibrary.org/obo/APOLLO_SV_00000032	IAO_0000109	child-style1	APOLLO_SV_00000032
+http://www.geneontology.org/formats/oboInOwl#ObsoleteClass	ObsoleteClass	max-children	129
+http://purl.obolibrary.org/obo/APOLLO_SV_00000032	APOLLO_SV_00000032	parent-count1
+http://purl.obolibrary.org/obo/OBIB_0000039	OBIB_0000039	parent-count2

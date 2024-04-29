@@ -74,8 +74,8 @@ public class ObibSampleTest extends SampleTest {
     final Terminology obib =
         terminologies.stream().filter(t -> t.getTerminology().equals("obib")).findFirst().get();
     assertThat(obib.getTerminology()).isEqualTo("obib");
-    assertThat(obib.getMetadata().getUiLabel()).isEqualTo("OBI: Ontology for Biobanking");
-    assertThat(obib.getName()).isEqualTo("OBI: Ontology for Biobanking 2021-11-12");
+    assertThat(obib.getMetadata().getUiLabel()).isEqualTo("OBIB: The ontology for Biobanking");
+    assertThat(obib.getName()).isEqualTo("OBIB: The ontology for Biobanking 2021-11-12");
     assertThat(obib.getDescription()).isNotEmpty();
 
     assertThat(obib.getMetadata().getLoader()).isEqualTo("rdf");
@@ -83,8 +83,8 @@ public class ObibSampleTest extends SampleTest {
     assertThat(obib.getMetadata().getLicenseText()).isNull();
     assertThat(obib.getDescription())
         .isEqualTo(
-            "The ontology for Biobanking (OBIB) is an ontology built for annotation and modeling of"
-                + " biobank repository and biobanking administration.");
+            "OBIB: The ontology for Biobanking (OBIB) is an ontology built for annotation and"
+                + " modeling of biobank repository and biobanking administration.");
 
     assertThat(obib.getLatest()).isTrue();
   }
