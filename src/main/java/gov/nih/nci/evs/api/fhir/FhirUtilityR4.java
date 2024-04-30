@@ -72,6 +72,7 @@ public final class FhirUtilityR4 {
     publish.put("chebi", "Open Biomedical Ontologies - European Bioinformatics Institute");
     publish.put("ncim", "National Cancer Institute Enterprise Vocabulary Services");
     publish.put("pdq", "National Cancer Institute");
+    publish.put("ma", "The Jackson Laboratory");
     publish.put("hl7v30", "Health Level Seven International");
     return publish;
   }
