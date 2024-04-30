@@ -56,6 +56,7 @@ public final class FhirUtilityR4 {
     publish.put("umlssemnet", "National Library of Medicine");
     publish.put("go", "GO Consortium");
     publish.put("icd10cm", "NCHS");
+    publish.put("icd10", "World Health Organization");
     publish.put("hgnc", "HUGO Gene Nomenclature Committee");
     publish.put("duo", "Data Use Ontology");
     publish.put("obi", "Ontology for Biomedical Investigations");
@@ -71,7 +72,7 @@ public final class FhirUtilityR4 {
     publish.put("chebi", "Open Biomedical Ontologies - European Bioinformatics Institute");
     publish.put("ncim", "National Cancer Institute Enterprise Vocabulary Services");
     publish.put("pdq", "National Cancer Institute");
-    publish.put("ma", "Open Biomedical Ontologies");
+    publish.put("hl7v30", "Health Level Seven International");
     return publish;
   }
 
@@ -103,6 +104,9 @@ public final class FhirUtilityR4 {
     uri.put("ncim", "https://ncim.nci.nih.gov/ncimbrowser/");
     uri.put("pdq", "https://www.cancer.gov/publications/pdq");
     uri.put("ma", "https://www.ebi.ac.uk/ols4/ontologies/ma");
+    uri.put(
+        "hl7v30",
+        "https://www.nlm.nih.gov/research/umls/sourcereleasedocs/current/HL7V3.0/index.html");
     return uri;
   }
 
