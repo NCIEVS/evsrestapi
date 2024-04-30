@@ -1717,7 +1717,7 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(17);
+    assertThat(terminologies.size()).isEqualTo(22);
   }
 
   /**

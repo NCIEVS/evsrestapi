@@ -90,7 +90,7 @@ public final class FhirUtilityR4 {
     uri.put("hgnc", "http://www.genenames.org");
     uri.put("duo", "https://obofoundry.org/ontology/duo.html");
     uri.put("obi", "https://obi-ontology.org/");
-    uri.put("obi", "https://obofoundry.org/ontology/obib.html");
+    uri.put("obib", "https://obofoundry.org/ontology/obib.html");
     uri.put("snomedct_us", "http://terminology.hl7.org/CodeSystem/snomedct_us");
     uri.put("ctcae5", "http://hl7.org/fhir/us/ctcae");
     uri.put("lnc", "http://loinc.org");
