@@ -511,11 +511,7 @@ public class ConceptSampleTester {
       for (final SampleRecord sample : entry.getValue()) {
         final String key = sample.getKey();
         if (!(sample.getValue() == null) && !sample.getValue().isEmpty()) {
-          sample.setValue(
-              StringEscapeUtils.unescapeHtml4(sample.getValue())
-                  .replace("&apos;", "'")
-                  .strip()); // standardizing
-          // text
+          sample.setValue(standardizeText(sample.getValue())); // standardizing text
         }
 
         if (key.startsWith("rdfs:subClassOf") && !key.contains("~")) {
@@ -1311,7 +1307,8 @@ public class ConceptSampleTester {
     return concept.getProperties().stream()
         .filter(
             o ->
-                o.getValue().equals(sample.getValue()) && o.getType().contentEquals("rdfs:comment"))
+                standardizeText(o.getValue()).equals(sample.getValue())
+                    && o.getType().contentEquals("rdfs:comment"))
         .findAny()
         .isPresent();
   }
@@ -2246,5 +2243,12 @@ public class ConceptSampleTester {
             .getAssociationEntries()
             .get(1)
             .equals(secondFromRecord.getAssociationEntries().get(0)));
+  }
+
+  public String standardizeText(String toStandardize) {
+    return StringEscapeUtils.unescapeHtml4(toStandardize)
+        .replace("&apos;", "'")
+        .replace("  ", " ")
+        .strip();
   }
 }

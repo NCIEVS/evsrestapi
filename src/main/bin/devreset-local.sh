@@ -113,6 +113,13 @@ if [[ ! -e "$dir/OBI/obi_2022_07.owl" ]]; then
     exit 1
 fi
 
+# Check OBIB
+echo "    check OBIB"
+if [[ ! -e "$dir/OBIB/obib_2021-11.owl" ]]; then
+    echo "ERROR: unexpectedly missing OBI/obib_2021-11.owl file"
+    exit 1
+fi
+
 # Verify docker elasticsearch is running
 echo "    verify docker elasticsearch is running"
 ct=`docker ps | grep 'elasticsearch/elasticsearch' | wc -l`
