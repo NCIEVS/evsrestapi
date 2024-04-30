@@ -97,21 +97,15 @@ public class Concept extends ConceptMinimal {
   private Boolean active;
 
   /** The synonyms. */
-  @Field(
-      type = FieldType.Nested,
-      ignoreFields = {"qualifiers"})
+  @Field(type = FieldType.Nested)
   private List<Synonym> synonyms;
 
   /** The definitions. */
-  @Field(
-      type = FieldType.Nested,
-      ignoreFields = {"qualifiers"})
+  @Field(type = FieldType.Nested)
   private List<Definition> definitions;
 
   /** The properties. */
-  @Field(
-      type = FieldType.Nested,
-      ignoreFields = {"qualifiers"})
+  @Field(type = FieldType.Nested)
   private List<Property> properties;
 
   /**
@@ -200,7 +194,7 @@ public class Concept extends ConceptMinimal {
    * the index = false, to avoid indexing the fields in this Concept model. The
    * DynamicMappingValue.False will prevent indexing fields from the Qualifiers object.
    */
-  @Field(type = FieldType.Object, enabled = false)
+  @Field(type = FieldType.Object, includeInParent = false, enabled = false)
   @DynamicMapping(DynamicMappingValue.False)
   private List<Qualifier> qualifiers;
 
@@ -208,35 +202,35 @@ public class Concept extends ConceptMinimal {
    * The associations. enabled = false will set the index = false, to avoid indexing the fields in
    * this Concept model
    */
-  @Field(type = FieldType.Object, enabled = false, ignoreFields = "qualifiers")
+  @Field(type = FieldType.Object, enabled = false)
   private List<Association> associations;
 
   /**
    * The inverse associations. enabled = false will set the index = false, to avoid indexing the
    * fields in this Concept model
    */
-  @Field(type = FieldType.Object, enabled = false, ignoreFields = "qualifiers")
+  @Field(type = FieldType.Object, enabled = false)
   private List<Association> inverseAssociations;
 
   /**
    * The roles. enabled = false will set the index = false, to avoid indexing the fields in this
    * Concept model
    */
-  @Field(type = FieldType.Object, enabled = false, ignoreFields = "qualifiers")
+  @Field(type = FieldType.Object, enabled = false)
   private List<Role> roles;
 
   /**
    * The disjoint with. enabled = false will set the index = false, to avoid indexing the fields in
    * this Concept model
    */
-  @Field(type = FieldType.Object, enabled = false, ignoreFields = "qualifiers")
+  @Field(type = FieldType.Object, enabled = false)
   private List<DisjointWith> disjointWith;
 
   /**
    * The inverse roles. enabled = false will set the index = false, to avoid indexing the fields in
    * this Concept model
    */
-  @Field(type = FieldType.Object, enabled = false, ignoreFields = "qualifiers")
+  @Field(type = FieldType.Object, enabled = false)
   private List<Role> inverseRoles;
 
   /**
