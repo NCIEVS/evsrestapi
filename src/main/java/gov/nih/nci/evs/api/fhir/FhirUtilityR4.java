@@ -56,9 +56,11 @@ public final class FhirUtilityR4 {
     publish.put("umlssemnet", "National Library of Medicine");
     publish.put("go", "GO Consortium");
     publish.put("icd10cm", "NCHS");
+    publish.put("icd10", "World Health Organization");
     publish.put("hgnc", "HUGO Gene Nomenclature Committee");
     publish.put("duo", "Data Use Ontology");
     publish.put("obi", "Ontology for Biomedical Investigations");
+    publish.put("obib", "Ontology for Biobanking");
     publish.put("snomedct_us", "National Library of Medicine");
     publish.put("ctcae5", "NCI");
     publish.put("lnc", "LOINC and Health Data Standards, Regenstrief Institute, Inc.");
@@ -70,7 +72,8 @@ public final class FhirUtilityR4 {
     publish.put("chebi", "Open Biomedical Ontologies - European Bioinformatics Institute");
     publish.put("ncim", "National Cancer Institute Enterprise Vocabulary Services");
     publish.put("pdq", "National Cancer Institute");
-    publish.put("ma", "Open Biomedical Ontologies");
+    publish.put("ma", "The Jackson Laboratory");
+    publish.put("hl7v30", "Health Level Seven International");
     return publish;
   }
 
@@ -89,6 +92,7 @@ public final class FhirUtilityR4 {
     uri.put("hgnc", "http://www.genenames.org");
     uri.put("duo", "https://obofoundry.org/ontology/duo.html");
     uri.put("obi", "https://obi-ontology.org/");
+    uri.put("obib", "https://obofoundry.org/ontology/obib.html");
     uri.put("snomedct_us", "http://terminology.hl7.org/CodeSystem/snomedct_us");
     uri.put("ctcae5", "http://hl7.org/fhir/us/ctcae");
     uri.put("lnc", "http://loinc.org");
@@ -101,6 +105,9 @@ public final class FhirUtilityR4 {
     uri.put("ncim", "https://ncim.nci.nih.gov/ncimbrowser/");
     uri.put("pdq", "https://www.cancer.gov/publications/pdq");
     uri.put("ma", "https://www.ebi.ac.uk/ols4/ontologies/ma");
+    uri.put(
+        "hl7v30",
+        "https://www.nlm.nih.gov/research/umls/sourcereleasedocs/current/HL7V3.0/index.html");
     return uri;
   }
 
