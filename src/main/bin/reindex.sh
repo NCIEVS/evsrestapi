@@ -254,10 +254,10 @@ get_terminology(){
   fi
 }
 
-for x in `cat /tmp/y.$$.txt`; do
+while read x; do
     echo "  Check indexes for $x"
     version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
-    cv=`echo $version | tr '[:upper:]' '[:lower:]' | perl -pe 's/[\.\-]//g;'`
+    cv=`echo $version | tr '[:upper:]' '[:lower:]' | perl -pe 's/[\.\-]//g;' | awk '{print $1}'`
     db=`echo $x | cut -d\| -f 2`
     uri=`echo $x | cut -d\| -f 3`
     term=$(get_terminology "$uri")
@@ -394,7 +394,7 @@ for x in `cat /tmp/y.$$.txt`; do
         fi
 
         echo "    java $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
-        java $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause
+        java $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error building indexes"
             exit 1
@@ -423,7 +423,7 @@ for x in `cat /tmp/y.$$.txt`; do
     # track previous version, if next one is the same, don't index again.
     pv=$cv
     pt=$term
-done
+done </tmp/y.$$.txt
 
 # Reconcile mappings after loading terminologies
 export EVS_SERVER_PORT="8083"
