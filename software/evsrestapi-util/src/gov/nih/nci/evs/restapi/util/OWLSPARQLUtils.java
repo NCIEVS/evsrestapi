@@ -268,9 +268,11 @@ public class OWLSPARQLUtils {
 
     public Vector executeQuery(String query) {
 		//from <http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl>
+		/*
 		if (this.named_graph != null) {
 			query = query.replaceAll("from <" + NCIT_URI + ">", "from <" + this.named_graph + ">");
     	}
+    	*/
         Vector v = null;
         try {
 			if (this.password == null) {
@@ -3370,7 +3372,7 @@ public class OWLSPARQLUtils {
 			buf.append("    graph <" + named_graph + ">").append("\n");
 		}
         //buf.append("from <" + named_graph + ">").append("\n");
-        buf.append("where  { ").append("\n");
+        buf.append("{ ").append("\n");
         buf.append("?s a owl:Class .").append("\n");
         buf.append("?s rdfs:label ?s_label .").append("\n");
         buf.append("?s :NHC0 ?s_code . ").append("\n");
@@ -5447,7 +5449,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 			buf.append("    graph <" + named_graph + ">").append("\n");
 		}
 
-		buf.append("where  { ").append("\n");
+		buf.append("{ ").append("\n");
 		buf.append("                ?y a owl:Class .").append("\n");
 		buf.append("                ?y :NHC0 ?y_code .").append("\n");
 		buf.append("                ?y rdfs:label ?y_label .").append("\n");
@@ -5520,7 +5522,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		if (named_graph != null) {
 			buf.append("    graph <" + named_graph + ">").append("\n");
 		}
-		buf.append("where  { ").append("\n");
+		buf.append("{ ").append("\n");
 		buf.append("   ?dt a rdfs:Datatype ;").append("\n");
 		buf.append("   owl:oneOf/rdf:rest*/rdf:first ?element .").append("\n");
 		buf.append("   bind(datatype(?element) as ?elementType)").append("\n");
@@ -5548,7 +5550,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		if (named_graph != null) {
 			buf.append("    graph <" + named_graph + ">").append("\n");
 		}
-		buf.append("where  { ").append("\n");
+		buf.append("{ ").append("\n");
 		buf.append("            	?x1 a owl:Class .").append("\n");
 		buf.append("            	?x1 :NHC0 ?x1_code .").append("\n");
 		buf.append("            	?x1 :NHC0 \"" + subsetCode + "\"^^xsd:string .").append("\n");
@@ -5669,7 +5671,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 			buf.append("    graph <" + named_graph + ">").append("\n");
 		}
 
-		buf.append("where  { ").append("\n");
+		buf.append("{ ").append("\n");
 		buf.append("   ?dt a rdfs:Datatype .").append("\n");
 		buf.append("   ?dt ?x ?x_value .").append("\n");
 		buf.append("   ?x_value ?p ?e .").append("\n");
@@ -5698,7 +5700,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		if (named_graph != null) {
 			buf.append("    graph <" + named_graph + ">").append("\n");
 		}
-		buf.append("where  { ").append("\n");
+		buf.append("{ ").append("\n");
 		buf.append("                    ?x1 a owl:Class .").append("\n");
 		buf.append("                    ?x1 :NHC0 ?x1_code .").append("\n");
 		buf.append("                    ?x1 rdfs:label ?x1_label .").append("\n");
@@ -5734,7 +5736,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		if (named_graph != null) {
 			buf.append("    graph <" + named_graph + ">").append("\n");
 		}
-		buf.append("where  { ").append("\n");
+		buf.append("{ ").append("\n");
 		buf.append("                    ?x1 a owl:Class .").append("\n");
 		buf.append("                    ?x1 :NHC0 ?x1_code .").append("\n");
 		buf.append("                    ?x1 rdfs:label ?x1_label .").append("\n");
@@ -5783,7 +5785,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		if (named_graph != null) {
 			buf.append("    graph <" + named_graph + ">").append("\n");
 		}
-		buf.append("where  {").append("\n");
+		buf.append("{").append("\n");
 		buf.append("                ?x1 a owl:Class .").append("\n");
 		buf.append("                ?x1 :NHC0 ?x1_code .").append("\n");
 		buf.append("                ?x1 rdfs:label ?x1_label .").append("\n");
@@ -5876,7 +5878,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		if (named_graph != null) {
 			buf.append("    graph <" + named_graph + ">").append("\n");
 		}
-        buf.append("where  { ").append("\n");
+        buf.append("{ ").append("\n");
         buf.append("                ?x1 a owl:Class .").append("\n");
         buf.append("                ?x1 :NHC0 ?x1_code .").append("\n");
         buf.append("                ?x1 rdfs:label ?x1_label .").append("\n");
@@ -5993,10 +5995,9 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
 		} else {
 		    buf.append("SELECT distinct ?x_label ?x_code ?p_label ?y_label ?y_code ").append("\n");
 		}
-
-        //buf.append("    graph <" + named_graph + "> ").append("\n");
+		buf.append("{").append("\n");
 		if (named_graph != null) {
-			buf.append("    graph <" + named_graph + ">").append("\n");
+			buf.append("graph <" + named_graph + ">").append("\n");
 		}
         buf.append("    {").append("\n");
         buf.append("            ?x :NHC0 ?x_code .").append("\n");
@@ -6098,17 +6099,15 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
         StringBuffer buf = new StringBuffer();
         buf.append(prefixes);
         buf.append("select distinct ?x_code ?x_label ?p_code ?p_label ?y_code ?y_label").append("\n");
-
-		if (named_graph != null) {
-			buf.append("    graph <" + named_graph + ">").append("\n");
-		}
-
-        buf.append("where").append("\n");
         buf.append("{").append("\n");
+		if (named_graph != null) {
+			buf.append("graph <" + named_graph + ">").append("\n");
+		}
+        buf.append("	{").append("\n");
         buf.append("            ?x a owl:Class .").append("\n");
         buf.append("            ?x :NHC0 ?x_code .").append("\n");
         if (code != null) {
-        buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string . ").append("\n");
+            buf.append("            ?x :NHC0 \"" + code + "\"^^xsd:string . ").append("\n");
 	    }
         buf.append("            ?x rdfs:label ?x_label .").append("\n");
         buf.append("            ?x (rdfs:subClassOf|owl:equivalentClass|owl:unionOf/rdf:rest*/rdf:first|owl:intersectionOf/rdf:rest*/rdf:first)* ?rs .").append("\n");
@@ -6119,6 +6118,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
         buf.append("            ?rs owl:someValuesFrom ?y .").append("\n");
         buf.append("            ?y :NHC0 ?y_code .").append("\n");
         buf.append("            ?y rdfs:label ?y_label .").append("\n");
+        buf.append("	}").append("\n");
         buf.append("}").append("\n");
         return buf.toString();
 	}
@@ -6140,13 +6140,11 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
         StringBuffer buf = new StringBuffer();
         buf.append(prefixes);
         buf.append("select distinct ?x_code ?x_label ?p_code ?p_label ?y_code ?y_label").append("\n");
-
-		if (named_graph != null) {
-			buf.append("    graph <" + named_graph + ">").append("\n");
-		}
-
-        buf.append("where").append("\n");
         buf.append("{").append("\n");
+		if (named_graph != null) {
+			buf.append("graph <" + named_graph + ">").append("\n");
+		}
+        buf.append("	{").append("\n");
         buf.append("            ?x a owl:Class .").append("\n");
         buf.append("            ?x :NHC0 ?x_code .").append("\n");
         buf.append("            ?x rdfs:label ?x_label .").append("\n");
@@ -6159,6 +6157,7 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
         buf.append("            ?y :NHC0 ?y_code .").append("\n");
         buf.append("            ?y :NHC0 \"" + code + "\"^^xsd:string . ").append("\n");
         buf.append("            ?y rdfs:label ?y_label .").append("\n");
+        buf.append("	}").append("\n");
         buf.append("}").append("\n");
         return buf.toString();
 	}
@@ -6178,9 +6177,9 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
         buf.append(prefixes);
         buf.append("select distinct ?x_label ?x_code").append("\n");
         if (named_graph != null) {
-        	buf.append("from <" + named_graph + ">").append("\n");
+        	buf.append("graph <" + named_graph + ">").append("\n");
 	    }
-        buf.append("where  { ").append("\n");
+        buf.append("{ ").append("\n");
         buf.append("                ?x a owl:Class .").append("\n");
         buf.append("                ?x :NHC0 ?x_code .").append("\n");
         buf.append("                ?x rdfs:label ?x_label .").append("\n");
