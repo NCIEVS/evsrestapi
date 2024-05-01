@@ -131,6 +131,13 @@ if [[ ! -e "$dir/OBIB/obib_2021-11.owl" ]]; then
     exit 1
 fi
 
+# Check NDFRT
+echo "    check NDFRT"
+if [[ ! -e "$dir/NDFRT/NDFRT_Public_2018.02.05_Inferred.owl" ]]; then
+    echo "ERROR: unexpectedly missing NDFRT/NDFRT_Public_2018.02.05_Inferred.owl file"
+    exit 1
+fi
+
 # Verify docker stardog is running
 echo "    verify docker stardog is running"
 ct=`docker ps | grep 'stardog/stardog' | wc -l`
@@ -258,6 +265,7 @@ echo "    load data"
 /opt/stardog/bin/stardog data add --named-graph http://DUO_monthly NCIT2 /data/UnitTestData/DUO/iao_Dec20.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://OBI_monthly NCIT2 /data/UnitTestData/OBI/obi_2022_07.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://OBIB NCIT2 /data/UnitTestData/OBIB/obib_2021-11.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://NDFRT NCIT2 /data/UnitTestData/NDFRT/NDFRT_Public_2018.02.05_Inferred.owl | sed 's/^/      /'
 echo "    optimize databases"
 /opt/stardog/bin/stardog-admin db optimize -n CTRP | sed 's/^/      /'
 /opt/stardog/bin/stardog-admin db optimize -n NCIT2 | sed 's/^/      /'
