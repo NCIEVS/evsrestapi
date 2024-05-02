@@ -42,11 +42,11 @@ public class NdfrtSampleTest extends SampleTest {
 
   @BeforeClass
   public static void setupClass() throws Exception {
-    loadSamples("ndfrt", "src/test/resources/samples/ndfrt-samples.txt");
+    loadSamples("ndf-rt", "src/test/resources/samples/ndf-rt-samples.txt");
   }
 
   @Test
-  public void testDUOTerminology() throws Exception {
+  public void testNDFRTTerminology() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
@@ -55,7 +55,7 @@ public class NdfrtSampleTest extends SampleTest {
     log.info("Testing url - " + url);
     result =
         testMvc
-            .perform(get(url).param("latest", "true").param("terminology", "ndfrt"))
+            .perform(get(url).param("latest", "true").param("terminology", "ndf-rt"))
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
@@ -69,25 +69,21 @@ public class NdfrtSampleTest extends SampleTest {
                   // n/a
                 });
     assertThat(terminologies.size()).isGreaterThan(0);
-    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ndfrt")).count())
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ndf-rt")).count())
         .isEqualTo(1);
     final Terminology ndfrt =
-        terminologies.stream().filter(t -> t.getTerminology().equals("ndfrt")).findFirst().get();
-    assertThat(ndfrt.getTerminology()).isEqualTo("ndfrt");
+        terminologies.stream().filter(t -> t.getTerminology().equals("ndf-rt")).findFirst().get();
+    assertThat(ndfrt.getTerminology()).isEqualTo("ndf-rt");
     assertThat(ndfrt.getMetadata().getUiLabel())
         .isEqualTo("NDFRT: National Drug File Reference Terminology");
     assertThat(ndfrt.getName())
-        .isEqualTo("NDFRT: National Drug File Reference Terminology 2018-02-05");
+        .isEqualTo("NDFRT: National Drug File Reference Terminology NDF-RT2 [Public Edition]");
     assertThat(ndfrt.getDescription()).isNotEmpty();
 
     assertThat(ndfrt.getMetadata().getLoader()).isEqualTo("rdf");
     assertThat(ndfrt.getMetadata().getSourceCt()).isEqualTo(0);
     assertThat(ndfrt.getMetadata().getLicenseText()).isNull();
-    assertThat(ndfrt.getDescription())
-        .isEqualTo(
-            "NDFRT: National Drug File Reference Terminology (NDF-RT) is produced by the Veterans"
-                + " Health Administration (VHA) as an extension of the VHA National Drug File"
-                + " (VANDF) formulary.");
+    assertThat(ndfrt.getDescription()).isEqualTo("NDF-RT2 Public");
 
     assertThat(ndfrt.getLatest()).isTrue();
   }
@@ -106,7 +102,7 @@ public class NdfrtSampleTest extends SampleTest {
     Concept concept = null;
 
     // Test active
-    url = "/api/v1/concept/ndfrt/N0000000004";
+    url = "/api/v1/concept/ndf-rt/N0000000004";
     log.info("Testing url - " + url);
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -114,7 +110,7 @@ public class NdfrtSampleTest extends SampleTest {
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("N0000000004");
-    assertThat(concept.getTerminology()).isEqualTo("ndfrt");
+    assertThat(concept.getTerminology()).isEqualTo("ndf-rt");
     assertThat(concept.getActive()).isTrue();
   }
 }
