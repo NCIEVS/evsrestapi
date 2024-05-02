@@ -4,8 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.data.elasticsearch.annotations.DynamicMapping;
-import org.springframework.data.elasticsearch.annotations.DynamicMappingValue;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
@@ -16,19 +14,18 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 @Schema(description = "Represents a type/value qualifier on a concept element")
 @JsonIgnoreProperties(value = {"code"})
 @JsonInclude(Include.NON_EMPTY)
-@DynamicMapping(DynamicMappingValue.False)
 public class Qualifier extends BaseModel implements Comparable<Qualifier> {
 
   /** The code. */
-  @Field(type = FieldType.Object, includeInParent = false, enabled = false)
+  @Field(type = FieldType.Object, enabled = false)
   private String code;
 
   /** The type. */
-  @Field(type = FieldType.Object, includeInParent = false, enabled = false)
+  @Field(type = FieldType.Object, enabled = false)
   private String type;
 
   /** The value. */
-  @Field(type = FieldType.Object, includeInParent = false, enabled = false)
+  @Field(type = FieldType.Object, enabled = false)
   private String value;
 
   /** Instantiates an empty {@link Qualifier}. */

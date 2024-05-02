@@ -58,7 +58,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   private String subSource;
 
   /** The qualifiers - not NCIT, but could be other terminologies. */
-  @Field(type = FieldType.Object, includeInParent = false, enabled = false)
+  @Field(type = FieldType.Object, enabled = false)
   @DynamicMapping(DynamicMappingValue.False)
   private List<Qualifier> qualifiers;
 

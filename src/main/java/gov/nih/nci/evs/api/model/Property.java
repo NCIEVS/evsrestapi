@@ -37,7 +37,7 @@ public class Property extends BaseModel implements Comparable<Property> {
   @Transient @JsonSerialize @JsonDeserialize private String highlight;
 
   /** The qualifiers. */
-  @Field(type = FieldType.Object, includeInParent = false, enabled = false)
+  @Field(type = FieldType.Object, enabled = false)
   @DynamicMapping(DynamicMappingValue.False)
   private List<Qualifier> qualifiers;
 

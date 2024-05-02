@@ -38,7 +38,7 @@ public class Definition extends BaseModel implements Comparable<Definition> {
   private String source;
 
   /** The qualifiers. */
-  @Field(type = FieldType.Object, includeInParent = false, enabled = false)
+  @Field(type = FieldType.Object, enabled = false)
   @DynamicMapping(DynamicMappingValue.False)
   private List<Qualifier> qualifiers;
 
