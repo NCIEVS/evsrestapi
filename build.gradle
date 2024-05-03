@@ -101,6 +101,8 @@ dependencies {
     implementation 'commons-cli:commons-cli:1.4'
     implementation 'cglib:cglib:3.3.0'
     //implementation 'com.maxmind.geoip2:geoip2:2.15.0'
+    //Java Mail Sender dependency
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
 
     // fhir dependencies
     implementation ('ca.uhn.hapi.fhir:hapi-fhir-base:6.8.3') {
@@ -130,8 +132,9 @@ dependencies {
     implementation ('ca.uhn.hapi.fhir:hapi-fhir-server-openapi:6.8.3') {
         exclude group: 'com.google.guava', module: 'guava'
     }
+  implementation 'org.projectlombok:lombok:1.18.28'
 
-    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+  providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
 
     /*
      * Test Dependencies
