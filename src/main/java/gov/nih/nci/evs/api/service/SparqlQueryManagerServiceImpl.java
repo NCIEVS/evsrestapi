@@ -44,6 +44,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
@@ -2155,6 +2156,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // Send URI or code
       final Concept concept =
           getRole(role.getUri() != null ? role.getUri() : role.getCode(), terminology, ip);
+      gov.nih.nci.evs.api.model.sparql.Bindings matchConcept =
+          Stream.of(bindings)
+              .filter(binding -> binding.getProperty().getValue().equals(concept.getUri()))
+              .findFirst()
+              .orElse(null);
+      if (concept.getCode().equals(concept.getName()) && bindings != null && matchConcept != null) {
+        concept.setName(matchConcept.getPropertyLabel().getValue());
+      }
       concepts.add(concept);
     }
 
