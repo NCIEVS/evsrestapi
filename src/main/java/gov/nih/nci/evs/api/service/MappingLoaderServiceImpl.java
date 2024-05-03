@@ -9,6 +9,7 @@ import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -22,6 +23,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -202,6 +204,20 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     String rawMetadata = null;
     try (final InputStream is = new URL(mapsetMetadataUri).openConnection().getInputStream()) {
       rawMetadata = IOUtils.toString(is, StandardCharsets.UTF_8);
+    } catch (Throwable t) { // read as file if no url
+      try {
+        rawMetadata =
+            FileUtils.readFileToString(new File(mapsetMetadataUri), StandardCharsets.UTF_8);
+      } catch (IOException ex) {
+        throw new IOException(
+            "Could not find either file or uri for mapsetMetadataUri: "
+                + mapsetMetadataUri); // only
+        // throw
+        // exception
+        // if
+        // both
+        // fail
+      }
     }
     List<String> allLines = Arrays.asList(rawMetadata.split("\n"));
     // skip header line
@@ -293,6 +309,19 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           // text
           String welcomeText = IOUtils.toString(is, StandardCharsets.UTF_8);
           map.getProperties().add(new Property("welcomeText", welcomeText));
+        } catch (Throwable t) { // read as file if no url
+          try {
+            String welcomeText =
+                FileUtils.readFileToString(
+                    new File(uri + "/" + metadata[3]), StandardCharsets.UTF_8);
+            map.getProperties().add(new Property("welcomeText", welcomeText));
+          } catch (IOException ex) {
+            throw new IOException(
+                "Could not find either file or uri for config base uri: "
+                    + uri
+                    + "/"
+                    + metadata[3]); // only throw exception if both fail
+          }
         }
         map.getProperties().add(new Property("sourceTerminology", metadata[5]));
         map.getProperties().add(new Property("sourceTerminologyVersion", metadata[6]));
@@ -313,6 +342,19 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         try (final InputStream is = new URL(mappingDataUri).openConnection().getInputStream()) {
           String mappingData = IOUtils.toString(is, StandardCharsets.UTF_8);
           map.setMaps(buildMaps(mappingData, metadata));
+        } catch (Throwable t) { // read as file if no url
+          try {
+            String mappingData = FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8);
+            map.setMaps(buildMaps(mappingData, metadata));
+          } catch (IOException ex) {
+            throw new IOException(
+                "Could not find either file or uri for mappingDataUri: " + mappingDataUri); // only
+            // throw
+            // exception
+            // if
+            // both
+            // fail
+          }
         }
       }
 
@@ -332,6 +374,20 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           try (final InputStream is = new URL(mappingDataUri).openConnection().getInputStream()) {
             String mappingData = IOUtils.toString(is, StandardCharsets.UTF_8);
             map.setMaps(buildMaps(mappingData, metadata));
+          } catch (Throwable t) { // read as file if no url
+            try {
+              String mappingData =
+                  FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8);
+              map.setMaps(buildMaps(mappingData, metadata));
+            } catch (IOException ex) {
+              throw new IOException(
+                  "Could not find either file or uri for mappingDataUri: "
+                      + mappingDataUri); // throw
+              // exception
+              // if
+              // both
+              // fail
+            }
           }
         }
       } else {

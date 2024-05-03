@@ -11,9 +11,13 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -190,9 +194,21 @@ public class MdrSampleTest extends SampleTest {
    */
   public JsonNode getMetadataAsNode(final String terminology) throws Exception {
     final String uri = applicationProperties.getConfigBaseUri() + "/" + terminology + ".json";
-    final URL url = new URL(uri);
-    try (final InputStream is = url.openConnection().getInputStream()) {
+    try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
       return new ObjectMapper().readTree(IOUtils.toString(is, "UTF-8"));
+    } catch (Throwable t) { // read as file if no url
+      try {
+        return new ObjectMapper()
+            .readTree(FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8));
+      } catch (IOException ex) {
+        throw new IOException(
+            "Could not find either file or uri for config base uri: " + uri); // only
+        // throw
+        // exception
+        // if
+        // both
+        // fail
+      }
     }
   }
 }
