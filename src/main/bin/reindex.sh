@@ -254,10 +254,10 @@ get_terminology(){
   fi
 }
 
-while read x; do
+for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
     version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
-    cv=`echo $version | tr '[:upper:]' '[:lower:]' | perl -pe 's/[\.\-]//g;' | awk '{print $1}'`
+    cv=`echo $version | tr '[:upper:]' '[:lower:]' | perl -pe 's/[\.\-]//g;'`
     db=`echo $x | cut -d\| -f 2`
     uri=`echo $x | cut -d\| -f 3`
     term=$(get_terminology "$uri")
@@ -423,7 +423,7 @@ while read x; do
     # track previous version, if next one is the same, don't index again.
     pv=$cv
     pt=$term
-done </tmp/y.$$.txt
+done
 
 # Reconcile mappings after loading terminologies
 export EVS_SERVER_PORT="8083"

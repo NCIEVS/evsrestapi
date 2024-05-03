@@ -265,7 +265,7 @@ echo "    load data"
 /opt/stardog/bin/stardog data add --named-graph http://DUO_monthly NCIT2 /data/UnitTestData/DUO/iao_Dec20.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://OBI_monthly NCIT2 /data/UnitTestData/OBI/obi_2022_07.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://OBIB NCIT2 /data/UnitTestData/OBIB/obib_2021-11.owl | sed 's/^/      /'
-/opt/stardog/bin/stardog data add --named-graph http://NDFRT NCIT2 /data/UnitTestData/NDFRT/NDFRT_Public_2018.02.05_Inferred.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://NDFRT2 NCIT2 /data/UnitTestData/NDFRT/NDFRT_Public_2018.02.05_Inferred.owl | sed 's/^/      /'
 echo "    optimize databases"
 /opt/stardog/bin/stardog-admin db optimize -n CTRP | sed 's/^/      /'
 /opt/stardog/bin/stardog-admin db optimize -n NCIT2 | sed 's/^/      /'
