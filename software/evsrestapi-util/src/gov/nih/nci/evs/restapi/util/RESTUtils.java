@@ -51,8 +51,6 @@ public class RESTUtils {
 	}
 
 	public String runSPARQL(String query, String restURL) {
-		System.out.println("restURL: " + restURL);
-		System.out.println("query: " + query);
 		RestTemplate restTemplate = null;
 		if (username != null) {
 			restTemplate = new RestTemplateBuilder().
