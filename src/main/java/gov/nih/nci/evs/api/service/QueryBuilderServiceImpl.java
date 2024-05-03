@@ -50,12 +50,20 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
       final Map<String, String> values = ConceptUtils.asMap("source", terminology.getSource());
 
       // Try terminology-specific prefix
-      if (env.containsProperty("prefix." + terminology.getTerminology())) {
+      if (terminology.getMetadata().getSparqlPrefix() != null) {
         prefix =
-            getResolvedProperty("prefix." + terminology.getTerminology(), values)
+            terminology.getMetadata().getSparqlPrefix()
                 + System.getProperty("line.separator")
                 + prefix;
       }
+
+      // NOTE: we no longer use prefix properties, but use terminology metadata instead
+      //      if (env.containsProperty("prefix." + terminology.getTerminology())) {
+      //        prefix =
+      //            getResolvedProperty("prefix." + terminology.getTerminology(), values)
+      //                + System.getProperty("line.separator")
+      //                + prefix;
+      //      }
 
       // Otherwise use prefix.graph + prefix.common
       else {
