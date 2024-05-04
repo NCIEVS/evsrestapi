@@ -139,22 +139,14 @@ public class MetadataController extends BaseController {
         final TerminologyMetadata meta = term.getMetadata();
         // Some terminologies may not have metadata
         if (meta != null) {
-          meta.setMonthlyDb(null);
-          meta.setSources(null);
-          meta.setTermTypes(null);
-          meta.setSourcesToRemove(null);
-          meta.setUnpublished(null);
-          meta.setSubsetPrefix(null);
-          meta.setConceptStatus(null);
-          meta.setDefinitionSourceSet(null);
-          meta.setWelcomeText(null);
-          meta.setLicenseCheck(null);
 
           // Various other metadata things (schema=hidden)
+          meta.setWelcomeText(null);
           meta.setSources(null);
           meta.setDefinitionSourceSet(null);
           meta.setSynonymSourceSet(null);
           meta.setSubsetPrefix(null);
+          meta.setSparqlPrefix(null);
           meta.setSourcesToRemove(null);
           meta.setSubsetMember(null);
           meta.setUnpublished(null);

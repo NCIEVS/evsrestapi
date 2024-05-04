@@ -92,6 +92,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The details columns. */
   private Map<String, Boolean> detailsColumns;
 
+  /** The prefix. */
+  private String sparqlPrefix;
+
   /** The hierarchy flag. */
   private Boolean hierarchy;
 
@@ -192,6 +195,7 @@ public class TerminologyMetadata extends BaseModel {
     relationshipToTarget = other.getRelationshipToTarget();
     sources = new HashMap<>(other.getSources());
     detailsColumns = new HashMap<>(other.getDetailsColumns());
+    sparqlPrefix = other.getSparqlPrefix();
     sourceCt = sources.size();
     hierarchy = other.getHierarchy();
     history = other.getHistory();
@@ -219,6 +223,7 @@ public class TerminologyMetadata extends BaseModel {
     welcomeText = other.getWelcomeText();
   }
 
+  /* see superclass */
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -227,6 +232,7 @@ public class TerminologyMetadata extends BaseModel {
     return result;
   }
 
+  /* see superclass */
   @Override
   public boolean equals(Object obj) {
     if (this == obj) return true;
@@ -859,6 +865,25 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setSubsetPrefix(final String subsetPrefix) {
     this.subsetPrefix = subsetPrefix;
+  }
+
+  /**
+   * Returns the sparql prefix.
+   *
+   * @return the sparql prefix
+   */
+  @Schema(hidden = true)
+  public String getSparqlPrefix() {
+    return sparqlPrefix;
+  }
+
+  /**
+   * Sets the sparql prefix.
+   *
+   * @param sparqlPrefix the sparql prefix
+   */
+  public void setSparqlPrefix(final String sparqlPrefix) {
+    this.sparqlPrefix = subsetPrefix;
   }
 
   /**
