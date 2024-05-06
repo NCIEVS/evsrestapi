@@ -170,11 +170,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     // NOTE: this is not a hardened approach
     final String queryURL = getQueryURL().replace(stardogProperties.getDb(), db);
-    log.info("queryURL = " + queryURL);
-    log.info("stardogProperties.getDb() = " + stardogProperties.getDb());
-    log.info("db = " + db);
     final String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
-    log.info("RES = " + res);
 
     // if (log.isDebugEnabled()) {
     // log.debug("getTerminologies response - " + res);
