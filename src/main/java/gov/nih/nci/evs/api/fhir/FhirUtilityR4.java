@@ -61,6 +61,7 @@ public final class FhirUtilityR4 {
     publish.put("duo", "Data Use Ontology");
     publish.put("obi", "Ontology for Biomedical Investigations");
     publish.put("obib", "Ontology for Biobanking");
+    publish.put("ndfrt", "Veterans Health Administration");
     publish.put("snomedct_us", "National Library of Medicine");
     publish.put("ctcae5", "NCI");
     publish.put("lnc", "LOINC and Health Data Standards, Regenstrief Institute, Inc.");
@@ -93,6 +94,7 @@ public final class FhirUtilityR4 {
     uri.put("duo", "https://obofoundry.org/ontology/duo.html");
     uri.put("obi", "https://obi-ontology.org/");
     uri.put("obib", "https://obofoundry.org/ontology/obib.html");
+    uri.put("ndfrt", "https://bioportal.bioontology.org/ontologies/NDF-RT");
     uri.put("snomedct_us", "http://terminology.hl7.org/CodeSystem/snomedct_us");
     uri.put("ctcae5", "http://hl7.org/fhir/us/ctcae");
     uri.put("lnc", "http://loinc.org");

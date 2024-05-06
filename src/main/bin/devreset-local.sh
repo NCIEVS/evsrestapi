@@ -116,7 +116,14 @@ fi
 # Check OBIB
 echo "    check OBIB"
 if [[ ! -e "$dir/OBIB/obib_2021-11.owl" ]]; then
-    echo "ERROR: unexpectedly missing OBI/obib_2021-11.owl file"
+    echo "ERROR: unexpectedly missing OBIB/obib_2021-11.owl file"
+    exit 1
+fi
+
+# Check NDFRT
+echo "    check NDFRT"
+if [[ ! -e "$dir/NDFRT/NDFRT_Public_2018.02.05_Inferred.owl" ]]; then
+    echo "ERROR: unexpectedly missing NDFRT/NDFRT_Public_2018.02.05_Inferred.owl file"
     exit 1
 fi
 

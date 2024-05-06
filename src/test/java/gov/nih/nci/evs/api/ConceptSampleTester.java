@@ -2248,7 +2248,7 @@ public class ConceptSampleTester {
   public String standardizeText(String toStandardize) {
     return StringEscapeUtils.unescapeHtml4(toStandardize)
         .replace("&apos;", "'")
-        .replace("  ", " ")
+        .replaceAll("\\s{2,}", " ")
         .strip();
   }
 }
