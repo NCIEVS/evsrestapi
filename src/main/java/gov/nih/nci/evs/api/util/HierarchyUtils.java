@@ -110,8 +110,8 @@ public class HierarchyUtils {
    */
   public void initialize(List<String> parentchild) {
     /*
-     * The parentchild string is expected to be in the order of parentCode, parentLabel childCode, childLabel and Tab
-     * sepearated.
+     * The parentchild string is expected to be in the order of parentCode, parentLabel childCode,
+     * childLabel and Tab sepearated.
      */
     for (String str : parentchild) {
       String[] values = str.trim().split("\t");
@@ -124,7 +124,9 @@ public class HierarchyUtils {
       }
 
       if (child2parent.containsKey(values[2])) {
-        child2parent.get(values[2]).add(values[0]);
+        if (!child2parent.get(values[2]).contains(values[0])) {
+          child2parent.get(values[2]).add(values[0]);
+        }
       } else {
         List<String> parents = new ArrayList<>();
         parents.add(values[0]);
