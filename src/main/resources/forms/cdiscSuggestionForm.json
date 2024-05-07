@@ -1,5 +1,5 @@
 {
-  "formName": "CDISC Term Suggestion",
+  "formName": "CDISC Terminoloy Change Request",
   "recipientEmail": "NciEvsCdiscHelp@mail.nih.gov",
   "sections": [
     {
@@ -18,19 +18,41 @@
           "required": false
         },
         {
-          "name": "Business Phone Number",
+          "name": "Organization",
           "type": "text",
-          "placeholder": "Enter your business phone number",
+          "placeholder": "Enter your organization",
           "required": false
         },
         {
-          "description": "Privacy Notice: For term submission purposes we request business contact information only, not personal information.\n    Your business email, and any other business contact information that you enter, will be stored in a publicly-accessible\n    web site in support of CDISC term submission tracking. CDISC personnel may contact you."
-        }
+          "description": "Privacy Notice: For term submission purposes we request business contact information only, not personal information. Any contact information that you enter will be stored on a publicly accessible web site in support of CDISC term submission tracking. NCI-EVS or CDISC personnel may contact you"}
       ]
     },
     {
       "name": "Term Information",
-      "instructions": "Fill in the following fields as appropriate. For multiple term submissions, please click on and download the Excel file CDISC Controlled Terminology Multiple Term Request Spreadsheet and add on your name and request date to the end of the file name. Email this completed file to NciEvsCdiscHelp@mail.nih.gov. In addition, please submit a CDISC New Term Request form indicating \"File emailed separately\" in Additional Information.",
+      "instructions": {
+        "parts": [
+          {
+            "text": "Fill in the following fields as appropriate. For multiple term submissions (any more than 3 terms), please click on and download the ",
+            "link": null
+          },
+          {
+            "text": "Excel file CDISC Controlled Terminology Multiple Term Request Spreadsheet.",
+            "link": "https://ncitermform.nci.nih.gov/ncitermform/download?action=download"
+          },
+          {
+            "text": "Fill in the template appropriately, add your name and request date to the end of the file name, and Email the completed file to",
+            "link": null
+          },
+          {
+            "text": "NciEvsCdiscHelp@mail.nih.gov.",
+            "link": "mailto:NciEvsCdiscHelp@mail.nih.gov?Subject=CDISC%20New%20Term%20Request"
+          },
+          {
+            "text": "In addition, please submit this CDISC New Term Request form indicating \"File emailed separately\" in the “Additional Information” field below.",
+            "link": null
+          }
+        ]
+      },
       "fields": [
         {
           "name": "Vocabulary",
@@ -42,22 +64,44 @@
           "name": "Request Type",
           "type": "dropdown",
           "options": [
-            "None",
             "Create New Term",
             "Create New Codelist",
             "Modify Existing Term",
+            "Inquiry",
             "Other"
           ],
           "placeholder": "Select request type",
           "required": true
         },
         {
-          "name": "CDISC Code List",
+          "name": "CDISC Subset",
           "type": "dropdown",
-          "optionSource": "forms/cdiscCodeList.json",
-          "placeholder": "Select Code",
           "required": true,
-          "description": "Note to user: CDASH and SDTM Terminology are the same and are contained within the SDTM codelists in the drop down list."
+          "options": [
+            "New",
+            "ADaM",
+            "CDASH",
+            "DDF",
+            "Define-XML",
+            "CDISC Glossary",
+            "MRCT Glossary",
+            "Protocol",
+            "QRS",
+            "SDTM",
+            "SEND",
+            "TMF",
+            "Other",
+            "Unknown"
+          ]
+
+        },
+        {
+          "name": "CDISC Codelist",
+          "type": "dropdown",
+          "multiple": true,
+          "required": true,
+          "placeholder": "Select All Codes that Apply",
+          "optionSource": "forms/cdiscCodelist.json"
         },
         {
           "name": "Term or Codelist Request",
@@ -71,7 +115,7 @@
       "name": "Additional Information",
       "fields": [
         {
-          "name": "Reason for suggestion plus draft definition and examples of how this new term will be used (if emailing the spreadsheet above please enter \"File emailed separately\")",
+          "name": "If submitting a new term include a description of the term, the data context within which it is being used, and any supplemental information that further clarifies the request.\n If submitting a change to existing term, include justification for why the change is necessary, along with relevant references.\n If a multiple term request spreadsheet or other supplemental information is being submitted, enter \"File emailed separately\”. Failure to include supporting information may delay resolution of the request.",
           "type": "textarea",
           "placeholder": "Enter reason, draft definition and examples",
           "required": true
