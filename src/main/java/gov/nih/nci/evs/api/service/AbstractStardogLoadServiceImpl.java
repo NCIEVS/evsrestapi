@@ -456,7 +456,12 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         List<Association> conceptAssociations = hierarchy.getAssociationMap().get(conceptCode);
         for (Association conceptAssociation : conceptAssociations) {
           if (association.getCode().equals(conceptAssociation.getCode())) {
-            entries.add(convert(terminology, conceptCode, hierarchy.getConceptNameFromCode(conceptCode), conceptAssociation));
+            entries.add(
+                convert(
+                    terminology,
+                    conceptCode,
+                    hierarchy.getConceptNameFromCode(conceptCode),
+                    conceptAssociation));
           }
         }
       }
@@ -472,7 +477,10 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   }
 
   private AssociationEntry convert(
-      Terminology terminology, String conceptCode, String conceptName, Association conceptAssociation) {
+      Terminology terminology,
+      String conceptCode,
+      String conceptName,
+      Association conceptAssociation) {
     AssociationEntry entry = new AssociationEntry();
     entry.setCode(conceptCode);
     entry.setAssociation(conceptAssociation.getType());
