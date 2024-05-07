@@ -28,6 +28,7 @@ import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -46,6 +47,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -323,9 +325,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
     }
     concept.setName(pn);
-
-    // TODO: need to set leaf
-    // concept.setLeaf(...
 
     if (ip.hasAnyTrue()) {
 
@@ -2643,14 +2642,18 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     if (StringUtils.isNotBlank(uri)) {
       log.info("Ignore source file URL:{}", uri);
       try {
-        final URL url = new URL(uri);
-
-        try (final InputStream is = url.openConnection().getInputStream()) {
+        try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
           return IOUtils.readLines(is, "UTF-8");
         }
       } catch (Throwable t) {
-        // Should not fail here if there are no ignore sources. Log and move on.
-        log.warn("Error occurred when getting ignore sources", t);
+        try {
+          // Try to open URI as a file
+          File file = new File(uri);
+          return FileUtils.readLines(file, "UTF-8");
+        } catch (IOException e) {
+          // Log and move on if both URL and file reading fail
+          log.warn("Error occurred when getting ignore sources from uri", uri);
+        }
       }
     }
     return Collections.emptyList();

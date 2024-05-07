@@ -39,6 +39,7 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -316,6 +317,20 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           try (final InputStream is = new URL(mapsetUri).openConnection().getInputStream()) {
             final String welcomeText = IOUtils.toString(is, StandardCharsets.UTF_8);
             mapset.getProperties().add(new Property("welcomeText", welcomeText));
+          } catch (Throwable t) { // read as file if no url
+            try {
+              final String welcomeText =
+                  FileUtils.readFileToString(new File(mapsetUri), StandardCharsets.UTF_8);
+              mapset.getProperties().add(new Property("welcomeText", welcomeText));
+            } catch (IOException ex) {
+              throw new IOException(
+                  "Could not find either file or uri for welcome text: " + mapsetUri); // only
+              // throw
+              // exception
+              // if
+              // both
+              // fail
+            }
           }
           mapset.getProperties().add(new Property("mapsetLink", null));
           mapset.getProperties().add(new Property("downloadOnly", "false"));

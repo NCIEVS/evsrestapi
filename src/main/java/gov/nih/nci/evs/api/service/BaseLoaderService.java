@@ -9,6 +9,7 @@ import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -20,6 +21,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.delete.DeleteRequest;
@@ -436,10 +438,22 @@ public abstract class BaseLoaderService implements ElasticLoadService {
             + termUtils.getTerminologyName(terminology)
             + ".json";
     logger.info("  get config for " + terminology + " = " + uri);
-    final URL url = new URL(uri);
 
-    try (final InputStream is = url.openConnection().getInputStream()) {
+    try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
       return new ObjectMapper().readTree(IOUtils.toString(is, "UTF-8"));
+    } catch (Throwable t) { // read as file if no url
+      logger.info("try config as file: " + uri);
+      try {
+        return new ObjectMapper()
+            .readTree(FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8));
+      } catch (IOException ex) {
+        throw new IOException("Could not find either file or uri for welcomeText: " + uri); // only
+        // throw
+        // exception
+        // if
+        // both
+        // fail
+      }
     }
   }
 
@@ -461,6 +475,18 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     logger.info("  get welcome text for " + terminology + " = " + uri);
     try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
       return IOUtils.toString(is, StandardCharsets.UTF_8);
+    } catch (Throwable t) { // read as file if no url
+      logger.info("try config as file: " + uri);
+      try {
+        return FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8);
+      } catch (IOException ex) {
+        throw new IOException("Could not find either file or uri for welcomeText: " + uri); // only
+        // throw
+        // exception
+        // if
+        // both
+        // fail
+      }
     }
   }
 }

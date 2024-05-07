@@ -71,23 +71,23 @@ public class ObiSampleTest extends SampleTest {
     assertThat(terminologies.size()).isGreaterThan(0);
     assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("obi")).count())
         .isEqualTo(1);
-    final Terminology duo =
+    final Terminology obi =
         terminologies.stream().filter(t -> t.getTerminology().equals("obi")).findFirst().get();
-    assertThat(duo.getTerminology()).isEqualTo("obi");
-    assertThat(duo.getMetadata().getUiLabel())
+    assertThat(obi.getTerminology()).isEqualTo("obi");
+    assertThat(obi.getMetadata().getUiLabel())
         .isEqualTo("OBI: Ontology for Biomedical Investigations");
-    assertThat(duo.getName()).isEqualTo("OBI: Ontology for Biomedical Investigations 2022-07-11");
-    assertThat(duo.getDescription()).isNotEmpty();
+    assertThat(obi.getName()).isEqualTo("OBI: Ontology for Biomedical Investigations 2022-07-11");
+    assertThat(obi.getDescription()).isNotEmpty();
 
-    assertThat(duo.getMetadata().getLoader()).isEqualTo("rdf");
-    assertThat(duo.getMetadata().getSourceCt()).isEqualTo(0);
-    assertThat(duo.getMetadata().getLicenseText()).isNull();
-    assertThat(duo.getDescription())
+    assertThat(obi.getMetadata().getLoader()).isEqualTo("rdf");
+    assertThat(obi.getMetadata().getSourceCt()).isEqualTo(0);
+    assertThat(obi.getMetadata().getLicenseText()).isNull();
+    assertThat(obi.getDescription())
         .isEqualTo(
             "OBI: (Ontology for Biomedical Investigations) is an integrated ontology for the"
                 + " description of biological and clinical investigations.");
 
-    assertThat(duo.getLatest()).isTrue();
+    assertThat(obi.getLatest()).isTrue();
   }
 
   /**

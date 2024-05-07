@@ -566,6 +566,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           term.setDescription(node.get("description").asText());
         }
       }
+      if (node.get("description") != null) {
+        term.setDescription(node.get("description").asText());
+      }
 
       // Set some flags
       metadata.setLoader("rdf");

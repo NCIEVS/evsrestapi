@@ -113,9 +113,14 @@ get_ignored_sources(){
     echo ""
   else
     curl -s -g -f "$metadata_config_url/ignore-source.txt" -o /tmp/is.$$.txt
-    if [[ $? -ne 0 ]]; then
-        echo "ERROR: unable to obtain ignore-source.txt. Assuming no source URLs to ignore" 1>&3
-    fi
+  if [[ $? -ne 0 ]]; then
+      echo "Failed to download ignore-source.txt using curl, trying as a local file..." 1>&3
+      cp "$metadata_config_url/ignore-source.txt" /tmp/is.$$.txt
+      if [[ $? -ne 0 ]]; then
+          echo "ERROR: unable to obtain ignore-source.txt. Assuming no source URLs to ignore" 1>&3
+          echo "$metadata_config_url/ignore-source.txt" 1>&3
+      fi
+  fi
 
     if [ -f "/tmp/is.$$.txt" ]; then
       echo $(cat "/tmp/is.$$.txt" | awk -vORS=">,<" '{ print $1 }' | sed 's/,<$//' | sed 's/^/</')
