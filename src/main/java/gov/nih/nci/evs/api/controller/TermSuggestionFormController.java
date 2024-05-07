@@ -75,7 +75,7 @@ public class TermSuggestionFormController extends BaseController {
     try {
       // convert the form data into our email details object
       EmailDetails emailDetails = new EmailDetails();
-      emailDetails.generateEmailDetails(formData);
+      emailDetails = emailDetails.generateEmailDetails(formData);
 
       // Send the email with our email details
       emailService.sendEmail(emailDetails);

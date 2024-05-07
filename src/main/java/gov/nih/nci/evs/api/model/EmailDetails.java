@@ -9,33 +9,58 @@ import org.apache.jena.atlas.json.JsonObject;
  */
 @Data
 public class EmailDetails {
-  private String subject;
-  private String msgBody;
+  private String source;
   private String fromEmail;
   private String toEmail;
-  private String source;
+  private String subject;
+  private String msgBody;
+
+  private final String nullError = "Fields cannot be null";
 
   //  private String attachment;
 
-  public void generateEmailDetails(JsonObject formData) {
+  /**
+   * Create the email model from the submitted term form
+   * @param formData submitted form data
+   * @return an EmailDetails object
+   * @throws Exception exception
+   */
+  public static EmailDetails generateEmailDetails(JsonObject formData) throws Exception {
     // validate formData is not empty
+    if (formData.isEmpty() || formData.isNull()) {
+      throw new Exception("Form data not found. Please check your form data.");
+    } else {
+      EmailDetails emailDetails = new EmailDetails();
+      // Set the values from the form data
+      String formName = formData.get("formName").getAsString().value();
+      String recipientEmail = formData.get("recipientEmail").getAsString().value();
+      String businessEmail = formData.get("businessEmail").getAsString().value();
+      String subject = formData.get("subject").getAsString().value();
+      String body = formData.get("body").getAsString().value();
 
-    EmailDetails emailDetails = new EmailDetails();
-    // Set the subject and fromEmail values from the form data
-    emailDetails.setSubject(formData.get("subject").getAsString().value());
-    emailDetails.setFromEmail(formData.get("businessEmail").getAsString().value());
-    emailDetails.setToEmail(formData.get("recipientEmail").getAsString().value());
-    emailDetails.setSource(formData.get("formName").getAsString().value());
+      if (formName == null || formName.isEmpty()) {
+        throw new Exception("form name cannot be null or empty");
+      }
+      if (recipientEmail == null || recipientEmail.isEmpty()) {
+        throw new Exception("Recipient Email cannot be null or empty");
+      }
+      if (businessEmail == null || businessEmail.isEmpty()) {
+        throw new Exception("Business Email cannot be null or empty");
+      }
+      if (subject == null || subject.isEmpty()) {
+        throw new Exception("Subject cannot be null or empty");
+      }
+      if (body == null || body.isEmpty()) {
+        throw new Exception("Message ody cannot be null or empty");
+      }
 
-    // Initialize msgBody as an empty string
-    StringBuilder msgBody = new StringBuilder();
+      emailDetails.setSource(formName);
+      emailDetails.setToEmail(recipientEmail);
+      emailDetails.setFromEmail(businessEmail);
+      emailDetails.setSubject(subject);
+      emailDetails.setMsgBody(body);
 
-    // Iterate over the key in the json object
-    for (String key : formData.keys()) {
-      msgBody.append(key).append(": ").append(formData.get(key).getAsString().value()).append("\n");
+      return emailDetails;
     }
-
-    // Set the msgBody of the emailDetails object
-    emailDetails.setMsgBody(msgBody.toString());
   }
 }
