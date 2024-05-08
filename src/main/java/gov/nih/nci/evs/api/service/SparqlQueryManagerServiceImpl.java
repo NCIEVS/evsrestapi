@@ -616,8 +616,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       // Render synonym properties and normal properties
       concept.setConceptStatus("DEFAULT");
+      List<String> excludedProperties = terminology.getMetadata().getExcludedProperties();
       for (final Property property : properties) {
-
+        if (excludedProperties != null
+            && !excludedProperties.isEmpty()
+            && excludedProperties.stream().anyMatch(property.getCode()::contains)) {
+          continue; // skip excluded properties
+        }
         // Skip definitions rendered as properties
         if (terminology.getMetadata().getDefinition().contains(property.getCode())) {
           continue;
@@ -1778,9 +1783,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     Set<String> seen = new HashSet<String>();
+    final TerminologyMetadata md = terminology.getMetadata();
+    final List<String> excludedProperties = md.getExcludedProperties();
     for (final Bindings b : bindings) {
       final Property property = new Property();
       // Add the "about" if there is no explicit property code
+      if (excludedProperties != null
+          && !excludedProperties.isEmpty()
+          && excludedProperties.stream().anyMatch(b.getProperty().getValue()::contains)) {
+        continue; // skip excluded properties
+      }
       if (b.getPropertyCode() == null) {
         property.setUri(b.getProperty().getValue());
       }
@@ -1823,7 +1835,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     // neverUsed.add(EVSUtils.getPropertyCode(b));
     // }
 
-    final TerminologyMetadata md = terminology.getMetadata();
     for (final Property property : properties) {
 
       // Send URI or code

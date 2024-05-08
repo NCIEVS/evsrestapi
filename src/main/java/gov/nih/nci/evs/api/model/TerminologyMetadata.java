@@ -38,6 +38,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The concept statuses. */
   private List<String> conceptStatuses;
 
+  /** The excluded properties. */
+  private List<String> excludedProperties;
+
   /** The retired status value. */
   private String retiredStatusValue;
 
@@ -182,6 +185,7 @@ public class TerminologyMetadata extends BaseModel {
     code = other.getCode();
     conceptStatus = other.getConceptStatus();
     conceptStatuses = new ArrayList<>(other.getConceptStatuses());
+    excludedProperties = new ArrayList<>(other.getExcludedProperties());
     retiredStatusValue = other.getRetiredStatusValue();
     definitionSource = other.getDefinitionSource();
     definition = new HashSet<>(other.getDefinition());
@@ -242,6 +246,9 @@ public class TerminologyMetadata extends BaseModel {
     if (uiLabel == null) {
       if (other.uiLabel != null) return false;
     } else if (!uiLabel.equals(other.uiLabel)) return false;
+    if (code == null) {
+      if (other.code != null) return false;
+    } else if (!code.equals(other.code)) return false;
     return true;
   }
 
@@ -379,6 +386,20 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setConceptStatuses(final List<String> conceptStatuses) {
     this.conceptStatuses = conceptStatuses;
+  }
+
+  /**
+   * @return the excludeProperties
+   */
+  public List<String> getExcludedProperties() {
+    return excludedProperties;
+  }
+
+  /**
+   * @param excludeProperties the excludeProperties to set
+   */
+  public void setExcludedProperties(List<String> excludeProperties) {
+    this.excludedProperties = excludeProperties;
   }
 
   /**
