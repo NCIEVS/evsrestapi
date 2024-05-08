@@ -444,18 +444,20 @@ public class EmbeddedHierarchy {
 			String orphan_code = (String) orphan_codes.elementAt(k);
 			String orphan_label = getLabel(orphan_code);
 			Vector superclasses = getSuperclassCodes(orphan_code);
-			if (superclasses.contains(UNUSED_SUBSET_CONCEPT_CODE)) {
-				System.out.println(orphan_label + " (" + orphan_code + ")" + " is unused.");
+			if (superclasses != null) {
+				if (superclasses.contains(UNUSED_SUBSET_CONCEPT_CODE)) {
+					System.out.println(orphan_label + " (" + orphan_code + ")" + " is unused.");
 
-			} else {
-				Vector superclass_label_and_code_vec = new Vector();
-				for (int j=0; j<superclasses.size(); j++) {
-					String t = (String) superclasses.elementAt(j);
-					String t_label = getLabel(t);
-					superclass_label_and_code_vec.add(t_label + " (" + t + ")");
-				}
-				if (superclasses.contains(TERMINOLOGY_SUBSET_CODE)) {
-					w.add(orphan_label + "|" + orphan_code);
+				} else {
+					Vector superclass_label_and_code_vec = new Vector();
+					for (int j=0; j<superclasses.size(); j++) {
+						String t = (String) superclasses.elementAt(j);
+						String t_label = getLabel(t);
+						superclass_label_and_code_vec.add(t_label + " (" + t + ")");
+					}
+					if (superclasses.contains(TERMINOLOGY_SUBSET_CODE)) {
+						w.add(orphan_label + "|" + orphan_code);
+					}
 				}
 			}
 		}
@@ -635,16 +637,18 @@ public class EmbeddedHierarchy {
 			String orphan_code = (String) orphan_codes.elementAt(k);
 			String superclass_label = eh.getLabel(orphan_code);
 			Vector superclasses = eh.getSuperclassCodes(orphan_code);
-			if (superclasses.contains(UNUSED_SUBSET_CONCEPT_CODE)) {
-				System.out.println(superclass_label + " (" + orphan_code + ")" + " is unused.");
-			} else {
-				Vector superclass_label_and_code_vec = new Vector();
-				for (int j=0; j<superclasses.size(); j++) {
-					String t = (String) superclasses.elementAt(j);
-					String t_label = eh.getLabel(t);
-					superclass_label_and_code_vec.add(t_label + " (" + t + ")");
+			if (superclasses != null) {
+				if (superclasses.contains(UNUSED_SUBSET_CONCEPT_CODE)) {
+					System.out.println(superclass_label + " (" + orphan_code + ")" + " is unused.");
+				} else {
+					Vector superclass_label_and_code_vec = new Vector();
+					for (int j=0; j<superclasses.size(); j++) {
+						String t = (String) superclasses.elementAt(j);
+						String t_label = eh.getLabel(t);
+						superclass_label_and_code_vec.add(t_label + " (" + t + ")");
+					}
+					//StringUtils.dumpVector("superclasses of " + superclass_label + " (" + orphan_code + ")", superclass_label_and_code_vec);
 				}
-				//StringUtils.dumpVector("superclasses of " + superclass_label + " (" + orphan_code + ")", superclass_label_and_code_vec);
 			}
 		}
 
