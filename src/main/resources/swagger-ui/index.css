@@ -140,12 +140,17 @@ body
     color: #000;
 }
 
-/* Disable the servers dropdown, which is useless here */
+/* Disable the .scheme-container  */
+.swagger-ui .scheme-container {
+   display: none;
+}
+/*
 .swagger-ui .scheme-container .servers {
    display: none;
 }
 .swagger-ui .scheme-container .servers-title {
    display: none;
 }
+*/
 
 
