@@ -246,9 +246,6 @@ public class TerminologyMetadata extends BaseModel {
     if (uiLabel == null) {
       if (other.uiLabel != null) return false;
     } else if (!uiLabel.equals(other.uiLabel)) return false;
-    if (code == null) {
-      if (other.code != null) return false;
-    } else if (!code.equals(other.code)) return false;
     return true;
   }
 
