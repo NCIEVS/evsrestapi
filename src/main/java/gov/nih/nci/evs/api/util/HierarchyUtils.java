@@ -706,4 +706,8 @@ public class HierarchyUtils {
   public void setInverseAssociationMap(Map<String, List<Association>> inverseAssociationMap) {
     this.inverseAssociationMap = inverseAssociationMap;
   }
+
+  public String getConceptNameFromCode(String conceptCode) {
+    return this.code2label.get(conceptCode);
+  }
 }
