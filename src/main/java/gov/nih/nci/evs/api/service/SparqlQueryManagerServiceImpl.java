@@ -2160,7 +2160,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
               .filter(binding -> binding.getProperty().getValue().equals(concept.getUri()))
               .findFirst()
               .orElse(null);
-      if (concept.getCode().equals(concept.getName()) && bindings != null && matchConcept != null) {
+      if (concept.getCode().equals(concept.getName())
+          && bindings != null
+          && matchConcept != null
+          && matchConcept.getPropertyLabel() != null) {
         concept.setName(matchConcept.getPropertyLabel().getValue());
       }
       concepts.add(concept);
