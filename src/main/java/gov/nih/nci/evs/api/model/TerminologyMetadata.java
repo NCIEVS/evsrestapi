@@ -39,7 +39,7 @@ public class TerminologyMetadata extends BaseModel {
   private List<String> conceptStatuses;
 
   /** The excluded properties. */
-  private List<String> excludedProperties;
+  private Set<String> excludedProperties;
 
   /** The retired status value. */
   private String retiredStatusValue;
@@ -185,7 +185,7 @@ public class TerminologyMetadata extends BaseModel {
     code = other.getCode();
     conceptStatus = other.getConceptStatus();
     conceptStatuses = new ArrayList<>(other.getConceptStatuses());
-    excludedProperties = new ArrayList<>(other.getExcludedProperties());
+    excludedProperties = new HashSet<>(other.getExcludedProperties());
     retiredStatusValue = other.getRetiredStatusValue();
     definitionSource = other.getDefinitionSource();
     definition = new HashSet<>(other.getDefinition());
@@ -238,14 +238,21 @@ public class TerminologyMetadata extends BaseModel {
 
   /* see superclass */
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
-    TerminologyMetadata other = (TerminologyMetadata) obj;
+  public boolean equals(final Object obj) {
+    if (this == obj) {
+      return true;
+    }
+    if ((obj == null) || (getClass() != obj.getClass())) {
+      return false;
+    }
+    final TerminologyMetadata other = (TerminologyMetadata) obj;
     if (uiLabel == null) {
-      if (other.uiLabel != null) return false;
-    } else if (!uiLabel.equals(other.uiLabel)) return false;
+      if (other.uiLabel != null) {
+        return false;
+      }
+    } else if (!uiLabel.equals(other.uiLabel)) {
+      return false;
+    }
     return true;
   }
 
@@ -388,14 +395,17 @@ public class TerminologyMetadata extends BaseModel {
   /**
    * @return the excludeProperties
    */
-  public List<String> getExcludedProperties() {
+  public Set<String> getExcludedProperties() {
+    if (excludedProperties == null) {
+      excludedProperties = new HashSet<>();
+    }
     return excludedProperties;
   }
 
   /**
    * @param excludeProperties the excludeProperties to set
    */
-  public void setExcludedProperties(List<String> excludeProperties) {
+  public void setExcludedProperties(final Set<String> excludeProperties) {
     this.excludedProperties = excludeProperties;
   }
 
