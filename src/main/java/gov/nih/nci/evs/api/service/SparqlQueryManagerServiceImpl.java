@@ -227,8 +227,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return results;
   }
 
-  private String getTerm(String source) {
-    String term = FilenameUtils.getBaseName(source);
+  private String getTerm(final String source) {
+    final String term = FilenameUtils.getBaseName(source);
     if (term.equals("Thesaurus")) {
       return "ncit";
     }
@@ -616,10 +616,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       // Render synonym properties and normal properties
       concept.setConceptStatus("DEFAULT");
+      final Set<String> excludedProperties = terminology.getMetadata().getExcludedProperties();
       for (final Property property : properties) {
-
-        // Skip definitions rendered as properties
-        if (terminology.getMetadata().getDefinition().contains(property.getCode())) {
+        // Skip definitions and excluded properties
+        if (excludedProperties.contains(property.getCode())
+            || terminology.getMetadata().getDefinition().contains(property.getCode())) {
           continue;
         }
 
@@ -725,7 +726,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
      */
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
-    Set<String> seen = new HashSet<String>();
+    final Set<String> seen = new HashSet<String>();
     for (final Bindings b : bindings) {
 
       // OLD: skip properties without a code
@@ -737,7 +738,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       property.setCode(EVSUtils.getPropertyCode(b));
       property.setType(EVSUtils.getPropertyLabel(b));
       property.setValue(b.getPropertyValue().getValue());
-      String key = property.getCode() + property.getValue();
+      final String key = property.getCode() + property.getValue();
       if (!seen.contains(key)) {
         properties.add(property);
         seen.add(key);
@@ -774,7 +775,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
      */
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
-    Set<String> seen = new HashSet<String>();
+    final Set<String> seen = new HashSet<String>();
     for (final Bindings b : bindings) {
       final String conceptCode = b.getConceptCode().getValue();
       if (resultMap.get(conceptCode) == null) {
@@ -785,7 +786,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       property.setCode(EVSUtils.getPropertyCode(b));
       property.setType(EVSUtils.getPropertyLabel(b));
       property.setValue(b.getPropertyValue().getValue());
-      String key = conceptCode + property.getCode() + property.getValue();
+      final String key = conceptCode + property.getCode() + property.getValue();
       if (!seen.contains(key)) {
         resultMap.get(conceptCode).add(property);
         seen.add(key);
@@ -1259,7 +1260,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public Map<String, List<Role>> getRolesForAllCodes(
-      final Terminology terminology, boolean inverseFlag) throws Exception {
+      final Terminology terminology, final boolean inverseFlag) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructBatchQuery("roles.all", terminology, new ArrayList<>());
@@ -1313,7 +1314,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public Map<String, List<Role>> getComplexRolesForAllCodes(
-      final Terminology terminology, boolean inverseFlag) throws Exception {
+      final Terminology terminology, final boolean inverseFlag) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructBatchQuery(
@@ -1538,7 +1539,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         setAxiomProperty(propertyCode, propertyUri, value, qualifierFlag, axiomObject, terminology);
       }
       for (final Axiom axiom : axiomMap.values()) {
-        String realCode =
+        final String realCode =
             hasConceptCode ? code : EVSUtils.getCodeFromUri(axiom.getAnnotatedSource());
 
         if (resultMap.get(realCode) == null) {
@@ -1777,10 +1778,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
-    Set<String> seen = new HashSet<String>();
+    final Set<String> seen = new HashSet<String>();
+    final TerminologyMetadata md = terminology.getMetadata();
+    final Set<String> excludedProperties = md.getExcludedProperties();
     for (final Bindings b : bindings) {
       final Property property = new Property();
-      // Add the "about" if there is no explicit property code
+
       if (b.getPropertyCode() == null) {
         property.setUri(b.getProperty().getValue());
       }
@@ -1788,7 +1791,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         property.setValue(b.getPropertyLabel().getValue());
       }
       property.setCode(EVSUtils.getPropertyCode(b));
-      if (!seen.contains(property.getCode())) {
+      if (!seen.contains(property.getCode()) && !excludedProperties.contains(property.getCode())) {
         properties.add(property);
         seen.add(property.getCode());
       }
@@ -1823,7 +1826,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     // neverUsed.add(EVSUtils.getPropertyCode(b));
     // }
 
-    final TerminologyMetadata md = terminology.getMetadata();
     for (final Property property : properties) {
 
       // Send URI or code
@@ -1862,7 +1864,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
-    Set<String> seen = new HashSet<String>();
+    final Set<String> seen = new HashSet<String>();
     for (final Bindings b : bindings) {
       final Property property = new Property();
       // Add the "about" if there is no explicit property code
@@ -2155,7 +2157,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // Send URI or code
       final Concept concept =
           getRole(role.getUri() != null ? role.getUri() : role.getCode(), terminology, ip);
-      gov.nih.nci.evs.api.model.sparql.Bindings matchConcept =
+      final gov.nih.nci.evs.api.model.sparql.Bindings matchConcept =
           Stream.of(bindings)
               .filter(binding -> binding.getProperty().getValue().equals(concept.getUri()))
               .findFirst()
@@ -2462,7 +2464,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String res = null;
     try {
       res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
 
@@ -2505,7 +2507,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String res = null;
     try {
       res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-    } catch (Exception e) {
+    } catch (final Exception e) {
       e.printStackTrace();
     }
 
@@ -2594,7 +2596,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String res = null;
     try {
       res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-    } catch (Exception e1) {
+    } catch (final Exception e1) {
       e1.printStackTrace();
     }
     final ObjectMapper mapper = new ObjectMapper();
@@ -2635,25 +2637,25 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<Concept> getAllQualifiersCache(Terminology terminology, IncludeParam ip)
+  public List<Concept> getAllQualifiersCache(final Terminology terminology, final IncludeParam ip)
       throws Exception {
     return sparqlQueryCacheService.getAllQualifiers(terminology, ip, restUtils, this);
   }
 
   private List<String> getIgnoreSourceUrls() {
-    String uri = applicationProperties.getConfigBaseUri() + "/ignore-source.txt";
+    final String uri = applicationProperties.getConfigBaseUri() + "/ignore-source.txt";
     if (StringUtils.isNotBlank(uri)) {
       log.info("Ignore source file URL:{}", uri);
       try {
         try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
           return IOUtils.readLines(is, "UTF-8");
         }
-      } catch (Throwable t) {
+      } catch (final Throwable t) {
         try {
           // Try to open URI as a file
-          File file = new File(uri);
+          final File file = new File(uri);
           return FileUtils.readLines(file, "UTF-8");
-        } catch (IOException e) {
+        } catch (final IOException e) {
           // Log and move on if both URL and file reading fail
           log.warn("Error occurred when getting ignore sources from uri", uri);
         }
