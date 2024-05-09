@@ -32,15 +32,12 @@ public class FormEmailServiceImpl implements FormEmailService {
   public void sendEmail(EmailDetails emailDetails) {
     try {
       SimpleMailMessage message = new SimpleMailMessage();
-      // Check which formType is being submitted and set to/subject accordingly
-      if (emailDetails.getSource().equals("NCIT")) {
-        message.setTo(emailDetails.getToEmail());
-        message.setSubject(emailDetails.getSubject());
-      }
-      if (emailDetails.getSource().equals("CDISC")) {
-        message.setTo(emailDetails.getToEmail());
-        message.setSubject(emailDetails.getSubject());
-      }
+      logger.info("Sending email for form: {} to {}", emailDetails.getSource(), emailDetails.getToEmail());
+
+      // Set the email details
+      message.setTo(emailDetails.getToEmail());
+      message.setFrom(emailDetails.getFromEmail());
+      message.setSubject(emailDetails.getSubject());
       message.setText(emailDetails.getMsgBody());
 
       javaMailSender.send(message);
