@@ -2,6 +2,8 @@ package gov.nih.nci.evs.api.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -19,6 +21,7 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 public class Relationship extends BaseModel implements Comparable<Relationship> {
 
   /** The code. */
+  @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Keyword)
   private String code;
 

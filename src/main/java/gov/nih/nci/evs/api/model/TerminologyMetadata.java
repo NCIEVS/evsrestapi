@@ -883,7 +883,7 @@ public class TerminologyMetadata extends BaseModel {
    * @param sparqlPrefix the sparql prefix
    */
   public void setSparqlPrefix(final String sparqlPrefix) {
-    this.sparqlPrefix = subsetPrefix;
+    this.sparqlPrefix = sparqlPrefix;
   }
 
   /**
