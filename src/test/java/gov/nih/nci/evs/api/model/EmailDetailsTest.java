@@ -34,9 +34,7 @@ public class EmailDetailsTest {
   EmailDetails testDetails;
 
   @Before
-  public void setup() throws Exception {
-
-  }
+  public void setup() throws Exception {}
 
   /**
    * Test our EmailDetails is generated with the values from our submitted json file
@@ -63,6 +61,7 @@ public class EmailDetailsTest {
 
   /**
    * Test the mdoel will throw an exception if there are null fields
+   *
    * @throws Exception exception
    */
   @Test
@@ -82,6 +81,7 @@ public class EmailDetailsTest {
 
   /**
    * Test the model will throw an exception when a null form is passed
+   *
    * @throws Exception exception
    */
   @Test
@@ -89,10 +89,11 @@ public class EmailDetailsTest {
     // SETUP
 
     // ACT & ASSERT
-    assertThrows(Exception.class, () -> {
-      testDetails = EmailDetails.generateEmailDetails(null);
-    });
-
+    assertThrows(
+        Exception.class,
+        () -> {
+          testDetails = EmailDetails.generateEmailDetails(null);
+        });
   }
 
   /**

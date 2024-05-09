@@ -21,6 +21,7 @@ public class EmailDetails {
 
   /**
    * Create the email model from the submitted term form
+   *
    * @param formData submitted form data
    * @return an EmailDetails object
    * @throws Exception exception
