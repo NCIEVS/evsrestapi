@@ -1,5 +1,11 @@
 package gov.nih.nci.evs.api.service;
 
+import static org.junit.Assert.assertEquals;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import org.junit.Test;
@@ -9,17 +15,10 @@ import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.mail.MailException;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ContextConfiguration;
-
-import static org.junit.Assert.assertEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
 
 @RunWith(MockitoJUnitRunner.class)
 @ContextConfiguration(classes = TestConfiguration.class)
@@ -42,10 +41,7 @@ public class FormEmailServiceTest {
   private final String subject = "Test Subject";
   private final String msgBody = "Test Body";
 
-
-  /**
-   * Test sending an email
-   */
+  /** Test sending an email */
   @Test
   public void testSendEmail() {
     // SET UP
@@ -63,12 +59,9 @@ public class FormEmailServiceTest {
 
     // ASSERT: verify the email was sent
     verify(javaMailSender, times(1)).send(any(SimpleMailMessage.class));
-
   }
 
-  /**
-   * Test we throw an exception when the email doesn't send
-   */
+  /** Test we throw an exception when the email doesn't send */
   @Test
   public void testSendEmailThrowsException() {
     // SETUP

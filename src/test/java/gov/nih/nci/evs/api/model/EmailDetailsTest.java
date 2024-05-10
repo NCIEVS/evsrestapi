@@ -5,12 +5,12 @@ import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import org.apache.jena.atlas.json.JSON;
-import org.apache.jena.atlas.json.JsonObject;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -28,7 +28,7 @@ public class EmailDetailsTest {
   private static final Logger logger = LoggerFactory.getLogger(AssociationUnitTest.class);
 
   // JsonObject variable for loading json test file
-  JsonObject testFormObject;
+  JsonNode testFormObject;
 
   // email detail object
   EmailDetails testDetails;
@@ -45,7 +45,7 @@ public class EmailDetailsTest {
   public void testGenerateEmailDetails() throws Exception {
     // SETUP - create JsonObject from the json test form
     String formPath = "formSamples/submissionFormTest.json";
-    testFormObject = createJsonObject(formPath);
+    testFormObject = createJsonNode(formPath);
     assertNotNull(testFormObject);
 
     // ACT - generate the email details model
@@ -68,7 +68,7 @@ public class EmailDetailsTest {
   public void testGenerateEmailDetailsThrowsExceptionWithNullFields() throws Exception {
     // SETUP
     String formPath = "formSamples/submissionFormNullTest.json";
-    testFormObject = createJsonObject(formPath);
+    testFormObject = createJsonNode(formPath);
     assertNotNull(testFormObject);
 
     // ACT & ASSERT
@@ -97,19 +97,21 @@ public class EmailDetailsTest {
   }
 
   /**
-   * Help method to create the JsonObject from a json file representing our submitted form data
+   * Helper method to create the JsonObject from a json file representing our submitted form data
    *
    * @param formPath path of the file to convert to JsonObject
    * @return JsonObject
    */
-  private JsonObject createJsonObject(String formPath) {
+  private JsonNode createJsonNode(String formPath) {
     try (InputStream input = getClass().getClassLoader().getResourceAsStream(formPath)) {
       // Verify the input file loaded
       if (input == null) {
         throw new FileNotFoundException("Test file not found: " + formPath);
       }
-      // Parse the file into a JSON
-      return JSON.parse(input).getAsObject();
+      // create object mapper
+      ObjectMapper mapper = new ObjectMapper();
+      // Parse the file into a JsonNode
+      return mapper.readTree(input);
     } catch (IOException e) {
       logger.error("Error creating JsonObject: " + e);
       return null;

@@ -1,15 +1,11 @@
 package gov.nih.nci.evs.api.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.service.FormEmailServiceImpl;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import org.apache.jena.atlas.json.JsonObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,9 +25,6 @@ public class TermSuggestionFormController extends BaseController {
   // term form email service
   private final FormEmailServiceImpl emailService;
 
-  @Value("nci.evs.application.configBaseUri")
-  String configBaseUri;
-
   /**
    * Instantiates a new Term suggestion form controller with params.
    *
@@ -49,16 +42,13 @@ public class TermSuggestionFormController extends BaseController {
    * @throws Exception exception/ioexception
    */
   @GetMapping("/suggest/{formType}")
-  public ResponseEntity<?> getFormTemplate(@PathVariable String formType) throws Exception {
-    // Create file path from config base uri and form type
-    String formFilePath = configBaseUri + "/" + formType + ".json";
-
-    // Read file and return form template
+  public ResponseEntity<?> getForm(@PathVariable String formType) throws Exception {
+    // Try getting the form and return form template
     try {
-      String formTemplate = new String(Files.readAllBytes(Paths.get(formFilePath)));
+      JsonNode formTemplate = emailService.getFormTemplate(formType);
       return ResponseEntity.ok().body(formTemplate);
-    } catch (IOException e) {
-      logger.error("Error reading form template: " + formFilePath);
+    } catch (Exception e) {
+      logger.error("Error reading form template: " + formType);
       handleException(e);
       return ResponseEntity.internalServerError().body("An error occurred while loading form");
     }
@@ -68,20 +58,19 @@ public class TermSuggestionFormController extends BaseController {
    * Submit form data to email service.
    *
    * @param formData data from the completed term suggestion form
-   * @return
+   * @return ResponseEntity
    */
   @PostMapping("/suggest")
-  public ResponseEntity<?> submitForm(@RequestBody JsonObject formData) throws Exception {
+  public ResponseEntity<?> submitForm(@RequestBody JsonNode formData) throws Exception {
     try {
       // convert the form data into our email details object
-      EmailDetails emailDetails = new EmailDetails();
-      emailDetails = emailDetails.generateEmailDetails(formData);
+      EmailDetails emailDetails = EmailDetails.generateEmailDetails(formData);
 
       // Send the email with our email details
       emailService.sendEmail(emailDetails);
       return ResponseEntity.ok().build();
     } catch (Exception e) {
-      logger.error("Error creating email object or sending email");
+      logger.error("Error creating email details or sending email");
       handleException(e);
       return ResponseEntity.internalServerError().body("An error occurred while submitting form");
     }
