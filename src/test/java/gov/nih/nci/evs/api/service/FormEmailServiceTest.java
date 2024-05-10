@@ -43,7 +43,7 @@ public class FormEmailServiceTest {
 
   /** Test sending an email */
   @Test
-  public void testSendEmail() {
+  public void testSendEmail() throws Exception {
     // SET UP
 
     emailDetails = createEmail();
@@ -63,7 +63,7 @@ public class FormEmailServiceTest {
 
   /** Test we throw an exception when the email doesn't send */
   @Test
-  public void testSendEmailThrowsException() {
+  public void testSendEmailThrowsException() throws Exception {
     // SETUP
     emailDetails = createEmail();
     doThrow(new MailSendException("")).when(javaMailSender).send(any(SimpleMailMessage.class));

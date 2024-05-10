@@ -16,7 +16,7 @@ public interface FormEmailService {
    *
    * @param emailDetails details of the email created from the form data
    */
-  boolean sendEmail(EmailDetails emailDetails);
+  void sendEmail(EmailDetails emailDetails) throws Exception;
 
   //  /**
   //   * Send an email with the formatted form data and an attachment, handled by javaMailSender

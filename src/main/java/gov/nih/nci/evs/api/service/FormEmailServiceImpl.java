@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import java.io.File;
+import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -40,7 +41,7 @@ public class FormEmailServiceImpl implements FormEmailService {
    * @return JsonNode
    * @throws Exception
    */
-  public JsonNode getFormTemplate(String formType) throws Exception {
+  public JsonNode getFormTemplate(String formType) throws IOException {
     // Create file path from config base uri and form type
     String formFilePath = configBaseUri + "/" + formType + ".json";
 
@@ -56,23 +57,17 @@ public class FormEmailServiceImpl implements FormEmailService {
    *
    * @param emailDetails details of the email created from the form data
    */
-  public boolean sendEmail(EmailDetails emailDetails) {
-    try {
-      SimpleMailMessage message = new SimpleMailMessage();
-      logger.info(
-          "Sending email for form: {} to {}", emailDetails.getSource(), emailDetails.getToEmail());
+  public void sendEmail(EmailDetails emailDetails) throws IllegalArgumentException {
+    SimpleMailMessage message = new SimpleMailMessage();
+    logger.info(
+        "Sending email for form: {} to {}", emailDetails.getSource(), emailDetails.getToEmail());
 
-      // Set the email details
-      message.setTo(emailDetails.getToEmail());
-      message.setFrom(emailDetails.getFromEmail());
-      message.setSubject(emailDetails.getSubject());
-      message.setText(emailDetails.getMsgBody());
+    // Set the email details
+    message.setTo(emailDetails.getToEmail());
+    message.setFrom(emailDetails.getFromEmail());
+    message.setSubject(emailDetails.getSubject());
+    message.setText(emailDetails.getMsgBody());
 
-      javaMailSender.send(message);
-      return true;
-    } catch (Exception e) {
-      logger.error("Unable to send email: " + e);
-      return false;
-    }
+    javaMailSender.send(message);
   }
 }

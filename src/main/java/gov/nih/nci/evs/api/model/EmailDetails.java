@@ -15,9 +15,7 @@ public class EmailDetails {
   private String subject;
   private String msgBody;
 
-  private final String nullError = "Fields cannot be null";
-
-  //  private String attachment;
+  private static final String nullError = "Fields cannot be null";
 
   /**
    * Create the email model from the submitted term form
@@ -40,19 +38,19 @@ public class EmailDetails {
       String body = formData.get("body").textValue();
 
       if (formName == null || formName.isEmpty()) {
-        throw new Exception("form name cannot be null or empty");
+        throw new Exception(nullError);
       }
       if (recipientEmail == null || recipientEmail.isEmpty()) {
-        throw new Exception("Recipient Email cannot be null or empty");
+        throw new Exception(nullError);
       }
       if (businessEmail == null || businessEmail.isEmpty()) {
-        throw new Exception("Business Email cannot be null or empty");
+        throw new Exception(nullError);
       }
       if (subject == null || subject.isEmpty()) {
-        throw new Exception("Subject cannot be null or empty");
+        throw new Exception(nullError);
       }
       if (body == null || body.isEmpty()) {
-        throw new Exception("Message ody cannot be null or empty");
+        throw new Exception(nullError);
       }
 
       emailDetails.setSource(formName);
