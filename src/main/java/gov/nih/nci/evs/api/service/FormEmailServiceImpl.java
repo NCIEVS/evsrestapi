@@ -24,10 +24,6 @@ public class FormEmailServiceImpl implements FormEmailService {
   // The application properties
   private final ApplicationProperties applicationProperties;
 
-  // file names for each form
-  String ncitForm = "ncit-form.json";
-  String cdiscForm = "cdisc-form.json";
-
   // path for the form file
   String formFilePath;
 
@@ -53,10 +49,10 @@ public class FormEmailServiceImpl implements FormEmailService {
   public JsonNode getFormTemplate(String formType) throws IllegalArgumentException, IOException {
     // Set the form file path based on the formType passed. If we receive an invalid path, throw
     // exception
-    if (formType.equals("ncit-form") || formType.equals("cdisc-form")) {
-      formFilePath = applicationProperties.getConfigBaseUri() + "/" + formType + ".json";
-    } else {
+    if (formType.isEmpty() || formType.isBlank()) {
       throw new IllegalArgumentException("Invalid form template provided");
+    } else {
+      formFilePath = applicationProperties.getConfigBaseUri() + "/" + formType + ".json";
     }
 
     // Create objectMapper. Read file and return JsonNode
