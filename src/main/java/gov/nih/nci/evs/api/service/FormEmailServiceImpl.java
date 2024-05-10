@@ -8,6 +8,7 @@ import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
@@ -57,7 +58,7 @@ public class FormEmailServiceImpl implements FormEmailService {
    *
    * @param emailDetails details of the email created from the form data
    */
-  public void sendEmail(EmailDetails emailDetails) throws IllegalArgumentException {
+  public void sendEmail(EmailDetails emailDetails) throws MailSendException {
     SimpleMailMessage message = new SimpleMailMessage();
     logger.info(
         "Sending email for form: {} to {}", emailDetails.getSource(), emailDetails.getToEmail());

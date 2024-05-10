@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
+import static com.ibm.icu.impl.Assert.fail;
 import static org.junit.Assert.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doThrow;
@@ -66,13 +67,16 @@ public class FormEmailServiceTest {
   public void testSendEmailThrowsException() throws Exception {
     // SETUP
     emailDetails = createEmail();
-    doThrow(new MailSendException("")).when(javaMailSender).send(any(SimpleMailMessage.class));
 
     // ACT
-    formEmailService.sendEmail(emailDetails);
-
-    // ASSERT
-    verify(javaMailSender, times(1)).send(any(SimpleMailMessage.class));
+    doThrow(new MailSendException("")).when(javaMailSender).send(any(SimpleMailMessage.class));
+    try {
+      formEmailService.sendEmail(emailDetails);
+      fail("Exception Thrown");
+    } catch (MailSendException e) {
+      // ASSERT
+      verify(javaMailSender, times(1)).send(any(SimpleMailMessage.class));
+    }
   }
 
   /**
