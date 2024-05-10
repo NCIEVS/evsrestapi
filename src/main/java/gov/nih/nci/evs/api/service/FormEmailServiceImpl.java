@@ -3,11 +3,11 @@ package gov.nih.nci.evs.api.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.EmailDetails;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import java.io.File;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -21,17 +21,25 @@ public class FormEmailServiceImpl implements FormEmailService {
   // JavaMailSender
   private final JavaMailSender javaMailSender;
 
-  // Config base uri
-  @Value("nci.evs.application.configBaseUri")
-  String configBaseUri;
+  // The application properties
+  private final ApplicationProperties applicationProperties;
+
+  // file names for each form
+  String ncitForm = "ncit-form.json";
+  String cdiscForm = "cdisc-form.json";
+
+  // path for the form file
+  String formFilePath;
 
   /**
    * Constructor: Instantiates a new Form email service with params.
    *
    * @param javaMailSender java mail sender
    */
-  public FormEmailServiceImpl(JavaMailSender javaMailSender) {
+  public FormEmailServiceImpl(
+      JavaMailSender javaMailSender, ApplicationProperties applicationProperties) {
     this.javaMailSender = javaMailSender;
+    this.applicationProperties = applicationProperties;
   }
 
   /**
@@ -40,16 +48,19 @@ public class FormEmailServiceImpl implements FormEmailService {
    *
    * @param formType form template to load
    * @return JsonNode
-   * @throws Exception
+   * @throws IOException io exception
    */
-  public JsonNode getFormTemplate(String formType) throws IOException {
-    // Create file path from config base uri and form type
-    String formFilePath = configBaseUri + "/" + formType + ".json";
+  public JsonNode getFormTemplate(String formType) throws IllegalArgumentException, IOException {
+    // Set the form file path based on the formType passed. If we receive an invalid path, throw
+    // exception
+    if (formType.equals("ncit-form") || formType.equals("cdisc-form")) {
+      formFilePath = applicationProperties.getConfigBaseUri() + "/" + formType + ".json";
+    } else {
+      throw new IllegalArgumentException("Invalid form template provided");
+    }
 
-    // Create objectMapper. Read file and convert to JsonNode
+    // Create objectMapper. Read file and return JsonNode
     ObjectMapper mapper = new ObjectMapper();
-
-    // read the file and return the jsonNode
     return mapper.readTree(new File(formFilePath));
   }
 

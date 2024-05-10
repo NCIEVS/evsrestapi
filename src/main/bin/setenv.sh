@@ -24,6 +24,10 @@ export ES_PORT="EDIT_THIS, e.g. 443"
 export ES_SCHEME="EDIT_THIS, e.g. https"
 export ES_CLEAN=false
 
+export MAIL_HOST="EDIT_THIS, e.g. use your test smtp host"
+export MAIL_USER="REPLACE_WITH_USERNAME"
+export MAIL_PASSWORD="REPLACE_WITH_PASSWORD"
+
 export DATA_DIR=/evs/data/ncim
 
 # Obtaining data/config from evsrestapi-operations

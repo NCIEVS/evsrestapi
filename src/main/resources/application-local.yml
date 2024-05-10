@@ -93,3 +93,16 @@ springdoc:
         tagsSorter: alpha
         operationsSorter: alpha
         doc-expansion: none
+
+# Term Form Mail Server Properties
+mail:
+  host: ${MAIL_HOST:smtp.gmail.com}
+  port: 587
+  username: ${MAIL_USER:REPLACE_WITH_USERNAME}
+  password: ${MAIL_PASSWORD:REPLACE_WITH_PASSWORD}
+  properties:
+    mail:
+      smtp:
+        auth: ${AUTH:true}
+        starttls:
+          enable: ${TLS:true}

@@ -62,7 +62,7 @@ public class TermSuggestionFormControllerTests {
 
     // ACT - mock the email service and call the getForm
     when(emailService.getFormTemplate(formType)).thenReturn(expectedResponse);
-    ResponseEntity<?> responseEntity = termSuggestionFormController.getForm(formType);
+    ResponseEntity<?> responseEntity = termSuggestionFormController.getForm(formType, null);
 
     // ASSERT
     assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -88,7 +88,7 @@ public class TermSuggestionFormControllerTests {
         assertThrows(
             ResponseStatusException.class,
             () -> {
-              termSuggestionFormController.getForm(formType);
+              termSuggestionFormController.getForm(formType, null);
             });
     assertTrue(Objects.requireNonNull(exception.getMessage()).contains(expectedResponse));
   }
@@ -106,7 +106,7 @@ public class TermSuggestionFormControllerTests {
 
     // ACT - stub the void method to do nothing when called
     doNothing().when(emailService).sendEmail(any(EmailDetails.class));
-    ResponseEntity<?> responseEntity = termSuggestionFormController.submitForm(formData);
+    ResponseEntity<?> responseEntity = termSuggestionFormController.submitForm(formData, null);
 
     // ASSERT
     assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -129,7 +129,7 @@ public class TermSuggestionFormControllerTests {
         assertThrows(
             Exception.class,
             () -> {
-              termSuggestionFormController.submitForm(formData);
+              termSuggestionFormController.submitForm(formData, null);
             });
     assertTrue(exception.getMessage().contains(expectedResponse));
   }
@@ -137,7 +137,7 @@ public class TermSuggestionFormControllerTests {
   /**
    * Test the subitForm throws an exception when the email fails to send
    *
-   * @throws Exception
+   * @throws Exception exception
    */
   @Test
   public void testSubmitFormThrowsExceptionWhenSendEmailFails() throws Exception {
@@ -156,7 +156,7 @@ public class TermSuggestionFormControllerTests {
         assertThrows(
             Exception.class,
             () -> {
-              termSuggestionFormController.submitForm(formData);
+              termSuggestionFormController.submitForm(formData, null);
             });
     assertTrue(exception.getMessage().contains(expectedResponse));
   }
