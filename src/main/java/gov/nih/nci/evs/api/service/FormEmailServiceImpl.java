@@ -6,6 +6,8 @@ import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import java.io.File;
 import java.io.IOException;
+import java.net.URL;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.mail.MailSendException;
@@ -25,7 +27,7 @@ public class FormEmailServiceImpl implements FormEmailService {
   private final ApplicationProperties applicationProperties;
 
   // path for the form file
-  String formFilePath;
+  URL formFilePath;
 
   /**
    * Constructor: Instantiates a new Form email service with params.
@@ -49,15 +51,15 @@ public class FormEmailServiceImpl implements FormEmailService {
   public JsonNode getFormTemplate(String formType) throws IllegalArgumentException, IOException {
     // Set the form file path based on the formType passed. If we receive an invalid path, throw
     // exception
-    if (formType.isEmpty() || formType.isBlank()) {
+    if (formType == null || formType.isEmpty() || formType.isBlank()) {
       throw new IllegalArgumentException("Invalid form template provided");
     } else {
-      formFilePath = applicationProperties.getConfigBaseUri() + "/" + formType + ".json";
+        formFilePath = new URL(applicationProperties.getConfigBaseUri() + "/" + formType + ".json");
     }
 
     // Create objectMapper. Read file and return JsonNode
     ObjectMapper mapper = new ObjectMapper();
-    return mapper.readTree(new File(formFilePath));
+    return mapper.readTree(formFilePath);
   }
 
   /**

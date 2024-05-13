@@ -22,6 +22,7 @@ import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -31,6 +32,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 
 /** Test class for the Term Form Controller */
+@SpringBootTest
 @RunWith(MockitoJUnitRunner.class)
 @ContextConfiguration(classes = TestConfiguration.class)
 public class TermSuggestionFormControllerTests {
@@ -160,6 +162,8 @@ public class TermSuggestionFormControllerTests {
             });
     assertTrue(exception.getMessage().contains(expectedResponse));
   }
+
+
 
   /**
    * Helper method for creating a JsonNode from a Json file
