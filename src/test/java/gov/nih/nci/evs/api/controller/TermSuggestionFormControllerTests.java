@@ -7,10 +7,10 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.configuration.TestConfiguration;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.service.FormEmailServiceImpl;
 import java.io.FileNotFoundException;
@@ -21,21 +21,30 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.junit.MockitoJUnitRunner;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
-import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 
 /** Test class for the Term Form Controller */
-@SpringBootTest
-@RunWith(MockitoJUnitRunner.class)
-@ContextConfiguration(classes = TestConfiguration.class)
+@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@RunWith(SpringRunner.class)
+@AutoConfigureMockMvc
 public class TermSuggestionFormControllerTests {
+  // Mock the MVC automatically
+  @Autowired
+  private MockMvc mvc;
+
   // Mock the email service
   @Mock FormEmailServiceImpl emailService;
 
@@ -50,12 +59,27 @@ public class TermSuggestionFormControllerTests {
   }
 
   /**
-   * Test the getForm returns our expected response JsonObject when passing formType
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testGetFormTemplateIntegration() throws Exception {
+    // SET UP
+    String formType = "ncit-form";
+
+    // ACT & ASSERT
+    MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get("/suggest/" + formType))
+        .andExpect(status().isOk())
+        .andReturn();
+  }
+
+  /**
+   * Test the getForm returns our expected response JsonObject when passing formType and test Json
    *
    * @throws Exception exception
    */
   @Test
-  public void testGetFormTemplate() throws Exception {
+  public void testGetFormTemplateWithTestData() throws Exception {
     // SET UP
     String formType = "NCIT";
     String formPath = "formSamples/testNCIT.json";
