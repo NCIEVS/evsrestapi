@@ -150,8 +150,8 @@ public class TermSuggestionFormControllerTests {
 
   /**
    * Integration test for submitting a filled out form and sending the email. NOTE: Set your local
-   * environment variables in your config. Your test email will need an App Password for access,
-   * if using Gmail.
+   * environment variables in your config. Your test email will need an App Password for access, if
+   * using Gmail.
    *
    * @throws Exception exception
    */
