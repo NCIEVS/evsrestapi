@@ -74,6 +74,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     if (mailSender instanceof JavaMailSenderImpl mailSenderImpl) {
       Properties mailProperties = mailSenderImpl.getJavaMailProperties();
       String starttls = mailProperties.getProperty("mail.smtp.starttls.enable");
+      // check we want to start the tls
       if ("false".equals(starttls)) {
         return; // do nothing
       }
@@ -81,7 +82,6 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
 
     // Create the MimeMessage
     MimeMessage message = mailSender.createMimeMessage();
-
     logger.info(
         "   Sending email for {} form to {}", emailDetails.getSource(), emailDetails.getToEmail());
 
@@ -90,7 +90,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     message.setFrom(new InternetAddress(emailDetails.getFromEmail()));
     message.setSubject(emailDetails.getSubject());
     if (emailDetails.getMsgBody().contains("<html")) {
-      message.setContent(emailDetails.getMsgBody(), "text/hmtl; charset=utf-8");
+      message.setContent(emailDetails.getMsgBody(), "text/html; charset=utf-8");
     } else {
       message.setText(emailDetails.getMsgBody());
     }
