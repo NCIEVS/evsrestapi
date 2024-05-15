@@ -3,7 +3,7 @@ package gov.nih.nci.evs.api.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.EmailDetails;
-import gov.nih.nci.evs.api.service.FormEmailServiceImpl;
+import gov.nih.nci.evs.api.service.TermSuggestionFormServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -32,14 +32,14 @@ public class TermSuggestionFormController extends BaseController {
   private static final Logger logger = LoggerFactory.getLogger(TermSuggestionFormController.class);
 
   // term form email service
-  private final FormEmailServiceImpl emailService;
+  private final TermSuggestionFormServiceImpl emailService;
 
   /**
    * Instantiates a new Term suggestion form controller with params.
    *
    * @param emailService Form Email Service dependency
    */
-  public TermSuggestionFormController(FormEmailServiceImpl emailService) {
+  public TermSuggestionFormController(TermSuggestionFormServiceImpl emailService) {
     this.emailService = emailService;
   }
 

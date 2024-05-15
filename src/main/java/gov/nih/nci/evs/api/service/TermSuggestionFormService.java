@@ -3,7 +3,8 @@ package gov.nih.nci.evs.api.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import gov.nih.nci.evs.api.model.EmailDetails;
 
-public interface FormEmailService {
+/** Interface for the terminology suggestion form services */
+public interface TermSuggestionFormService {
   /**
    * Gets the term suggestion form based on the formType. reads the json and returns it as a String
    *

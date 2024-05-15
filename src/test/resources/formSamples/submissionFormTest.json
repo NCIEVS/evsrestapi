@@ -1,7 +1,7 @@
 {
   "formName": "NCIT",
-  "recipientEmail": "ncithesaurus@mail.nih.gov",
-  "businessEmail": "submitterEmail@gmail.com",
+  "recipientEmail": "agarcia@westcoastinformatics.com",
+  "businessEmail": "bcarlsen@westcoastinformatics.com ",
   "subject": "New Terminology Suggestion: TestTermName",
   "body": "This is a test body"
 }

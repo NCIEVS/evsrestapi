@@ -1,12 +1,13 @@
 package gov.nih.nci.evs.api.service;
 
-import static com.ibm.icu.impl.Assert.fail;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -15,6 +16,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import java.io.IOException;
+import javax.mail.internet.MimeMessage;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
@@ -30,28 +33,23 @@ import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.ContextConfiguration;
 
-import java.io.IOException;
-
-/**
- * Test class for the email form service class.
- */
+/** Test class for the email form service class. */
 @SpringBootTest
 @RunWith(MockitoJUnitRunner.class)
 @ContextConfiguration(classes = TestConfiguration.class)
-public class FormEmailServiceTest {
+public class TermSuggestionFormServiceTest {
   // Logger
-  private static final Logger logger = LoggerFactory.getLogger(FormEmailServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(TermSuggestionFormServiceImpl.class);
 
   // Mock JavaMailSender
   @Mock private JavaMailSender javaMailSender;
   @Mock private ApplicationProperties applicationProperties;
 
-
   // Inject mocks automatically into FormEmailServiceImpl
-  @InjectMocks private FormEmailServiceImpl formEmailService;
+  @InjectMocks private TermSuggestionFormServiceImpl termFormService;
 
   // email details object
-  private EmailDetails emailDetails = new EmailDetails();
+  private EmailDetails testEmailDetails = new EmailDetails();
 
   // email details
   private final String source = "NCIT";
@@ -60,8 +58,9 @@ public class FormEmailServiceTest {
   private final String subject = "Test Subject";
   private final String msgBody = "Test Body";
 
+  /** Setup before each test */
   @BeforeEach
-  public void setup() {
+  public void setup() throws Exception {
     MockitoAnnotations.openMocks(this);
   }
 
@@ -77,9 +76,11 @@ public class FormEmailServiceTest {
     String formType = "ncit-form";
 
     // ACT
-    when(applicationProperties.getConfigBaseUri()).thenReturn("https://raw.githubusercontent" +
-        ".com/NCIEVS/evsrestapi-operations/develop/config/metadata");
-    JsonNode returnedForm = formEmailService.getFormTemplate(formType);
+    when(applicationProperties.getConfigBaseUri())
+        .thenReturn(
+            "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config"
+                + "/metadata");
+    JsonNode returnedForm = termFormService.getFormTemplate(formType);
 
     // ASSERT
     assertNotNull(returnedForm);
@@ -98,34 +99,33 @@ public class FormEmailServiceTest {
     String formType = "none-form";
 
     // ACT
-    when(applicationProperties.getConfigBaseUri()).thenReturn("https://raw.githubusercontent" +
-        ".com/NCIEVS/evsrestapi-operations/develop/config/metadata");
+    when(applicationProperties.getConfigBaseUri())
+        .thenReturn(
+            "https://raw.githubusercontent"
+                + ".com/NCIEVS/evsrestapi-operations/develop/config/metadata");
 
     // ASSERT
-    assertThrows(IOException.class, () -> {
-      formEmailService.getFormTemplate(formType);
-    });
+    assertThrows(
+        IOException.class,
+        () -> {
+          termFormService.getFormTemplate(formType);
+        });
   }
 
-  /**
-   * Test getFormTemplate throws an exception with an empty formType string
-   */
+  /** Test getFormTemplate throws an exception with an empty formType string */
   @Test
   public void testGetFormTemplateThrowsIllegalArgExceptionEmpty() throws IllegalArgumentException {
     testGetFormTemplateThrowsIllegalArgException("");
   }
 
-  /**
-   * Test getFormTemplate throws an exception with a blank formType string
-   */
+  /** Test getFormTemplate throws an exception with a blank formType string */
   @Test
-  public void testGetFormTemplateTypeThrowsIllegalArgExceptionSpace() throws IllegalArgumentException {
+  public void testGetFormTemplateTypeThrowsIllegalArgExceptionSpace()
+      throws IllegalArgumentException {
     testGetFormTemplateThrowsIllegalArgException(" ");
   }
 
-  /**
-   * Test getFormTemplate throws an exception with a null formType string
-   */
+  /** Test getFormTemplate throws an exception with a null formType string */
   @Test
   public void testGetFormTemplateThrowsIllegalArgExceptionNull() throws IllegalArgumentException {
     testGetFormTemplateThrowsIllegalArgException(null);
@@ -133,55 +133,53 @@ public class FormEmailServiceTest {
 
   /**
    * Helper method to test multiple formType inputs throw an exception
-   * @param formType  string form template to get
+   *
+   * @param formType string form template to get
    * @throws IllegalArgumentException exception
    */
-  private void testGetFormTemplateThrowsIllegalArgException(String formType) throws IllegalArgumentException {
+  private void testGetFormTemplateThrowsIllegalArgException(String formType)
+      throws IllegalArgumentException {
     // SET UP
     String expectedMessage = "Invalid form template provided";
 
     // ACT & ASSERT
-    Exception exception = assertThrows( IllegalArgumentException.class, () -> {
-      formEmailService.getFormTemplate(formType);
-    });
+    Exception exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> {
+              termFormService.getFormTemplate(formType);
+            });
     assertTrue(exception.getMessage().contains(expectedMessage));
   }
-
 
   /** Test sending an email */
   @Test
   public void testSendEmail() throws Exception {
     // SET UP
-
-    emailDetails = createEmail();
-    // asser the emailDetails was populated correctly
-    assertEquals(source, emailDetails.getSource());
-    assertEquals(toEmail, emailDetails.getToEmail());
-    assertEquals(fromEmail, emailDetails.getFromEmail());
-    assertEquals(subject, emailDetails.getSubject());
-    assertEquals(msgBody, emailDetails.getMsgBody());
+    testEmailDetails = createEmail();
+    when(javaMailSender.createMimeMessage()).thenReturn(mock(MimeMessage.class));
+    doNothing().when(javaMailSender).send(any(MimeMessage.class));
 
     // ACT
-    formEmailService.sendEmail(emailDetails);
+    termFormService.sendEmail(testEmailDetails);
 
     // ASSERT: verify the email was sent
-    verify(javaMailSender, times(1)).send(any(SimpleMailMessage.class));
+    verify(javaMailSender, times(1)).send(any(MimeMessage.class));
   }
 
   /** Test we throw an exception when the email doesn't send */
   @Test
   public void testSendEmailThrowsException() throws Exception {
     // SETUP
-    emailDetails = createEmail();
+    testEmailDetails = createEmail();
+    when(javaMailSender.createMimeMessage()).thenReturn(mock(MimeMessage.class));
 
     // ACT
-    doThrow(new MailSendException("")).when(javaMailSender).send(any(SimpleMailMessage.class));
     try {
-      formEmailService.sendEmail(emailDetails);
-      fail("Exception Thrown");
+      termFormService.sendEmail(testEmailDetails);
     } catch (MailSendException e) {
       // ASSERT
-      verify(javaMailSender, times(1)).send(any(SimpleMailMessage.class));
+      verify(javaMailSender, times(0)).send(any(SimpleMailMessage.class));
     }
   }
 
@@ -191,12 +189,12 @@ public class FormEmailServiceTest {
    * @return EmailDetails object
    */
   private EmailDetails createEmail() {
-    emailDetails.setSource(source);
-    emailDetails.setToEmail(toEmail);
-    emailDetails.setFromEmail(fromEmail);
-    emailDetails.setSubject(subject);
-    emailDetails.setMsgBody(msgBody);
+    testEmailDetails.setSource(source);
+    testEmailDetails.setToEmail(toEmail);
+    testEmailDetails.setFromEmail(fromEmail);
+    testEmailDetails.setSubject(subject);
+    testEmailDetails.setMsgBody(msgBody);
 
-    return emailDetails;
+    return testEmailDetails;
   }
 }

@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.controller;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -12,7 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.EmailDetails;
-import gov.nih.nci.evs.api.service.FormEmailServiceImpl;
+import gov.nih.nci.evs.api.service.TermSuggestionFormServiceImpl;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Objects;
@@ -21,13 +22,18 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -40,37 +46,60 @@ import org.springframework.web.server.ResponseStatusException;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @RunWith(SpringRunner.class)
 @AutoConfigureMockMvc
+@ActiveProfiles("test")
 public class TermSuggestionFormControllerTests {
+  // logger
+  private static final Logger log =
+      LoggerFactory.getLogger(TermSuggestionFormControllerTests.class);
+
   // Mock the MVC automatically
-  @Autowired
-  private MockMvc mvc;
+  @Autowired private MockMvc mvc;
 
   // Mock the email service
-  @Mock FormEmailServiceImpl emailService;
+  @Mock TermSuggestionFormServiceImpl termFormService;
 
   // create an instance of the controller and inject service
   @InjectMocks TermSuggestionFormController termSuggestionFormController;
+
+  // Base url for api calls
+  String baseUrl;
+
+  @Qualifier("objectMapper")
+  @Autowired
+  private ObjectMapper objectMapper;
 
   /** Setup method to create a mock request for testing */
   @Before
   public void setUp() {
     MockHttpServletRequest request = new MockHttpServletRequest();
     RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+    baseUrl = "/api/v1/suggest/";
   }
 
   /**
+   * Integration test to verify we can call the api path, path the formType, and return the JsonNode
+   * form
    *
-   * @throws Exception
+   * @throws Exception exception
    */
   @Test
   public void testGetFormTemplateIntegration() throws Exception {
     // SET UP
     String formType = "ncit-form";
+    String url = baseUrl + formType;
+    JsonNode form;
 
-    // ACT & ASSERT
-    MvcResult mvcResult = mvc.perform(MockMvcRequestBuilders.get("/suggest/" + formType))
-        .andExpect(status().isOk())
-        .andReturn();
+    // ACT
+    log.info("Testing url: {}", url);
+    MvcResult mvc =
+        this.mvc.perform(MockMvcRequestBuilders.get(url)).andExpect(status().isOk()).andReturn();
+    form = objectMapper.readTree(mvc.getResponse().getContentAsString());
+    log.info("Form = {}", form);
+
+    // ASSERT
+    assertNotNull(form);
+    assertEquals("Term Suggestion", form.get("formName").asText());
+    assertEquals("ncithesaurus@mail.nih.gov", form.get("recipientEmail").asText());
   }
 
   /**
@@ -87,7 +116,7 @@ public class TermSuggestionFormControllerTests {
     JsonNode expectedResponse = createJsonNode(formPath);
 
     // ACT - mock the email service and call the getForm
-    when(emailService.getFormTemplate(formType)).thenReturn(expectedResponse);
+    when(termFormService.getFormTemplate(formType)).thenReturn(expectedResponse);
     ResponseEntity<?> responseEntity = termSuggestionFormController.getForm(formType, null);
 
     // ASSERT
@@ -107,7 +136,7 @@ public class TermSuggestionFormControllerTests {
     String expectedResponse = "500 INTERNAL_SERVER_ERROR";
 
     // ACT
-    when(emailService.getFormTemplate(formType)).thenThrow(new FileNotFoundException());
+    when(termFormService.getFormTemplate(formType)).thenThrow(new FileNotFoundException());
 
     // ASSERT
     Exception exception =
@@ -117,6 +146,34 @@ public class TermSuggestionFormControllerTests {
               termSuggestionFormController.getForm(formType, null);
             });
     assertTrue(Objects.requireNonNull(exception.getMessage()).contains(expectedResponse));
+  }
+
+  /**
+   * Integration test for submitting a filled out form and sending the email. NOTE: Set your local
+   * environment variables in your config. Your test email will need an App Password for access,
+   * if using Gmail.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testSubmitFormIntegration() throws Exception {
+    // SET UP
+    String formPath = "formSamples/submissionFormTest.json";
+    JsonNode formData = createJsonNode(formPath);
+    String requestBody = objectMapper.writeValueAsString(formData);
+
+    // ACT
+    log.info("Form data = {}", formData);
+    this.mvc
+        .perform(
+            MockMvcRequestBuilders.post(baseUrl)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(requestBody))
+        .andExpect(status().isOk())
+        .andReturn();
+
+    // ASSERT
+
   }
 
   /**
@@ -131,7 +188,7 @@ public class TermSuggestionFormControllerTests {
     JsonNode formData = createJsonNode(formPath);
 
     // ACT - stub the void method to do nothing when called
-    doNothing().when(emailService).sendEmail(any(EmailDetails.class));
+    doNothing().when(termFormService).sendEmail(any(EmailDetails.class));
     ResponseEntity<?> responseEntity = termSuggestionFormController.submitForm(formData, null);
 
     // ASSERT
@@ -174,7 +231,7 @@ public class TermSuggestionFormControllerTests {
 
     // ACT - stub the void method to do throw an exception when called
     doThrow(new RuntimeException("Email failed to send"))
-        .when(emailService)
+        .when(termFormService)
         .sendEmail(any(EmailDetails.class));
 
     // ASSERT
@@ -186,8 +243,6 @@ public class TermSuggestionFormControllerTests {
             });
     assertTrue(exception.getMessage().contains(expectedResponse));
   }
-
-
 
   /**
    * Helper method for creating a JsonNode from a Json file
