@@ -1,41 +1,41 @@
 buildscript {
-    ext {
+  ext {
     springBootVersion = '2.7.17'
-        // Remove this line to see what version is favored by springBootVersion
-        // and the version brought in by spring-data-elasticsearch
-        set('elasticsearch.version', '7.12.1')
+    // Remove this line to see what version is favored by springBootVersion
+    // and the version brought in by spring-data-elasticsearch
+    set('elasticsearch.version', '7.12.1')
   }
-    repositories {
-        jcenter()
-        maven { url "https://repo.spring.io/release" }
-        maven { url "https://repo.spring.io/milestone" }
-        maven { url "https://repo.spring.io/snapshot" }
-        mavenCentral()
-    }
-
-    dependencies {
-        classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
-    }
-}
-
-plugins {
-    id 'java'
-    id 'eclipse'
-    id 'war'
-    id 'org.springframework.boot' version "${springBootVersion}"
-    id 'io.spring.dependency-management' version '1.1.3'
-    id 'maven-publish'
-    // google java format gradle plugin
-    id "com.diffplug.spotless" version "6.25.0"
-}
-
-repositories {
-    mavenLocal()
+  repositories {
     jcenter()
     maven { url "https://repo.spring.io/release" }
     maven { url "https://repo.spring.io/milestone" }
     maven { url "https://repo.spring.io/snapshot" }
     mavenCentral()
+  }
+
+  dependencies {
+    classpath "org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}"
+  }
+}
+
+plugins {
+  id 'java'
+  id 'eclipse'
+  id 'war'
+  id 'org.springframework.boot' version "${springBootVersion}"
+  id 'io.spring.dependency-management' version '1.1.3'
+  id 'maven-publish'
+  // google java format gradle plugin
+  id "com.diffplug.spotless" version "6.25.0"
+}
+
+repositories {
+  mavenLocal()
+  jcenter()
+  maven { url "https://repo.spring.io/release" }
+  maven { url "https://repo.spring.io/milestone" }
+  maven { url "https://repo.spring.io/snapshot" }
+  mavenCentral()
 }
 
 ext['log4j2.version'] = '2.17.1'
@@ -62,173 +62,182 @@ sourceCompatibility = 17
 targetCompatibility = 17
 
 springBoot {
-    // generate file META-INF/build-info.properties during the build
-    buildInfo()
+  // generate file META-INF/build-info.properties during the build
+  buildInfo()
 }
 
 // Java Toolchain to detect which version of Java to use, if not present
 // it will automatically download and install the required version of Java
 java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
-    }
+  toolchain {
+    languageVersion = JavaLanguageVersion.of(17)
+  }
 }
 
 dependencies {
 
   // Use version 2 with spring boot 3
   // custom location => springdoc.swagger-ui.path=/swagger-ui/index.html
-    implementation("org.springdoc:springdoc-openapi-ui:1.7.0") {
-       exclude group: "org.webjars", module: "swagger-ui"
-    }
-    implementation 'org.springframework.boot:spring-boot-starter-web'
-    implementation 'org.springframework.boot:spring-boot-devtools'
-    implementation 'org.springframework.boot:spring-boot-starter-actuator'
-    implementation 'org.springframework.boot:spring-boot-starter-cache'
-    implementation 'org.springframework.boot:spring-boot-properties-migrator'
-    implementation 'org.springframework:spring-aop'
-    implementation 'org.springframework.data:spring-data-elasticsearch:4.2.12'
-    compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+  implementation("org.springdoc:springdoc-openapi-ui:1.7.0") {
+    exclude group: "org.webjars", module: "swagger-ui"
+  }
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation 'org.springframework.boot:spring-boot-devtools'
+  implementation 'org.springframework.boot:spring-boot-starter-actuator'
+  implementation 'org.springframework.boot:spring-boot-starter-cache'
+  implementation 'org.springframework.boot:spring-boot-properties-migrator'
+  implementation 'org.springframework:spring-aop'
+  implementation 'org.springframework.data:spring-data-elasticsearch:4.2.12'
+  //Java Mail Sender dependency
+  implementation 'org.springframework.boot:spring-boot-starter-mail'
 
 
-    implementation 'com.google.guava:guava:32.1.3-jre'
-    implementation 'org.aspectj:aspectjweaver:1.9.2'
-    implementation 'org.apache.commons:commons-text:1.10.0'
-    implementation 'org.apache.opennlp:opennlp-tools:2.2.0'
-    implementation 'org.ehcache:ehcache:3.8.1'
-    implementation 'javax.cache:cache-api:1.1.1'
-    implementation 'commons-io:commons-io:2.14.0'
-    implementation 'commons-cli:commons-cli:1.4'
-    implementation 'cglib:cglib:3.3.0'
-    //implementation 'com.maxmind.geoip2:geoip2:2.15.0'
+  implementation 'com.google.guava:guava:32.1.3-jre'
+  implementation 'org.aspectj:aspectjweaver:1.9.2'
+  implementation 'org.apache.commons:commons-text:1.10.0'
+  implementation 'org.apache.opennlp:opennlp-tools:2.2.0'
+  implementation 'org.ehcache:ehcache:3.8.1'
+  implementation 'javax.cache:cache-api:1.1.1'
+  implementation 'commons-io:commons-io:2.14.0'
+  implementation 'commons-cli:commons-cli:1.4'
+  implementation 'cglib:cglib:3.3.0'
+  //implementation 'com.maxmind.geoip2:geoip2:2.15.0'
 
-    // fhir dependencies
-    implementation ('ca.uhn.hapi.fhir:hapi-fhir-base:6.8.3') {
-        exclude group: 'com.google.guava', module: 'guava'
-    }
 
-    implementation ('com.fasterxml.jackson.core:jackson-core:2.15.2') {
-        exclude group: 'com.google.guava', module: 'guava'
-    }
-    implementation ("ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.8.3") {
-        exclude group: "com.google.guava", module: "guava"
-    }
-    implementation ("ca.uhn.hapi.fhir:hapi-fhir-server:6.8.3") {
-        exclude group: "com.google.guava", module: "guava"
-    }
-    implementation ('ca.uhn.hapi.fhir:hapi-fhir-jpaserver-base:6.8.3') {
-        exclude group: 'ca.uhn.hapi.fhir', module: 'hapi-fhir-sql-migrate'
-        exclude group: 'org.elasticsearch.client', module: 'elasticsearch-rest-high-level-client'
-        exclude group: 'org.hibernate.search'
-        exclude group: 'org.apache.lucene'
-        exclude group: 'com.github.jsonld-java', module: 'jsonld-java'
-        exclude group: 'com.graphql-java', module: 'graphql-java'
-        exclude group: 'org.glassfish', module: 'javax.el'
-        exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
-        exclude group: 'com.google.guava', module: 'guava'
-    }
-    implementation ('ca.uhn.hapi.fhir:hapi-fhir-server-openapi:6.8.3') {
-        exclude group: 'com.google.guava', module: 'guava'
-    }
+  // fhir dependencies
+  implementation('ca.uhn.hapi.fhir:hapi-fhir-base:6.8.3') {
+    exclude group: 'com.google.guava', module: 'guava'
+  }
 
-    providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+  implementation('com.fasterxml.jackson.core:jackson-core:2.15.2') {
+    exclude group: 'com.google.guava', module: 'guava'
+  }
+  implementation("ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.8.3") {
+    exclude group: "com.google.guava", module: "guava"
+  }
+  implementation("ca.uhn.hapi.fhir:hapi-fhir-server:6.8.3") {
+    exclude group: "com.google.guava", module: "guava"
+  }
+  implementation('ca.uhn.hapi.fhir:hapi-fhir-jpaserver-base:6.8.3') {
+    exclude group: 'ca.uhn.hapi.fhir', module: 'hapi-fhir-sql-migrate'
+    exclude group: 'org.elasticsearch.client', module: 'elasticsearch-rest-high-level-client'
+    exclude group: 'org.hibernate.search'
+    exclude group: 'org.apache.lucene'
+    exclude group: 'com.github.jsonld-java', module: 'jsonld-java'
+    exclude group: 'com.graphql-java', module: 'graphql-java'
+    exclude group: 'org.glassfish', module: 'javax.el'
+    exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
+    exclude group: 'com.google.guava', module: 'guava'
+  }
+  implementation('ca.uhn.hapi.fhir:hapi-fhir-server-openapi:6.8.3') {
+    exclude group: 'com.google.guava', module: 'guava'
+  }
+  // Lombok dependencies
+  implementation 'org.projectlombok:lombok:1.18.32'
 
-    /*
-     * Test Dependencies
-    */
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    testImplementation 'junit:junit:4.13.1'
-    testRuntimeOnly "org.junit.platform:junit-platform-commons:1.7.0"
-    testRuntimeOnly "org.junit.platform:junit-platform-runner:1.7.0"
+  compileOnly 'org.projectlombok:lombok:1.18.32'
+  compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
+  annotationProcessor 'org.projectlombok:lombok:1.18.32'
+  providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+
+  /*
+   * Test Dependencies
+  */
+  testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testImplementation 'junit:junit:4.13.1'
+  testRuntimeOnly "org.junit.platform:junit-platform-commons:1.7.0"
+  testRuntimeOnly "org.junit.platform:junit-platform-runner:1.7.0"
+  testCompileOnly 'org.projectlombok:lombok:1.18.32'
+  testAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
 
 }
 
 test {
-    // Args to pass when running the tests to ensure the cglib can be accessed and avoid InaccessibleObjectException
-    jvmArgs ('-Xmx8G', '--add-opens', 'java.base/java.lang=ALL-UNNAMED')
-    // Set the active profile to use our application-test.yml file from test resources
-    systemProperty("spring.profiles.active", "test")
-    /*
-     * Configure gradle to show standard out and standard error
-     * of the test JVM(s) on the console
-     */
-    testLogging.showStandardStreams = true
+  // Args to pass when running the tests to ensure the cglib can be accessed and avoid InaccessibleObjectException
+  jvmArgs('-Xmx8G', '--add-opens', 'java.base/java.lang=ALL-UNNAMED')
+  // Set the active profile to use our application-test.yml file from test resources
+  systemProperty("spring.profiles.active", "test")
+  /*
+   * Configure gradle to show standard out and standard error
+   * of the test JVM(s) on the console
+   */
+  testLogging.showStandardStreams = true
 }
 
 // Format the code using google-java-format: https://github.com/diffplug/spotless/blob/main/plugin-gradle/README.md
 // Use ./gradlew spotlessCheck to run checks
 // Use ./gradlew spotlessApply to perform fixes
 spotless {
-    format 'misc', {
-        // define the files to apply `misc` to
-        target '*.gradle', '.gitattributes', '.gitignore'
+  format 'misc', {
+    // define the files to apply `misc` to
+    target '*.gradle', '.gitattributes', '.gitignore'
 
-        // define the steps to apply to those files
-        trimTrailingWhitespace()
-        indentWithSpaces(2) // or spaces. Takes an integer argument if you don't like 4
-        endWithNewline()
-    }
-    java {
-        target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
-        // apply a specific flavor of google-java-format
-        googleJavaFormat('1.19.2').reflowLongStrings().formatJavadoc(true).reorderImports(true).groupArtifact('com.google.googlejavaformat:google-java-format')
-        removeUnusedImports()
-        // fix formatting of type annotations
+    // define the steps to apply to those files
+    trimTrailingWhitespace()
+    indentWithSpaces(2) // or spaces. Takes an integer argument if you don't like 4
+    endWithNewline()
+  }
+  java {
+    target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
+    // apply a specific flavor of google-java-format
+    googleJavaFormat('1.19.2').reflowLongStrings().formatJavadoc(true).reorderImports(true).groupArtifact('com.google.googlejavaformat:google-java-format')
+    removeUnusedImports()
+    // fix formatting of type annotations
 //        formatAnnotations()
-    }
+  }
 }
 
 // # for this, the cuis with listed sources will have hierarchies computed
 // ./gradlew rrfSample -Pterminology=NCIMTH,ICD10CM,ICD9CM,SNOMEDCT_US,RXNORM,LNC,MDR,RADLEX -PlistFile=src/main/resources/cuis.txt -PinputPath=../data/NCIM
 tasks.register('rrfSample', JavaExec) {
-    classpath = sourceSets.main.runtimeClasspath
-    main = "gov.nih.nci.evs.api.service.SamplingApplication"
-    systemProperties System.getProperties()
-    // arguments to pass to the application
-    args("rrfSample", inputPath, listFile, terminology)
-    jvmArgs "-Xmx8G"
+  classpath = sourceSets.main.runtimeClasspath
+  main = "gov.nih.nci.evs.api.service.SamplingApplication"
+  systemProperties System.getProperties()
+  // arguments to pass to the application
+  args("rrfSample", inputPath, listFile, terminology)
+  jvmArgs "-Xmx8G"
 }
 
 
 tasks.register('zipFile', Zip) {
-    def zipFileRootDirectory = "${project.name}-${project.version}"
+  def zipFileRootDirectory = "${project.name}-${project.version}"
 
-    from('src/main/bin') {
-        fileMode = 0755
-        into "$zipFileRootDirectory/bin"
-    }
-    from("$buildDir/main/bin") {
-        fileMode = 0755
-        include '**/createDirectoriesForWorkspace.pl'
-        into "$zipFileRootDirectory/bin"
-    }
-    from('src/main/config') {
-        into "${archiveBaseName}-${project.version}/config"
-        into "$zipFileRootDirectory/config"
-    }
-    from("$buildDir/main/config") {
-        include '**/createDirectories.properties'
-        into "$zipFileRootDirectory/config"
-    }
-    from("$buildDir/libs") {
-        include '*.*'
-        into "$zipFileRootDirectory/lib"
-    }
-    rename { String fileName ->
-        fileName.replace("-${project.version}", "")
-    }
+  from('src/main/bin') {
+    fileMode = 0755
+    into "$zipFileRootDirectory/bin"
+  }
+  from("$buildDir/main/bin") {
+    fileMode = 0755
+    include '**/createDirectoriesForWorkspace.pl'
+    into "$zipFileRootDirectory/bin"
+  }
+  from('src/main/config') {
+    into "${archiveBaseName}-${project.version}/config"
+    into "$zipFileRootDirectory/config"
+  }
+  from("$buildDir/main/config") {
+    include '**/createDirectories.properties'
+    into "$zipFileRootDirectory/config"
+  }
+  from("$buildDir/libs") {
+    include '*.*'
+    into "$zipFileRootDirectory/lib"
+  }
+  rename { String fileName ->
+    fileName.replace("-${project.version}", "")
+  }
 }
 
 // NOTE: this causes LoaderServiceImpl to launch when run via -jar
 bootJar {
-    manifest {
-      attributes 'Start-Class': 'gov.nih.nci.evs.api.service.LoaderServiceImpl'
-    }
-    // Handle duplicate copying more than one file to the same destination
-    // https://docs.gradle.org/8.2.1/dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:duplicatesStrategy
-    duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
+  manifest {
+    attributes 'Start-Class': 'gov.nih.nci.evs.api.service.LoaderServiceImpl'
+  }
+  // Handle duplicate copying more than one file to the same destination
+  // https://docs.gradle.org/8.2.1/dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:duplicatesStrategy
+  duplicatesStrategy(DuplicatesStrategy.EXCLUDE)
 }
 
-zipFile.dependsOn = [ bootWar, bootJar ]
-build.dependsOn = [ spotlessCheck, test, bootWar, bootJar, zipFile ]
-publishToMavenLocal.dependsOn = [ bootWar, bootJar, zipFile ]
+zipFile.dependsOn = [bootWar, bootJar]
+build.dependsOn = [spotlessCheck, test, bootWar, bootJar, zipFile]
+publishToMavenLocal.dependsOn = [bootWar, bootJar, zipFile]

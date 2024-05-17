@@ -1,0 +1,32 @@
+{
+  "formName": "CDISC Test Terminoloy Change Request",
+  "recipientEmail": "test@mail.nih.gov",
+  "sections": [
+    {
+      "name": "Contact Information",
+      "fields": [
+        {
+          "name": "Business Email",
+          "type": "text",
+          "placeholder": "Enter your business email",
+          "required": true
+        },
+        {
+          "name": "Name",
+          "type": "text",
+          "placeholder": "Enter your name",
+          "required": false
+        },
+        {
+          "name": "Organization",
+          "type": "text",
+          "placeholder": "Enter your organization",
+          "required": false
+        },
+        {
+          "description": "Privacy Notice: For term submission purposes we request business contact information only, not personal information. Any contact information that you enter will be stored on a publicly accessible web site in support of CDISC term submission tracking. NCI-EVS or CDISC personnel may contact you"
+        }
+      ]
+    }
+  ]
+}
