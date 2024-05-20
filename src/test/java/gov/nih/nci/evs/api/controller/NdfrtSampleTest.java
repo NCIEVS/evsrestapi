@@ -77,13 +77,17 @@ public class NdfrtSampleTest extends SampleTest {
     assertThat(ndfrt.getMetadata().getUiLabel())
         .isEqualTo("NDFRT: National Drug File Reference Terminology");
     assertThat(ndfrt.getName())
-        .isEqualTo("NDFRT: National Drug File Reference Terminology 2018.02.05");
+        .isEqualTo("NDF-RT: National Drug File Reference Terminology 2018.02.05");
     assertThat(ndfrt.getDescription()).isNotEmpty();
 
     assertThat(ndfrt.getMetadata().getLoader()).isEqualTo("rdf");
     assertThat(ndfrt.getMetadata().getSourceCt()).isEqualTo(0);
     assertThat(ndfrt.getMetadata().getLicenseText()).isNull();
-    assertThat(ndfrt.getDescription()).isEqualTo("NDF-RT2 Public");
+    assertThat(ndfrt.getDescription())
+        .isEqualTo(
+            "NDFRT: National Drug File Reference Terminology (NDF-RT) "
+                + "is produced by the Veterans Health Administration (VHA) "
+                + "as an extension of the VHA National Drug File (VANDF) formulary.");
 
     assertThat(ndfrt.getLatest()).isTrue();
   }

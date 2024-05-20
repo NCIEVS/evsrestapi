@@ -1,0 +1,96 @@
+{
+  "formName": "Term Suggestion",
+  "recipientEmail": "ncithesaurus@mail.nih.gov",
+  "sections": [
+    {
+      "name": "Contact Information",
+      "fields": [
+        {
+          "name": "Business Email",
+          "type": "text",
+          "placeholder": "Enter your business email",
+          "required": true
+        },
+        {
+          "name": "Other",
+          "type": "textarea",
+          "placeholder": "Enter additional contact information",
+          "required": false
+        },
+        {
+          "description": "Privacy Notice: For term submission purposes we request business contact information only, not personal information.\n    Your business email, and any other business contact information that you enter, will only be used to contact you\n    about this topic if any clarifications are needed. This information will not be disseminated to others outside the\n    EVS group of the NCI, or stored except as part of the email communications on this topic. "
+        }
+      ]
+    },
+    {
+      "name": "Term Information",
+      "instructions": "Fill in the following fields as appropriate. For multiple terms, please consider emailing an Excel, delimited text, or similar file to ncithesaurus@mail.nih.gov, which can also respond to any questions.",
+      "fields": [
+        {
+          "name": "Vocabulary",
+          "type": "dropdown",
+          "options": [
+            "NCI Thesaurus",
+            "NCI Metathesaurus",
+            "NPO",
+            "Other"
+          ],
+          "placeholder": "Select vocabulary",
+          "required": true
+        },
+        {
+          "name": "Term",
+          "type": "textarea",
+          "placeholder": "Enter the term(s)",
+          "required": true
+        },
+        {
+          "name": "Synonym(s)",
+          "type": "textarea",
+          "placeholder": "Enter synonyms (if any)",
+          "required": false
+        },
+        {
+          "name": "Nearest Code/CUI",
+          "type": "textarea",
+          "placeholder": "Enter nearest code/CUI",
+          "required": false
+        },
+        {
+          "name": "Definition/Other",
+          "type": "textarea",
+          "placeholder": "Enter definition/other information",
+          "required": false
+        }
+      ]
+    },
+    {
+      "name": "Additional Information",
+      "fields": [
+        {
+          "name": "Project/Product term needed for",
+          "type": "textarea",
+          "placeholder": "Enter project/product term",
+          "required": false
+        },
+        {
+          "name": "Reason for suggestion/Any additional information",
+          "type": "textarea",
+          "placeholder": "Enter reason for suggestion or any additional information that may help us",
+          "required": false
+        }
+      ]
+    }
+  ],
+  "captcha": true,
+  "buttons": [
+    {
+      "name": "Clear",
+      "type": "reset"
+    },
+    {
+      "name": "Submit",
+      "type": "submit"
+    }
+  ]
+}

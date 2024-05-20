@@ -2,6 +2,7 @@ package gov.nih.nci.evs.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
@@ -446,13 +447,24 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     subsetsObject.setConcepts(subsets);
     operationsService.index(subsetsObject, indexName, ElasticObject.class);
     logger.info("  Subsets loaded");
-
+    List<AssociationEntry> entries = new ArrayList<>();
     // associationEntries
     for (Concept association : associations) {
       logger.info(association.getName());
       if (association.getName().equals("Concept_In_Subset")) continue;
-      List<AssociationEntry> entries =
-          sparqlQueryManagerService.getAssociationEntries(terminology, association);
+      for (String conceptCode : hierarchy.getAssociationMap().keySet()) {
+        List<Association> conceptAssociations = hierarchy.getAssociationMap().get(conceptCode);
+        for (Association conceptAssociation : conceptAssociations) {
+          if (association.getCode().equals(conceptAssociation.getCode())) {
+            entries.add(
+                convert(
+                    terminology,
+                    conceptCode,
+                    hierarchy.getConceptNameFromCode(conceptCode),
+                    conceptAssociation));
+          }
+        }
+      }
       ElasticObject associationEntriesObject =
           new ElasticObject("associationEntries_" + association.getName());
       logger.info("    add associationEntries_" + association.getName() + " = " + entries.size());
@@ -462,6 +474,22 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     logger.info("  Association Entries loaded");
 
     logger.info("Done loading Elastic Objects!");
+  }
+
+  private AssociationEntry convert(
+      Terminology terminology,
+      String conceptCode,
+      String conceptName,
+      Association conceptAssociation) {
+    AssociationEntry entry = new AssociationEntry();
+    entry.setCode(conceptCode);
+    entry.setAssociation(conceptAssociation.getType());
+    entry.setRelatedCode(conceptAssociation.getRelatedCode());
+    entry.setRelatedName(conceptAssociation.getRelatedName());
+    entry.setVersion(terminology.getVersion());
+    entry.setTerminology(terminology.getTerminology());
+    entry.setName(conceptName);
+    return entry;
   }
 
   /**
