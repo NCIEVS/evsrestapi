@@ -46,7 +46,7 @@ public class ObiSampleTest extends SampleTest {
   }
 
   @Test
-  public void testDUOTerminology() throws Exception {
+  public void testTerminology() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
