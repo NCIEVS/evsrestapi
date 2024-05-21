@@ -85,7 +85,7 @@ public class NdfrtSampleTest extends SampleTest {
     assertThat(ndfrt.getMetadata().getLicenseText()).isNull();
     assertThat(ndfrt.getDescription())
         .isEqualTo(
-            "National Drug File Reference Terminology (NDF-RT)"
+            "National Drug File Reference Terminology (NDF-RT) "
                 + "is produced by the Veterans Health Administration (VHA) "
                 + "as an extension of the VHA National Drug File (VANDF) formulary.");
 

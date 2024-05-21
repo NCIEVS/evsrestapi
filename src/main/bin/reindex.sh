@@ -249,11 +249,11 @@ if [[ $config -eq 0 ]]; then
 fi
 
 get_terminology(){
-  lower_terminology=$(basename "$1" | sed 's/.owl//g' | tr '[:upper:]' '[:lower:]')
+  lower_terminology=$(basename "$1" | sed 's/.owl//g; s/Ontology//;' | tr '[:upper:]' '[:lower:]')
   if [[ $lower_terminology =~ "thesaurus" ]]; then
     echo "ncit"
   else
-    lower_terminology=$(basename "$1" | sed 's/.owl//g' | tr '[:upper:]' '[:lower:]')
+    #lower_terminology=$(basename "$1" | sed 's/.owl//g; s/Ontology//;' | tr '[:upper:]' '[:lower:]')
     IFS='_' read -r -a array <<<"$lower_terminology"
     echo $array
   fi

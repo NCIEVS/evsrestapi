@@ -1,8 +1,36 @@
 package gov.nih.nci.evs.api.controller;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import javax.annotation.PostConstruct;
+
+import org.apache.jena.query.QueryException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
@@ -26,33 +54,10 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import javax.annotation.PostConstruct;
-import org.apache.jena.query.QueryException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpStatus;
-import org.springframework.validation.BindingResult;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.annotation.ModelAttribute;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestHeader;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 /** Search controller. */
 @RestController
@@ -115,6 +120,7 @@ public class SearchController extends BaseController {
    * @param terminology the terminology
    * @param searchCriteria the filter criteria elastic fields
    * @param bindingResult the binding result
+   * @param license the license
    * @return the string
    * @throws Exception the exception
    */
@@ -341,6 +347,7 @@ public class SearchController extends BaseController {
    *
    * @param searchCriteria the filter criteria elastic fields
    * @param bindingResult the binding result
+   * @param license the license
    * @return the string
    * @throws Exception the exception
    */
@@ -632,11 +639,13 @@ public class SearchController extends BaseController {
    * Search within a single terminology by SPARQL query.
    *
    * @param terminology the terminology
+   * @param include the include
    * @param query the SPARQL query to run
    * @param searchCriteria the filter criteria elastic fields
    * @param bindingResult the binding result
+   * @param license the license
    * @return the string
-   * @throws ResponseStatusException
+   * @throws ResponseStatusException the response status exception
    * @throws Exception the exception
    */
   @Operation(
@@ -646,7 +655,11 @@ public class SearchController extends BaseController {
               + " additional filters, searches properties, roles, and associations, and so on.  To"
               + " further explore the range of search options, take a look at the <a"
               + " href='https://github.com/NCIEVS/evsrestapi-client-SDK' target='_blank'>Github"
-              + " client SDK library created for the NCI EVS Rest API</a>.")
+              + " client SDK library created for the NCI EVS Rest API</a>.",
+      requestBody =
+          @RequestBody(
+              description = "SPARQL query that returns ?code for a concept code",
+              required = true))
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -668,7 +681,6 @@ public class SearchController extends BaseController {
   })
   @Parameters({
     @Parameter(name = "searchCriteria", hidden = true),
-    @Parameter(name = "query", description = "The SPARQL query to run"),
     @Parameter(
         name = "terminology",
         description =
@@ -849,15 +861,20 @@ public class SearchController extends BaseController {
       produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminologySparql(
       @PathVariable(value = "terminology") final String terminology,
-      @RequestParam(required = true, name = "query") final String query,
-      @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
       @RequestParam(required = false, name = "include") final Optional<String> include,
+      @org.springframework.web.bind.annotation.RequestBody final String query,
+      @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
       BindingResult bindingResult,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws ResponseStatusException, Exception {
 
     final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
     String res = null;
+
+    if (query == null || query.isEmpty()) {
+      throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing SPARQL query");
+    }
+
     termUtils.checkLicense(term, license);
     final ObjectMapper mapper = new ObjectMapper();
     try {
@@ -874,12 +891,12 @@ public class SearchController extends BaseController {
               queryPrefix + sparqlQuery, stardogProperties.getQueryUrl(), sparqlTimeout);
 
     } catch (final QueryException e) {
-      String errorMessage =
+      final String errorMessage =
           extractErrorMessage(e.getMessage()).replace("\\", "").replace("\r\n", " ");
-
       throw new QueryException(
           "SPARQL query failed validation. Please review your query for syntax mistakes.\n"
               + errorMessage);
+
     } catch (final Exception e) {
       String errorMessage = extractErrorMessage(e.getMessage()).replace("\\", "");
 
@@ -904,19 +921,33 @@ public class SearchController extends BaseController {
         codes.add(b.getCode().getValue());
       }
 
-      if (codes.size() == 0) {
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "SPARQL query returned no codes");
+      // Not sure this is necessary
+      //      if (codes.size() == 0) {
+      //        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "SPARQL query returned no
+      // codes");
+      //
+      //      } else if (codes.size() > 1000) {
+      //        throw new ResponseStatusException(
+      //            HttpStatus.BAD_REQUEST,
+      //            "Maximum number of concepts to request at a time is 1000 = " + codes.size());
+      //      }
 
-      } else if (codes.size() > 1000) {
-        throw new ResponseStatusException(
-            HttpStatus.BAD_REQUEST,
-            "Maximum number of concepts to request at a time is 1000 = " + codes.size());
+      // Return empty list if no codes found
+      if (codes.isEmpty()) {
+        final ConceptResultList list = new ConceptResultList();
+        list.setTotal(0L);
+        list.setParameters(new SearchCriteria(searchCriteria, terminology));
+        list.getParameters().setSparql(query);
+        return list;
       }
 
+      // Otherwise, continue and perform search
       searchCriteria.setCodeList(codes);
       searchCriteria.setInclude(include.orElse("summary"));
-
-      return search(new SearchCriteria(searchCriteria, terminology), bindingResult, license);
+      final ConceptResultList list =
+          search(new SearchCriteria(searchCriteria, terminology), bindingResult, license);
+      list.getParameters().setSparql(query);
+      return list;
 
     } catch (final Exception e) {
       handleException(e);
@@ -928,15 +959,17 @@ public class SearchController extends BaseController {
    * get SPARQL query bindings from a single terminology and query.
    *
    * @param terminology the terminology
+   * @param fromRecord the from record
+   * @param pageSize the page size
    * @param query the SPARQL query to run
+   * @param license the license
    * @return the string
-   * @throws ResponseStatusException
-   * @throws Exception the exception
+   * @throws ResponseStatusException the response status exception
    */
   @Operation(
-      summary = "Get SPARQL query bindings from a single terminology and query",
-      description =
-          "Simple use case: Get bindings from given sparql query given the terminology to search.")
+      summary = "Get SPARQL query results",
+      description = "Perform a SPARQL query for a specified terminology.",
+      requestBody = @RequestBody(description = "SPARQL query", required = true))
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
@@ -958,7 +991,6 @@ public class SearchController extends BaseController {
   })
   @Parameters({
     @Parameter(name = "searchCriteria", hidden = true),
-    @Parameter(name = "query", description = "The SPARQL query to run"),
     @Parameter(
         name = "terminology",
         description =
@@ -996,25 +1028,33 @@ public class SearchController extends BaseController {
       produces = "application/json")
   public @ResponseBody MapResultList getSparqlBindings(
       @PathVariable(value = "terminology") final String terminology,
-      @RequestParam(required = true, name = "query") final String query,
       @RequestParam(required = false, name = "fromRecord") final Integer fromRecord,
       @RequestParam(required = false, name = "pageSize") final Integer pageSize,
+      @org.springframework.web.bind.annotation.RequestBody final String query,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license) {
 
     try {
       final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
       String res = null;
       termUtils.checkLicense(term, license);
-      final ObjectMapper mapper = new ObjectMapper();
 
+      if (pageSize != null && (pageSize < 1 || pageSize > 1000)) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST,
+            "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
+      }
+
+      final ObjectMapper mapper = new ObjectMapper();
       final String queryPrefix =
           !query.startsWith("PREFIX ") ? queryBuilderService.constructPrefix(term) : "";
       String sparqlQuery =
           query.replaceAll(
               "\\{\\s*GRAPH(\\s*<.*>\\s*|\\s*)\\{", "{ GRAPH <" + term.getGraph() + "> {");
-      sparqlQuery += " LIMIT 1000";
-      // sparqlQuery += " LIMIT " + (pageSize != null ? pageSize : 10);
-      // sparqlQuery += ((fromRecord != null && fromRecord != 0) ? " OFFSET " + fromRecord : "");
+
+      // The following messages up "total" - so we need to either find it another way from
+      // the sparql response OR we need to not limit this but do so with paging.
+      //      sparqlQuery += " LIMIT 1000";
+
       // validate query
       res =
           restUtils.runSPARQL(
@@ -1031,6 +1071,7 @@ public class SearchController extends BaseController {
       SearchCriteria sc = new SearchCriteria();
       sc.setPageSize(pageSize);
       sc.setFromRecord(fromRecord);
+      sc.setSparql(query);
       resultList.setParameters(sc);
       return resultList;
 
@@ -1048,6 +1089,14 @@ public class SearchController extends BaseController {
     }
   }
 
+  /**
+   * Returns the json subset.
+   *
+   * @param bindings the bindings
+   * @param fromRecord the from record
+   * @param pageSize the page size
+   * @return the json subset
+   */
   public List<Map<String, String>> getJsonSubset(JsonNode bindings, int fromRecord, int pageSize) {
     int endIndex = fromRecord + pageSize;
     int currentIndex = 0;
@@ -1071,6 +1120,12 @@ public class SearchController extends BaseController {
     return results;
   }
 
+  /**
+   * Extract error message.
+   *
+   * @param errorString the error string
+   * @return the string
+   */
   private static String extractErrorMessage(String errorString) {
     int startIndex = errorString.indexOf("Invalid SPARQL query");
     if (startIndex != -1) {

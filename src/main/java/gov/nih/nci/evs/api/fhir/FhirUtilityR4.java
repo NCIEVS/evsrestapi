@@ -69,12 +69,17 @@ public final class FhirUtilityR4 {
     publish.put("icd9cm", "NCHS");
     publish.put("radlex", "RSNA (Radiological Society of North America)");
     publish.put("canmed", "National Cancer Institute Enterprise Vocabulary Services");
-    publish.put("medrt", "National Cancer Institute Enterprise Vocabulary Services");
+    publish.put("medrt", "National Library of Medicine");
     publish.put("chebi", "Open Biomedical Ontologies - European Bioinformatics Institute");
     publish.put("ncim", "National Cancer Institute Enterprise Vocabulary Services");
     publish.put("pdq", "National Cancer Institute");
     publish.put("ma", "The Jackson Laboratory");
     publish.put("hl7v30", "Health Level Seven International");
+    publish.put("mged", "National Cancer Institute");
+    publish.put("npo", "National Cancer Institute");
+    publish.put("ma", "National Cancer Institute");
+    publish.put("zfa", "National Cancer Institute");
+
     return publish;
   }
 
@@ -106,10 +111,13 @@ public final class FhirUtilityR4 {
     uri.put("chebi", "http://www.ebi.ac.uk/chebi/");
     uri.put("ncim", "https://ncim.nci.nih.gov/ncimbrowser/");
     uri.put("pdq", "https://www.cancer.gov/publications/pdq");
-    uri.put("ma", "https://www.ebi.ac.uk/ols4/ontologies/ma");
     uri.put(
         "hl7v30",
         "https://www.nlm.nih.gov/research/umls/sourcereleasedocs/current/HL7V3.0/index.html");
+    uri.put("mged", "http://mged.sourceforge.net/ontologies/MGEDOntology.owl");
+    uri.put("npo", "http://purl.bioontology.org/ontology/npo");
+    uri.put("ma", "http://purl.obolibrary.org/obo/emap.owl");
+    uri.put("zfa", "http://purl.obolibrary.org/obo/zfa.owl");
     return uri;
   }
 

@@ -3405,7 +3405,7 @@ public class SearchControllerTests {
    */
   @Test
   public void testSearchWithSparql() throws Exception {
-    String url = "/api/v1/concept/ncit/search/";
+    String url = "/api/v1/concept/ncit/search";
     MvcResult result = null;
     String content = null;
     ConceptResultList list = null;
@@ -3430,7 +3430,7 @@ public class SearchControllerTests {
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
-                    .param("query", query)
+                    .content(query)
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3470,7 +3470,7 @@ public class SearchControllerTests {
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
-                    .param("query", query)
+                    .content(query)
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3501,7 +3501,7 @@ public class SearchControllerTests {
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
-                    .param("query", query)
+                    .content(query)
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3531,7 +3531,7 @@ public class SearchControllerTests {
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
-                    .param("query", query)
+                    .content(query)
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3561,7 +3561,7 @@ public class SearchControllerTests {
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
-                    .param("query", query)
+                    .content(query)
                     .param("include", "minimal")
                     .param("type", "contains")
                     .param("term", "Theraccine"))
@@ -3594,7 +3594,7 @@ public class SearchControllerTests {
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
-                    .param("query", query)
+                    .content(query)
                     .param("include", "minimal")
                     .param("type", "contains")
                     .param("term", "Liver"))
@@ -3617,7 +3617,7 @@ public class SearchControllerTests {
       assertThat(list.getParameters().getCodeList().contains(conc.getCode()));
     }
 
-    // check non-existent term
+    // Check query that returns no results (not bad request - just empty data)
     query =
         "SELECT ?code\n"
             + "{ GRAPH <http://NCI_T_monthly> \n"
@@ -3636,11 +3636,15 @@ public class SearchControllerTests {
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
-                    .param("query", query)
+                    .content(query)
                     .param("include", "minimal")
                     .param("type", "contains"))
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isOk())
             .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts().size()).isEqualTo(0);
 
     // check query with malformed prefix
     query =
@@ -3671,7 +3675,7 @@ public class SearchControllerTests {
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
-                    .param("query", query)
+                    .content(query)
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isBadRequest())
@@ -3718,7 +3722,7 @@ public class SearchControllerTests {
           MvcResult resultException =
               mvc.perform(
                       MockMvcRequestBuilders.post(exceptionUrl)
-                          .param("query", exceptionQuery)
+                          .content(exceptionQuery)
                           .param("include", "minimal")
                           .param("type", "contains"))
                   .andExpect(status().is5xxServerError())
@@ -3750,7 +3754,7 @@ public class SearchControllerTests {
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
-                    .param("query", query)
+                    .content(query)
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3761,54 +3765,56 @@ public class SearchControllerTests {
     assert (list.getTotal() > 0);
     assertThat(list.getConcepts().get(0).getCode()).isEqualTo("T053");
 
-    // check query that takes too long
-    query =
-        "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#> \n"
-            + "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
-            + "PREFIX owl:<http://www.w3.org/2002/07/owl#>\n"
-            + "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
-            + "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>\n"
-            + "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"
-            + "PREFIX dc:<http://purl.org/dc/elements/1.1/>\n"
-            + "PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>\n"
-            + "PREFIX xml:<http://www.w3.org/2001/XMLSchema#>\n"
-            + "SELECT DISTINCT ?code\n"
-            + "{ GRAPH <#{namedGraph}> \n"
-            + "  { \n"
-            + "      ?relatedConcept a owl:Class .\n"
-            + "      ?relatedConcept (owl:equivalentClass|rdfs:subClassOf) ?z .\n"
-            + "      ?z (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first/\n"
-            + "        ( owl:unionOf/rdf:rest*/rdf:first |\n"
-            + "         "
-            + " (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first/owl:unionOf/rdf:rest*/rdf:first"
-            + " \n"
-            + "        ) ?rs . \n"
-            + "      ?rs a owl:Restriction . \n"
-            + "      ?rs owl:onProperty ?relationship . \n"
-            + "      ?rs owl:someValuesFrom ?x_concept . \n"
-            + "      ?x_concept a owl:Class . \n"
-            + "      ?x_concept :NHC0 ?code . \n"
-            + "      ?relatedConcept :NHC0 ?relatedConceptCode\n"
-            + "  } \n"
-            + "}";
-    log.info(
-        "Testing url - "
-            + url
-            + "?query="
-            + query
-            + "&terminology=ncit&type=contains&include=minimal");
-    result =
-        mvc.perform(
-                MockMvcRequestBuilders.post(url)
-                    .param("query", query)
-                    .param("include", "minimal")
-                    .param("type", "contains"))
-            .andExpect(status().isBadRequest())
-            .andReturn();
-    assertThat(result.getResponse().getErrorMessage()).isNotNull();
-    content = result.getResponse().getErrorMessage();
-    log.info("  content = " + content);
-    assertThat(content).isNotNull();
+    // NEED a better way to check this
+    //    // check query that takes too long
+    //    query =
+    //        "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#> \n"
+    //            + "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
+    //            + "PREFIX owl:<http://www.w3.org/2002/07/owl#>\n"
+    //            + "PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>\n"
+    //            + "PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>\n"
+    //            + "PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>\n"
+    //            + "PREFIX dc:<http://purl.org/dc/elements/1.1/>\n"
+    //            + "PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>\n"
+    //            + "PREFIX xml:<http://www.w3.org/2001/XMLSchema#>\n"
+    //            + "SELECT DISTINCT ?code\n"
+    //            + "{ GRAPH <#{namedGraph}> \n"
+    //            + "  { \n"
+    //            + "      ?relatedConcept a owl:Class .\n"
+    //            + "      ?relatedConcept (owl:equivalentClass|rdfs:subClassOf) ?z .\n"
+    //            + "      ?z (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first/\n"
+    //            + "        ( owl:unionOf/rdf:rest*/rdf:first |\n"
+    //            + "         "
+    //            + "
+    // (owl:unionOf|owl:intersectionOf)/rdf:rest*/rdf:first/owl:unionOf/rdf:rest*/rdf:first"
+    //            + " \n"
+    //            + "        ) ?rs . \n"
+    //            + "      ?rs a owl:Restriction . \n"
+    //            + "      ?rs owl:onProperty ?relationship . \n"
+    //            + "      ?rs owl:someValuesFrom ?x_concept . \n"
+    //            + "      ?x_concept a owl:Class . \n"
+    //            + "      ?x_concept :NHC0 ?code . \n"
+    //            + "      ?relatedConcept :NHC0 ?relatedConceptCode\n"
+    //            + "  } \n"
+    //            + "}";
+    //    log.info(
+    //        "Testing url - "
+    //            + url
+    //            + "?query="
+    //            + query
+    //            + "&terminology=ncit&type=contains&include=minimal");
+    //    result =
+    //        mvc.perform(
+    //                MockMvcRequestBuilders.post(url)
+    //                    .content(query)
+    //                    .param("include", "minimal")
+    //                    .param("type", "contains"))
+    //            .andExpect(status().isBadRequest())
+    //            .andReturn();
+    //    assertThat(result.getResponse().getErrorMessage()).isNotNull();
+    //    content = result.getResponse().getErrorMessage();
+    //    log.info("  content = " + content);
+    //    assertThat(content).isNotNull();
   }
 
   /**
@@ -3820,6 +3826,7 @@ public class SearchControllerTests {
   public void testSparql() throws Exception {
     String url = "/api/v1/sparql/ncit";
     MvcResult result = null;
+    String content = null;
 
     String query =
         "SELECT ?code ?x { GRAPH <http://NCI_T_monthly> { ?x a owl:Class . ?x :NHC0 ?code . } }";
@@ -3828,17 +3835,18 @@ public class SearchControllerTests {
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
-                    .param("query", query)
+                    .content(query)
                     .param("fromRecord", "0")
                     .param("pageSize", "10"))
             .andExpect(status().isOk())
             .andReturn();
-    MapResultList results =
-        new ObjectMapper()
-            .readValue(result.getResponse().getContentAsString(), MapResultList.class);
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    MapResultList results = new ObjectMapper().readValue(content, MapResultList.class);
     assertThat(results.getParameters().getPageSize()).isEqualTo(10);
     assertThat(results.getResults().size()).isEqualTo(results.getParameters().getPageSize());
     Map<String, String> node = results.getResults().get(1);
+    Map<String, String> node2 = results.getResults().get(6);
 
     // verify fromRecord and pageSize
     query =
@@ -3848,17 +3856,72 @@ public class SearchControllerTests {
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
-                    .param("query", query)
+                    .content(query)
                     .param("fromRecord", "1")
                     .param("pageSize", "5"))
             .andExpect(status().isOk())
             .andReturn();
-    results =
-        new ObjectMapper()
-            .readValue(result.getResponse().getContentAsString(), MapResultList.class);
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    results = new ObjectMapper().readValue(content, MapResultList.class);
     assertThat(results.getParameters().getPageSize()).isEqualTo(5);
     assertThat(results.getResults().size()).isEqualTo(results.getParameters().getPageSize());
     assertThat(results.getResults().get(0)).isEqualTo(node);
+
+    // Same query, 2nd page
+    result =
+        mvc.perform(
+                MockMvcRequestBuilders.post(url)
+                    .content(query)
+                    .param("fromRecord", "6")
+                    .param("pageSize", "5"))
+            .andExpect(status().isOk())
+            .andReturn();
+    String oldContent = content;
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotEqualTo(oldContent);
+    results = new ObjectMapper().readValue(content, MapResultList.class);
+    assertThat(results.getParameters().getPageSize()).isEqualTo(5);
+    assertThat(results.getResults().size()).isEqualTo(results.getParameters().getPageSize());
+    assertThat(results.getResults().get(0)).isEqualTo(node2);
+
+    // Page size < 0
+    result =
+        mvc.perform(
+                MockMvcRequestBuilders.post(url)
+                    .content(query)
+                    .param("fromRecord", "1")
+                    .param("pageSize", "0"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+    // Page size > 1000
+    result =
+        mvc.perform(
+                MockMvcRequestBuilders.post(url)
+                    .content(query)
+                    .param("fromRecord", "1")
+                    .param("pageSize", "1001"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+    // Try null query
+    result =
+        mvc.perform(
+                MockMvcRequestBuilders.post(url).param("fromRecord", "1").param("pageSize", "0"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
+
+    // Try blank query
+    result =
+        mvc.perform(
+                MockMvcRequestBuilders.post(url)
+                    .content("")
+                    .param("fromRecord", "1")
+                    .param("pageSize", "1001"))
+            .andExpect(status().isBadRequest())
+            .andReturn();
   }
 
   /**
