@@ -1,0 +1,31 @@
+http://purl.obolibrary.org/obo/ZFA_0000000	ZFA:0000000	rdfs:subClassOf/owl:Restriction~start	ZFS:0000020
+http://purl.obolibrary.org/obo/ZFA_0000000	ZFA:0000000	rdfs:subClassOf/owl:Restriction~end	ZFS:0000024
+http://purl.obolibrary.org/obo/ZFA_0000000	ZFA:0000000	obo:IAO_0000115	The visible division between epiblast and hypoblast in the gastrula.
+http://purl.obolibrary.org/obo/ZFA_0000000	ZFA:0000000	oboInOwl:hasDbXref	TAO:0000000
+http://purl.obolibrary.org/obo/ZFA_0000000	ZFA:0000000	oboInOwl:hasOBONamespace	zebrafish_anatomy
+http://purl.obolibrary.org/obo/ZFA_0000000	ZFA:0000000	rdfs:label	Brachet&apos;s cleft
+http://purl.obolibrary.org/obo/ZFA_0000001	ZFA:0000001	rdfs:subClassOf/owl:Restriction~part_of	ZFA:0000077
+http://purl.obolibrary.org/obo/ZFA_0000001	ZFA:0000001	rdfs:subClassOf/owl:Restriction~develops_from	ZFA:0000023
+http://purl.obolibrary.org/obo/ZFA_0000001	ZFA:0000001	oboInOwl:hasExactSynonym	ciliated organ of asymmetry
+http://purl.obolibrary.org/obo/ZFA_0000005	ZFA:0000005	oboInOwl:hasRelatedSynonym	arterial system
+http://purl.obolibrary.org/obo/ZFA_0000008	ZFA:0000008	oboInOwl:hasAlternativeId	ZFA:0001661
+http://purl.obolibrary.org/obo/ZFA_0000015	ZFA:0000015	oboInOwl:consider	ZFA:0001512
+http://purl.obolibrary.org/obo/ZFA_0000015	ZFA:0000015	owl:deprecated	true
+http://purl.obolibrary.org/obo/ZFA_0000022	ZFA:0000022	rdfs:comment	The floor plate cells are a row of cells along the a-p axis ~3 cells wide that make up the ventral floor of the early spinal cord.  Floor plate cells are prominent rectangular cells with a triangular cross section with one cell in the middle that straddles the ventral midline and usually one cell lateral to the middle cell on both sides.   14hpf.
+http://purl.obolibrary.org/obo/ZFA_0000191	ZFA:0000191	rdfs:subClassOf/owl:Restriction~overlaps	ZFA:0005488
+http://purl.obolibrary.org/obo/ZFA_0000214	ZFA:0000214	obo:IAO_0100001	ZFA:0000673
+http://purl.obolibrary.org/obo/ZFA_0000575	ZFA:0000575	rdfs:subClassOf/owl:Restriction~has_developmental_contribution_from	ZFA:0005887
+http://purl.obolibrary.org/obo/ZFA_0001104	ZFA:0001104	owl:disjointWith	ZFA:0005737
+http://purl.obolibrary.org/obo/ZFA_0001430	ZFA:0001430	rdfs:subClassOf/owl:Restriction~continuous_with	ZFA:0000204
+http://purl.obolibrary.org/obo/ZFA_0001680	ZFA:0001680	oboInOwl:created_by	Melissa  Haendel
+http://purl.obolibrary.org/obo/ZFA_0001680	ZFA:0001680	oboInOwl:creation_date	2009-03-23T01:16:53Z
+http://purl.obolibrary.org/obo/ZFA_0005879	ZFA:0005879	oboInOwl:hasBroadSynonym	sperm duct
+http://purl.obolibrary.org/obo/ZFA_0005910	ZFA:0005910	oboInOwl:hasNarrowSynonym	M3
+http://purl.obolibrary.org/obo/ZFA_0000000	ZFA:0000000	parent-style1	ZFA:0001105
+http://purl.obolibrary.org/obo/ZFA_0000000	ZFA:0001105	child-style1	ZFA:0000000
+http://purl.obolibrary.org/obo/ZFA_0001477	ZFA:0001477	max-children	232
+http://purl.obolibrary.org/obo/ZFA_0000000	ZFA:0000000	parent-count1
+http://purl.obolibrary.org/obo/ZFA_0000175	ZFA:0000175	parent-count2
+http://purl.obolibrary.org/obo/ZFA_0001592	ZFA:0001592	parent-count3
+http://purl.obolibrary.org/obo/ZFA_0100000	ZFA:0100000	root
+http://purl.obolibrary.org/obo/ZFS_0100000	ZFS:0100000	root
