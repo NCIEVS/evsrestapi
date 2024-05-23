@@ -85,7 +85,7 @@ public class TermSuggestionFormServiceTest {
 
     // ASSERT
     assertNotNull(returnedForm);
-    assertEquals("Term Suggestion", returnedForm.get("formName").asText());
+    assertEquals("NCIt Term Suggestion Request", returnedForm.get("formName").asText());
     assertEquals("ncithesaurus@mail.nih.gov", returnedForm.get("recipientEmail").asText());
   }
 
