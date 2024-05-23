@@ -77,7 +77,7 @@ public class NdfrtSampleTest extends SampleTest {
     assertThat(ndfrt.getMetadata().getUiLabel())
         .isEqualTo("NDFRT: National Drug File Reference Terminology");
     assertThat(ndfrt.getName())
-        .isEqualTo("NDF-RT: National Drug File Reference Terminology 2018.02.05");
+        .isEqualTo("NDFRT: National Drug File Reference Terminology 2018.02.05");
     assertThat(ndfrt.getDescription()).isNotEmpty();
 
     assertThat(ndfrt.getMetadata().getLoader()).isEqualTo("rdf");

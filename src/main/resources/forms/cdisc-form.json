@@ -1,68 +1,94 @@
 {
   "formName": "CDISC Terminoloy Change Request",
+  "formType": "CDISC",
   "recipientEmail": "NciEvsCdiscHelp@mail.nih.gov",
   "sections": [
     {
-      "name": "Contact Information",
-      "fields": [
-        {
-          "name": "Business Email",
-          "type": "text",
-          "placeholder": "Enter your business email",
-          "required": true
-        },
-        {
-          "name": "Name",
-          "type": "text",
-          "placeholder": "Enter your name",
-          "required": false
-        },
-        {
-          "name": "Organization",
-          "type": "text",
-          "placeholder": "Enter your organization",
-          "required": false
-        },
-        {
-          "description": "Privacy Notice: For term submission purposes we request business contact information only, not personal information. Any contact information that you enter will be stored on a publicly accessible web site in support of CDISC term submission tracking. NCI-EVS or CDISC personnel may contact you"}
-      ]
-    },
-    {
-      "name": "Term Information",
+      "name": "contact",
+      "label": "Contact Information",
       "instructions": {
         "parts": [
           {
-            "text": "Fill in the following fields as appropriate. For multiple term submissions (any more than 3 terms), please click on and download the ",
-            "link": null
+            "text": "Privacy Notice:"
+          },
+          {
+            "text": "For term submission purposes we request business contact information only, not personal information. Any contact information that you enter will be stored on a publicly accessible web site in support of CDISC term submission tracking. NCI-EVS or CDISC personnel may contact you."
+          }
+        ]
+      },
+      "fields": [
+        {
+          "name": "email",
+          "label": "Business Email",
+          "type": "text",
+          "value": "",
+          "placeholder": "Enter your business email",
+          "validations": [
+            {
+              "name": "required",
+              "validator": "required",
+              "message": "Email is required"
+            },
+            {
+              "name": "pattern",
+              "validator": "email",
+              "message": "Invalid email format"
+            }
+          ]
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "text",
+          "value": "",
+          "placeholder": "Enter your name"
+        },
+        {
+          "name": "organization",
+          "label": "Organization",
+          "type": "text",
+          "value": "",
+          "placeholder": "Enter your organization"
+        }
+      ]
+    },
+    {
+      "name": "termInfo",
+      "label": "Term Information",
+      "instructions": {
+        "parts": [
+          {
+            "text": "Fill in the following fields as appropriate. For multiple term submissions (any more than 3 terms), please click on and download the"
           },
           {
             "text": "Excel file CDISC Controlled Terminology Multiple Term Request Spreadsheet.",
             "link": "https://ncitermform.nci.nih.gov/ncitermform/download?action=download"
           },
           {
-            "text": "Fill in the template appropriately, add your name and request date to the end of the file name, and Email the completed file to",
-            "link": null
+            "text": "Fill in the template appropriately, add your name and request date to the end of the file name, and Email the completed file to"
           },
           {
             "text": "NciEvsCdiscHelp@mail.nih.gov.",
-            "link": "mailto:NciEvsCdiscHelp@mail.nih.gov?Subject=CDISC%20New%20Term%20Request"
+            "link": "mailto:NciEvsCdiscHelp@mail.nih.gov?Subject=CDISC%20New%20Term%20Request%20File"
           },
           {
-            "text": "In addition, please submit this CDISC New Term Request form indicating \"File emailed separately\" in the “Additional Information” field below.",
-            "link": null
+            "text": "In addition, please submit this CDISC New Term Request form indicating \"File emailed separately\" in the “Additional Information” field below."
           }
         ]
       },
       "fields": [
         {
-          "name": "Vocabulary",
+          "name": "vocabulary",
+          "label": "Vocabulary",
           "type": "text",
           "value": "CDISC Terminology",
           "readonly": true
         },
         {
-          "name": "Request Type",
+          "name": "type",
+          "label": "Request Type",
           "type": "dropdown",
+          "value": "",
           "options": [
             "Create New Term",
             "Create New Codelist",
@@ -71,12 +97,19 @@
             "Other"
           ],
           "placeholder": "Select request type",
-          "required": true
+          "validations": [
+            {
+              "name": "required",
+              "validator": "required",
+              "message": "Request Type is required"
+            }
+          ]
         },
         {
-          "name": "CDISC Subset",
+          "name": "subset",
+          "label": "CDISC Subset",
           "type": "dropdown",
-          "required": true,
+          "value": "",
           "options": [
             "New",
             "ADaM",
@@ -92,14 +125,29 @@
             "TMF",
             "Other",
             "Unknown"
+          ],
+          "validations": [
+            {
+              "name": "required",
+              "validator": "required",
+              "message": "Subset is required"
+            }
           ]
         },
         {
-          "name": "CDISC Codelist",
+          "name": "codelist",
+          "label": "CDISC Codelist",
           "type": "dropdown",
           "multiple": true,
-          "required": true,
+          "value": "",
           "placeholder": "Select All Codes that Apply",
+          "validations": [
+            {
+              "name": "required",
+              "validator": "required",
+              "message": "Codelist is required"
+            }
+          ],
           "options": [
             "New",
             "Other",
@@ -1445,34 +1493,57 @@
           ]
         },
         {
-          "name": "Term or Codelist Request",
+          "name": "requestInfo",
+          "label": "Term or Codelist Request",
           "type": "textarea",
+          "value": "",
           "placeholder": "Enter the Term or Codelist Request Information",
-          "required": true
+          "validations": [
+            {
+              "name": "required",
+              "validator": "required",
+              "message": "Term/Codelist Request information is required"
+            },
+            {
+              "name": "maxLength",
+              "validator": 200,
+              "message": "Only 200 characters or less allowed"
+            }
+          ]
         }
       ]
     },
     {
-      "name": "Additional Information",
+      "name": "additionalInfo",
+      "label": "Additional Information",
+      "instructions": {
+        "parts": [
+          {
+            "text": "If submitting a new term include a description of the term, the data context within which it is being used, and any supplemental information that further clarifies the request.\n If submitting a change to existing term, include justification for why the change is necessary, along with relevant references.\n If a multiple term request spreadsheet or other supplemental information is being submitted, enter \"File emailed separately\". Failure to include supporting information may delay resolution of the request."
+          }
+        ]
+      },
       "fields": [
         {
-          "name": "If submitting a new term include a description of the term, the data context within which it is being used, and any supplemental information that further clarifies the request.\n If submitting a change to existing term, include justification for why the change is necessary, along with relevant references.\n If a multiple term request spreadsheet or other supplemental information is being submitted, enter \"File emailed separately\”. Failure to include supporting information may delay resolution of the request.",
+          "name": "reason",
+          "label": "Reason for suggestion/Any additional information",
           "type": "textarea",
-          "placeholder": "Enter reason, draft definition and examples",
-          "required": true
+          "value": "",
+          "placeholder": "Enter reason, draft definition and/or examples",
+          "validations": [
+            {
+              "name": "required",
+              "validator": "required",
+              "message": "Description is required"
+            },
+            {
+              "name": "maxLength",
+              "validator": 200,
+              "message": "Only 200 characters or less allowed"
+            }
+          ]
         }
       ]
-    }
-  ],
-  "captcha": true,
-  "buttons": [
-    {
-      "name": "Clear",
-      "type": "reset"
-    },
-    {
-      "name": "Submit",
-      "type": "submit"
     }
   ]
 }
