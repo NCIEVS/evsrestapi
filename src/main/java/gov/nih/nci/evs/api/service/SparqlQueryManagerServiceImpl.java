@@ -84,7 +84,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /** The elastic search service. */
   @Autowired ElasticQueryService elasticQueryService;
 
-  /** The sparql query cache service */
+  /** The sparql query cache service. */
   @Autowired SparqlQueryCacheService sparqlQueryCacheService;
 
   /** The utils. */
@@ -132,6 +132,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   // Here check the qualified form as well as the URI
 
+  /* see superclass */
   /* see superclass */
   @Override
   public List<String> getAllGraphNames() throws Exception {
@@ -227,8 +228,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return results;
   }
 
+  /**
+   * Returns the term.
+   *
+   * @param source the source
+   * @return the term
+   */
   private String getTerm(final String source) {
-    final String term = FilenameUtils.getBaseName(source);
+    final String term = FilenameUtils.getBaseName(source).replaceFirst("Ontology", "");
     if (term.equals("Thesaurus")) {
       return "ncit";
     }
@@ -990,7 +997,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
-
       final String conceptCode =
           inverse ? EVSUtils.getRelatedConceptCode(b) : b.getConceptCode().getValue();
 
@@ -2642,6 +2648,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return sparqlQueryCacheService.getAllQualifiers(terminology, ip, restUtils, this);
   }
 
+  /**
+   * Returns the ignore source urls.
+   *
+   * @return the ignore source urls
+   */
   private List<String> getIgnoreSourceUrls() {
     final String uri = applicationProperties.getConfigBaseUri() + "/ignore-source.txt";
     if (StringUtils.isNotBlank(uri)) {

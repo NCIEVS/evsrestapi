@@ -39,7 +39,6 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class FhirR4Tests {
 
   /** The logger. */
-  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(FhirR4Tests.class);
 
   /** The port. */
@@ -84,6 +83,7 @@ public class FhirR4Tests {
             .collect(Collectors.toList());
     assertThat(codeSystems.size()).isGreaterThan(0);
     for (Resource cs : codeSystems) {
+      log.info("  code system = " + FhirContext.forR4().newJsonParser().encodeResourceToString(cs));
       CodeSystem css = (CodeSystem) cs;
       assertThat(css).isNotNull();
       assertThat(css.getResourceType().equals(ResourceType.CodeSystem));
@@ -307,6 +307,7 @@ public class FhirR4Tests {
             .collect(Collectors.toList());
     assertThat(valueSets.size()).isGreaterThan(0);
     for (Resource vs : valueSets) {
+      log.info("  value set  = " + FhirContext.forR4().newJsonParser().encodeResourceToString(vs));
       ValueSet vss = (ValueSet) vs;
       assertThat(vss).isNotNull();
       assertThat(vss.getResourceType().equals(ResourceType.ValueSet));
@@ -511,6 +512,7 @@ public class FhirR4Tests {
             .collect(Collectors.toList());
     assertThat(conceptMaps.size()).isGreaterThan(0);
     for (Resource cm : conceptMaps) {
+      log.info("  concept map = " + FhirContext.forR4().newJsonParser().encodeResourceToString(cm));
       ConceptMap cmm = (ConceptMap) cm;
       assertThat(cmm).isNotNull();
       assertThat(cmm.getResourceType().equals(ResourceType.ConceptMap));

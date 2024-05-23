@@ -11,7 +11,6 @@ import gov.nih.nci.evs.api.configuration.TestConfiguration;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
-import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -26,20 +25,18 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = TestConfiguration.class)
 public class EmailDetailsTest {
   /** The logger. */
-  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(AssociationUnitTest.class);
 
+  /** The test form object. */
   // JsonObject variable for loading json test file
   JsonNode testFormObject;
 
+  /** The test details. */
   // email detail object
   EmailDetails testDetails;
 
-  @Before
-  public void setup() throws Exception {}
-
   /**
-   * Test our EmailDetails is generated with the values from our submitted json file
+   * Test our EmailDetails is generated with the values from our submitted json file.
    *
    * @throws Exception exception
    */
@@ -62,7 +59,7 @@ public class EmailDetailsTest {
   }
 
   /**
-   * Test the mdoel will throw an exception if there are null fields
+   * Test the mdoel will throw an exception if there are null fields.
    *
    * @throws Exception exception
    */
@@ -82,7 +79,7 @@ public class EmailDetailsTest {
   }
 
   /**
-   * Test the model will throw an exception when a null form is passed
+   * Test the model will throw an exception when a null form is passed.
    *
    * @throws Exception exception
    */
@@ -99,7 +96,7 @@ public class EmailDetailsTest {
   }
 
   /**
-   * Helper method to create the JsonObject from a json file representing our submitted form data
+   * Helper method to create the JsonObject from a json file representing our submitted form data.
    *
    * @param formPath path of the file to convert to JsonObject
    * @return JsonObject

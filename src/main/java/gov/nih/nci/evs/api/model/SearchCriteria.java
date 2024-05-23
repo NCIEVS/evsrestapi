@@ -11,6 +11,9 @@ public class SearchCriteria extends SearchCriteriaWithoutTerminology {
   /** The terminology. */
   private List<String> terminology;
 
+  /** The sparql. */
+  private String sparql;
+
   /** Instantiates an empty {@link SearchCriteria}. */
   public SearchCriteria() {
     // n/a
@@ -23,6 +26,8 @@ public class SearchCriteria extends SearchCriteriaWithoutTerminology {
    */
   public SearchCriteria(final SearchCriteria other) {
     populateFrom(other);
+    terminology = new ArrayList<>(other.getTerminology());
+    sparql = other.getSparql();
   }
 
   /**
@@ -69,6 +74,25 @@ public class SearchCriteria extends SearchCriteriaWithoutTerminology {
    */
   public void setTerminology(final List<String> terminology) {
     this.terminology = terminology;
+  }
+
+  /**
+   * Returns the sparql.
+   *
+   * @return the sparql
+   */
+  @Schema(description = "SPARQL query, only available as an output parameter")
+  public String getSparql() {
+    return sparql;
+  }
+
+  /**
+   * Sets the sparql.
+   *
+   * @param sparql the sparql
+   */
+  public void setSparql(final String sparql) {
+    this.sparql = sparql;
   }
 
   /* see superclass */

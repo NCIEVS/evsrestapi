@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
 import org.junit.BeforeClass;
@@ -26,7 +25,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public class ObiSampleTest extends SampleTest {
+public class MouseAnatomySampleTest extends SampleTest {
 
   /**
    * Setup class.
@@ -35,16 +34,21 @@ public class ObiSampleTest extends SampleTest {
    */
 
   /** The logger. */
-  private static final Logger log = LoggerFactory.getLogger(ObiSampleTest.class);
+  private static final Logger log = LoggerFactory.getLogger(MouseAnatomySampleTest.class);
 
   /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
   @Autowired private MockMvc testMvc;
 
   @BeforeClass
   public static void setupClass() throws Exception {
-    loadSamples("obi", "src/test/resources/samples/obi-samples.txt");
+    loadSamples("ma", "src/test/resources/samples/ma-samples.txt");
   }
 
+  /**
+   * Test terminology.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testTerminology() throws Exception {
     String url = null;
@@ -55,7 +59,7 @@ public class ObiSampleTest extends SampleTest {
     log.info("Testing url - " + url);
     result =
         testMvc
-            .perform(get(url).param("latest", "true").param("terminology", "obi"))
+            .perform(get(url).param("latest", "true").param("terminology", "ma"))
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
@@ -69,50 +73,21 @@ public class ObiSampleTest extends SampleTest {
                   // n/a
                 });
     assertThat(terminologies.size()).isGreaterThan(0);
-    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("obi")).count())
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ma")).count())
         .isEqualTo(1);
-    final Terminology obi =
-        terminologies.stream().filter(t -> t.getTerminology().equals("obi")).findFirst().get();
-    assertThat(obi.getTerminology()).isEqualTo("obi");
-    assertThat(obi.getMetadata().getUiLabel())
-        .isEqualTo("OBI: Ontology for Biomedical Investigations");
-    assertThat(obi.getName()).isEqualTo("OBI: Ontology for Biomedical Investigations 2022-07-11");
-    assertThat(obi.getDescription()).isNotEmpty();
+    final Terminology ma =
+        terminologies.stream().filter(t -> t.getTerminology().equals("ma")).findFirst().get();
+    assertThat(ma.getTerminology()).isEqualTo("ma");
+    assertThat(ma.getMetadata().getUiLabel())
+        .isEqualTo("Mouse Anatomy: Anatomical Dictionary for the Adult Mouse");
+    assertThat(ma.getName())
+        .isEqualTo("Mouse Anatomy: Anatomical Dictionary for the Adult Mouse 2016-07-27");
 
-    assertThat(obi.getMetadata().getLoader()).isEqualTo("rdf");
-    assertThat(obi.getMetadata().getSourceCt()).isEqualTo(0);
-    assertThat(obi.getMetadata().getLicenseText()).isNull();
-    assertThat(obi.getDescription())
-        .isEqualTo(
-            "OBI: (Ontology for Biomedical Investigations) is an integrated ontology for the"
-                + " description of biological and clinical investigations.");
+    assertThat(ma.getDescription()).isNull();
+    assertThat(ma.getMetadata().getLoader()).isEqualTo("rdf");
+    assertThat(ma.getMetadata().getSourceCt()).isEqualTo(0);
+    assertThat(ma.getMetadata().getLicenseText()).isNull();
 
-    assertThat(obi.getLatest()).isTrue();
-  }
-
-  /**
-   * Test concept active status.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testActive() throws Exception {
-
-    String url = null;
-    MvcResult result = null;
-    String content = null;
-    Concept concept = null;
-
-    // Test active
-    url = "/api/v1/concept/obi/APOLLO_SV_00000008";
-    log.info("Testing url - " + url);
-    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
-    assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("APOLLO_SV_00000008");
-    assertThat(concept.getTerminology()).isEqualTo("obi");
-    assertThat(concept.getActive()).isTrue();
+    assertThat(ma.getLatest()).isTrue();
   }
 }
