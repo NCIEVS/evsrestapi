@@ -81,7 +81,7 @@ public class MouseAnatomySampleTest extends SampleTest {
     assertThat(ma.getMetadata().getUiLabel())
         .isEqualTo("Mouse Anatomy: Anatomical Dictionary for the Adult Mouse");
     assertThat(ma.getName())
-        .isEqualTo("Mouse Anatomy: Anatomical Dictionary for the Adult Mouse 2022-07-11");
+        .isEqualTo("Mouse Anatomy: Anatomical Dictionary for the Adult Mouse 2016-07-27");
 
     assertThat(ma.getDescription()).isNull();
     assertThat(ma.getMetadata().getLoader()).isEqualTo("rdf");
