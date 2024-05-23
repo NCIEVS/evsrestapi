@@ -38,6 +38,7 @@ import org.springframework.test.context.ContextConfiguration;
 @ContextConfiguration(classes = TestConfiguration.class)
 public class TermSuggestionFormServiceTest {
   // Logger
+  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(TermSuggestionFormServiceImpl.class);
 
   // Mock JavaMailSender
@@ -58,6 +59,7 @@ public class TermSuggestionFormServiceTest {
   private final String msgBody = "Test Body";
 
   /** Setup before each test */
+  @SuppressWarnings("resource")
   @BeforeEach
   public void setup() throws Exception {
     MockitoAnnotations.openMocks(this);

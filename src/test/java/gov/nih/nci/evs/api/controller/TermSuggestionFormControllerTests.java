@@ -71,7 +71,7 @@ public class TermSuggestionFormControllerTests {
   /** Setup method to create a mock request for testing */
   @Before
   public void setUp() {
-    MockHttpServletRequest request = new MockHttpServletRequest();
+    final MockHttpServletRequest request = new MockHttpServletRequest();
     RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
     baseUrl = "/api/v1/suggest/";
   }
@@ -85,13 +85,13 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void testGetFormTemplateIntegration() throws Exception {
     // SET UP
-    String formType = "ncit-form";
-    String url = baseUrl + formType;
+    final String formType = "ncit-form";
+    final String url = baseUrl + formType;
     JsonNode form;
 
     // ACT
     log.info("Testing url: {}", url);
-    MvcResult mvc =
+    final MvcResult mvc =
         this.mvc.perform(MockMvcRequestBuilders.get(url)).andExpect(status().isOk()).andReturn();
     form = objectMapper.readTree(mvc.getResponse().getContentAsString());
     log.info("Form = {}", form);
@@ -110,14 +110,14 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void testGetFormTemplateWithTestData() throws Exception {
     // SET UP
-    String formType = "NCIT";
-    String formPath = "formSamples/testNCIT.json";
+    final String formType = "NCIT";
+    final String formPath = "formSamples/testNCIT.json";
     // read the file as an Input Stream and set our expected response
-    JsonNode expectedResponse = createJsonNode(formPath);
+    final JsonNode expectedResponse = createJsonNode(formPath);
 
     // ACT - mock the email service and call the getForm
     when(termFormService.getFormTemplate(formType)).thenReturn(expectedResponse);
-    ResponseEntity<?> responseEntity = termSuggestionFormController.getForm(formType, null);
+    final ResponseEntity<?> responseEntity = termSuggestionFormController.getForm(formType, null);
 
     // ASSERT
     assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -132,14 +132,14 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void testGetFormThrowsException() throws Exception {
     // SET UP
-    String formType = "CAD"; // form type doesn't exist
-    String expectedResponse = "500 INTERNAL_SERVER_ERROR";
+    final String formType = "CAD"; // form type doesn't exist
+    final String expectedResponse = "500 INTERNAL_SERVER_ERROR";
 
     // ACT
     when(termFormService.getFormTemplate(formType)).thenThrow(new FileNotFoundException());
 
     // ASSERT
-    Exception exception =
+    final Exception exception =
         assertThrows(
             ResponseStatusException.class,
             () -> {
@@ -158,9 +158,9 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void testSubmitFormIntegration() throws Exception {
     // SET UP
-    String formPath = "formSamples/submissionFormTest.json";
-    JsonNode formData = createJsonNode(formPath);
-    String requestBody = objectMapper.writeValueAsString(formData);
+    final String formPath = "formSamples/submissionFormTest.json";
+    final JsonNode formData = createJsonNode(formPath);
+    final String requestBody = objectMapper.writeValueAsString(formData);
 
     // ACT
     log.info("Form data = {}", formData);
@@ -184,12 +184,13 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void testSubmitForm() throws Exception {
     // SET UP - create our form data JsonNode
-    String formPath = "formSamples/submissionFormTest.json";
-    JsonNode formData = createJsonNode(formPath);
+    final String formPath = "formSamples/submissionFormTest.json";
+    final JsonNode formData = createJsonNode(formPath);
 
     // ACT - stub the void method to do nothing when called
     doNothing().when(termFormService).sendEmail(any(EmailDetails.class));
-    ResponseEntity<?> responseEntity = termSuggestionFormController.submitForm(formData, null);
+    final ResponseEntity<?> responseEntity =
+        termSuggestionFormController.submitForm(formData, null);
 
     // ASSERT
     assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
@@ -203,12 +204,12 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void testSubmitFormThrowsExceptionWithNullFields() throws Exception {
     // SET UP - create our form data JsonNode
-    String formPath = "formSamples/submissionFormNullTest.json";
-    JsonNode formData = createJsonNode(formPath);
-    String expectedResponse = "500 INTERNAL_SERVER_ERROR";
+    final String formPath = "formSamples/submissionFormNullTest.json";
+    final JsonNode formData = createJsonNode(formPath);
+    final String expectedResponse = "500 INTERNAL_SERVER_ERROR";
 
     // ACT & ASSERT
-    Exception exception =
+    final Exception exception =
         assertThrows(
             Exception.class,
             () -> {
@@ -225,9 +226,9 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void testSubmitFormThrowsExceptionWhenSendEmailFails() throws Exception {
     // SET UP - create our form data JsonNode
-    String formPath = "formSamples/submissionFormTest.json";
-    JsonNode formData = createJsonNode(formPath);
-    String expectedResponse = "500 INTERNAL_SERVER_ERROR";
+    final String formPath = "formSamples/submissionFormTest.json";
+    final JsonNode formData = createJsonNode(formPath);
+    final String expectedResponse = "500 INTERNAL_SERVER_ERROR";
 
     // ACT - stub the void method to do throw an exception when called
     doThrow(new RuntimeException("Email failed to send"))
@@ -235,7 +236,7 @@ public class TermSuggestionFormControllerTests {
         .sendEmail(any(EmailDetails.class));
 
     // ASSERT
-    Exception exception =
+    final Exception exception =
         assertThrows(
             Exception.class,
             () -> {
@@ -245,17 +246,18 @@ public class TermSuggestionFormControllerTests {
   }
 
   /**
-   * Helper method for creating a JsonNode from a Json file
+   * Helper method for creating a JsonNode from a Json file.
    *
    * @param path path for the json file
    * @return JsonNode
    * @throws Exception exception
    */
-  private JsonNode createJsonNode(String path) throws Exception {
-    ObjectMapper mapper = new ObjectMapper();
+  private JsonNode createJsonNode(final String path) throws Exception {
+    final ObjectMapper mapper = new ObjectMapper();
     // read the file as an Input Stream
-    InputStream input = getClass().getClassLoader().getResourceAsStream(path);
-    // Set our expected response to the form from the formPath
-    return mapper.readTree(input);
+    try (final InputStream input = getClass().getClassLoader().getResourceAsStream(path); ) {
+      // Set our expected response to the form from the formPath
+      return mapper.readTree(input);
+    }
   }
 }

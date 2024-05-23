@@ -1,46 +1,156 @@
 package gov.nih.nci.evs.api.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Data;
 
 /**
  * EmailDetails model, created from a JsonObject data form. This allows us to handle the form data
  * and extract information we need to create the email more easily
  */
-@Data
+// BAC: for now back away from this
+// @Data
 public class EmailDetails {
+
+  /** The source. */
   private String source;
+
+  /** The from email. */
   private String fromEmail;
+
+  /** The to email. */
   private String toEmail;
+
+  /** The subject. */
   private String subject;
+
+  /** The msg body. */
   private String msgBody;
 
+  /**
+   * Returns the source.
+   *
+   * @return the source
+   */
+  public String getSource() {
+    return source;
+  }
+
+  /**
+   * Sets the source.
+   *
+   * @param source the source
+   */
+  public void setSource(final String source) {
+    this.source = source;
+  }
+
+  /**
+   * Returns the from email.
+   *
+   * @return the from email
+   */
+  public String getFromEmail() {
+    return fromEmail;
+  }
+
+  /**
+   * Sets the from email.
+   *
+   * @param fromEmail the from email
+   */
+  public void setFromEmail(final String fromEmail) {
+    this.fromEmail = fromEmail;
+  }
+
+  /**
+   * Returns the to email.
+   *
+   * @return the to email
+   */
+  public String getToEmail() {
+    return toEmail;
+  }
+
+  /**
+   * Sets the to email.
+   *
+   * @param toEmail the to email
+   */
+  public void setToEmail(final String toEmail) {
+    this.toEmail = toEmail;
+  }
+
+  /**
+   * Returns the subject.
+   *
+   * @return the subject
+   */
+  public String getSubject() {
+    return subject;
+  }
+
+  /**
+   * Sets the subject.
+   *
+   * @param subject the subject
+   */
+  public void setSubject(final String subject) {
+    this.subject = subject;
+  }
+
+  /**
+   * Returns the msg body.
+   *
+   * @return the msg body
+   */
+  public String getMsgBody() {
+    return msgBody;
+  }
+
+  /**
+   * Sets the msg body.
+   *
+   * @param msgBody the msg body
+   */
+  public void setMsgBody(final String msgBody) {
+    this.msgBody = msgBody;
+  }
+
+  /**
+   * Returns the nullerror.
+   *
+   * @return the nullerror
+   */
+  public static String getNullerror() {
+    return nullError;
+  }
+
+  /** The Constant nullError. */
   private static final String nullError = "Fields cannot be null";
 
   /**
-   * Create the email model from the submitted term form
+   * Create the email model from the submitted term form.
    *
    * @param formData submitted form data
    * @return an EmailDetails object
    * @throws Exception exception
    */
-  public static EmailDetails generateEmailDetails(JsonNode formData) throws Exception {
+  public static EmailDetails generateEmailDetails(final JsonNode formData) throws Exception {
     // validate formData is not empty
     if (formData.isEmpty() || formData.isNull()) {
       throw new Exception("Form data not found. Please check your form data.");
     } else {
-      EmailDetails emailDetails = new EmailDetails();
+      final EmailDetails emailDetails = new EmailDetails();
       // Set the values from the form data
-      String formName = formData.get("formName").textValue();
-      String recipientEmail = formData.get("recipientEmail").textValue();
-      String businessEmail = formData.get("businessEmail").textValue();
-      String subject = formData.get("subject").textValue();
-      String body = formData.get("body").textValue();
+      final String formName = formData.get("formName").textValue();
+      final String recipientEmail = formData.get("recipientEmail").textValue();
+      final String businessEmail = formData.get("businessEmail").textValue();
+      final String subject = formData.get("subject").textValue();
+      final String body = formData.get("body").textValue();
 
-      if (formName == null || formName.isEmpty()) {
-        throw new Exception(nullError);
-      }
-      if (recipientEmail == null || recipientEmail.isEmpty()) {
+      if (formName == null
+          || formName.isEmpty()
+          || recipientEmail == null
+          || recipientEmail.isEmpty()) {
         throw new Exception(nullError);
       }
       if (businessEmail == null || businessEmail.isEmpty()) {

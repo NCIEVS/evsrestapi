@@ -28,9 +28,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("${nci.evs.application.contextPath}")
 @Tag(name = "Terminology form endpoints")
 public class TermSuggestionFormController extends BaseController {
+
+  /** The Constant logger. */
   // Logger
   private static final Logger logger = LoggerFactory.getLogger(TermSuggestionFormController.class);
 
+  /** The email service. */
   // term form email service
   private final TermSuggestionFormServiceImpl emailService;
 
@@ -47,6 +50,7 @@ public class TermSuggestionFormController extends BaseController {
    * Get form template for a given form type.
    *
    * @param formType the JSON form to load
+   * @param license the license
    * @return Response status and form, if successful
    * @throws Exception exception/ioexception
    */
@@ -114,7 +118,9 @@ public class TermSuggestionFormController extends BaseController {
    * Submit form data to email service.
    *
    * @param formData data from the completed term suggestion form
+   * @param license the license
    * @return ResponseEntity
+   * @throws Exception the exception
    */
   @Operation(
       summary =
