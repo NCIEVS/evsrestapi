@@ -138,7 +138,7 @@ public class LoaderServiceImpl {
     }
 
     @SuppressWarnings("resource")
-    ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
+    ApplicationContext app = SpringApplication.run(Application.class, args);
     ElasticLoadService loadService = null;
 
     try {
