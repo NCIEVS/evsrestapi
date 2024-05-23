@@ -4,8 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,11 +20,6 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Terminology;
 
 /** GO samples tests. */
 @RunWith(SpringRunner.class)
@@ -82,19 +79,16 @@ public class NpoSampleTest extends SampleTest {
     final Terminology npo =
         terminologies.stream().filter(t -> t.getTerminology().equals("npo")).findFirst().get();
     assertThat(npo.getTerminology()).isEqualTo("npo");
-    assertThat(npo.getMetadata().getUiLabel())
-        .isEqualTo("NPO: Ontology for Biomedical Investigations");
-    assertThat(npo.getName()).isEqualTo("NPO: Ontology for Biomedical Investigations 2022-07-11");
-    assertThat(npo.getDescription()).isNotEmpty();
+    assertThat(npo.getMetadata().getUiLabel()).isEqualTo("NPO: NanoParticle Ontology");
+    assertThat(npo.getName()).isEqualTo("NPO: NanoParticle Ontology 2011-12-08");
+
+    // From the OWL
+    assertThat(npo.getDescription())
+        .startsWith("The NPO was primarily developed by Dennis G. Thomas");
 
     assertThat(npo.getMetadata().getLoader()).isEqualTo("rdf");
     assertThat(npo.getMetadata().getSourceCt()).isEqualTo(0);
     assertThat(npo.getMetadata().getLicenseText()).isNull();
-    assertThat(npo.getDescription())
-        .isEqualTo(
-            "NPO: (Ontology for Biomedical Investigations) is an integrated ontology for the"
-                + " description of biological and clinical investigations.");
-
     assertThat(npo.getLatest()).isTrue();
   }
 }

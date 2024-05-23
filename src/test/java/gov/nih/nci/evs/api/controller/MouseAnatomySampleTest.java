@@ -4,8 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,11 +20,6 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Terminology;
 
 /** GO samples tests. */
 @RunWith(SpringRunner.class)
@@ -82,17 +79,14 @@ public class MouseAnatomySampleTest extends SampleTest {
         terminologies.stream().filter(t -> t.getTerminology().equals("ma")).findFirst().get();
     assertThat(ma.getTerminology()).isEqualTo("ma");
     assertThat(ma.getMetadata().getUiLabel())
-        .isEqualTo("MA: Ontology for Biomedical Investigations");
-    assertThat(ma.getName()).isEqualTo("MA: Ontology for Biomedical Investigations 2022-07-11");
-    assertThat(ma.getDescription()).isNotEmpty();
+        .isEqualTo("Mouse Anatomy: Anatomical Dictionary for the Adult Mouse");
+    assertThat(ma.getName())
+        .isEqualTo("Mouse Anatomy: Anatomical Dictionary for the Adult Mouse 2022-07-11");
 
+    assertThat(ma.getDescription()).isNull();
     assertThat(ma.getMetadata().getLoader()).isEqualTo("rdf");
     assertThat(ma.getMetadata().getSourceCt()).isEqualTo(0);
     assertThat(ma.getMetadata().getLicenseText()).isNull();
-    assertThat(ma.getDescription())
-        .isEqualTo(
-            "MA: (Ontology for Biomedical Investigations) is an integrated ontology for the"
-                + " description of biological and clinical investigations.");
 
     assertThat(ma.getLatest()).isTrue();
   }

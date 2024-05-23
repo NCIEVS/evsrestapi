@@ -1,9 +1,8 @@
 package gov.nih.nci.evs.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
-
-import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Search criteria object for /concept/search implementation. */
 @Schema(description = "Criteria for a search or find operation")

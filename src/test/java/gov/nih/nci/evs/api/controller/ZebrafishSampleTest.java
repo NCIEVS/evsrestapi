@@ -82,18 +82,13 @@ public class ZebrafishSampleTest extends SampleTest {
         terminologies.stream().filter(t -> t.getTerminology().equals("zfa")).findFirst().get();
     assertThat(zfa.getTerminology()).isEqualTo("zfa");
     assertThat(zfa.getMetadata().getUiLabel())
-        .isEqualTo("ZFA: Ontology for Biomedical Investigations");
-    assertThat(zfa.getName()).isEqualTo("ZFA: Ontology for Biomedical Investigations 2022-07-11");
-    assertThat(zfa.getDescription()).isNotEmpty();
+        .isEqualTo("Zebrafish: Zebrafish Model Organism Database");
+    assertThat(zfa.getName()).isEqualTo("Zebrafish: Zebrafish Model Organism Database 2019-08-02");
 
+    assertThat(zfa.getDescription()).isNull();
     assertThat(zfa.getMetadata().getLoader()).isEqualTo("rdf");
     assertThat(zfa.getMetadata().getSourceCt()).isEqualTo(0);
     assertThat(zfa.getMetadata().getLicenseText()).isNull();
-    assertThat(zfa.getDescription())
-        .isEqualTo(
-            "ZFA: (Ontology for Biomedical Investigations) is an integrated ontology for the"
-                + " description of biological and clinical investigations.");
-
     assertThat(zfa.getLatest()).isTrue();
   }
 }

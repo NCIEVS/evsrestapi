@@ -4,8 +4,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,11 +20,6 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Terminology;
 
 /** GO samples tests. */
 @RunWith(SpringRunner.class)
@@ -82,18 +79,13 @@ public class MgedSampleTest extends SampleTest {
         terminologies.stream().filter(t -> t.getTerminology().equals("mged")).findFirst().get();
     assertThat(mged.getTerminology()).isEqualTo("mged");
     assertThat(mged.getMetadata().getUiLabel())
-        .isEqualTo("MGED: Ontology for Biomedical Investigations");
-    assertThat(mged.getName()).isEqualTo("MGED: Ontology for Biomedical Investigations 2022-07-11");
-    assertThat(mged.getDescription()).isNotEmpty();
+        .isEqualTo("MGED: Microarray Gene Expression Data Ontology");
+    assertThat(mged.getName()).isEqualTo("MGED: Microarray Gene Expression Data Ontology 1.3.1.1");
 
+    assertThat(mged.getLatest()).isTrue();
     assertThat(mged.getMetadata().getLoader()).isEqualTo("rdf");
     assertThat(mged.getMetadata().getSourceCt()).isEqualTo(0);
     assertThat(mged.getMetadata().getLicenseText()).isNull();
-    assertThat(mged.getDescription())
-        .isEqualTo(
-            "MGED: (Ontology for Biomedical Investigations) is an integrated ontology for the"
-                + " description of biological and clinical investigations.");
-
-    assertThat(mged.getLatest()).isTrue();
+    assertThat(mged.getDescription()).isNull();
   }
 }
