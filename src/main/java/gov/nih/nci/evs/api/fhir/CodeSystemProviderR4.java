@@ -1,31 +1,14 @@
 package gov.nih.nci.evs.api.fhir;
 
-import ca.uhn.fhir.jpa.model.util.JpaConstants;
-import ca.uhn.fhir.rest.annotation.IdParam;
-import ca.uhn.fhir.rest.annotation.Operation;
-import ca.uhn.fhir.rest.annotation.OperationParam;
-import ca.uhn.fhir.rest.annotation.OptionalParam;
-import ca.uhn.fhir.rest.annotation.Read;
-import ca.uhn.fhir.rest.annotation.Search;
-import ca.uhn.fhir.rest.param.DateRangeParam;
-import ca.uhn.fhir.rest.param.StringParam;
-import ca.uhn.fhir.rest.param.TokenParam;
-import ca.uhn.fhir.rest.server.IResourceProvider;
-import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
-import gov.nih.nci.evs.api.controller.ConceptController;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticOperationsService;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.ElasticSearchService;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
 import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.CodeableConcept;
@@ -41,6 +24,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
+import ca.uhn.fhir.model.api.annotation.Description;
+import ca.uhn.fhir.rest.annotation.IdParam;
+import ca.uhn.fhir.rest.annotation.Operation;
+import ca.uhn.fhir.rest.annotation.OperationParam;
+import ca.uhn.fhir.rest.annotation.OptionalParam;
+import ca.uhn.fhir.rest.annotation.Read;
+import ca.uhn.fhir.rest.annotation.Search;
+import ca.uhn.fhir.rest.param.DateRangeParam;
+import ca.uhn.fhir.rest.param.NumberParam;
+import ca.uhn.fhir.rest.param.StringParam;
+import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.server.IResourceProvider;
+import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
+import gov.nih.nci.evs.api.controller.ConceptController;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.ElasticOperationsService;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.ElasticSearchService;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /** The CodeSystem provider. */
 @Component
@@ -581,21 +587,30 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Find code systems.
    *
+   * @param request the request
    * @param id the id
    * @param date the date
    * @param system the system
    * @param version the version
    * @param title the title
+   * @param count the count
+   * @param offset the offset
    * @return the list
    * @throws Exception the exception
    */
   @Search
-  public List<CodeSystem> findCodeSystems(
+  public Bundle findCodeSystems(
+      final HttpServletRequest request,
       @OptionalParam(name = "_id") final TokenParam id,
       @OptionalParam(name = "date") final DateRangeParam date,
       @OptionalParam(name = "system") final StringParam system,
       @OptionalParam(name = "version") final StringParam version,
-      @OptionalParam(name = "title") final StringParam title)
+      @OptionalParam(name = "title") final StringParam title,
+      @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
+          NumberParam count,
+      @Description(shortDefinition = "Start offset, used when reading a next page")
+          @OptionalParam(name = "_offset")
+          NumberParam offset)
       throws Exception {
     try {
       final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
@@ -624,7 +639,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
 
         list.add(cs);
       }
-      return list;
+      return FhirUtilityR4.makeBundle(request, list, count, offset);
+
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {

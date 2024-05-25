@@ -2,11 +2,18 @@ package gov.nih.nci.evs.api.fhir;
 
 import static java.lang.String.format;
 
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Terminology;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
+import java.util.UUID;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
+import org.hl7.fhir.r4.model.Bundle.BundleLinkComponent;
+import org.hl7.fhir.r4.model.Bundle.BundleType;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.Coding;
@@ -18,11 +25,16 @@ import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.UriType;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ca.uhn.fhir.rest.param.NumberParam;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
 
 /** Utility for fhir data building. */
 public final class FhirUtilityR4 {
@@ -592,5 +604,81 @@ public final class FhirUtilityR4 {
       property.addPart().setName("value").setValue(value);
     }
     return property;
+  }
+
+  /**
+   * Returns the next link.
+   *
+   * @param uri the uri
+   * @param offset the offset
+   * @param offsetInt the offset int
+   * @param count the count
+   * @param countInt the count int
+   * @return the next link
+   */
+  public static BundleLinkComponent getNextLink(
+      final String uri,
+      final NumberParam offset,
+      final int offsetInt,
+      final NumberParam count,
+      final int countInt) {
+    final int nextOffset = offsetInt + countInt;
+    String nextUri = uri;
+    if (!uri.contains("?")) {
+      nextUri = nextUri + "?";
+    }
+    if (offset != null) {
+      nextUri = nextUri.replaceFirst("_offset=\\d+", "_offset=" + nextOffset);
+    } else {
+      nextUri += (nextUri.endsWith("?") ? "" : "&") + "_offset=" + nextOffset;
+    }
+    if (count != null) {
+      nextUri = nextUri.replaceFirst("_count=\\d+", "_count=" + countInt);
+    } else {
+      nextUri += (nextUri.endsWith("?") ? "" : "&") + "_count=" + countInt;
+    }
+
+    return new BundleLinkComponent().setUrl(nextUri).setRelation("next");
+  }
+
+  /**
+   * Make bundle.
+   *
+   * @param request the request
+   * @param list the list
+   * @param count the count
+   * @param offset the offset
+   * @return the bundle
+   */
+  public static Bundle makeBundle(
+      final HttpServletRequest request,
+      final List<? extends Resource> list,
+      final NumberParam count,
+      final NumberParam offset) {
+
+    int countInt = count == null ? 100 : count.getValue().intValue();
+    int offsetInt = offset == null ? 0 : offset.getValue().intValue();
+    final String thisUrl =
+        request.getQueryString() == null
+            ? request.getRequestURL().toString()
+            : request.getRequestURL().append('?').append(request.getQueryString()).toString();
+    final Bundle bundle = new Bundle();
+    bundle.setId(UUID.randomUUID().toString());
+    bundle.setType(BundleType.SEARCHSET);
+    bundle.setTotal(list.size());
+    bundle.addLink(new BundleLinkComponent().setUrl(thisUrl).setRelation("self"));
+    if (offsetInt + countInt < list.size()) {
+      bundle.addLink(FhirUtilityR4.getNextLink(thisUrl, offset, offsetInt, count, countInt));
+    }
+    for (int i = offsetInt; i < offsetInt + countInt; i++) {
+      if (i > list.size() - 1) {
+        break;
+      }
+      final BundleEntryComponent component = new BundleEntryComponent();
+      component.setResource(list.get(i));
+      component.setFullUrl(request.getRequestURL() + "/" + list.get(i).getId());
+      bundle.addEntry(component);
+    }
+    return bundle;
   }
 }

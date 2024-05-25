@@ -1,25 +1,5 @@
 package gov.nih.nci.evs.api.fhir;
 
-import ca.uhn.fhir.rest.annotation.IdParam;
-import ca.uhn.fhir.rest.annotation.Operation;
-import ca.uhn.fhir.rest.annotation.OperationParam;
-import ca.uhn.fhir.rest.annotation.OptionalParam;
-import ca.uhn.fhir.rest.annotation.Read;
-import ca.uhn.fhir.rest.annotation.Search;
-import ca.uhn.fhir.rest.param.StringParam;
-import ca.uhn.fhir.rest.param.TokenParam;
-import ca.uhn.fhir.rest.server.IResourceProvider;
-import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
-import gov.nih.nci.evs.api.controller.SubsetController;
-import gov.nih.nci.evs.api.model.Association;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.SearchCriteria;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.ElasticSearchService;
-import gov.nih.nci.evs.api.service.MetadataService;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -27,7 +7,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import javax.servlet.http.HttpServletRequest;
+
 import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
@@ -46,6 +30,29 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import ca.uhn.fhir.model.api.annotation.Description;
+import ca.uhn.fhir.rest.annotation.IdParam;
+import ca.uhn.fhir.rest.annotation.Operation;
+import ca.uhn.fhir.rest.annotation.OperationParam;
+import ca.uhn.fhir.rest.annotation.OptionalParam;
+import ca.uhn.fhir.rest.annotation.Read;
+import ca.uhn.fhir.rest.annotation.Search;
+import ca.uhn.fhir.rest.param.NumberParam;
+import ca.uhn.fhir.rest.param.StringParam;
+import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.server.IResourceProvider;
+import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
+import gov.nih.nci.evs.api.controller.SubsetController;
+import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.ElasticSearchService;
+import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /** The ValueSet provider. */
 @Component
@@ -563,23 +570,32 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Find value sets.
    *
+   * @param request the request
    * @param id the id
    * @param code the code
    * @param name the name
    * @param system the system
    * @param url the url
    * @param version the version
+   * @param count the count
+   * @param offset the offset
    * @return the list
    * @throws Exception the exception
    */
   @Search
-  public List<ValueSet> findValueSets(
+  public Bundle findValueSets(
+      final HttpServletRequest request,
       @OptionalParam(name = "_id") final TokenParam id,
       @OptionalParam(name = "code") final StringParam code,
       @OptionalParam(name = "name") final StringParam name,
       @OptionalParam(name = "system") final UriType system,
       @OptionalParam(name = "url") final StringParam url,
-      @OptionalParam(name = "version") final StringParam version)
+      @OptionalParam(name = "version") final StringParam version,
+      @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
+          NumberParam count,
+      @Description(shortDefinition = "Start offset, used when reading a next page")
+          @OptionalParam(name = "_offset")
+          NumberParam offset)
       throws Exception {
 
     final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
@@ -655,7 +671,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       list.add(vs);
     }
 
-    return list;
+    return FhirUtilityR4.makeBundle(request, list, count, offset);
   }
 
   /**
