@@ -4,10 +4,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
+
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -21,17 +19,18 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.model.Terminology;
+
 /** GO samples tests. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class MouseAnatomySampleTest extends SampleTest {
 
-  /**
-   * Setup class.
-   *
-   * @throws Exception the exception
-   */
+  /** Setup class. */
 
   /** The logger. */
   private static final Logger log = LoggerFactory.getLogger(MouseAnatomySampleTest.class);
@@ -39,6 +38,11 @@ public class MouseAnatomySampleTest extends SampleTest {
   /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
   @Autowired private MockMvc testMvc;
 
+  /**
+   * Setup class.
+   *
+   * @throws Exception the exception
+   */
   @BeforeClass
   public static void setupClass() throws Exception {
     loadSamples("ma", "src/test/resources/samples/ma-samples.txt");
@@ -89,5 +93,17 @@ public class MouseAnatomySampleTest extends SampleTest {
     assertThat(ma.getMetadata().getLicenseText()).isNull();
 
     assertThat(ma.getLatest()).isTrue();
+  }
+
+  /**
+   * Test part of.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPartOf() throws Exception {
+
+    // Verify that "part_of" are used as hierarchical relationships
+
   }
 }

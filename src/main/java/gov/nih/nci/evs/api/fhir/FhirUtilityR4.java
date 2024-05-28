@@ -2,13 +2,14 @@ package gov.nih.nci.evs.api.fhir;
 
 import static java.lang.String.format;
 
+import ca.uhn.fhir.rest.param.NumberParam;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
@@ -31,10 +32,6 @@ import org.hl7.fhir.r4.model.UriType;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import ca.uhn.fhir.rest.param.NumberParam;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Terminology;
 
 /** Utility for fhir data building. */
 public final class FhirUtilityR4 {

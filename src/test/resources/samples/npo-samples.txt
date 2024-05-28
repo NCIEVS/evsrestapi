@@ -1,0 +1,74 @@
+GO_0007596	NPO_1988	rdfs:label	blood coagulation
+GO_0007596	NPO_1988	rdfs:subClassOf/owl:Restriction~has_part	NPO_1989
+GO_0007596	NPO_1988	definition	&lt;ncicp:ComplexDefinition xmlns:ncicp=&quot;http://ncicb.nci.nih.gov/xml/owl/EVS/ComplexProperties.xsd#&quot;&gt;&lt;ncicp:def-definition&gt;For definition, please refer to Gene Ontology (v. 1.1.2341)&lt;/ncicp:def-definition&gt;&lt;ncicp:attr&gt;Gene Ontology (v. 1.1.2341)&lt;/ncicp:attr&gt;&lt;/ncicp:ComplexDefinition&gt;
+GO_0007596	NPO_1988	preferred_Name	blood coagulation
+NPO_100	NPO_100	dBXrefID	NCIT:C63806
+NPO_100	NPO_100	synonym	cylindrical
+NPO_103	NPO_103	rdfs:subClassOf/owl:Restriction~is_integral_part_of	NPO_314
+NPO_103	NPO_103	owl:disjointWith	NPO_108
+NPO_106	NPO_106	rdfs:subClassOf/owl:Restriction~part_of	NPO_719
+NPO_1155	NPO_1155	rdfs:subClassOf/owl:Restriction~has_unit_of_measure	NPO_1156
+NPO_1155	NPO_1155	rdfs:subClassOf/owl:Restriction~measure_of	NPO_821
+NPO_1159	NPO_1159	rdfs:subClassOf/owl:Restriction~unit_of	NPO_1158
+NPO_1206	NPO_1206	symbol	cells/&#181;L
+NPO_122	NPO_122	rdfs:comment	[NCI_Thesaurus definition]:  Nanoscale structures that are shaped like long dowels. The structures have a diameter that is measured in the nanoscale with an extended length parameter.
+NPO_1220	NPO_1220	rdfs:subClassOf/owl:Restriction~quality_of	NPO_1573
+NPO_127	NPO_127	rdfs:subClassOf/owl:Restriction~is_realized_in	NPO_1642
+NPO_127	NPO_127	rdfs:subClassOf/owl:Restriction~role_of	NPO_827
+NPO_1341	NPO_1341	rdfs:subClassOf/owl:Restriction~inheres_in	NPO_312
+NPO_1359	NPO_1359	rdfs:subClassOf/owl:Restriction~determines_property	NPO_1171
+NPO_1367	NPO_1367	rdfs:subClassOf/owl:Restriction~has_quality	NPO_1823
+NPO_1379	NPO_1379	rdfs:subClassOf/owl:Restriction~has_property	NPO_1302
+NPO_140	NPO_140	owl:equivalentClass/owl:Restriction~has_part	NPO_944
+NPO_1405	NPO_1405	DesignNote	[DGT, June 10, 2010]: Description for a specific type of technique could contain the following types of information: 1) principle used in the technique (e.g. NMR for NMR spectroscopy), 2) description of the principle if the term that describes the principle is not represented in the ontology, 3) tool used in a technique (e.g., scanning electron microscope in scanning electron miroscopy), 4) applications of the technique, and 5) information on how to use the technique for each type of application.
+NPO_1406	NPO_1406	rdfs:subClassOf/owl:Restriction~has_time_period	NPO_1818
+NPO_1408	NPO_1408	rdfs:subClassOf/owl:Restriction~uses_reagent	NPO_290
+NPO_1408	NPO_1408	rdfs:subClassOf/owl:Restriction~uses_instrument	NPO_1436
+NPO_1414	NPO_1414	rdfs:subClassOf/owl:Restriction~agent_in	NPO_1609
+NPO_1424	NPO_1424	rdfs:subClassOf/owl:Restriction~has_participant	NPO_552
+NPO_1424	NPO_1424	rdfs:subClassOf/owl:Restriction~technique_used_for	NPO_1426
+NPO_1487	NPO_1487	owl:equivalentClass/owl:Restriction~has_quality	NPO_1488
+NPO_1489	NPO_1489	rdfs:subClassOf/owl:Restriction~uses_technique	NPO_1921
+NPO_1489	NPO_1489	rdfs:subClassOf/owl:Restriction~has_output_participant	NPO_1487
+NPO_1493	NPO_1493	rdfs:subClassOf/owl:Restriction~participates_in	NPO_1616
+NPO_1496	NPO_1496	rdfs:subClassOf/owl:Restriction~has_component_part	NPO_1495
+NPO_1521	NPO_1521	rdfs:subClassOf/owl:Restriction~property_determined_from	NPO_1518
+NPO_1523	NPO_1523	rdfs:subClassOf/owl:Restriction~parameter_determined_from	NPO_1518
+NPO_1533	NPO_1533	rdfs:subClassOf/owl:Restriction~has_role	NPO_635
+NPO_1533	NPO_1533	rdfs:subClassOf/owl:Restriction~has_function	NPO_1397
+NPO_1577	NPO_1577	rdfs:subClassOf/owl:Restriction~contained_in	NPO_1581
+NPO_1581	NPO_1581	rdfs:subClassOf/owl:Restriction~contains	NPO_1577
+NPO_159	NPO_159	rdfs:subClassOf/owl:Restriction~derives_from	NPO_910
+NPO_1607	NPO_1607	rdfs:subClassOf/owl:Restriction~realizes	NPO_830
+NPO_1609	NPO_1609	rdfs:subClassOf/owl:Restriction~has_agent	NPO_1414
+NPO_1623	NPO_1623	rdfs:subClassOf/owl:Restriction~negatively_regulates	NPO_142
+NPO_1633	NPO_1633	rdfs:label/owl:Restriction~negatively_regulates	NPO_1629
+NPO_1701	NPO_1701	rdfs:subClassOf/owl:Restriction~analyze	NPO_1990
+NPO_1701	NPO_1701	rdfs:subClassOf/owl:Restriction~has_endpoint_of_measurement	NPO_1995
+NPO_1714	NPO_1714	dc:description	Electromagnetic waves are characterized by any of the three physical properties: frequency, wavelength or quantum (photon) energy.  Frequency of a wave is defined as the ratio of the speed of light (in vacuum) to wavelength of the wave.  The quantum energy is defined as the product of the Planck&#39;s constant and the wave frequency.  The range of all possible frequencies or wavelengths or energies of an electromagnetic wave is called the electromagnetic spectrum.  (reference: wikipedia)
+NPO_1765	NPO_1765	rdfs:subClassOf/owl:Restriction~has_application	NPO_1762
+NPO_1791	NPO_1791	rdfs:subClassOf/owl:Restriction~denoted_by	NPO_1782
+NPO_1815	NPO_1815	rdfs:subClassOf/owl:Restriction~value_specified_at	NPO_1814
+NPO_1818	NPO_1818	rdfs:subClassOf/owl:Restriction~has_datum_value	NPO_1817
+NPO_195	NPO_195	rdfs:subClassOf/owl:Restriction~bearer_of	NPO_119
+NPO_1983	NPO_1983	rdfs:subClassOf/owl:Restriction~has_Journal_Name	NPO_1985
+NPO_1983	NPO_1983	rdfs:subClassOf/owl:Restriction~has_Abstract	NPO_1985
+NPO_1983	NPO_1983	rdfs:subClassOf/owl:Restriction~has_PubMedID	NPO_1985
+NPO_1983	NPO_1983	rdfs:subClassOf/owl:Restriction~has_DOI	NPO_1985
+NPO_1983	NPO_1983	rdfs:subClassOf/owl:Restriction~has_Author	NPO_1985
+NPO_1983	NPO_1983	rdfs:subClassOf/owl:Restriction~has_Publication_Year	NPO_1986
+NPO_1993	NPO_1993	rdfs:subClassOf/owl:Restriction~indicator_of	NPO_1989
+NPO_2000	NPO_2000	rdfs:subClassOf/owl:Restriction~has_temperature_condition	NPO_1806
+NPO_653	NPO_653	rdfs:subClassOf/owl:Restriction~stimulus_causes_response	NPO_528
+NPO_803	NPO_803	rdfs:subClassOf/owl:Restriction~has_identification_type	NPO_147
+&GO;GO_0006355	NPO_1650	rdfs:label/owl:Restriction~regulates	NPO_840
+&GO;GO_0043085	NPO_1655	rdfs:label/owl:Restriction~positively_regulates	NPO_584
+&REX;REX_0000218	NPO_1631	owl:equivalentClass/owl:Restriction~realizes	NPO_576
+GO_0007596	NPO_1988	parent-style1	NPO_992
+GO_0007596	NPO_992	child-style1	NPO_1988
+NPO_179	NPO_179	max-children	112
+GO_0007596	NPO_1988	parent-count1
+NPO_101	NPO_101	parent-count2
+NPO_111	NPO_111	parent-count3
+NPO_107	NPO_107	parent-count4
+NPO_244	NPO_244	parent-count5
