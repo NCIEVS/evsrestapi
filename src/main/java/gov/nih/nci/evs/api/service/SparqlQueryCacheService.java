@@ -28,8 +28,8 @@ import org.springframework.stereotype.Service;
  */
 @Service
 public class SparqlQueryCacheService {
+
   /** The Constant log. */
-  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(SparqlQueryManagerServiceImpl.class);
 
   /** The query builder service. */
@@ -39,6 +39,7 @@ public class SparqlQueryCacheService {
    * Returns the hierarchy.
    *
    * @param terminology the terminology
+   * @param restUtils the rest utils
    * @param sparqlQueryManagerService the sparql query manager service
    * @return the hierarchy
    * @throws Exception the exception
@@ -48,8 +49,8 @@ public class SparqlQueryCacheService {
       key = "{#root.methodName, #terminology.getTerminologyVersion()}")
   public List<String> getHierarchy(
       final Terminology terminology,
-      RESTUtils restUtils,
-      SparqlQueryManagerService sparqlQueryManagerService)
+      final RESTUtils restUtils,
+      final SparqlQueryManagerService sparqlQueryManagerService)
       throws Exception {
     final List<String> parentchild = new ArrayList<>();
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
@@ -81,6 +82,61 @@ public class SparqlQueryCacheService {
       parentchild.add(str.toString());
     }
 
+    // A
+    parentchild.addAll(getHierarchyRoleHelper(terminology, restUtils, sparqlQueryManagerService));
+
+    return parentchild;
+  }
+
+  /**
+   * Returns the hierarchy role helper.
+   *
+   * @param terminology the terminology
+   * @param restUtils the rest utils
+   * @param sparqlQueryManagerService the sparql query manager service
+   * @return the hierarchy role helper
+   * @throws Exception the exception
+   */
+  private List<String> getHierarchyRoleHelper(
+      final Terminology terminology,
+      final RESTUtils restUtils,
+      final SparqlQueryManagerService sparqlQueryManagerService)
+      throws Exception {
+    final List<String> parentchild = new ArrayList<>();
+    final String queryPrefix = queryBuilderService.constructPrefix(terminology);
+    final String query =
+        queryBuilderService.constructBatchQuery(
+            "roles.hierarchy",
+            terminology,
+            new ArrayList<>(terminology.getMetadata().getHierarchyRoles()));
+    final String res =
+        restUtils.runSPARQL(queryPrefix + query, sparqlQueryManagerService.getQueryURL());
+
+    final ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (final Bindings b : bindings) {
+      final StringBuffer str = new StringBuffer();
+      str.append(
+          b.getParentCode() == null
+              ? EVSUtils.getCodeFromUri(b.getParent().getValue())
+              : b.getParentCode().getValue());
+      str.append("\t");
+      str.append(EVSUtils.getParentLabel(b));
+      str.append("\t");
+      str.append(
+          b.getChildCode() == null
+              ? EVSUtils.getCodeFromUri(b.getChild().getValue())
+              : b.getChildCode().getValue());
+      str.append("\t");
+      str.append(EVSUtils.getChildLabel(b));
+      str.append("\n");
+      parentchild.add(str.toString());
+    }
+
+    logger.info("  role hierarchy entries = " + parentchild.size());
     return parentchild;
   }
 
@@ -89,6 +145,7 @@ public class SparqlQueryCacheService {
    *
    * @param terminology the terminology
    * @param ip the ip
+   * @param restUtils the rest utils
    * @param sparqlQueryManagerService the sparql query manager service
    * @return the all qualifiers
    * @throws Exception the exception
@@ -99,8 +156,8 @@ public class SparqlQueryCacheService {
   public List<Concept> getAllQualifiers(
       final Terminology terminology,
       final IncludeParam ip,
-      RESTUtils restUtils,
-      SparqlQueryManagerService sparqlQueryManagerService)
+      final RESTUtils restUtils,
+      final SparqlQueryManagerService sparqlQueryManagerService)
       throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("all.qualifiers", terminology);
@@ -161,6 +218,7 @@ public class SparqlQueryCacheService {
    * Get hierarchy for a given terminology.
    *
    * @param terminology the terminology
+   * @param restUtils the rest utils
    * @param sparqlQueryManagerService the sparql query manager service
    * @return the hierarchy
    * @throws Exception the exception
@@ -170,8 +228,8 @@ public class SparqlQueryCacheService {
       key = "{#root.methodName, #terminology.getTerminologyVersion()}")
   public HierarchyUtils getHierarchyUtils(
       final Terminology terminology,
-      RESTUtils restUtils,
-      SparqlQueryManagerService sparqlQueryManagerService)
+      final RESTUtils restUtils,
+      final SparqlQueryManagerService sparqlQueryManagerService)
       throws Exception {
     final List<String> parentchild =
         this.getHierarchy(terminology, restUtils, sparqlQueryManagerService);

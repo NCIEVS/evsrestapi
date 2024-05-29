@@ -134,6 +134,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   /* see superclass */
+  /* see superclass */
   @Override
   public List<String> getAllGraphNames() throws Exception {
     final List<String> graphNames = new ArrayList<>();
@@ -1121,7 +1122,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // distinct roles only
       final String key = conceptCode + role.getCode() + role.getRelatedCode();
       if (!seen.contains(key)) {
-        roles.add(role);
+        // Exclude roles remodeled as parent/child
+        if (terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+          roles.add(role);
+        }
       }
       seen.add(key);
     }
@@ -1171,7 +1175,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // distinct roles only
       final String key = conceptCode + role.getCode() + role.getRelatedCode();
       if (!seen.contains(key)) {
-        resultMap.get(conceptCode).add(role);
+        // Exclude roles remodeled as parent/child
+        if (terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+          resultMap.get(conceptCode).add(role);
+        }
       }
       seen.add(key);
     }
@@ -1206,8 +1213,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // distinct roles only
       final String key = role.getCode() + role.getRelatedCode();
       if (!seen.contains(key)) {
-        roles.add(role);
+        // Exclude roles remodeled as parent/child
+        if (terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+          roles.add(role);
+        }
       }
+
       seen.add(key);
     }
 
@@ -1255,63 +1266,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // distinct roles only
       final String key = conceptCode + role.getCode() + role.getRelatedCode();
       if (!seen.contains(key)) {
-        resultMap.get(conceptCode).add(role);
+        // Exclude roles remodeled as parent/child
+        if (terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+          resultMap.get(conceptCode).add(role);
+        }
       }
       seen.add(key);
-    }
-
-    return resultMap;
-  }
-
-  /* see superclass */
-  @Override
-  public Map<String, List<Role>> getRolesForAllCodes(
-      final Terminology terminology, final boolean inverseFlag) throws Exception {
-    final String queryPrefix = queryBuilderService.constructPrefix(terminology);
-    final String query =
-        queryBuilderService.constructBatchQuery("roles.all", terminology, new ArrayList<>());
-    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-    final Map<String, List<Role>> resultMap =
-        this.getComplexRolesForAllCodes(terminology, inverseFlag);
-
-    final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
-    final Bindings[] bindings = sparqlResult.getResults().getBindings();
-    final Set<String> seen = new HashSet<>();
-    for (final Bindings b : bindings) {
-
-      final String conceptCode =
-          inverseFlag ? b.getRelatedConceptCode().getValue() : b.getConceptCode().getValue();
-
-      if (resultMap.get(conceptCode) == null) {
-        resultMap.put(conceptCode, new ArrayList<>());
-      }
-
-      final Role role = new Role();
-      role.setCode(EVSUtils.getRelationshipCode(b));
-      role.setType(EVSUtils.getRelationshipType(b));
-      if (inverseFlag) {
-        // reverse code and related code
-        role.setRelatedCode(b.getConceptCode().getValue());
-        role.setRelatedName(EVSUtils.getConceptLabel(b));
-        // distinct roles only
-        final String key = conceptCode + role.getCode() + role.getRelatedCode();
-        if (!seen.contains(key)) {
-          resultMap.get(conceptCode).add(role);
-        }
-        seen.add(key);
-      } else {
-        role.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
-        role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
-        // distinct roles only
-        final String key = conceptCode + role.getCode() + role.getRelatedCode();
-        if (!seen.contains(key)) {
-          resultMap.get(conceptCode).add(role);
-        }
-        seen.add(key);
-      }
     }
 
     return resultMap;
@@ -1358,7 +1318,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         // distinct roles only
         final String key = conceptCode + role.getCode() + role.getRelatedCode();
         if (!seen.contains(key)) {
-          resultMap.get(conceptCode).add(role);
+          // Exclude roles remodeled as parent/child
+          if (terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+            resultMap.get(conceptCode).add(role);
+          }
         }
         seen.add(key);
       } else {
@@ -1367,7 +1330,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         // distinct roles only
         final String key = conceptCode + role.getCode() + role.getRelatedCode();
         if (!seen.contains(key)) {
-          resultMap.get(conceptCode).add(role);
+          // Exclude roles remodeled as parent/child
+          if (terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+            resultMap.get(conceptCode).add(role);
+          }
         }
         seen.add(key);
       }
@@ -2155,7 +2121,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         role.setUri(b.getProperty().getValue());
       }
       role.setCode(EVSUtils.getPropertyCode(b));
-      roles.add(role);
+
+      // Exclude roles remodeled as parent/child
+      if (terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+        roles.add(role);
+      }
     }
 
     for (final Role role : roles) {
