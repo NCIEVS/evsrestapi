@@ -82,7 +82,7 @@ public class SparqlQueryCacheService {
       parentchild.add(str.toString());
     }
 
-    // A
+    // Add role entries
     parentchild.addAll(getHierarchyRoleHelper(terminology, restUtils, sparqlQueryManagerService));
 
     return parentchild;
