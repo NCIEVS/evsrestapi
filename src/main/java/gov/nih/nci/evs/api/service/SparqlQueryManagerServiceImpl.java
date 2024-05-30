@@ -236,7 +236,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * @return the term
    */
   private String getTerm(final String source) {
-    final String term = FilenameUtils.getBaseName(source).replaceFirst("Ontology", "");
+    final String term =
+        FilenameUtils.getBaseName(source).replaceFirst("Ontology", "").replaceAll("-", "");
     if (term.equals("Thesaurus")) {
       return "ncit";
     }
