@@ -1124,7 +1124,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final String key = conceptCode + role.getCode() + role.getRelatedCode();
       if (!seen.contains(key)) {
         // Exclude roles remodeled as parent/child
-        if (terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+        if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
           roles.add(role);
         }
       }
@@ -1177,7 +1177,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final String key = conceptCode + role.getCode() + role.getRelatedCode();
       if (!seen.contains(key)) {
         // Exclude roles remodeled as parent/child
-        if (terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+        if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
           resultMap.get(conceptCode).add(role);
         }
       }
@@ -1215,7 +1215,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final String key = role.getCode() + role.getRelatedCode();
       if (!seen.contains(key)) {
         // Exclude roles remodeled as parent/child
-        if (terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+        if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
           roles.add(role);
         }
       }
@@ -1268,7 +1268,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final String key = conceptCode + role.getCode() + role.getRelatedCode();
       if (!seen.contains(key)) {
         // Exclude roles remodeled as parent/child
-        if (terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+        if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
           resultMap.get(conceptCode).add(role);
         }
       }
@@ -1320,7 +1320,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         final String key = conceptCode + role.getCode() + role.getRelatedCode();
         if (!seen.contains(key)) {
           // Exclude roles remodeled as parent/child
-          if (terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+          if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
             resultMap.get(conceptCode).add(role);
           }
         }
@@ -1332,7 +1332,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         final String key = conceptCode + role.getCode() + role.getRelatedCode();
         if (!seen.contains(key)) {
           // Exclude roles remodeled as parent/child
-          if (terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+          if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
             resultMap.get(conceptCode).add(role);
           }
         }
@@ -2124,7 +2124,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       role.setCode(EVSUtils.getPropertyCode(b));
 
       // Exclude roles remodeled as parent/child
-      if (terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+      if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
         roles.add(role);
       }
     }
