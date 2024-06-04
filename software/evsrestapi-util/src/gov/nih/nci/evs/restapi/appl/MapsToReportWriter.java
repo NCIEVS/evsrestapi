@@ -387,7 +387,8 @@ Mapped ICDO3.1 Morphology PT Terminology (C168658)
 	//We don’t want the SY entries to show up in the following two sets C168658 Mapped ICDO3.1 Morphology PT Terminology and C168662 Mapped ICDO3.2 Morphology PT Terminology.
 	//C168663|Mapped ICDO3.2 Topography Terminology|C12252|Abdominal Esophagus|Related To|C15.2|Abdominal esophagus|PT|ICDO3|3.2
 	public Vector filterTargetTermType(Vector v, String code, String term_type) {
-		if (code.compareTo("C168658") != 0 && code.compareTo("C168662") != 0) return v;
+		if (code.compareTo("C168658") != 0 && code.compareTo("C168662") != 0 &&
+		    code.compareTo("C168660") != 0 && code.compareTo("C168664") != 0) return v;
 		Vector w = new Vector();
 		w.add((String) v.elementAt(0));
 		for (int i=1; i<v.size(); i++) {
