@@ -308,6 +308,7 @@ public class OWLSPARQLUtils {
 		return null;
 	}
 
+/*
 	public String construct_get_ontology_info() {
 		StringBuffer buf = new StringBuffer();
 		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
@@ -344,6 +345,33 @@ public class OWLSPARQLUtils {
 		buf.append("").append("\n");
 		return buf.toString();
 	}
+*/
+
+	public String construct_get_ontology_info() {
+		StringBuffer buf = new StringBuffer();
+		buf.append("PREFIX xml:<http://www.w3.org/XML/1998/namespace>").append("\n");
+		buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
+		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+		buf.append("PREFIX owl2xml:<http://www.w3.org/2006/12/owl2-xml#>").append("\n");
+		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
+		buf.append("PREFIX oboInOwl:<http://www.geneontology.org/formats/oboInOwl#>").append("\n");
+		buf.append("SELECT ?g ?x_version_info ?x_dc_date ?x_comment").append("\n");
+		buf.append("{").append("\n");
+		buf.append("    graph <" + named_graph + ">").append("\n");
+		buf.append("    {").append("\n");
+		buf.append("	    ?x a owl:Ontology .").append("\n");
+		buf.append("	    ?x owl:versionInfo ?x_version_info .").append("\n");
+		buf.append("        OPTIONAL {").append("\n");
+		buf.append("	        ?x dc:date ?x_dc_date .").append("\n");
+		buf.append("	        ?x rdfs:comment ?x_comment").append("\n");
+		buf.append("        }").append("\n");
+		buf.append("    }").append("\n");
+		buf.append("}").append("\n");
+		return buf.toString();
+	}
+
 
 	public Vector get_ontology_info() {
 		Vector v = executeQuery(construct_get_ontology_info());
@@ -352,7 +380,9 @@ public class OWLSPARQLUtils {
 	}
 
 	public Vector get_ontology_info(String named_graph) {
-		Vector v = executeQuery(construct_get_ontology_info(named_graph));
+		String query = construct_get_ontology_info(named_graph);
+		System.out.println(query);
+		Vector v = executeQuery(query);
 		return v;
 	}
 
@@ -365,34 +395,20 @@ public class OWLSPARQLUtils {
 		buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
 		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
 		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
-
-
 		buf.append("SELECT ?x_version_info ?x_dc_date ?x_comment").append("\n");
 		buf.append("{").append("\n");
 		if (named_graph != null) {
 			buf.append("    graph <" + named_graph + ">").append("\n");
 	    }
 		buf.append("    {").append("\n");
-
-		buf.append("    {").append("\n");
 		buf.append("	    ?x a owl:Ontology .").append("\n");
 		buf.append("	    ?x owl:versionInfo ?x_version_info .").append("\n");
-		buf.append("        OPTIONAL {").append("\n");
+		//buf.append("        OPTIONAL {").append("\n");
 		buf.append("	        ?x dc:date ?x_dc_date .").append("\n");
 		buf.append("	        ?x rdfs:comment ?x_comment").append("\n");
-		buf.append("        }").append("\n");
+		//buf.append("        }").append("\n");
 		buf.append("    }").append("\n");
-		buf.append("    UNION").append("\n");
-		buf.append("    {").append("\n");
-		buf.append("	    ?x a owl:Ontology .").append("\n");
-		buf.append("	    ?x owl:versionIRI ?x_version_info .").append("\n");
-		buf.append("	    OPTIONAL {?x dc:date ?x_dc_date .}").append("\n");
-		buf.append("	    ?x rdfs:comment ?x_comment").append("\n");
-		buf.append("    }").append("\n");
-
-        buf.append("    }").append("\n");
 		buf.append("}").append("\n");
-		buf.append("").append("\n");
 		return buf.toString();
 	}
 
@@ -6231,34 +6247,69 @@ bnode_07130346_a093_4c67_ad70_efd4d5bc5796_242618|Thorax|C12799|Maps_To|P375|Tho
         return new SortUtils().quickSort(v);
 	}
 
+	public String construct_get_version(String named_graph) {
+		System.out.println("named_graph: " + named_graph);
+
+		StringBuffer buf = new StringBuffer();
+		//buf.append("PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>").append("\n");
+		buf.append("PREFIX owl:<http://www.w3.org/2002/07/owl#>").append("\n");
+		//buf.append("PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>").append("\n");
+		buf.append("PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>").append("\n");
+		buf.append("PREFIX dc:<http://purl.org/dc/elements/1.1/>").append("\n");
+
+        //String prefixes = getPrefixes();
+        //StringBuffer buf = new StringBuffer();
+        //buf.append(prefixes);
+        //buf.append("SELECT ?x_version_info ?x_dc_date ?x_comment").append("\n");
+
+        buf.append("SELECT ?x_version_info").append("\n");
+        buf.append("{").append("\n");
+        buf.append("    graph <" + named_graph + ">").append("\n");
+        buf.append("    {").append("\n");
+        buf.append("            ?x a owl:Ontology .").append("\n");
+        buf.append("            ?x owl:versionInfo ?x_version_info .").append("\n");
+        //buf.append("            ?x dc:date ?x_dc_date .").append("\n");
+        //buf.append("            ?x rdfs:comment ?x_comment").append("\n");
+        buf.append("    }").append("\n");
+        buf.append("}").append("\n");
+        return buf.toString();
+	}
+
+
+	public String getVersion(String named_graph) {
+        String query = construct_get_version(named_graph);
+        System.out.println(query);
+        Vector v = executeQuery(query);
+        if (v == null) {
+			System.out.println("v == null???");
+			return null;
+		}
+        if (v.size() == 0) return null;
+        String line = (String) v.elementAt(0);
+        Vector u = StringUtils.parseData(line, '|');
+        return (String) u.elementAt(0);
+	}
+
+/*
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
 
-		String serviceUrl = args[0];
-		String namedGraph = args[1];
-		String username = args[2];
-		String password = args[3];
-/*
 		String serviceUrl = ConfigurationController.serviceUrl;
 		String namedGraph = ConfigurationController.namedGraph;
 		String username = ConfigurationController.username;
 		String password = ConfigurationController.password;
-*/
+
+		System.out.println("serviceUrl: " + serviceUrl);
+		System.out.println("namedGraph: " + namedGraph);
 
 	    OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
 	    owlSPARQLUtils.set_named_graph(namedGraph);
 
-	    Vector v = owlSPARQLUtils.getObjectPropertiesDomainRange(namedGraph);
-	    Utils.dumpVector("dmoain_range", v);
-	    /*
-        String code = "C96255";
-	    boolean isStage = owlSPARQLUtils.hasRole(namedGraph, code, "Disease_Is_Stage");
-        System.out.println("isStage? " + code + ": " + isStage);
-		//FIGO Stage IIIA2 Ovarian Cancer (Code C128091)
-        code = "C128091";
-	    isStage = owlSPARQLUtils.hasRole(namedGraph, code, "Disease_Is_Stage");
-        System.out.println("isStage? " + code + ": " + isStage);
-        */
+	    //Vector v = owlSPARQLUtils.getObjectPropertiesDomainRange(namedGraph);
+	    String version = owlSPARQLUtils.getVersion(namedGraph);
+        System.out.println("version: " + version);
+
     }
+*/
 }
 
