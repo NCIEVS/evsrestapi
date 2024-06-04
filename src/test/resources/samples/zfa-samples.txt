@@ -4,7 +4,7 @@ http://purl.obolibrary.org/obo/ZFA_0000000	ZFA:0000000	obo:IAO_0000115	The visib
 http://purl.obolibrary.org/obo/ZFA_0000000	ZFA:0000000	oboInOwl:hasDbXref	TAO:0000000
 http://purl.obolibrary.org/obo/ZFA_0000000	ZFA:0000000	oboInOwl:hasOBONamespace	zebrafish_anatomy
 http://purl.obolibrary.org/obo/ZFA_0000000	ZFA:0000000	rdfs:label	Brachet&apos;s cleft
-http://purl.obolibrary.org/obo/ZFA_0000001	ZFA:0000001	rdfs:subClassOf/owl:Restriction~part_of	ZFA:0000077
+#http://purl.obolibrary.org/obo/ZFA_0000001	ZFA:0000001	rdfs:subClassOf/owl:Restriction~part_of	ZFA:0000077
 http://purl.obolibrary.org/obo/ZFA_0000001	ZFA:0000001	rdfs:subClassOf/owl:Restriction~develops_from	ZFA:0000023
 http://purl.obolibrary.org/obo/ZFA_0000001	ZFA:0000001	oboInOwl:hasExactSynonym	ciliated organ of asymmetry
 http://purl.obolibrary.org/obo/ZFA_0000005	ZFA:0000005	oboInOwl:hasRelatedSynonym	arterial system

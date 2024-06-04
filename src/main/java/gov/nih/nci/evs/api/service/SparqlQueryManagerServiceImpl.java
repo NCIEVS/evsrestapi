@@ -2434,10 +2434,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public List<Concept> getAllConceptsWithCode(final Terminology terminology) throws IOException {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
-    log.debug("query prefix = {}", queryPrefix);
     final String query = queryBuilderService.constructQuery("all.concepts.with.code", terminology);
-    log.debug("query = {}", query);
-    log.debug("query url = {}", getQueryURL());
     String res = null;
     try {
       res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
@@ -2476,11 +2473,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public List<Concept> getAllConceptsWithoutCode(final Terminology terminology) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
-    log.debug("query prefix = {}", queryPrefix);
     final String query =
         queryBuilderService.constructQuery("all.concepts.without.code", terminology);
-    log.debug("query = {}", query);
-    log.debug("query url = {}", getQueryURL());
     String res = null;
     try {
       res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());

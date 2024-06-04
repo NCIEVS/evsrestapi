@@ -10,6 +10,7 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.util.set.Sets;
 import org.junit.BeforeClass;
@@ -46,7 +47,10 @@ public class SparqlQueriesTests {
     }
   }
 
-  /** Test query fields. */
+  /**
+   * This test looks for fields in sparql that are delcared but not returned. Using ?x_... is an
+   * escape hatch.
+   */
   @Test
   public void testQueryFields() {
 
@@ -171,6 +175,7 @@ public class SparqlQueriesTests {
 
       // If query contains "#{preferredNameCode} ?XXXLabel"
       // It should on the next line contain "#{codeCode} ?XXXCode"
+      // (This is just to make sure everywhere we're getting a label we are also getting the code)
       boolean flag = false;
       String prefix = null;
       for (final String line : query.split(" \\. ")) {
