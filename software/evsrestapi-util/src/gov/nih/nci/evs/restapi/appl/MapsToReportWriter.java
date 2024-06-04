@@ -52,6 +52,10 @@ public class MapsToReportWriter {
 		this.namedGraph = namedGraph;
 		this.username = username;
 		this.password = password;
+
+		System.out.println("serviceUrl: " + serviceUrl);
+		System.out.println("namedGraph: " + namedGraph);
+
 		owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
 		if (owlSPARQLUtils == null) {
 			System.out.println("WARNING: unable to instantiate owlSPARQLUtils???");
@@ -272,12 +276,9 @@ public class MapsToReportWriter {
 
     public Vector generateMapsToReport(String code, String terminology_name, String terminology_version) {
 		Vector v = getMapsToData(terminology_name, terminology_version);
-		//Utils.dumpVector(terminology_name + " (" + terminology_version + ")", v);
 		Utils.saveToFile(terminology_name + "_" + terminology_version + ".txt", v);
-		//Utils.saveToFile("MapsTo_" + terminology_name + "_" + terminology_version + ".txt", v);
 		boolean codeOnly = true;
 		Vector members = owlSPARQLUtils.getSubsetMembership(namedGraph, code, codeOnly);
-        //Utils.saveToFile("members_" + code + ".txt", members);
 		v = sortByColumn(v, "NCIt Preferred Term");
 		String label = getLabelByCode(code);
 		Vector w = new Vector();
@@ -383,6 +384,22 @@ Mapped ICDO3.1 Morphology PT Terminology (C168658)
 		run(terminology_name, terminology_version, codes);
 	}
 
+	//We don’t want the SY entries to show up in the following two sets C168658 Mapped ICDO3.1 Morphology PT Terminology and C168662 Mapped ICDO3.2 Morphology PT Terminology.
+	//C168663|Mapped ICDO3.2 Topography Terminology|C12252|Abdominal Esophagus|Related To|C15.2|Abdominal esophagus|PT|ICDO3|3.2
+	public Vector removeTargetTermType(Vector v, String code, String type) {
+		if (code.compareTo("C168658") != 0 && code.compareTo("C168662") != 0) return v;
+		Vector w = new Vector();
+		for (int i=1; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String term_type = (String) u.elementAt(7);
+			if (type.compareTo(term_type) != 0) {
+				w.add(line);
+			}
+		}
+		return w;
+	}
+
     public void run(String terminology_name, String terminology_version, Vector codes) {
 		Vector datafile_vec = new Vector();
 		Vector sheetLabel_vec = new Vector();
@@ -392,6 +409,7 @@ Mapped ICDO3.1 Morphology PT Terminology (C168658)
         for (int i=0; i<codes.size(); i++) {
 			String code = (String) codes.elementAt(i);
 			Vector v = generateMapsToReport(code, terminology_name, terminology_version);
+			v = removeTargetTermType(v, code, "SY");
 			String label = getLabelByCode(code);
 			System.out.println(label + " (" + code + ")");
 			Utils.saveToFile(code + ".txt", v);
@@ -408,19 +426,22 @@ Mapped ICDO3.1 Morphology PT Terminology (C168658)
 		new ExcelWriter().writeToXSSF(datafile_vec, excelfile, delim, sheetLabel_vec, null);
 		System.out.println(excelfile + " generated.");
 	}
-
+/*
     public static void main(String[] args) {
-		String serviceUrl = args[0];
-		String named_graph = args[1];
-		String username = args[2];
-		String password = args[3];
-		String terminology_name = args[4];
-		String terminology_version = args[5];
+		String serviceUrl = ConfigurationController.serviceUrl;
+		String namedGraph = ConfigurationController.namedGraph;
+		String username = ConfigurationController.username;
+		String password = ConfigurationController.password;
+
+		String terminology_name = args[0];
+		String terminology_version = args[1];
+
 		long ms = System.currentTimeMillis();
-		MapsToReportWriter mapsToReportWriter = new MapsToReportWriter(serviceUrl, named_graph, username, password);
+		MapsToReportWriter mapsToReportWriter = new MapsToReportWriter(serviceUrl, namedGraph, username, password);
 		mapsToReportWriter.run(terminology_name, terminology_version);
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
     }
+*/
 }
 
 
