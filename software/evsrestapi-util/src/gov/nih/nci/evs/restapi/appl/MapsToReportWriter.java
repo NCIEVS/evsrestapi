@@ -386,14 +386,15 @@ Mapped ICDO3.1 Morphology PT Terminology (C168658)
 
 	//We don’t want the SY entries to show up in the following two sets C168658 Mapped ICDO3.1 Morphology PT Terminology and C168662 Mapped ICDO3.2 Morphology PT Terminology.
 	//C168663|Mapped ICDO3.2 Topography Terminology|C12252|Abdominal Esophagus|Related To|C15.2|Abdominal esophagus|PT|ICDO3|3.2
-	public Vector removeTargetTermType(Vector v, String code, String type) {
+	public Vector filterTargetTermType(Vector v, String code, String term_type) {
 		if (code.compareTo("C168658") != 0 && code.compareTo("C168662") != 0) return v;
 		Vector w = new Vector();
+		w.add((String) v.elementAt(0));
 		for (int i=1; i<v.size(); i++) {
 			String line = (String) v.elementAt(i);
 			Vector u = StringUtils.parseData(line, '|');
-			String term_type = (String) u.elementAt(7);
-			if (type.compareTo(term_type) != 0) {
+			String type = (String) u.elementAt(7);
+			if (type.compareTo(term_type) == 0) {
 				w.add(line);
 			}
 		}
@@ -409,7 +410,7 @@ Mapped ICDO3.1 Morphology PT Terminology (C168658)
         for (int i=0; i<codes.size(); i++) {
 			String code = (String) codes.elementAt(i);
 			Vector v = generateMapsToReport(code, terminology_name, terminology_version);
-			v = removeTargetTermType(v, code, "SY");
+			v = filterTargetTermType(v, code, "PT");
 			String label = getLabelByCode(code);
 			System.out.println(label + " (" + code + ")");
 			Utils.saveToFile(code + ".txt", v);
