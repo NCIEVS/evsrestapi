@@ -1,10 +1,13 @@
 package gov.nih.nci.evs.api.service;
 
+import java.io.IOException;
+import java.util.Set;
+
+import org.springframework.context.ApplicationContext;
+
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
-import java.io.IOException;
-import org.springframework.context.ApplicationContext;
 
 /**
  * The service to load concepts to Elasticsearch
@@ -53,15 +56,17 @@ public interface ElasticLoadService {
    * @param terminology the terminology
    * @throws Exception the exception
    */
-  void cleanStaleIndexes(Terminology terminology) throws Exception;
+  Set<String> cleanStaleIndexes(Terminology terminology) throws Exception;
 
   /**
    * Update latest flag.
    *
    * @param terminology the terminology
+   * @param removed the removed terminologyVersion combinations (by cleanStaleIndexes). Needed
+   *     because elasticsearch may not have yet finished removing them.
    * @throws Exception the exception
    */
-  void updateLatestFlag(Terminology terminology) throws Exception;
+  void updateLatestFlag(Terminology terminology, Set<String> removed) throws Exception;
 
   /**
    * Get Terminology object

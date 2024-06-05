@@ -1456,15 +1456,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     return utils;
   }
 
-  /**
-   * Clean stale indexes.
-   *
-   * @param terminology the terminology
-   * @throws Exception the exception
-   */
   @Override
-  public void cleanStaleIndexes(final Terminology terminology) throws Exception {
+  public final Set<String> cleanStaleIndexes(final Terminology terminology) throws Exception {
     // do nothing - override superclass behavior
+    return new HashSet<>(0);
   }
 
   /**

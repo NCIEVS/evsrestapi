@@ -114,6 +114,15 @@ public final class TerminologyUtils {
       terminologies.stream().forEach(t -> stardogMap.putIfAbsent(t.getTerminologyVersion(), t));
     }
 
+    logger.info(
+        "XXX stardog = " + stardogMap.keySet().stream().sorted().collect(Collectors.toList()));
+    logger.info(
+        "XXX imetas  = "
+            + iMetas.stream()
+                .map(i -> i.getTerminologyVersion())
+                .sorted()
+                .collect(Collectors.toList()));
+
     // Stale means matching current terminology, not loaded via RRF, and in NOT
     // in stardog
     return iMetas.stream()
