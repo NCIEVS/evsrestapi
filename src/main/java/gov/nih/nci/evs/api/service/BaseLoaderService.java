@@ -441,18 +441,15 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
     try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
       return new ObjectMapper().readTree(IOUtils.toString(is, "UTF-8"));
-    } catch (Throwable t) { // read as file if no url
+    } catch (Throwable t) {
+      // read as file if no url
       logger.info("try config as file: " + uri);
       try {
         return new ObjectMapper()
             .readTree(FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8));
       } catch (IOException ex) {
-        throw new IOException("Could not find either file or uri for welcomeText: " + uri); // only
-        // throw
-        // exception
-        // if
-        // both
-        // fail
+        // only throw exception if both fail
+        throw new IOException("Could not find either file or uri for welcomeText: " + uri);
       }
     }
   }
