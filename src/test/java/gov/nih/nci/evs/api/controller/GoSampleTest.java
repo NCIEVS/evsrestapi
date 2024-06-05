@@ -119,4 +119,30 @@ public class GoSampleTest extends SampleTest {
     assertThat(concept.getTerminology()).isEqualTo("go");
     assertThat(concept.getActive()).isTrue();
   }
+
+  /**
+   * Test part of parent.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPartOfParent() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // This concept has a particular "complex" role - verify that it's present
+    // If not there may be a problem in sparql-queries.properties for roles.all.complex
+    url = "/api/v1/concept/go/GO:0000015?include=parents";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("GO:0000015");
+    assertThat(concept.getParents().stream().filter(p -> p.getCode().equals("GO:0005829")).count())
+        .isGreaterThan(0);
+  }
 }

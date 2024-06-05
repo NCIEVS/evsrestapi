@@ -1,0 +1,4 @@
+# Sample concepts to include in report
+ZFA:0000214
+# This concept has a part_of parent of ZFA:0001378
+ZFA:0000004

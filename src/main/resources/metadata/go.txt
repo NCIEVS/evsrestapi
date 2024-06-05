@@ -7,3 +7,5 @@ GO:0022414
 GO:0001906
 GO:0044597
 GO:0120081 
+# This concept should have a "part_of" parent of GO:0005829
+GO:0000015

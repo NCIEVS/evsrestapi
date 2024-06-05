@@ -42,7 +42,7 @@ public class NdfrtSampleTest extends SampleTest {
 
   @BeforeClass
   public static void setupClass() throws Exception {
-    loadSamples("ndf-rt", "src/test/resources/samples/ndf-rt-samples.txt");
+    loadSamples("ndfrt", "src/test/resources/samples/ndfrt-samples.txt");
   }
 
   @Test
@@ -55,7 +55,7 @@ public class NdfrtSampleTest extends SampleTest {
     log.info("Testing url - " + url);
     result =
         testMvc
-            .perform(get(url).param("latest", "true").param("terminology", "ndf-rt"))
+            .perform(get(url).param("latest", "true").param("terminology", "ndfrt"))
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
@@ -69,11 +69,11 @@ public class NdfrtSampleTest extends SampleTest {
                   // n/a
                 });
     assertThat(terminologies.size()).isGreaterThan(0);
-    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ndf-rt")).count())
+    assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("ndfrt")).count())
         .isEqualTo(1);
     final Terminology ndfrt =
-        terminologies.stream().filter(t -> t.getTerminology().equals("ndf-rt")).findFirst().get();
-    assertThat(ndfrt.getTerminology()).isEqualTo("ndf-rt");
+        terminologies.stream().filter(t -> t.getTerminology().equals("ndfrt")).findFirst().get();
+    assertThat(ndfrt.getTerminology()).isEqualTo("ndfrt");
     assertThat(ndfrt.getMetadata().getUiLabel())
         .isEqualTo("NDF-RT: National Drug File Reference Terminology");
     assertThat(ndfrt.getName())
@@ -106,7 +106,7 @@ public class NdfrtSampleTest extends SampleTest {
     Concept concept = null;
 
     // Test active
-    url = "/api/v1/concept/ndf-rt/N0000000004";
+    url = "/api/v1/concept/ndfrt/N0000000004";
     log.info("Testing url - " + url);
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -114,7 +114,7 @@ public class NdfrtSampleTest extends SampleTest {
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("N0000000004");
-    assertThat(concept.getTerminology()).isEqualTo("ndf-rt");
+    assertThat(concept.getTerminology()).isEqualTo("ndfrt");
     assertThat(concept.getActive()).isTrue();
   }
 }

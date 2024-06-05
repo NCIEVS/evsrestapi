@@ -14,11 +14,11 @@ http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	term_tracker_item	https://g
 http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	oboInOwl:created_by	bf
 http://purl.obolibrary.org/obo/GO_0000010	GO:0000010	oboInOwl:creation_date	2013-09-16T11:50:41Z
 http://purl.obolibrary.org/obo/GO_0000011	GO:0000011	RO_0002161	NCBITaxon_4896
-http://purl.obolibrary.org/obo/GO_0000015	GO:0000015	rdfs:subClassOf/owl:Restriction~part_of	GO:0005829
+#http://purl.obolibrary.org/obo/GO_0000015	GO:0000015	rdfs:subClassOf/owl:Restriction~part_of	GO:0005829
 http://purl.obolibrary.org/obo/GO_0000018	GO:0000018	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~regulates	GO:0006310
 http://purl.obolibrary.org/obo/GO_0000018	GO:0000018	rdfs:subClassOf/owl:Restriction~regulates	GO:0006310
 http://purl.obolibrary.org/obo/GO_0000019	GO:0000019	oboInOwl:hasNarrowSynonym	regulation of recombination within rDNA repeats
-http://purl.obolibrary.org/obo/GO_0000022	GO:0000022	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~part_of	GO:0000278
+#http://purl.obolibrary.org/obo/GO_0000022	GO:0000022	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~part_of	GO:0000278
 http://purl.obolibrary.org/obo/GO_0000035	GO:0000035	oboInOwl:hasBroadSynonym	acyl-CoA or acyl binding
 http://purl.obolibrary.org/obo/GO_0000045	GO:0000045	rdfs:subClassOf/owl:Restriction~has_part	GO:0019778
 http://purl.obolibrary.org/obo/GO_0000075	GO:0000075	owl:equivalentClass/owl:Class/owl:intersectionOf/owl:Restriction~negatively_regulates	GO:0044770

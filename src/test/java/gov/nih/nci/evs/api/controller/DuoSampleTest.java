@@ -112,4 +112,36 @@ public class DuoSampleTest extends SampleTest {
     assertThat(concept.getTerminology()).isEqualTo("duo");
     assertThat(concept.getActive()).isTrue();
   }
+
+  @Test
+  public void testDisjointWith() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // This concept has a particular "complex" role - verify that it's present
+    // If not there may be a problem in sparql-queries.properties for roles.all.complex
+    url = "/api/v1/concept/duo/BFO_0000031?include=associations,inverseAssociations,disjointWith";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("BFO_0000031");
+    // Verify no "disjointWith" associations
+    assertThat(
+            concept.getAssociations().stream()
+                .filter(a -> a.getType().equals("disjointWith"))
+                .count())
+        .isEqualTo(0);
+    assertThat(
+            concept.getInverseAssociations().stream()
+                .filter(a -> a.getType().equals("disjointWith"))
+                .count())
+        .isEqualTo(0);
+    // Verify disjoint with
+    assertThat(concept.getDisjointWith().size()).isGreaterThan(0);
+  }
 }

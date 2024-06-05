@@ -1,7 +1,7 @@
 http://purl.obolibrary.org/obo/MA_0000001	MA:0000001	oboInOwl:hasOBONamespace	adult_mouse_anatomy.gxd
 http://purl.obolibrary.org/obo/MA_0000001	MA:0000001	oboInOwl:hasRelatedSynonym	mouse anatomy
 http://purl.obolibrary.org/obo/MA_0000001	MA:0000001	rdfs:label	mouse anatomical entity
-http://purl.obolibrary.org/obo/MA_0000002	MA:0000002	rdfs:subClassOf/owl:Restriction~part_of	MA:0000216
+#http://purl.obolibrary.org/obo/MA_0000002	MA:0000002	rdfs:subClassOf/owl:Restriction~part_of	MA:0000216
 http://purl.obolibrary.org/obo/MA_0000002	MA:0000002	oboInOwl:hasDbXref	EMAPS:3579228
 http://purl.obolibrary.org/obo/MA_0000009	MA:0000009	oboInOwl:hasAlternativeId	MA:0000056
 http://purl.obolibrary.org/obo/MA_0000009	MA:0000009	oboInOwl:hasExactSynonym	fat
