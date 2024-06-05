@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 
 /**
  * EmailDetails model, created from a JsonObject data form. This allows us to handle the form data
@@ -8,7 +9,7 @@ import com.fasterxml.jackson.databind.JsonNode;
  */
 // BAC: for now back away from this
 // @Data
-public class EmailDetails {
+public class EmailDetails extends BaseModel {
 
   /** The source. */
   private String source;
@@ -145,7 +146,8 @@ public class EmailDetails {
       final String recipientEmail = formData.get("recipientEmail").textValue();
       final String businessEmail = formData.get("businessEmail").textValue();
       final String subject = formData.get("subject").textValue();
-      final String body = formData.get("body").textValue();
+      // format the json object to a string
+      final String body = formatBody(formData.get("body"));
 
       if (formName == null
           || formName.isEmpty()
@@ -163,6 +165,7 @@ public class EmailDetails {
         throw new Exception(nullError);
       }
 
+      // populate the emailDetails
       emailDetails.setSource(formName);
       emailDetails.setToEmail(recipientEmail);
       emailDetails.setFromEmail(businessEmail);
@@ -170,6 +173,57 @@ public class EmailDetails {
       emailDetails.setMsgBody(body);
 
       return emailDetails;
+    }
+  }
+
+  /**
+   * Format the body of the email.
+   *
+   * @param body JsonNode body of the email
+   * @return formatted string of the body
+   */
+  public static String formatBody(JsonNode body) {
+    StringBuilder formattedBody = new StringBuilder();
+    formatBodyRecursive(body, formattedBody, "");
+    return formattedBody.toString();
+  }
+
+  /**
+   * Recursive helper function to format the body of the email.
+   *
+   * @param body the JsonNode body of the email
+   * @param formattedBody the formatted body we are building
+   * @param indent the indent between key/values
+   */
+  private static void formatBodyRecursive(
+      JsonNode body, StringBuilder formattedBody, String indent) {
+    if (body.isObject()) {
+      ObjectNode object = (ObjectNode) body;
+      object
+          .fields()
+          .forEachRemaining(
+              entry -> {
+                String key = entry.getKey();
+                String capitalizedKey = Character.toUpperCase(key.charAt(0)) + key.substring(1);
+                // check we are on the root node
+                if (indent.isEmpty()) {
+                  // we are in the root node and want to print the key
+                  formattedBody.append(indent).append(capitalizedKey).append(":\n");
+                  formatBodyRecursive(entry.getValue(), formattedBody, indent + "  ");
+                } else {
+                  // we are in the field and want both key/value pairs
+                  formattedBody.append(indent).append(capitalizedKey).append(": ");
+                  formatBodyRecursive(entry.getValue(), formattedBody, indent);
+                }
+              });
+    } else if (body.isArray()) {
+      // check if we have an array
+      for (JsonNode field : body) {
+        formatBodyRecursive(field, formattedBody, indent + "  ");
+      }
+    } else {
+      // we are at the leaf node
+      formattedBody.append(indent).append(body.asText()).append("\n");
     }
   }
 }
