@@ -1,5 +1,15 @@
 package gov.nih.nci.evs.api.service;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.MainTypeHierarchy;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -12,7 +22,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -21,18 +30,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMinimal;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.properties.StardogProperties;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.MainTypeHierarchy;
 
 /** The implementation for {@link ElasticLoadService} that just generates a report. */
 @Service

@@ -1,5 +1,14 @@
 package gov.nih.nci.evs.api.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.support.es.IndexMetadata;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,7 +22,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -27,17 +35,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.util.CollectionUtils;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
-import gov.nih.nci.evs.api.support.es.IndexMetadata;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * The service to load concepts to Elasticsearch
@@ -202,7 +199,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
       // delete metadata object
       logger.info("    REMOVE evs_metadata " + indexName);
-      operationsService.deleteIndexMetadata(indexName);
+      String id = operationsService.deleteIndexMetadata(indexName);
+      logger.info("      id = " + id);
 
       removed.add(iMeta.getTerminologyVersion());
     }
@@ -221,6 +219,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     // update latest flag
     logger.info("Updating latest flags on all metadata objects");
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+
+    // If certain terminology/version combinations were removed, skip them here
     iMetas.removeIf(m -> removed.contains(m.getTerminologyVersion()));
     if (CollectionUtils.isEmpty(iMetas)) {
       return;

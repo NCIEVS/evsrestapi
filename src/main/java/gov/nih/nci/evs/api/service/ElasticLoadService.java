@@ -1,13 +1,11 @@
 package gov.nih.nci.evs.api.service;
 
-import java.io.IOException;
-import java.util.Set;
-
-import org.springframework.context.ApplicationContext;
-
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
+import java.io.IOException;
+import java.util.Set;
+import org.springframework.context.ApplicationContext;
 
 /**
  * The service to load concepts to Elasticsearch
