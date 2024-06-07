@@ -377,15 +377,17 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
     // This block is for debugging presence of the iMeta
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
-    for (IndexMetadata iMetaPostLoad : iMetas) {
-      logger.info("iMetaPostLoad (true) = " + iMetaPostLoad);
-    }
+    final List<String> completed =
+        iMetas.stream().map(t -> t.getTerminologyVersion()).sorted().collect(Collectors.toList());
+    logger.info("  Completed terminologies = " + completed);
 
-    // This block is for debugging presence of the iMeta
-    iMetas = esQueryService.getIndexMetadata(false);
-    for (IndexMetadata iMetaPostLoad : iMetas) {
-      logger.info("iMetaPostLoad (false) = " + iMetaPostLoad);
-    }
+    logger.info(
+        "  NOT Completed terminologies = "
+            + iMetas.stream()
+                .map(t -> t.getTerminologyVersion())
+                .filter(t -> !completed.contains(t))
+                .sorted()
+                .collect(Collectors.toList()));
   }
 
   /**
