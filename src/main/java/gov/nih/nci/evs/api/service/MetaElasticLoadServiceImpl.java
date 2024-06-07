@@ -1648,14 +1648,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     return null;
   }
 
-  /**
-   * Clean stale indexes.
-   *
-   * @param terminology the terminology
-   * @throws Exception the exception
-   */
+  /* see superclass */
   @Override
-  public void cleanStaleIndexes(final Terminology terminology) throws Exception {
+  public Set<String> cleanStaleIndexes(final Terminology terminology) throws Exception {
     // do nothing - override superclass behavior
+    return new HashSet<>(0);
   }
 }

@@ -286,13 +286,15 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
 
   /* see superclass */
   @Override
-  public void cleanStaleIndexes(final Terminology terminology) throws Exception {
+  public Set<String> cleanStaleIndexes(final Terminology terminology) throws Exception {
     // n/a - report only
+    return new HashSet<>(0);
   }
 
   /* see superclass */
   @Override
-  public void updateLatestFlag(final Terminology terminology) throws Exception {
+  public void updateLatestFlag(final Terminology terminology, final Set<String> removed)
+      throws Exception {
     // n/a - report only
     lines.add("--------------------------------------------------------");
     lines.add("Finished ..." + new Date());
