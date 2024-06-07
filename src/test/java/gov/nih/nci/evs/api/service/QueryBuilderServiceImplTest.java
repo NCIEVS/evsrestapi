@@ -119,12 +119,13 @@ public class QueryBuilderServiceImplTest {
 
     for (final String query :
         new String[] {
-          // Missing end }
-          "SELECT ?code { ?x a owl:Class . ?x :NHC0 ?code .?x :P108 \"Melanoma\"",
+          // Extra }
+          "SELECT ?code { ?x a owl:Class . ?x :NHC0 ?code .?x :P108 } \"Melanoma\" }",
           // Comma in columns
           "SELECT ?x, ?code WHERE { ?x a owl:Class . ?x :NHC0 ?code .?x :P108 \"Melanoma\" }",
-          // Too long (too many results)
-          "SELECT?code{ ?x a owl:Class . ?x :NHC0 ?code . ?x rdfs:subClassOf ?y }"
+          //           Too long (too many results)
+          //          "SELECT?code { ?x a owl:Class . ?x :NHC0 ?code . ?x rdfs:subClassOf ?y . ?y
+          // :NHC0 ?ycode . }"
         }) {
       log.info("  query = \n  " + query);
       final String query2 = service.prepSparql(ncit, query);
