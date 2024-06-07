@@ -13,26 +13,20 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-/**
- * RecaptchaResponseTest test class.
- */
+/** RecaptchaResponseTest test class. */
 @SpringBootTest
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestConfiguration.class)
 public class RecaptchaResponseTest {
   RecaptchaResponse response;
 
-  /**
-   * Setup method to instanitate an instance of the Recaptcha response
-   */
+  /** Setup method to instanitate an instance of the Recaptcha response */
   @Before
   public void setUp() {
     response = new RecaptchaResponse();
   }
 
-  /**
-   * Test the isSuccess method
-   */
+  /** Test the isSuccess method */
   @Test
   public void testIsSuccess() {
     // ACT
@@ -41,9 +35,7 @@ public class RecaptchaResponseTest {
     assertTrue(response.isSuccess());
   }
 
-  /**
-   * Test the setSuccess method
-   */
+  /** Test the setSuccess method */
   @Test
   public void testSetSuccess() {
     // ACT
@@ -53,9 +45,7 @@ public class RecaptchaResponseTest {
     assertFalse(response.isSuccess());
   }
 
-  /**
-   * Test the getHostname method
-   */
+  /** Test the getHostname method */
   @Test
   public void testGetHostname() {
     // SETUP
@@ -68,9 +58,7 @@ public class RecaptchaResponseTest {
     assertEquals(hotsname, response.getHostname());
   }
 
-  /**
-   * Test the setHostname method
-   */
+  /** Test the setHostname method */
   @Test
   public void testSetHostname() {
     // SETUP
@@ -83,9 +71,7 @@ public class RecaptchaResponseTest {
     assertEquals(hostName, response.getHostname());
   }
 
-  /**
-   * Test the getChallenge_ts method
-   */
+  /** Test the getChallenge_ts method */
   @Test
   public void testGetChallenge_ts() {
     // SETUP
@@ -98,9 +84,7 @@ public class RecaptchaResponseTest {
     assertEquals(ts, response.getChallenge_ts());
   }
 
-  /**
-   * Test the setChallenge_ts method
-   */
+  /** Test the setChallenge_ts method */
   @Test
   public void testSetChallenge_ts() {
     String ts = "2023-06-09 00:14:00";
