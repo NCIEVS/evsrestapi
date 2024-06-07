@@ -1,11 +1,9 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.properties.StardogProperties;
-import gov.nih.nci.evs.api.util.ConceptUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
@@ -14,6 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 
 /**
  * Reference implementation of {@link QueryBuilderService}. Includes hibernate tags for MEME
@@ -76,6 +78,35 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
 
     // log.debug("prefix - " + prefix);
     return prefix;
+  }
+
+  /* see superclass */
+  @Override
+  public String prepSparql(final Terminology terminology, final String query) {
+
+    // Replace non space whitespace
+    String sparqlQuery = query.replaceAll("[\t\r\n]", " ");
+
+    // Replace prefixes
+    sparqlQuery = sparqlQuery.replaceFirst("(?i:.*?SELECT )", "SELECT ");
+
+    // Replace graph
+    sparqlQuery =
+        sparqlQuery.replaceFirst(
+            "(.*?)(?i:GRAPH)\\s*<[^>]+>\\s*", "$1 GRAPH <" + terminology.getGraph() + "> ");
+
+    // Add GRAPH, where it does not exist
+    // SELECT ?code WHERE { ?x a owl:Class . ?x :NHC0 ?code .?x :P108 "Melanoma" }
+    // SELECT ?code { ?x a owl:Class . ?x :NHC0 ?code .?x :P108 "Melanoma" }
+    if (!sparqlQuery.toLowerCase().contains(" graph ")) {
+      // NOTE [\d\D] is like . but includes \n
+      sparqlQuery =
+          sparqlQuery.replaceFirst(
+              "(?i:SELECT)\\s*([^{]+?)\\s*\\{\\s*(.*)\\s*\\}",
+              "SELECT $1 { GRAPH <" + terminology.getGraph() + "> { $2 } }");
+    }
+
+    return constructPrefix(terminology) + "\n" + sparqlQuery;
   }
 
   /**

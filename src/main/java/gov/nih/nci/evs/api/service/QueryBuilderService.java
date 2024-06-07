@@ -1,8 +1,9 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
 import java.util.Map;
+
+import gov.nih.nci.evs.api.model.Terminology;
 
 /** Query builder service. */
 public interface QueryBuilderService {
@@ -63,4 +64,13 @@ public interface QueryBuilderService {
    * @return the string
    */
   public String constructPrefix(Terminology terminology);
+
+  /**
+   * Prep sparql.
+   *
+   * @param terminology the terminology
+   * @param query the query
+   * @return the string
+   */
+  public String prepSparql(final Terminology terminology, final String query);
 }

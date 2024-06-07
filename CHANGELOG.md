@@ -9,6 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - FHIR R4 terminology endpoints for CodeSystem, ValueSet, and ConceptMap
 - Additional search endpoints to support Sparql querying (of rdf-loaded terminologies)
 - Support for additional terminologies (both RRF and RDF) and corresponding tests
+- Backend support for term form submission
 ### Changed
 - Upgrade to Java17
 - Upgrade to Elasticsearch 7.10+
