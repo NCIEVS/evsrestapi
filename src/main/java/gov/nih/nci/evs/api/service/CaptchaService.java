@@ -1,7 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
 import gov.nih.nci.evs.api.model.RecaptchaResponse;
-import org.apache.jena.base.Sys;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,7 +9,6 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
@@ -22,11 +20,6 @@ public class CaptchaService {
 
   private static final Logger logger = LoggerFactory.getLogger(CaptchaService.class);
 
-  @Autowired
-  public CaptchaService(RestTemplateBuilder restTemplateBuilder) {
-    this.restTemplate = restTemplateBuilder.build();
-  }
-
   @Value("${google.recaptcha.secret.key}")
   public String recaptchaSecret;
 
@@ -34,11 +27,22 @@ public class CaptchaService {
   public String recaptchaServerUrl;
 
   /**
+   * Constructor with RestTemplateBuilder arg
+   *
+   * @param restTemplateBuilder RestTemplateBuilder
+   */
+  @Autowired
+  public CaptchaService(RestTemplateBuilder restTemplateBuilder) {
+    this.restTemplate = restTemplateBuilder.build();
+  }
+
+  /**
    * Verify the recaptcha token with the google recaptcha server.
+   *
    * @param captchaToken recaptcha secret key from the submitted form
    * @return verification response True or False
    */
-  public Boolean verifyRecaptcha(String captchaToken)  {
+  public Boolean verifyRecaptcha(String captchaToken) {
     // check if the recaptcha server url is set
     if (recaptchaServerUrl == null || recaptchaServerUrl.isBlank()) {
       logger.error("Recaptcha server URL is not specified");
@@ -61,7 +65,7 @@ public class CaptchaService {
     // log rsponse details
     logger.debug("Recaptcha success = " + verificationResponse.isSuccess());
     logger.debug("Recaptcha hostname = " + verificationResponse.getHostname());
-    logger.debug("Recaptcha challenge timestampe =" + verificationResponse.getChallenge_ts());
+    logger.debug("Recaptcha challenge timestamp =" + verificationResponse.getChallenge_ts());
     if (verificationResponse.getErrorCodes() != null) {
       logger.debug("Recaptcha Errors Found: ");
       for (String error : verificationResponse.getErrorCodes()) {
@@ -69,7 +73,6 @@ public class CaptchaService {
       }
     }
     // return Recaptcha verification response
-//    return verificationResponse.isSuccess();
-    return false;
+    return verificationResponse.isSuccess();
   }
 }

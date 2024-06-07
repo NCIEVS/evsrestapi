@@ -180,7 +180,7 @@ public class TermSuggestionFormController extends BaseController {
       throws Exception {
     // Verify our captcha token
     if (!captchaService.verifyRecaptcha(captchaToken)) {
-      logger.error("ERROR: Failed to verify the submitted Recaptcha!");
+      logger.error("Failed to verify the submitted Recaptcha!");
       return ResponseEntity.badRequest().body("Unable to submit form");
     }
 

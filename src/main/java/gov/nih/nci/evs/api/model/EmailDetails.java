@@ -204,6 +204,10 @@ public class EmailDetails extends BaseModel {
           .forEachRemaining(
               entry -> {
                 String key = entry.getKey();
+                // Skip processing if the key is 'recaptcha'
+                if (key.equals("recaptcha")) {
+                  return;
+                }
                 String capitalizedKey = Character.toUpperCase(key.charAt(0)) + key.substring(1);
                 // check we are on the root node
                 if (indent.isEmpty()) {
