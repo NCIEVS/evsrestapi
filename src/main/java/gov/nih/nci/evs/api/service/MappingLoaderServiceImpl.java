@@ -46,6 +46,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   /** the environment *. */
   @Autowired Environment env;
 
+  /** The application properties. */
   @Autowired ApplicationProperties applicationProperties;
 
   /** The Elasticsearch operations service instance *. */
@@ -54,18 +55,28 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   /** The Elasticsearch operations service instance *. */
   @Autowired ElasticQueryService esQueryService;
 
-  /** The terminology utils */
+  /** The terminology utils. */
   @Autowired TerminologyUtils termUtils;
 
-  public List<ConceptMap> buildMaps(String mappingData, String[] metadata) throws Exception {
-    List<ConceptMap> maps = new ArrayList<ConceptMap>();
-    String[] mappingDataList = mappingData.split("\n");
+  /**
+   * Builds the maps.
+   *
+   * @param mappingData the mapping data
+   * @param metadata the metadata
+   * @return the list
+   * @throws Exception the exception
+   */
+  public List<ConceptMap> buildMaps(final String mappingData, final String[] metadata)
+      throws Exception {
+    final List<ConceptMap> maps = new ArrayList<ConceptMap>();
+    final String[] mappingDataList = mappingData.split("\n");
     // welcomeText = true format
     if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
       if (mappingDataList[0].split("\t").length > 2) {
-        for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
-          String[] conceptSplit = conceptMap.split("\t");
-          ConceptMap conceptToAdd = new ConceptMap();
+        for (final String conceptMap :
+            Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
+          final String[] conceptSplit = conceptMap.split("\t");
+          final ConceptMap conceptToAdd = new ConceptMap();
           conceptToAdd.setSourceCode(
               !conceptSplit[0].replace("\"", "").isBlank()
                   ? conceptSplit[0].replace("\"", "")
@@ -90,8 +101,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           maps.add(conceptToAdd);
         }
       } else if (mappingDataList[0].split("\t").length == 2) {
-        for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
-          String[] conceptSplit = conceptMap.split("\t");
+        for (final String conceptMap :
+            Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
+          final String[] conceptSplit = conceptMap.split("\t");
 
           // Determine "source"
           final String source = metadata[0].split("_")[0];
@@ -119,7 +131,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             targetName = targetConcept.getName();
           }
 
-          ConceptMap conceptToAdd = new ConceptMap();
+          final ConceptMap conceptToAdd = new ConceptMap();
           conceptToAdd.setSourceCode(conceptSplit[0].strip());
           conceptToAdd.setSourceName(sourceName);
           conceptToAdd.setSource(sourceTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
@@ -140,9 +152,10 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     }
     // mapsetLink = null + downloadOnly format
     else if (metadata[1] != null && !metadata[1].isEmpty() && !metadata[1].contains("ftp")) {
-      for (String conceptMap : Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
-        String[] conceptSplit = conceptMap.split("\",\"");
-        ConceptMap conceptToAdd = new ConceptMap();
+      for (final String conceptMap :
+          Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
+        final String[] conceptSplit = conceptMap.split("\",\"");
+        final ConceptMap conceptToAdd = new ConceptMap();
         conceptToAdd.setSourceCode(
             !conceptSplit[0].replace("\"", "").isBlank()
                 ? conceptSplit[0].replace("\"", "")
@@ -173,15 +186,23 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     return maps;
   }
 
+  /**
+   * Mapping needs update.
+   *
+   * @param code the code
+   * @param version the version
+   * @param currentMapsets the current mapsets
+   * @return the boolean
+   */
   public Boolean mappingNeedsUpdate(
-      String code, String version, Map<String, String> currentMapsets) {
+      final String code, final String version, final Map<String, String> currentMapsets) {
 
     // adding for first time
     if (currentMapsets.keySet().isEmpty() || !currentMapsets.keySet().contains(code)) {
       return true;
     }
 
-    Optional<String> currentMapVersion = Optional.ofNullable(currentMapsets.get(code));
+    final Optional<String> currentMapVersion = Optional.ofNullable(currentMapsets.get(code));
     // version number while current version number is null
     if (!version.isEmpty() && currentMapVersion.isPresent() && currentMapVersion.get().isEmpty()) {
       return true;
@@ -189,49 +210,48 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     // different version
     if (!version.isEmpty()
         && currentMapVersion.isPresent()
-        && !version.equals(currentMapVersion.get())) return true;
+        && !version.equals(currentMapVersion.get())) {
+      return true;
+    }
     return false;
   }
 
   /* see superclass */
   @Override
   public void loadObjects(
-      ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+      final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
       throws IOException, Exception {
     final String uri = applicationProperties.getConfigBaseUri();
     final String mappingUri = uri.replaceFirst("config/metadata", "data/mappings/");
     final String mapsetMetadataUri = uri + "/mapsetMetadata.txt";
+    logger.info("Get mapset metadata = " + mapsetMetadataUri);
     String rawMetadata = null;
     try (final InputStream is = new URL(mapsetMetadataUri).openConnection().getInputStream()) {
       rawMetadata = IOUtils.toString(is, StandardCharsets.UTF_8);
-    } catch (Throwable t) { // read as file if no url
+    } catch (final Throwable t) {
+      // read as file if no url
       try {
         rawMetadata =
             FileUtils.readFileToString(new File(mapsetMetadataUri), StandardCharsets.UTF_8);
-      } catch (IOException ex) {
+      } catch (final IOException ex) {
         throw new IOException(
-            "Could not find either file or uri for mapsetMetadataUri: "
-                + mapsetMetadataUri); // only
-        // throw
-        // exception
-        // if
-        // both
-        // fail
+            // only throw exception if both fail
+            "Could not find either file or uri for mapsetMetadataUri: " + mapsetMetadataUri);
       }
     }
     List<String> allLines = Arrays.asList(rawMetadata.split("\n"));
     // skip header line
     allLines = allLines.subList(1, allLines.size());
 
-    List<String> allCodes = new ArrayList<String>();
-    for (String line : allLines) {
+    final List<String> allCodes = new ArrayList<String>();
+    for (final String line : allLines) {
       if (line.split(",")[4].contains("MappingLoadServiceImpl")) {
         allCodes.add(line.split(",")[0]);
       }
     }
 
     // all the current codes that this deals with
-    List<String> currentMapsetCodes =
+    final List<String> currentMapsetCodes =
         esQueryService.getMapsets(new IncludeParam("properties")).stream()
             .filter(
                 concept ->
@@ -243,7 +263,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             .map(Concept::getCode)
             .collect(Collectors.toList());
 
-    List<String> currentMapsetVersions =
+    final List<String> currentMapsetVersions =
         esQueryService.getMapsets(new IncludeParam("properties")).stream()
             .filter(
                 concept ->
@@ -255,7 +275,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             .map(Concept::getVersion)
             .collect(Collectors.toList());
 
-    Map<String, String> currentMapsets =
+    final Map<String, String> currentMapsets =
         IntStream.range(0, currentMapsetCodes.size())
             .boxed()
             .collect(
@@ -263,35 +283,39 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                     t -> currentMapsetCodes.get(t), t -> currentMapsetVersions.get(t)));
 
     // mapsets to add (not in current index and should be)
-    List<String> mapsetsToAdd =
+    final List<String> mapsetsToAdd =
         allCodes.stream().filter(l -> !currentMapsetCodes.contains(l)).collect(Collectors.toList());
     logger.info("Mapsets to add = " + mapsetsToAdd.toString());
 
     // mapsets to remove (in current index and shouldn't be)
-    List<String> mapsetsToRemove =
+    final List<String> mapsetsToRemove =
         currentMapsetCodes.stream().filter(l -> !allCodes.contains(l)).collect(Collectors.toList());
     logger.info("Mapsets to remove = " + mapsetsToRemove.toString());
 
-    List<String> terms =
+    final List<String> terms =
         termUtils.getIndexedTerminologies(esQueryService).stream()
             .map(Terminology::getTerminology)
             .collect(Collectors.toList());
 
-    for (String line : allLines) { // build each mapset
-      String[] metadata = line.split(",", -1);
+    for (final String line : allLines) {
+      logger.info("mapset metadata line = " + allLines);
+      // build each mapset
+      final String[] metadata = line.split(",", -1);
       // remove and skip
       if (mapsetsToRemove.contains(metadata[0])) {
-        logger.info("deleting " + metadata[0]);
+        logger.info("  deleting " + metadata[0] + " " + metadata[2]);
         operationsService.delete(ElasticOperationsService.MAPPING_INDEX, metadata[0]);
         continue;
       }
+
       // skip if no update needed
       if (!mappingNeedsUpdate(metadata[0], metadata[2], currentMapsets)) {
+        logger.info("  " + metadata[0] + " " + metadata[2] + " is current");
         continue;
       } else if (!mapsetsToAdd.contains(metadata[0])) {
-        logger.info(metadata[0] + " needs update to version: " + metadata[2]);
+        logger.info("  " + metadata[0] + " needs update to version: " + metadata[2]);
       }
-      Concept map = new Concept();
+      final Concept map = new Concept();
       map.setName(metadata[0]);
       map.setCode(metadata[0]);
       if (metadata[2] != null && !metadata[2].isEmpty()) { // version numbers
@@ -307,15 +331,15 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         try (final InputStream is =
             new URL(uri + "/" + metadata[3]).openConnection().getInputStream()) {
           // text
-          String welcomeText = IOUtils.toString(is, StandardCharsets.UTF_8);
+          final String welcomeText = IOUtils.toString(is, StandardCharsets.UTF_8);
           map.getProperties().add(new Property("welcomeText", welcomeText));
-        } catch (Throwable t) { // read as file if no url
+        } catch (final Throwable t) { // read as file if no url
           try {
-            String welcomeText =
+            final String welcomeText =
                 FileUtils.readFileToString(
                     new File(uri + "/" + metadata[3]), StandardCharsets.UTF_8);
             map.getProperties().add(new Property("welcomeText", welcomeText));
-          } catch (IOException ex) {
+          } catch (final IOException ex) {
             throw new IOException(
                 "Could not find either file or uri for config base uri: "
                     + uri
@@ -333,60 +357,55 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         map.getProperties()
             .add(new Property("targetLoaded", Boolean.toString(terms.contains(metadata[7]))));
 
-        String mappingDataUri =
+        final String mappingDataUri =
             mappingUri
                 + map.getName()
                 + (map.getVersion() != null ? ("_" + map.getVersion()) : "")
                 + ".txt"; // build
         // map
         try (final InputStream is = new URL(mappingDataUri).openConnection().getInputStream()) {
-          String mappingData = IOUtils.toString(is, StandardCharsets.UTF_8);
+          final String mappingData = IOUtils.toString(is, StandardCharsets.UTF_8);
           map.setMaps(buildMaps(mappingData, metadata));
-        } catch (Throwable t) { // read as file if no url
+        } catch (final Throwable t) { // read as file if no url
           try {
-            String mappingData = FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8);
+            final String mappingData =
+                FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8);
             map.setMaps(buildMaps(mappingData, metadata));
-          } catch (IOException ex) {
+          } catch (final IOException ex) {
+            // only throw exception if both fail
             throw new IOException(
-                "Could not find either file or uri for mappingDataUri: " + mappingDataUri); // only
-            // throw
-            // exception
-            // if
-            // both
-            // fail
+                "Could not find either file or uri for mappingDataUri: " + mappingDataUri);
           }
         }
       }
 
-      if (metadata[1] != null && !metadata[1].isEmpty()) { // download links
+      // download links
+      if (metadata[1] != null && !metadata[1].isEmpty()) {
 
         map.getProperties().add(new Property("downloadOnly", "true"));
         if (metadata[1].contains("ftp")) {
           map.getProperties().add(new Property("mapsetLink", metadata[1]));
         } else {
           map.getProperties().add(new Property("mapsetLink", null));
-          String mappingDataUri =
+          // build map
+          final String mappingDataUri =
               mappingUri
                   + map.getName()
                   + (map.getVersion() != null ? ("_" + map.getVersion()) : "")
-                  + ".csv"; // build
-          // map
+                  + ".csv";
+
           try (final InputStream is = new URL(mappingDataUri).openConnection().getInputStream()) {
-            String mappingData = IOUtils.toString(is, StandardCharsets.UTF_8);
+            final String mappingData = IOUtils.toString(is, StandardCharsets.UTF_8);
             map.setMaps(buildMaps(mappingData, metadata));
-          } catch (Throwable t) { // read as file if no url
+          } catch (final Throwable t) { // read as file if no url
             try {
-              String mappingData =
+              final String mappingData =
                   FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8);
               map.setMaps(buildMaps(mappingData, metadata));
-            } catch (IOException ex) {
+            } catch (final IOException ex) {
+              // throw exception if both fail
               throw new IOException(
-                  "Could not find either file or uri for mappingDataUri: "
-                      + mappingDataUri); // throw
-              // exception
-              // if
-              // both
-              // fail
+                  "Could not find either file or uri for mappingDataUri: " + mappingDataUri);
             }
           }
         }
@@ -395,6 +414,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       }
       logger.info("indexing " + metadata[0]);
 
+      // Sort maps (e.g. mostly for SNOMED maps)
       Collections.sort(
           map.getMaps(),
           new Comparator<gov.nih.nci.evs.api.model.ConceptMap>() {
@@ -420,28 +440,31 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     }
   }
 
+  /* see superclass */
   @Override
   public int loadConcepts(
-      ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+      final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
       throws IOException, Exception {
     // TODO Auto-generated method stub
     return 0;
   }
 
+  /* see superclass */
   @Override
   public Terminology getTerminology(
-      ApplicationContext app,
-      ElasticLoadConfig config,
-      String filepath,
-      String termName,
-      boolean forceDelete)
+      final ApplicationContext app,
+      final ElasticLoadConfig config,
+      final String filepath,
+      final String termName,
+      final boolean forceDelete)
       throws Exception {
     // TODO Auto-generated method stub
     return null;
   }
 
+  /* see superclass */
   @Override
-  public HierarchyUtils getHierarchyUtils(Terminology term) throws Exception {
+  public HierarchyUtils getHierarchyUtils(final Terminology term) throws Exception {
     // TODO Auto-generated method stub
     return null;
   }

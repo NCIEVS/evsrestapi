@@ -18,7 +18,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
@@ -148,23 +150,25 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * Clean stale indexes.
    *
    * @param terminology the terminology
+   * @return the sets the
    * @throws Exception the exception
    */
   @Override
-  public void cleanStaleIndexes(final Terminology terminology) throws Exception {
+  public Set<String> cleanStaleIndexes(final Terminology terminology) throws Exception {
 
     List<IndexMetadata> iMetas =
         termUtils.getStaleStardogTerminologies(
             Arrays.asList(dbs.split(",")), terminology, sparqlQueryManagerService, esQueryService);
     if (CollectionUtils.isEmpty(iMetas)) {
       logger.info("NO stale terminologies to remove");
-      return;
+      return new HashSet<>(0);
     }
 
     logger.info("Removing stale terminologies");
+    final Set<String> removed = new HashSet<>();
     for (IndexMetadata iMeta : iMetas) {
 
-      logger.info("stale terminology = " + iMeta.getTerminology().getTerminologyVersion());
+      logger.info("  REMOVE stale terminology = " + iMeta.getTerminology().getTerminologyVersion());
       String indexName = iMeta.getIndexName();
       String objectIndexName = iMeta.getObjectIndexName();
 
@@ -176,6 +180,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
       }
 
       // delete objects index
+      logger.info("    REMOVE " + objectIndexName);
       boolean result = operationsService.deleteIndex(objectIndexName);
 
       if (!result) {
@@ -184,6 +189,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
       }
 
       // delete concepts index
+      logger.info("    REMOVE " + indexName);
       result = operationsService.deleteIndex(indexName);
 
       if (!result) {
@@ -192,8 +198,13 @@ public abstract class BaseLoaderService implements ElasticLoadService {
       }
 
       // delete metadata object
-      operationsService.deleteIndexMetadata(indexName);
+      logger.info("    REMOVE evs_metadata " + indexName);
+      String id = operationsService.deleteIndexMetadata(indexName);
+      logger.info("      id = " + id);
+
+      removed.add(iMeta.getTerminologyVersion());
     }
+    return removed;
   }
 
   /**
@@ -203,11 +214,14 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws Exception the exception
    */
   @Override
-  public void updateLatestFlag(final Terminology terminology) throws Exception {
+  public void updateLatestFlag(final Terminology terminology, final Set<String> removed)
+      throws Exception {
     // update latest flag
     logger.info("Updating latest flags on all metadata objects");
     List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
 
+    // If certain terminology/version combinations were removed, skip them here
+    iMetas.removeIf(m -> removed.contains(m.getTerminologyVersion()));
     if (CollectionUtils.isEmpty(iMetas)) {
       return;
     }
@@ -441,18 +455,15 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
     try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
       return new ObjectMapper().readTree(IOUtils.toString(is, "UTF-8"));
-    } catch (Throwable t) { // read as file if no url
+    } catch (Throwable t) {
+      // read as file if no url
       logger.info("try config as file: " + uri);
       try {
         return new ObjectMapper()
             .readTree(FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8));
       } catch (IOException ex) {
-        throw new IOException("Could not find either file or uri for welcomeText: " + uri); // only
-        // throw
-        // exception
-        // if
-        // both
-        // fail
+        // only throw exception if both fail
+        throw new IOException("Could not find either file or uri for welcomeText: " + uri);
       }
     }
   }
