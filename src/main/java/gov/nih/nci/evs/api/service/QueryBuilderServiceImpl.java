@@ -1,9 +1,11 @@
 package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
@@ -12,10 +14,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.properties.StardogProperties;
-import gov.nih.nci.evs.api.util.ConceptUtils;
 
 /**
  * Reference implementation of {@link QueryBuilderService}. Includes hibernate tags for MEME

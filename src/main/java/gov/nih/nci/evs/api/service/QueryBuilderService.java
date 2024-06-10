@@ -1,9 +1,8 @@
 package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
 import java.util.Map;
-
-import gov.nih.nci.evs.api.model.Terminology;
 
 /** Query builder service. */
 public interface QueryBuilderService {

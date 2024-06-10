@@ -3,8 +3,11 @@ package gov.nih.nci.evs.api.service;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.util.RESTUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import javax.annotation.PostConstruct;
-
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -14,11 +17,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
-
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.properties.StardogProperties;
-import gov.nih.nci.evs.api.util.RESTUtils;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /** Unit test for {@link QueryBuilderServiceImpl}. */
 @RunWith(SpringRunner.class)
@@ -80,17 +78,27 @@ public class QueryBuilderServiceImplTest {
           // Spacing variation
           "SELECT?code{ ?x a owl:Class . ?x :NHC0 ?code .?x :P108 \"Melanoma\"}",
           // Simple with GRAPH
-          "SELECT ?code { GRAPH <http://NCI_T_monthly> { ?x a owl:Class .  ?x :NHC0 ?code . ?x :P108 \"Melanoma\" }  }",
+          "SELECT ?code { GRAPH <http://NCI_T_monthly> { ?x a owl:Class .  ?x :NHC0 ?code . ?x"
+              + " :P108 \"Melanoma\" }  }",
           // Simple with GRAPH spacing variation
-          "SELECT?code{GRAPH<http://NCI_T_monthly>{?x a owl:Class .  ?x :NHC0 ?code . ?x :P108 \"Melanoma\"}}",
+          "SELECT?code{GRAPH<http://NCI_T_monthly>{?x a owl:Class .  ?x :NHC0 ?code . ?x :P108"
+              + " \"Melanoma\"}}",
           // Simple with GRAPH with a newline
-          "SELECT ?code {\n GRAPH <http://NCI_T_monthly> { ?x a owl:Class .  ?x :NHC0 ?code . ?x :P108 \"Melanoma\" }  }",
+          "SELECT ?code {\n"
+              + " GRAPH <http://NCI_T_monthly> { ?x a owl:Class .  ?x :NHC0 ?code . ?x :P108"
+              + " \"Melanoma\" }  }",
           // Simple with WHERE and GRAPH with a newline
-          "SELECT ?code WHERE {\n GRAPH <http://NCI_T_monthly> { ?x a owl:Class .  ?x :NHC0 ?code . ?x :P108 \"Melanoma\" }  }",
+          "SELECT ?code WHERE {\n"
+              + " GRAPH <http://NCI_T_monthly> { ?x a owl:Class .  ?x :NHC0 ?code . ?x :P108"
+              + " \"Melanoma\" }  }",
           // Simple with GRAPH with prefixes (and newline)
-          "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#> \nSELECT ?code {GRAPH <http://NCI_T_monthly> { ?x a owl:Class .  ?x :NHC0 ?code . ?x :P108 \"Melanoma\" }  }",
+          "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#> \n"
+              + "SELECT ?code {GRAPH <http://NCI_T_monthly> { ?x a owl:Class .  ?x :NHC0 ?code . ?x"
+              + " :P108 \"Melanoma\" }  }",
           // Multiple fields
-          "SELECT ?x ?code {\n GRAPH <http://NCI_T_monthly> { ?x a owl:Class .  ?x :NHC0 ?code . ?x :P108 \"Melanoma\" }  }",
+          "SELECT ?x ?code {\n"
+              + " GRAPH <http://NCI_T_monthly> { ?x a owl:Class .  ?x :NHC0 ?code . ?x :P108"
+              + " \"Melanoma\" }  }",
         }) {
       log.info("  query = \n  " + query);
       final String query2 = service.prepSparql(ncit, query);
