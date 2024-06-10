@@ -111,3 +111,13 @@ springdoc:
     tagsSorter: alpha
     operationsSorter: alpha
     doc-expansion: none
+
+# Google Recaptcha
+google:
+  recaptcha:
+    site:
+      key: ${RECAPTCHA_KEY:REPLACE_WITH_KEY}
+    secret:
+      key: ${RECAPTCHA_SECRET:REPLACE_WITH_SECRET}
+    verify:
+      url: https://www.google.com/recaptcha/api/siteverify

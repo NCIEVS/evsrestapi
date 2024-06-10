@@ -17,8 +17,8 @@ import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import java.io.IOException;
 import javax.mail.internet.MimeMessage;
+import org.junit.Before;
 import org.junit.Test;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
@@ -60,7 +60,7 @@ public class TermSuggestionFormServiceTest {
 
   /** Setup before each test */
   @SuppressWarnings("resource")
-  @BeforeEach
+  @Before
   public void setup() throws Exception {
     MockitoAnnotations.openMocks(this);
   }
@@ -79,11 +79,11 @@ public class TermSuggestionFormServiceTest {
     // ACT
     when(applicationProperties.getConfigBaseUri())
         .thenReturn(
-            "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config"
-                + "/metadata");
+            "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata");
     JsonNode returnedForm = termFormService.getFormTemplate(formType);
 
     // ASSERT
+    verify(applicationProperties, times(1)).getConfigBaseUri();
     assertNotNull(returnedForm);
     assertEquals("NCIt Term Suggestion Request", returnedForm.get("formName").asText());
     assertEquals("ncithesaurus@mail.nih.gov", returnedForm.get("recipientEmail").asText());
@@ -102,8 +102,7 @@ public class TermSuggestionFormServiceTest {
     // ACT
     when(applicationProperties.getConfigBaseUri())
         .thenReturn(
-            "https://raw.githubusercontent"
-                + ".com/NCIEVS/evsrestapi-operations/develop/config/metadata");
+            "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata");
 
     // ASSERT
     assertThrows(
