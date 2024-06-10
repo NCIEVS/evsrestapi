@@ -267,7 +267,7 @@ echo "    load data"
 /opt/stardog/bin/stardog data add --named-graph http://OBIB NCIT2 /data/UnitTestData/OBIB/obib_2021-11.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://NDFRT2 NCIT2 /data/UnitTestData/NDFRT/NDFRT_Public_2018.02.05_Inferred.owl | sed 's/^/      /'
 
-/opt/stardog/bin/stardog data add --named-graph http://MGED NCIT2 /data/UnitTestData/MGED/MGEDOntology.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://MGED NCIT2 /data/UnitTestData/MGED/MGEDOntology.fix.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://NPO NCIT2 /data/UnitTestData/NPO/npo-2011-12-08_inferred.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://MA NCIT2 /data/UnitTestData/Mouse_Anatomy/ma_07_27_2016.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://Zebrafish NCIT2 /data/UnitTestData/Zebrafish/zfa_2019_08_02.owl | sed 's/^/      /'

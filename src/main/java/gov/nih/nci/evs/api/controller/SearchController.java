@@ -80,11 +80,9 @@ public class SearchController extends BaseController {
   @Autowired MetadataService metadataService;
 
   /** The es query service. */
-  /* The elasticsearch query service */
   @Autowired ElasticQueryService esQueryService;
 
   /** The term utils. */
-  /* The terminology utils */
   @Autowired TerminologyUtils termUtils;
 
   /** The rest utils. */
@@ -875,16 +873,13 @@ public class SearchController extends BaseController {
     final ObjectMapper mapper = new ObjectMapper();
     try {
 
-      final String queryPrefix =
-          !query.startsWith("PREFIX ") ? queryBuilderService.constructPrefix(term) : "";
-      String sparqlQuery =
-          query.replaceAll(
-              "\\{\\s*GRAPH(\\s*<.*>\\s*|\\s*)\\{", "{ GRAPH <" + term.getGraph() + "> {");
-      sparqlQuery += " LIMIT 1000";
+      final String sparqlQuery = queryBuilderService.prepSparql(term, query);
+      // The following messages up "total" - so we need to either find it another way from
+      // the sparql response OR we need to not limit this but do so with paging.
+      //      sparqlQuery += " LIMIT 1000";
+
       // validate query
-      res =
-          restUtils.runSPARQL(
-              queryPrefix + sparqlQuery, stardogProperties.getQueryUrl(), sparqlTimeout);
+      res = restUtils.runSPARQL(sparqlQuery, stardogProperties.getQueryUrl(), sparqlTimeout);
 
     } catch (final QueryException e) {
       final String errorMessage =
@@ -905,13 +900,18 @@ public class SearchController extends BaseController {
 
       final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
       final Bindings[] bindings = sparqlResult.getResults().getBindings();
+
+      if (bindings.length > 10000) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST, "Too many sparql results (>10k).  Refine your query");
+      }
       final List<String> codes = new ArrayList<>();
 
       for (final Bindings b : bindings) {
 
         if (b.getCode() == null || b.getCode().getValue().isEmpty()) {
           throw new ResponseStatusException(
-              HttpStatus.BAD_REQUEST, "SPARQL query must return concept codes");
+              HttpStatus.BAD_REQUEST, "SPARQL query must return a ?code parameter");
         }
 
         codes.add(b.getCode().getValue());
@@ -1041,20 +1041,14 @@ public class SearchController extends BaseController {
       }
 
       final ObjectMapper mapper = new ObjectMapper();
-      final String queryPrefix =
-          !query.startsWith("PREFIX ") ? queryBuilderService.constructPrefix(term) : "";
-      String sparqlQuery =
-          query.replaceAll(
-              "\\{\\s*GRAPH(\\s*<.*>\\s*|\\s*)\\{", "{ GRAPH <" + term.getGraph() + "> {");
+      String sparqlQuery = queryBuilderService.prepSparql(term, query);
 
       // The following messages up "total" - so we need to either find it another way from
       // the sparql response OR we need to not limit this but do so with paging.
       //      sparqlQuery += " LIMIT 1000";
 
       // validate query
-      res =
-          restUtils.runSPARQL(
-              queryPrefix + sparqlQuery, stardogProperties.getQueryUrl(), sparqlTimeout);
+      res = restUtils.runSPARQL(sparqlQuery, stardogProperties.getQueryUrl(), sparqlTimeout);
       mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
       JsonNode bindings = mapper.readTree(res).findValue("bindings");
       int total = bindings.size();
