@@ -44,7 +44,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @param applicationProperties the application properties
    */
   public TermSuggestionFormServiceImpl(
-      JavaMailSender mailSender, ApplicationProperties applicationProperties) {
+      final JavaMailSender mailSender, final ApplicationProperties applicationProperties) {
     this.mailSender = mailSender;
     this.applicationProperties = applicationProperties;
   }
@@ -59,7 +59,8 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @throws IOException io exception
    */
   @Override
-  public JsonNode getFormTemplate(String formType) throws IllegalArgumentException, IOException {
+  public JsonNode getFormTemplate(final String formType)
+      throws IllegalArgumentException, IOException {
     // Set the form file path based on the formType passed. If we receive an invalid path, throw
     // exception
     if (formType == null || formType.isEmpty() || formType.isBlank()) {
@@ -69,7 +70,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     }
 
     // Create objectMapper. Read file and return JsonNode
-    ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = new ObjectMapper();
     return mapper.readTree(formFilePath);
   }
 
@@ -80,11 +81,11 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @throws MessagingException the messaging exception
    */
   @Override
-  public void sendEmail(EmailDetails emailDetails) throws MessagingException {
+  public void sendEmail(final EmailDetails emailDetails) throws MessagingException {
     // Check if starttls.enable is false
-    if (mailSender instanceof JavaMailSenderImpl mailSenderImpl) {
-      Properties mailProperties = mailSenderImpl.getJavaMailProperties();
-      String starttls = mailProperties.getProperty("mail.smtp.starttls.enable");
+    if (mailSender instanceof JavaMailSenderImpl) {
+      final Properties mailProperties = ((JavaMailSenderImpl) mailSender).getJavaMailProperties();
+      final String starttls = mailProperties.getProperty("mail.smtp.starttls.enable");
       // check we want to start the tls
       if ("false".equals(starttls)) {
         return; // do nothing
@@ -92,7 +93,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     }
 
     // Create the MimeMessage
-    MimeMessage message = mailSender.createMimeMessage();
+    final MimeMessage message = mailSender.createMimeMessage();
     logger.info(
         "   Sending email for {} form to {}", emailDetails.getSource(), emailDetails.getToEmail());
 
