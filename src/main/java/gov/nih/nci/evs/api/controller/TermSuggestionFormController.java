@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.EmailDetails;
+import gov.nih.nci.evs.api.service.CaptchaService;
 import gov.nih.nci.evs.api.service.TermSuggestionFormServiceImpl;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,15 +36,19 @@ public class TermSuggestionFormController extends BaseController {
 
   /** The email service. */
   // term form email service
-  private final TermSuggestionFormServiceImpl emailService;
+  private final TermSuggestionFormServiceImpl formService;
+
+  private final CaptchaService captchaService;
 
   /**
    * Instantiates a new Term suggestion form controller with params.
    *
    * @param emailService Form Email Service dependency
    */
-  public TermSuggestionFormController(TermSuggestionFormServiceImpl emailService) {
-    this.emailService = emailService;
+  public TermSuggestionFormController(
+      TermSuggestionFormServiceImpl emailService, CaptchaService captchaService) {
+    this.formService = emailService;
+    this.captchaService = captchaService;
   }
 
   /**
@@ -105,7 +110,7 @@ public class TermSuggestionFormController extends BaseController {
       throws Exception {
     // Try getting the form and return form template
     try {
-      JsonNode formTemplate = emailService.getFormTemplate(formType);
+      JsonNode formTemplate = formService.getFormTemplate(formType);
       return ResponseEntity.ok().body(formTemplate);
     } catch (Exception e) {
       logger.error("Error reading form template: " + formType);
@@ -170,14 +175,21 @@ public class TermSuggestionFormController extends BaseController {
   @RecordMetric
   public ResponseEntity<?> submitForm(
       @RequestBody JsonNode formData,
-      @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
+      @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license,
+      @RequestHeader(name = "Captcha-Token") final String captchaToken)
       throws Exception {
+    // Verify our captcha token
+    if (!captchaService.verifyRecaptcha(captchaToken)) {
+      logger.error("Failed to verify the submitted Recaptcha!");
+      return ResponseEntity.badRequest().body("Unable to submit form");
+    }
+
+    // Try sending the email
     try {
       // convert the form data into our email details object
       EmailDetails emailDetails = EmailDetails.generateEmailDetails(formData);
-
-      // Send the email with our email details
-      emailService.sendEmail(emailDetails);
+      // Send the email
+      formService.sendEmail(emailDetails);
       return ResponseEntity.ok().build();
     } catch (Exception e) {
       logger.error("Error creating email details or sending email");
