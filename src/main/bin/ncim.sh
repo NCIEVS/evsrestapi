@@ -34,9 +34,8 @@ for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V3.0; do
     free
     # Keep the NCIM folder around while we run
     echo "Load $t (from downloaded data)"
-    $DIR/ncim-part.sh ./NCIM/META --keep --terminology $t > /tmp/$$.log 2>&1
+    $DIR/ncim-part.sh ./NCIM/META --keep --terminology $t
     if [[ $? -ne 0 ]]; then
-        cat /tmp/$$.log | sed 's/^/    /'
         echo "ERROR: loading $t"
         exit 1
     fi
