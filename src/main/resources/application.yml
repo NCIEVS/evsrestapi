@@ -23,16 +23,16 @@ spring:
 
   # Term Form Mail Server Properties
   mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
+    host: ${MAIL_HOST:REPLACE_WITH_HOST}
     port: 587
     username: ${MAIL_USER:REPLACE_WITH_USERNAME}
     password: ${MAIL_PASSWORD:REPLACE_WITH_PASSWORD}
     properties:
       mail:
         smtp:
-          auth: ${AUTH:true}
+          auth: ${MAIL_AUTH:true}
           starttls:
-            enable: ${TLS:true}
+            enable: ${MAIL_TLS:true}
 
 management:
   endpoints:
