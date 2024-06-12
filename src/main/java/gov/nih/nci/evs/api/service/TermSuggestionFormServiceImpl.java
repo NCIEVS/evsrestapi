@@ -81,8 +81,8 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
   @Override
   public void sendEmail(final EmailDetails emailDetails) throws MessagingException {
     // Check if starttls.enable is false
-    if (mailSender instanceof JavaMailSenderImpl) {
-      final Properties mailProperties = ((JavaMailSenderImpl) mailSender).getJavaMailProperties();
+    if (mailSender instanceof JavaMailSenderImpl javaMailSender) {
+      final Properties mailProperties = javaMailSender.getJavaMailProperties();
       final String starttls = mailProperties.getProperty("mail.smtp.starttls.enable");
       // check we want to start the tls
       if ("false".equals(starttls)) {
