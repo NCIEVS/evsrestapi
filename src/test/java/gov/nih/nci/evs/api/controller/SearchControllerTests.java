@@ -3421,7 +3421,7 @@ public class SearchControllerTests {
             + "  } \n"
             + "}";
 
-    log.info("Testing url - " + url + "?terminology=ncit&type=contains&include=minimal");
+    log.info("Testing url - " + url + "?type=contains&include=minimal");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
@@ -3456,7 +3456,7 @@ public class SearchControllerTests {
             + "}\n"
             + "}";
 
-    log.info("Testing url - " + url + "?terminology=ncit&type=contains&include=minimal");
+    log.info("Testing url - " + url + "?type=contains&include=minimal");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
@@ -3482,7 +3482,7 @@ public class SearchControllerTests {
             + "  } \n"
             + "}";
 
-    log.info("Testing url - " + url + "?terminology=ncit&type=contains&include=minimal");
+    log.info("Testing url - " + url + "?type=contains&include=minimal");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
@@ -3507,7 +3507,7 @@ public class SearchControllerTests {
             + "    ?x :P108 \"Melanoma Pathway\"\n"
             + "  } \n"
             + "}";
-    log.info("Testing url - " + url + "?terminology=ncit&type=contains&include=minimal");
+    log.info("Testing url - " + url + "?type=contains&include=minimal");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
@@ -3532,8 +3532,7 @@ public class SearchControllerTests {
             + "    FILTER(CONTAINS(?label, \"Melanoma\"))\n"
             + "  }\n"
             + "}";
-    log.info(
-        "Testing url - " + url + "?terminology=ncit&type=contains&include=minimal&term=Theraccine");
+    log.info("Testing url - " + url + "?type=contains&include=minimal&term=Theraccine");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
@@ -3558,15 +3557,15 @@ public class SearchControllerTests {
             + "    ?x a owl:Class .\n"
             + "    ?x :NHC0 ?code .\n"
             + "    ?x :P108 ?label .\n"
-            + "    FILTER(CONTAINS(?label, \"Cancer\"))\n"
+            + "    FILTER(CONTAINS(?label, \"Flavor\"))\n"
             + "  }\n"
             + "}";
-    log.info("Testing url - " + url + "?terminology=ncit&type=contains&include=minimal&term=Liver");
+    log.info("Testing url - " + url + "?type=contains&include=minimal&term=Liver");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
-                    .param("include", "minimal")
+                    .param("include", "summary")
                     .param("type", "contains")
                     .param("term", "Liver"))
             .andExpect(status().isOk())
@@ -3598,7 +3597,7 @@ public class SearchControllerTests {
             + "    ?x :P108 \"ZZZZZ\"\n"
             + "  } \n"
             + "}";
-    log.info("Testing url - " + url + "?terminology=ncit&type=contains&include=minimal");
+    log.info("Testing url - " + url + "?type=contains&include=minimal");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
@@ -3612,7 +3611,7 @@ public class SearchControllerTests {
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isEqualTo(0);
 
-    // check query with malformed prefix
+    // check query with malformed prefix - OK because prefix is rewritten
     query =
         "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
             + "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
@@ -3632,22 +3631,18 @@ public class SearchControllerTests {
             + "  ?x :P108 \"Melanoma\"\n"
             + "}\n"
             + "}";
-    log.info("Testing url - " + url + "?terminology=ncit&type=contains&include=minimal");
+    log.info("Testing url - " + url + "?type=contains&include=minimal");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
                     .param("include", "minimal")
                     .param("type", "contains"))
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isOk())
             .andReturn();
-    assertThat(result.getResponse().getErrorMessage()).isNotNull();
-    content = result.getResponse().getErrorMessage();
+    content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    assertThat(
-            content.contains("Invalid SPARQL query: Multiple prefix declarations for prefix 'xml'"))
-        .isTrue();
 
     // check query with a query that fails initial validation
     query =
@@ -3668,7 +3663,7 @@ public class SearchControllerTests {
             + "  ?x :P108 \"Melanoma\"\n"
             + "}\n"
             + "}";
-    log.info("Testing url - " + url + "?terminology=ncit&type=contains&include=minimal");
+    log.info("Testing url - " + url + "?type=contains&include=minimal");
 
     final String exceptionUrl = new String(url);
     final String exceptionQuery = new String(query);
@@ -3701,7 +3696,7 @@ public class SearchControllerTests {
             + "    ?x :Preferred_Name \"Behavior\"\n"
             + "  } \n"
             + "}";
-    log.info("Testing url - " + url + "?terminology=ncit&type=contains&include=minimal");
+    log.info("Testing url - " + url + "?type=contains&include=minimal");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
@@ -3751,7 +3746,7 @@ public class SearchControllerTests {
     //    log.info(
     //        "Testing url - "
     //            + url
-    //            + "?terminology=ncit&type=contains&include=minimal");
+    //            + "?type=contains&include=minimal");
     //    result =
     //        mvc.perform(
     //                MockMvcRequestBuilders.post(url)

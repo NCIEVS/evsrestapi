@@ -307,21 +307,19 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     final NestedQueryBuilder nestedDefinitionQuery =
         QueryBuilders.nestedQuery("definitions", definitionQuery, ScoreMode.Max);
 
-    String codeList = "";
+    String codeList = codeTerm;
 
     if (hasCodeList) {
-      if (!codeTerm.isEmpty())
-        codeList = " OR " + String.join(" OR ", searchCriteria.getCodeList());
-      else codeList = String.join(" OR ", searchCriteria.getCodeList());
+      codeList = String.join(" OR ", searchCriteria.getCodeList());
     }
 
     // Code queries
     final QueryStringQueryBuilder codeQuery =
-        QueryBuilders.queryStringQuery(codeTerm + codeList).field("code").boost(50f);
+        QueryBuilders.queryStringQuery(codeList).field("code").boost(50f);
     final NestedQueryBuilder synonymCodeQuery =
         QueryBuilders.nestedQuery(
                 "synonyms",
-                QueryBuilders.queryStringQuery(codeTerm + codeList).field("synonyms.code"),
+                QueryBuilders.queryStringQuery(codeList).field("synonyms.code"),
                 ScoreMode.Max)
             .boost(50f);
 
