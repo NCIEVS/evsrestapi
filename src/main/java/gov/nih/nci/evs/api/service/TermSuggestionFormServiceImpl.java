@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 /** Implementation class for the terminology suggestion form service. */
 @Service
 public class TermSuggestionFormServiceImpl implements TermSuggestionFormService {
-
   /** The Constant logger. */
   // Logger
   private static final Logger logger = LoggerFactory.getLogger(TermSuggestionFormServiceImpl.class);
@@ -68,7 +67,6 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     } else {
       formFilePath = new URL(applicationProperties.getConfigBaseUri() + "/" + formType + ".json");
     }
-
     // Create objectMapper. Read file and return JsonNode
     final ObjectMapper mapper = new ObjectMapper();
     return mapper.readTree(formFilePath);
@@ -91,12 +89,10 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
         return; // do nothing
       }
     }
-
     // Create the MimeMessage
     final MimeMessage message = mailSender.createMimeMessage();
     logger.info(
         "   Sending email for {} form to {}", emailDetails.getSource(), emailDetails.getToEmail());
-
     // Set the email details
     message.setRecipients(RecipientType.TO, emailDetails.getToEmail());
     message.setFrom(new InternetAddress(emailDetails.getFromEmail()));
@@ -106,7 +102,6 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     } else {
       message.setText(String.valueOf(emailDetails.getMsgBody()));
     }
-
     mailSender.send(message);
   }
 }
