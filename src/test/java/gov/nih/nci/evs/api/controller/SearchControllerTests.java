@@ -3640,7 +3640,7 @@ public class SearchControllerTests {
                     .param("type", "contains"))
             .andExpect(status().isOk())
             .andReturn();
-    content = result.getResponse().getErrorMessage();
+    content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
 
