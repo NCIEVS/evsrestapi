@@ -109,7 +109,8 @@ public class TermSuggestionFormControllerTests {
     // ASSERT
     assertNotNull(form);
     assertEquals("NCIt Term Suggestion Request", form.get("formName").asText());
-    assertEquals("ncithesaurus@mail.nih.gov", form.get("recipientEmail").asText());
+    // TODO: Update this to ncithesaurus@mail.nih.gov after the form is updated
+    assertEquals("agarcia@westcoastinformatics.com", form.get("recipientEmail").asText());
   }
 
   /**

@@ -31,6 +31,12 @@ Information on the build and deployment process for the EVSRESTAPI project
   * STARDOG_USERNAME=admin
   * STARDOG_PASSWORD=admin
   * CONFIG_BASE_URI=https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata
+  * MAIL_USERNAME=<YOUR_WORK_EMAIL>
+  * MAIL_PASSWORD=<YOUR_GMAIL_APP_PASSWORD>
+  * MAIL_AUTH=true
+  * MAIL_TLS=true
+  * RECAPTCHA_KEY=<SITE_KEY_FROM_RECAPTCHA>
+  * {RECAPTCHA_SECRET=<SECRET_KEY_FROM_RECAPTCHA>
 
 * Load the UnitTestData set by running `prep.sh`
   * Make sure that you can run all programs in `bash`, especially if on Mac which defaults to `zsh`
@@ -59,7 +65,7 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Set the "Main Class" to `gov.nih.nci.evs.api.Application`
 * In the "Arguments" tab, add to "VM Arguments" the value `-Dspring.profiles.active=local`
 * In the Environment variables add the email credentials and settings for testing:
-  * e.g. `AUTH=true;MAIL_USER=<testUserEmail@domain.com;TLS=true;MAIL_PASSWORD=#########`
+  * e.g. `AUTH=true;MAIL_USER=<testUserEmail@domain.com;TLS=true;MAIL_PASSWORD=#########;RECAPTCHA_KEY:########;RECAPTCHA_SECRET=#######`
 * Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui.html#/](http://localhost:8082/swagger-ui.html#/)
 
 ### Run application in IntelliJ
@@ -70,7 +76,7 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Click on "Modify options" and select "Add VM options" & "Environment Variables"
 * In the "VM options" text box, add the value `-Dspring.profiles.active=local`
 * In the Environment variables add the email credentials and settings for testing:
-  * e.g. `AUTH=true;MAIL_USER=<testUserEmail@domain.com>;TLS=true;MAIL_PASSWORD=<#########>`
+  * e.g. `AUTH=true;MAIL_USER=<testUserEmail@domain.com>;TLS=true;MAIL_PASSWORD=<#########>;RECAPTCHA_KEY:########;RECAPTCHA_SECRET=########`
 * Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui.html#/](http://localhost:8082/swagger-ui.html#/)
 
 ### Run application from command line
