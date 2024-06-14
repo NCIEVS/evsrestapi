@@ -5,6 +5,7 @@ import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.service.CaptchaService;
 import gov.nih.nci.evs.api.service.TermSuggestionFormServiceImpl;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -25,6 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 /** Controller for /suggest endpoints. */
+@Hidden
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
 @Tag(name = "Terminology form endpoints")
