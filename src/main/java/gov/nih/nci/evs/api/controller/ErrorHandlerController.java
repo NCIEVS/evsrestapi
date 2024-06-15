@@ -1,9 +1,9 @@
 package gov.nih.nci.evs.api.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.oas.annotations.Hidden;
 import java.util.Map;
+
 import javax.servlet.http.HttpServletRequest;
+
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +19,10 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.swagger.v3.oas.annotations.Hidden;
+
 /** Handler for errors when accessing API thru browser. */
 @Controller
 @RequestMapping("/error")
@@ -31,7 +35,7 @@ public class ErrorHandlerController implements ErrorController {
   /** The error attributes. */
   private ErrorAttributes errorAttributes;
 
-  /** The error attribute options to include stack trace */
+  /** The error attribute options to include stack trace. */
   private ErrorAttributeOptions options =
       ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.STACK_TRACE);
 
@@ -116,6 +120,20 @@ public class ErrorHandlerController implements ErrorController {
       HttpServletRequest request, ErrorAttributeOptions options) {
     WebRequest webRequest = new ServletWebRequest(request);
     Map<String, Object> body = errorAttributes.getErrorAttributes(webRequest, options);
+
+    // Hack to convert "trace" to message
+    // TODO: fix this, and probably override what getErrorAttributes is doing to include the
+    // "reason" from the response status exception
+    if (body.containsKey("trace")) {
+      final String message =
+          body.get("trace")
+              .toString()
+              .split("\n")[0]
+              .replaceFirst(".*?\"", "")
+              .replaceFirst("[\"\r]+$", "");
+      body.put("message", message);
+    }
+
     if (body.containsKey("message")) {
       try {
         final String message = body.get("message").toString();
@@ -141,6 +159,11 @@ public class ErrorHandlerController implements ErrorController {
     return body;
   }
 
+  /**
+   * Returns the error path.
+   *
+   * @return the error path
+   */
   /* see superclass */
   public String getErrorPath() {
     return "/error";

@@ -652,7 +652,12 @@ public class SearchController extends BaseController {
               + " client SDK library created for the NCI EVS Rest API</a>.",
       requestBody =
           @RequestBody(
-              description = "SPARQL query that returns ?code for a concept code",
+              description =
+                  "SPARQL query that returns ?code identifying a valid code in the "
+                      + "specified terminology. "
+                      + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/SPARQL.md'"
+                      + " target='_blank'>See here for more information and examples of"
+                      + " using SPARQL with EVSRESTAPI</a>.",
               required = true))
   @ApiResponses({
     @ApiResponse(
@@ -965,7 +970,14 @@ public class SearchController extends BaseController {
   @Operation(
       summary = "Get SPARQL query results",
       description = "Perform a SPARQL query for a specified terminology.",
-      requestBody = @RequestBody(description = "SPARQL query", required = true))
+      requestBody =
+          @RequestBody(
+              description =
+                  "SPARQL query to execute on the graph for the specified terminology. "
+                      + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/SPARQL.md'"
+                      + " target='_blank'>See here for more information and examples of"
+                      + " using SPARQL with EVSRESTAPI</a>.",
+              required = true))
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",

@@ -775,9 +775,10 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    * @return the optional of elasticsearch object
    */
   private Optional<ElasticObject> getElasticObject(String id, Terminology terminology) {
-    if (logger.isDebugEnabled()) {
-      logger.debug("getElasticObject({}, {})", id, terminology.getTerminology());
-    }
+
+    //    if (logger.isDebugEnabled()) {
+    //      logger.debug("getElasticObject({}, {})", id, terminology.getTerminology());
+    //    }
 
     NativeSearchQuery query =
         new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", id)).build();
