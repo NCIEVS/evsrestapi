@@ -8,6 +8,8 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -200,14 +202,15 @@ public class TermSuggestionFormControllerTests {
     // SET UP - create our form data JsonNode
     final String formPath = "formSamples/submissionFormTest.json";
     final JsonNode formData = createJsonNode(formPath);
+    // Create expected EmailDetails
+    EmailDetails expectedEmailDetails = EmailDetails.generateEmailDetails(formData);
 
     // ACT - stub the void method to do nothing when called
     doNothing().when(termFormService).sendEmail(any(EmailDetails.class));
-    final ResponseEntity<?> responseEntity =
-        termSuggestionFormController.submitForm(formData, null, recaptchaToken);
+    termSuggestionFormController.submitForm(formData, null, recaptchaToken);
 
     // ASSERT
-    assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
+    verify(termFormService, times(1)).sendEmail(expectedEmailDetails);
   }
 
   /**

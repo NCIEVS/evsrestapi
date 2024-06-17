@@ -14,6 +14,10 @@ import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 
+/**
+ * Service class for verifying the recaptcha token with the google recaptcha server. Source link:
+ * https://developers.google.com/recaptcha/docs/verify
+ */
 @Service
 public class CaptchaService {
   private final RestTemplate restTemplate;

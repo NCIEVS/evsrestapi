@@ -23,8 +23,8 @@ spring:
 
   # Term Form Mail Server Properties
   mail:
-    host: ${MAIL_HOST:REPLACE_WITH_HOST}
-    port: 587
+    host: ${MAIL_HOST:mailfwd.nih.gov}
+    port: 25
     username: ${MAIL_USER:REPLACE_WITH_USERNAME}
     password: ${MAIL_PASSWORD:REPLACE_WITH_PASSWORD}
     properties:
