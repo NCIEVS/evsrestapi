@@ -2,6 +2,7 @@ package gov.nih.nci.evs.api.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import java.util.Objects;
 
 /**
  * EmailDetails model, created from a JsonObject data form. This allows us to handle the form data
@@ -229,5 +230,17 @@ public class EmailDetails extends BaseModel {
       // we are at the leaf node
       formattedBody.append(indent).append(body.asText()).append("\n");
     }
+  }
+
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (o == null || getClass() != o.getClass()) return false;
+    EmailDetails other = (EmailDetails) o;
+    return Objects.equals(source, other.source)
+        && Objects.equals(fromEmail, other.fromEmail)
+        && Objects.equals(toEmail, other.toEmail)
+        && Objects.equals(subject, other.subject)
+        && Objects.equals(msgBody, other.msgBody);
   }
 }

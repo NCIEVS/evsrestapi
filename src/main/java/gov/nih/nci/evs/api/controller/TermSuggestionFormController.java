@@ -117,7 +117,7 @@ public class TermSuggestionFormController extends BaseController {
       JsonNode formTemplate = formService.getFormTemplate(formType);
       return ResponseEntity.ok().body(formTemplate);
     } catch (Exception e) {
-      logger.error("Error reading form template: " + formType);
+      logger.error("Error reading form template: " + formType, e);
       handleException(e);
       return null;
     }
@@ -195,7 +195,7 @@ public class TermSuggestionFormController extends BaseController {
       // Send the email
       formService.sendEmail(emailDetails);
     } catch (Exception e) {
-      logger.error("Error creating email details or sending email");
+      logger.error("Error creating email details or sending email", e);
       handleException(e);
     }
   }
