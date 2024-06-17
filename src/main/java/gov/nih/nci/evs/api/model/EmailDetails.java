@@ -232,6 +232,12 @@ public class EmailDetails extends BaseModel {
     }
   }
 
+  /**
+   * Override equals method that returns a boolean for the comparisons
+   *
+   * @param o the object
+   * @return boolean
+   */
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
