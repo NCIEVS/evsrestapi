@@ -1,13 +1,11 @@
 package gov.nih.nci.evs.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
-
-import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Represents choices about how much data to include when reading content. */
 @Schema(hidden = true)
