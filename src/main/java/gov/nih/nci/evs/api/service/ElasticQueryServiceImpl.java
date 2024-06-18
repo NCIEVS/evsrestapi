@@ -115,7 +115,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     NativeSearchQuery query =
         new NativeSearchQueryBuilder()
             .withFilter(QueryBuilders.termsQuery("_id", codes))
-            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
+            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), ip.getExcludedFields()))
             .withPageable(new EVSPageable(0, codes.size(), 0))
             .build();
 
@@ -805,7 +805,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
 
     NativeSearchQuery query =
         new NativeSearchQueryBuilder()
-            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
+            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), ip.getExcludedFields()))
             // assuming pageSize < 10000, trying to get all maps, 17 at the time of this comment
             .withPageable(PageRequest.of(0, 10000))
             .build();
@@ -819,7 +819,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     NativeSearchQuery query =
         new NativeSearchQueryBuilder()
             .withFilter(QueryBuilders.termQuery("_id", code))
-            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), new String[] {}))
+            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), ip.getExcludedFields()))
             .build();
 
     return getResults(query, Concept.class, ElasticOperationsService.MAPPING_INDEX);

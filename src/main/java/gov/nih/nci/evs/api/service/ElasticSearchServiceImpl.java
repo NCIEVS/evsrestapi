@@ -109,15 +109,16 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       }
     }
 
+    // Get include param
+    final IncludeParam include = new IncludeParam(searchCriteria.getInclude());
+    logger.info("XXX = " + include.getExcludedFields());
     // build final search query
     final NativeSearchQueryBuilder searchQuery =
         new NativeSearchQueryBuilder()
             .withQuery(boolQuery)
             .withPageable(pageable)
             .withSourceFilter(
-                new FetchSourceFilter(
-                    new IncludeParam(searchCriteria.getInclude()).getIncludedFields(),
-                    new String[] {}));
+                new FetchSourceFilter(include.getIncludedFields(), include.getExcludedFields()));
 
     // avoid setting min score
     // .withMinScore(0.01f);

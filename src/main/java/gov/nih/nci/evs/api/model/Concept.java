@@ -61,12 +61,14 @@ public class Concept extends ConceptMinimal {
   @Transient @JsonSerialize @JsonDeserialize private Map<String, String> highlights;
 
   /** The normName. */
-  @JsonProperty(access = Access.READ_ONLY)
+  // In the future we can use @WriteOnlyProperty
+  // this does not work: @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Keyword)
   private String normName;
 
   /** The stemName. */
-  @JsonProperty(access = Access.READ_ONLY)
+  // In the future we can use @WriteOnlyProperty
+  // this does not work: @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Text)
   private String stemName;
 

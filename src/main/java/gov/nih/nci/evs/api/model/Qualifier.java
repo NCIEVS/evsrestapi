@@ -1,13 +1,13 @@
 package gov.nih.nci.evs.api.model;
 
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
+
 import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.data.elasticsearch.annotations.Field;
-import org.springframework.data.elasticsearch.annotations.FieldType;
 
 /**
  * Represents a qualifier on a synonym, definition, property, or role that isn't explicitly modeled
@@ -19,7 +19,8 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
 public class Qualifier extends BaseModel implements Comparable<Qualifier> {
 
   /** The code. */
-  @JsonProperty(access = Access.READ_ONLY)
+  // In the future we can use @WriteOnlyProperty
+  // this does not work: @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Object, enabled = false)
   private String code;
 

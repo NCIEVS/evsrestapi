@@ -1,11 +1,13 @@
 package gov.nih.nci.evs.api.model;
 
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Represents choices about how much data to include when reading content. */
 @Schema(hidden = true)
@@ -320,15 +322,27 @@ public class IncludeParam extends BaseModel {
     fields.add("stemName"); // stemName always excluded
     if (!synonyms) {
       fields.add("synonyms");
+    } else {
+      fields.add("synonyms.normName");
+      fields.add("synonyms.stemName");
+      fields.add("synonyms.typeCode");
+      fields.add("synonyms.qualifiers.code");
     }
     if (!definitions) {
       fields.add("definitions");
+    } else {
+      fields.add("definitions.code");
+      fields.add("definitions.qualifiers.code");
     }
+
     if (!history) {
       fields.add("history");
     }
     if (!properties) {
       fields.add("properties");
+    } else {
+      fields.add("properties.code");
+      fields.add("properties.qualifiers.code");
     }
     if (!children) {
       fields.add("children");
@@ -338,15 +352,27 @@ public class IncludeParam extends BaseModel {
     }
     if (!associations) {
       fields.add("associations");
+    } else {
+      fields.add("associations.code");
+      fields.add("associations.qualifiers.code");
     }
     if (!inverseAssociations) {
       fields.add("inverseAssociations");
+    } else {
+      fields.add("inverseAssociations.code");
+      fields.add("inverseAssociations.qualifiers.code");
     }
     if (!roles) {
       fields.add("roles");
+    } else {
+      fields.add("roles.code");
+      fields.add("roles.qualifiers.code");
     }
     if (!inverseRoles) {
       fields.add("inverseRoles");
+    } else {
+      fields.add("inverseRoles.code");
+      fields.add("inverseRoles.qualifiers.code");
     }
     if (!maps) {
       fields.add("maps");
@@ -356,7 +382,10 @@ public class IncludeParam extends BaseModel {
     }
     if (!disjointWith) {
       fields.add("disjointWith");
+    } else {
+      fields.add("disjointWith.code");
     }
+
     if (!subsetLink) {
       fields.add("subsetLink");
     }
