@@ -102,12 +102,14 @@ public class SearchControllerTests {
     assertThat(content).isNotNull();
 
     ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    Concept concept = list.getConcepts().get(0);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isEqualTo(10);
-    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
-    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Melanoma");
-    assertThat(list.getConcepts().get(0).getTerminology()).isEqualTo("ncit");
-    assertThat(list.getConcepts().get(0).getSynonyms()).isEmpty();
+    assertThat(concept.getCode()).isEqualTo("C3224");
+    assertThat(concept.getName()).isEqualTo("Melanoma");
+    assertThat(concept.getTerminology()).isEqualTo("ncit");
+    assertThat(concept.getSynonyms()).isEmpty();
+
     assertThat(list.getTotal()).isGreaterThan(100);
     assertThat(list.getParameters().getTerm()).isEqualTo("melanoma");
     assertThat(list.getParameters().getType()).isEqualTo("contains");
@@ -128,6 +130,57 @@ public class SearchControllerTests {
     content2 = removeTimeTaken(content2);
 
     assertThat(content).isEqualToIgnoringCase(content2);
+  }
+
+  /**
+   * Returns the search simple.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchTermFull() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    url = baseUrl;
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma");
+
+    // Test a basic term search
+    result =
+        this.mvc
+            .perform(
+                get(url)
+                    .param("terminology", "ncit")
+                    .param("term", "melanoma")
+                    .param("include", "full"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    Concept concept = list.getConcepts().get(0);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isEqualTo(10);
+    assertThat(concept.getCode()).isEqualTo("C3224");
+
+    // check that normName, stemName, and property codes are not showing up in searches, as
+    // is intended
+    assertThat(concept.getNormName()).isNull();
+    assertThat(concept.getStemName()).isNull();
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getAssociations().size()).isGreaterThan(0);
+    assertThat(concept.getAssociations().stream().filter(p -> p.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getRoles().size()).isGreaterThan(0);
+    assertThat(concept.getRoles().stream().filter(p -> p.getCode() != null).count()).isEqualTo(0);
   }
 
   /**

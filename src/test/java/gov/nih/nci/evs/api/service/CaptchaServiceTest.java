@@ -36,12 +36,14 @@ public class CaptchaServiceTest {
   @InjectMocks private CaptchaService captchaService;
 
   /** Setup before each test. */
+  @SuppressWarnings("resource")
   @Before
   public void setUp() {
     MockitoAnnotations.openMocks(this);
   }
 
   /** Test verifyRecaptcha method return a success */
+  @SuppressWarnings("unchecked")
   @Test
   public void verifyRecaptcha_Success() {
     // SETUP
@@ -72,6 +74,7 @@ public class CaptchaServiceTest {
   }
 
   /** Test verifyRecaptcha method return a failure when the toke isn't verifiable */
+  @SuppressWarnings("unchecked")
   @Test
   public void verifyRecaptcha_VerificationFails() {
     // Arrange

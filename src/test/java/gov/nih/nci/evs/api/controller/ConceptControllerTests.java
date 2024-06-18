@@ -132,9 +132,17 @@ public class ConceptControllerTests {
     // is intended
     assertThat(concept.getNormName()).isNull();
     assertThat(concept.getStemName()).isNull();
-    assertThat(concept.getSynonyms().get(0).getNormName()).isNull();
-    assertThat(concept.getSynonyms().get(0).getStemName()).isNull();
-    assertThat(concept.getProperties().get(0).getCode()).isNull();
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getAssociations().size()).isGreaterThan(0);
+    assertThat(concept.getAssociations().stream().filter(p -> p.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getRoles().size()).isGreaterThan(0);
+    assertThat(concept.getRoles().stream().filter(p -> p.getCode() != null).count()).isEqualTo(0);
   }
 
   /**
@@ -329,6 +337,7 @@ public class ConceptControllerTests {
                 });
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
+    assertThat(list.stream().filter(a -> a.getCode() != null).count()).isEqualTo(0);
 
     // Test case without associations
     url = baseUrl + "/ncit/C2291/associations";
