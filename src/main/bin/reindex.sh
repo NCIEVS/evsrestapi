@@ -87,15 +87,21 @@ fi
 
 metadata_config_url=${CONFIG_BASE_URI:-"https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata"}
 
-curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
-    "http://${STARDOG_HOST}:${STARDOG_PORT}/admin/databases" |\
-    $jq | perl -ne 's/\r//; $x=0 if /\]/; 
-            if ($x) { s/.* "//; s/",?$//; print "$_"; }; 
-            $x=1 if/\[/;' > /tmp/db.$$.txt
+response=$(curl -f -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
+    "http://${STARDOG_HOST}:${STARDOG_PORT}/admin/databases")
 if [[ $? -ne 0 ]]; then
-    echo "ERROR: unexpected problem listing databases"
-    exit 1
+    echo "ERROR: problem listing databases. Trying a different URL"
+    curl -s "http://${STARDOG_HOST}:${STARDOG_PORT}/$/server" | jq -r '.datasets|.[]|."ds.name" | gsub("^/";"")' > /tmp/db.$$.txt
+    if [[ $? -ne 0 ]]; then
+      echo "ERROR: unexpected problem listing databases. Exiting"
+      exit 1
+    fi
+else
+    echo "$response" | $jq | perl -ne 's/\r//; $x=0 if /\]/;
+            if ($x) { s/.* "//; s/",?$//; print "$_"; };
+            $x=1 if/\[/;' > /tmp/db.$$.txt
 fi
+
 
 echo "  databases = " `cat /tmp/db.$$.txt`
 ct=`cat /tmp/db.$$.txt | wc -l`
