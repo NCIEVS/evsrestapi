@@ -169,4 +169,9 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
   public int compareTo(Qualifier o) {
     return (type + value).compareToIgnoreCase(o.getType() + o.getValue());
   }
+
+  /** Clear hidden. */
+  public void clearHidden() {
+    code = null;
+  }
 }

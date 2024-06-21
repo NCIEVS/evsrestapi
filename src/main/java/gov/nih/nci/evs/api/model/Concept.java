@@ -1,23 +1,26 @@
 package gov.nih.nci.evs.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
+
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.DynamicMapping;
 import org.springframework.data.elasticsearch.annotations.DynamicMappingValue;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Represents a concept with a code from a terminology.
@@ -649,7 +652,10 @@ public class Concept extends ConceptMinimal {
    *
    * @return the qualifiers
    */
-  @Schema(hidden = true)
+  @Schema(
+      description =
+          "Qualifiers for use when a concept is used as a parent/child - to indicate RELA for"
+              + " NCIm-derived content")
   public List<Qualifier> getQualifiers() {
     if (qualifiers == null) {
       qualifiers = new ArrayList<>();
@@ -662,10 +668,6 @@ public class Concept extends ConceptMinimal {
    *
    * @param qualifiers the qualifiers
    */
-  @Schema(
-      description =
-          "Qualifiers for use when a concept is used as a parent/child - to indicate RELA for"
-              + " NCIm-derived content")
   public void setQualifiers(final List<Qualifier> qualifiers) {
     this.qualifiers = qualifiers;
   }
@@ -980,5 +982,18 @@ public class Concept extends ConceptMinimal {
   public Stream<Concept> streamSelfAndChildren() {
     return Stream.concat(
         Stream.of(this), getChildren().stream().flatMap(Concept::streamSelfAndChildren));
+  }
+
+  /** Clear hidden. */
+  public void clearHidden() {
+    normName = null;
+    stemName = null;
+    getQualifiers().forEach(q -> q.clearHidden());
+    getProperties().forEach(p -> p.clearHidden());
+    getDefinitions().forEach(d -> d.clearHidden());
+    getAssociations().forEach(r -> r.clearHidden());
+    getInverseAssociations().forEach(r -> r.clearHidden());
+    getRoles().forEach(r -> r.clearHidden());
+    getInverseRoles().forEach(r -> r.clearHidden());
   }
 }

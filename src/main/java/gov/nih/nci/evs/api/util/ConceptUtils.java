@@ -213,7 +213,7 @@ public final class ConceptUtils {
       if (ip.isMapsetLink()) {
         newConcept.setMapsetLink(concept.getMapsetLink());
       }
-
+      newConcept.clearHidden();
       result.add(newConcept);
     }
 

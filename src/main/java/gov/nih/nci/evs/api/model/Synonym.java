@@ -1,17 +1,20 @@
 package gov.nih.nci.evs.api.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
+
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.DynamicMapping;
 import org.springframework.data.elasticsearch.annotations.DynamicMappingValue;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Represents a synonym of a concept. */
 @Schema(description = "Represents one of the (potentially many) names for a concept")
@@ -433,5 +436,13 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   public int compareTo(Synonym other) {
     return (source + type + name)
         .compareToIgnoreCase(other.getSource() + other.getType() + other.getName());
+  }
+
+  /** Clear hidden. */
+  public void clearHidden() {
+    normName = null;
+    stemName = null;
+    typeCode = null;
+    getQualifiers().forEach(q -> q.clearHidden());
   }
 }

@@ -1158,6 +1158,17 @@ public class MetadataControllerTests {
     for (Property prop : concept.getProperties()) {
       assertThat(!prop.getType().equals("value"));
     }
+    // Hidden fields are not present
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getDefinitions().stream().filter(d -> d.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
+        .isEqualTo(0);
 
     // Test with P391
     url = baseUrl + "/ncit/qualifiers?include=summary&list=P391";
