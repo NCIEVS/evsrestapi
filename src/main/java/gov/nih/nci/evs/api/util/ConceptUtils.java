@@ -360,6 +360,7 @@ public final class ConceptUtils {
 
     return concepts.stream()
         .filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
+        .peek(c -> c.clearHidden())
         .collect(Collectors.toList());
   }
 
@@ -382,6 +383,7 @@ public final class ConceptUtils {
     return concepts.stream()
         .flatMap(Concept::streamSelfAndChildren)
         .filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
+        .peek(c -> c.clearHidden())
         .collect(Collectors.toList());
   }
 

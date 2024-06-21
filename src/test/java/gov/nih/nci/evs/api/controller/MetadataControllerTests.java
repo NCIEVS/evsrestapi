@@ -389,7 +389,17 @@ public class MetadataControllerTests {
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
     assertThat(concept.getPaths()).isNull();
-
+    // Hidden fields are not present
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getDefinitions().stream().filter(d -> d.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
+        .isEqualTo(0);
     // Test with "by label"
     url = baseUrl + "/ncit/association/Concept_In_Subset";
     log.info("Testing url - " + url);
@@ -551,7 +561,17 @@ public class MetadataControllerTests {
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
     assertThat(concept.getPaths()).isNull();
-
+    // Hidden fields are not present
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getDefinitions().stream().filter(d -> d.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
+        .isEqualTo(0);
     // Test with "by label"
     url = baseUrl + "/ncit/role/Conceptual_Part_Of";
     log.info("Testing url - " + url);
@@ -733,6 +753,17 @@ public class MetadataControllerTests {
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
     assertThat(concept.getPaths()).isNull();
+    // Hidden fields are not present
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getDefinitions().stream().filter(d -> d.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
+        .isEqualTo(0);
 
     // Test with "by label"
     url = baseUrl + "/ncit/property/Chemical_Formula";
@@ -987,7 +1018,17 @@ public class MetadataControllerTests {
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
     assertThat(concept.getPaths()).isNull();
-
+    // Hidden fields are not present
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getDefinitions().stream().filter(d -> d.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
+        .isEqualTo(0);
     // P381
     url = baseUrl + "/ncit/qualifier/P381/values";
     log.info("Testing url - " + url);
@@ -1049,7 +1090,17 @@ public class MetadataControllerTests {
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
     assertThat(concept.getPaths()).isNull();
-
+    // Hidden fields are not present
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getDefinitions().stream().filter(d -> d.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
+        .isEqualTo(0);
     // Bad terminology
     url = baseUrl + "/ncitXXX/synonymType/P90";
     log.info("Testing url - " + url);
@@ -1096,7 +1147,17 @@ public class MetadataControllerTests {
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
     assertThat(concept.getPaths()).isNull();
-
+    // Hidden fields are not present
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getDefinitions().stream().filter(d -> d.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
+        .isEqualTo(0);
     // Bad terminology
     url = baseUrl + "/ncitXXX/definitionType/P97";
     log.info("Testing url - " + url);
