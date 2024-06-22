@@ -985,6 +985,7 @@ public class Concept extends ConceptMinimal {
   public void clearHidden() {
     normName = null;
     stemName = null;
+    getSynonyms().forEach(s -> s.clearHidden());
     getQualifiers().forEach(q -> q.clearHidden());
     getProperties().forEach(p -> p.clearHidden());
     getDefinitions().forEach(d -> d.clearHidden());
