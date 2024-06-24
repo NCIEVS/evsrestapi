@@ -357,8 +357,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           // sy.setTypeCode("default");
           sy.setType("default");
           sy.setName(pn);
+          // Avoid setting these for metadata "concepts"
           sy.setNormName(ConceptUtils.normalize(sy.getName()));
-          sy.setNormName(ConceptUtils.normalizeWithStemming(sy.getName()));
+          sy.setStemName(ConceptUtils.normalizeWithStemming(sy.getName()));
           concept.getSynonyms().add(sy);
           // syNameType.add("default" + pn);
         }
@@ -457,6 +458,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       // NOTE: "paths" and "descendants" are not read here
 
+      // If not a concept type, clear hidden - e.g. for loading metadata concepts
+      if (!conceptType.equals("concept")) {
+        concept.clearHidden();
+      }
     }
 
     // Ensure that all list elements of the concept are in a natural sort

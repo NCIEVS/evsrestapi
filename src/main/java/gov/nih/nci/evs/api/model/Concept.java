@@ -649,7 +649,10 @@ public class Concept extends ConceptMinimal {
    *
    * @return the qualifiers
    */
-  @Schema(hidden = true)
+  @Schema(
+      description =
+          "Qualifiers for use when a concept is used as a parent/child - to indicate RELA for"
+              + " NCIm-derived content")
   public List<Qualifier> getQualifiers() {
     if (qualifiers == null) {
       qualifiers = new ArrayList<>();
@@ -662,10 +665,6 @@ public class Concept extends ConceptMinimal {
    *
    * @param qualifiers the qualifiers
    */
-  @Schema(
-      description =
-          "Qualifiers for use when a concept is used as a parent/child - to indicate RELA for"
-              + " NCIm-derived content")
   public void setQualifiers(final List<Qualifier> qualifiers) {
     this.qualifiers = qualifiers;
   }
@@ -980,5 +979,19 @@ public class Concept extends ConceptMinimal {
   public Stream<Concept> streamSelfAndChildren() {
     return Stream.concat(
         Stream.of(this), getChildren().stream().flatMap(Concept::streamSelfAndChildren));
+  }
+
+  /** Clear hidden. */
+  public void clearHidden() {
+    normName = null;
+    stemName = null;
+    getSynonyms().forEach(s -> s.clearHidden());
+    getQualifiers().forEach(q -> q.clearHidden());
+    getProperties().forEach(p -> p.clearHidden());
+    getDefinitions().forEach(d -> d.clearHidden());
+    getAssociations().forEach(r -> r.clearHidden());
+    getInverseAssociations().forEach(r -> r.clearHidden());
+    getRoles().forEach(r -> r.clearHidden());
+    getInverseRoles().forEach(r -> r.clearHidden());
   }
 }
