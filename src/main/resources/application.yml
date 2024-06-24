@@ -23,16 +23,16 @@ spring:
 
   # Term Form Mail Server Properties
   mail:
-    host: ${MAIL_HOST:smtp.gmail.com}
-    port: 587
+    host: ${MAIL_HOST:mailfwd.nih.gov}
+    port: 25
     username: ${MAIL_USER:REPLACE_WITH_USERNAME}
     password: ${MAIL_PASSWORD:REPLACE_WITH_PASSWORD}
     properties:
       mail:
         smtp:
-          auth: ${AUTH:true}
+          auth: ${MAIL_AUTH:true}
           starttls:
-            enable: ${TLS:true}
+            enable: ${MAIL_TLS:true}
 
 management:
   endpoints:
@@ -111,3 +111,13 @@ springdoc:
     tagsSorter: alpha
     operationsSorter: alpha
     doc-expansion: none
+
+# Google Recaptcha
+google:
+  recaptcha:
+    site:
+      key: ${RECAPTCHA_KEY:REPLACE_WITH_KEY}
+    secret:
+      key: ${RECAPTCHA_SECRET:REPLACE_WITH_SECRET}
+    verify:
+      url: https://www.google.com/recaptcha/api/siteverify

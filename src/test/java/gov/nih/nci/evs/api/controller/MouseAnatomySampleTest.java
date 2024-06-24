@@ -4,8 +4,11 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
-
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -18,11 +21,6 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Terminology;
 
 /** GO samples tests. */
 @RunWith(SpringRunner.class)
@@ -96,14 +94,28 @@ public class MouseAnatomySampleTest extends SampleTest {
   }
 
   /**
-   * Test part of.
+   * Test part of parent.
    *
    * @throws Exception the exception
    */
   @Test
-  public void testPartOf() throws Exception {
+  public void testPartOfParent() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
 
-    // Verify that "part_of" are used as hierarchical relationships
-
+    // This concept has a particular "complex" role - verify that it's present
+    // If not there may be a problem in sparql-queries.properties for roles.all.complex
+    url = "/api/v1/concept/ma/MA:0000003?include=parents";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("MA:0000003");
+    assertThat(concept.getParents().stream().filter(p -> p.getCode().equals("MA:0002405")).count())
+        .isGreaterThan(0);
   }
 }

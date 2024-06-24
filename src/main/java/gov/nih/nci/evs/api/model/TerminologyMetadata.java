@@ -101,6 +101,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The hierarchy flag. */
   private Boolean hierarchy;
 
+  /** The hierarchy roles. */
+  private Set<String> hierarchyRoles;
+
   /** The history flag. */
   private Boolean history;
 
@@ -202,6 +205,7 @@ public class TerminologyMetadata extends BaseModel {
     sparqlPrefix = other.getSparqlPrefix();
     sourceCt = sources.size();
     hierarchy = other.getHierarchy();
+    hierarchyRoles = new HashSet<>(other.getHierarchyRoles());
     history = other.getHistory();
     mapsets = other.getMapsets();
     sourcesToRemove = new HashSet<>(other.getSourcesToRemove());
@@ -393,6 +397,8 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Returns the excluded properties.
+   *
    * @return the excludeProperties
    */
   public Set<String> getExcludedProperties() {
@@ -403,6 +409,8 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Sets the excluded properties.
+   *
    * @param excludeProperties the excludeProperties to set
    */
   public void setExcludedProperties(final Set<String> excludeProperties) {
@@ -1168,6 +1176,28 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setHierarchy(final Boolean hierarchy) {
     this.hierarchy = hierarchy;
+  }
+
+  /**
+   * Returns the hierarchy roles.
+   *
+   * @return the hierarchy
+   */
+  @Schema(description = "Indicates role codes that are reinterpreted as parent/child")
+  public Set<String> getHierarchyRoles() {
+    if (hierarchyRoles == null) {
+      hierarchyRoles = new HashSet<>();
+    }
+    return hierarchyRoles;
+  }
+
+  /**
+   * Sets the hierarchy roles.
+   *
+   * @param hierarchyRoles the hierarchyRoles to set
+   */
+  public void setHierarchyRoles(final Set<String> hierarchyRoles) {
+    this.hierarchyRoles = hierarchyRoles;
   }
 
   /**

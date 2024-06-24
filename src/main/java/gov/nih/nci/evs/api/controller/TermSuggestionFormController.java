@@ -3,7 +3,9 @@ package gov.nih.nci.evs.api.controller;
 import com.fasterxml.jackson.databind.JsonNode;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.EmailDetails;
+import gov.nih.nci.evs.api.service.CaptchaService;
 import gov.nih.nci.evs.api.service.TermSuggestionFormServiceImpl;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -14,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -22,8 +25,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
 /** Controller for /suggest endpoints. */
+@Hidden
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
 @Tag(name = "Terminology form endpoints")
@@ -35,15 +40,19 @@ public class TermSuggestionFormController extends BaseController {
 
   /** The email service. */
   // term form email service
-  private final TermSuggestionFormServiceImpl emailService;
+  private final TermSuggestionFormServiceImpl formService;
+
+  private final CaptchaService captchaService;
 
   /**
    * Instantiates a new Term suggestion form controller with params.
    *
    * @param emailService Form Email Service dependency
    */
-  public TermSuggestionFormController(TermSuggestionFormServiceImpl emailService) {
-    this.emailService = emailService;
+  public TermSuggestionFormController(
+      TermSuggestionFormServiceImpl emailService, CaptchaService captchaService) {
+    this.formService = emailService;
+    this.captchaService = captchaService;
   }
 
   /**
@@ -105,12 +114,12 @@ public class TermSuggestionFormController extends BaseController {
       throws Exception {
     // Try getting the form and return form template
     try {
-      JsonNode formTemplate = emailService.getFormTemplate(formType);
+      JsonNode formTemplate = formService.getFormTemplate(formType);
       return ResponseEntity.ok().body(formTemplate);
     } catch (Exception e) {
-      logger.error("Error reading form template: " + formType);
+      logger.error("Error reading form template: " + formType, e);
       handleException(e);
-      return ResponseEntity.internalServerError().body("An error occurred while loading form");
+      return null;
     }
   }
 
@@ -168,21 +177,26 @@ public class TermSuggestionFormController extends BaseController {
   })
   @PostMapping("/suggest")
   @RecordMetric
-  public ResponseEntity<?> submitForm(
+  public void submitForm(
       @RequestBody JsonNode formData,
-      @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
+      @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license,
+      @RequestHeader(name = "Captcha-Token") final String captchaToken)
       throws Exception {
+    // Try sending the email
     try {
+      // Verify our captcha token
+      if (!captchaService.verifyRecaptcha(captchaToken)) {
+        logger.error("Failed to verify the submitted Recaptcha!");
+        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to submit form\n");
+      }
+
       // convert the form data into our email details object
       EmailDetails emailDetails = EmailDetails.generateEmailDetails(formData);
-
-      // Send the email with our email details
-      emailService.sendEmail(emailDetails);
-      return ResponseEntity.ok().build();
+      // Send the email
+      formService.sendEmail(emailDetails);
     } catch (Exception e) {
-      logger.error("Error creating email details or sending email");
+      logger.error("Error creating email details or sending email", e);
       handleException(e);
-      return ResponseEntity.internalServerError().body("An error occurred while submitting form");
     }
   }
 }

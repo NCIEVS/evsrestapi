@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
 import org.junit.BeforeClass;
@@ -87,5 +88,39 @@ public class MgedSampleTest extends SampleTest {
     assertThat(mged.getMetadata().getSourceCt()).isEqualTo(0);
     assertThat(mged.getMetadata().getLicenseText()).isNull();
     assertThat(mged.getDescription()).isNull();
+  }
+
+  /**
+   * Test fix file.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testFixFile() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // This concept was not showing up before using the fix file
+    url = "/api/v1/concept/mged/MO_824";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("MO_824");
+
+    // This concept should have children (not showing up before fix file)
+    url = "/api/v1/concept/mged/MO_113?include=children";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("MO_113");
+    assertThat(concept.getChildren().size()).isGreaterThan(2);
   }
 }

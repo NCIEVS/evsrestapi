@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 /** Implementation class for the terminology suggestion form service. */
 @Service
 public class TermSuggestionFormServiceImpl implements TermSuggestionFormService {
-
   /** The Constant logger. */
   // Logger
   private static final Logger logger = LoggerFactory.getLogger(TermSuggestionFormServiceImpl.class);
@@ -44,7 +43,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @param applicationProperties the application properties
    */
   public TermSuggestionFormServiceImpl(
-      JavaMailSender mailSender, ApplicationProperties applicationProperties) {
+      final JavaMailSender mailSender, final ApplicationProperties applicationProperties) {
     this.mailSender = mailSender;
     this.applicationProperties = applicationProperties;
   }
@@ -59,7 +58,8 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @throws IOException io exception
    */
   @Override
-  public JsonNode getFormTemplate(String formType) throws IllegalArgumentException, IOException {
+  public JsonNode getFormTemplate(final String formType)
+      throws IllegalArgumentException, IOException {
     // Set the form file path based on the formType passed. If we receive an invalid path, throw
     // exception
     if (formType == null || formType.isEmpty() || formType.isBlank()) {
@@ -67,9 +67,8 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     } else {
       formFilePath = new URL(applicationProperties.getConfigBaseUri() + "/" + formType + ".json");
     }
-
     // Create objectMapper. Read file and return JsonNode
-    ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = new ObjectMapper();
     return mapper.readTree(formFilePath);
   }
 
@@ -80,22 +79,20 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @throws MessagingException the messaging exception
    */
   @Override
-  public void sendEmail(EmailDetails emailDetails) throws MessagingException {
+  public void sendEmail(final EmailDetails emailDetails) throws MessagingException {
     // Check if starttls.enable is false
-    if (mailSender instanceof JavaMailSenderImpl mailSenderImpl) {
-      Properties mailProperties = mailSenderImpl.getJavaMailProperties();
-      String starttls = mailProperties.getProperty("mail.smtp.starttls.enable");
+    if (mailSender instanceof JavaMailSenderImpl) {
+      final Properties mailProperties = ((JavaMailSenderImpl) mailSender).getJavaMailProperties();
+      final String starttls = mailProperties.getProperty("mail.smtp.starttls.enable");
       // check we want to start the tls
       if ("false".equals(starttls)) {
         return; // do nothing
       }
     }
-
     // Create the MimeMessage
-    MimeMessage message = mailSender.createMimeMessage();
+    final MimeMessage message = mailSender.createMimeMessage();
     logger.info(
         "   Sending email for {} form to {}", emailDetails.getSource(), emailDetails.getToEmail());
-
     // Set the email details
     message.setRecipients(RecipientType.TO, emailDetails.getToEmail());
     message.setFrom(new InternetAddress(emailDetails.getFromEmail()));
@@ -103,9 +100,8 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     if (emailDetails.getMsgBody().contains("<html")) {
       message.setContent(emailDetails.getMsgBody(), "text/html; charset=utf-8");
     } else {
-      message.setText(emailDetails.getMsgBody());
+      message.setText(String.valueOf(emailDetails.getMsgBody()));
     }
-
     mailSender.send(message);
   }
 }

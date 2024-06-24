@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
 import org.junit.BeforeClass;
@@ -87,5 +88,31 @@ public class ZebrafishSampleTest extends SampleTest {
     assertThat(zfa.getMetadata().getSourceCt()).isEqualTo(0);
     assertThat(zfa.getMetadata().getLicenseText()).isNull();
     assertThat(zfa.getLatest()).isTrue();
+  }
+
+  /**
+   * Test part of parent.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPartOfParent() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // This concept has a particular "complex" role - verify that it's present
+    // If not there may be a problem in sparql-queries.properties for roles.all.complex
+    url = "/api/v1/concept/zfa/ZFA:0000004?include=parents";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("ZFA:0000004");
+    assertThat(concept.getParents().stream().filter(p -> p.getCode().equals("ZFA:0001378")).count())
+        .isGreaterThan(0);
   }
 }

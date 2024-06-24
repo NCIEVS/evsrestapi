@@ -180,7 +180,7 @@ spotless {
   java {
     target 'src/main/java/**/*.java', 'src/test/java/**/*.java'
     // apply a specific flavor of google-java-format
-    googleJavaFormat('1.19.2').reflowLongStrings().formatJavadoc(true).reorderImports(true).groupArtifact('com.google.googlejavaformat:google-java-format')
+    googleJavaFormat('1.22.0').reflowLongStrings().formatJavadoc(true).reorderImports(true).groupArtifact('com.google.googlejavaformat:google-java-format')
     removeUnusedImports()
     // fix formatting of type annotations
 //        formatAnnotations()

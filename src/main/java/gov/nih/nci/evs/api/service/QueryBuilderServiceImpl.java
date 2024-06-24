@@ -78,6 +78,35 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     return prefix;
   }
 
+  /* see superclass */
+  @Override
+  public String prepSparql(final Terminology terminology, final String query) {
+
+    // Replace non space whitespace
+    String sparqlQuery = query.replaceAll("[\t\r\n]", " ");
+
+    // Replace prefixes
+    sparqlQuery = sparqlQuery.replaceFirst("(?i:.*?SELECT )", "SELECT ");
+
+    // Replace graph
+    sparqlQuery =
+        sparqlQuery.replaceFirst(
+            "(.*?)(?i:GRAPH)\\s*<[^>]+>\\s*", "$1 GRAPH <" + terminology.getGraph() + "> ");
+
+    // Add GRAPH, where it does not exist
+    // SELECT ?code WHERE { ?x a owl:Class . ?x :NHC0 ?code .?x :P108 "Melanoma" }
+    // SELECT ?code { ?x a owl:Class . ?x :NHC0 ?code .?x :P108 "Melanoma" }
+    if (!sparqlQuery.toLowerCase().contains(" graph ")) {
+      // NOTE [\d\D] is like . but includes \n
+      sparqlQuery =
+          sparqlQuery.replaceFirst(
+              "(?i:SELECT)\\s*([^{]+?)\\s*\\{\\s*(.*)\\s*\\}",
+              "SELECT $1 { GRAPH <" + terminology.getGraph() + "> { $2 } }");
+    }
+
+    return constructPrefix(terminology) + "\n" + sparqlQuery;
+  }
+
   /**
    * Construct graph query.
    *

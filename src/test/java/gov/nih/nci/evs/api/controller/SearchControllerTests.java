@@ -102,12 +102,14 @@ public class SearchControllerTests {
     assertThat(content).isNotNull();
 
     ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    Concept concept = list.getConcepts().get(0);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isEqualTo(10);
-    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C3224");
-    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Melanoma");
-    assertThat(list.getConcepts().get(0).getTerminology()).isEqualTo("ncit");
-    assertThat(list.getConcepts().get(0).getSynonyms()).isEmpty();
+    assertThat(concept.getCode()).isEqualTo("C3224");
+    assertThat(concept.getName()).isEqualTo("Melanoma");
+    assertThat(concept.getTerminology()).isEqualTo("ncit");
+    assertThat(concept.getSynonyms()).isEmpty();
+
     assertThat(list.getTotal()).isGreaterThan(100);
     assertThat(list.getParameters().getTerm()).isEqualTo("melanoma");
     assertThat(list.getParameters().getType()).isEqualTo("contains");
@@ -128,6 +130,57 @@ public class SearchControllerTests {
     content2 = removeTimeTaken(content2);
 
     assertThat(content).isEqualToIgnoringCase(content2);
+  }
+
+  /**
+   * Returns the search simple.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchTermFull() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    url = baseUrl;
+    log.info("Testing url - " + url + "?terminology=ncit&term=melanoma");
+
+    // Test a basic term search
+    result =
+        this.mvc
+            .perform(
+                get(url)
+                    .param("terminology", "ncit")
+                    .param("term", "melanoma")
+                    .param("include", "full"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    Concept concept = list.getConcepts().get(0);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isEqualTo(10);
+    assertThat(concept.getCode()).isEqualTo("C3224");
+
+    // check that normName, stemName, and property codes are not showing up in searches, as
+    // is intended
+    assertThat(concept.getNormName()).isNull();
+    assertThat(concept.getStemName()).isNull();
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getAssociations().size()).isGreaterThan(0);
+    assertThat(concept.getAssociations().stream().filter(p -> p.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getRoles().size()).isGreaterThan(0);
+    assertThat(concept.getRoles().stream().filter(p -> p.getCode() != null).count()).isEqualTo(0);
   }
 
   /**
@@ -3421,12 +3474,7 @@ public class SearchControllerTests {
             + "  } \n"
             + "}";
 
-    log.info(
-        "Testing url - "
-            + url
-            + "?query="
-            + query
-            + "&terminology=ncit&type=contains&include=minimal");
+    log.info("Testing url - " + url + "?type=contains&include=minimal");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
@@ -3461,12 +3509,7 @@ public class SearchControllerTests {
             + "}\n"
             + "}";
 
-    log.info(
-        "Testing url - "
-            + url
-            + "?query="
-            + query
-            + "&terminology=ncit&type=contains&include=minimal");
+    log.info("Testing url - " + url + "?type=contains&include=minimal");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
@@ -3492,12 +3535,7 @@ public class SearchControllerTests {
             + "  } \n"
             + "}";
 
-    log.info(
-        "Testing url - "
-            + url
-            + "?query="
-            + query
-            + "&terminology=ncit&type=contains&include=minimal");
+    log.info("Testing url - " + url + "?type=contains&include=minimal");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
@@ -3522,12 +3560,7 @@ public class SearchControllerTests {
             + "    ?x :P108 \"Melanoma Pathway\"\n"
             + "  } \n"
             + "}";
-    log.info(
-        "Testing url - "
-            + url
-            + "?query="
-            + query
-            + "&terminology=ncit&type=contains&include=minimal");
+    log.info("Testing url - " + url + "?type=contains&include=minimal");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
@@ -3552,12 +3585,7 @@ public class SearchControllerTests {
             + "    FILTER(CONTAINS(?label, \"Melanoma\"))\n"
             + "  }\n"
             + "}";
-    log.info(
-        "Testing url - "
-            + url
-            + "?query="
-            + query
-            + "&terminology=ncit&type=contains&include=minimal&term=Theraccine");
+    log.info("Testing url - " + url + "?type=contains&include=minimal&term=Theraccine");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
@@ -3582,20 +3610,15 @@ public class SearchControllerTests {
             + "    ?x a owl:Class .\n"
             + "    ?x :NHC0 ?code .\n"
             + "    ?x :P108 ?label .\n"
-            + "    FILTER(CONTAINS(?label, \"Cancer\"))\n"
+            + "    FILTER(CONTAINS(?label, \"Flavor\"))\n"
             + "  }\n"
             + "}";
-    log.info(
-        "Testing url - "
-            + url
-            + "?query="
-            + query
-            + "&terminology=ncit&type=contains&include=minimal&term=Liver");
+    log.info("Testing url - " + url + "?type=contains&include=minimal&term=Liver");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
-                    .param("include", "minimal")
+                    .param("include", "summary")
                     .param("type", "contains")
                     .param("term", "Liver"))
             .andExpect(status().isOk())
@@ -3627,12 +3650,7 @@ public class SearchControllerTests {
             + "    ?x :P108 \"ZZZZZ\"\n"
             + "  } \n"
             + "}";
-    log.info(
-        "Testing url - "
-            + url
-            + "?query="
-            + query
-            + "&terminology=ncit&type=contains&include=minimal");
+    log.info("Testing url - " + url + "?type=contains&include=minimal");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
@@ -3646,7 +3664,7 @@ public class SearchControllerTests {
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts().size()).isEqualTo(0);
 
-    // check query with malformed prefix
+    // check query with malformed prefix - OK because prefix is rewritten
     query =
         "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
             + "PREFIX base:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>\n"
@@ -3666,27 +3684,18 @@ public class SearchControllerTests {
             + "  ?x :P108 \"Melanoma\"\n"
             + "}\n"
             + "}";
-    log.info(
-        "Testing url - "
-            + url
-            + "?query="
-            + query
-            + "&terminology=ncit&type=contains&include=minimal");
+    log.info("Testing url - " + url + "?type=contains&include=minimal");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
                     .param("include", "minimal")
                     .param("type", "contains"))
-            .andExpect(status().isBadRequest())
+            .andExpect(status().isOk())
             .andReturn();
-    assertThat(result.getResponse().getErrorMessage()).isNotNull();
-    content = result.getResponse().getErrorMessage();
+    content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     assertThat(content).isNotNull();
-    assertThat(
-            content.contains("Invalid SPARQL query: Multiple prefix declarations for prefix 'xml'"))
-        .isTrue();
 
     // check query with a query that fails initial validation
     query =
@@ -3707,12 +3716,7 @@ public class SearchControllerTests {
             + "  ?x :P108 \"Melanoma\"\n"
             + "}\n"
             + "}";
-    log.info(
-        "Testing url - "
-            + url
-            + "?query="
-            + query
-            + "&terminology=ncit&type=contains&include=minimal");
+    log.info("Testing url - " + url + "?type=contains&include=minimal");
 
     final String exceptionUrl = new String(url);
     final String exceptionQuery = new String(query);
@@ -3745,12 +3749,7 @@ public class SearchControllerTests {
             + "    ?x :Preferred_Name \"Behavior\"\n"
             + "  } \n"
             + "}";
-    log.info(
-        "Testing url - "
-            + url
-            + "?query="
-            + query
-            + "&terminology=ncit&type=contains&include=minimal");
+    log.info("Testing url - " + url + "?type=contains&include=minimal");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
@@ -3800,9 +3799,7 @@ public class SearchControllerTests {
     //    log.info(
     //        "Testing url - "
     //            + url
-    //            + "?query="
-    //            + query
-    //            + "&terminology=ncit&type=contains&include=minimal");
+    //            + "?type=contains&include=minimal");
     //    result =
     //        mvc.perform(
     //                MockMvcRequestBuilders.post(url)
@@ -3818,6 +3815,56 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test sparql variations.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSparqlVariations() throws Exception {
+    String url = "/api/v1/sparql/ncit";
+
+    for (final String query :
+        new String[] {
+          // Simple
+          "SELECT ?code { ?x a owl:Class . ?x :NHC0 ?code .?x :P108 \"Melanoma\" }",
+          // Simple with WHERE
+          "SELECT ?code WHERE { ?x a owl:Class . ?x :NHC0 ?code .?x :P108 \"Melanoma\" }",
+          // Spacing variation
+          "SELECT?code{ ?x a owl:Class . ?x :NHC0 ?code .?x :P108 \"Melanoma\"}",
+          // Simple with GRAPH
+          "SELECT ?code { GRAPH <http://NCI_T_monthly> { ?x a owl:Class .  ?x :NHC0 ?code . ?x"
+              + " :P108 \"Melanoma\" }  }",
+          // Simple with GRAPH spacing variation
+          "SELECT?code{GRAPH<http://NCI_T_monthly>{?x a owl:Class .  ?x :NHC0 ?code . ?x :P108"
+              + " \"Melanoma\"}}",
+          // Simple with GRAPH with a newline
+          "SELECT ?code {\n"
+              + " GRAPH <http://NCI_T_monthly> { ?x a owl:Class .  ?x :NHC0 ?code . ?x :P108"
+              + " \"Melanoma\" }  }",
+          // Simple with GRAPH with prefixes (and newline)
+          "PREFIX :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#> \n"
+              + "SELECT ?code {GRAPH <http://NCI_T_monthly> { ?x a owl:Class .  ?x :NHC0 ?code . ?x"
+              + " :P108 \"Melanoma\" }  }",
+          // Multiple fields but including ?code
+          "SELECT ?x ?code {\n"
+              + " GRAPH <http://NCI_T_monthly> { ?x a owl:Class .  ?x :NHC0 ?code . ?x :P108"
+              + " \"Melanoma\" }  }",
+        }) {
+
+      // Just verify the call works
+      log.info("Testing url - " + url + "?terminology=ncit&fromRecord=0&pageSize=10");
+      log.info("  query = " + query);
+      mvc.perform(
+              MockMvcRequestBuilders.post(url)
+                  .content(query)
+                  .param("fromRecord", "0")
+                  .param("pageSize", "10"))
+          .andExpect(status().isOk())
+          .andReturn();
+    }
+  }
+
+  /**
    * Test sparql.
    *
    * @throws Exception the exception
@@ -3830,8 +3877,7 @@ public class SearchControllerTests {
 
     String query =
         "SELECT ?code ?x { GRAPH <http://NCI_T_monthly> { ?x a owl:Class . ?x :NHC0 ?code . } }";
-    log.info(
-        "Testing url - " + url + "?query=" + query + "&terminology=ncit&fromRecord=0&pageSize=10");
+    log.info("Testing url - " + url + "?terminology=ncit&fromRecord=0&pageSize=10");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
@@ -3851,8 +3897,7 @@ public class SearchControllerTests {
     // verify fromRecord and pageSize
     query =
         "SELECT ?code ?x { GRAPH <http://NCI_T_monthly> { ?x a owl:Class . ?x :NHC0 ?code . } }";
-    log.info(
-        "Testing url - " + url + "?query=" + query + "&terminology=ncit&fromRecord=1&pageSize=5");
+    log.info("Testing url - " + url + "?terminology=ncit&fromRecord=1&pageSize=5");
     result =
         mvc.perform(
                 MockMvcRequestBuilders.post(url)

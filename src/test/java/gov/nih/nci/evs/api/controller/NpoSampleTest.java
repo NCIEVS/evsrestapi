@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
 import org.junit.BeforeClass;
@@ -90,5 +91,35 @@ public class NpoSampleTest extends SampleTest {
     assertThat(npo.getMetadata().getSourceCt()).isEqualTo(0);
     assertThat(npo.getMetadata().getLicenseText()).isNull();
     assertThat(npo.getLatest()).isTrue();
+  }
+
+  /**
+   * Test definition.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testDefinition() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // This concept has a particular "complex" role - verify that it's present
+    // If not there may be a problem in sparql-queries.properties for roles.all.complex
+    url = "/api/v1/concept/npo/NPO_1009?include=properties,definitions";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("NPO_1009");
+    // Verify no definition property
+    assertThat(
+            concept.getProperties().stream().filter(p -> p.getType().equals("definition")).count())
+        .isEqualTo(0);
+    // Verify definition
+    assertThat(concept.getDefinitions().size()).isGreaterThan(0);
   }
 }

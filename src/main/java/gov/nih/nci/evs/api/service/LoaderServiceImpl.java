@@ -4,6 +4,7 @@ import gov.nih.nci.evs.api.Application;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
+import java.util.Set;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -184,8 +185,8 @@ public class LoaderServiceImpl {
           loadService.loadIndexMetadata(totalConcepts, term);
         }
       }
-      loadService.cleanStaleIndexes(term);
-      loadService.updateLatestFlag(term);
+      final Set<String> removed = loadService.cleanStaleIndexes(term);
+      loadService.updateLatestFlag(term, removed);
 
     } catch (Exception e) {
       logger.error(e.getMessage(), e);

@@ -2,8 +2,6 @@ package gov.nih.nci.evs.api.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -28,7 +26,8 @@ public class Definition extends BaseModel implements Comparable<Definition> {
   @Transient @JsonSerialize @JsonDeserialize private String highlight;
 
   /** The "code" of the definition type. */
-  @JsonProperty(access = Access.READ_ONLY)
+  // In the future we can use @WriteOnlyProperty
+  // this does not work: @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Keyword)
   private String code;
 

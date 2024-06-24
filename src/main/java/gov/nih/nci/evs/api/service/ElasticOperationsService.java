@@ -93,12 +93,12 @@ public interface ElasticOperationsService {
    * @param indexName the index name
    * @param id the id
    */
-  void delete(String indexName, String id);
+  String delete(String indexName, String id);
 
   /**
    * Delete the {@link IndexMetadata} object.
    *
    * @param id the id of the {@link IndexMetadata} object
    */
-  void deleteIndexMetadata(String id);
+  String deleteIndexMetadata(String id);
 }

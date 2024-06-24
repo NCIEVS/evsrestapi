@@ -119,4 +119,86 @@ public class CanmedSampleTest extends SampleTest {
     assertThat(concept.getTerminology()).isEqualTo("canmed");
     assertThat(concept.getActive()).isTrue();
   }
+
+  /**
+   * This test looks at 3 examples from the canmed files
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testHcpcsCodeThing() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // Case of something with a real HCPCS code
+    url = "/api/v1/concept/canmed/J9017";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("J9017");
+
+    assertThat(
+            concept.getSynonyms().stream()
+                .filter(s -> s.getType().equals("Preferred_Name"))
+                .count())
+        .isEqualTo(1);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getType().equals("Brand_Name")).count())
+        .isEqualTo(1);
+    assertThat(
+            concept.getProperties().stream()
+                .filter(p -> p.getType().equals("Preferred_Name"))
+                .count())
+        .isEqualTo(0);
+    assertThat(
+            concept.getProperties().stream().filter(p -> p.getType().equals("Brand_Name")).count())
+        .isEqualTo(0);
+    // Check the "HCPCS_Code" attribute
+    assertThat(
+            concept.getProperties().stream()
+                .filter(p -> p.getType().equals("HCPCS_Code") && p.getValue().equals("J9017"))
+                .count())
+        .isEqualTo(1);
+
+    // Case of something with an "NA" HCPCS code
+    url = "/api/v1/concept/canmed/HCPCS_ABEMACICLIB_200_MG";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("HCPCS_ABEMACICLIB_200_MG");
+
+    assertThat(
+            concept.getSynonyms().stream()
+                .filter(s -> s.getType().equals("Preferred_Name"))
+                .count())
+        .isEqualTo(1);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getType().equals("Brand_Name")).count())
+        .isEqualTo(1);
+    assertThat(
+            concept.getProperties().stream()
+                .filter(p -> p.getType().equals("Preferred_Name"))
+                .count())
+        .isEqualTo(0);
+    assertThat(
+            concept.getProperties().stream().filter(p -> p.getType().equals("Brand_Name")).count())
+        .isEqualTo(0);
+    // Check the "HCPCS_Code" attribute
+    assertThat(
+            concept.getProperties().stream()
+                .filter(p -> p.getType().equals("HCPCS_Code") && p.getValue().equals("NA"))
+                .count())
+        .isEqualTo(1);
+
+    // Case of something with a "" HCPCS code
+    url = "/api/v1/concept/canmed/HCPCS_MOMELOTINIB";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+  }
 }
