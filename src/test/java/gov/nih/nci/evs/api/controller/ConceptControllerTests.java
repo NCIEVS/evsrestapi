@@ -636,7 +636,7 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     // check pageSize
-    assertThat(list.size() == 5);
+    assertThat(list.size()).isEqualTo(5);
     // preserve level
     assertThat(list.stream().filter(byLevel).collect(Collectors.toList())).isNotEmpty();
 
@@ -657,7 +657,7 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     // check pageSize
-    assertThat(list.size() == 500);
+    assertThat(list.size()).isEqualTo(500);
     // preserve level
     assertThat(list.stream().filter(byLevel).collect(Collectors.toList())).isNotEmpty();
 
@@ -678,7 +678,7 @@ public class ConceptControllerTests {
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
     // check pageSize
-    assertThat(list.size() == 10000);
+    assertThat(list.size()).isEqualTo(10000);
     // preserve level
     assertThat(list.stream().filter(byLevel).collect(Collectors.toList())).isNotEmpty();
 
@@ -735,7 +735,7 @@ public class ConceptControllerTests {
     // preserve level
     assertThat(list.stream().filter(byLevel).collect(Collectors.toList()).isEmpty());
     byLevel = concept -> concept.getLevel() <= 2;
-    assertThat(list.stream().filter(byLevel).collect(Collectors.toList()).size() == size);
+    assertThat(list.stream().filter(byLevel).collect(Collectors.toList()).size()).isEqualTo(size);
   }
 
   /**
@@ -1581,14 +1581,21 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<List<Concept>>>() {
+                  // n/a
+                });
 
     // check format for ancestor of self
     assertThat(list).isNotEmpty();
     assertThat(list.get(0).get(0).getTerminology()).isNotNull();
     assertThat(list.get(0).get(0).getVersion()).isNotNull();
 
-    assertThat(list.size() == 1); // single path
-    assertThat(list.get(0).size() == 1); // single element in path
+    assertThat(list.size()).isEqualTo(1); // single path
+    assertThat(list.get(0).size()).isEqualTo(1); // single element in path
     assertThat(list.get(0).get(0).getLevel() == 0);
 
     // Test case with paging
@@ -1712,9 +1719,9 @@ public class ConceptControllerTests {
     log.info(" content = " + content);
     resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
     assertThat(resultList).isNotNull();
-    assertThat(resultList.getTimeTaken() > 0);
-    assertThat(resultList.getTotal() > 2500);
-    assertThat(resultList.getParameters().getTerminology().contains("Has_Target"));
+    assertThat(resultList.getTimeTaken()).isGreaterThan(0);
+    assertThat(resultList.getTotal()).isGreaterThan(2500);
+    assertThat(resultList.getParameters().getTerminology()).contains("Has_Target");
     for (AssociationEntry assoc : resultList.getAssociationEntries()) {
       assertThat(assoc.getAssociation().equals("Has_Target"));
     }
@@ -1727,9 +1734,9 @@ public class ConceptControllerTests {
     log.info(" content = " + content);
     resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
     assertThat(resultList).isNotNull();
-    assertThat(resultList.getTimeTaken() > 0);
-    assertThat(resultList.getTotal() > 2500);
-    assertThat(resultList.getParameters().getTerminology().contains("Has_Target"));
+    assertThat(resultList.getTimeTaken()).isGreaterThan(0);
+    assertThat(resultList.getTotal()).isGreaterThan(2500);
+    assertThat(resultList.getParameters().getTerminology()).contains("Has_Target");
     for (AssociationEntry assoc : resultList.getAssociationEntries()) {
       assertThat(assoc.getAssociation().equals("Has_Target"));
     }
@@ -1742,9 +1749,9 @@ public class ConceptControllerTests {
     log.info(" content = " + content);
     resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
     assertThat(resultList).isNotNull();
-    assertThat(resultList.getTimeTaken() > 0);
-    assertThat(resultList.getTotal() < 5000);
-    assertThat(resultList.getParameters().getTerminology().contains("A5"));
+    assertThat(resultList.getTimeTaken()).isGreaterThan(0);
+    assertThat(resultList.getTotal()).isLessThan(3000);
+    assertThat(resultList.getParameters().getTerminology()).contains("Has_Salt_Form");
     for (AssociationEntry assoc : resultList.getAssociationEntries()) {
       assertThat(assoc.getAssociation().equals("Has_Salt_Form"));
     }
@@ -1762,9 +1769,9 @@ public class ConceptControllerTests {
     log.info(" content = " + content);
     resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
     assertThat(resultList).isNotNull();
-    assertThat(resultList.getTotal() > 0);
-    assertThat(resultList.getParameters().getTerminology().contains("12"));
-    assertThat(resultList.getAssociationEntries().size() == 12);
+    assertThat(resultList.getTotal()).isGreaterThan(0);
+    assertThat(resultList.getParameters().getTerminology()).contains("12");
+    assertThat(resultList.getAssociationEntries().size()).isEqualTo(12);
 
     // Test fromRecord
     url = baseUrl + "/ncit/associations/Has_Target?fromRecord=1";
@@ -1774,8 +1781,8 @@ public class ConceptControllerTests {
     log.info(" content = " + content);
     resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
     assertThat(resultList).isNotNull();
-    assertThat(resultList.getTotal() > 0);
-    assertThat(resultList.getParameters().getTerminology().contains("1"));
+    assertThat(resultList.getTotal()).isGreaterThan(0);
+    assertThat(resultList.getParameters().getTerminology()).contains("1");
     assertThat(resultList.getAssociationEntries().get(0).getCode() == "C125718");
     assertThat(resultList.getAssociationEntries().get(0).getRelatedCode() == "C128784");
   }
@@ -1837,7 +1844,7 @@ public class ConceptControllerTests {
                   // n/a
                 });
 
-    assertThat(subsetMembers.size() == 10);
+    assertThat(subsetMembers.size()).isEqualTo(10);
 
     url = baseUrl + "/ncit/subsetMembers/C1111?pageSize=10";
     log.info("Testing url - " + url);
@@ -1852,7 +1859,7 @@ public class ConceptControllerTests {
                   // n/a
                 });
 
-    assertThat(subsetMembers.size() == 0);
+    assertThat(subsetMembers.size()).isEqualTo(0);
   }
 
   /**
