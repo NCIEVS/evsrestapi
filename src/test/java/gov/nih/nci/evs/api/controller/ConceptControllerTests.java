@@ -1734,6 +1734,21 @@ public class ConceptControllerTests {
       assertThat(assoc.getAssociation().equals("Has_Target"));
     }
 
+    // Test for relatively valid counts
+    url = baseUrl + "/ncit/associations/A5";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
+    assertThat(resultList).isNotNull();
+    assertThat(resultList.getTimeTaken() > 0);
+    assertThat(resultList.getTotal() < 5000);
+    assertThat(resultList.getParameters().getTerminology().contains("A5"));
+    for (AssociationEntry assoc : resultList.getAssociationEntries()) {
+      assertThat(assoc.getAssociation().equals("Has_Salt_Form"));
+    }
+
     // Test that concept subset is properly 404'd
     url = baseUrl + "/ncit/associations/A8";
     log.info("Testing url - " + url);
