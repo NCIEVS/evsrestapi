@@ -451,6 +451,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     // associationEntries
     for (Concept association : associations) {
       logger.info(association.getName());
+      entries = new ArrayList<>();
       if (association.getName().equals("Concept_In_Subset")) continue;
       for (String conceptCode : hierarchy.getAssociationMap().keySet()) {
         List<Association> conceptAssociations = hierarchy.getAssociationMap().get(conceptCode);
