@@ -3970,7 +3970,10 @@ public class SearchControllerTests {
     // Try null query
     result =
         mvc.perform(
-                MockMvcRequestBuilders.post(url).param("fromRecord", "1").param("pageSize", "0").contentType("text/plain"))
+                MockMvcRequestBuilders.post(url)
+                    .param("fromRecord", "1")
+                    .param("pageSize", "0")
+                    .contentType("text/plain"))
             .andExpect(status().isBadRequest())
             .andReturn();
 
