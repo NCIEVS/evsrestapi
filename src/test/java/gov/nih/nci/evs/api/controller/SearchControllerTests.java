@@ -3479,6 +3479,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3514,6 +3515,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3540,6 +3542,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3565,6 +3568,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3590,6 +3594,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains")
                     .param("term", "Theraccine"))
@@ -3618,6 +3623,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "summary")
                     .param("type", "contains")
                     .param("term", "Liver"))
@@ -3655,6 +3661,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3689,6 +3696,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3727,6 +3735,7 @@ public class SearchControllerTests {
               mvc.perform(
                       MockMvcRequestBuilders.post(exceptionUrl)
                           .content(exceptionQuery)
+                          .contentType("text/plain")
                           .param("include", "minimal")
                           .param("type", "contains"))
                   .andExpect(status().is5xxServerError())
@@ -3754,6 +3763,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3857,6 +3867,7 @@ public class SearchControllerTests {
       mvc.perform(
               MockMvcRequestBuilders.post(url)
                   .content(query)
+                  .contentType("text/plain")
                   .param("fromRecord", "0")
                   .param("pageSize", "10"))
           .andExpect(status().isOk())
@@ -3882,6 +3893,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("fromRecord", "0")
                     .param("pageSize", "10"))
             .andExpect(status().isOk())
@@ -3902,6 +3914,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("fromRecord", "1")
                     .param("pageSize", "5"))
             .andExpect(status().isOk())
@@ -3918,6 +3931,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("fromRecord", "6")
                     .param("pageSize", "5"))
             .andExpect(status().isOk())
@@ -3936,6 +3950,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("fromRecord", "1")
                     .param("pageSize", "0"))
             .andExpect(status().isBadRequest())
@@ -3946,6 +3961,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("fromRecord", "1")
                     .param("pageSize", "1001"))
             .andExpect(status().isBadRequest())
@@ -3954,7 +3970,10 @@ public class SearchControllerTests {
     // Try null query
     result =
         mvc.perform(
-                MockMvcRequestBuilders.post(url).param("fromRecord", "1").param("pageSize", "0"))
+                MockMvcRequestBuilders.post(url)
+                    .param("fromRecord", "1")
+                    .param("pageSize", "0")
+                    .contentType("text/plain"))
             .andExpect(status().isBadRequest())
             .andReturn();
 
@@ -3963,6 +3982,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content("")
+                    .contentType("text/plain")
                     .param("fromRecord", "1")
                     .param("pageSize", "1001"))
             .andExpect(status().isBadRequest())
