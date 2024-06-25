@@ -324,6 +324,7 @@ public class SearchController extends BaseController {
   @RequestMapping(
       method = RequestMethod.GET,
       value = "/concept/{terminology}/search",
+      consumes = "text/plain",
       produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminology(
       @PathVariable(value = "terminology") final String terminology,
@@ -558,6 +559,7 @@ public class SearchController extends BaseController {
   @RequestMapping(
       method = RequestMethod.GET,
       value = "/concept/search",
+      consumes = "text/plain",
       produces = "application/json")
   public @ResponseBody ConceptResultList search(
       @ModelAttribute SearchCriteria searchCriteria,
@@ -857,6 +859,7 @@ public class SearchController extends BaseController {
   @RequestMapping(
       method = RequestMethod.POST,
       value = "/concept/{terminology}/search",
+      consumes = "text/plain",
       produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminologySparql(
       @PathVariable(value = "terminology") final String terminology,
@@ -1033,6 +1036,7 @@ public class SearchController extends BaseController {
   @RequestMapping(
       method = RequestMethod.POST,
       value = "/sparql/{terminology}",
+      consumes = "text/plain",
       produces = "application/json")
   public @ResponseBody MapResultList getSparqlBindings(
       @PathVariable(value = "terminology") final String terminology,
