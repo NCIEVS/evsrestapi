@@ -699,11 +699,11 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     try {
 
       File file = new File(filepath);
-      logger.debug("Loading History for NCIT");
+      logger.info("Load ncit history");
 
       // Assume this file is checked. It's passed in by the reindex.sh
       try (BufferedReader reader =
-          new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF8")); ) {
+          new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8")); ) {
 
         String line = null;
 
@@ -750,6 +750,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           historyMap.put(code, conceptHistory);
         }
       }
+      logger.info("    count = " + historyMap.size());
     } catch (Exception e) {
       throw new Exception(
           "Unable to load history file for " + terminology.getName() + ": " + filepath, e);
