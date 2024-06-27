@@ -316,12 +316,13 @@ for x in `cat /tmp/y.$$.txt`; do
 
                 # Set historyFile for later steps    
                 historyFile=$DIR/NCIT_HISTORY/cumulative_history_$version.txt
+                echo "    historyFile = $DIR/NCIT_HISTORY/cumulative_history_$version.txt"
                 break
             fi
         done
 
         # cd back out
-        cd -
+        cd - > /dev/null 2> /dev/null
 	fi
 	
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
