@@ -9,6 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -113,5 +114,36 @@ public class ObibSampleTest extends SampleTest {
     assertThat(concept.getCode()).isEqualTo("APOLLO_SV_00000032");
     assertThat(concept.getTerminology()).isEqualTo("obib");
     assertThat(concept.getActive()).isTrue();
+  }
+
+  /**
+   * Test children not duplicated.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testChildrenNotDuplicated() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    url = "/api/v1/concept/obib/CL_0000000";
+    log.info("Testing url - " + url);
+    result =
+        testMvc
+            .perform(get(url).param("include", "children"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    final Concept concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getChildren()).isNotEmpty();
+    // Verify child codes are unique
+    assertThat(concept.getChildren().size())
+        .isEqualTo(
+            concept.getChildren().stream()
+                .map(c -> c.getCode())
+                .collect(Collectors.toSet())
+                .size());
   }
 }
