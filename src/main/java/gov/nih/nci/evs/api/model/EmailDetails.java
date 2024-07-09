@@ -232,21 +232,23 @@ public class EmailDetails extends BaseModel {
     }
   }
 
-  /**
-   * Override equals method that returns a boolean for the comparisons
-   *
-   * @param o the object
-   * @return boolean
-   */
+  /* see superclass */
   @Override
-  public boolean equals(Object o) {
-    if (this == o) return true;
-    if (o == null || getClass() != o.getClass()) return false;
-    EmailDetails other = (EmailDetails) o;
-    return Objects.equals(source, other.source)
-        && Objects.equals(fromEmail, other.fromEmail)
-        && Objects.equals(toEmail, other.toEmail)
+  public int hashCode() {
+    return Objects.hash(fromEmail, msgBody, source, subject, toEmail);
+  }
+
+  /* see superclass */
+  @Override
+  public boolean equals(Object obj) {
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
+    EmailDetails other = (EmailDetails) obj;
+    return Objects.equals(fromEmail, other.fromEmail)
+        && Objects.equals(msgBody, other.msgBody)
+        && Objects.equals(source, other.source)
         && Objects.equals(subject, other.subject)
-        && Objects.equals(msgBody, other.msgBody);
+        && Objects.equals(toEmail, other.toEmail);
   }
 }

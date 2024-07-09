@@ -1054,6 +1054,14 @@ public class SearchController extends BaseController {
             "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
       }
 
+      // If the query has a comment but no newlines, then we have a problem
+      if (query.matches("(?i:.*SELECT.*#.*)") && !query.contains("\n")) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST,
+            "Query appears to contain a comment (#) without newline "
+                + "characters (if using curl use --data-binary instead of -d)");
+      }
+
       final ObjectMapper mapper = new ObjectMapper();
       String sparqlQuery = queryBuilderService.prepSparql(term, query);
 
