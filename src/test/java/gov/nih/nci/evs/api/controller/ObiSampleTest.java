@@ -115,4 +115,39 @@ public class ObiSampleTest extends SampleTest {
     assertThat(concept.getTerminology()).isEqualTo("obi");
     assertThat(concept.getActive()).isTrue();
   }
+
+  /**
+   * Test obsolete children.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testObsoleteChildren() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // Get the "ObsoleteClass" code,
+    url = "/api/v1/concept/obi/ObsoleteClass?include=children";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("ObsoleteClass");
+    assertThat(concept.getChildren()).isNotEmpty();
+
+    // Pick and load a child - it should exist
+    final String obsoleteCode = concept.getChildren().get(0).getCode();
+    url = "/api/v1/concept/obi/" + concept.getChildren().get(0).getCode();
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo(obsoleteCode);
+  }
 }
