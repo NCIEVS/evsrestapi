@@ -28,11 +28,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @AutoConfigureMockMvc
 public class GoSampleTest extends SampleTest {
 
-  /**
-   * Setup class.
-   *
-   * @throws Exception the exception
-   */
+  /** Setup class. */
 
   /** The logger. */
   private static final Logger log = LoggerFactory.getLogger(GoSampleTest.class);
@@ -50,6 +46,11 @@ public class GoSampleTest extends SampleTest {
     loadSamples("go", "src/test/resources/samples/go-samples.txt");
   }
 
+  /**
+   * Test GO terminology.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testGOTerminology() throws Exception {
     String url = null;
@@ -144,5 +145,21 @@ public class GoSampleTest extends SampleTest {
     assertThat(concept.getCode()).isEqualTo("GO:0000015");
     assertThat(concept.getParents().stream().filter(p -> p.getCode().equals("GO:0005829")).count())
         .isGreaterThan(0);
+  }
+
+  /**
+   * Test obsolete concept. This is to confirm that owl:deprecated=true are still not being loded.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testObsoleteConcept() throws Exception {
+    String url = null;
+
+    // This concept has a particular "complex" role - verify that it's present
+    // If not there may be a problem in sparql-queries.properties for roles.all.complex
+    url = "/api/v1/concept/go/GO_0000004";
+    log.info("Testing url - " + url);
+    testMvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
   }
 }
