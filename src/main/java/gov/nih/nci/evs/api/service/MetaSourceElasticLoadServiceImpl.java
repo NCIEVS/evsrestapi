@@ -1282,6 +1282,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     for (final String qual : qualMap.keySet()) {
       qualifiers.getConcepts().add(buildMetadata(terminology, qual, atnMap.get(qual)));
     }
+    ConceptUtils.limitQualMap(qualMap, 1000);
     qualifiers.setMap(qualMap);
     operationsService.index(qualifiers, indexName, ElasticObject.class);
 

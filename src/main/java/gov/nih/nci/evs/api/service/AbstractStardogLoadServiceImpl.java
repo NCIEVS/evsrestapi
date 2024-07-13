@@ -14,6 +14,7 @@ import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.StardogProperties;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.MainTypeHierarchy;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -386,21 +387,22 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     ElasticObject conceptsObject = new ElasticObject("qualifiers");
     conceptsObject.setConcepts(qualifiers);
     // Get qualifier values by code and by qualifier name
-    final Map<String, Set<String>> map = new HashMap<>();
+    final Map<String, Set<String>> qualMap = new HashMap<>();
     for (final Concept qualifier : qualifiers) {
       for (final String value :
           sparqlQueryManagerService.getQualifierValues(qualifier.getCode(), terminology)) {
-        if (!map.containsKey(qualifier.getCode())) {
-          map.put(qualifier.getCode(), new HashSet<>());
+        if (!qualMap.containsKey(qualifier.getCode())) {
+          qualMap.put(qualifier.getCode(), new HashSet<>());
         }
-        map.get(qualifier.getCode()).add(value);
-        if (!map.containsKey(qualifier.getName())) {
-          map.put(qualifier.getName(), new HashSet<>());
+        qualMap.get(qualifier.getCode()).add(value);
+        if (!qualMap.containsKey(qualifier.getName())) {
+          qualMap.put(qualifier.getName(), new HashSet<>());
         }
-        map.get(qualifier.getName()).add(value);
+        qualMap.get(qualifier.getName()).add(value);
       }
     }
-    conceptsObject.setMap(map);
+    ConceptUtils.limitQualMap(qualMap, 1000);
+    conceptsObject.setMap(qualMap);
     operationsService.index(conceptsObject, indexName, ElasticObject.class);
     logger.info("  Qualifiers loaded");
 
