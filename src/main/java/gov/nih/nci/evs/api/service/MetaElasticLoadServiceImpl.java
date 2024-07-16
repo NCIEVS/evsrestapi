@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -433,7 +434,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       logger.info("mapsetsToAdd = " + mapsetsToAdd);
       // remove old mappings by code
       for (String mapsetCode : mapsetsToRemove) {
-        operationsService.delete(ElasticOperationsService.MAPPING_INDEX, mapsetCode);
+        operationsService.delete(ElasticOperationsService.MAPSET_INDEX, mapsetCode);
+        operationsService.delete(
+            "mapsetCode:" + mapsetCode, ElasticOperationsService.MAPPINGS_INDEX);
       }
       for (final Concept mapset : mapsetMap.values()) {
         Collections.sort(
@@ -458,7 +461,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
               }
             });
         logger.info("    Index map = " + mapset.getName());
-        operationsService.index(mapset, ElasticOperationsService.MAPPING_INDEX, Concept.class);
+        operationsService.bulkIndex(
+            mapset.getMaps(), ElasticOperationsService.MAPPINGS_INDEX, ConceptMap.class);
+        mapset.setMaps(null);
+        operationsService.index(mapset, ElasticOperationsService.MAPSET_INDEX, Concept.class);
       }
       // free up memory
       mapsetMap.clear();

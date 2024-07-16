@@ -10,6 +10,9 @@ import java.util.Objects;
 @JsonInclude(Include.NON_EMPTY)
 public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
 
+  /** The mapset code */
+  private String mapsetCode;
+
   /** The source. */
   private String source;
 
@@ -82,6 +85,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
    */
   public void populateFrom(final ConceptMap other) {
     super.populateFrom(other);
+    mapsetCode = other.getMapsetCode();
     source = other.getSource();
     type = other.getType();
     group = other.getGroup();
@@ -100,6 +104,20 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
     targetTerminology = other.getTargetTerminology();
     targetTerminologyVersion = other.getTargetTerminologyVersion();
     targetLoaded = other.getTargetLoaded();
+  }
+
+  /**
+   * @return the mapsetCode
+   */
+  public String getMapsetCode() {
+    return mapsetCode;
+  }
+
+  /**
+   * @param mapsetCode the mapsetCode to set
+   */
+  public void setMapsetCode(String mapsetCode) {
+    this.mapsetCode = mapsetCode;
   }
 
   /**
@@ -420,6 +438,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
   @Override
   public int hashCode() {
     return Objects.hash(
+        mapsetCode,
         group,
         rank,
         rule,
@@ -446,7 +465,8 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
     if (obj == null) return false;
     if (getClass() != obj.getClass()) return false;
     ConceptMap other = (ConceptMap) obj;
-    return Objects.equals(group, other.group)
+    return Objects.equals(mapsetCode, other.mapsetCode)
+        && Objects.equals(group, other.group)
         && Objects.equals(rank, other.rank)
         && Objects.equals(rule, other.rule)
         && Objects.equals(source, other.source)

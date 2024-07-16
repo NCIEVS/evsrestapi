@@ -131,13 +131,18 @@ public abstract class BaseLoaderService implements ElasticLoadService {
             .putMapping(IndexMetadata.class);
       }
 
-      // Create the mapping index if it doesn't exist
+      // Create the mapping indexes if they don't exist
       boolean createdMapset =
-          operationsService.createIndex(ElasticOperationsService.MAPPING_INDEX, false);
+          operationsService.createIndex(ElasticOperationsService.MAPSET_INDEX, false);
+      operationsService.createIndex(ElasticOperationsService.MAPPINGS_INDEX, false);
       if (createdMapset) {
         operationsService
             .getElasticsearchOperations()
-            .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPING_INDEX))
+            .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPSET_INDEX))
+            .putMapping(Concept.class);
+        operationsService
+            .getElasticsearchOperations()
+            .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX))
             .putMapping(Concept.class);
       }
     } catch (IOException e) {

@@ -810,7 +810,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
             .withPageable(PageRequest.of(0, 10000))
             .build();
 
-    return getResults(query, Concept.class, ElasticOperationsService.MAPPING_INDEX);
+    return getResults(query, Concept.class, ElasticOperationsService.MAPSET_INDEX);
   }
 
   @Override
@@ -822,7 +822,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
             .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), ip.getExcludedFields()))
             .build();
 
-    return getResults(query, Concept.class, ElasticOperationsService.MAPPING_INDEX);
+    return getResults(query, Concept.class, ElasticOperationsService.MAPSET_INDEX);
   }
 
   /**
