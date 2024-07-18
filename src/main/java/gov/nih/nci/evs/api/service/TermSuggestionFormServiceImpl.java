@@ -2,6 +2,7 @@ package gov.nih.nci.evs.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import java.io.IOException;
@@ -69,7 +70,18 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     }
     // Create objectMapper. Read file and return JsonNode
     final ObjectMapper mapper = new ObjectMapper();
-    return mapper.readTree(formFilePath);
+    JsonNode termForm = mapper.readTree(formFilePath);
+    // Get the recaptcha_site_key from application properties
+    String recaptchaSiteKey = applicationProperties.getRecaptchaSiteKey();
+
+    // Check our termForm is an object node to safely add properties
+    if (termForm.isObject()) {
+      ((ObjectNode) termForm).put("recaptchaSiteKey", recaptchaSiteKey);
+    } else {
+      logger.error("Cannot add recaptcha site key. Form template is not a JSON object.");
+    }
+
+    return termForm;
   }
 
   /**
