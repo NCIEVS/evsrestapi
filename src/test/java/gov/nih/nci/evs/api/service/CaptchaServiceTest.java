@@ -1,12 +1,13 @@
 package gov.nih.nci.evs.api.service;
 
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
 
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
 import gov.nih.nci.evs.api.model.RecaptchaResponse;
-import org.apache.http.HttpEntity;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -17,8 +18,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.client.RestTemplateBuilder;
+import org.springframework.http.HttpEntity;
 import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 @SpringBootTest
@@ -33,55 +37,60 @@ public class CaptchaServiceTest {
 
   @Mock private RestTemplateBuilder restTemplateBuilder;
 
-  @InjectMocks private CaptchaService captchaService;
+  private CaptchaService captchaService;
+
+  String token = "validToken";
 
   /** Setup before each test. */
   @SuppressWarnings("resource")
   @Before
   public void setUp() {
-    MockitoAnnotations.openMocks(this);
+    when(restTemplateBuilder.build()).thenReturn(restTemplate);
+    captchaService = new CaptchaService(restTemplateBuilder);
   }
 
   /** Test verifyRecaptcha method return a success */
   @SuppressWarnings("unchecked")
   @Test
-  public void verifyRecaptcha_Success() {
+  public void verifyRecaptcha_Success_Test() {
     // SETUP
     RecaptchaResponse mockResponse = new RecaptchaResponse();
     mockResponse.setSuccess(true);
+    captchaService.recaptchaServerUrl = "fakeUrlTest";
 
     when(restTemplate.postForObject(any(String.class), any(HttpEntity.class), any(Class.class)))
         .thenReturn(mockResponse);
 
     // ACT
-    Boolean result = captchaService.verifyRecaptcha("validToken");
+    Boolean result = captchaService.verifyRecaptcha(token);
 
     // ASSERT
-    assertFalse(result);
+    assertTrue(result);
   }
 
   /** Test verifyRecaptcha method return a failure when server url is not specified */
   @Test
-  public void verifyRecaptcha_ServerUrlNotSpecified() {
+  public void verifyRecaptcha_ServerUrl_NotSpecified_ThrowsException_Test() {
     // SETUP
     captchaService.recaptchaServerUrl = null;
 
-    // ACT
-    Boolean result = captchaService.verifyRecaptcha("testToken");
-
-    // ASSERT
-    assertFalse(result);
+    // ACT & ASSERT
+    assertThrows(NullPointerException.class, () -> {
+      captchaService.verifyRecaptcha(token);
+    });
   }
 
-  /** Test verifyRecaptcha method return a failure when the toke isn't verifiable */
+  /** Test verifyRecaptcha method return a failure when the token isn't verifiable */
   @SuppressWarnings("unchecked")
   @Test
-  public void verifyRecaptcha_VerificationFails() {
+  public void verifyRecaptcha_Verification_Fails_Test() {
     // Arrange
     RecaptchaResponse mockResponse = new RecaptchaResponse();
     mockResponse.setSuccess(false);
+    captchaService.recaptchaServerUrl = "fakeUrlTest";
+
     when(restTemplate.postForObject(
-            any(String.class), any(org.springframework.http.HttpEntity.class), any(Class.class)))
+            any(String.class), any(org.springframework.http.HttpEntity.class), any()))
         .thenReturn(mockResponse);
 
     // Act
@@ -89,5 +98,18 @@ public class CaptchaServiceTest {
 
     // Assert
     assertFalse(result);
+  }
+
+  @Test
+  public void verifyRecaptcha_ExceptionThrown() {
+    // SETUP
+    captchaService.recaptchaServerUrl = "fakeUrlTest";
+
+    when(restTemplate.postForObject(any(String.class), any(HttpEntity.class), any())).thenThrow(new RestClientException("Service Unavailable"));
+
+    // ACT & ASSERT
+    assertThrows(RestClientException.class, () -> {
+      captchaService.verifyRecaptcha(token);
+    });
   }
 }
