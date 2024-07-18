@@ -27,7 +27,7 @@ import org.springframework.web.client.RestTemplate;
 public class CaptchaServiceTest {
   // Logger
   @SuppressWarnings("unused")
-  private static final Logger logger = LoggerFactory.getLogger(TermSuggestionFormServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(CaptchaServiceTest.class);
 
   @Mock private RestTemplate restTemplate;
 

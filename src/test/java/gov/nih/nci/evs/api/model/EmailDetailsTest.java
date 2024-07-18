@@ -25,7 +25,7 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 @ContextConfiguration(classes = TestConfiguration.class)
 public class EmailDetailsTest {
   /** The logger. */
-  private static final Logger logger = LoggerFactory.getLogger(AssociationUnitTest.class);
+  private static final Logger logger = LoggerFactory.getLogger(EmailDetailsTest.class);
 
   /** The test form object. */
   // JsonObject variable for loading json test file

@@ -40,7 +40,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 public class TermSuggestionFormServiceTest {
   // Logger
   @SuppressWarnings("unused")
-  private static final Logger logger = LoggerFactory.getLogger(TermSuggestionFormServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(TermSuggestionFormServiceTest.class);
 
   // Mock JavaMailSender & app properties
   @Mock private JavaMailSender javaMailSender;
