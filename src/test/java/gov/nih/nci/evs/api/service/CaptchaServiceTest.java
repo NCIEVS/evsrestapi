@@ -11,16 +11,13 @@ import gov.nih.nci.evs.api.model.RecaptchaResponse;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.http.HttpEntity;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
@@ -49,10 +46,10 @@ public class CaptchaServiceTest {
     captchaService = new CaptchaService(restTemplateBuilder);
   }
 
-  /** Test verifyRecaptcha method return a success */
+  /** Test verifyRecaptcha method returns a success with a valid token (mocked) */
   @SuppressWarnings("unchecked")
   @Test
-  public void verifyRecaptcha_Success_Test() {
+  public void testVerifyRecaptchaSuccess() {
     // SETUP
     RecaptchaResponse mockResponse = new RecaptchaResponse();
     mockResponse.setSuccess(true);
@@ -70,20 +67,22 @@ public class CaptchaServiceTest {
 
   /** Test verifyRecaptcha method return a failure when server url is not specified */
   @Test
-  public void verifyRecaptcha_ServerUrl_NotSpecified_ThrowsException_Test() {
+  public void testVerifyRecaptchaServerUrlNotSpecifiedThrowsException() {
     // SETUP
     captchaService.recaptchaServerUrl = null;
 
     // ACT & ASSERT
-    assertThrows(NullPointerException.class, () -> {
-      captchaService.verifyRecaptcha(token);
-    });
+    assertThrows(
+        NullPointerException.class,
+        () -> {
+          captchaService.verifyRecaptcha(token);
+        });
   }
 
   /** Test verifyRecaptcha method return a failure when the token isn't verifiable */
   @SuppressWarnings("unchecked")
   @Test
-  public void verifyRecaptcha_Verification_Fails_Test() {
+  public void testVerifyRecaptchaVerificationFails() {
     // Arrange
     RecaptchaResponse mockResponse = new RecaptchaResponse();
     mockResponse.setSuccess(false);
@@ -100,16 +99,20 @@ public class CaptchaServiceTest {
     assertFalse(result);
   }
 
+  /** Test verifyRecaptcha method throws an exception when the RestTemplate throws an exception */
   @Test
-  public void verifyRecaptcha_ExceptionThrown() {
+  public void testVerifyRecaptchaExceptionThrown() {
     // SETUP
     captchaService.recaptchaServerUrl = "fakeUrlTest";
 
-    when(restTemplate.postForObject(any(String.class), any(HttpEntity.class), any())).thenThrow(new RestClientException("Service Unavailable"));
+    when(restTemplate.postForObject(any(String.class), any(HttpEntity.class), any()))
+        .thenThrow(new RestClientException("Service Unavailable"));
 
     // ACT & ASSERT
-    assertThrows(RestClientException.class, () -> {
-      captchaService.verifyRecaptcha(token);
-    });
+    assertThrows(
+        RestClientException.class,
+        () -> {
+          captchaService.verifyRecaptcha(token);
+        });
   }
 }

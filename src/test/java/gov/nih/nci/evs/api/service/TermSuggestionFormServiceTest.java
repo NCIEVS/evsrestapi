@@ -13,11 +13,17 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.net.URL;
+import java.util.Properties;
 import javax.mail.internet.MimeMessage;
+
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.mockito.InjectMocks;
@@ -29,6 +35,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -45,9 +52,10 @@ public class TermSuggestionFormServiceTest {
   // Mock JavaMailSender & app properties
   @Mock private JavaMailSender javaMailSender;
   @Mock private ApplicationProperties applicationProperties;
+  @Mock private ObjectMapper objectMapper;
 
   // Inject mocks automatically into FormEmailServiceImpl
-  @InjectMocks private TermSuggestionFormServiceImpl termFormService;
+  private TermSuggestionFormServiceImpl termFormService;
 
   // email details object
   private EmailDetails testEmailDetails = new EmailDetails();
@@ -59,29 +67,37 @@ public class TermSuggestionFormServiceTest {
   private final String subject = "Test Subject";
   private final String msgBody = "Test Body";
 
+  // Config url
+  private final String configUrl =
+      "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata";
+
+  @Before
+  public void setUp() {
+    termFormService = new TermSuggestionFormServiceImpl(javaMailSender, applicationProperties, objectMapper);
+  }
+
   /**
    * Test the getTermForm returns our NCIT form JsonNode
    *
-   * @throws IllegalArgumentException exception
-   * @throws IOException IO exception
+   * @throws Exception throws exception
    */
   @Test
-  public void testGetFormTemplate() throws IllegalArgumentException, IOException {
+  public void testGetFormTemplate() throws Exception {
     // SET UP
     String formType = "ncit-form";
+    JsonNode termForm = new ObjectMapper().createObjectNode();
+
+
+    when(applicationProperties.getConfigBaseUri()).thenReturn(this.configUrl);
+    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json"))).thenReturn(termForm);
 
     // ACT
-    when(applicationProperties.getConfigBaseUri())
-        .thenReturn(
-            "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata");
     JsonNode returnedForm = termFormService.getFormTemplate(formType);
 
     // ASSERT
     verify(applicationProperties, times(1)).getConfigBaseUri();
     assertNotNull(returnedForm);
-    assertEquals("NCIt Term Suggestion Request", returnedForm.get("formName").asText());
-    // TODO: Update this test to assertEquals after changing the recipient email in the form
-    assertNotEquals("ncithesaurus@mail.nih.gov", returnedForm.get("recipientEmail").asText());
+    assertTrue(returnedForm.isObject());
     // Verify the recaptcha site key was set and is in the response
     assertNotNull(returnedForm.get("recaptchaSiteKey").asText());
   }
@@ -89,19 +105,17 @@ public class TermSuggestionFormServiceTest {
   /**
    * Test get form throws IO exception with invalid formType string
    *
-   * @throws IOException exception
+   * @throws IOException throws exception
    */
   @Test
   public void testGetFormThrowsIOException() throws IOException {
     // SET UP
     String formType = "none-form";
 
-    // ACT
-    when(applicationProperties.getConfigBaseUri())
-        .thenReturn(
-            "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata");
+    when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
+    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json"))).thenThrow(IOException.class);
 
-    // ASSERT
+    // ACT & ASSERT
     assertThrows(
         IOException.class,
         () -> {
@@ -149,6 +163,54 @@ public class TermSuggestionFormServiceTest {
     assertTrue(exception.getMessage().contains(expectedMessage));
   }
 
+  /**
+   * Test getFormTemplate throws an exception when the file is not found
+   *
+   * @throws Exception throws exception
+   */
+  @Test
+  public void testGetFormTemplateThrowsFileNotFound() throws Exception {
+    // SET UP - create an invalid term form object
+    String formType = "invalid-form";
+    JsonNode termForm = new ObjectMapper().createArrayNode();
+
+    when(applicationProperties.getConfigBaseUri()).thenReturn(this.configUrl);
+    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json"))).thenThrow(FileNotFoundException.class);
+
+    // ACT & ASSERT
+    Exception exception =
+        assertThrows(
+            FileNotFoundException.class,
+            () -> {
+              termFormService.getFormTemplate(formType);
+            });
+  }
+
+  /**
+   * Test getFormTemplate throws an exception when the form is not an object
+   *
+   * @throws Exception throws exception
+   */
+  @Test
+  public void testGetFormTemplateWhenNotObjectThrowsException() throws Exception {
+    // SET UP - create an invalid term form object
+    String formType = "invalid-form";
+    JsonNode termForm = new ObjectMapper().createArrayNode();
+
+    when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
+    when(objectMapper.readTree(any(URL.class))).thenReturn(termForm);
+
+    // ACT & ASSERT
+    Exception exception =
+        assertThrows(
+            IllegalArgumentException.class,
+            () -> {
+              termFormService.getFormTemplate(formType);
+            });
+
+    assertTrue(exception.getMessage().contains("Invalid form template."));
+  }
+
   /** Test sending an email */
   @Test
   public void testSendEmail() throws Exception {
@@ -194,4 +256,6 @@ public class TermSuggestionFormServiceTest {
 
     return testEmailDetails;
   }
+
+
 }

@@ -37,6 +37,9 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
   // path for the form file
   URL formFilePath;
 
+  /** The object mapper to read the config url with readTree. */
+  private final ObjectMapper mapper;
+
   /**
    * Constructor: Instantiates dependencies.
    *
@@ -44,9 +47,10 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @param applicationProperties the application properties
    */
   public TermSuggestionFormServiceImpl(
-      final JavaMailSender mailSender, final ApplicationProperties applicationProperties) {
+      final JavaMailSender mailSender, final ApplicationProperties applicationProperties, ObjectMapper mapper) {
     this.mailSender = mailSender;
     this.applicationProperties = applicationProperties;
+    this.mapper = mapper;
   }
 
   /**
@@ -69,7 +73,6 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       formFilePath = new URL(applicationProperties.getConfigBaseUri() + "/" + formType + ".json");
     }
     // Create objectMapper. Read file and return JsonNode
-    final ObjectMapper mapper = new ObjectMapper();
     JsonNode termForm = mapper.readTree(formFilePath);
     // Get the recaptcha_site_key from application properties
     String recaptchaSiteKey = applicationProperties.getRecaptchaSiteKey();
@@ -79,6 +82,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       ((ObjectNode) termForm).put("recaptchaSiteKey", recaptchaSiteKey);
     } else {
       logger.error("Cannot add recaptcha site key. Form template is not a JSON object.");
+      throw new IllegalArgumentException("Invalid form template.");
     }
 
     return termForm;
