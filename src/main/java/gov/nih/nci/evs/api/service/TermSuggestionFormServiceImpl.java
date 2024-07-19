@@ -47,7 +47,9 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @param applicationProperties the application properties
    */
   public TermSuggestionFormServiceImpl(
-      final JavaMailSender mailSender, final ApplicationProperties applicationProperties, ObjectMapper mapper) {
+      final JavaMailSender mailSender,
+      final ApplicationProperties applicationProperties,
+      ObjectMapper mapper) {
     this.mailSender = mailSender;
     this.applicationProperties = applicationProperties;
     this.mapper = mapper;

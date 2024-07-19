@@ -1,7 +1,5 @@
 package gov.nih.nci.evs.api.service;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -20,13 +18,10 @@ import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import java.util.Properties;
 import javax.mail.internet.MimeMessage;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +30,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringRunner;
 
@@ -73,7 +67,8 @@ public class TermSuggestionFormServiceTest {
 
   @Before
   public void setUp() {
-    termFormService = new TermSuggestionFormServiceImpl(javaMailSender, applicationProperties, objectMapper);
+    termFormService =
+        new TermSuggestionFormServiceImpl(javaMailSender, applicationProperties, objectMapper);
   }
 
   /**
@@ -86,7 +81,6 @@ public class TermSuggestionFormServiceTest {
     // SET UP
     String formType = "ncit-form";
     JsonNode termForm = new ObjectMapper().createObjectNode();
-
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(this.configUrl);
     when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json"))).thenReturn(termForm);
@@ -113,7 +107,8 @@ public class TermSuggestionFormServiceTest {
     String formType = "none-form";
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
-    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json"))).thenThrow(IOException.class);
+    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json")))
+        .thenThrow(IOException.class);
 
     // ACT & ASSERT
     assertThrows(
@@ -175,7 +170,8 @@ public class TermSuggestionFormServiceTest {
     JsonNode termForm = new ObjectMapper().createArrayNode();
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(this.configUrl);
-    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json"))).thenThrow(FileNotFoundException.class);
+    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json")))
+        .thenThrow(FileNotFoundException.class);
 
     // ACT & ASSERT
     Exception exception =
@@ -256,6 +252,4 @@ public class TermSuggestionFormServiceTest {
 
     return testEmailDetails;
   }
-
-
 }
