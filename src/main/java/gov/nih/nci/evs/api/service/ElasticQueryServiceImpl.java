@@ -818,11 +818,11 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
 
     NativeSearchQuery query =
         new NativeSearchQueryBuilder()
-            .withFilter(QueryBuilders.termQuery("_id", code))
+            .withFilter(QueryBuilders.termQuery("mapsetCode:", code))
             .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), ip.getExcludedFields()))
             .build();
 
-    return getResults(query, Concept.class, ElasticOperationsService.MAPSET_INDEX);
+    return getResults(query, Concept.class, ElasticOperationsService.MAPPINGS_INDEX);
   }
 
   /**
