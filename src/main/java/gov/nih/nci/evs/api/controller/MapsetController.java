@@ -256,7 +256,7 @@ public class MapsetController extends BaseController {
       final Integer fromRecordParam = fromRecord.orElse(0);
       final Integer pageSizeParam = pageSize.orElse(10);
       final IncludeParam ip = new IncludeParam("maps");
-      List<ConceptMap> results = esQueryService.getMapset(code, ip);
+      List<ConceptMap> results = esQueryService.getMapsetMappings(code, ip);
       if (results.size() == 0) {
         throw new ResponseStatusException(
             HttpStatus.NOT_FOUND, "Mapset not found for code = " + code);
@@ -267,7 +267,7 @@ public class MapsetController extends BaseController {
         // Check single words
         if (words.size() == 1 || ConceptUtils.isCode(t)) {
           results =
-          results.stream()
+              results.stream()
                   .filter(
                       m ->
                           // Code match
@@ -290,7 +290,7 @@ public class MapsetController extends BaseController {
         // Check multiple words (make sure both are in the source OR both are in the target)
         else if (words.size() > 1) {
           results =
-          results.stream()
+              results.stream()
                   .filter(
                       m -> {
                         boolean sourceFlag = true;
@@ -341,7 +341,7 @@ public class MapsetController extends BaseController {
       if (fromRecordParam < mapLength) {
         // on subList "toIndex" don't go past the end
         list.setMaps(
-          results.subList(fromRecordParam, Math.min(mapLength, fromRecordParam + pageSizeParam)));
+            results.subList(fromRecordParam, Math.min(mapLength, fromRecordParam + pageSizeParam)));
       } else {
         list.setTotal(0L);
         list.setMaps(new ArrayList<ConceptMap>());

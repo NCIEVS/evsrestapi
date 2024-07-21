@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -776,9 +777,9 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   private Optional<ElasticObject> getElasticObject(String id, Terminology terminology) {
 
-    //    if (logger.isDebugEnabled()) {
-    //      logger.debug("getElasticObject({}, {})", id, terminology.getTerminology());
-    //    }
+    // if (logger.isDebugEnabled()) {
+    // logger.debug("getElasticObject({}, {})", id, terminology.getTerminology());
+    // }
 
     NativeSearchQuery query =
         new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", id)).build();
@@ -818,11 +819,23 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
 
     NativeSearchQuery query =
         new NativeSearchQueryBuilder()
+            .withFilter(QueryBuilders.termQuery("_id:", code))
+            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), ip.getExcludedFields()))
+            .build();
+
+    return getResults(query, Concept.class, ElasticOperationsService.MAPSET_INDEX);
+  }
+
+  @Override
+  public List<ConceptMap> getMapsetMappings(String code, IncludeParam ip) throws Exception {
+
+    NativeSearchQuery query =
+        new NativeSearchQueryBuilder()
             .withFilter(QueryBuilders.termQuery("mapsetCode:", code))
             .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), ip.getExcludedFields()))
             .build();
 
-    return getResults(query, Concept.class, ElasticOperationsService.MAPPINGS_INDEX);
+    return getResults(query, ConceptMap.class, ElasticOperationsService.MAPPINGS_INDEX);
   }
 
   /**
