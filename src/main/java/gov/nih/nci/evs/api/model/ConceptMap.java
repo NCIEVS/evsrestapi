@@ -497,4 +497,28 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
                 + o.getTargetName()
                 + o.getTargetCode());
   }
+
+  public static String[] getIncludedFields() {
+    String[] includedFields = new String[10];
+    includedFields[0] = "mapsetCode";
+    includedFields[1] = "source";
+    includedFields[2] = "sourceName";
+    includedFields[3] = "sourceCode";
+    includedFields[4] = "type";
+    includedFields[5] = "rank";
+    includedFields[6] = "targetName";
+    includedFields[7] = "targetCode";
+    includedFields[8] = "targetTerminology";
+    includedFields[9] = "targetTerminologyVersion";
+    return includedFields;
+  }
+
+  public static String[] getExcludedFields() {
+    String[] excludedFields = new String[4];
+    excludedFields[0] = "sourceTermType";
+    excludedFields[1] = "sourceLoaded";
+    excludedFields[2] = "targetTermType";
+    excludedFields[3] = "targetLoaded";
+    return excludedFields;
+  }
 }

@@ -819,7 +819,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
 
     NativeSearchQuery query =
         new NativeSearchQueryBuilder()
-            .withFilter(QueryBuilders.termQuery("_id:", code))
+            .withFilter(QueryBuilders.termQuery("_id", code))
             .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), ip.getExcludedFields()))
             .build();
 
@@ -827,12 +827,14 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   }
 
   @Override
-  public List<ConceptMap> getMapsetMappings(String code, IncludeParam ip) throws Exception {
+  public List<ConceptMap> getMapsetMappings(String code) throws Exception {
 
     NativeSearchQuery query =
         new NativeSearchQueryBuilder()
-            .withFilter(QueryBuilders.termQuery("mapsetCode:", code))
-            .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), ip.getExcludedFields()))
+            .withFilter(QueryBuilders.termQuery("mapsetCode.keyword", code))
+            .withSourceFilter(
+                new FetchSourceFilter(
+                    ConceptMap.getIncludedFields(), ConceptMap.getExcludedFields()))
             .build();
 
     return getResults(query, ConceptMap.class, ElasticOperationsService.MAPPINGS_INDEX);

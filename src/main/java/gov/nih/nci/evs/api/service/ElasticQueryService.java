@@ -471,5 +471,5 @@ public interface ElasticQueryService {
    * @throws ClassNotFoundException the class not found exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  List<ConceptMap> getMapsetMappings(String code, IncludeParam ip) throws Exception;
+  List<ConceptMap> getMapsetMappings(String code) throws Exception;
 }

@@ -255,8 +255,7 @@ public class MapsetController extends BaseController {
       // default index 0 and page size 10
       final Integer fromRecordParam = fromRecord.orElse(0);
       final Integer pageSizeParam = pageSize.orElse(10);
-      final IncludeParam ip = new IncludeParam("maps");
-      List<ConceptMap> results = esQueryService.getMapsetMappings(code, ip);
+      List<ConceptMap> results = esQueryService.getMapsetMappings(code);
       if (results.size() == 0) {
         throw new ResponseStatusException(
             HttpStatus.NOT_FOUND, "Mapset not found for code = " + code);
