@@ -832,9 +832,6 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     NativeSearchQuery query =
         new NativeSearchQueryBuilder()
             .withFilter(QueryBuilders.termQuery("mapsetCode.keyword", code))
-            .withSourceFilter(
-                new FetchSourceFilter(
-                    ConceptMap.getIncludedFields(), ConceptMap.getExcludedFields()))
             .build();
 
     return getResults(query, ConceptMap.class, ElasticOperationsService.MAPPINGS_INDEX);
