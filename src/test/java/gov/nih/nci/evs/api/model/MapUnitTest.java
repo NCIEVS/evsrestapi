@@ -57,6 +57,7 @@ public class MapUnitTest {
   @Test
   public void testModelEqualsHashcode() throws Exception {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
+    tester.include("mapsetCode");
     tester.include("source");
     tester.include("type");
     tester.include("group");
