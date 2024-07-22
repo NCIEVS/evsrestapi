@@ -146,13 +146,15 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
 
   /** */
   @Override
-  public void deleteQuery(String query, String indexName) {
+  public Boolean deleteQuery(String query, String indexName) {
     try {
       NativeSearchQuery deleteQuery =
           new NativeSearchQueryBuilder().withQuery(QueryBuilders.queryStringQuery(query)).build();
       operations.delete(deleteQuery, ConceptMap.class, IndexCoordinates.of(indexName));
+      return true;
     } catch (Exception e) {
       logger.error("query delete failed: " + e.getMessage());
+      return false;
     }
   }
 }

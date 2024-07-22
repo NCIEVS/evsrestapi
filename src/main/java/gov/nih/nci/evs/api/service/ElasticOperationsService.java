@@ -110,6 +110,7 @@ public interface ElasticOperationsService {
    *
    * @param query the query to delete
    * @param indexName the name of the index
+   * @return success or failure to delete
    */
-  void deleteQuery(String query, String indexName);
+  Boolean deleteQuery(String query, String indexName);
 }

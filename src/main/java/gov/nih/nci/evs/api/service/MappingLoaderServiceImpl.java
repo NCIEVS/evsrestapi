@@ -70,14 +70,16 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       throws Exception {
     final List<ConceptMap> maps = new ArrayList<ConceptMap>();
     final String[] mappingDataList = mappingData.split("\n");
+
+    // create concept map at beginning and assign mapsetCode
+    final ConceptMap conceptToAdd = new ConceptMap();
+    conceptToAdd.setMapsetCode(metadata[0]);
     // welcomeText = true format
     if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
       if (mappingDataList[0].split("\t").length > 2) {
         for (final String conceptMap :
             Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
           final String[] conceptSplit = conceptMap.split("\t");
-          final ConceptMap conceptToAdd = new ConceptMap();
-          conceptToAdd.setMapsetCode(metadata[0]);
           conceptToAdd.setSourceCode(
               !conceptSplit[0].replace("\"", "").isBlank()
                   ? conceptSplit[0].replace("\"", "")
@@ -132,8 +134,6 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             targetName = targetConcept.getName();
           }
 
-          final ConceptMap conceptToAdd = new ConceptMap();
-          conceptToAdd.setMapsetCode(metadata[0]);
           conceptToAdd.setSourceCode(conceptSplit[0].strip());
           conceptToAdd.setSourceName(sourceName);
           conceptToAdd.setSource(sourceTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
@@ -157,8 +157,6 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       for (final String conceptMap :
           Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
         final String[] conceptSplit = conceptMap.split("\",\"");
-        final ConceptMap conceptToAdd = new ConceptMap();
-        conceptToAdd.setMapsetCode(metadata[0]);
         conceptToAdd.setSourceCode(
             !conceptSplit[0].replace("\"", "").isBlank()
                 ? conceptSplit[0].replace("\"", "")
