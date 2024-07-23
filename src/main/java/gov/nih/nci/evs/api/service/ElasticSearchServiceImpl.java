@@ -111,7 +111,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // Get include param
     final IncludeParam include = new IncludeParam(searchCriteria.getInclude());
-    logger.info("XXX = " + include.getExcludedFields());
+
     // build final search query
     final NativeSearchQueryBuilder searchQuery =
         new NativeSearchQueryBuilder()

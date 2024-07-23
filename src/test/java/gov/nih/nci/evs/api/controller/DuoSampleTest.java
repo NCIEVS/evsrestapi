@@ -28,11 +28,7 @@ import org.springframework.test.web.servlet.MvcResult;
 @AutoConfigureMockMvc
 public class DuoSampleTest extends SampleTest {
 
-  /**
-   * Setup class.
-   *
-   * @throws Exception the exception
-   */
+  /** Setup class. */
 
   /** The logger. */
   private static final Logger log = LoggerFactory.getLogger(DuoSampleTest.class);
@@ -40,11 +36,21 @@ public class DuoSampleTest extends SampleTest {
   /** The test mvc. Used by CheckZzz methods to avoid taking as a param. */
   @Autowired private MockMvc testMvc;
 
+  /**
+   * Setup class.
+   *
+   * @throws Exception the exception
+   */
   @BeforeClass
   public static void setupClass() throws Exception {
     loadSamples("duo", "src/test/resources/samples/duo-samples.txt");
   }
 
+  /**
+   * Test DUO terminology.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testDUOTerminology() throws Exception {
     String url = null;
@@ -113,6 +119,11 @@ public class DuoSampleTest extends SampleTest {
     assertThat(concept.getActive()).isTrue();
   }
 
+  /**
+   * Test disjoint with.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testDisjointWith() throws Exception {
     String url = null;
@@ -143,5 +154,40 @@ public class DuoSampleTest extends SampleTest {
         .isEqualTo(0);
     // Verify disjoint with
     assertThat(concept.getDisjointWith().size()).isGreaterThan(0);
+  }
+
+  /**
+   * Test obsolete children.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testObsoleteChildren() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // Get the "ObsoleteClass" code,
+    url = "/api/v1/concept/duo/ObsoleteClass?include=children";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("ObsoleteClass");
+    assertThat(concept.getChildren()).isNotEmpty();
+
+    // Pick and load a child - it should exist
+    final String obsoleteCode = concept.getChildren().get(0).getCode();
+    url = "/api/v1/concept/duo/" + concept.getChildren().get(0).getCode();
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo(obsoleteCode);
   }
 }

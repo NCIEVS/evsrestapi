@@ -83,7 +83,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   public String prepSparql(final Terminology terminology, final String query) {
 
     // Replace non space whitespace
-    String sparqlQuery = query.replaceAll("[\t\r\n]", " ");
+    String sparqlQuery = query.replaceAll("[\t\r\n]", "::newline::");
 
     // Replace prefixes
     sparqlQuery = sparqlQuery.replaceFirst("(?i:.*?SELECT )", "SELECT ");
@@ -103,6 +103,7 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
               "(?i:SELECT)\\s*([^{]+?)\\s*\\{\\s*(.*)\\s*\\}",
               "SELECT $1 { GRAPH <" + terminology.getGraph() + "> { $2 } }");
     }
+    sparqlQuery = sparqlQuery.replaceAll("::newline::", "\n");
 
     return constructPrefix(terminology) + "\n" + sparqlQuery;
   }

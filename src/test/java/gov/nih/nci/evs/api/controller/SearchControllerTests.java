@@ -3830,17 +3830,19 @@ public class SearchControllerTests {
    * @throws Exception the exception
    */
   @Test
-  public void testSparqlVariations() throws Exception {
+  public void testSparqlSuccessVariations() throws Exception {
     String url = "/api/v1/sparql/ncit";
 
     for (final String query :
         new String[] {
           // Simple
-          "SELECT ?code { ?x a owl:Class . ?x :NHC0 ?code .?x :P108 \"Melanoma\" }",
+          "SELECT ?code { ?x a owl:Class . ?x :NHC0 ?code . ?x :P108 \"Melanoma\" }",
+          // Simple with comment
+          "SELECT ?code { ?x a owl:Class \n . # ?x :NHC0 ?code .\n ?x :P108 \"Melanoma\" }",
           // Simple with WHERE
-          "SELECT ?code WHERE { ?x a owl:Class . ?x :NHC0 ?code .?x :P108 \"Melanoma\" }",
+          "SELECT ?code WHERE { ?x a owl:Class . ?x :NHC0 ?code . ?x :P108 \"Melanoma\" }",
           // Spacing variation
-          "SELECT?code{ ?x a owl:Class . ?x :NHC0 ?code .?x :P108 \"Melanoma\"}",
+          "SELECT?code{ ?x a owl:Class . ?x :NHC0 ?code . ?x :P108 \"Melanoma\"}",
           // Simple with GRAPH
           "SELECT ?code { GRAPH <http://NCI_T_monthly> { ?x a owl:Class .  ?x :NHC0 ?code . ?x"
               + " :P108 \"Melanoma\" }  }",
@@ -3875,13 +3877,37 @@ public class SearchControllerTests {
     }
   }
 
+  @Test
+  public void testSparqlFailureVariations() throws Exception {
+    String url = "/api/v1/sparql/ncit";
+
+    for (final String query :
+        new String[] {
+          // Comment
+          "SELECT ?code { ?x a owl:Class . # ?x :NHC0 ?code . ?x :P108 \"Melanoma\" }",
+        }) {
+
+      // Just verify the call works
+      log.info("Testing url - " + url + "?terminology=ncit&fromRecord=0&pageSize=10");
+      log.info("  query = " + query);
+      mvc.perform(
+              MockMvcRequestBuilders.post(url)
+                  .content(query)
+                  .contentType("text/plain")
+                  .param("fromRecord", "0")
+                  .param("pageSize", "10"))
+          .andExpect(status().isBadRequest())
+          .andReturn();
+    }
+  }
+
   /**
    * Test sparql.
    *
    * @throws Exception the exception
    */
   @Test
-  public void testSparql() throws Exception {
+  public void testSparqlPaging() throws Exception {
     String url = "/api/v1/sparql/ncit";
     MvcResult result = null;
     String content = null;

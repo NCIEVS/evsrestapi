@@ -14,7 +14,9 @@ import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -63,19 +65,26 @@ public class SparqlQueryCacheService {
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
       final StringBuffer str = new StringBuffer();
-      str.append(
+      final String par =
           b.getParentCode() == null
               ? EVSUtils.getCodeFromUri(b.getParent().getValue())
-              : b.getParentCode().getValue());
+              : b.getParentCode().getValue();
+      final String chd =
+          b.getChildCode() == null
+              ? EVSUtils.getCodeFromUri(b.getChild().getValue())
+              : b.getChildCode().getValue();
+      if (seen.contains(par + "|" + chd)) {
+        continue;
+      }
+      seen.add(par + "|" + chd);
+      str.append(par);
       str.append("\t");
       str.append(EVSUtils.getParentLabel(b));
       str.append("\t");
-      str.append(
-          b.getChildCode() == null
-              ? EVSUtils.getCodeFromUri(b.getChild().getValue())
-              : b.getChildCode().getValue());
+      str.append(chd);
       str.append("\t");
       str.append(EVSUtils.getChildLabel(b));
       str.append("\n");
@@ -117,19 +126,27 @@ public class SparqlQueryCacheService {
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
       final StringBuffer str = new StringBuffer();
-      str.append(
+      final String par =
           b.getParentCode() == null
               ? EVSUtils.getCodeFromUri(b.getParent().getValue())
-              : b.getParentCode().getValue());
+              : b.getParentCode().getValue();
+      final String chd =
+          b.getChildCode() == null
+              ? EVSUtils.getCodeFromUri(b.getChild().getValue())
+              : b.getChildCode().getValue();
+      if (seen.contains(par + "|" + chd)) {
+        continue;
+      }
+      seen.add(par + "|" + chd);
+
+      str.append(par);
       str.append("\t");
       str.append(EVSUtils.getParentLabel(b));
       str.append("\t");
-      str.append(
-          b.getChildCode() == null
-              ? EVSUtils.getCodeFromUri(b.getChild().getValue())
-              : b.getChildCode().getValue());
+      str.append(chd);
       str.append("\t");
       str.append(EVSUtils.getChildLabel(b));
       str.append("\n");

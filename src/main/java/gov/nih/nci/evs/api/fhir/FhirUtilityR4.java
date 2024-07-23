@@ -251,7 +251,7 @@ public final class FhirUtilityR4 {
                     .get()
                     .getValue())));
     cm.addGroup(group);
-    cm.setUrl(group.getSourceElement().asStringValue() + "?fhir_vs=$" + mapset.getCode());
+    cm.setUrl(group.getSourceElement().asStringValue() + "?fhir_cm=" + mapset.getCode());
     return cm;
   }
 
@@ -284,7 +284,7 @@ public final class FhirUtilityR4 {
   public static ValueSet toR4VS(final Concept subset) {
     final ValueSet vs = new ValueSet();
     vs.setId(subset.getTerminology() + "_" + subset.getCode());
-    vs.setUrl(getUri(subset.getTerminology()) + "?fhir_vs=$" + subset.getCode());
+    vs.setUrl(getUri(subset.getTerminology()) + "?fhir_vs=" + subset.getCode());
     vs.setName(subset.getName());
     vs.setVersion(subset.getVersion());
     vs.setTitle(subset.getTerminology());

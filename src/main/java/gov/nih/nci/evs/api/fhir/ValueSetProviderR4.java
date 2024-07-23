@@ -450,7 +450,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
       } else {
         params.addParameter("result", false);
-        params.addParameter("message", "The value set was not found.");
+        params.addParameter("message", "Unable to find matching value set");
+        params.addParameter("url", (url == null ? new UriType("<null>") : url));
+        params.addParameter("version", version);
       }
       return params;
 
@@ -552,7 +554,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
       } else {
         params.addParameter("result", false);
-        params.addParameter("message", "The value set was not found.");
+        params.addParameter("message", "Unable to find matching value set");
+        params.addParameter("url", (url == null ? new UriType("<null>") : url));
+        params.addParameter("version", version);
       }
       return params;
 
@@ -722,6 +726,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OptionalParam(name = "version") final StringType version)
       throws Exception {
 
+    // If no ID and no url are specified, no code systems match
+    if (id == null && url == null) {
+      return new ArrayList<>(0);
+    }
+
     final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
 
     final List<ValueSet> list = new ArrayList<ValueSet>();
@@ -759,11 +768,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
             codes,
             termUtils.getIndexedTerminology("ncit", esQueryService),
             new IncludeParam("minimal"));
+
     for (final Concept subset : subsetsAsConcepts) {
       final ValueSet vs = FhirUtilityR4.toR4VS(subset);
+
       // Skip non-matching
-      if (id != null && !id.equals(vs.getId())) {
-        logger.info("  SKIP id mismatch = " + vs.getUrl());
+      if (id != null && !id.getIdPart().equals(vs.getId())) {
+        logger.info("  SKIP id mismatch = " + vs.getId());
         continue;
       }
       if (url != null && !url.getValue().equals(vs.getUrl())) {
