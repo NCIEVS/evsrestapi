@@ -209,11 +209,11 @@ public class TermSuggestionFormControllerTests {
 
     // ACT & ASSERT
     final Exception exception =
-            assertThrows(
-                    Exception.class,
-                    () -> {
-                      termSuggestionFormController.submitForm(formData, null, recaptchaToken);
-                    });
+        assertThrows(
+            Exception.class,
+            () -> {
+              termSuggestionFormController.submitForm(formData, null, recaptchaToken);
+            });
     assertTrue(exception.getMessage().contains(expectedResponse));
   }
 
