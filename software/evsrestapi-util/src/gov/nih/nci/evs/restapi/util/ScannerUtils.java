@@ -70,11 +70,20 @@ public class ScannerUtils {
     public static String openAxiomTag = "<owl:Axiom>";
     public static String closeAxiomTag = "</owl:Axiom>";
     public static String ns = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#";
+    static String NAMESPACE = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#";
+    static String NAMESPACE_TARGET = "<!-- " + NAMESPACE;
+
     //Vector owl_vec = null;
 
     //public ScannerUtils(Vector owl_vec) {
 	//	this.owl_vec = owl_vec;
 	//}
+
+	public static String extractCode(String line) {
+		int n = line.lastIndexOf("#");
+		line = line.substring(n+1, line.length()-3);
+        return line;
+    }
 
     public static boolean isIDCommentLine(String line) {
 		line = line.trim();
@@ -386,68 +395,58 @@ public class ScannerUtils {
 	   return null;
 	}
 
-	public static Vector extractAssociations(Vector owl_vec) {
-		String associationCode = null;
-		return extractAssociations(owl_vec, associationCode);
-	}
-
-
-	public static Vector extractAssociations(Vector owl_vec, String associationCode) {
-		Vector v = new Vector();
+    public static Vector extractAssociations(Vector class_vec) {
+		boolean istart = false;
 		Vector w = new Vector();
-		String id = null;
-		boolean include = false;
-		for (int i=0; i<owl_vec.size(); i++) {
-			String line = (String) owl_vec.elementAt(i);
-			//////////////////////////////////
-			if (line.indexOf("General axioms") != -1) break;
-			while (!line.endsWith(">") && i < owl_vec.size()-1) {
-				i++;
-				String nextLine = (String) owl_vec.elementAt(i);
-				nextLine = nextLine.trim();
-				line = line + " " + nextLine;
+		String classId = null;
+		for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("// Classes") != -1) {
+				istart = true;
 			}
-			//////////////////////////////////
-
-			//System.out.println("START " + line);
-			if (line.indexOf("<owl:Axiom>") != -1) {
-                include = false;
-			}
-
-			if (isOpenClass(line)) {
-				w = new Vector();
-				id = extractIdFromOpenClassLine(line);
-				include = true;
-
-			} else if (isCloseClass(line)) {
-				if (w != null && w.size() > 0) {
-					v.addAll(prefixId(id, w));
+			if (istart) {
+				if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
+					int n = t.lastIndexOf("#");
+					t = t.substring(n, t.length());
+					n = t.lastIndexOf(" ");
+					classId = t.substring(1, n);
 				}
-				include = false;
-			} else {
-				try {
-					String t = getAssociationNameAndValue(line);
-					if (t != null && include) {
-						if (associationCode != null) {
-							int n = t.indexOf("|");
-							String assoCode = t.substring(0, n);
-							if (assoCode.compareTo(associationCode) == 0) {
-								w.add(t);
-							}
-						} else {
-							int n = t.indexOf("|");
-							String assoCode = t.substring(0, n);
-							if (assoCode.indexOf(":") == -1) {
-								w.add(t);
-							}
-						}
-					}
-				} catch (Exception ex) {
-					ex.printStackTrace();
+				String s = t.trim();
+				if (s.indexOf("rdf:resource=") != -1 && s.startsWith("<A")) {
+					int n = s.indexOf(" ");
+					String a = s.substring(1, n);
+					w.add(classId + "|" + a + "|" + extractCode(s));
 				}
 			}
 		}
-		return removePrefix(ns, v);
+		return w;
+	}
+
+    public static Vector extractAssociations(Vector class_vec, String associationCode) {
+		boolean istart = false;
+		Vector w = new Vector();
+		String classId = null;
+		for (int i=0; i<class_vec.size(); i++) {
+			String t = (String) class_vec.elementAt(i);
+			if (t.indexOf("// Classes") != -1) {
+				istart = true;
+			}
+			if (istart) {
+				if (t.indexOf(NAMESPACE_TARGET) != -1 && t.endsWith("-->")) {
+					int n = t.lastIndexOf("#");
+					t = t.substring(n, t.length());
+					n = t.lastIndexOf(" ");
+					classId = t.substring(1, n);
+				}
+				String s = t.trim();
+				if (s.indexOf("rdf:resource=") != -1 && s.startsWith("<"+associationCode + " ")) {
+					int n = s.indexOf(" ");
+					String a = s.substring(1, n);
+					w.add(classId + "|" + a + "|" + extractCode(s));
+				}
+			}
+		}
+		return w;
 	}
 
     public static String getAssociationNameAndValue(String line) {

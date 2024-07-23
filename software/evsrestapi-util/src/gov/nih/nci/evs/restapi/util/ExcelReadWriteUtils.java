@@ -21,7 +21,7 @@ import org.apache.poi.hssf.usermodel.HSSFRow;
 import org.apache.poi.ss.usermodel.Row;
 
 
-import com.opencsv.CSVReader;
+//import com.opencsv.CSVReader;
 import java.awt.Color;
 import java.io.*;
 import java.io.InputStream;
@@ -35,7 +35,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.codec.binary.Base64;
+//import org.apache.commons.codec.binary.Base64;
 
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.hssf.usermodel.HSSFCell;
@@ -52,7 +52,7 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
-import org.apache.poi.POIXMLDocument;
+//import org.apache.poi.POIXMLDocument;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -286,7 +286,34 @@ public class ExcelReadWriteUtils {
 		return excelFileName;
 	}
 
+	private static String getCellData(Cell cell) {
+		String value = null;
+		if (cell == null) {
+			return null;
+		}
+		switch (cell.getCellType()) {
+			case STRING:
+				value = cell.getStringCellValue();
+				break;
+			case FORMULA:
+				value = cell.getCellFormula();
+				break;
+			case NUMERIC:
+				HSSFDataFormatter dataFormatter = new HSSFDataFormatter();
+				value = dataFormatter.formatCellValue(cell);
+				break;
+			case BLANK:
+				value = null;
+				break;
+			case ERROR:
+				value = "#ERROR#";
+				break;
+		}
+		return value;
+	}
 
+
+/*
 	private static String getCellData(Cell cell) {
 		String value = null;
 		if (cell == null) {
@@ -312,7 +339,7 @@ public class ExcelReadWriteUtils {
 		}
 		return value;
 	}
-
+*/
 
 	public static Vector readXLSXFile(String xlsxfile) throws IOException
 	{

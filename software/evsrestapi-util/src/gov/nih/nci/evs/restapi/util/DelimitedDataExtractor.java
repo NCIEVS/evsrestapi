@@ -21,7 +21,7 @@ public class DelimitedDataExtractor {
 		Vector columns = new Vector();
 		for (int i=0; i<w.size(); i++) {
 			String line = (String) w.elementAt(i);
-			columns.add(new Integer(Integer.parseInt(line)));
+			columns.add(Integer.valueOf(Integer.parseInt(line)));
 		}
 		return extract(filename, columns, delim);
 	}
@@ -51,7 +51,7 @@ public class DelimitedDataExtractor {
 		Vector columns = new Vector();
 		for (int i=0; i<w.size(); i++) {
 			String line = (String) w.elementAt(i);
-			columns.add(new Integer(Integer.parseInt(line)));
+			columns.add(Integer.valueOf(Integer.parseInt(line)));
 		}
 		return extract(data_vec, columns, delim);
 	}

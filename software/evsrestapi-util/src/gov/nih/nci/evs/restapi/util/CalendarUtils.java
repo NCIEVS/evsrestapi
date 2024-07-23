@@ -107,9 +107,9 @@ public class CalendarUtils {
 	}
 
 	public static String getReleaseVersion(int year, int month, int week) {
-		String year_str = new Integer(year).toString().substring(2, 4);
+		String year_str = Integer.valueOf(year).toString().substring(2, 4);
 		//System.out.println(year_str);
-		String month_str = new Integer(month).toString();
+		String month_str = Integer.valueOf(month).toString();
 		if (month_str.length() == 1) {
 			month_str = "0" + month_str;
 		}

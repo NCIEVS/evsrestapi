@@ -126,8 +126,8 @@ public class MetadataUtils {
 			this.owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint, username, password);
 		}
 		this.nameVersion2NamedGraphMap = owlSPARQLUtils.getNameVersion2NamedGraphMap();
-		this.nameGraph2PredicateHashMap = createNameGraph2PredicateHashMap();
-		this.basePrefixUIDHashMap = createBasePrefixUIDHashMap();
+		//this.nameGraph2PredicateHashMap = createNameGraph2PredicateHashMap();
+		//this.basePrefixUIDHashMap = createBasePrefixUIDHashMap();
     }
 
 
@@ -227,6 +227,7 @@ public class MetadataUtils {
 		String sparql_endpoint = serviceUrl + "?query=";
 		OWLSPARQLUtils owlSPARQLUtils = new OWLSPARQLUtils(sparql_endpoint);
 		HashMap nameVersion2NamedGraphMap = owlSPARQLUtils.getNameVersion2NamedGraphMap();
+
 		if (nameVersion2NamedGraphMap == null) return null;
 		Iterator it = nameVersion2NamedGraphMap.keySet().iterator();
 		Vector versions = new Vector();
@@ -614,7 +615,9 @@ public class MetadataUtils {
 			return "<http://cbiit.nci.nih.gov/caDSR#>|publicId";
 		}
 		String basePrefix = getNamedGraphBasePrefix(line);
+		System.out.println("basePrefix: " + basePrefix);
 		String uid = getNamedGraphUniqueIdentifier(line);
+		System.out.println("uid: " + uid);
 		return basePrefix + "|" + uid;
 	}
 
@@ -703,51 +706,5 @@ public class MetadataUtils {
 			hmap.put(codingScheme, namedGraph);
 		}
 		return hmap;
-	}
-
-	public static void test1(String[] args) {
-		String serviceUrl = args[0];
-		System.out.println(serviceUrl);
-		MetadataUtils test = new MetadataUtils(serviceUrl);
-		String codingScheme = "NCI_Thesaurus";
-		long ms = System.currentTimeMillis();
-		String version = test.getLatestVersion(codingScheme);
-		System.out.println(codingScheme);
-		System.out.println(version);
-		String named_graph = args[1];
-		System.out.println(named_graph);
-		test.dumpNameVersion2NamedGraphMap();
-	}
-
-	public static void test2(String[] args) {
-		String serviceUrl = args[0];
-		String named_graph = args[1];
-		String username = args[2];
-		String password = args[3];
-		System.out.println(serviceUrl);
-		MetadataUtils test = new MetadataUtils(serviceUrl, username, password);
-		String codingScheme = "NCI_Thesaurus";
-		long ms = System.currentTimeMillis();
-		String version = test.getLatestVersion(codingScheme);
-		System.out.println(codingScheme);
-		System.out.println(version);
-
-		System.out.println(named_graph);
-		test.dumpNameVersion2NamedGraphMap();
-	}
-
-	public static void main(String[] args) {
-		if (args.length == 2) {
-			test1(args);
-		} else {
-			test2(args);
-		}
-
-/*
-		String version_test = MetadataUtils.getLatestVersionOfCodingScheme(serviceUrl, codingScheme);
-		System.out.println("getLatestVersionOfCodingScheme: " + version_test);
-		String named_graph_test = MetadataUtils.getNamedGraphOfCodingScheme(serviceUrl, codingScheme, version_test);
-		System.out.println("getNamedGraphOfCodingScheme: " + named_graph_test);
-*/
 	}
 }

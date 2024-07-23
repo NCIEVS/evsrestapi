@@ -1138,15 +1138,15 @@ import java.util.Map.Entry;
 		for (int k2=0; k2<conceptList.size(); k2++) {
 			Concept c = (Concept) conceptList.get(k2);
             TreeItem node = concept2TreeItem(c);
-            hmap.put(new Integer(c.getIdx()), node);
+            hmap.put(Integer.valueOf(c.getIdx()), node);
 		}
-		TreeItem root = (TreeItem) hmap.get( new Integer(0));
+		TreeItem root = (TreeItem) hmap.get( Integer.valueOf(0));
 		for (int k2=0; k2<conceptList.size()-1; k2++) {
-            TreeItem node = (TreeItem) hmap.get(new Integer(k2));
-            TreeItem childnode = (TreeItem) hmap.get(new Integer(k2+1));
+            TreeItem node = (TreeItem) hmap.get(Integer.valueOf(k2));
+            TreeItem childnode = (TreeItem) hmap.get(Integer.valueOf(k2+1));
             node.addChild(asso, childnode);
 		}
-        return (TreeItem) hmap.get(new Integer(0));
+        return (TreeItem) hmap.get(Integer.valueOf(0));
 	}
 
 

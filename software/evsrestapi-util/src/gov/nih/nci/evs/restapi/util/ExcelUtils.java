@@ -1,20 +1,63 @@
 package gov.nih.nci.evs.restapi.util;
 
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
-import org.apache.poi.ss.usermodel.*;
-import org.apache.poi.xssf.usermodel.*;
-
 import java.io.*;
-import java.util.*;
-
 import java.io.FileOutputStream;
+import java.io.InputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import org.apache.commons.codec.binary.Base64;
+import org.apache.poi.hssf.usermodel.HSSFCell;
+import org.apache.poi.hssf.usermodel.HSSFCellStyle;
+import org.apache.poi.hssf.usermodel.HSSFClientAnchor;
+import org.apache.poi.hssf.usermodel.HSSFDataFormatter;
+import org.apache.poi.hssf.usermodel.HSSFFont;
+import org.apache.poi.hssf.usermodel.HSSFPalette;
+import org.apache.poi.hssf.usermodel.HSSFPicture;
+import org.apache.poi.hssf.usermodel.HSSFPictureData;
+import org.apache.poi.hssf.usermodel.HSSFRow;
+import org.apache.poi.hssf.usermodel.HSSFShape;
+import org.apache.poi.hssf.usermodel.HSSFSheet;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.hssf.util.HSSFColor;
+import org.apache.poi.ooxml.POIXMLDocument;
+import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
+import org.apache.poi.poifs.filesystem.POIFSFileSystem;
+import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.ss.usermodel.Cell;
+import org.apache.poi.ss.usermodel.CellStyle;
+import org.apache.poi.ss.usermodel.CellValue;
+import org.apache.poi.ss.usermodel.FormulaEvaluator;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.util.CellRangeAddress;
+import org.apache.poi.xssf.usermodel.*;
+import org.apache.poi.xssf.usermodel.XSSFCell;
+import org.apache.poi.xssf.usermodel.XSSFRow;
+import org.apache.poi.xssf.usermodel.XSSFSheet;
+import org.apache.poi.xssf.usermodel.XSSFWorkbook;
 
 public class ExcelUtils {
+
+    final private StringBuilder out = new StringBuilder(65536);
+
+    private short colIndex;
+    private int rowIndex, mergeStart, mergeEnd;
+
+    final private static String XLSX_FORMAT = "xlsx";
+    final private static String XLS_FORMAT = "xls";
+    final private static String UNKNOWN_FORMAT = "unknown";
+
+    public static final String[] FILE_TYPES = new String[] {XLS_FORMAT, XLSX_FORMAT};
 
     public ExcelUtils() {
 
@@ -46,7 +89,7 @@ public class ExcelUtils {
 		if (cell == null) {
 			return "";
 		}
-        switch (cell.getCellTypeEnum()) {
+        switch (cell.getCellType()) {
             case BOOLEAN:
                 System.out.print(cell.getBooleanCellValue());
                 Boolean bool_obj = cell.getBooleanCellValue();
@@ -221,9 +264,14 @@ public class ExcelUtils {
 		int sheetNumber = 0;
 		int rowNumber = 0;
 	    CellStyle style = getCellStype(excelfile, 0, 0);
+	    /*
 	    short al = style.getAlignment();
 	    short bb = style.getBorderBottom();
 	    short bl = style.getBorderLeft();
+	    */
+	    short al = style.getAlignment().getCode();
+	    short bb = style.getBorderBottom().getCode();
+  	    short bl = style.getBorderLeft().getCode();
 
 	    System.out.println("getAlignment: " + al);
 	    System.out.println("getBorderBottom: " + bb);
@@ -235,8 +283,10 @@ public class ExcelUtils {
         short fillBackgroundColor = style.getFillBackgroundColor();
         System.out.println("fillBackgroundColor: " + fillBackgroundColor);
 
-        int fps = style.getFillPattern();
-        System.out.println("getFillPattern: " + fps);
+        //int fps = style.getFillPattern();
+
+        //int fps = style.getFillPattern().getCode();
+        //System.out.println("getFillPattern: " + fps);
     }
 
     public static CellStyle createWrappedCellStyle(Sheet sheet, boolean wrapped) {
@@ -394,6 +444,7 @@ public class ExcelUtils {
         return workbook;
     }
 
+/*
 	private static void cloneCell( Cell cNew, Cell cOld ){
 		cNew.setCellComment( cOld.getCellComment() );
 		cNew.setCellStyle( cOld.getCellStyle() );
@@ -415,6 +466,35 @@ public class ExcelUtils {
 				break;
 			}
 			case Cell.CELL_TYPE_FORMULA:{
+				cNew.setCellFormula( cOld.getCellFormula() );
+			   break;
+			}
+		}
+
+	}
+*/
+
+	private static void cloneCell( Cell cNew, Cell cOld ){
+		cNew.setCellComment( cOld.getCellComment() );
+		cNew.setCellStyle( cOld.getCellStyle() );
+		switch ( cNew.getCellType() ){
+			case BOOLEAN:{
+				cNew.setCellValue( cOld.getBooleanCellValue() );
+				break;
+			}
+			case NUMERIC:{
+				cNew.setCellValue( cOld.getNumericCellValue() );
+				break;
+			}
+			case STRING:{
+				cNew.setCellValue( cOld.getStringCellValue() );
+				break;
+			}
+			case ERROR:{
+				cNew.setCellValue( cOld.getErrorCellValue() );
+				break;
+			}
+			case FORMULA:{
 				cNew.setCellFormula( cOld.getCellFormula() );
 			   break;
 			}
@@ -441,7 +521,7 @@ public class ExcelUtils {
 			if (!isInteger(value)) {
 				cell.setCellValue(value);
 			} else {
-				cell.setCellValue(new Integer(Integer.parseInt(value)));
+				cell.setCellValue(Integer.valueOf(Integer.parseInt(value)));
 			}
 		}
 		return workbook;
@@ -464,6 +544,397 @@ public class ExcelUtils {
             workbook = deleteColumn(workbook, sheetIndex, j);
         }
         return workbook;
+	}
+
+    private String getFileType(File file) {
+		String fileName = file.getName();
+		String folderName = file.getParent();
+		if (fileName.toLowerCase().endsWith(FILE_TYPES[0])) {
+			return FILE_TYPES[0];
+		}
+		return FILE_TYPES[1];
+	}
+
+
+    public static String getExcelHeader(String filename, int sheet) {
+		if (filename.toLowerCase().endsWith(FILE_TYPES[0])) {
+			return getHSSFHeader(filename, sheet);
+		} else {
+			return getXSSFHeader(filename, sheet);
+		}
+	}
+
+    public static String getHSSFHeader(String file, int sheet) {
+		StringBuffer buf = new StringBuffer();
+		try {
+			FileInputStream fis = new FileInputStream(new File(file));
+			//Get the workbook instance for XLS file
+			HSSFWorkbook workbook = new HSSFWorkbook(fis);
+			try {
+				fis.close();
+			} catch (Exception ex) {
+                ex.printStackTrace();
+			}
+
+			//Get first sheet from the workbook
+			HSSFSheet hSSFSheet = workbook.getSheetAt(sheet);
+			HSSFRow row = hSSFSheet.getRow(0);
+
+			int cells = row.getPhysicalNumberOfCells();
+			for (int c = 0; c < cells; c++) {
+				HSSFCell cell = row.getCell(c);
+				String value = null;
+				/*
+
+				switch (cell.getCellType()) {
+					case HSSFCell.CELL_TYPE_FORMULA:
+						value = cell.getCellFormula();
+						break;
+
+					case HSSFCell.CELL_TYPE_NUMERIC:
+						value = "" + cell.getNumericCellValue();
+						break;
+
+					case HSSFCell.CELL_TYPE_STRING:
+						value = cell.getStringCellValue();
+						break;
+
+					default:
+				}
+				*/
+				value = getCellData(cell);
+				buf.append(value);
+				if (c < cells-1) {
+					buf.append("|");
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return buf.toString();
+	}
+
+    public static int getExcelStartRow(String filename, int sheet, int col, String code) {
+		if (filename.toLowerCase().endsWith(FILE_TYPES[0])) {
+			return getHSSFStartRow(filename, sheet, col, code);
+		} else {
+			return getXSSFStartRow(filename, sheet, col, code);
+		}
+	}
+
+     public static int getHSSFStartRow(String file, int sheet, int col, String code) {
+		try {
+			FileInputStream fis = new FileInputStream(new File(file));
+			//Get the workbook instance for XLS file
+			HSSFWorkbook workbook = new HSSFWorkbook(fis);
+			try {
+				fis.close();
+			} catch (Exception ex) {
+                ex.printStackTrace();
+			}
+
+			//Get first sheet from the workbook
+			HSSFSheet hSSFSheet = workbook.getSheetAt(sheet);
+
+			if (col == -1) {
+				return 1;
+			}
+
+			//Get iterator to all the rows in current sheet
+			Iterator<Row> rowIterator = hSSFSheet.iterator();
+
+			//Get iterator to all cells of current row
+			int lcv = 0;
+			while (rowIterator.hasNext()) {
+				Row row = rowIterator.next();
+				if (row == null) return -1;
+				//if (row.getCell(0).getStringCellValue().compareTo(code) == 0 ||
+				if (row.getCell(col).getStringCellValue().compareTo(code) == 0) {
+					return lcv;
+				}
+
+				lcv++;
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return -1;
+	 }
+
+    public static int getExcelEndRow(String filename, int sheet, int col, String code) {
+		if (filename.toLowerCase().endsWith(FILE_TYPES[0])) {
+			return getHSSFEndRow(filename, sheet, col, code);
+		} else {
+			return getXSSFEndRow(filename, sheet, col, code);
+		}
+	}
+
+     public static int getHSSFEndRow(String file, int sheet, int col, String code) {
+		int num = -1;
+		try {
+			FileInputStream fis = new FileInputStream(new File(file));
+			//Get the workbook instance for XLS file
+			HSSFWorkbook workbook = new HSSFWorkbook(fis);
+			try {
+				fis.close();
+			} catch (Exception ex) {
+                ex.printStackTrace();
+			}
+
+			//Get first sheet from the workbook
+			HSSFSheet hSSFSheet = workbook.getSheetAt(sheet);
+
+			if (col == -1) {
+				return hSSFSheet.getLastRowNum();
+			}
+
+			//Get iterator to all the rows in current sheet
+			Iterator<Row> rowIterator = hSSFSheet.iterator();
+
+			//Get iterator to all cells of current row
+			int lcv = 0;
+
+			while (rowIterator.hasNext()) {
+				Row row = rowIterator.next();
+				if (row == null) return -1;
+				//if (row.getCell(0).getStringCellValue().compareTo(code) == 0 ||
+				if (row.getCell(col).getStringCellValue().compareTo(code) == 0) {
+					num = lcv;
+				}
+				lcv++;
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return num;
+	}
+
+
+	private static String getCellData(Cell cell) {
+		String value = null;
+		if (cell == null) {
+			return null;
+		}
+		switch (cell.getCellType()) {
+			case STRING:
+				value = cell.getStringCellValue();
+				break;
+			case FORMULA:
+				value = cell.getCellFormula();
+				break;
+			case NUMERIC:
+				HSSFDataFormatter dataFormatter = new HSSFDataFormatter();
+				value = dataFormatter.formatCellValue(cell);
+				break;
+			case BLANK:
+				value = null;
+				break;
+			case ERROR:
+				value = "#ERROR#";
+				break;
+		}
+		return value;
+	}
+
+
+     public static String getXSSFHeader(String file, int sheet) {
+		StringBuffer buf = new StringBuffer();
+		try {
+			FileInputStream fis = new FileInputStream(new File(file));
+			//Get the workbook instance for XLS file
+			XSSFWorkbook workbook = new XSSFWorkbook(fis);
+			try {
+				fis.close();
+			} catch (Exception ex) {
+                ex.printStackTrace();
+			}
+
+			//Get first sheet from the workbook
+			XSSFSheet hSSFSheet = workbook.getSheetAt(sheet);
+			XSSFRow row = hSSFSheet.getRow(0);
+
+			int cells = row.getPhysicalNumberOfCells();
+			for (int c = 0; c < cells; c++) {
+				XSSFCell cell = row.getCell(c);
+
+				/*
+				String value = null;
+
+				switch (cell.getCellType()) {
+
+					case XSSFCell.CELL_TYPE_FORMULA:
+						value = cell.getCellFormula();
+						break;
+
+					case XSSFCell.CELL_TYPE_NUMERIC:
+						value = "" + cell.getNumericCellValue();
+						break;
+
+					case XSSFCell.CELL_TYPE_STRING:
+						value = cell.getStringCellValue();
+						break;
+
+					default:
+				}
+				*/
+				String value = getCellData(cell);
+				buf.append(value);
+				if (c < cells-1) {
+					buf.append("|");
+				}
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return buf.toString();
+	 }
+
+     public static int getXSSFStartRow(String file, int sheet, int col, String code) {
+		try {
+			FileInputStream fis = new FileInputStream(new File(file));
+			//Get the workbook instance for XLS file
+			XSSFWorkbook workbook = new XSSFWorkbook(fis);
+			try {
+				fis.close();
+			} catch (Exception ex) {
+                ex.printStackTrace();
+			}
+
+			//Get first sheet from the workbook
+			XSSFSheet hSSFSheet = workbook.getSheetAt(sheet);
+
+			if (col == -1) {
+				return 1;
+			}
+
+			//Get iterator to all the rows in current sheet
+			Iterator<Row> rowIterator = hSSFSheet.iterator();
+
+			//Get iterator to all cells of current row
+			int lcv = 0;
+			while (rowIterator.hasNext()) {
+				Row row = rowIterator.next();
+				if (row == null) return -1;
+				//if (row.getCell(0).getStringCellValue().compareTo(code) == 0 ||
+				if (row.getCell(col).getStringCellValue().compareTo(code) == 0) {
+					return lcv;
+				}
+
+				lcv++;
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return -1;
+	 }
+
+     public static int getXSSFEndRow(String file, int sheet, int col, String code) {
+		int num = -1;
+		try {
+			FileInputStream fis = new FileInputStream(new File(file));
+			//Get the workbook instance for XLS file
+			XSSFWorkbook workbook = new XSSFWorkbook(fis);
+			try {
+				fis.close();
+			} catch (Exception ex) {
+                ex.printStackTrace();
+			}
+
+			//Get first sheet from the workbook
+			XSSFSheet hSSFSheet = workbook.getSheetAt(sheet);
+
+			if (col == -1) {
+				return hSSFSheet.getLastRowNum();
+			}
+
+			//Get iterator to all the rows in current sheet
+			Iterator<Row> rowIterator = hSSFSheet.iterator();
+
+			//Get iterator to all cells of current row
+			int lcv = 0;
+
+			while (rowIterator.hasNext()) {
+				Row row = rowIterator.next();
+				if (row == null) return -1;
+				if (row.getCell(col).getStringCellValue().compareTo(code) == 0) {
+					num = lcv;
+				}
+				lcv++;
+			}
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+		return num;
+	}
+
+    public static void test(String excelfile, int sheet, int col, String code) {
+		System.out.println("excelfile: " + excelfile);
+		System.out.println("sheet: " + sheet);
+		System.out.println("col: " + col);
+		System.out.println("code: " + code);
+
+		String header = getExcelHeader(excelfile, sheet);
+		System.out.println(header);
+
+		int start_row = getExcelStartRow(excelfile, sheet, col, code);
+		System.out.println("getExcelStartRow: " + start_row);
+
+		int end_row = getExcelEndRow(excelfile, sheet, col, code);
+		System.out.println("getExcelEndRow: " + end_row);
+	}
+
+	public static void csvToXLSX(String csvfile, String xlsxfile, String sheet_name) {
+		try {
+			String csvFileAddress = csvfile;
+			String xlsxFileAddress = xlsxfile;
+			XSSFWorkbook workBook = new XSSFWorkbook();
+			XSSFSheet sheet = workBook.createSheet(sheet_name);
+			String currentLine=null;
+			int RowNum=0;
+			BufferedReader br = new BufferedReader(new FileReader(csvFileAddress));
+			while ((currentLine = br.readLine()) != null) {
+				String str[] = currentLine.split(",");
+
+				XSSFRow currentRow=sheet.createRow(RowNum);
+				for(int i=0;i<str.length;i++){
+					currentRow.createCell(i).setCellValue(str[i]);
+				}
+				RowNum++;
+			}
+
+			FileOutputStream fileOutputStream =  new FileOutputStream(xlsxFileAddress);
+			workBook.write(fileOutputStream);
+			fileOutputStream.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
+	}
+
+	public static void csvToXLS(String csvfile, String xlsfile, String sheet_name) {
+		try {
+			String csvFileAddress = csvfile;
+			String xlsFileAddress = xlsfile;
+			HSSFWorkbook workBook = new HSSFWorkbook();
+			HSSFSheet sheet = workBook.createSheet(sheet_name);
+			String currentLine=null;
+			int RowNum=0;
+			BufferedReader br = new BufferedReader(new FileReader(csvFileAddress));
+			while ((currentLine = br.readLine()) != null) {
+				String str[] = currentLine.split(",");
+
+				HSSFRow currentRow=sheet.createRow(RowNum);
+				for(int i=0;i<str.length;i++){
+					currentRow.createCell(i).setCellValue(str[i]);
+				}
+				RowNum++;
+			}
+
+			FileOutputStream fileOutputStream =  new FileOutputStream(xlsFileAddress);
+			workBook.write(fileOutputStream);
+			fileOutputStream.close();
+		} catch (Exception ex) {
+			ex.printStackTrace();
+		}
 	}
 
 	public static void main(String[] args) {
