@@ -115,9 +115,13 @@ public class TermSuggestionFormController extends BaseController {
     // Try getting the form and return form template
     try {
       JsonNode formTemplate = formService.getFormTemplate(formType);
+      if (formTemplate.isEmpty() || formTemplate.isNull()) {
+        logger.error("Returned Form Is Empty/Null");
+        throw new Exception("Error retrieving the form");
+      }
       return ResponseEntity.ok().body(formTemplate);
     } catch (Exception e) {
-      logger.error("Error reading form template: " + formType, e);
+      logger.error("Error reading form template: {}", formType, e);
       handleException(e);
       return null;
     }
@@ -128,7 +132,7 @@ public class TermSuggestionFormController extends BaseController {
    *
    * @param formData data from the completed term suggestion form
    * @param license the license
-   * @return ResponseEntity
+   * @return ResponseEntity the response
    * @throws Exception the exception
    */
   @Operation(
