@@ -1369,21 +1369,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     for (final String qual : qualMap.keySet()) {
       qualifiers.getConcepts().add(buildMetadata(terminology, qual, atnMap.get(qual)));
     }
-    for (final String key : qualMap.keySet()) {
-      // Truncate additional values
-      if (qualMap.get(key).size() > 1000) {
-        logger.info(
-            "      truncate qualifier values list at 1000 = "
-                + key
-                + ", "
-                + qualMap.get(key).size());
-        qualMap.put(
-            key,
-            qualMap.get(key).stream().collect(Collectors.toList()).subList(0, 1000).stream()
-                .collect(Collectors.toSet()));
-        qualMap.get(key).add("... additional values ...");
-      }
-    }
+
+    ConceptUtils.limitQualMap(qualMap, 1000);
+
     // Do this after truncating because it gets turned into a String
     qualifiers.setMap(qualMap);
     operationsService.index(qualifiers, indexName, ElasticObject.class);
