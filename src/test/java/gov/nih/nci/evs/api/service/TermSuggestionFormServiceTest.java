@@ -82,6 +82,8 @@ public class TermSuggestionFormServiceTest {
     assertEquals("NCIt Term Suggestion Request", returnedForm.get("formName").asText());
     // TODO: Update this test to assertEquals after changing the recipient email in the form
     assertNotEquals("ncithesaurus@mail.nih.gov", returnedForm.get("recipientEmail").asText());
+    // Verify the recaptcha site key was set and is in the response
+    assertNotNull(returnedForm.get("recaptchaSiteKey").asText());
   }
 
   /**
