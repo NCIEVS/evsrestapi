@@ -1,0 +1,17 @@
+name: Makefile CI
+
+on:
+  push:
+    branches: [ "master"]
+  pull_request:
+    branches: [ "master", "develop" ]
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run Tests for PR
+        run: make test

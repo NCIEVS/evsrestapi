@@ -85,6 +85,8 @@ elif [[ $ES_CLEAN == "true" ]]; then
     force=1
 fi
 
+metadata_config_url=${CONFIG_BASE_URI:-"https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata"}
+
 curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
     "http://${STARDOG_HOST}:${STARDOG_PORT}/admin/databases" |\
     $jq | perl -ne 's/\r//; $x=0 if /\]/; 
@@ -102,30 +104,85 @@ if [[ $ct -eq 0 ]]; then
     exit 1
 fi
 
+# Open a new file descriptor that redirects to stdout:
+exec 3>&1
+
+get_ignored_sources(){
+  if [[ -z $metadata_config_url ]]; then
+    echo "METADATA_CONFIG_URL not set" 1>&3
+    echo ""
+  else
+    curl -s -g -f "$metadata_config_url/ignore-source.txt" -o /tmp/is.$$.txt
+  if [[ $? -ne 0 ]]; then
+      echo "Failed to download ignore-source.txt using curl, trying as a local file..." 1>&3
+      cp "$metadata_config_url/ignore-source.txt" /tmp/is.$$.txt
+      if [[ $? -ne 0 ]]; then
+          echo "ERROR: unable to obtain ignore-source.txt. Assuming no source URLs to ignore" 1>&3
+          echo "$metadata_config_url/ignore-source.txt" 1>&3
+      fi
+  fi
+
+    if [ -f "/tmp/is.$$.txt" ]; then
+      echo $(cat "/tmp/is.$$.txt" | awk -vORS=">,<" '{ print $1 }' | sed 's/,<$//' | sed 's/^/</')
+    else
+      echo ""
+    fi
+  fi
+}
+ignored_sources=$(get_ignored_sources)
+echo "Ignored source URLs:${ignored_sources}"
+
 # Prep query to read all version info
 echo "  Lookup terminology, version info in stardog"
+if [ -n "$ignored_sources" ];then
 cat > /tmp/x.$$.txt << EOF
-query=PREFIX owl:<http://www.w3.org/2002/07/owl#> 
-PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
-PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#> 
-PREFIX xsd:<http://www.w3.org/2001/XMLSchema#> 
-PREFIX dc:<http://purl.org/dc/elements/1.1/> 
+query=PREFIX owl:<http://www.w3.org/2002/07/owl#>
+PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>
+PREFIX dc:<http://purl.org/dc/elements/1.1/>
 PREFIX xml:<http://www.w3.org/2001/XMLSchema>
 select distinct ?source ?graphName ?version where {
   graph ?graphName {
     {
       ?source a owl:Ontology .
-      ?source owl:versionInfo ?version
+      ?source owl:versionInfo ?version .
+      FILTER (?source NOT IN ($ignored_sources))
     }
     UNION
     {
       ?source a owl:Ontology .
       ?source owl:versionIRI ?version .
-      FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo }
+      FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo } .
+      FILTER (?source NOT IN ($ignored_sources))
     }
   }
 }
 EOF
+else
+cat > /tmp/x.$$.txt << EOF
+query=PREFIX owl:<http://www.w3.org/2002/07/owl#>
+PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
+PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>
+PREFIX dc:<http://purl.org/dc/elements/1.1/>
+PREFIX xml:<http://www.w3.org/2001/XMLSchema>
+select distinct ?source ?graphName ?version where {
+  graph ?graphName {
+    {
+      ?source a owl:Ontology .
+      ?source owl:versionInfo ?version .
+    }
+    UNION
+    {
+      ?source a owl:Ontology .
+      ?source owl:versionIRI ?version .
+      FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo } .
+    }
+  }
+}
+EOF
+fi
 query=`cat /tmp/x.$$.txt`
 
 # Run the query against each of the databases
@@ -149,12 +206,11 @@ for db in `cat /tmp/db.$$.txt`; do
         exit 1
     fi
 done
-
 # Sort by version then reverse by DB (NCIT2 goes before CTRP)
 # this is because we need "monthly" to be indexed from the "monthlyDb"
 # defined in ncit.json
 # NOTE: version isn't cleaned up here so from where versionIRI is still an IRI
-/bin/sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
+sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
 cat /tmp/y.$$.txt | sed 's/^/    version = /;'
 
 if [[ $ES_CLEAN == "true" ]]; then
@@ -183,7 +239,7 @@ fi
 
 # For each DB|version, check whether indexes already exist for that version
 echo ""
-export PATH="/usr/local/corretto-jdk11/bin:$PATH"
+export PATH="/usr/local/corretto-jdk17/bin:$PATH"
 # Handle the local setup
 local=""
 jar="../lib/evsrestapi.jar"
@@ -192,13 +248,25 @@ if [[ $config -eq 0 ]]; then
     jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
 fi
 
+get_terminology(){
+  lower_terminology=$(basename "$1" | sed 's/.owl//g; s/Ontology//; s/-//;' | tr '[:upper:]' '[:lower:]')
+  if [[ $lower_terminology =~ "thesaurus" ]]; then
+    echo "ncit"
+  else
+    #lower_terminology=$(basename "$1" | sed 's/.owl//g; s/Ontology//; s/-//;' | tr '[:upper:]' '[:lower:]')
+    IFS='_' read -r -a array <<<"$lower_terminology"
+    echo $array
+  fi
+}
+
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
-    version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/(\d+)/[a-zA-Z]+.owl#$1#;'`
+    version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
     cv=`echo $version | tr '[:upper:]' '[:lower:]' | perl -pe 's/[\.\-]//g;'`
     db=`echo $x | cut -d\| -f 2`
     uri=`echo $x | cut -d\| -f 3`
-    term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/; s/.*\/chebi.owl/chebi/; s/.*\/umlssemnet.owl/umlssemnet/; s/.*\/MEDRT.owl/medrt/; s/.*\/CanMED.owl/canmed/; s/.*\/ctcae5.owl/ctcae5/'`
+    term=$(get_terminology "$uri")
+
 
     # if previous version and current version match, then skip
     # this is a monthly that's in both NCIT2 and CTRP databases
@@ -248,12 +316,13 @@ for x in `cat /tmp/y.$$.txt`; do
 
                 # Set historyFile for later steps    
                 historyFile=$DIR/NCIT_HISTORY/cumulative_history_$version.txt
+                echo "    historyFile = $DIR/NCIT_HISTORY/cumulative_history_$version.txt"
                 break
             fi
         done
 
         # cd back out
-        cd -
+        cd - > /dev/null 2> /dev/null
 	fi
 	
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
@@ -280,6 +349,10 @@ for x in `cat /tmp/y.$$.txt`; do
             fi
         fi
     done
+
+    # Set up environment
+    export STARDOG_DB=$db
+    export EVS_SERVER_PORT="8083"
     
     if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
         echo "    FOUND indexes for $term $version"
@@ -318,8 +391,6 @@ for x in `cat /tmp/y.$$.txt`; do
         fi
 
         # Run reindexing process (choose a port other than the one that it runs on)
-        export STARDOG_DB=$db
-        export EVS_SERVER_PORT="8083"
         echo "    Generate indexes for $STARDOG_DB ${term} $version"
         
         # Set the history clause for "ncit"
@@ -329,7 +400,7 @@ for x in `cat /tmp/y.$$.txt`; do
         fi
 
         echo "    java $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
-        java $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause
+        java $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error building indexes"
             exit 1

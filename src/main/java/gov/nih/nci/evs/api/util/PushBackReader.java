@@ -1,4 +1,3 @@
-
 package gov.nih.nci.evs.api.util;
 
 import java.io.BufferedReader;
@@ -6,9 +5,8 @@ import java.io.IOException;
 import java.io.Reader;
 
 /**
- * Extends {@link BufferedReader} to provide the ability to push a single line
- * of input back onto the reader to read it again on the next
- * <code>readLine()</code> call.
+ * Extends {@link BufferedReader} to provide the ability to push a single line of input back onto
+ * the reader to read it again on the next <code>readLine()</code> call.
  */
 public class PushBackReader extends BufferedReader {
 
@@ -16,9 +14,8 @@ public class PushBackReader extends BufferedReader {
   private String pushedBackLine;
 
   /**
-   * Instantiates a new {@link PushBackReader} wrapped around the specified
-   * reader.
-   * 
+   * Instantiates a new {@link PushBackReader} wrapped around the specified reader.
+   *
    * @param r {@link Reader}
    */
   public PushBackReader(final Reader r) {
@@ -26,9 +23,8 @@ public class PushBackReader extends BufferedReader {
   }
 
   /**
-   * Instantiates a new {@link PushBackReader} wrapped around the specified
-   * reader.
-   * 
+   * Instantiates a new {@link PushBackReader} wrapped around the specified reader.
+   *
    * @param r {@link Reader}
    * @param bufferSize the buffer size
    */
@@ -51,7 +47,6 @@ public class PushBackReader extends BufferedReader {
     } else {
       return super.readLine();
     }
-
   }
 
   /**
@@ -69,11 +64,10 @@ public class PushBackReader extends BufferedReader {
 
   /**
    * Peek at push backed line without removing it.
-   * 
+   *
    * @return the string
    */
   public String peek() {
     return this.pushedBackLine;
   }
-
 }

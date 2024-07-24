@@ -1,13 +1,4 @@
-
 package gov.nih.nci.evs.api.service;
-
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
-import org.apache.http.util.VersionInfo;
 
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
@@ -23,10 +14,14 @@ import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import org.apache.http.util.VersionInfo;
 
-/**
- * Sparql query manager service.
- */
+/** Sparql query manager service. */
 public interface SparqlQueryManagerService {
 
   /**
@@ -39,7 +34,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public Concept getConcept(String conceptCode, Terminology terminology, IncludeParam ip)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the all properties.
@@ -60,7 +55,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public List<Concept> getNeverUsedProperties(Terminology terminology, IncludeParam ip)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the all remodeled properties.
@@ -71,7 +66,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public List<Concept> getRemodeledProperties(Terminology terminology, IncludeParam ip)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the distinct property values.
@@ -82,17 +77,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public List<String> getDistinctPropertyValues(Terminology terminology, String propertyCode)
-    throws Exception;
-
-  /**
-   * Returns the all qualifiers.
-   *
-   * @param terminology the terminology
-   * @param ip the ip
-   * @return the all qualifiers
-   * @throws Exception the exception
-   */
-  public List<Concept> getAllQualifiers(Terminology terminology, IncludeParam ip) throws Exception;
+      throws Exception;
 
   /**
    * Returns the remodeled qualifiers.
@@ -103,7 +88,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public List<Concept> getRemodeledQualifiers(Terminology terminology, IncludeParam ip)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the axiom qualifiers list.
@@ -114,7 +99,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public List<String> getQualifierValues(String propertyCode, Terminology terminology)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the subset members.
@@ -125,7 +110,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public List<Concept> getSubsetMembers(String subsetCode, Terminology terminology)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the all associations.
@@ -136,7 +121,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public List<Concept> getAllAssociations(Terminology terminology, IncludeParam ip)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the all roles.
@@ -157,7 +142,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public List<Concept> getAllSynonymTypes(Terminology terminology, IncludeParam ip)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the all definition types.
@@ -168,7 +153,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public List<Concept> getAllDefinitionTypes(Terminology terminology, IncludeParam ip)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the property.
@@ -180,7 +165,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public Concept getProperty(String code, Terminology terminology, IncludeParam param)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the qualifier.
@@ -192,7 +177,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public Concept getQualifier(String conceptCode, Terminology terminology, IncludeParam param)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the association.
@@ -204,7 +189,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public Concept getAssociation(String conceptCode, Terminology terminology, IncludeParam param)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the role.
@@ -216,7 +201,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public Concept getRole(String conceptCode, Terminology terminology, IncludeParam param)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the associations.
@@ -227,7 +212,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public List<Association> getAssociations(String conceptCode, Terminology terminology)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the associations for all codes.
@@ -237,8 +222,8 @@ public interface SparqlQueryManagerService {
    * @return the associations for all codes
    * @throws Exception the exception
    */
-  public Map<String, List<Association>> getAssociationsForAllCodes(Terminology terminology,
-    boolean inverseFlag) throws Exception;
+  public Map<String, List<Association>> getAssociationsForAllCodes(
+      Terminology terminology, boolean inverseFlag) throws Exception;
 
   /**
    * Returns the inverse associations.
@@ -249,7 +234,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public List<Association> getInverseAssociations(String conceptCode, Terminology terminology)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the roles.
@@ -262,16 +247,6 @@ public interface SparqlQueryManagerService {
   public List<Role> getRoles(String conceptCode, Terminology terminology) throws Exception;
 
   /**
-   * Returns the roles for all codes.
-   *
-   * @param terminology the terminology
-   * @return the roles for all codes
-   * @throws Exception the exception
-   */
-  public Map<String, List<Role>> getRolesForAllCodes(Terminology terminology, boolean inverseFlag)
-    throws Exception;
-
-  /**
    * Returns the complex roles for all codes.
    *
    * @param terminology the terminology
@@ -279,8 +254,8 @@ public interface SparqlQueryManagerService {
    * @return the complex roles for all codes
    * @throws Exception the exception
    */
-  public Map<String, List<Role>> getComplexRolesForAllCodes(Terminology terminology,
-    boolean inverseFlag) throws Exception;
+  public Map<String, List<Role>> getComplexRolesForAllCodes(
+      Terminology terminology, boolean inverseFlag) throws Exception;
 
   /**
    * Returns the inverse roles.
@@ -320,8 +295,8 @@ public interface SparqlQueryManagerService {
    * @return the maps to
    * @throws Exception the exception
    */
-  public List<gov.nih.nci.evs.api.model.ConceptMap> getMapsTo(String conceptCode, Terminology terminology)
-    throws Exception;
+  public List<gov.nih.nci.evs.api.model.ConceptMap> getMapsTo(
+      String conceptCode, Terminology terminology) throws Exception;
 
   /**
    * Returns the root nodes.
@@ -352,7 +327,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the all graph names.
@@ -423,8 +398,8 @@ public interface SparqlQueryManagerService {
    * @return the concepts
    * @throws Exception the exception
    */
-  List<Concept> getConcepts(List<Concept> concepts, Terminology terminology,
-    HierarchyUtils hierarchy) throws Exception;
+  List<Concept> getConcepts(
+      List<Concept> concepts, Terminology terminology, HierarchyUtils hierarchy) throws Exception;
 
   /**
    * Returns the properties.
@@ -451,22 +426,12 @@ public interface SparqlQueryManagerService {
    *
    * @param conceptCode the concept code
    * @param terminology the terminology
-   * @param qualifierFlag the qualifier flag - used to avoid Q-P-Q-P infinite
-   *          loop
+   * @param qualifierFlag the qualifier flag - used to avoid Q-P-Q-P infinite loop
    * @return the axioms
    * @throws Exception the exception
    */
   List<Axiom> getAxioms(String conceptCode, Terminology terminology, boolean qualifierFlag)
-    throws Exception;
-
-  /**
-   * Returns the hierarchy.
-   *
-   * @param terminology the terminology
-   * @return the hierarchy
-   * @throws Exception the exception
-   */
-  List<String> getHierarchy(Terminology terminology) throws Exception;
+      throws Exception;
 
   /**
    * Returns the main type hierarchy.
@@ -478,8 +443,12 @@ public interface SparqlQueryManagerService {
    * @return the main type hierarchy
    * @throws Exception the exception
    */
-  Map<String, Paths> getMainTypeHierarchy(Terminology terminology, Set<String> mainTypeSet,
-    Set<String> broadCategorySet, final HierarchyUtils hierarchy) throws Exception;
+  Map<String, Paths> getMainTypeHierarchy(
+      Terminology terminology,
+      Set<String> mainTypeSet,
+      Set<String> broadCategorySet,
+      final HierarchyUtils hierarchy)
+      throws Exception;
 
   /**
    * Returns the all child nodes.
@@ -490,15 +459,6 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   List<String> getAllChildNodes(String parent, Terminology terminology) throws Exception;
-
-  /**
-   * Get hierarchy for a given terminology.
-   *
-   * @param terminology the terminology
-   * @return the hierarchy
-   * @throws Exception the exception
-   */
-  public HierarchyUtils getHierarchyUtils(Terminology terminology) throws Exception;
 
   /**
    * gets all concepts (minimal).
@@ -515,8 +475,10 @@ public interface SparqlQueryManagerService {
    * @param terminology the terminology
    * @return the all concepts without code
    * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception
    */
-  public List<Concept> getAllConceptsWithoutCode(Terminology terminology) throws IOException;
+  public List<Concept> getAllConceptsWithoutCode(Terminology terminology)
+      throws IOException, Exception;
 
   /**
    * Returns the path in hierarchy.
@@ -527,7 +489,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   public List<HierarchyNode> getPathInHierarchy(String code, Terminology terminology)
-    throws Exception;
+      throws Exception;
 
   /**
    * checks path in hierarchy.
@@ -540,7 +502,7 @@ public interface SparqlQueryManagerService {
    * @throws Exception the exception
    */
   void checkPathInHierarchy(String code, HierarchyNode node, Path path, Terminology terminology)
-    throws Exception;
+      throws Exception;
 
   /**
    * gets all subsets.
@@ -557,6 +519,27 @@ public interface SparqlQueryManagerService {
    * @param terminology the terminology
    * @param association the association
    * @return list of AssociationEntries
+   * @throws Exception
    */
-  public List<AssociationEntry> getAssociationEntries(Terminology terminology, Concept association);
+  public List<AssociationEntry> getAssociationEntries(Terminology terminology, Concept association)
+      throws Exception;
+
+  /**
+   * Helper method for calling the get Hierarchy with caching enabled
+   *
+   * @param terminology
+   * @return
+   * @throws Exception
+   */
+  public HierarchyUtils getHierarchyUtilsCache(final Terminology terminology) throws Exception;
+
+  /**
+   * Helper method for call the get all qualifiers with caching enabled
+   *
+   * @param terminology
+   * @return
+   * @throws Exception
+   */
+  public List<Concept> getAllQualifiersCache(Terminology terminology, IncludeParam ip)
+      throws Exception;
 }

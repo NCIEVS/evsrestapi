@@ -1,11 +1,14 @@
-
 package gov.nih.nci.evs.api.model;
 
 import static org.junit.Assert.assertTrue;
 
+import gov.nih.nci.evs.api.CopyConstructorTester;
+import gov.nih.nci.evs.api.EqualsHashcodeTester;
+import gov.nih.nci.evs.api.GetterSetterTester;
+import gov.nih.nci.evs.api.ProxyTester;
+import gov.nih.nci.evs.api.SerializationTester;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -13,15 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import gov.nih.nci.evs.api.CopyConstructorTester;
-import gov.nih.nci.evs.api.EqualsHashcodeTester;
-import gov.nih.nci.evs.api.GetterSetterTester;
-import gov.nih.nci.evs.api.ProxyTester;
-import gov.nih.nci.evs.api.SerializationTester;
-
-/**
- * Unit test for {@link Concept}.
- */
+/** Unit test for {@link Concept}. */
 @RunWith(SpringJUnit4ClassRunner.class)
 public class ConceptUnitTest {
 
@@ -43,10 +38,10 @@ public class ConceptUnitTest {
 
   /** The d 2. */
   private List<Definition> d2;
-  
+
   /** The h 1. */
   private List<History> h1;
-  
+
   /** The h 2. */
   private List<History> h2;
 
@@ -94,7 +89,7 @@ public class ConceptUnitTest {
     d1.add((Definition) tester2.createObject(1));
     d2 = new ArrayList<>();
     d2.add((Definition) tester2.createObject(2));
-    
+
     final ProxyTester tester3 = new ProxyTester(new Property());
     p1 = new ArrayList<>();
     p1.add((Property) tester3.createObject(1));
@@ -118,13 +113,12 @@ public class ConceptUnitTest {
     m1.add((ConceptMap) tester6.createObject(1));
     m2 = new ArrayList<>();
     m2.add((ConceptMap) tester6.createObject(2));
-    
+
     final ProxyTester tester7 = new ProxyTester(new History());
     h1 = new ArrayList<>();
     h1.add((History) tester7.createObject(1));
     h2 = new ArrayList<>();
     h2.add((History) tester7.createObject(2));
-
   }
 
   /**
@@ -149,6 +143,10 @@ public class ConceptUnitTest {
     tester.proxy("roles", 2, r2);
     tester.proxy("maps", 1, m1);
     tester.proxy("maps", 2, m2);
+    tester.proxy("extensions", 1, null);
+    tester.proxy("extensions", 2, null);
+    tester.proxy("paths", 1, null);
+    tester.proxy("paths", 2, null);
 
     tester.test();
   }
@@ -181,6 +179,10 @@ public class ConceptUnitTest {
     tester.proxy("roles", 2, r2);
     tester.proxy("maps", 1, m1);
     tester.proxy("maps", 2, m2);
+    tester.proxy("extensions", 1, null);
+    tester.proxy("extensions", 2, null);
+    tester.proxy("paths", 1, null);
+    tester.proxy("paths", 2, null);
 
     assertTrue(tester.testIdentityFieldEquals());
     assertTrue(tester.testNonIdentityFieldEquals());
@@ -206,6 +208,8 @@ public class ConceptUnitTest {
     tester.proxy("associations", 1, a1);
     tester.proxy("roles", 1, r1);
     tester.proxy("maps", 1, m1);
+    tester.proxy("extensions", 1, null);
+    tester.proxy("paths", 1, null);
 
     assertTrue(tester.testCopyConstructor(Concept.class));
   }
@@ -226,6 +230,8 @@ public class ConceptUnitTest {
     tester.proxy("associations", 1, a1);
     tester.proxy("roles", 1, r1);
     tester.proxy("maps", 1, m1);
+    tester.proxy("extensions", 1, null);
+    tester.proxy("paths", 1, null);
 
     assertTrue(tester.testJsonSerialization());
   }

@@ -1,18 +1,13 @@
-
 package gov.nih.nci.evs.api.controller;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.Map;
 import java.util.Objects;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
-/**
- * An payload for exceptions.
- */
+/** An payload for exceptions. */
 @Schema(description = "Payload for JSON error responses")
 public class RestException {
 
@@ -35,9 +30,7 @@ public class RestException {
   /** The path. */
   private String path;
 
-  /**
-   * Instantiates an empty {@link RestException}.
-   */
+  /** Instantiates an empty {@link RestException}. */
   public RestException() {
     // n/a
   }
@@ -164,16 +157,14 @@ public class RestException {
   /* see superclass */
   @Override
   public boolean equals(Object obj) {
-    if (this == obj)
-      return true;
-    if (obj == null)
-      return false;
-    if (getClass() != obj.getClass())
-      return false;
+    if (this == obj) return true;
+    if (obj == null) return false;
+    if (getClass() != obj.getClass()) return false;
     RestException other = (RestException) obj;
-    return Objects.equals(error, other.error) && Objects.equals(message, other.message)
-        && Objects.equals(path, other.path) && Objects.equals(status, other.status)
+    return Objects.equals(error, other.error)
+        && Objects.equals(message, other.message)
+        && Objects.equals(path, other.path)
+        && Objects.equals(status, other.status)
         && Objects.equals(timestamp, other.timestamp);
   }
-
 }

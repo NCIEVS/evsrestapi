@@ -99,6 +99,34 @@ if [[ ! -e "$dir/ChEBI/chebi_213.owl" ]]; then
     exit 1
 fi
 
+# Check DUO
+echo "    check DUO"
+if [[ ! -e "$dir/DUO/duo_Feb21.owl" ]]; then
+    echo "ERROR: unexpectedly missing DUO/duo_Feb21.owl file"
+    exit 1
+fi
+
+# Check OBI
+echo "    check OBI"
+if [[ ! -e "$dir/OBI/obi_2022_07.owl" ]]; then
+    echo "ERROR: unexpectedly missing OBI/obi_2022_07.owl file"
+    exit 1
+fi
+
+# Check OBIB
+echo "    check OBIB"
+if [[ ! -e "$dir/OBIB/obib_2021-11.owl" ]]; then
+    echo "ERROR: unexpectedly missing OBIB/obib_2021-11.owl file"
+    exit 1
+fi
+
+# Check NDFRT
+echo "    check NDFRT"
+if [[ ! -e "$dir/NDFRT/NDFRT_Public_2018.02.05_Inferred.owl" ]]; then
+    echo "ERROR: unexpectedly missing NDFRT/NDFRT_Public_2018.02.05_Inferred.owl file"
+    exit 1
+fi
+
 # Verify docker elasticsearch is running
 echo "    verify docker elasticsearch is running"
 ct=`docker ps | grep 'elasticsearch/elasticsearch' | wc -l`
@@ -131,13 +159,6 @@ for i in `cat /tmp/x.$$.txt`; do
     fi
 done
 
-# Reindex ncim
-echo "  Reindex ncim"
-src/main/bin/ncim-part.sh --noconfig $dir/NCIM | sed 's/^/    /'
-if [[ $? -ne 0 ]]; then
-    echo "ERROR: problem running ncim-part.sh"
-    exit 1
-fi
 
 # Reindex ncim - individual terminologies
 for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX; do
@@ -150,6 +171,14 @@ for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX; do
         exit 1
     fi
 done
+
+# Reindex ncim
+echo "  Reindex ncim"
+src/main/bin/ncim-part.sh --noconfig $dir/NCIM | sed 's/^/    /'
+if [[ $? -ne 0 ]]; then
+    echo "ERROR: problem running ncim-part.sh"
+    exit 1
+fi
 
 # Reindex stardog terminologies
 echo "  Reindex stardog terminologies"

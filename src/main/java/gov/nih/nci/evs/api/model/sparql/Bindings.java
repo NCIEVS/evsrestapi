@@ -1,11 +1,8 @@
-
 package gov.nih.nci.evs.api.model.sparql;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-/**
- * Bindings for sparql queries.
- */
+/** Bindings for sparql queries. */
 public class Bindings {
 
   /** The property. */
@@ -22,6 +19,9 @@ public class Bindings {
 
   /** The concept. */
   private Property concept;
+
+  /** The code. */
+  private Property code;
 
   /** The concept code. */
   private Property conceptCode;
@@ -160,18 +160,32 @@ public class Bindings {
   }
 
   /**
-   * Returns the concept code.
+   * Returns the code.
    *
-   * @return the concept code
+   * @return the code
+   */
+  public Property getCode() {
+    return code;
+  }
+
+  /**
+   * Sets the code.
+   *
+   * @param code the code
+   */
+  public void setCode(Property code) {
+    this.code = code;
+  }
+
+  /**
+   * @return the conceptCode
    */
   public Property getConceptCode() {
     return conceptCode;
   }
 
   /**
-   * Sets the concept code.
-   *
-   * @param conceptCode the concept code
+   * @param conceptCode the conceptCode to set
    */
   public void setConceptCode(Property conceptCode) {
     this.conceptCode = conceptCode;

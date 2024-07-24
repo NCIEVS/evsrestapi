@@ -1,23 +1,20 @@
-
 package gov.nih.nci.evs.api.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-
-/**
- * Search criteria object for /concept/search implementation.
- */
+/** Search criteria object for /concept/search implementation. */
 @Schema(description = "Criteria for a search or find operation")
 public class SearchCriteria extends SearchCriteriaWithoutTerminology {
 
   /** The terminology. */
   private List<String> terminology;
 
-  /**
-   * Instantiates an empty {@link SearchCriteria}.
-   */
+  /** The sparql. */
+  private String sparql;
+
+  /** Instantiates an empty {@link SearchCriteria}. */
   public SearchCriteria() {
     // n/a
   }
@@ -29,6 +26,8 @@ public class SearchCriteria extends SearchCriteriaWithoutTerminology {
    */
   public SearchCriteria(final SearchCriteria other) {
     populateFrom(other);
+    terminology = new ArrayList<>(other.getTerminology());
+    sparql = other.getSparql();
   }
 
   /**
@@ -77,6 +76,25 @@ public class SearchCriteria extends SearchCriteriaWithoutTerminology {
     this.terminology = terminology;
   }
 
+  /**
+   * Returns the sparql.
+   *
+   * @return the sparql
+   */
+  @Schema(description = "SPARQL query, only available as an output parameter")
+  public String getSparql() {
+    return sparql;
+  }
+
+  /**
+   * Sets the sparql.
+   *
+   * @param sparql the sparql
+   */
+  public void setSparql(final String sparql) {
+    this.sparql = sparql;
+  }
+
   /* see superclass */
   @Override
   public int hashCode() {
@@ -108,5 +126,4 @@ public class SearchCriteria extends SearchCriteriaWithoutTerminology {
     }
     return true;
   }
-
 }

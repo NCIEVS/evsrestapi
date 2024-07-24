@@ -1,4 +1,3 @@
-
 package gov.nih.nci.evs.api.util;
 
 import java.io.BufferedReader;
@@ -9,9 +8,7 @@ import java.io.StringReader;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Container for RF2 readers.
- */
+/** Container for RF2 readers. */
 public class RrfReaders {
 
   /** The sorted rf2 dir. */
@@ -20,59 +17,41 @@ public class RrfReaders {
   /** The readers. */
   private Map<Keys, PushBackReader> readers = new HashMap<>();
 
-  /**
-   * The Enum Keys.
-   */
+  /** The Enum Keys. */
   public enum Keys {
 
     /** The mrconso. */
-    MRCONSO(new int[] {
-        0
-    }, 11),
+    MRCONSO(new int[] {0}, 11),
 
     /** The mrdef. */
-    MRDEF(new int[] {
-        0
-    }, 4),
+    MRDEF(new int[] {0}, 4),
 
     /** The mrdoc. */
     MRDOC(null, -1),
 
     /** The mrmap. */
-    MRMAP(new int[] {
-        0
-    }, 1),
+    MRMAP(new int[] {0}, 1),
 
     /** The mrrank. */
     MRRANK(null, 1),
 
     /** The mrrel. */
-    MRREL(new int[] {
-        0, 4
-    }, 10),
+    MRREL(new int[] {0, 4}, 10),
 
     /** The mrhier. */
-    MRHIER(new int[] {
-        0
-    }, 4),
+    MRHIER(new int[] {0}, 4),
 
     /** The mrsab. */
     MRSAB(null, 3),
 
     /** The mrsat. */
-    MRSAT(new int[] {
-        0
-    }, 9),
+    MRSAT(new int[] {0}, 9),
 
     /** The mrsty. */
-    MRSTY(new int[] {
-        0
-    }, -1),
+    MRSTY(new int[] {0}, -1),
 
     /** The mrcui. */
-    MRCUI(new int[] {
-        5
-    }, -1),
+    MRCUI(new int[] {5}, -1),
 
     /** The mraui. */
     MRAUI(null, -1),
@@ -197,7 +176,8 @@ public class RrfReaders {
   private PushBackReader getReader(final String filename) throws Exception {
     final File file = new File(inputDir, filename);
     if (file.exists()) {
-      return new PushBackReader(new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8")));
+      return new PushBackReader(
+          new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8")));
     } else {
       // if no file, return an empty stream
       return new PushBackReader(new StringReader(""));
@@ -213,5 +193,4 @@ public class RrfReaders {
   public PushBackReader getReader(final Keys key) {
     return readers.get(key);
   }
-
 }

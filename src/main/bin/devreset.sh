@@ -110,6 +110,34 @@ if [[ ! -e "$dir/ChEBI/chebi_213.owl" ]]; then
     exit 1
 fi
 
+# Check DUO
+echo "    check DUO"
+if [[ ! -e "$dir/DUO/duo_Feb21.owl" ]]; then
+    echo "ERROR: unexpectedly missing DUO/duo_Feb21.owl file"
+    exit 1
+fi
+
+# Check OBI
+echo "    check OBI"
+if [[ ! -e "$dir/OBI/obi_2022_07.owl" ]]; then
+    echo "ERROR: unexpectedly missing OBI/obi_2022_07.owl file"
+    exit 1
+fi
+
+# Check OBIB
+echo "    check OBIB"
+if [[ ! -e "$dir/OBIB/obib_2021-11.owl" ]]; then
+    echo "ERROR: unexpectedly missing OBI/obib_2021-11.owl file"
+    exit 1
+fi
+
+# Check NDFRT
+echo "    check NDFRT"
+if [[ ! -e "$dir/NDFRT/NDFRT_Public_2018.02.05_Inferred.owl" ]]; then
+    echo "ERROR: unexpectedly missing NDFRT/NDFRT_Public_2018.02.05_Inferred.owl file"
+    exit 1
+fi
+
 # Verify docker stardog is running
 echo "    verify docker stardog is running"
 ct=`docker ps | grep 'stardog/stardog' | wc -l`
@@ -189,8 +217,7 @@ for i in `cat /tmp/x.$$.txt`; do
 done
 
 # Reindex ncim - individual terminologies
-for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX; do
-
+for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V3.0; do
     # Keep the NCIM folder around while we run
     echo "Load $t (from downloaded data)"
     src/main/bin/ncim-part.sh --noconfig $dir/NCIM --keep --terminology $t > /tmp/x.$$.txt 2>&1
@@ -234,6 +261,16 @@ echo "    load data"
 /opt/stardog/bin/stardog data add --named-graph http://MEDRT NCIT2 /data/UnitTestData/MED-RT/medrt.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://Canmed NCIT2 /data/UnitTestData/Canmed/canmed.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://CTCAE NCIT2 /data/UnitTestData/CTCAE/ctcae5.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://DUO_monthly NCIT2 /data/UnitTestData/DUO/duo_Feb21.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://DUO_monthly NCIT2 /data/UnitTestData/DUO/iao_Dec20.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://OBI_monthly NCIT2 /data/UnitTestData/OBI/obi_2022_07.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://OBIB NCIT2 /data/UnitTestData/OBIB/obib_2021-11.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://NDFRT2 NCIT2 /data/UnitTestData/NDFRT/NDFRT_Public_2018.02.05_Inferred.owl | sed 's/^/      /'
+
+/opt/stardog/bin/stardog data add --named-graph http://MGED NCIT2 /data/UnitTestData/MGED/MGEDOntology.fix.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://NPO NCIT2 /data/UnitTestData/NPO/npo-2011-12-08_inferred.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://MA NCIT2 /data/UnitTestData/Mouse_Anatomy/ma_07_27_2016.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://Zebrafish NCIT2 /data/UnitTestData/Zebrafish/zfa_2019_08_02.owl | sed 's/^/      /'
 echo "    optimize databases"
 /opt/stardog/bin/stardog-admin db optimize -n CTRP | sed 's/^/      /'
 /opt/stardog/bin/stardog-admin db optimize -n NCIT2 | sed 's/^/      /'
@@ -254,6 +291,7 @@ historyFile=$dir/cumulative_history_21.06e.txt
 
 # Reindex stardog terminologies
 echo "  Reindex stardog terminologies"
+# After this point, the log is stored in the tmp folder unless an error is hit
 src/main/bin/reindex.sh --noconfig --history $historyFile > /tmp/x.$$.txt 2>&1 
 if [[ $? -ne 0 ]]; then
     cat /tmp/x.$$.txt | sed 's/^/    /'

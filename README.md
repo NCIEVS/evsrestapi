@@ -2,39 +2,52 @@
 
 Information on the build and deployment process for the EVSRESTAPI project
 
-### Prerequisites
+## Prerequisites
 
 * Install Docker and ensure it is configured to allow (Docker -> Settings -> Resources)
+  * **NOTE**: For Macs, you may want to adjust the CPU & memory settings.
+* Before cloning the repo, make sure that the command `git config core.autocrlf` returns `false`. Change it to `false` using `git config --global core.autocrlf false` if necessary
 * Clone the project - [https://github.com/NCIEVS/evsrestapi](https://github.com/NCIEVS/evsrestapi)
-  * Before cloning the repo, make sure that the command `git config core.autocrlf` returns `false`. Change it to `false` using `git config --global core.autocrlf false` if necessary
-
-* Choose a local data directory $dir (e.g. c:/evsrestapi/dir)
-* mkdir -p $dir/elasticsearch/data
+* Create a local data directory and set a $dir variable in your terminal. This $dir variable will be referenced multiple times in upcoming steps.
+  * `export set dir=C:/Users/carlsenbr/eclipse-workspace/data`
+* Execute `mkdir -p $dir/elasticsearch/data`
+* * Set a new variable $ES_DIR to the new directory just created. This $ES_DIR will be referenced in upcoming steps.
+* `export set ES_DIR=$dir/elasticsearch/data`
 * Download the "Unit Test Data" folder from <https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI>.  Unpack it to your $dir folder (so that $dir/UnitTestData exists)
   * run `prep.sh`
 
-### Steps for Loading NCI Thesaurus Data and Indexes Locally
+## Steps for Loading NCI Thesaurus Data and Indexes Locally
 
 * Launch Stardog and load NCI Thesaurus data - (see [Stardog Resources](STARDOG.md))
 * Launch Elasticsearch docker container - (see [Elasticsearch Resources](ELASTICSEARCH.md))
 
 * Make sure to set at least the following environment variables
-    * ES_SCHEME=http
-    * ES_HOST=localhost
-    * ES_PORT=9301
-    * STARDOG_HOST=localhost
-    * STARDOG_PORT=5820
-    * STARDOG_DB=NCIT2
-    * STARDOG_USERNAME=admin
-    * STARDOG_PASSWORD=admin
+  * ES_SCHEME=http
+  * ES_HOST=localhost
+  * ES_PORT=9301
+  * STARDOG_HOST=localhost
+  * STARDOG_PORT=5820
+  * STARDOG_DB=NCIT2
+  * STARDOG_USERNAME=admin
+  * STARDOG_PASSWORD=admin
+  * CONFIG_BASE_URI=https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata
+  * MAIL_USERNAME=<YOUR_WORK_EMAIL>
+  * MAIL_PASSWORD=<YOUR_GMAIL_APP_PASSWORD>
+  * MAIL_AUTH=true
+  * MAIL_TLS=true
+  * RECAPTCHA_KEY=<SITE_KEY_FROM_RECAPTCHA>
+  * {RECAPTCHA_SECRET=<SECRET_KEY_FROM_RECAPTCHA>
 
-* Load the UnitTestData set
+* Load the UnitTestData set by running `prep.sh`
+  * Make sure that you can run all programs in `bash`, especially if on Mac which defaults to `zsh`
 
-    cd evsrestapi
-    make devreset
-    tail -f log
+      ```
+      cd evsrestapi
+      make devreset
+      tail -f log
+    ```
 
-### Steps for Building and Running EVSRESTAPI locally
+## Steps for Building and Running EVSRESTAPI locally
 
 * Launch Stardog and Elasticsearch (as described above)
   * If loaded properly, the loaded artifacts should be persistent and you can take down and restart the docker processes and the data will still be there.
@@ -45,13 +58,26 @@ Information on the build and deployment process for the EVSRESTAPI project
   * make clean build
   * Executable war file present in build/libs
 
-* Run application in Eclipse
-  * Click "Run" -> "Run Configurations"
-  * Create a new "Java Application" configuration and name it "evsrestapi - local"
-  * Set the "Project" to the `evsrestapi` project
-  * Set the "Main Class" to `gov.nih.nci.evs.api.Application`
-  * In the "Arguments" tab, add to "VM Arguments" the value `-Dspring.profiles.active=local`
-  * Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui.html#/](http://localhost:8082/swagger-ui.html#/)
+### Run application in Eclipse
+* Click "Run" -> "Run Configurations"
+* Create a new "Java Application" configuration and name it "evsrestapi - local"
+* Set the "Project" to the `evsrestapi` project
+* Set the "Main Class" to `gov.nih.nci.evs.api.Application`
+* In the "Arguments" tab, add to "VM Arguments" the value `-Dspring.profiles.active=local`
+* In the Environment variables add the email credentials and settings for testing:
+  * e.g. `AUTH=true;MAIL_USER=<testUserEmail@domain.com;TLS=true;MAIL_PASSWORD=#########;RECAPTCHA_KEY:########;RECAPTCHA_SECRET=#######`
+* Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui.html#/](http://localhost:8082/swagger-ui.html#/)
 
-* Run application from command line
-  * Run with `java -Xmx4096 -Dspring.profiles.active=local -jar build/libs/evsrestapi*jar`
+### Run application in IntelliJ
+* Click "Run" -> "Edit Configurations"
+* Create a new "Spring Boot" configuration and name it "evsrestapi - local"
+* Set the "Project" to the `evsrestapi-main` project
+* Set the "Main Class" to `gov.nih.nci.evs.api.Application`
+* Click on "Modify options" and select "Add VM options" & "Environment Variables"
+* In the "VM options" text box, add the value `-Dspring.profiles.active=local`
+* In the Environment variables add the email credentials and settings for testing:
+  * e.g. `AUTH=true;MAIL_USER=<testUserEmail@domain.com>;TLS=true;MAIL_PASSWORD=<#########>;RECAPTCHA_KEY:########;RECAPTCHA_SECRET=########`
+* Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui.html#/](http://localhost:8082/swagger-ui.html#/)
+
+### Run application from command line
+* Run with `java -Xmx4096 -Dspring.profiles.active=local -jar build/libs/evsrestapi*jar`

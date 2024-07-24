@@ -1,16 +1,119 @@
----
+#
+# Spring Properties
+#
+spring:
+  #
+  # Application Properties
+  #
+  application:
+    name: nci-evs-api
+  #profiles:
+  #  include: metadata
+
+  #
+  # JSON Formatting Properties
+  #
+  jackson:
+    serialization:
+      INDENT_OUTPUT: true
+
+  # ehcache configuration
+  cache:
+    jcache:
+      config: classpath:ehcache.xml
+
+  # test profile
+  config:
+    activate:
+      on-profile: test
+
+  # Term Form Mail Server Properties
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: 587
+    username: ${MAIL_USER:REPLACE_WITH_USERNAME}
+    password: ${MAIL_PASSWORD:REPLACE_WITH_PASSWORD}
+    properties:
+      mail:
+        smtp:
+          auth: ${AUTH:true}
+          starttls:
+            enable: ${TLS:true}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: heapdump,liquibase,loggers,prometheus,threaddump,info,metrics,health
+
+info:
+  app:
+    name: NCI EVS API
+    version: 1.0.0.RELEASE
+
 #
 # Test Properties
 #
 test:
-    conceptCodeList: ${CONCEPT_CODE_LIST:C7073}
-    
-logging:
-    level:
-        org.springframework: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK:WARN}
-        gov.nih.nci.evs.api: ${LOGGING_LEVEL_GOV_NIH_NCI_EVS_API:INFO}
+  conceptCodeList: ${CONCEPT_CODE_LIST:C7073}
 
-spring:    
-    cache:
-        jcache:
-            config: classpath:ehcache.xml
+#
+# Logging Properties
+#
+logging:
+  level:
+    org.springframework: WARN
+    gov.nih.nci.evs.api: DEBUG
+    org.springframework.data.elasticsearch.core: DEBUG
+    gov.nih.nci.evs.api.configuration.EVSElasticsearchRestTemplate: DEBUG
+    org.apache.http: INFO # change to DEBUG when needed but INFO for now to avoid logspam
+
+#
+# Server Properties
+#
+server:
+  port: ${EVS_SERVER_PORT:8082}
+  servlet:
+    context-path: /
+    session:
+      persistent: false
+
+nci:
+  evs:
+    application:
+      adminKey: ${NCI_EVS_ADMIN_KEY:Default}
+      contextPath: /api/v1
+      metricsEnabled: ${METRICS_ENABLED:true}
+      metricsDir: ${METRICS_DIR:/tmp}
+      configBaseUri: ${CONFIG_BASE_URI:https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata}
+      uiLicense: ${UI_LICENSE:ui-license}
+    bulkload:
+      conceptsDir: ${NCI_EVS_BULK_LOAD_CONCEPTS_DIR:/tmp/}
+      lockFile: ${NCI_EVS_BULK_LOAD_LOCK_FILE_NAME:DownloadSuccessfull.lck}
+      downloadBatchSize: ${NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE:1000}
+      indexBatchSize: ${NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE:1000}
+      stardogDbs: ${STARDOG_DBS:CTRP,NCIT2}
+    stardog:
+      host: ${STARDOG_HOST:localhost}
+      port: ${STARDOG_PORT:5820}
+      db: ${STARDOG_DB:NCIT2}
+      queryUrl: http://${nci.evs.stardog.host}:${nci.evs.stardog.port}/${nci.evs.stardog.db}/query
+      username: admin
+      password: admin
+      readTimeout: 30000
+      connectTimeout: 30000
+    elasticsearch:
+      server:
+        host: ${ES_HOST:localhost}
+        port: ${ES_PORT:9200}
+        scheme: ${ES_SCHEME:http}
+      timeout: 200000
+    sparql:
+      timeoutSeconds: 5
+
+# Springdoc
+springdoc:
+  swagger-ui:
+    tagsSorter: alpha
+    operationsSorter: alpha
+    doc-expansion: none

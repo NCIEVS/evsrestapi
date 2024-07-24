@@ -2,12 +2,16 @@
 <configuration>
   <statusListener
     class="ch.qos.logback.core.status.OnConsoleStatusListener" />
-  <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+  <appender name="STDOUT"
+    class="ch.qos.logback.core.ConsoleAppender">
     <encoder>
       <pattern>%d{yyyy-MM-dd'T'HH:mm:ssXXX} %-5p : %m%n</pattern>
       <!-- <pattern>%d{yyyy-MM-dd_HH:mm:ss.SSS} %p %c %M - %m%n</pattern> -->
     </encoder>
   </appender>
+  <logger
+    name="org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate"
+    level="debug" />
   <root level="INFO">
     <appender-ref ref="STDOUT" />
   </root>

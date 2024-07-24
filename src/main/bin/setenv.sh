@@ -24,6 +24,17 @@ export ES_PORT="EDIT_THIS, e.g. 443"
 export ES_SCHEME="EDIT_THIS, e.g. https"
 export ES_CLEAN=false
 
+#
+# Form/Mail settings
+#
+export RECAPTCHA_KEY=...
+export RECAPTCHA_SECRET=...
+export MAIL_HOST=mailfwd.nih.gov
+export MAIL_USER="REPLACE_WITH_USERNAME"
+export MAIL_PASSWORD="REPLACE_WITH_PASSWORD"
+export MAIL_AUTH=true
+export MAIL_TLS=true
+
 export DATA_DIR=/evs/data/ncim
 
 # Obtaining data/config from evsrestapi-operations

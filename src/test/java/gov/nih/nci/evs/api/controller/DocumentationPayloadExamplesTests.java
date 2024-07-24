@@ -1,12 +1,13 @@
-
 package gov.nih.nci.evs.api.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -20,14 +21,7 @@ import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.properties.TestProperties;
-
-/**
- * Integration tests for generating documentation payload examples.
- */
+/** Integration tests for generating documentation payload examples. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -38,27 +32,22 @@ public class DocumentationPayloadExamplesTests {
       LoggerFactory.getLogger(DocumentationPayloadExamplesTests.class);
 
   /** The mvc. */
-  @Autowired
-  private MockMvc mvc;
+  @Autowired private MockMvc mvc;
 
   /** The test properties. */
-  @Autowired
-  TestProperties testProperties;
+  @Autowired TestProperties testProperties;
 
   /** The urls. */
   private List<String> urls = new ArrayList<>();
 
-  /**
-   * Sets the up.
-   */
+  /** Sets the up. */
   @Before
   public void setUp() {
 
     urls.add("/api/v1/metadata/terminologies");
     urls.add("/api/v1/concept/ncit/C3224?include=minimal");
     urls.add("/api/v1/concept/ncit/C3224?include=summary");
-    urls.add(
-        "/api/v1/concept/ncit/C3224?include=synonyms,children,maps,inverseAssociations");
+    urls.add("/api/v1/concept/ncit/C3224?include=synonyms,children,maps,inverseAssociations");
     urls.add("/api/v1/concept/ncit/C3224/roles");
     urls.add("/api/v1/concept/ncit/C3224?include=full");
     urls.add("/api/v1/concept/ncit/C3224/pathsToRoot");
@@ -91,9 +80,11 @@ public class DocumentationPayloadExamplesTests {
       content = result.getResponse().getContentAsString();
       final ObjectMapper mapper = new ObjectMapper();
       mapper.setSerializationInclusion(Include.NON_EMPTY);
-      log.info(" content = " + mapper.writerWithDefaultPrettyPrinter()
-          .writeValueAsString(mapper.readTree(content)));
+      log.info(
+          " content = "
+              + mapper
+                  .writerWithDefaultPrettyPrinter()
+                  .writeValueAsString(mapper.readTree(content)));
     }
   }
-
 }

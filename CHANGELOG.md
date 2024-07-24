@@ -4,9 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [1.10.0.RELEASE] - YYYY-MM-DD
+## [1.10.0.RELEASE] - 2024-06-18
 ### Added
+- FHIR R4 terminology endpoints for CodeSystem, ValueSet, and ConceptMap
+- Additional search endpoints to support Sparql querying (of rdf-loaded terminologies)
+- Support for additional terminologies (both RRF and RDF) and corresponding tests
+- Backend support for term form submission
 ### Changed
+- Upgrade to Java17
+- Upgrade to Elasticsearch 7.10+
+- Improvements to elasticsearch "mappings" for model objects
+- More work to factor out configuration info - notably: calculation of "terminology" values and sparql prefixes
+- Fix bugs related terminology content
 
 ## [1.9.0.RELEASE] - 2024-02-01
 ### Added

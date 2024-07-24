@@ -1,29 +1,24 @@
-
 package gov.nih.nci.evs.api.util;
 
+import gov.nih.nci.evs.api.model.Axiom;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.Qualifier;
+import gov.nih.nci.evs.api.model.Synonym;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.sparql.Bindings;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.nih.nci.evs.api.model.Axiom;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Definition;
-import gov.nih.nci.evs.api.model.ConceptMap;
-import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.model.Qualifier;
-import gov.nih.nci.evs.api.model.Synonym;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.sparql.Bindings;
-
-/**
- * Utilities for handling EVS stuff.
- */
+/** Utilities for handling EVS stuff. */
 public class EVSUtils {
 
   /** The Constant log. */
@@ -38,10 +33,12 @@ public class EVSUtils {
    * @param uri the uri
    * @return the qualifier name
    */
-  public static String getQualifierName(final List<Concept> qualifiers, final String code,
-    final String uri) {
-    final Optional<Concept> concept = qualifiers.stream()
-        .filter(c -> c.getCode().equals(code) || uri.equals(c.getUri())).findFirst();
+  public static String getQualifierName(
+      final List<Concept> qualifiers, final String code, final String uri) {
+    final Optional<Concept> concept =
+        qualifiers.stream()
+            .filter(c -> c.getCode().equals(code) || uri.equals(c.getUri()))
+            .findFirst();
     if (concept.isPresent()) {
       return concept.get().getName();
     } else {
@@ -78,8 +75,8 @@ public class EVSUtils {
    * @param axioms the axioms
    * @return the synonyms
    */
-  public static List<Synonym> getSynonyms(Terminology terminology, List<Property> properties,
-    List<Axiom> axioms) {
+  public static List<Synonym> getSynonyms(
+      Terminology terminology, List<Property> properties, List<Axiom> axioms) {
     final List<Synonym> results = new ArrayList<>();
     final Set<String> syCode = terminology.getMetadata().getSynonym();
     final Set<String> sySeen = new HashSet<>();
@@ -87,6 +84,7 @@ public class EVSUtils {
     // If 'axioms' is null here, it's likely because the "main" query didn't
     // finish
     for (Axiom axiom : axioms) {
+      // log.info("AXIOM: {}", axiom);
       final String axiomCode = EVSUtils.getQualifiedCodeFromUri(axiom.getAnnotatedProperty());
       if (syCode.contains(axiomCode)) {
         Synonym synonym = new Synonym();
@@ -111,7 +109,8 @@ public class EVSUtils {
         synonym.setSubSource(axiom.getSubsourceName());
 
         // Add any qualifiers to the synonym
-        synonym.getQualifiers()
+        synonym
+            .getQualifiers()
             .addAll(EVSUtils.getQualifiers(synonym.getTypeCode(), synonym.getName(), axioms));
 
         // Record for later comparison
@@ -154,8 +153,8 @@ public class EVSUtils {
    * @param axioms the axioms
    * @return the definitions
    */
-  public static List<Definition> getDefinitions(Terminology terminology, List<Property> properties,
-    List<Axiom> axioms) {
+  public static List<Definition> getDefinitions(
+      Terminology terminology, List<Property> properties, List<Axiom> axioms) {
     final ArrayList<Definition> results = new ArrayList<>();
     final Set<String> defCodes = terminology.getMetadata().getDefinition();
     final Set<String> defSeen = new HashSet<>();
@@ -169,8 +168,12 @@ public class EVSUtils {
         definition.setSource(axiom.getDefSource());
         // Only keep qualifiers without null types (this happened when loading
         // weird owl)
-        definition.getQualifiers().addAll(axiom.getQualifiers().stream()
-            .filter(q -> q.getType() != null).collect(Collectors.toList()));
+        definition
+            .getQualifiers()
+            .addAll(
+                axiom.getQualifiers().stream()
+                    .filter(q -> q.getType() != null)
+                    .collect(Collectors.toList()));
 
         // NOTE: this could be more efficient if we pass in a map of
         // definition type metadata
@@ -182,7 +185,7 @@ public class EVSUtils {
           throw new RuntimeException("Unexpected missing name for definition code = " + axiomCode);
         }
 
-        defSeen.add(definition.getType() + definition.getDefinition());
+        defSeen.add(definition.getType() + definition.getDefinition().trim());
         results.add(definition);
       }
     }
@@ -190,7 +193,7 @@ public class EVSUtils {
     // Check properties for definitions if axioms didn't produce them
     for (final Property property : properties) {
       if (defCodes.contains(property.getCode())
-          && !defSeen.contains(property.getType() + property.getValue())) {
+          && !defSeen.contains(property.getType() + property.getValue().trim())) {
         final Definition definition = new Definition();
         definition.setDefinition(property.getValue());
         definition.setCode(property.getCode());
@@ -198,7 +201,7 @@ public class EVSUtils {
 
         // Definitions made here won't have qualifiers
 
-        defSeen.add(definition.getType() + definition.getDefinition());
+        defSeen.add(definition.getType() + definition.getDefinition().trim());
         results.add(definition);
       }
     }
@@ -213,8 +216,8 @@ public class EVSUtils {
    * @param axioms the axioms
    * @return the qualifiers
    */
-  public static List<Qualifier> getQualifiers(final String code, final String value,
-    final List<Axiom> axioms) {
+  public static List<Qualifier> getQualifiers(
+      final String code, final String value, final List<Axiom> axioms) {
     for (final Axiom axiom : axioms) {
       if (axiom.getAnnotatedProperty().equals(code) && axiom.getAnnotatedTarget().equals(value)) {
         return axiom.getQualifiers();
@@ -257,8 +260,7 @@ public class EVSUtils {
    * @param values the values
    * @return the list
    */
-  public static <T> List<T> asList(@SuppressWarnings("unchecked")
-  final T... values) {
+  public static <T> List<T> asList(@SuppressWarnings("unchecked") final T... values) {
     final List<T> list = new ArrayList<>(values.length);
     for (final T value : values) {
       if (value != null) {
@@ -483,5 +485,4 @@ public class EVSUtils {
       return b.getConceptLabel().getValue();
     }
   }
-
 }

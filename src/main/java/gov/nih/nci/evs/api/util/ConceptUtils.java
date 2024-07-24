@@ -1,18 +1,4 @@
-
 package gov.nih.nci.evs.api.util;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
 
 import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.Concept;
@@ -26,21 +12,27 @@ import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
-/**
- * Utilities for handling the "include" flag, and converting EVSConcept to Concept.
- */
+/** Utilities for handling the "include" flag, and converting EVSConcept to Concept. */
 public final class ConceptUtils {
 
   /** The Constant logger. */
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(ConceptUtils.class);
+  private static final Logger logger = LoggerFactory.getLogger(ConceptUtils.class);
 
-  /**
-   * Instantiates an empty {@link ConceptUtils}.
-   */
+  /** Instantiates an empty {@link ConceptUtils}. */
   private ConceptUtils() {
     // n/a
   }
@@ -64,8 +56,12 @@ public final class ConceptUtils {
       return value;
     }
 
-    return value.replaceFirst("^[^\\p{IsAlphabetic}\\p{IsDigit}]*", "").toLowerCase().replaceAll(PUNCTUATION_REGEX, " ")
-        .replaceAll("\\s+", " ").trim();
+    return value
+        .replaceFirst("^[^\\p{IsAlphabetic}\\p{IsDigit}]*", "")
+        .toLowerCase()
+        .replaceAll(PUNCTUATION_REGEX, " ")
+        .replaceAll("\\s+", " ")
+        .trim();
   }
 
   /**
@@ -78,7 +74,9 @@ public final class ConceptUtils {
     final SnowballStemmer stemmer = new SnowballStemmer(ALGORITHM.ENGLISH);
     String norm = normalize(value);
     // split by spaces and stem everything, then rejoin
-    return norm != null ? Arrays.stream(norm.split(" ")).map(stemmer::stem).collect(Collectors.joining(" ")) : "";
+    return norm != null
+        ? Arrays.stream(norm.split(" ")).map(stemmer::stem).collect(Collectors.joining(" "))
+        : "";
   }
 
   /**
@@ -88,7 +86,8 @@ public final class ConceptUtils {
    * @param highlights the highlights
    * @throws Exception the exception
    */
-  public static void applyHighlights(final Concept concept, final Map<String, String> highlights) throws Exception {
+  public static void applyHighlights(final Concept concept, final Map<String, String> highlights)
+      throws Exception {
 
     // concept
     if (highlights.containsKey(concept.getName())) {
@@ -213,7 +212,7 @@ public final class ConceptUtils {
       if (ip.isMapsetLink()) {
         newConcept.setMapsetLink(concept.getMapsetLink());
       }
-
+      newConcept.clearHidden();
       result.add(newConcept);
     }
 
@@ -259,18 +258,25 @@ public final class ConceptUtils {
    * @throws Exception the exception
    */
   @SuppressWarnings("unchecked")
-  public static <T extends BaseModel> List<T> sublist(List<T> list, final int fromIndex, final int maxElements)
-    throws Exception {
+  public static <T extends BaseModel> List<T> sublist(
+      List<T> list, final int fromIndex, final int maxElements) throws Exception {
 
     if (fromIndex >= list.size()) {
       return new ArrayList<>();
     }
-    List<T> result = new ArrayList<>(list).subList(fromIndex, Math.min(fromIndex + maxElements, list.size()));
+    List<T> result =
+        new ArrayList<>(list).subList(fromIndex, Math.min(fromIndex + maxElements, list.size()));
 
     // Add a placeholder "last element" with a "ct" for the total.
     if (fromIndex == 0 && maxElements < list.size() && result.size() > 0) {
 
-      final T obj = (T) result.get(0).getClass().getDeclaredConstructor(new Class[0]).newInstance(new Object[0]);
+      final T obj =
+          (T)
+              result
+                  .get(0)
+                  .getClass()
+                  .getDeclaredConstructor(new Class[0])
+                  .newInstance(new Object[0]);
       obj.setCt(list.size());
       result.add(obj);
     }
@@ -333,7 +339,6 @@ public final class ConceptUtils {
     if (!ip.isDescendants()) {
       concept.setDescendants(null);
     }
-
   }
 
   /**
@@ -345,12 +350,16 @@ public final class ConceptUtils {
    * @return the list
    * @throws Exception the exception
    */
-  public static List<Concept> applyList(final List<Concept> concepts, final IncludeParam ip, final String list)
-    throws Exception {
+  public static List<Concept> applyList(
+      final List<Concept> concepts, final IncludeParam ip, final String list) throws Exception {
     final Set<String> codes =
-        (list == null || list.isEmpty()) ? null : Arrays.stream(list.split(",")).collect(Collectors.toSet());
+        (list == null || list.isEmpty())
+            ? null
+            : Arrays.stream(list.split(",")).collect(Collectors.toSet());
 
-    return concepts.stream().filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
+    return concepts.stream()
+        .filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
+        .peek(c -> c.clearHidden())
         .collect(Collectors.toList());
   }
 
@@ -363,13 +372,17 @@ public final class ConceptUtils {
    * @return the list
    * @throws Exception the exception
    */
-  public static List<Concept> applyListWithChildren(final List<Concept> concepts, final IncludeParam ip,
-    final String list) throws Exception {
+  public static List<Concept> applyListWithChildren(
+      final List<Concept> concepts, final IncludeParam ip, final String list) throws Exception {
     final Set<String> codes =
-        (list == null || list.isEmpty()) ? null : Arrays.stream(list.split(",")).collect(Collectors.toSet());
+        (list == null || list.isEmpty())
+            ? null
+            : Arrays.stream(list.split(",")).collect(Collectors.toSet());
 
-    return concepts.stream().flatMap(Concept::streamSelfAndChildren)
+    return concepts.stream()
+        .flatMap(Concept::streamSelfAndChildren)
         .filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
+        .peek(c -> c.clearHidden())
         .collect(Collectors.toList());
   }
 
@@ -383,8 +396,12 @@ public final class ConceptUtils {
    * @return the list
    * @throws Exception the exception
    */
-  public static List<Concept> convertConceptsWithInclude(final SparqlQueryManagerService service, final IncludeParam ip,
-    final Terminology terminology, final List<Concept> concepts) throws Exception {
+  public static List<Concept> convertConceptsWithInclude(
+      final SparqlQueryManagerService service,
+      final IncludeParam ip,
+      final Terminology terminology,
+      final List<Concept> concepts)
+      throws Exception {
 
     // final List<Concept> concepts = convertConcepts(list);
     if (ip.hasAnyTrue()) {
@@ -439,14 +456,20 @@ public final class ConceptUtils {
    * @return the list
    * @throws Exception the exception
    */
-  public static List<List<Concept>> convertPathsWithInclude(final ElasticQueryService service, final IncludeParam ip,
-    final Terminology terminology, final Paths paths, final boolean reverse) throws Exception {
+  public static List<List<Concept>> convertPathsWithInclude(
+      final ElasticQueryService service,
+      final IncludeParam ip,
+      final Terminology terminology,
+      final Paths paths,
+      final boolean reverse)
+      throws Exception {
 
     final List<List<Concept>> list = convertPaths(paths, reverse);
 
     // Get all the codes an unique them, to make it faster.
     // Most of the top level concepts are all the same
-    final Set<String> codes = list.stream().flatMap(l -> l.stream()).map(c -> c.getCode()).collect(Collectors.toSet());
+    final Set<String> codes =
+        list.stream().flatMap(l -> l.stream()).map(c -> c.getCode()).collect(Collectors.toSet());
     final Map<String, Concept> conceptMap = service.getConceptsAsMap(codes, terminology, ip);
     // final Map<String, Concept> cache = new HashMap<>();
     for (final List<Concept> concepts : list) {
@@ -478,7 +501,9 @@ public final class ConceptUtils {
     }
     for (int i = 0; i < values.length; i += 2) {
       // Patch for default namespace where appropriate
-      if (values[i].endsWith("Code") && !values[i].equals("conceptCode") && !values[i + 1].contains(":")) {
+      if (values[i].endsWith("Code")
+          && !values[i].equals("conceptCode")
+          && !values[i + 1].contains(":")) {
         map.put(values[i], ":" + values[i + 1]);
       } else if (values[i].endsWith("Code") && values[i + 1].startsWith("http")) {
         map.put(values[i], "<" + values[i + 1] + ">");
@@ -500,7 +525,8 @@ public final class ConceptUtils {
     if (len >= string.length()) {
       return string;
     }
-    return string.substring(0, Math.min(len, string.length())) + (string.length() > len ? "..." : "");
+    return string.substring(0, Math.min(len, string.length()))
+        + (string.length() > len ? "..." : "");
   }
 
   /**
@@ -521,6 +547,32 @@ public final class ConceptUtils {
    * @return is given string a code
    */
   public static boolean isCode(final String code) {
-    return code != null && code.toUpperCase().matches("[A-Z]{0,5}:?\\d*[-\\.X\\?]?\\d*/?\\d*[A-Za-z_]*[A-Z]?");
+    return code != null
+        && code.toUpperCase().matches("[A-Z]{0,5}:?\\d*[-\\.X\\?]?\\d*/?\\d*[A-Za-z_]*[A-Z]?");
+  }
+
+  /**
+   * Go through map and cap the number of values for each key to the stated max size.
+   *
+   * @param qualMap the qual map
+   * @param maxSize the max size
+   */
+  public static void limitQualMap(Map<String, Set<String>> qualMap, final int maxSize) {
+
+    for (final String key : qualMap.keySet()) {
+      // Truncate additional values
+      if (qualMap.get(key).size() > maxSize) {
+        logger.info(
+            "      truncate qualifier values list at 1000 = "
+                + key
+                + ", "
+                + qualMap.get(key).size());
+        qualMap.put(
+            key,
+            qualMap.get(key).stream().collect(Collectors.toList()).subList(0, 1000).stream()
+                .collect(Collectors.toSet()));
+        qualMap.get(key).add("... additional values ...");
+      }
+    }
   }
 }

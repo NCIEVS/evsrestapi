@@ -151,16 +151,27 @@ done
 # defined in ncit.json
 sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
 
+# Here determine the parts for each case
+get_terminology(){
+  lower_terminology=$(basename "$1" | sed 's/.owl//g' | tr '[:upper:]' '[:lower:]')
+  if [[ $lower_terminology =~ "thesaurus" ]]; then
+    echo "ncit"
+  else
+    lower_terminology=$(basename "$1" | sed 's/.owl//g' | tr '[:upper:]' '[:lower:]')
+    IFS='_' read -r -a array <<<"$lower_terminology"
+    echo $array
+  fi
+}
 
 if [ $list -eq 1 ]; then
 
     echo "  List stardog graphs"
     for x in `cat /tmp/y.$$.txt`; do
-        version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/(\d+)/[a-zA-Z]+.owl#$1#;'`
+        version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
         cv=`echo $version | perl -pe 's/\.//;'`
         db=`echo $x | cut -d\| -f 2`
         uri=`echo $x | cut -d\| -f 3`
-        term=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/; s/.*\/chebi.owl/chebi/'`
+        term=$(get_terminology "$uri")
         echo "    $db $term $version"
     done
     exit 0
@@ -169,10 +180,10 @@ else
     # Verify db/termionlogy/version is valid
     passed=0
     for x in `cat /tmp/y.$$.txt`; do
-        v=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/(\d+)/[a-zA-Z]+.owl#$1#;'`
+        v=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
         d=`echo $x | cut -d\| -f 2`
         uri=`echo $x | cut -d\| -f 3`
-        t=`echo $uri | perl -pe 's/.*Thesaurus.owl/ncit/; s/.*obo\/go.owl/go/; s/.*\/HGNC.owl/hgnc/; s/.*\/chebi.owl/chebi/'`
+        t=$(get_terminology "$uri")
         if [ $v == $version ] && [ $t == $terminology ] && [ $d == $db ]; then
             passed=1
         fi	
@@ -182,7 +193,7 @@ else
         exit 1
     fi
 
-    export PATH="/usr/local/corretto-jdk11/bin:$PATH"
+    export PATH="/usr/local/corretto-jdk17/bin:$PATH"
     # Handle the local setup
     local=""
     jar="../lib/evsrestapi.jar"

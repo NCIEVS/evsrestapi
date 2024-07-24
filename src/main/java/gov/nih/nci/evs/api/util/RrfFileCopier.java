@@ -1,18 +1,15 @@
-
 package gov.nih.nci.evs.api.util;
 
+import gov.nih.nci.evs.api.util.RrfReaders.Keys;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.util.Set;
-
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import gov.nih.nci.evs.api.util.RrfReaders.Keys;
 
 /**
  * Copier for RRF files. Takes a terminology a nd a set of cuis and subsets RRF files based on that.
@@ -44,8 +41,12 @@ public class RrfFileCopier {
    * @param cuis the cuis
    * @throws Exception the exception
    */
-  public void copyFiles(final File inputDir, final File outputDir, final Set<String> terminologies,
-    final Set<String> cuis) throws Exception {
+  public void copyFiles(
+      final File inputDir,
+      final File outputDir,
+      final Set<String> terminologies,
+      final Set<String> cuis)
+      throws Exception {
     logger.info("Start copying files");
 
     // Remove and remake output dir
@@ -79,9 +80,7 @@ public class RrfFileCopier {
     }
 
     // release.dat, cnfig.prop
-    for (final String file : new String[] {
-        "release.dat", "config.prop"
-    }) {
+    for (final String file : new String[] {"release.dat", "config.prop"}) {
       final File inputFile = new File(inputDir, file);
       if (!inputFile.exists()) {
         logger.debug("    SKIP FILE does not exists. {}", file);
@@ -105,8 +104,13 @@ public class RrfFileCopier {
    * @param sabs the sabs
    * @throws Exception the exception
    */
-  private void copyFile(final File inputFile, final File outputFile, Keys key, final Set<String> cuis,
-    final Set<String> sabs) throws Exception {
+  private void copyFile(
+      final File inputFile,
+      final File outputFile,
+      Keys key,
+      final Set<String> cuis,
+      final Set<String> sabs)
+      throws Exception {
 
     final int[] cuiFields = key == null ? null : key.getCuiFields();
     // final int sabField = key == null ? -1 : key.getSabField();
@@ -114,9 +118,10 @@ public class RrfFileCopier {
     // Now, iterate through input file and copy lines with headers
     // or where the "keyMap" field is in concepts/descriptions
     try (final BufferedReader in = new BufferedReader(new FileReader(inputFile));
-        PrintWriter out = new PrintWriter(new FileWriter(outputFile));) {
+        PrintWriter out = new PrintWriter(new FileWriter(outputFile)); ) {
       String line;
-      OUTER: while ((line = in.readLine()) != null) {
+      OUTER:
+      while ((line = in.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
 
         // Skip non-matching CUI
@@ -141,7 +146,6 @@ public class RrfFileCopier {
         out.print(line + "\n");
       }
     }
-
   }
 
   /**
@@ -161,5 +165,4 @@ public class RrfFileCopier {
   public void setActiveOnly(final boolean activeOnly) {
     this.activeOnly = activeOnly;
   }
-
 }

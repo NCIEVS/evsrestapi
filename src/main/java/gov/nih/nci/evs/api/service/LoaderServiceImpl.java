@@ -1,6 +1,10 @@
-
 package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.Application;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import java.util.Set;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -16,11 +20,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
-import gov.nih.nci.evs.api.Application;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
 
 /**
  * The implementation for {@link LoaderService}.
@@ -38,12 +37,10 @@ public class LoaderServiceImpl {
   private static String CONCEPTS_OUT_DIR;
 
   /** the environment *. */
-  @Autowired
-  Environment env;
+  @Autowired Environment env;
 
   /** The Elasticsearch operations service instance *. */
-  @Autowired
-  ElasticOperationsService operationsService;
+  @Autowired ElasticOperationsService operationsService;
 
   /**
    * prepare command line options available.
@@ -53,17 +50,26 @@ public class LoaderServiceImpl {
   public static Options prepareOptions() {
     Options options = new Options();
 
-    options.addOption("f", "forceDeleteIndex", false,
-        "Force delete index if index already exists.");
+    options.addOption(
+        "f", "forceDeleteIndex", false, "Force delete index if index already exists.");
     options.addOption("h", "help", false, "Show this help information and exit.");
     options.addOption("r", "realTime", false, "Keep for backwards compabitlity. No Effect.");
     options.addOption("t", "terminology", true, "The terminology (ex: ncit_20.02d) to load.");
     options.addOption("d", "directory", true, "Load concepts from the given directory");
-    options.addOption("xc", "skipConcepts", false,
+    options.addOption(
+        "xc",
+        "skipConcepts",
+        false,
         "Skip loading concepts, just clean stale terminologies, metadata, and update latest flags");
-    options.addOption("xm", "skipMetadata", false,
+    options.addOption(
+        "xm",
+        "skipMetadata",
+        false,
         "Skip loading metadata, just clean stale terminologies concepts, and update latest flags");
-    options.addOption("xl", "skipLoad", false,
+    options.addOption(
+        "xl",
+        "skipLoad",
+        false,
         "Skip loading data, just clean stale terminologies and update latest flags");
     options.addOption("xr", "report", false, "Compute and return a report instead of loading data");
 
@@ -97,7 +103,6 @@ public class LoaderServiceImpl {
       String location = cmd.getOptionValue('d');
       if (StringUtils.isBlank(location)) {
         logger.error("Location is empty!");
-
       }
       if (!location.endsWith("/")) {
         location += "/";
@@ -116,13 +121,14 @@ public class LoaderServiceImpl {
    *
    * @param args the command line arguments
    */
-  public static void main(String[] args) {
+  public static void main(String[] args) throws Exception {
     Options options = prepareOptions();
     CommandLine cmd;
     try {
       cmd = new DefaultParser().parse(options, args);
     } catch (ParseException e) {
-      logger.error("{}; Try -h or --help to learn more about command line options available.",
+      logger.error(
+          "{}; Try -h or --help to learn more about command line options available.",
           e.getMessage());
       return;
     }
@@ -132,7 +138,8 @@ public class LoaderServiceImpl {
       return;
     }
 
-    ApplicationContext app = SpringApplication.run(Application.class, new String[0]);
+    @SuppressWarnings("resource")
+    ApplicationContext app = SpringApplication.run(Application.class, args);
     ElasticLoadService loadService = null;
 
     try {
@@ -155,9 +162,16 @@ public class LoaderServiceImpl {
       } else {
         loadService = app.getBean(StardogElasticLoadServiceImpl.class);
       }
+
+      loadService.initialize();
       final ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
-      final Terminology term = loadService.getTerminology(app, config, cmd.getOptionValue("d"),
-          cmd.getOptionValue("t"), config.isForceDeleteIndex());
+      final Terminology term =
+          loadService.getTerminology(
+              app,
+              config,
+              cmd.getOptionValue("d"),
+              cmd.getOptionValue("t"),
+              config.isForceDeleteIndex());
       final HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
       int totalConcepts = 0;
       if (!cmd.hasOption("xl")) {
@@ -171,32 +185,37 @@ public class LoaderServiceImpl {
           loadService.loadIndexMetadata(totalConcepts, term);
         }
       }
-      loadService.cleanStaleIndexes(term);
-      loadService.updateLatestFlag(term);
+      final Set<String> removed = loadService.cleanStaleIndexes(term);
+      loadService.updateLatestFlag(term, removed);
 
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
-      int exitCode = SpringApplication.exit(app, new ExitCodeGenerator() {
-        @Override
-        public int getExitCode() {
-          // return the error code
-          logger.info("Exit code 1");
-          return 1;
-        }
-      });
+      int exitCode =
+          SpringApplication.exit(
+              app,
+              new ExitCodeGenerator() {
+                @Override
+                public int getExitCode() {
+                  // return the error code
+                  logger.info("Exit code 1");
+                  return 1;
+                }
+              });
       System.exit(exitCode);
     }
 
-    int exitCode = SpringApplication.exit(app, new ExitCodeGenerator() {
-      @Override
-      public int getExitCode() {
-        // return the error code
-        logger.info("Exit code 0");
-        return 0;
-      }
-    });
+    int exitCode =
+        SpringApplication.exit(
+            app,
+            new ExitCodeGenerator() {
+              @Override
+              public int getExitCode() {
+                // return the error code
+                logger.info("Exit code 0");
+                return 0;
+              }
+            });
     System.exit(exitCode);
-
   }
 
   /**

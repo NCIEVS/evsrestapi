@@ -1,18 +1,15 @@
-
 package gov.nih.nci.evs.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-
-import io.swagger.v3.oas.annotations.media.Schema;
 
 /**
  * Represents terminology metadata, which includes information about mapping from OWL structures to
@@ -40,6 +37,9 @@ public class TerminologyMetadata extends BaseModel {
 
   /** The concept statuses. */
   private List<String> conceptStatuses;
+
+  /** The excluded properties. */
+  private Set<String> excludedProperties;
 
   /** The retired status value. */
   private String retiredStatusValue;
@@ -95,8 +95,14 @@ public class TerminologyMetadata extends BaseModel {
   /** The details columns. */
   private Map<String, Boolean> detailsColumns;
 
+  /** The prefix. */
+  private String sparqlPrefix;
+
   /** The hierarchy flag. */
   private Boolean hierarchy;
+
+  /** The hierarchy roles. */
+  private Set<String> hierarchyRoles;
 
   /** The history flag. */
   private Boolean history;
@@ -105,7 +111,6 @@ public class TerminologyMetadata extends BaseModel {
   private Boolean mapsets;
 
   /** The source ct. */
-  @SuppressWarnings("unused")
   private int sourceCt;
 
   /** The definition source set. */
@@ -156,9 +161,7 @@ public class TerminologyMetadata extends BaseModel {
   /** The welcome text. */
   private String welcomeText;
 
-  /**
-   * Instantiates an empty {@link TerminologyMetadata}.
-   */
+  /** Instantiates an empty {@link TerminologyMetadata}. */
   public TerminologyMetadata() {
     // n/a
   }
@@ -185,6 +188,7 @@ public class TerminologyMetadata extends BaseModel {
     code = other.getCode();
     conceptStatus = other.getConceptStatus();
     conceptStatuses = new ArrayList<>(other.getConceptStatuses());
+    excludedProperties = new HashSet<>(other.getExcludedProperties());
     retiredStatusValue = other.getRetiredStatusValue();
     definitionSource = other.getDefinitionSource();
     definition = new HashSet<>(other.getDefinition());
@@ -198,8 +202,10 @@ public class TerminologyMetadata extends BaseModel {
     relationshipToTarget = other.getRelationshipToTarget();
     sources = new HashMap<>(other.getSources());
     detailsColumns = new HashMap<>(other.getDetailsColumns());
+    sparqlPrefix = other.getSparqlPrefix();
     sourceCt = sources.size();
     hierarchy = other.getHierarchy();
+    hierarchyRoles = new HashSet<>(other.getHierarchyRoles());
     history = other.getHistory();
     mapsets = other.getMapsets();
     sourcesToRemove = new HashSet<>(other.getSourcesToRemove());
@@ -225,6 +231,7 @@ public class TerminologyMetadata extends BaseModel {
     welcomeText = other.getWelcomeText();
   }
 
+  /* see superclass */
   @Override
   public int hashCode() {
     final int prime = 31;
@@ -233,20 +240,23 @@ public class TerminologyMetadata extends BaseModel {
     return result;
   }
 
+  /* see superclass */
   @Override
-  public boolean equals(Object obj) {
-    if (this == obj)
+  public boolean equals(final Object obj) {
+    if (this == obj) {
       return true;
-    if (obj == null)
+    }
+    if ((obj == null) || (getClass() != obj.getClass())) {
       return false;
-    if (getClass() != obj.getClass())
-      return false;
-    TerminologyMetadata other = (TerminologyMetadata) obj;
+    }
+    final TerminologyMetadata other = (TerminologyMetadata) obj;
     if (uiLabel == null) {
-      if (other.uiLabel != null)
+      if (other.uiLabel != null) {
         return false;
-    } else if (!uiLabel.equals(other.uiLabel))
+      }
+    } else if (!uiLabel.equals(other.uiLabel)) {
       return false;
+    }
     return true;
   }
 
@@ -384,6 +394,27 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setConceptStatuses(final List<String> conceptStatuses) {
     this.conceptStatuses = conceptStatuses;
+  }
+
+  /**
+   * Returns the excluded properties.
+   *
+   * @return the excludeProperties
+   */
+  public Set<String> getExcludedProperties() {
+    if (excludedProperties == null) {
+      excludedProperties = new HashSet<>();
+    }
+    return excludedProperties;
+  }
+
+  /**
+   * Sets the excluded properties.
+   *
+   * @param excludeProperties the excludeProperties to set
+   */
+  public void setExcludedProperties(final Set<String> excludeProperties) {
+    this.excludedProperties = excludeProperties;
   }
 
   /**
@@ -873,6 +904,25 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Returns the sparql prefix.
+   *
+   * @return the sparql prefix
+   */
+  @Schema(hidden = true)
+  public String getSparqlPrefix() {
+    return sparqlPrefix;
+  }
+
+  /**
+   * Sets the sparql prefix.
+   *
+   * @param sparqlPrefix the sparql prefix
+   */
+  public void setSparqlPrefix(final String sparqlPrefix) {
+    this.sparqlPrefix = sparqlPrefix;
+  }
+
+  /**
    * Returns the sources to remove.
    *
    * @return the sources to remove
@@ -1129,6 +1179,28 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Returns the hierarchy roles.
+   *
+   * @return the hierarchy
+   */
+  @Schema(description = "Indicates role codes that are reinterpreted as parent/child")
+  public Set<String> getHierarchyRoles() {
+    if (hierarchyRoles == null) {
+      hierarchyRoles = new HashSet<>();
+    }
+    return hierarchyRoles;
+  }
+
+  /**
+   * Sets the hierarchy roles.
+   *
+   * @param hierarchyRoles the hierarchyRoles to set
+   */
+  public void setHierarchyRoles(final Set<String> hierarchyRoles) {
+    this.hierarchyRoles = hierarchyRoles;
+  }
+
+  /**
    * Returns the history.
    *
    * @return the history
@@ -1182,9 +1254,10 @@ public class TerminologyMetadata extends BaseModel {
     if (code == null) {
       return false;
     }
-    return getSynonym().contains(code) || getDefinition().contains(code) || code.equals(this.code)
+    return getSynonym().contains(code)
+        || getDefinition().contains(code)
+        || code.equals(this.code)
         || code.equals(subsetLink);
-
   }
 
   /**
@@ -1197,9 +1270,15 @@ public class TerminologyMetadata extends BaseModel {
     if (code == null) {
       return false;
     }
-    return code.equals(synonymTermType) || code.equals(synonymSource) || code.equals(synonymCode)
-        || code.equals(synonymSubSource) || code.equals(definitionSource) || code.equals(mapRelation)
-        || code.equals(mapTarget) || code.equals(mapTargetTermType) || code.equals(mapTargetTerminology)
+    return code.equals(synonymTermType)
+        || code.equals(synonymSource)
+        || code.equals(synonymCode)
+        || code.equals(synonymSubSource)
+        || code.equals(definitionSource)
+        || code.equals(mapRelation)
+        || code.equals(mapTarget)
+        || code.equals(mapTargetTermType)
+        || code.equals(mapTargetTerminology)
         || code.equals(mapTargetTerminologyVersion);
   }
 
@@ -1221,7 +1300,8 @@ public class TerminologyMetadata extends BaseModel {
    * @param md the md
    * @return the remodeled as type
    */
-  public String getRemodeledAsType(final Property prop, final Qualifier qual, final TerminologyMetadata md) {
+  public String getRemodeledAsType(
+      final Property prop, final Qualifier qual, final TerminologyMetadata md) {
     String code = null;
     if (prop != null) {
       code = prop.getCode();
@@ -1271,5 +1351,4 @@ public class TerminologyMetadata extends BaseModel {
       return " other";
     }
   }
-
 }

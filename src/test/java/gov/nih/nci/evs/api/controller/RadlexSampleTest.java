@@ -1,4 +1,3 @@
-
 package gov.nih.nci.evs.api.controller;
 
 import org.junit.BeforeClass;
@@ -10,9 +9,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit4.SpringRunner;
 
-/**
- * RadLex samples test.
- */
+/** RadLex samples test. */
 @RunWith(SpringRunner.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -31,5 +28,4 @@ public class RadlexSampleTest extends SampleTest {
   public static void setupClass() throws Exception {
     loadSamples("radlex", "src/test/resources/samples/radlex-samples.txt");
   }
-
 }

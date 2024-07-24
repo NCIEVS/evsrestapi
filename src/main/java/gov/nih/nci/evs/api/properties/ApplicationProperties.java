@@ -1,9 +1,8 @@
-
 package gov.nih.nci.evs.api.properties;
 
-/**
- * Application properties.
- */
+import org.springframework.beans.factory.annotation.Value;
+
+/** Application properties. */
 public class ApplicationProperties {
 
   /** The admin key. */
@@ -23,6 +22,10 @@ public class ApplicationProperties {
 
   /** The ui license - passed by UI to the backend via X-EVSRESAPI-License-Key. */
   private String uiLicense;
+
+  /** The recaptcha secret key. */
+  @Value("${google.recaptcha.site.key}")
+  private String recaptchaSiteKey;
 
   /**
    * Returns the admin key.
@@ -132,4 +135,21 @@ public class ApplicationProperties {
     this.uiLicense = uiLicense;
   }
 
+  /**
+   * Get the recaptcha site key.
+   *
+   * @return
+   */
+  public String getRecaptchaSiteKey() {
+    return recaptchaSiteKey;
+  }
+
+  /**
+   * Set the recaptcha site key.
+   *
+   * @param recaptchaSiteKey
+   */
+  public void setRecaptchaSiteKey(String recaptchaSiteKey) {
+    this.recaptchaSiteKey = recaptchaSiteKey;
+  }
 }

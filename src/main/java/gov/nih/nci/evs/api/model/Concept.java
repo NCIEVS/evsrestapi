@@ -1,38 +1,33 @@
-
 package gov.nih.nci.evs.api.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
+import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Document;
+import org.springframework.data.elasticsearch.annotations.DynamicMapping;
+import org.springframework.data.elasticsearch.annotations.DynamicMappingValue;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonProperty.Access;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.fasterxml.jackson.databind.annotation.JsonSerialize;
-
-import gov.nih.nci.evs.api.service.ElasticOperationsService;
-import io.swagger.v3.oas.annotations.media.Schema;
-
 /**
  * Represents a concept with a code from a terminology.
- * 
+ *
  * <pre>
  * {
  *   "code" : "C3224",
  *   "name" : "Melanoma",
  *   "leaf" : false,
- *   "synonyms" :[ {  
+ *   "synonyms" :[ {
  *     "name" : "MELANOMA, MALIGNANT",
  *     "termType" : "PT",
  *     "source" : "CDISC",
@@ -52,30 +47,26 @@ import io.swagger.v3.oas.annotations.media.Schema;
  * </pre>
  */
 @Schema(description = "Represents a concept in a terminology")
-@Document(indexName = "default", type = ElasticOperationsService.CONCEPT_TYPE)
+@Document(indexName = "default")
 @JsonInclude(Include.NON_EMPTY)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class Concept extends ConceptMinimal {
 
   /** The highlight. */
-  @Transient
-  @JsonSerialize
-  @JsonDeserialize
-  private String highlight;
+  @Transient @JsonSerialize @JsonDeserialize private String highlight;
 
   /** The highlights. */
-  @Transient
-  @JsonSerialize
-  @JsonDeserialize
-  private Map<String, String> highlights;
+  @Transient @JsonSerialize @JsonDeserialize private Map<String, String> highlights;
 
   /** The normName. */
-  @JsonProperty(access = Access.READ_ONLY)
+  // In the future we can use @WriteOnlyProperty
+  // this does not work: @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Keyword)
   private String normName;
 
   /** The stemName. */
-  @JsonProperty(access = Access.READ_ONLY)
+  // In the future we can use @WriteOnlyProperty
+  // this does not work: @JsonProperty(access = Access.READ_ONLY)
   @Field(type = FieldType.Text)
   private String stemName;
 
@@ -114,90 +105,172 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Nested)
   private List<Definition> definitions;
 
-  /** The history. */
-  @Field(type = FieldType.Nested)
-  private List<History> history;
-
   /** The properties. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "qualifiers"
-  })
+  @Field(type = FieldType.Nested)
   private List<Property> properties;
 
-  /** The qualifiers - only used by parent/child references for NCIM. */
-  @Field(type = FieldType.Nested)
-  private List<Qualifier> qualifiers;
-
-  /** The children. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles", "inverseRoles",
-      "descendants", "paths", "qualifiers", "extensions", "disjointWith"
-  })
+  /**
+   * The children. Given this is a List<Concept>, we will not set enabled = false, even though we
+   * don't need most of the field data associated with descendant. Otherwise, we are creating a self
+   * circular reference that results in a StackOverflowError
+   */
+  @Field(
+      type = FieldType.Object,
+      ignoreFields = {
+        "associations",
+        "children",
+        "descendants",
+        "definitions",
+        "disjointWith",
+        "extensions",
+        "history",
+        "inverseAssociations",
+        "inverseRoles",
+        "maps",
+        "parents",
+        "paths",
+        "properties",
+        "qualifiers",
+        "roles",
+        "synonyms",
+      })
   private List<Concept> children;
 
-  /** The parents. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles", "inverseRoles",
-      "descendants", "paths", "qualifiers", "extensions", "disjointWith"
-  })
+  /**
+   * The parents. Given this is a List<Concept>, we will not set enabled = false, even though we
+   * don't need most of the field data associated with parents. Otherwise, we are creating a self
+   * circular reference that results in a StackOverflowError
+   */
+  @Field(
+      type = FieldType.Object,
+      ignoreFields = {
+        "associations",
+        "children",
+        "descendants",
+        "definitions",
+        "disjointWith",
+        "extensions",
+        "history",
+        "inverseAssociations",
+        "inverseRoles",
+        "maps",
+        "parents",
+        "paths",
+        "properties",
+        "qualifiers",
+        "roles",
+        "synonyms",
+      })
   private List<Concept> parents;
 
-  /** The descendants. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "definitions", "parents", "children", "maps", "associations", "inverseAssociations", "roles", "inverseRoles",
-      "descendants", "paths", "qualifiers", "extensions", "disjointWith"
-  })
+  /**
+   * The descendants. Given this is a List<Concept>, we will not set enabled = false even though we
+   * don't need most of the field data associated with descendant. Otherwise, we are creating a self
+   * circular reference that results in a StackOverflowError
+   */
+  @Field(
+      type = FieldType.Object,
+      ignoreFields = {
+        "associations",
+        "children",
+        "descendants",
+        "definitions",
+        "disjointWith",
+        "extensions",
+        "history",
+        "inverseAssociations",
+        "inverseRoles",
+        "maps",
+        "parents",
+        "paths",
+        "properties",
+        "qualifiers",
+        "roles",
+        "synonyms",
+      })
   private List<Concept> descendants;
 
-  /** The associations. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "qualifiers"
-  })
-  private List<Association> associations;
-
-  /** The inverse associations. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "qualifiers"
-  })
-  private List<Association> inverseAssociations;
-
-  /** The roles. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "qualifiers"
-  })
-  private List<Role> roles;
-
-  /** The disjoint with. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "qualifiers"
-  })
-  private List<DisjointWith> disjointWith;
-
-  /** The inverse roles. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "qualifiers"
-  })
-  private List<Role> inverseRoles;
-
-  /** The maps. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "qualifiers"
-  })
-  private List<ConceptMap> maps;
-
-  /** The paths to root. */
-  @Field(type = FieldType.Nested, ignoreFields = {
-      "paths"
-  })
-  private Paths paths;
-
-  /** The paths to root. */
-  @Field(type = FieldType.Nested)
-  private Extensions extensions;
+  /**
+   * The qualifiers - only used by parent/child references for NCIM. The enabled = false will set
+   * the index = false, to avoid indexing the fields in this Concept model. The
+   * DynamicMappingValue.False will prevent indexing fields from the Qualifiers object.
+   */
+  @Field(type = FieldType.Object, includeInParent = false, enabled = false)
+  @DynamicMapping(DynamicMappingValue.False)
+  private List<Qualifier> qualifiers;
 
   /**
-   * Instantiates an empty {@link Concept}.
+   * The associations. enabled = false will set the index = false, to avoid indexing the fields in
+   * this Concept model
    */
+  @Field(type = FieldType.Object, enabled = false)
+  private List<Association> associations;
+
+  /**
+   * The inverse associations. enabled = false will set the index = false, to avoid indexing the
+   * fields in this Concept model
+   */
+  @Field(type = FieldType.Object, enabled = false)
+  private List<Association> inverseAssociations;
+
+  /**
+   * The roles. enabled = false will set the index = false, to avoid indexing the fields in this
+   * Concept model
+   */
+  @Field(type = FieldType.Object, enabled = false)
+  private List<Role> roles;
+
+  /**
+   * The disjoint with. enabled = false will set the index = false, to avoid indexing the fields in
+   * this Concept model
+   */
+  @Field(type = FieldType.Object, enabled = false)
+  private List<DisjointWith> disjointWith;
+
+  /**
+   * The inverse roles. enabled = false will set the index = false, to avoid indexing the fields in
+   * this Concept model
+   */
+  @Field(type = FieldType.Object, enabled = false)
+  private List<Role> inverseRoles;
+
+  /**
+   * The history. enabled = false will set the index = false, to avoid indexing the fields in this
+   * Concept model. The DynamicMappingValue.False will prevent indexing fields from the History
+   * object.
+   */
+  @Field(type = FieldType.Object, enabled = false)
+  @DynamicMapping(DynamicMappingValue.False)
+  private List<History> history;
+
+  /**
+   * The maps. enabled = false will set the index = false, to avoid indexing the fields in this
+   * Concept model. The DynamicMappingValue.False will prevent indexing fields from the ConceptMap
+   * object.
+   */
+  @Field(type = FieldType.Object, enabled = false)
+  @DynamicMapping(DynamicMappingValue.False)
+  private List<ConceptMap> maps;
+
+  /**
+   * The paths to root. enabled = false will set the index = false, to avoid indexing the fields in
+   * this Concept model. The DynamicMappingValue.False will prevent indexing fields from the Paths
+   * object.
+   */
+  @Field(type = FieldType.Object, enabled = false)
+  @DynamicMapping(DynamicMappingValue.False)
+  private Paths paths;
+
+  /**
+   * The paths to root. enabled = false will set the index = false, to avoid indexing the fields in
+   * this Concept model. The DynamicMappingValue.False will prevent indexing fields from the
+   * Extensions object.
+   */
+  @Field(type = FieldType.Object, enabled = false)
+  @DynamicMapping(DynamicMappingValue.False)
+  private Extensions extensions;
+
+  /** Instantiates an empty {@link Concept}. */
   public Concept() {
     // n/a
   }
@@ -313,7 +386,9 @@ public class Concept extends ConceptMinimal {
    *
    * @return the highlight
    */
-  @Schema(description = "Used by search calls to provide information for highlighting a view of results")
+  @Schema(
+      description =
+          "Used by search calls to provide information for highlighting a view of results")
   public String getHighlight() {
     return highlight;
   }
@@ -388,7 +463,9 @@ public class Concept extends ConceptMinimal {
    *
    * @return the subsetLink
    */
-  @Schema(description = "Link to download data for a subset, used when the concept represents subset metadata")
+  @Schema(
+      description =
+          "Link to download data for a subset, used when the concept represents subset metadata")
   public String getSubsetLink() {
     return subsetLink;
   }
@@ -483,7 +560,8 @@ public class Concept extends ConceptMinimal {
    *
    * @return the synonyms
    */
-  @Schema(description = "Synonyms, or all of the names for this concept, including the preferred name")
+  @Schema(
+      description = "Synonyms, or all of the names for this concept, including the preferred name")
   public List<Synonym> getSynonyms() {
     if (synonyms == null) {
       synonyms = new ArrayList<>();
@@ -571,7 +649,10 @@ public class Concept extends ConceptMinimal {
    *
    * @return the qualifiers
    */
-  @Schema(hidden = true)
+  @Schema(
+      description =
+          "Qualifiers for use when a concept is used as a parent/child - to indicate RELA for"
+              + " NCIm-derived content")
   public List<Qualifier> getQualifiers() {
     if (qualifiers == null) {
       qualifiers = new ArrayList<>();
@@ -584,8 +665,6 @@ public class Concept extends ConceptMinimal {
    *
    * @param qualifiers the qualifiers
    */
-  @Schema(
-      description = "Qualifiers for use when a concept is used as a parent/child - to indicate RELA for NCIm-derived content")
   public void setQualifiers(final List<Qualifier> qualifiers) {
     this.qualifiers = qualifiers;
   }
@@ -737,7 +816,6 @@ public class Concept extends ConceptMinimal {
    *
    * @param roles the roles
    */
-
   public void setRoles(final List<Role> roles) {
     this.roles = roles;
   }
@@ -820,7 +898,7 @@ public class Concept extends ConceptMinimal {
 
   /**
    * Sets the paths.
-   * 
+   *
    * @param paths the paths to root
    */
   public void setPaths(Paths paths) {
@@ -846,9 +924,7 @@ public class Concept extends ConceptMinimal {
     this.extensions = extensions;
   }
 
-  /**
-   * Sort lists.
-   */
+  /** Sort lists. */
   public void sortLists() {
 
     if (synonyms != null) {
@@ -901,7 +977,21 @@ public class Concept extends ConceptMinimal {
    * @return the stream
    */
   public Stream<Concept> streamSelfAndChildren() {
-    return Stream.concat(Stream.of(this), getChildren().stream().flatMap(Concept::streamSelfAndChildren));
+    return Stream.concat(
+        Stream.of(this), getChildren().stream().flatMap(Concept::streamSelfAndChildren));
   }
 
+  /** Clear hidden. */
+  public void clearHidden() {
+    normName = null;
+    stemName = null;
+    getSynonyms().forEach(s -> s.clearHidden());
+    getQualifiers().forEach(q -> q.clearHidden());
+    getProperties().forEach(p -> p.clearHidden());
+    getDefinitions().forEach(d -> d.clearHidden());
+    getAssociations().forEach(r -> r.clearHidden());
+    getInverseAssociations().forEach(r -> r.clearHidden());
+    getRoles().forEach(r -> r.clearHidden());
+    getInverseRoles().forEach(r -> r.clearHidden());
+  }
 }

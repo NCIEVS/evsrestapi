@@ -1,0 +1,119 @@
+package gov.nih.nci.evs.api.model;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThrows;
+import static org.junit.Assert.assertTrue;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.configuration.TestConfiguration;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+/** Test class for the EmailDetails Model. Ensure our model is generating the email as expected */
+@SpringBootTest
+@RunWith(SpringJUnit4ClassRunner.class)
+@ContextConfiguration(classes = TestConfiguration.class)
+public class EmailDetailsTest {
+  /** The logger. */
+  private static final Logger logger = LoggerFactory.getLogger(AssociationUnitTest.class);
+
+  /** The test form object. */
+  // JsonObject variable for loading json test file
+  JsonNode testFormObject;
+
+  /** The test details. */
+  // email detail object
+  EmailDetails testDetails;
+
+  /**
+   * Test our EmailDetails is generated with the values from our submitted json file.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testGenerateEmailDetails() throws Exception {
+    // SETUP - create JsonObject from the json test form
+    String formPath = "formSamples/submissionFormTest.json";
+    testFormObject = createJsonNode(formPath);
+    assertNotNull(testFormObject);
+
+    // ACT - generate the email details model
+    testDetails = EmailDetails.generateEmailDetails(testFormObject);
+
+    // ASSERT
+    assertNotNull(testDetails);
+    assertEquals("NCIT", testDetails.getSource());
+    assertEquals("agarcia@westcoastinformatics.com", testDetails.getToEmail());
+    assertEquals("bcarlsen@westcoastinformatics.com ", testDetails.getFromEmail());
+    assertTrue(testDetails.getMsgBody().contains("test body"));
+  }
+
+  /**
+   * Test the mdoel will throw an exception if there are null fields.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testGenerateEmailDetailsThrowsExceptionWithNullFields() throws Exception {
+    // SETUP
+    String formPath = "formSamples/submissionFormNullTest.json";
+    testFormObject = createJsonNode(formPath);
+    assertNotNull(testFormObject);
+
+    // ACT & ASSERT
+    assertThrows(
+        Exception.class,
+        () -> {
+          testDetails = EmailDetails.generateEmailDetails(testFormObject);
+        });
+  }
+
+  /**
+   * Test the model will throw an exception when a null form is passed.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testGenerateEmailDetailsThrowsExceptionWithNullForm() throws Exception {
+    // SETUP
+
+    // ACT & ASSERT
+    assertThrows(
+        Exception.class,
+        () -> {
+          testDetails = EmailDetails.generateEmailDetails(null);
+        });
+  }
+
+  /**
+   * Helper method to create the JsonObject from a json file representing our submitted form data.
+   *
+   * @param formPath path of the file to convert to JsonObject
+   * @return JsonObject
+   */
+  private JsonNode createJsonNode(String formPath) {
+    try (InputStream input = getClass().getClassLoader().getResourceAsStream(formPath)) {
+      // Verify the input file loaded
+      if (input == null) {
+        throw new FileNotFoundException("Test file not found: " + formPath);
+      }
+      // create object mapper
+      ObjectMapper mapper = new ObjectMapper();
+      // Parse the file into a JsonNode
+      return mapper.readTree(input);
+    } catch (IOException e) {
+      logger.error("Error creating JsonObject: " + e);
+      return null;
+    }
+  }
+}

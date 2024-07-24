@@ -1,14 +1,12 @@
-
 package gov.nih.nci.evs.api.service;
-
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 /**
  * Service for metadata.
@@ -26,8 +24,9 @@ public interface MetadataService {
    * @return the list of associations
    * @throws Exception the exception
    */
-  List<Concept> getAssociations(final String terminology, final Optional<String> include,
-    final Optional<String> list) throws Exception;
+  List<Concept> getAssociations(
+      final String terminology, final Optional<String> include, final Optional<String> list)
+      throws Exception;
 
   /**
    * Get association for the given code.
@@ -38,8 +37,8 @@ public interface MetadataService {
    * @return the optional association - empty if association is not found
    * @throws Exception the exception
    */
-  Optional<Concept> getAssociation(final String terminology, final String code,
-    final Optional<String> include) throws Exception;
+  Optional<Concept> getAssociation(
+      final String terminology, final String code, final Optional<String> include) throws Exception;
 
   /**
    * Get roles.
@@ -50,8 +49,9 @@ public interface MetadataService {
    * @return the list of roles
    * @throws Exception the exception
    */
-  List<Concept> getRoles(final String terminology, final Optional<String> include,
-    final Optional<String> list) throws Exception;
+  List<Concept> getRoles(
+      final String terminology, final Optional<String> include, final Optional<String> list)
+      throws Exception;
 
   /**
    * Get role for the given code.
@@ -62,8 +62,8 @@ public interface MetadataService {
    * @return the optional role - empty if role is not found
    * @throws Exception the exception
    */
-  Optional<Concept> getRole(final String terminology, final String code,
-    final Optional<String> include) throws Exception;
+  Optional<Concept> getRole(
+      final String terminology, final String code, final Optional<String> include) throws Exception;
 
   /**
    * Get properties.
@@ -74,8 +74,9 @@ public interface MetadataService {
    * @return the list of properties
    * @throws Exception the exception
    */
-  List<Concept> getProperties(final String terminology, final Optional<String> include,
-    final Optional<String> list) throws Exception;
+  List<Concept> getProperties(
+      final String terminology, final Optional<String> include, final Optional<String> list)
+      throws Exception;
 
   /**
    * Returns the qualifiers.
@@ -86,8 +87,9 @@ public interface MetadataService {
    * @return the qualifiers
    * @throws Exception the exception
    */
-  List<Concept> getQualifiers(final String terminology, final Optional<String> include,
-    final Optional<String> list) throws Exception;
+  List<Concept> getQualifiers(
+      final String terminology, final Optional<String> include, final Optional<String> list)
+      throws Exception;
 
   /**
    * Returns the qualifier.
@@ -98,8 +100,8 @@ public interface MetadataService {
    * @return the qualifier
    * @throws Exception the exception
    */
-  Optional<Concept> getQualifier(final String terminology, final String code,
-    final Optional<String> include) throws Exception;
+  Optional<Concept> getQualifier(
+      final String terminology, final String code, final Optional<String> include) throws Exception;
 
   /**
    * Get property for the given code.
@@ -110,8 +112,8 @@ public interface MetadataService {
    * @return the optional property - empty if property is not found
    * @throws Exception the exception
    */
-  Optional<Concept> getProperty(final String terminology, final String code,
-    final Optional<String> include) throws Exception;
+  Optional<Concept> getProperty(
+      final String terminology, final String code, final Optional<String> include) throws Exception;
 
   /**
    * Get status list.
@@ -149,7 +151,7 @@ public interface MetadataService {
    * @throws Exception the exception
    */
   Optional<List<String>> getQualifierValues(final String terminology, final String code)
-    throws Exception;
+      throws Exception;
 
   /**
    * Get term types.
@@ -169,8 +171,9 @@ public interface MetadataService {
    * @return the synonym types
    * @throws Exception the exception
    */
-  List<Concept> getSynonymTypes(final String terminology, final Optional<String> include,
-    final Optional<String> list) throws Exception;
+  List<Concept> getSynonymTypes(
+      final String terminology, final Optional<String> include, final Optional<String> list)
+      throws Exception;
 
   /**
    * Returns the synonym type.
@@ -181,8 +184,8 @@ public interface MetadataService {
    * @return the synonym type
    * @throws Exception the exception
    */
-  Optional<Concept> getSynonymType(final String terminology, final String code,
-    final Optional<String> include) throws Exception;
+  Optional<Concept> getSynonymType(
+      final String terminology, final String code, final Optional<String> include) throws Exception;
 
   /**
    * Returns the definition types.
@@ -193,8 +196,9 @@ public interface MetadataService {
    * @return the definition types
    * @throws Exception the exception
    */
-  List<Concept> getDefinitionTypes(final String terminology, final Optional<String> include,
-    final Optional<String> list) throws Exception;
+  List<Concept> getDefinitionTypes(
+      final String terminology, final Optional<String> include, final Optional<String> list)
+      throws Exception;
 
   /**
    * Returns the definition type.
@@ -205,8 +209,8 @@ public interface MetadataService {
    * @return the definition type
    * @throws Exception the exception
    */
-  Optional<Concept> getDefinitionType(final String terminology, final String code,
-    final Optional<String> include) throws Exception;
+  Optional<Concept> getDefinitionType(
+      final String terminology, final String code, final Optional<String> include) throws Exception;
 
   /**
    * Returns the subsets.
@@ -218,7 +222,7 @@ public interface MetadataService {
    * @throws Exception the exception
    */
   List<Concept> getSubsets(String terminology, Optional<String> include, Optional<String> list)
-    throws Exception;
+      throws Exception;
 
   /**
    * Get subset for the given code.
@@ -230,7 +234,7 @@ public interface MetadataService {
    * @throws Exception the exception
    */
   Optional<Concept> getSubset(String terminology, String code, Optional<String> include)
-    throws Exception;
+      throws Exception;
 
   /**
    * Returns the association entries.
@@ -242,8 +246,8 @@ public interface MetadataService {
    * @return the association entry list
    * @throws Exception the exception
    */
-  AssociationEntryResultList getAssociationEntries(String terminology, String label,
-    Integer fromRecord, Integer pageSize) throws Exception;
+  AssociationEntryResultList getAssociationEntries(
+      String terminology, String label, Integer fromRecord, Integer pageSize) throws Exception;
 
   /**
    * Returns the welcome text.
@@ -263,6 +267,5 @@ public interface MetadataService {
    * @throws Exception the exception
    */
   Map<String, List<StatisticsEntry>> getSourceStats(String terminology, String source)
-    throws Exception;
-
+      throws Exception;
 }

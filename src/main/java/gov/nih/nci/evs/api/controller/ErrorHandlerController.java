@@ -1,13 +1,13 @@
-
 package gov.nih.nci.evs.api.controller;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.swagger.v3.oas.annotations.Hidden;
 import java.util.Map;
-
 import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.boot.web.servlet.error.ErrorController;
 import org.springframework.http.HttpStatus;
@@ -19,24 +19,21 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import io.swagger.v3.oas.annotations.Hidden;
-
-/**
- * Handler for errors when accessing API thru browser.
- */
+/** Handler for errors when accessing API thru browser. */
 @Controller
 @RequestMapping("/error")
 @Hidden
 public class ErrorHandlerController implements ErrorController {
 
   /** Logger. */
-  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(ErrorHandlerController.class);
 
   /** The error attributes. */
   private ErrorAttributes errorAttributes;
+
+  /** The error attribute options to include stack trace. */
+  private ErrorAttributeOptions options =
+      ErrorAttributeOptions.defaults().including(ErrorAttributeOptions.Include.STACK_TRACE);
 
   /**
    * Basic error controller.
@@ -57,7 +54,7 @@ public class ErrorHandlerController implements ErrorController {
   @ResponseBody
   public String handleErrorHtml(final HttpServletRequest request) {
     final Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
-    final Map<String, Object> body = getErrorAttributes(request, false);
+    final Map<String, Object> body = getErrorAttributes(request, options);
     String ppBody = null;
     try {
       ppBody = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(body);
@@ -65,10 +62,12 @@ public class ErrorHandlerController implements ErrorController {
       ppBody = body.toString().replaceAll("<", "&lt;");
     }
 
-    return String.format("<html><body><h2>Error Page</h2><div>Something went wrong, "
-        + "<a href=\"https://datascience.cancer.gov/about/application-support\">"
-        + "please contact the NCI helpdesk</a></div><div>Status code: <b>%s</b></div>"
-        + "<div>Message: <pre>%s</pre></div><body></html>", statusCode, ppBody);
+    return String.format(
+        "<html><body><h2>Error Page</h2><div>Something went wrong, "
+            + "<a href=\"https://datascience.cancer.gov/about/application-support\">"
+            + "please contact the NCI helpdesk</a></div><div>Status code: <b>%s</b></div>"
+            + "<div>Message: <pre>%s</pre></div><body></html>",
+        statusCode, ppBody);
   }
 
   /**
@@ -84,7 +83,7 @@ public class ErrorHandlerController implements ErrorController {
     if (status == HttpStatus.NO_CONTENT) {
       return new ResponseEntity<>(status);
     }
-    final RestException exception = new RestException(getErrorAttributes(request, false));
+    final RestException exception = new RestException(getErrorAttributes(request, options));
     return new ResponseEntity<>(exception, status);
   }
 
@@ -110,12 +109,28 @@ public class ErrorHandlerController implements ErrorController {
    * Returns the error attributes.
    *
    * @param request the request
-   * @param includeStackTrace the include stack trace
+   * @param options the ErrorAttributeOptions include stack trace
    * @return the error attributes
    */
-  protected Map<String, Object> getErrorAttributes(HttpServletRequest request, boolean includeStackTrace) {
+  protected Map<String, Object> getErrorAttributes(
+      HttpServletRequest request, ErrorAttributeOptions options) {
     WebRequest webRequest = new ServletWebRequest(request);
-    Map<String, Object> body = errorAttributes.getErrorAttributes(webRequest, includeStackTrace);
+    Map<String, Object> body = errorAttributes.getErrorAttributes(webRequest, options);
+
+    // Hack to convert "trace" to message
+    // TODO: fix this, and probably override what getErrorAttributes is doing to include the
+    // "reason" from the response status exception
+    if (body.containsKey("trace")) {
+      final String message =
+          body.get("trace")
+              .toString()
+              .split("\n")[0]
+              .replaceFirst(".*?\"", "")
+              .replaceFirst("[\"\r]+$", "")
+              .replaceFirst("400 BAD_REQUEST \"", "");
+      body.put("message", message);
+    }
+
     if (body.containsKey("message")) {
       try {
         final String message = body.get("message").toString();
@@ -141,10 +156,13 @@ public class ErrorHandlerController implements ErrorController {
     return body;
   }
 
+  /**
+   * Returns the error path.
+   *
+   * @return the error path
+   */
   /* see superclass */
-  @Override
   public String getErrorPath() {
     return "/error";
   }
-
 }

@@ -88,6 +88,34 @@ if [[ ! -e "$dir/ChEBI/chebi_213.owl" ]]; then
     exit 1
 fi
 
+# Check DUO
+echo "    check DUO"
+if [[ ! -e "$dir/DUO/duo_Feb21.owl" ]]; then
+    echo "ERROR: unexpectedly missing DUO/duo_Feb21.owl file"
+    exit 1
+fi
+
+# Check OBI
+echo "    check OBI"
+if [[ ! -e "$dir/OBI/obi_2022_07.owl" ]]; then
+    echo "ERROR: unexpectedly missing OBI/obi_2022_07.owl file"
+    exit 1
+fi
+
+# Check OBIB
+echo "    check OBIB"
+if [[ ! -e "$dir/OBIB/obib_2021-11.owl" ]]; then
+    echo "ERROR: unexpectedly missing OBI/obib_2021-11.owl file"
+    exit 1
+fi
+
+# Check NDFRT
+echo "    check NDFRT"
+if [[ ! -e "$dir/NDFRT/NDFRT_Public_2018.02.05_Inferred.owl" ]]; then
+    echo "ERROR: unexpectedly missing NDFRT/NDFRT_Public_2018.02.05_Inferred.owl file"
+    exit 1
+fi
+
 # Verify docker stardog is running
 echo "    verify docker stardog is running"
 ct=`sudo docker ps | grep 'stardog/stardog' | wc -l`
@@ -156,6 +184,11 @@ echo "    load data"
 /opt/stardog/bin/stardog data add --named-graph http://MEDRT NCIT2 /data/UnitTestData/MED-RT/medrt.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://Canmed NCIT2 /data/UnitTestData/Canmed/canmed.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://Ctcae5 NCIT2 /data/UnitTestData/Ctcae5/ctcae5.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://DUO_monthly NCIT2 /data/UnitTestData/DUO/duo_Feb21.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://DUO_monthly NCIT2 /data/UnitTestData/DUO/iao_Dec20.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://OBI_monthly NCIT2 /data/UnitTestData/OBI/obi_2022_07.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://OBIB NCIT2 /data/UnitTestData/OBIB/obib_2021-11.owl | sed 's/^/      /'
+/opt/stardog/bin/stardog data add --named-graph http://NDFRT2 NCIT2 /data/UnitTestData/NDFRT/NDFRT_Public_2018.02.05_Inferred.owl | sed 's/^/      /'
 echo "    optimize databases"
 /opt/stardog/bin/stardog-admin db optimize -n CTRP | sed 's/^/      /'
 /opt/stardog/bin/stardog-admin db optimize -n NCIT2 | sed 's/^/      /'

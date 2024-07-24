@@ -19,5 +19,10 @@ WEB-INF/*
 .vscode/launch.json
 .vscode/settings.json
 .idea/.gitignore
+.temp*
 
 /.idea/
+report.txt
+log
+.DS_Store
+src/main/bin/NCIT_HISTORY/

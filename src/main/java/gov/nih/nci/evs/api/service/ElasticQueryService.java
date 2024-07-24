@@ -1,17 +1,8 @@
-
 package gov.nih.nci.evs.api.service;
-
-import java.io.IOException;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
@@ -22,6 +13,12 @@ import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
+import java.io.IOException;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 /**
  * The elasticsearch DB query service.
@@ -67,8 +64,8 @@ public interface ElasticQueryService {
    * @param ip the include param
    * @return concepts mapped by code
    */
-  Map<String, Concept> getConceptsAsMap(Collection<String> codes, Terminology terminology,
-    IncludeParam ip);
+  Map<String, Concept> getConceptsAsMap(
+      Collection<String> codes, Terminology terminology, IncludeParam ip);
 
   /**
    * Returns child concepts.
@@ -117,7 +114,7 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   List<Concept> getRootNodes(Terminology terminology, IncludeParam ip)
-    throws JsonParseException, JsonMappingException, IOException;
+      throws JsonParseException, JsonMappingException, IOException;
 
   /**
    * see superclass *.
@@ -129,7 +126,7 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   List<HierarchyNode> getRootNodesHierarchy(Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException;
+      throws JsonParseException, JsonMappingException, IOException;
 
   /**
    * Returns the child nodes.
@@ -143,7 +140,7 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   List<HierarchyNode> getChildNodes(String parent, int maxLevel, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException;
+      throws JsonParseException, JsonMappingException, IOException;
 
   /**
    * Returns all child codes (obtained recursively).
@@ -165,7 +162,7 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   Paths getPathsToRoot(String code, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException;
+      throws JsonParseException, JsonMappingException, IOException;
 
   /**
    * Returns the path to parent.
@@ -179,7 +176,7 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   Paths getPathsToParent(String code, String parentCode, Terminology terminology)
-    throws JsonParseException, JsonMappingException, IOException;
+      throws JsonParseException, JsonMappingException, IOException;
 
   /**
    * Get concepts count for the given terminology.
@@ -198,13 +195,6 @@ public interface ElasticQueryService {
   List<IndexMetadata> getIndexMetadata(boolean completedOnly);
 
   /**
-   * Delete the {@link IndexMetadata} object.
-   *
-   * @param id the id of the {@link IndexMetadata} object
-   */
-  void deleteIndexMetadata(String id);
-
-  /**
    * Get hiearchy roots for a given terminology.
    *
    * @param terminology the terminology
@@ -213,7 +203,7 @@ public interface ElasticQueryService {
    * @throws JsonProcessingException the json processing exception
    */
   public Optional<HierarchyUtils> getHierarchyRoots(Terminology terminology)
-    throws JsonMappingException, JsonProcessingException;
+      throws JsonMappingException, JsonProcessingException;
 
   /**
    * Returns qualifiers.
@@ -225,7 +215,7 @@ public interface ElasticQueryService {
    * @throws JsonProcessingException the json processing exception
    */
   List<Concept> getQualifiers(Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonProcessingException;
+      throws JsonMappingException, JsonProcessingException;
 
   /**
    * Returns the qualifier values.
@@ -250,7 +240,7 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   Optional<Concept> getQualifier(String code, Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonParseException, IOException;
+      throws JsonMappingException, JsonParseException, IOException;
 
   /**
    * Returns properties.
@@ -262,7 +252,7 @@ public interface ElasticQueryService {
    * @throws JsonProcessingException the json processing exception
    */
   List<Concept> getProperties(Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonProcessingException;
+      throws JsonMappingException, JsonProcessingException;
 
   /**
    * Get property.
@@ -276,7 +266,7 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   Optional<Concept> getProperty(String code, Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonParseException, IOException;
+      throws JsonMappingException, JsonParseException, IOException;
 
   /**
    * Returns associations.
@@ -288,7 +278,7 @@ public interface ElasticQueryService {
    * @throws JsonProcessingException the json processing exception
    */
   List<Concept> getAssociations(Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonProcessingException;
+      throws JsonMappingException, JsonProcessingException;
 
   /**
    * Get association.
@@ -302,7 +292,7 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   Optional<Concept> getAssociation(String code, Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonParseException, IOException;
+      throws JsonMappingException, JsonParseException, IOException;
 
   /**
    * Returns roles.
@@ -314,7 +304,7 @@ public interface ElasticQueryService {
    * @throws JsonProcessingException the json processing exception
    */
   List<Concept> getRoles(Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonProcessingException;
+      throws JsonMappingException, JsonProcessingException;
 
   /**
    * Get role.
@@ -328,7 +318,7 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   Optional<Concept> getRole(String code, Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonParseException, IOException;
+      throws JsonMappingException, JsonParseException, IOException;
 
   /**
    * Returns the synonym types.
@@ -340,7 +330,7 @@ public interface ElasticQueryService {
    * @throws JsonProcessingException the json processing exception
    */
   List<Concept> getSynonymTypes(Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonProcessingException;
+      throws JsonMappingException, JsonProcessingException;
 
   /**
    * Returns the synonym type.
@@ -354,7 +344,7 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   Optional<Concept> getSynonymType(String code, Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonParseException, IOException;
+      throws JsonMappingException, JsonParseException, IOException;
 
   /**
    * Returns the definition types.
@@ -366,7 +356,7 @@ public interface ElasticQueryService {
    * @throws JsonProcessingException the json processing exception
    */
   List<Concept> getDefinitionTypes(Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonProcessingException;
+      throws JsonMappingException, JsonProcessingException;
 
   /**
    * Returns the definition type.
@@ -380,7 +370,7 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   Optional<Concept> getDefinitionType(String code, Terminology terminology, IncludeParam ip)
-    throws JsonMappingException, JsonParseException, IOException;
+      throws JsonMappingException, JsonParseException, IOException;
 
   /**
    * Returns synonym sources.
@@ -391,7 +381,7 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   List<ConceptMinimal> getSynonymSources(Terminology terminology)
-    throws ClassNotFoundException, IOException;
+      throws ClassNotFoundException, IOException;
 
   /**
    * Returns contributing sources.
@@ -402,7 +392,7 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   List<ConceptMinimal> getContributingSources(Terminology terminology)
-    throws ClassNotFoundException, IOException;
+      throws ClassNotFoundException, IOException;
 
   /**
    * Returns subsets.
@@ -415,25 +405,25 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   List<Concept> getSubsets(Terminology term, IncludeParam ip)
-    throws JsonMappingException, JsonProcessingException;
+      throws JsonMappingException, JsonProcessingException;
 
   /*
    * returns a list of association entries
-   * 
+   *
    * @param terminology the terminology
-   * 
+   *
    * @param ip the ip
-   * 
+   *
    * @param fromRecord the starting record for the search
-   * 
+   *
    * @param pageSize the size of pages in returned result
-   * 
+   *
    * @return the association entry list
-   * 
+   *
    * @throws Exception Signals that an exception has occurred.
    */
-  AssociationEntryResultList getAssociationEntries(String terminology, String label, int fromRecord,
-    int pageSize) throws Exception;
+  AssociationEntryResultList getAssociationEntries(
+      String terminology, String label, int fromRecord, int pageSize) throws Exception;
 
   /**
    * Returns mapsets.
@@ -468,6 +458,5 @@ public interface ElasticQueryService {
    * @throws JsonProcessingException the json processing exception
    */
   Map<String, List<StatisticsEntry>> getSourceStats(Terminology terminology, String source)
-    throws JsonMappingException, JsonProcessingException;
-
+      throws JsonMappingException, JsonProcessingException;
 }
