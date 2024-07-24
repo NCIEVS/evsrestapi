@@ -47,19 +47,19 @@ public class RelationshipHelper {
                                  boolean association,
                                  boolean inverse_association) {
 		ArrayList list = new ArrayList();
-		list.add(new Boolean(superconcept));
-		list.add(new Boolean(subconcept));
-		list.add(new Boolean(role));
-		list.add(new Boolean(inverse_role));
-		list.add(new Boolean(association));
-		list.add(new Boolean(inverse_association));
+		list.add(Boolean.valueOf(superconcept));
+		list.add(Boolean.valueOf(subconcept));
+		list.add(Boolean.valueOf(role));
+		list.add(Boolean.valueOf(inverse_role));
+		list.add(Boolean.valueOf(association));
+		list.add(Boolean.valueOf(inverse_association));
 		return list;
     }
 
     public List getDefaultOptionList() {
 		ArrayList list = new ArrayList();
 		for (int i=0; i<6; i++) {
-			list.add(new Boolean(true));
+			list.add(Boolean.valueOf(true));
 		}
 		return list;
 	}
@@ -169,44 +169,64 @@ public class RelationshipHelper {
         Vector v = null;
 
         if (checkOption(options, SUPERCONCEPT_OPTION)) {
+			superconceptList = new ArrayList();
 			v = owlSPARQLUtils.getSuperclassesByCode(code);
-			superconceptList = new ArrayList(v);
-			new SortUtils().quickSort(superconceptList);
+			if (v != null && v.size() > 0) {
+				superconceptList = new ArrayList(v);
+				new SortUtils().quickSort(superconceptList);
+			}
 			map.put(Constants.TYPE_SUPERCONCEPT, superconceptList);
 		}
 
         if (checkOption(options, SUBCONCEPT_OPTION)) {
 			v = owlSPARQLUtils.getSubclassesByCode(code);
-			subconceptList = new ArrayList(v);
-			new SortUtils().quickSort(subconceptList);
+			if (v == null) {
+				subconceptList = new ArrayList();
+			} else {
+				subconceptList = new ArrayList(v);
+				new SortUtils().quickSort(subconceptList);
+			}
+			//new SortUtils().quickSort(subconceptList);
 			map.put(Constants.TYPE_SUBCONCEPT, subconceptList);
 		}
 
 		if (checkOption(options, ROLE_OPTION)) {
+			roleList = new ArrayList();
 			v = owlSPARQLUtils.getOutboundRolesByCode(code);
-			roleList = new ArrayList(v);
-			new SortUtils().quickSort(roleList);
+			if (v != null && v.size() > 0) {
+				roleList = new ArrayList(v);
+				new SortUtils().quickSort(roleList);
+			}
 			map.put(Constants.TYPE_ROLE, roleList);
 		}
 
 		if (checkOption(options, INVERSE_ROLE_OPTION)) {
+			inverse_roleList = new ArrayList();
 			v = owlSPARQLUtils.getInboundRolesByCode(code);
-			inverse_roleList = new ArrayList(v);
-			new SortUtils().quickSort(inverse_roleList);
+			if (v != null && v.size() > 0) {
+				inverse_roleList = new ArrayList(v);
+				new SortUtils().quickSort(inverse_roleList);
+			}
 			map.put(Constants.TYPE_INVERSE_ROLE, inverse_roleList);
 		}
 
 		if (checkOption(options, ASSOCIATION_OPTION)) {
+			associationList = new ArrayList();
 			v = owlSPARQLUtils.getAssociationsByCode(code);
-			associationList = new ArrayList(v);
-			new SortUtils().quickSort(associationList);
+			if (v != null && v.size() > 0) {
+				associationList = new ArrayList(v);
+				new SortUtils().quickSort(associationList);
+			}
 			map.put(Constants.TYPE_ASSOCIATION, associationList);
 		}
 
 		if (checkOption(options, INVERSE_ASSOCIATION_OPTION)) {
+			inverse_associationList = new ArrayList();
 			v = owlSPARQLUtils.getInverseAssociationsByCode(code);
-			inverse_associationList = new ArrayList(v);
-			new SortUtils().quickSort(inverse_associationList);
+			if (v != null && v.size() > 0) {
+				inverse_associationList = new ArrayList(v);
+				new SortUtils().quickSort(inverse_associationList);
+			}
 			map.put(Constants.TYPE_INVERSE_ASSOCIATION, inverse_associationList);
 		}
 		return map;
@@ -275,7 +295,10 @@ public class RelationshipHelper {
 		v = new SortUtils().quickSort(v);
 		return v;
 		*/
-		return owlSPARQLUtils.getOutboundRolesByCode(code);
+
+		//return owlSPARQLUtils.getOutboundRolesByCode(code);
+
+		return owlSPARQLUtils.getRoles(this.named_graph, code);
 	}
 
 	public Vector getInboundRolesByCode(String code) {
@@ -287,7 +310,8 @@ public class RelationshipHelper {
 		v = new SortUtils().quickSort(v);
 		return v;
 		*/
-		return owlSPARQLUtils.getInboundRolesByCode(code);
+		//return owlSPARQLUtils.getInboundRolesByCode(code);
+		return owlSPARQLUtils.getInverseRoles(this.named_graph, code);
 	}
 
 	public Vector getAssociationsByCode(String code) {
@@ -331,6 +355,7 @@ public class RelationshipHelper {
 	}
 
     public static void main(String [] args) {
+
 		String serviceUrl = args[0];
 		String named_graph = args[1];
 		String username = args[2];

@@ -110,8 +110,8 @@ public class HierarchyUtils {
    */
   public void initialize(List<String> parentchild) {
     /*
-     * The parentchild string is expected to be in the order of parentCode, parentLabel childCode,
-     * childLabel and Tab sepearated.
+     * The parentchild string is expected to be in the order of parentCode, parentLabel childCode, childLabel and Tab
+     * sepearated.
      */
     for (String str : parentchild) {
       String[] values = str.trim().split("\t");

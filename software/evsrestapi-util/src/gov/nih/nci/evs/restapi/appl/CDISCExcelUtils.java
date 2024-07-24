@@ -30,7 +30,7 @@ import org.apache.poi.hssf.usermodel.HSSFSheet;
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.poifs.filesystem.POIFSFileSystem;
-import org.apache.poi.POIXMLDocument;
+//import org.apache.poi.POIXMLDocument;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.CellStyle;
@@ -76,6 +76,34 @@ public class CDISCExcelUtils {
 			return null;
 		}
 		switch (cell.getCellType()) {
+			case STRING:
+				value = cell.getStringCellValue();
+				break;
+			case FORMULA:
+				value = cell.getCellFormula();
+				break;
+			case NUMERIC:
+				HSSFDataFormatter dataFormatter = new HSSFDataFormatter();
+				value = dataFormatter.formatCellValue(cell);
+				break;
+			case BLANK:
+				value = null;
+				break;
+			case ERROR:
+				value = "#ERROR#";
+				break;
+		}
+		return value;
+	}
+
+
+/*
+	private static String getCellData(Cell cell) {
+		String value = null;
+		if (cell == null) {
+			return null;
+		}
+		switch (cell.getCellType()) {
 			case HSSFCell.CELL_TYPE_STRING:
 				value = cell.getStringCellValue();
 				break;
@@ -95,6 +123,7 @@ public class CDISCExcelUtils {
 		}
 		return value;
 	}
+*/
 
 	public static String reformat(String xlsfile) {
 		String outputfile = "modified_" + xlsfile;

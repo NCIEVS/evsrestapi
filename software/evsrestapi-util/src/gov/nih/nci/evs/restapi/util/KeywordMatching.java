@@ -422,7 +422,7 @@ public class KeywordMatching {
 		}
 		//propertyName = propertyName.replace(" ", "+");
 		String hyperlink = "https://aapmbdsc.azurewebsites.net/?KeyElementName=" + name + "&PropertyName=" + propertyName;
-		//hyperlink = hyperlink.replace("–", "&ndash;");
+		//hyperlink = hyperlink.replace("ï¿½", "&ndash;");
 		//hyperlink = encode(hyperlink);
 		hyperlink = "<a href=\"" + hyperlink + "\">" + propertyName_0 + "</a>";
 		return hyperlink;
@@ -720,11 +720,11 @@ public class KeywordMatching {
 
 			for (int j=0; j<words.size(); j++) {
 				String word = (String) words.elementAt(j);
-				Integer int_knt = new Integer(0);
+				Integer int_knt = Integer.valueOf(0);
 				if (hmap.containsKey(word)) {
 					int_knt = (Integer) hmap.get(word);
 				}
-				int_knt = new Integer(int_knt.intValue()+1);
+				int_knt = Integer.valueOf(int_knt.intValue()+1);
 				hmap.put(word, int_knt);
 			}
 		}

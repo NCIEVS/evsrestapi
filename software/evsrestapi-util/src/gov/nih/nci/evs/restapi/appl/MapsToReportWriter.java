@@ -52,6 +52,10 @@ public class MapsToReportWriter {
 		this.namedGraph = namedGraph;
 		this.username = username;
 		this.password = password;
+
+		System.out.println("serviceUrl: " + serviceUrl);
+		System.out.println("namedGraph: " + namedGraph);
+
 		owlSPARQLUtils = new OWLSPARQLUtils(serviceUrl, username, password);
 		if (owlSPARQLUtils == null) {
 			System.out.println("WARNING: unable to instantiate owlSPARQLUtils???");
@@ -61,9 +65,10 @@ public class MapsToReportWriter {
         owlSPARQLUtils.set_named_graph(namedGraph);
         Vector concept_status_vec = owlSPARQLUtils.getPropertyValues(namedGraph, "Concept_Status");
         if (concept_status_vec == null) {
+			System.out.println("namedGraph: " + namedGraph);
 			System.out.println("WARNING: concept_status_vec == null???");
 		} else {
-			concept_status_vec = new ParserUtils().getResponseValues(concept_status_vec);
+			//concept_status_vec = new ParserUtils().getResponseValues(concept_status_vec);
 			retired = new HashSet();
 			for (int i=0; i<concept_status_vec.size(); i++) {
 				String line = (String) concept_status_vec.elementAt(i);
@@ -78,6 +83,7 @@ public class MapsToReportWriter {
         metadataUtils = new MetadataUtils(serviceUrl, username, password);
         ncit_version = get_ncit_version();
         System.out.println("NCI Thesaurus version: " + ncit_version);
+
         String propertyName = MAPS_TO;
         System.out.println("Initialization in progress. Please wait...");
 		raw_maps_to_data = retrievePropertyQualifierData(propertyName);
@@ -103,7 +109,7 @@ public class MapsToReportWriter {
 	public Vector retrievePropertyQualifierData(String property_name) {
         long ms = System.currentTimeMillis();
         Vector v = owlSPARQLUtils.getPropertyQualifiersByCode(this.namedGraph, null, property_name);
-        v = new ParserUtils().getResponseValues(v);
+        //v = new ParserUtils().getResponseValues(v);
         v = removeRetired(v);
         return v;
 	}
@@ -111,7 +117,7 @@ public class MapsToReportWriter {
 	public Vector retrievePropertyQualifierData(String property_name, String property_value) {
         long ms = System.currentTimeMillis();
         Vector v = owlSPARQLUtils.getPropertyQualifiersByCode(this.namedGraph, null, property_name, property_value);
-        v = new ParserUtils().getResponseValues(v);
+        //v = new ParserUtils().getResponseValues(v);
         return v;
 	}
 
@@ -154,7 +160,7 @@ public class MapsToReportWriter {
 
 	public String getLabelByCode(String code) {
 		Vector v = owlSPARQLUtils.getLabelByCode(this.namedGraph, code);
-		v = new ParserUtils().getResponseValues(v);
+		//v = new ParserUtils().getResponseValues(v);
 		if (v == null || v.size() == 0) return null;
 		return (String) v.elementAt(0);
 	}
@@ -234,6 +240,7 @@ public class MapsToReportWriter {
 				}
 			}
 		}
+
 		return v;
 	}
 
@@ -269,10 +276,9 @@ public class MapsToReportWriter {
 
     public Vector generateMapsToReport(String code, String terminology_name, String terminology_version) {
 		Vector v = getMapsToData(terminology_name, terminology_version);
-		//Utils.saveToFile("MapsTo_" + terminology_name + "_" + terminology_version + ".txt", v);
+		Utils.saveToFile(terminology_name + "_" + terminology_version + ".txt", v);
 		boolean codeOnly = true;
 		Vector members = owlSPARQLUtils.getSubsetMembership(namedGraph, code, codeOnly);
-        //Utils.saveToFile("members_" + code + ".txt", members);
 		v = sortByColumn(v, "NCIt Preferred Term");
 		String label = getLabelByCode(code);
 		Vector w = new Vector();
@@ -292,6 +298,13 @@ public class MapsToReportWriter {
 	}
 
 	public String get_ncit_version() {
+		Vector v = owlSPARQLUtils.get_ontology_info(namedGraph);
+		Utils.dumpVector("get_ncit_version", v);
+		String line = (String) v.elementAt(0);
+		Vector u = StringUtils.parseData(line, '|');
+		ncit_version = (String) u.elementAt(0);
+		System.out.println(ncit_version);
+		/*
 		if(ncit_version == null) {
 			HashMap hmap = metadataUtils.getNameVersion2NamedGraphMap();
 			String version = null;
@@ -307,6 +320,8 @@ public class MapsToReportWriter {
 				}
 			}
 		}
+		*/
+
 		return ncit_version;
 	}
 
@@ -318,17 +333,17 @@ public class MapsToReportWriter {
         if (v == null) {
 			System.out.println("ERROR: getCodeByLabel return null???");
 		} else {
-             v = new ParserUtils().getResponseValues(v);
+             //v = new ParserUtils().getResponseValues(v);
              w.add((String) v.elementAt(0));
 		}
         label = "Mapped ICDO" + version + " Morphology Terminology";
         v = owlSPARQLUtils.getCodeByLabel(this.namedGraph, label);
-        v = new ParserUtils().getResponseValues(v);
+        //v = new ParserUtils().getResponseValues(v);
         w.add((String) v.elementAt(0));
 
         label = "Mapped ICDO" + version + " Morphology PT Terminology";
         v = owlSPARQLUtils.getCodeByLabel(this.namedGraph, label);
-        v = new ParserUtils().getResponseValues(v);
+        //v = new ParserUtils().getResponseValues(v);
         w.add((String) v.elementAt(0));
 
 /*
@@ -347,12 +362,12 @@ Mapped ICDO3.1 Morphology PT Terminology (C168658)
         //To be modified:
         label = "Mapped ICDO" + version + " Topography Terminology";
         v = owlSPARQLUtils.getCodeByLabel(this.namedGraph, label);
-        v = new ParserUtils().getResponseValues(v);
+        //v = new ParserUtils().getResponseValues(v);
         w.add((String) v.elementAt(0));
 
         label = "Mapped ICDO" + version + " Topography PT Terminology";
         v = owlSPARQLUtils.getCodeByLabel(this.namedGraph, label);
-        v = new ParserUtils().getResponseValues(v);
+        //v = new ParserUtils().getResponseValues(v);
         w.add((String) v.elementAt(0));
 
         StringUtils.dumpVector("codes", w);
@@ -369,6 +384,24 @@ Mapped ICDO3.1 Morphology PT Terminology (C168658)
 		run(terminology_name, terminology_version, codes);
 	}
 
+	//We don’t want the SY entries to show up in the following two sets C168658 Mapped ICDO3.1 Morphology PT Terminology and C168662 Mapped ICDO3.2 Morphology PT Terminology.
+	//C168663|Mapped ICDO3.2 Topography Terminology|C12252|Abdominal Esophagus|Related To|C15.2|Abdominal esophagus|PT|ICDO3|3.2
+	public Vector filterTargetTermType(Vector v, String code, String term_type) {
+		if (code.compareTo("C168658") != 0 && code.compareTo("C168662") != 0 &&
+		    code.compareTo("C168660") != 0 && code.compareTo("C168664") != 0) return v;
+		Vector w = new Vector();
+		w.add((String) v.elementAt(0));
+		for (int i=1; i<v.size(); i++) {
+			String line = (String) v.elementAt(i);
+			Vector u = StringUtils.parseData(line, '|');
+			String type = (String) u.elementAt(7);
+			if (type.compareTo(term_type) == 0) {
+				w.add(line);
+			}
+		}
+		return w;
+	}
+
     public void run(String terminology_name, String terminology_version, Vector codes) {
 		Vector datafile_vec = new Vector();
 		Vector sheetLabel_vec = new Vector();
@@ -378,6 +411,7 @@ Mapped ICDO3.1 Morphology PT Terminology (C168658)
         for (int i=0; i<codes.size(); i++) {
 			String code = (String) codes.elementAt(i);
 			Vector v = generateMapsToReport(code, terminology_name, terminology_version);
+			v = filterTargetTermType(v, code, "PT");
 			String label = getLabelByCode(code);
 			System.out.println(label + " (" + code + ")");
 			Utils.saveToFile(code + ".txt", v);
@@ -394,19 +428,22 @@ Mapped ICDO3.1 Morphology PT Terminology (C168658)
 		new ExcelWriter().writeToXSSF(datafile_vec, excelfile, delim, sheetLabel_vec, null);
 		System.out.println(excelfile + " generated.");
 	}
-
+/*
     public static void main(String[] args) {
-		String serviceUrl = args[0];
-		String named_graph = args[1];
-		String username = args[2];
-		String password = args[3];
-		String terminology_name = args[4];
-		String terminology_version = args[5];
+		String serviceUrl = ConfigurationController.serviceUrl;
+		String namedGraph = ConfigurationController.namedGraph;
+		String username = ConfigurationController.username;
+		String password = ConfigurationController.password;
+
+		String terminology_name = args[0];
+		String terminology_version = args[1];
+
 		long ms = System.currentTimeMillis();
-		MapsToReportWriter mapsToReportWriter = new MapsToReportWriter(serviceUrl, named_graph, username, password);
+		MapsToReportWriter mapsToReportWriter = new MapsToReportWriter(serviceUrl, namedGraph, username, password);
 		mapsToReportWriter.run(terminology_name, terminology_version);
         System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
     }
+*/
 }
 
 
