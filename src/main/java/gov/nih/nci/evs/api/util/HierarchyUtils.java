@@ -71,7 +71,8 @@ public class HierarchyUtils {
   @Transient private Map<String, List<Role>> inverseRoleMap = new HashMap<>(10000);
 
   /**
-   * The path map. NOTE: if we need paths for >1 terminology, this doesn't work. Use a different HierarchyUtils.
+   * The path map. NOTE: if we need paths for >1 terminology, this doesn't work. Use a different
+   * HierarchyUtils.
    */
   @Transient private Map<String, Set<String>> pathsMap = new HashMap<>();
 
