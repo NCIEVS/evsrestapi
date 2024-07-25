@@ -66,7 +66,6 @@ public class TermSuggestionFormServiceTest {
   @Value("${nci.evs.application.configBaseUri}")
   private String configUrl;
 
-
   @Before
   public void setUp() {
     termFormService =
