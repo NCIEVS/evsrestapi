@@ -107,19 +107,26 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
         return; // do nothing
       }
     }
-    // Create the MimeMessage
-    final MimeMessage message = mailSender.createMimeMessage();
-    logger.info(
-        "   Sending email for {} form to {}", emailDetails.getSource(), emailDetails.getToEmail());
-    // Set the email details
-    message.setRecipients(RecipientType.TO, emailDetails.getToEmail());
-    message.setFrom(new InternetAddress(emailDetails.getFromEmail()));
-    message.setSubject(emailDetails.getSubject());
-    if (emailDetails.getMsgBody().contains("<html")) {
-      message.setContent(emailDetails.getMsgBody(), "text/html; charset=utf-8");
-    } else {
-      message.setText(String.valueOf(emailDetails.getMsgBody()));
+    try {
+      // Create the MimeMessage
+      final MimeMessage message = mailSender.createMimeMessage();
+      logger.info(
+          "   Sending email for {} form to {}",
+          emailDetails.getSource(),
+          emailDetails.getToEmail());
+      // Set the email details
+      message.setRecipients(RecipientType.TO, emailDetails.getToEmail());
+      message.setFrom(new InternetAddress(emailDetails.getFromEmail()));
+      message.setSubject(emailDetails.getSubject());
+      if (emailDetails.getMsgBody().contains("<html")) {
+        message.setContent(emailDetails.getMsgBody(), "text/html; charset=utf-8");
+      } else {
+        message.setText(String.valueOf(emailDetails.getMsgBody()));
+      }
+      mailSender.send(message);
+    } catch (MessagingException e) {
+      logger.error(e.getMessage());
+      throw new MessagingException("Failed to send email, {}", e);
     }
-    mailSender.send(message);
   }
 }
