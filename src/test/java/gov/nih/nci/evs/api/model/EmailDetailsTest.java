@@ -2,6 +2,7 @@ package gov.nih.nci.evs.api.model;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -65,7 +66,7 @@ public class EmailDetailsTest {
     assertEquals("NCIT", testDetails.getSource());
     assertEquals("agarcia@westcoastinformatics.com", testDetails.getToEmail());
     assertEquals("bcarlsen@westcoastinformatics.com ", testDetails.getFromEmail());
-    assertTrue(testDetails.getMsgBody().contains("test body"));
+    assertTrue(testDetails.getMsgBody().contains("C65498"));
   }
 
   /**
@@ -136,20 +137,19 @@ public class EmailDetailsTest {
   public void testEqualsWithEqualEmailDetails() throws Exception {
     // SETUP
     String formPath1 = "formSamples/submissionFormTest.json";
-    String formPath2 = "formSamples/compareEmailDetails.json";
     testFormObject = createJsonNode(formPath1);
-    JsonNode compTestFormObject = createJsonNode(formPath2);
+    JsonNode compTestFormObject = createJsonNode(formPath1);
 
     // ACT - populate Email details
     testDetails = EmailDetails.generateEmailDetails(testFormObject);
     EmailDetails compTestDetails = EmailDetails.generateEmailDetails(compTestFormObject);
 
-    // ASSERT
-    assertTrue(testDetails.equals(compTestDetails));
-    assertTrue(testDetails.getToEmail().equals(compTestDetails.getToEmail()));
-    assertTrue(testDetails.getFromEmail().equals(compTestDetails.getFromEmail()));
-    assertTrue(testDetails.getSubject().equals(compTestDetails.getSubject()));
-    assertTrue(testDetails.getMsgBody().equals(compTestDetails.getMsgBody()));
+    // ASSERT - using the equal comparator to test it's working as expected
+    assertEquals(testDetails, compTestDetails);
+    assertEquals(testDetails.getToEmail(), compTestDetails.getToEmail());
+    assertEquals(testDetails.getFromEmail(), compTestDetails.getFromEmail());
+    assertEquals(testDetails.getSubject(), compTestDetails.getSubject());
+    assertEquals(testDetails.getMsgBody(), compTestDetails.getMsgBody());
   }
 
   /**
@@ -171,11 +171,11 @@ public class EmailDetailsTest {
     EmailDetails compTestDetails = EmailDetails.generateEmailDetails(compTestFormObject);
 
     // ASSERT
-    assertFalse(testDetails.equals(compTestDetails));
-    assertFalse(testDetails.getToEmail().equals(compTestDetails.getToEmail()));
-    assertFalse(testDetails.getFromEmail().equals(compTestDetails.getFromEmail()));
-    assertFalse(testDetails.getSubject().equals(compTestDetails.getSubject()));
-    assertFalse(testDetails.getMsgBody().equals(compTestDetails.getMsgBody()));
+    assertNotEquals(testDetails, compTestDetails);
+    assertNotEquals(testDetails.getToEmail(), compTestDetails.getToEmail());
+    assertNotEquals(testDetails.getFromEmail(), compTestDetails.getFromEmail());
+    assertNotEquals(testDetails.getSubject(), compTestDetails.getSubject());
+    assertNotEquals(testDetails.getMsgBody(), compTestDetails.getMsgBody());
   }
 
   /**

@@ -3,5 +3,5 @@
   "recipientEmail": "agarcia@nih.gov",
   "businessEmail": "bcarlsen@nih.gov",
   "subject": "New Term: Test ",
-  "body": "Test Body"
+  "body": {"Contact Information": { "Business Email": "fakeEmail@email.com", "Other": "Test" }, "Term Information": { "Vocabulary": "NCI Metathesaurus", "Term": "C9864583", "Synonym(s)": "C9874354, C35468", "Nearest Code/CUI": "code test", "Definition/Other": "different def" }, "Additional Information": { "Project/Product term needed for": "Fail Form", "Reason for suggestion or any additional information": "nothing" } }
 }
