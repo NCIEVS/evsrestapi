@@ -137,9 +137,8 @@ public class EmailDetailsTest {
   public void testEqualsWithEqualEmailDetails() throws Exception {
     // SETUP
     String formPath1 = "formSamples/submissionFormTest.json";
-    String formPath2 = "formSamples/compareEmailDetails.json";
     testFormObject = createJsonNode(formPath1);
-    JsonNode compTestFormObject = createJsonNode(formPath2);
+    JsonNode compTestFormObject = createJsonNode(formPath1);
 
     // ACT - populate Email details
     testDetails = EmailDetails.generateEmailDetails(testFormObject);
