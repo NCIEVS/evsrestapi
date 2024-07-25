@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.model;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThrows;
 import static org.junit.Assert.assertTrue;
@@ -11,6 +12,7 @@ import gov.nih.nci.evs.api.configuration.TestConfiguration;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.Logger;
@@ -19,21 +21,29 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-/** Test class for the EmailDetails Model. Ensure our model is generating the email as expected */
+/**
+ * Test class for the EmailDetails Model. Ensure our model is generating the email as expected. DOES
+ * NOT test the formatBodyRecursive
+ */
 @SpringBootTest
 @RunWith(SpringJUnit4ClassRunner.class)
 @ContextConfiguration(classes = TestConfiguration.class)
 public class EmailDetailsTest {
   /** The logger. */
-  private static final Logger logger = LoggerFactory.getLogger(AssociationUnitTest.class);
+  private static final Logger logger = LoggerFactory.getLogger(EmailDetailsTest.class);
 
   /** The test form object. */
   // JsonObject variable for loading json test file
-  JsonNode testFormObject;
+  private JsonNode testFormObject;
 
   /** The test details. */
   // email detail object
-  EmailDetails testDetails;
+  private EmailDetails testDetails;
+
+  @Before
+  public void setUp() {
+    testDetails = new EmailDetails();
+  }
 
   /**
    * Test our EmailDetails is generated with the values from our submitted json file.
@@ -41,7 +51,7 @@ public class EmailDetailsTest {
    * @throws Exception exception
    */
   @Test
-  public void testGenerateEmailDetails() throws Exception {
+  public void testGenerateEmailDetailsPasses() throws Exception {
     // SETUP - create JsonObject from the json test form
     String formPath = "formSamples/submissionFormTest.json";
     testFormObject = createJsonNode(formPath);
@@ -59,7 +69,8 @@ public class EmailDetailsTest {
   }
 
   /**
-   * Test the mdoel will throw an exception if there are null fields.
+   * Test the mdoel will throw an exception if there are null fields. This fails on the first field,
+   * formName, but the logic applies to all fields
    *
    * @throws Exception exception
    */
@@ -93,6 +104,97 @@ public class EmailDetailsTest {
         () -> {
           testDetails = EmailDetails.generateEmailDetails(null);
         });
+  }
+
+  /**
+   * Test the model will throw an exception when an empty form is passed.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testGenerateEmailDetailsThrowsExceptionWithEmptyForm() throws Exception {
+    // SETUP
+    ObjectMapper mapper = new ObjectMapper();
+    // create an empty form instance
+    testFormObject = mapper.createObjectNode();
+
+    // ACT & ASSERT
+    assertThrows(
+        Exception.class,
+        () -> {
+          testDetails = EmailDetails.generateEmailDetails(testFormObject);
+        });
+  }
+
+  /**
+   * Test the overridden equal method in Email Details is comparing values as expected. Results
+   * should be true
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testEqualsWithEqualEmailDetails() throws Exception {
+    // SETUP
+    String formPath1 = "formSamples/submissionFormTest.json";
+    String formPath2 = "formSamples/compareEmailDetails.json";
+    testFormObject = createJsonNode(formPath1);
+    JsonNode compTestFormObject = createJsonNode(formPath2);
+
+    // ACT - populate Email details
+    testDetails = EmailDetails.generateEmailDetails(testFormObject);
+    EmailDetails compTestDetails = EmailDetails.generateEmailDetails(compTestFormObject);
+
+    // ASSERT
+    assertTrue(testDetails.equals(compTestDetails));
+    assertTrue(testDetails.getToEmail().equals(compTestDetails.getToEmail()));
+    assertTrue(testDetails.getFromEmail().equals(compTestDetails.getFromEmail()));
+    assertTrue(testDetails.getSubject().equals(compTestDetails.getSubject()));
+    assertTrue(testDetails.getMsgBody().equals(compTestDetails.getMsgBody()));
+  }
+
+  /**
+   * Test the overridden equal method in Email Details is comparing values as expected. Results
+   * should be false
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testEqualWithDifferentEmailDetails() throws Exception {
+    // SETUP
+    String formPath1 = "formSamples/submissionFormTest.json";
+    String formPath2 = "formSamples/compareEmailDetailsFail.json";
+    testFormObject = createJsonNode(formPath1);
+    JsonNode compTestFormObject = createJsonNode(formPath2);
+
+    // ACT - populate Email details
+    testDetails = EmailDetails.generateEmailDetails(testFormObject);
+    EmailDetails compTestDetails = EmailDetails.generateEmailDetails(compTestFormObject);
+
+    // ASSERT
+    assertFalse(testDetails.equals(compTestDetails));
+    assertFalse(testDetails.getToEmail().equals(compTestDetails.getToEmail()));
+    assertFalse(testDetails.getFromEmail().equals(compTestDetails.getFromEmail()));
+    assertFalse(testDetails.getSubject().equals(compTestDetails.getSubject()));
+    assertFalse(testDetails.getMsgBody().equals(compTestDetails.getMsgBody()));
+  }
+
+  /**
+   * Test the overridden equal method in Email Details is comparing values as expected. Results
+   * should be false
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testEqualWithNullEmailDetails() throws Exception {
+    // SETUP
+    String formPath1 = "formSamples/submissionFormTest.json";
+    testFormObject = createJsonNode(formPath1);
+
+    // ACT - populate Email details
+    testDetails = EmailDetails.generateEmailDetails(testFormObject);
+
+    // ASSERT
+    assertFalse(testDetails.equals(null));
   }
 
   /**

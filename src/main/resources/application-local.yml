@@ -31,9 +31,9 @@ spring:
       properties:
         mail:
           smtp:
-            auth: ${MAIL_AUTH:true}
+            auth: ${MAIL_AUTH:false}
             starttls:
-              enable: ${MAIL_TLS:true}
+              enable: ${MAIL_TLS:false}
 
 management:
   endpoints:
