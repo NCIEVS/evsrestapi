@@ -25,6 +25,7 @@ import org.junit.runner.RunWith;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mail.MailSendException;
@@ -62,8 +63,9 @@ public class TermSuggestionFormServiceTest {
   private final String msgBody = "Test Body";
 
   // Config url
-  private final String configUrl =
-      "https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata";
+  @Value("${nci.evs.application.configBaseUri}")
+  private String configUrl;
+
 
   @Before
   public void setUp() {
@@ -82,7 +84,7 @@ public class TermSuggestionFormServiceTest {
     String formType = "ncit-form";
     JsonNode termForm = new ObjectMapper().createObjectNode();
 
-    when(applicationProperties.getConfigBaseUri()).thenReturn(this.configUrl);
+    when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
     when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json"))).thenReturn(termForm);
 
     // ACT
@@ -169,7 +171,7 @@ public class TermSuggestionFormServiceTest {
     String formType = "invalid-form";
     JsonNode termForm = new ObjectMapper().createArrayNode();
 
-    when(applicationProperties.getConfigBaseUri()).thenReturn(this.configUrl);
+    when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
     when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json")))
         .thenThrow(FileNotFoundException.class);
 
