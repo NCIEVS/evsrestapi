@@ -199,7 +199,7 @@ public class EmailDetails extends BaseModel {
               JsonNode sectionNode = section.getValue();
               // Append section name as a header
               htmlBody.append("<h2>").append(sectionName).append("</h2");
-              // Create a list format of eact subsection content with <ul>
+              // Create a list format of each subsection content with <ul>
               htmlBody.append("<ul>");
               sectionNode
                   .fields()
