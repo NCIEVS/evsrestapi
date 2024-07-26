@@ -146,6 +146,7 @@ public class LoaderServiceImpl {
       // which indexing object do we need to use
       if (cmd.getOptionValue("t").equals("mapping")) {
         loadService = app.getBean(MappingLoaderServiceImpl.class);
+        loadService.initialize();
         loadService.loadObjects(null, null, null);
         System.exit(0);
       }

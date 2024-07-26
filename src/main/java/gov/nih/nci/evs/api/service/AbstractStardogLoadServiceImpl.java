@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -304,7 +305,10 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         // TEMP FIX FOR NOSUCHINDEXERROR THROWN BY DELETING A MAPPING INDEX
         try {
           operationsService.delete(
-              ElasticOperationsService.MAPPING_INDEX, NCIT_MAPS_TO + mapset.getKey());
+              ElasticOperationsService.MAPSET_INDEX, NCIT_MAPS_TO + mapset.getKey());
+          operationsService.deleteQuery(
+              "mapsetCode:" + NCIT_MAPS_TO + mapset.getKey(),
+              ElasticOperationsService.MAPPINGS_INDEX);
         } catch (NoSuchIndexException e) {
           logger.warn("UNABLE TO DELETE INDEX: " + NCIT_MAPS_TO + mapset.getKey() + " NOT FOUND!");
         }
@@ -334,8 +338,11 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 + mapset.getValue().getName()
                 + ", "
                 + mapset.getValue().getMaps().size());
+        operationsService.bulkIndex(
+            mapset.getValue().getMaps(), ElasticOperationsService.MAPPINGS_INDEX, ConceptMap.class);
+        mapset.getValue().setMaps(null);
         operationsService.index(
-            mapset.getValue(), ElasticOperationsService.MAPPING_INDEX, Concept.class);
+            mapset.getValue(), ElasticOperationsService.MAPSET_INDEX, Concept.class);
       }
 
     } catch (Exception e) {

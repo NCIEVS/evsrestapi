@@ -70,13 +70,16 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       throws Exception {
     final List<ConceptMap> maps = new ArrayList<ConceptMap>();
     final String[] mappingDataList = mappingData.split("\n");
+
+    // create concept map at beginning and assign mapsetCode
+    final ConceptMap conceptToAdd = new ConceptMap();
+    conceptToAdd.setMapsetCode(metadata[0]);
     // welcomeText = true format
     if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
       if (mappingDataList[0].split("\t").length > 2) {
         for (final String conceptMap :
             Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
           final String[] conceptSplit = conceptMap.split("\t");
-          final ConceptMap conceptToAdd = new ConceptMap();
           conceptToAdd.setSourceCode(
               !conceptSplit[0].replace("\"", "").isBlank()
                   ? conceptSplit[0].replace("\"", "")
@@ -131,7 +134,6 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             targetName = targetConcept.getName();
           }
 
-          final ConceptMap conceptToAdd = new ConceptMap();
           conceptToAdd.setSourceCode(conceptSplit[0].strip());
           conceptToAdd.setSourceName(sourceName);
           conceptToAdd.setSource(sourceTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
@@ -155,7 +157,6 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       for (final String conceptMap :
           Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
         final String[] conceptSplit = conceptMap.split("\",\"");
-        final ConceptMap conceptToAdd = new ConceptMap();
         conceptToAdd.setSourceCode(
             !conceptSplit[0].replace("\"", "").isBlank()
                 ? conceptSplit[0].replace("\"", "")
@@ -224,7 +225,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     final String uri = applicationProperties.getConfigBaseUri();
     final String mappingUri = uri.replaceFirst("config/metadata", "data/mappings/");
     final String mapsetMetadataUri = uri + "/mapsetMetadata.txt";
-    logger.info("Get mapset metadata = " + mapsetMetadataUri);
+    logger.info("evs_mapsets " + mapsetMetadataUri);
     String rawMetadata = null;
     try (final InputStream is = new URL(mapsetMetadataUri).openConnection().getInputStream()) {
       rawMetadata = IOUtils.toString(is, StandardCharsets.UTF_8);
@@ -304,7 +305,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       // remove and skip
       if (mapsetsToRemove.contains(metadata[0])) {
         logger.info("  deleting " + metadata[0] + " " + metadata[2]);
-        operationsService.delete(ElasticOperationsService.MAPPING_INDEX, metadata[0]);
+        operationsService.deleteQuery(
+            ElasticOperationsService.MAPSET_INDEX, "mapsetCode:" + metadata[0]);
+        operationsService.delete(metadata[0], ElasticOperationsService.MAPPINGS_INDEX);
         continue;
       }
 
@@ -314,6 +317,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         continue;
       } else if (!mapsetsToAdd.contains(metadata[0])) {
         logger.info("  " + metadata[0] + " needs update to version: " + metadata[2]);
+        operationsService.deleteQuery(
+            ElasticOperationsService.MAPSET_INDEX, "mapsetCode:" + metadata[0]);
       }
       final Concept map = new Concept();
       map.setName(metadata[0]);
@@ -368,8 +373,10 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           map.setMaps(buildMaps(mappingData, metadata));
         } catch (final Throwable t) { // read as file if no url
           try {
+            logger.info("mappingUri: " + mappingUri);
+            logger.info("mappingDataUri: " + mappingDataUri);
             final String mappingData =
-                FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8);
+                FileUtils.readFileToString(new File(mappingDataUri), StandardCharsets.UTF_8);
             map.setMaps(buildMaps(mappingData, metadata));
           } catch (final IOException ex) {
             // only throw exception if both fail
@@ -436,7 +443,10 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                           + o2.getTargetName());
             }
           });
-      operationsService.index(map, ElasticOperationsService.MAPPING_INDEX, Concept.class);
+      operationsService.bulkIndex(
+          map.getMaps(), ElasticOperationsService.MAPPINGS_INDEX, ConceptMap.class);
+      map.setMaps(null);
+      operationsService.index(map, ElasticOperationsService.MAPSET_INDEX, Concept.class);
     }
   }
 

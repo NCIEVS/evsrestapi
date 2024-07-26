@@ -1,11 +1,13 @@
 package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.Metric;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
+import org.elasticsearch.index.query.QueryBuilders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +16,8 @@ import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.BulkOptions;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -138,5 +142,19 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
   @Override
   public String deleteIndexMetadata(String id) {
     return operations.delete(id, IndexCoordinates.of(METADATA_INDEX));
+  }
+
+  /** */
+  @Override
+  public Boolean deleteQuery(String query, String indexName) {
+    try {
+      NativeSearchQuery deleteQuery =
+          new NativeSearchQueryBuilder().withQuery(QueryBuilders.queryStringQuery(query)).build();
+      operations.delete(deleteQuery, ConceptMap.class, IndexCoordinates.of(indexName));
+      return true;
+    } catch (Exception e) {
+      logger.error("query delete failed: " + e.getMessage());
+      return false;
+    }
   }
 }

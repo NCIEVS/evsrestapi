@@ -255,12 +255,8 @@ public class MapsetController extends BaseController {
       // default index 0 and page size 10
       final Integer fromRecordParam = fromRecord.orElse(0);
       final Integer pageSizeParam = pageSize.orElse(10);
-      final IncludeParam ip = new IncludeParam("maps");
-      List<ConceptMap> maps = new ArrayList<ConceptMap>();
-      List<Concept> results = esQueryService.getMapset(code, ip);
-      if (results.size() > 0) {
-        maps = results.get(0).getMaps();
-      } else {
+      List<ConceptMap> results = esQueryService.getMapsetMappings(code);
+      if (results.size() == 0) {
         throw new ResponseStatusException(
             HttpStatus.NOT_FOUND, "Mapset not found for code = " + code);
       }
@@ -269,8 +265,8 @@ public class MapsetController extends BaseController {
         final List<String> words = ConceptUtils.wordind(t);
         // Check single words
         if (words.size() == 1 || ConceptUtils.isCode(t)) {
-          maps =
-              maps.stream()
+          results =
+              results.stream()
                   .filter(
                       m ->
                           // Code match
@@ -292,8 +288,8 @@ public class MapsetController extends BaseController {
         }
         // Check multiple words (make sure both are in the source OR both are in the target)
         else if (words.size() > 1) {
-          maps =
-              maps.stream()
+          results =
+              results.stream()
                   .filter(
                       m -> {
                         boolean sourceFlag = true;
@@ -321,30 +317,30 @@ public class MapsetController extends BaseController {
                   .collect(Collectors.toList());
         }
       }
-      final Integer mapLength = maps.size();
+      final Integer mapLength = results.size();
       final ConceptMapResultList list = new ConceptMapResultList();
       list.setTotal(Long.valueOf(mapLength));
       if (sort.isPresent()) {
         if (sort.get().equals("sourceName")) {
-          maps.sort(Comparator.comparing(ConceptMap::getSourceName));
+          results.sort(Comparator.comparing(ConceptMap::getSourceName));
 
         } else if (sort.get().equals("targetName")) {
-          maps.sort(Comparator.comparing(ConceptMap::getTargetName));
+          results.sort(Comparator.comparing(ConceptMap::getTargetName));
         } else if (sort.get().equals("sourceCode")) {
-          maps.sort(Comparator.comparing(ConceptMap::getSourceCode));
+          results.sort(Comparator.comparing(ConceptMap::getSourceCode));
         } else if (sort.get().equals("targetCode")) {
-          maps.sort(Comparator.comparing(ConceptMap::getTargetCode));
+          results.sort(Comparator.comparing(ConceptMap::getTargetCode));
         }
         if (ascending.isPresent() && !ascending.get()) {
-          Collections.reverse(maps);
+          Collections.reverse(results);
         }
-        list.setMaps(maps);
+        list.setMaps(results);
       }
       // Get this page if we haven't gone over the end
       if (fromRecordParam < mapLength) {
         // on subList "toIndex" don't go past the end
         list.setMaps(
-            maps.subList(fromRecordParam, Math.min(mapLength, fromRecordParam + pageSizeParam)));
+            results.subList(fromRecordParam, Math.min(mapLength, fromRecordParam + pageSizeParam)));
       } else {
         list.setTotal(0L);
         list.setMaps(new ArrayList<ConceptMap>());
