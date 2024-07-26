@@ -64,6 +64,9 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
   /** Is target terminology loaded */
   private Boolean targetLoaded;
 
+  /** The mapset code */
+  private String sortKey;
+
   /** Instantiates an empty {@link ConceptMap}. */
   public ConceptMap() {
     // n/a
@@ -434,6 +437,20 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
     this.targetLoaded = targetLoaded;
   }
 
+  /**
+   * @return the sortKey
+   */
+  public String getSortKey() {
+    return sortKey;
+  }
+
+  /**
+   * @param sortKey the sortKey to set
+   */
+  public void setSortKey(String sortKey) {
+    this.sortKey = sortKey;
+  }
+
   /* see superclass */
   @Override
   public int hashCode() {
@@ -455,7 +472,8 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
         targetTerminology,
         targetTerminologyVersion,
         targetLoaded,
-        type);
+        type,
+        sortKey);
   }
 
   /* see superclass */

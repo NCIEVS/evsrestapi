@@ -443,6 +443,10 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                           + o2.getTargetName());
             }
           });
+      int i = 1;
+      for (final ConceptMap mapToSort : map.getMaps()) {
+        mapToSort.setSortKey(String.valueOf(1000000 + i++));
+      }
       operationsService.bulkIndex(
           map.getMaps(), ElasticOperationsService.MAPPINGS_INDEX, ConceptMap.class);
       map.setMaps(null);

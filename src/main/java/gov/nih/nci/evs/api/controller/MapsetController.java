@@ -325,11 +325,17 @@ public class MapsetController extends BaseController {
           results.sort(Comparator.comparing(ConceptMap::getSourceName));
 
         } else if (sort.get().equals("targetName")) {
-          results.sort(Comparator.comparing(ConceptMap::getTargetName));
+          results.sort(
+              Comparator.comparing(ConceptMap::getTargetName)
+                  .thenComparing(ConceptMap::getSortKey));
         } else if (sort.get().equals("sourceCode")) {
-          results.sort(Comparator.comparing(ConceptMap::getSourceCode));
+          results.sort(
+              Comparator.comparing(ConceptMap::getSourceCode)
+                  .thenComparing(ConceptMap::getSortKey));
         } else if (sort.get().equals("targetCode")) {
-          results.sort(Comparator.comparing(ConceptMap::getTargetCode));
+          results.sort(
+              Comparator.comparing(ConceptMap::getTargetCode)
+                  .thenComparing(ConceptMap::getSortKey));
         }
         if (ascending.isPresent() && !ascending.get()) {
           Collections.reverse(results);
