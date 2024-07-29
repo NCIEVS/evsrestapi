@@ -70,6 +70,28 @@ public class EmailDetailsTest {
   }
 
   /**
+   * Test the email body is generated as expected from the submitted form data with an array list present
+   * @throws Exception exception
+   */
+  @Test
+  public void testGenerateHtmlEmailBodyHandlesArray() throws Exception {
+    // SETUP - create JsonObject
+    String formPath = "formSamples/submissionFormWithArrayList.json";
+    testFormObject = createJsonNode(formPath);
+    assertNotNull(testFormObject);
+
+    // ACT - generate HTML email
+    String emailBody = EmailDetails.generateHtmlEmailBody(testFormObject.get("body"));
+
+    // ASSERT
+    assertTrue(emailBody.contains("<li>CDISC Subset: <ul>"));
+    assertTrue(emailBody.contains("<li>ADaM</li>"));
+    assertTrue(emailBody.contains("<li>CDASH</li>"));
+    assertTrue(emailBody.contains("<li>CDASH-EXDOSU</li>"));
+    assertTrue(emailBody.contains("<li>DDF - Endpoint Level Value Set Terminology</li>"));
+  }
+
+  /**
    * Test the mdoel will throw an exception if there are null fields. This fails on the first field,
    * formName, but the logic applies to all fields
    *
