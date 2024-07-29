@@ -65,6 +65,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
   private Boolean targetLoaded;
 
   /** The mapset code */
+  // @Field(type = FieldType.Text, index = false)
   private String sortKey;
 
   /** Instantiates an empty {@link ConceptMap}. */
@@ -107,6 +108,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
     targetTerminology = other.getTargetTerminology();
     targetTerminologyVersion = other.getTargetTerminologyVersion();
     targetLoaded = other.getTargetLoaded();
+    sortKey = other.getSortKey();
   }
 
   /**
@@ -472,8 +474,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
         targetTerminology,
         targetTerminologyVersion,
         targetLoaded,
-        type,
-        sortKey);
+        type);
   }
 
   /* see superclass */

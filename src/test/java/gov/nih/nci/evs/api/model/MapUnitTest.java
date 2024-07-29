@@ -77,6 +77,7 @@ public class MapUnitTest {
     tester.include("targetTerminology");
     tester.include("targetTerminologyVersion");
     tester.include("targetLoaded");
+    // tester.include("sortKey");
 
     assertTrue(tester.testIdentityFieldEquals());
     assertTrue(tester.testNonIdentityFieldEquals());
