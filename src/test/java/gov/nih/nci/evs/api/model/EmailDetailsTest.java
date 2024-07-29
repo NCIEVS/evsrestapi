@@ -70,7 +70,9 @@ public class EmailDetailsTest {
   }
 
   /**
-   * Test the email body is generated as expected from the submitted form data with an array list present
+   * Test the email body is generated as expected from the submitted form data with an array list
+   * present
+   *
    * @throws Exception exception
    */
   @Test
