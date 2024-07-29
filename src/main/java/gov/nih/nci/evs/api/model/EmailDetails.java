@@ -3,6 +3,8 @@ package gov.nih.nci.evs.api.model;
 import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Objects;
 
+import static org.apache.jena.vocabulary.RSS.item;
+
 /**
  * EmailDetails model, created from a JsonObject data form. This allows us to handle the form data
  * and extract information we need to create the email more easily
@@ -206,18 +208,28 @@ public class EmailDetails extends BaseModel {
                   .forEachRemaining(
                       field -> {
                         String fieldName = field.getKey();
-                        String fieldValue = field.getValue().asText();
-
-                        // If the value is null, convert to an empty value
-                        fieldValue = "null".equals(fieldValue) ? "" : fieldValue;
-
-                        // Append each field as a list item
-                        htmlBody
-                            .append("<li>")
-                            .append(fieldName)
-                            .append(": ")
-                            .append(fieldValue)
-                            .append("</li>");
+                        JsonNode fieldValueNode = field.getValue();
+                        // check if the field is an array
+                        if (fieldValueNode.isArray()) {
+                          // append the list to the field as a list item
+                          htmlBody.append("<li>").append(fieldName).append(": <ul>");
+                          fieldValueNode.forEach(value -> {
+                            // Check the value is textual, convert to an empty value if not
+                            String fieldValue = value.isTextual() ? value.asText() : "";
+                            htmlBody.append("<li>").append(fieldValue).append("</li>");
+                          });
+                        htmlBody.append("</ul></li>");
+                        } else {
+                          // Check the value is textual, convert to an empty value if not
+                          String fieldValue = fieldValueNode.isTextual() ? fieldValueNode.asText(): "";
+                          // Append each field as a list item
+                          htmlBody
+                                  .append("<li>")
+                                  .append(fieldName)
+                                  .append(": ")
+                                  .append(fieldValue)
+                                  .append("</li>");
+                        }
                       });
               htmlBody.append("</ul>");
             });
