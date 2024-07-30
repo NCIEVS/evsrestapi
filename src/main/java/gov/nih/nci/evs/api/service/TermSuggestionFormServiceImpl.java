@@ -118,11 +118,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       message.setRecipients(RecipientType.TO, emailDetails.getToEmail());
       message.setFrom(new InternetAddress(emailDetails.getFromEmail()));
       message.setSubject(emailDetails.getSubject());
-      if (emailDetails.getMsgBody().contains("<html")) {
-        message.setContent(emailDetails.getMsgBody(), "text/html; charset=utf-8");
-      } else {
-        message.setText(String.valueOf(emailDetails.getMsgBody()));
-      }
+      message.setContent(emailDetails.getMsgBody(), "text/html; charset=utf-8");
       mailSender.send(message);
     } catch (MessagingException e) {
       logger.error(e.getMessage());
