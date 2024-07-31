@@ -1,6 +1,10 @@
 package gov.nih.nci.evs.api.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import gov.nih.nci.evs.api.controller.TermSuggestionFormController;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.Objects;
 
 /**
@@ -10,6 +14,9 @@ import java.util.Objects;
 // BAC: for now back away from this
 // @Data
 public class EmailDetails extends BaseModel {
+  /** The Constant logger. */
+  // Logger
+  private static final Logger logger = LoggerFactory.getLogger(EmailDetails.class);
 
   /** The source. */
   private String source;
@@ -148,7 +155,9 @@ public class EmailDetails extends BaseModel {
       final String subject = formData.get("subject").textValue();
 
       // format the json object to a string
+      logger.info("XXXX Building Body of Email....");
       final String body = generateHtmlEmailBody(formData.get("body"));
+      logger.info("XXXX Email Body Formatted....");
 
       if (formName == null
           || formName.isEmpty()

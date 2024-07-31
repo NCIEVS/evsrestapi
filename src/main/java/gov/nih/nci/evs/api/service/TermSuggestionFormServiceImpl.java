@@ -120,6 +120,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       message.setSubject(emailDetails.getSubject());
       message.setContent(emailDetails.getMsgBody(), "text/html; charset=utf-8");
       mailSender.send(message);
+      logger.info("XXXX Email sent successfully....");
     } catch (MessagingException e) {
       logger.error(e.getMessage());
       throw new MessagingException("Failed to send email, {}", e);
