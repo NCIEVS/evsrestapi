@@ -104,7 +104,6 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       final String starttls = mailProperties.getProperty("mail.smtp.starttls.enable");
       // check we want to start the tls
       if ("false".equals(starttls)) {
-        logger.info("XXXX starttls.enable is {}....", starttls);
         throw new MessagingException("Unable to start TLS to send on a secure connection, aborting send email");
       }
     }
@@ -124,7 +123,6 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       } else {
         message.setText(String.valueOf(emailDetails.getMsgBody()));
       }      mailSender.send(message);
-      logger.info("XXXX Email sent successfully....");
     } catch (MessagingException e) {
       logger.error(e.getMessage());
       throw new MessagingException("Failed to send email, {}", e);

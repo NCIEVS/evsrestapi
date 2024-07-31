@@ -155,9 +155,7 @@ public class EmailDetails extends BaseModel {
       final String subject = formData.get("subject").textValue();
 
       // format the json object to a string
-      logger.info("XXXX Building Body of Email....");
       final String body = generateHtmlEmailBody(formData.get("body"));
-      logger.info("XXXX Email Body Formatted....");
 
       if (formName == null
           || formName.isEmpty()
