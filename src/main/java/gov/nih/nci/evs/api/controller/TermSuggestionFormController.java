@@ -199,6 +199,7 @@ public class TermSuggestionFormController extends BaseController {
       EmailDetails emailDetails = EmailDetails.generateEmailDetails(formData);
       logger.info("XXXX Email generated....");
       // Send the email
+      logger.info("XXXX Attempting to send email....");
       formService.sendEmail(emailDetails);
     } catch (Exception e) {
       logger.error("Error creating email details or sending email", e);
