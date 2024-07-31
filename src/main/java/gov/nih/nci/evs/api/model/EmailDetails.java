@@ -1,11 +1,9 @@
 package gov.nih.nci.evs.api.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import gov.nih.nci.evs.api.controller.TermSuggestionFormController;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.Objects;
 
 /**
  * EmailDetails model, created from a JsonObject data form. This allows us to handle the form data
