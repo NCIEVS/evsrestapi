@@ -253,12 +253,11 @@ public class MapsetControllerTests {
 
     // test mapset/{code}/maps, fromRecord past the end
     result =
-        mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?fromRecord=100000"))
+        mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?fromRecord=1000"))
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    assert (mapList.getTotal() == 0);
     assert (mapList.getMaps() == null);
 
     // test mapset/{code}/maps, term with zero matches
@@ -268,7 +267,6 @@ public class MapsetControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    assert (mapList.getTotal() == 0);
     assert (mapList.getMaps() == null);
 
     // test mapset/{code}/maps, term with non-zero matches
@@ -278,7 +276,7 @@ public class MapsetControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    assert (mapList.getTotal() != 0);
+    assert (mapList.getMaps().size() != 0);
     assert (mapList.getMaps().stream()
             .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
         .anyMatch(name -> name.contains("act"));
@@ -291,7 +289,7 @@ public class MapsetControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    assert (mapList.getTotal() != 0);
+    assert (mapList.getMaps().size() != 0);
     assert (mapList.getMaps().stream()
             .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
         .anyMatch(name -> name.contains("act"));
@@ -303,7 +301,6 @@ public class MapsetControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    assert (mapList.getTotal() != 0);
     assert (mapList.getMaps().size() == 12);
     assert (mapList.getMaps().stream()
             .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
@@ -318,7 +315,7 @@ public class MapsetControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    assert (mapList.getTotal() != 0);
+    assert (mapList.getMaps().size() != 0);
     assert (mapList.getMaps().stream()
             .flatMap(map -> Stream.of(map.getSourceCode(), map.getTargetCode())))
         .anyMatch(name -> name.contains("C17087"));

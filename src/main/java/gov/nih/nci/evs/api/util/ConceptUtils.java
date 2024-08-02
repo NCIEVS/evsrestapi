@@ -548,9 +548,7 @@ public final class ConceptUtils {
    */
   public static boolean isCode(final String code) {
     return code != null
-        && code.toUpperCase()
-            .replace("\\", "")
-            .matches("[A-Z]{0,5}:?\\d*[-\\.X\\?]?\\d*/?\\d*[A-Za-z_]*[A-Z]?");
+        && code.toUpperCase().matches("[A-Z]{0,5}:?\\d*[-\\.X\\?]?\\d*/?\\d*[A-Za-z_]*[A-Z]?");
   }
 
   /**
