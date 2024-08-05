@@ -8,6 +8,7 @@ import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -16,6 +17,7 @@ import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Role;
+import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
@@ -250,6 +252,18 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final String conceptCode, final Terminology terminology, final IncludeParam ip)
       throws Exception {
     return getConceptByType("concept", conceptCode, terminology, ip);
+  }
+
+  @Override
+  public Concept getConceptFromElasticSearch(
+      final String conceptCode, final Terminology terminology, final String include)
+      throws Exception {
+    SearchCriteria searchCriteria = new SearchCriteria();
+    searchCriteria.setTerm(conceptCode);
+    searchCriteria.setInclude(include);
+    ConceptResultList result =
+        elasticSearchService.search(Collections.singletonList(terminology), searchCriteria);
+    return !result.getConcepts().isEmpty() ? result.getConcepts().get(0) : null;
   }
 
   /* see superclass */
@@ -2511,7 +2525,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final List<Concept> subsets = new ArrayList<>();
     for (final String code : terminology.getMetadata().getSubset()) {
       final Concept concept =
-          getConcept(code, terminology, new IncludeParam("minimal,children,properties"));
+          getConceptFromElasticSearch(code, terminology, "minimal,children,properties");
 
       getSubsetsHelper(concept, terminology, 0);
       subsets.add(concept);
@@ -2533,7 +2547,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final List<Concept> children = new ArrayList<>();
     for (final Concept child : concept.getChildren()) {
       final Concept childFull =
-          getConcept(child.getCode(), terminology, new IncludeParam("minimal,children,properties"));
+          getConceptFromElasticSearch(child.getCode(), terminology, "minimal,children,properties");
       boolean valInSubset = false;
       boolean found = false;
       for (final Property prop : childFull.getProperties()) {

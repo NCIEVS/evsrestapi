@@ -10,12 +10,6 @@
 # the latest dev testing data set at that google drive URL.
 #
 help=0
-if [[ $db_type = "stardog" ]]; then
-  databases=("NCIT2" "CTRP")
-elif [[ $db_type = "jena" ]]; then
-  databases=("NCIT2" "CTRP")
-fi
-
 while [[ "$#" -gt 0 ]]; do case $1 in
   --help) help=1;;
   *) arr=( "${arr[@]}" "$1" );;
@@ -30,6 +24,15 @@ dir=${arr[0]}
 db_type=${arr[1]}
 # Hardcode the history file
 historyFile=$dir/cumulative_history_21.06e.txt
+
+
+if [[ $db_type = "stardog" ]]; then
+  databases=("NCIT2" "CTRP")
+  curl_cmd="curl -s -f -u ${STARDOG_USERNAME}:${STARDOG_PASSWORD}"
+elif [[ $db_type = "jena" ]]; then
+  databases=("NCIT2" "CTRP")
+  curl_cmd="curl -s -f"
+fi
 
 # Set up ability to format json
 jq --help >> /dev/null 2>&1
@@ -151,9 +154,9 @@ fi
 # Verify docker stardog is running
 echo "    verify $db_type database is running"
 if [[ $db_type = "stardog" ]]; then
-  curl -s -f "http://${STARDOG_HOST}:${STARDOG_PORT}/admin/healthcheck" > /dev/null
+  $curl_cmd "http://${STARDOG_HOST}:${STARDOG_PORT}/admin/healthcheck" > /dev/null
 elif [[ $db_type = "jena" ]]; then
-  curl -s -f "http://${STARDOG_HOST}:${STARDOG_PORT}/$/ping" > /dev/null
+  $curl_cmd -s -f "http://${STARDOG_HOST}:${STARDOG_PORT}/$/ping" > /dev/null
 fi
 if [[ $? -ne 0 ]]; then
     echo "$db_type is not running"
@@ -211,11 +214,11 @@ reindex_ncim(){
 drop_databases(){
   for db in "${databases[@]}"
   do
-    echo "Dropping $db"
+    echo "    Dropping $db"
     if [[ $db_type = "stardog" ]]; then
-      curl -s -f -X DELETE "http://${STARDOG_HOST}:${STARDOG_PORT}/admin/databases/${db}" > /dev/null
+      $curl_cmd -X DELETE "http://${STARDOG_HOST}:${STARDOG_PORT}/admin/databases/${db}" > /dev/null
     elif [[ $db_type = "jena" ]]; then
-      curl -s -f -X DELETE "http://${STARDOG_HOST}:${STARDOG_PORT}/$/datasets/${db}" > /dev/null
+      $curl_cmd -X DELETE "http://${STARDOG_HOST}:${STARDOG_PORT}/$/datasets/${db}" > /dev/null
     fi
     if [[ $? -ne 0 ]]; then
         echo "Error occurred when dropping database ${db}. Response:$_"
@@ -227,11 +230,11 @@ drop_databases(){
 create_databases(){
   for db in "${databases[@]}"
   do
-    echo "Creating $db"
+    echo "    Creating $db"
     if [[ $db_type = "stardog" ]]; then
-      curl -s -f -X POST -F root="{\"dbname\":\"${db}\"}"  "http://${STARDOG_HOST}:${STARDOG_PORT}/admin/databases" > /dev/null
+      $curl_cmd -X POST -F root="{\"dbname\":\"${db}\"}"  "http://${STARDOG_HOST}:${STARDOG_PORT}/admin/databases" > /dev/null
     elif [[ $db_type = "jena" ]]; then
-      curl -s -f -X POST -F "dbName=${db}" -F "dbType=tdb2" "http://${STARDOG_HOST}:${STARDOG_PORT}/$/datasets" > /dev/null
+      $curl_cmd -X POST -d "dbName=${db}&dbType=tdb2" "http://${STARDOG_HOST}:${STARDOG_PORT}/$/datasets" > /dev/null
     fi
     if [[ $? -ne 0 ]]; then
         echo "Error occurred when creating database ${db}. Response:$_"
@@ -240,7 +243,7 @@ create_databases(){
   done
 }
 
-load_data_in_transaction(){
+load_terminology_data_in_transaction(){
   echo "    Loading $3 into $1"
   tx=$(curl -s -u "${STARDOG_USERNAME}":"${STARDOG_PASSWORD}" -X POST "http://localhost:5820/$1/transaction/begin")
   curl -s -u "${STARDOG_USERNAME}":"${STARDOG_PASSWORD}" -X POST "http://localhost:5820/$1/${tx}/add?graph-uri=$2" -H "Content-Type: application/rdf+xml" -T - < "$dir/$3"
@@ -251,15 +254,59 @@ load_data_in_transaction(){
   fi
 }
 
-load_data(){
-  echo "  Loading data into stardog"
-  if [[ $db_type = "stardog" ]]; then
-    load_data_in_transaction NCIT2 http://DUO_monthly DUO/duo_Feb21.owl
-    load_data_in_transaction NCIT2 http://DUO_monthly DUO/iao_Dec20.owl
-  elif [[ $db_type = "jena" ]]; then
-    echo ""
+load_terminology_data(){
+  echo "    Loading $3 into $1"
+  $curl_cmd -X POST -H "Content-Type: application/rdf+xml" -T "$dir/$3" "http://${STARDOG_HOST}:${STARDOG_PORT}/$1/data?graph=$2" > /dev/null
+  if [[ $? -ne 0 ]]; then
+      echo "Error occurred when loading data into $1. Response:$_"
+      exit 1
   fi
 }
+
+load_data(){
+  if [[ $db_type = "stardog" ]]; then
+    load_terminology_data_in_transaction CTRP http://NCI_T_weekly ThesaurusInferred_+1weekly.owl
+    load_terminology_data_in_transaction CTRP http://NCI_T_monthly ThesaurusInferred_monthly.owl
+    load_terminology_data_in_transaction NCIT2 http://NCI_T_monthly ThesaurusInferred_monthly.owl
+    load_terminology_data_in_transaction NCIT2 http://GO_monthly GO/go.2022-07-01.owl
+    load_terminology_data_in_transaction NCIT2 http://HGNC_monthly HGNC/HGNC_202209.owl
+    load_terminology_data_in_transaction NCIT2 http://ChEBI_monthly ChEBI/chebi_213.owl
+    load_terminology_data_in_transaction NCIT2 http://UmlsSemNet UmlsSemNet/umlssemnet.owl
+    load_terminology_data_in_transaction NCIT2 http://MEDRT MED-RT/medrt.owl
+    load_terminology_data_in_transaction NCIT2 http://Canmed CanMed/canmed.owl
+    load_terminology_data_in_transaction NCIT2 http://CTCAE CTCAE/ctcae5.owl
+    load_terminology_data_in_transaction NCIT2 http://DUO_monthly DUO/duo_Feb21.owl
+    load_terminology_data_in_transaction NCIT2 http://DUO_monthly DUO/iao_Dec20.owl
+    load_terminology_data_in_transaction NCIT2 http://OBI_monthly OBI/obi_2022_07.owl
+    load_terminology_data_in_transaction NCIT2 http://OBIB OBIB/obib_2021-11.owl
+    load_terminology_data_in_transaction NCIT2 http://NDFRT2 NDFRT/NDFRT_Public_2018.02.05_Inferred.owl
+    load_terminology_data_in_transaction NCIT2 http://MGED MGED/MGEDOntology.owl
+    load_terminology_data_in_transaction NCIT2 http://NPO NPO/npo-2011-12-08_inferred.owl
+    load_terminology_data_in_transaction NCIT2 http://MA Mouse_Anatomy/ma_07_27_2016.owl
+    load_terminology_data_in_transaction NCIT2 http://Zebrafish Zebrafish/zfa_2019_08_02.owl
+  elif [[ $db_type = "jena" ]]; then
+    load_terminology_data CTRP http://NCI_T_weekly ThesaurusInferred_+1weekly.owl
+    load_terminology_data CTRP http://NCI_T_monthly ThesaurusInferred_monthly.owl
+    load_terminology_data NCIT2 http://NCI_T_monthly ThesaurusInferred_monthly.owl
+    load_terminology_data NCIT2 http://GO_monthly GO/go.2022-07-01.owl
+    load_terminology_data NCIT2 http://HGNC_monthly HGNC/HGNC_202209.owl
+    load_terminology_data NCIT2 http://ChEBI_monthly ChEBI/chebi_213.owl
+    load_terminology_data NCIT2 http://UmlsSemNet UmlsSemNet/umlssemnet.owl
+    load_terminology_data NCIT2 http://MEDRT MED-RT/medrt.owl
+    load_terminology_data NCIT2 http://Canmed CanMed/canmed.owl
+    load_terminology_data NCIT2 http://CTCAE CTCAE/ctcae5.owl
+    load_terminology_data NCIT2 http://DUO_monthly DUO/duo_Feb21.owl
+    load_terminology_data NCIT2 http://DUO_monthly DUO/iao_Dec20.owl
+    load_terminology_data NCIT2 http://OBI_monthly OBI/obi_2022_07.owl
+    load_terminology_data NCIT2 http://OBIB OBIB/obib_2021-11.owl
+    load_terminology_data NCIT2 http://NDFRT2 NDFRT/NDFRT_Public_2018.02.05_Inferred.owl
+    load_terminology_data NCIT2 http://MGED MGED/MGEDOntology.owl
+    load_terminology_data NCIT2 http://NPO NPO/npo-2011-12-08_inferred.owl
+    load_terminology_data NCIT2 http://MA Mouse_Anatomy/ma_07_27_2016.owl
+    load_terminology_data NCIT2 http://Zebrafish Zebrafish/zfa_2019_08_02.owl
+  fi
+}
+
 
 reindex(){
 # Reindex stardog terminologies
@@ -278,9 +325,9 @@ echo "  Remove stardog databases and load monthly/weekly"
 drop_databases
 create_databases
 remove_elasticsearch_indexes
-#reindex_ncim
-#load_data
-#reindex
+reindex_ncim
+load_data
+reindex
 
 # Cleanup
 /bin/rm -f /tmp/x.$$.txt $dir/x.{sh,txt}
