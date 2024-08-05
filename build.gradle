@@ -78,7 +78,7 @@ dependencies {
 
   // Use version 2 with spring boot 3
   // custom location => springdoc.swagger-ui.path=/swagger-ui/index.html
-  implementation("org.springdoc:springdoc-openapi-ui:1.7.0") {
+  implementation("org.springdoc:springdoc-openapi-ui:1.8.0") {
     exclude group: "org.webjars", module: "swagger-ui"
   }
   implementation 'org.springframework.boot:spring-boot-starter-web'

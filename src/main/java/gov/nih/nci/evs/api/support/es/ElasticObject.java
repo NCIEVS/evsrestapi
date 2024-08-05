@@ -49,7 +49,7 @@ public class ElasticObject extends BaseModel {
   private Map<String, List<StatisticsEntry>> statisticsMap;
 
   /** The map. Store this as a string to avoid complicated indexing */
-  @Field(type = FieldType.Keyword)
+  @Field(type = FieldType.Object, enabled = false)
   private String mapString;
 
   /** Instantiates an empty {@link ElasticObject}. */

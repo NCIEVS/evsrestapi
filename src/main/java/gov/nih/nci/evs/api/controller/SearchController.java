@@ -641,6 +641,7 @@ public class SearchController extends BaseController {
   @RequestMapping(
       method = RequestMethod.POST,
       value = "/concept/{terminology}/search",
+      consumes = "text/plain",
       produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminologySparql(
       @PathVariable(value = "terminology") final String terminology,
@@ -817,6 +818,7 @@ public class SearchController extends BaseController {
   @RequestMapping(
       method = RequestMethod.POST,
       value = "/sparql/{terminology}",
+      consumes = "text/plain",
       produces = "application/json")
   public @ResponseBody MapResultList getSparqlBindings(
       @PathVariable(value = "terminology") final String terminology,
@@ -834,6 +836,14 @@ public class SearchController extends BaseController {
         throw new ResponseStatusException(
             HttpStatus.BAD_REQUEST,
             "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
+      }
+
+      // If the query has a comment but no newlines, then we have a problem
+      if (query.matches("(?i:.*SELECT.*#.*)") && !query.contains("\n")) {
+        throw new ResponseStatusException(
+            HttpStatus.BAD_REQUEST,
+            "Query appears to contain a comment (#) without newline "
+                + "characters (if using curl use --data-binary instead of -d)");
       }
 
       final ObjectMapper mapper = new ObjectMapper();

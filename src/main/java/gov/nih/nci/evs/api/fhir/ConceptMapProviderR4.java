@@ -417,6 +417,12 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       @OptionalParam(name = "version") final UriType target)
       throws Exception {
     try {
+
+      // If no ID and no url are specified, no code systems match
+      if (id == null && url == null && system == null) {
+        return new ArrayList<>(0);
+      }
+
       final List<Concept> mapsets = queryService.getMapsets(new IncludeParam("properties"));
 
       final List<ConceptMap> list = new ArrayList<>();

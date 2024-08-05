@@ -98,7 +98,6 @@ public class Constants {
     public static String STARTS_WITH = "startsWith";
     public static String ENDS_WITH = "endsWith";
 
-    public static String VALUE_SET_URI_PREFIX = "http://evs.nci.nih.gov/valueset/";
     public static String TERMINOLOGY_SUBSET_CODE = "C54443"; //Terminology Subset (Code C54443)
 
 	public static String CONCEPT_IN_SUBSET = "Concept_In_Subset";
@@ -107,6 +106,10 @@ public class Constants {
 
 	public static int DEFAULT_LIMIT = 15000;
 
+    public static final String VALUE_SET_REPORT_CONFIG = "gov.nih.nci.evs.browser.ValueSetReportConfig";
+
+    public static final String VALUE_SET_URI_PREFIX = "http://evs.nci.nih.gov/valueset/";
+    public static final String VALUE_SET_URI_PREFIX_OLD = "http://ncit";
 
 
     /**

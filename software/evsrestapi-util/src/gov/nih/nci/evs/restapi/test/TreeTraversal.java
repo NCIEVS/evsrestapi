@@ -111,7 +111,7 @@ public class TreeTraversal {
 			Vector u0 = StringUtils.parseData(codeAndLevel, '|');
 			String code = (String) u0.elementAt(0);
 			String level_str = (String) u0.elementAt(1);
-			Integer int_obj = new Integer(Integer.parseInt(level_str));
+			Integer int_obj = Integer.valueOf(Integer.parseInt(level_str));
 			int k = Integer.valueOf(int_obj);
 			w.add(codeAndLevel);
 			Vector u = this.owlSPARQLUtils.getSuperclassesByCode(namedGraph, code);

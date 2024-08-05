@@ -30,8 +30,7 @@ import org.springframework.util.CollectionUtils;
 public final class ConceptUtils {
 
   /** The Constant logger. */
-  @SuppressWarnings("unused")
-  private static final Logger log = LoggerFactory.getLogger(ConceptUtils.class);
+  private static final Logger logger = LoggerFactory.getLogger(ConceptUtils.class);
 
   /** Instantiates an empty {@link ConceptUtils}. */
   private ConceptUtils() {
@@ -213,7 +212,7 @@ public final class ConceptUtils {
       if (ip.isMapsetLink()) {
         newConcept.setMapsetLink(concept.getMapsetLink());
       }
-
+      newConcept.clearHidden();
       result.add(newConcept);
     }
 
@@ -360,6 +359,7 @@ public final class ConceptUtils {
 
     return concepts.stream()
         .filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
+        .peek(c -> c.clearHidden())
         .collect(Collectors.toList());
   }
 
@@ -382,6 +382,7 @@ public final class ConceptUtils {
     return concepts.stream()
         .flatMap(Concept::streamSelfAndChildren)
         .filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
+        .peek(c -> c.clearHidden())
         .collect(Collectors.toList());
   }
 
@@ -548,5 +549,30 @@ public final class ConceptUtils {
   public static boolean isCode(final String code) {
     return code != null
         && code.toUpperCase().matches("[A-Z]{0,5}:?\\d*[-\\.X\\?]?\\d*/?\\d*[A-Za-z_]*[A-Z]?");
+  }
+
+  /**
+   * Go through map and cap the number of values for each key to the stated max size.
+   *
+   * @param qualMap the qual map
+   * @param maxSize the max size
+   */
+  public static void limitQualMap(Map<String, Set<String>> qualMap, final int maxSize) {
+
+    for (final String key : qualMap.keySet()) {
+      // Truncate additional values
+      if (qualMap.get(key).size() > maxSize) {
+        logger.info(
+            "      truncate qualifier values list at 1000 = "
+                + key
+                + ", "
+                + qualMap.get(key).size());
+        qualMap.put(
+            key,
+            qualMap.get(key).stream().collect(Collectors.toList()).subList(0, 1000).stream()
+                .collect(Collectors.toSet()));
+        qualMap.get(key).add("... additional values ...");
+      }
+    }
   }
 }

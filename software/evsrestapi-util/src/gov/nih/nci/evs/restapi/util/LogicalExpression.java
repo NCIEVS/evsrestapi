@@ -139,7 +139,7 @@ public class LogicalExpression {
         Vector v = owlSPARQLUtils.executeQuery(query);
         if (v == null) return null;
         if (v.size() == 0) return v;
-        v = new ParserUtils().getResponseValues(v);
+        //v = new ParserUtils().getResponseValues(v);
         return new SortUtils().quickSort(v);
 	}
 
@@ -193,7 +193,7 @@ public class LogicalExpression {
         Vector v = owlSPARQLUtils.executeQuery(query);
         if (v == null) return null;
         if (v.size() == 0) return v;
-        v = new ParserUtils().getResponseValues(v);
+        //v = new ParserUtils().getResponseValues(v);
         return new SortUtils().quickSort(v);
 	}
 
@@ -333,7 +333,7 @@ public class LogicalExpression {
         Vector v = owlSPARQLUtils.executeQuery(query);
         if (v == null) return null;
         if (v.size() == 0) return v;
-        v = new ParserUtils().getResponseValues(v);
+        //v = new ParserUtils().getResponseValues(v);
         return new SortUtils().quickSort(v);
 	}
 
@@ -353,10 +353,6 @@ public class LogicalExpression {
 			String line = (String) stack.pop();
 			Vector path = StringUtils.parseData(line, '|');
 			String query = path2Query(named_graph, code, path);
-
-			System.out.println("\n" + path);
-			System.out.println("\n" + query);
-
 			Vector v = executeQuery(query);
 			if (v != null && v.size() > 0) {
 				hmap.put(line, v);
@@ -419,8 +415,6 @@ public class LogicalExpression {
         while (it.hasNext()) {
 			String path = (String) it.next();
 			Vector v = (Vector) hmap.get(path);
-			Utils.dumpVector(path, v);
-
 			HashMap hmap2 = test.sortRestrictions(path, v);
 			if (hmap2.keySet().size() > 0) {
 				Iterator it2 = hmap2.keySet().iterator();

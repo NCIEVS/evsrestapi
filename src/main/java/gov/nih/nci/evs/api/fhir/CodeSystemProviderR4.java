@@ -133,6 +133,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         for (final Concept child : conc.getChildren()) {
           params.addParameter(FhirUtilityR4.createProperty("child", child.getCode(), true));
         }
+      } else {
+        params.addParameter("result", false);
+        params.addParameter("message", "Unable to find matching code system");
+        params.addParameter("system", (system == null ? new UriType("<null>") : system));
+        params.addParameter("version", version);
       }
       return params;
 
@@ -212,6 +217,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         for (final Concept child : conc.getChildren()) {
           params.addParameter(FhirUtilityR4.createProperty("child", child.getCode(), true));
         }
+      } else {
+        params.addParameter("result", false);
+        params.addParameter("message", "Unable to find matching code system");
+        params.addParameter("system", (system == null ? new UriType("<null>") : system));
+        params.addParameter("version", version);
       }
       return params;
 
@@ -295,21 +305,21 @@ public class CodeSystemProviderR4 implements IResourceProvider {
                     + conc.getCode()
                     + " exists in this value set but the display is not valid");
           }
-          params.addParameter("system", codeSys.getUrl());
+          params.addParameter("url", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
           params.addParameter("display", conc.getName());
           params.addParameter("active", true);
         } else {
           params.addParameter("result", false);
           params.addParameter(
-              "message", "The code does not exist for the supplied code system and/or version");
-          params.addParameter("system", codeSys.getUrl());
+              "message", "The code does not exist for the supplied code system url and/or version");
+          params.addParameter("url", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
         }
       } else {
         params.addParameter("result", false);
-        params.addParameter("message", "The given url does not exist");
-        params.addParameter("system", url);
+        params.addParameter("message", "Unable to find matching code system");
+        params.addParameter("url", (url == null ? new UriType("<null>") : url));
         params.addParameter("version", version);
       }
       return params;
@@ -396,21 +406,21 @@ public class CodeSystemProviderR4 implements IResourceProvider {
                     + conc.getCode()
                     + " exists in this value set but the display is not valid");
           }
-          params.addParameter("system", codeSys.getUrl());
+          params.addParameter("url", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
           params.addParameter("display", conc.getName());
           params.addParameter("active", true);
         } else {
           params.addParameter("result", false);
           params.addParameter(
-              "message", "The code does not exist for the supplied code system and/or version");
-          params.addParameter("system", codeSys.getUrl());
+              "message", "The code does not exist for the supplied code system url and/or version");
+          params.addParameter("url", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
         }
       } else {
         params.addParameter("result", false);
-        params.addParameter("message", "The given url does not exist");
-        params.addParameter("system", url);
+        params.addParameter("message", "Unable to find matching code system");
+        params.addParameter("url", (url == null ? new UriType("<null>") : url));
         params.addParameter("version", version);
       }
       return params;
@@ -490,6 +500,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
             params.addParameter("outcome", "no-subsumption-relationship");
           }
         }
+      } else {
+        params.addParameter("result", false);
+        params.addParameter("message", "Unable to find matching code system");
+        params.addParameter("system", (system == null ? new UriType("<null>") : system));
+        params.addParameter("version", version);
       }
       return params;
 
@@ -570,6 +585,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
             params.addParameter("outcome", "no-subsumption-relationship");
           }
         }
+      } else {
+        params.addParameter("result", false);
+        params.addParameter("message", "Unable to find matching code system");
+        params.addParameter("system", (system == null ? new UriType("<null>") : system));
+        params.addParameter("version", version);
       }
       return params;
 
@@ -664,6 +684,12 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OptionalParam(name = "version") final StringType version)
       throws Exception {
     try {
+
+      // If no ID and no url are specified, no code systems match
+      if (id == null && url == null) {
+        return new ArrayList<>(0);
+      }
+
       final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
 
       final List<CodeSystem> list = new ArrayList<>();

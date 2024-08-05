@@ -108,7 +108,8 @@ public class ExcelReader {
 
 
     private static void printCellValue(Cell cell) {
-        switch (cell.getCellTypeEnum()) {
+        //switch (cell.getCellTypeEnum()) {
+		switch (cell.getCellType()) {
             case BOOLEAN:
                 System.out.print(cell.getBooleanCellValue());
                 break;
@@ -179,7 +180,7 @@ public class ExcelReader {
 		for (int i=0; i<row.getPhysicalNumberOfCells(); i++) {
 			Cell cell=row.getCell(i, Row.MissingCellPolicy.CREATE_NULL_AS_BLANK );
             boolean rowEmpty = true;
-			switch (cell.getCellTypeEnum()) {
+			switch (cell.getCellType()) {
 				case NUMERIC:
 					if (DateUtil.isCellDateFormatted(cell)) {
 						Date date = cell.getDateCellValue();

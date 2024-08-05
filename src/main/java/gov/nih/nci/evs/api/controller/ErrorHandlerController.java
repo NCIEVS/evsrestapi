@@ -126,7 +126,8 @@ public class ErrorHandlerController implements ErrorController {
               .toString()
               .split("\n")[0]
               .replaceFirst(".*?\"", "")
-              .replaceFirst("[\"\r]+$", "");
+              .replaceFirst("[\"\r]+$", "")
+              .replaceFirst("400 BAD_REQUEST \"", "");
       body.put("message", message);
     }
 

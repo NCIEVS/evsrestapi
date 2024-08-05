@@ -17,6 +17,7 @@ import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.UriType;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.junit.Before;
 import org.junit.Test;
@@ -110,7 +111,8 @@ public class FhirR4Tests {
     String codeNotFound = "T10";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
-    String messageNotFound = "The code does not exist for the supplied code system and/or version";
+    String messageNotFound =
+        "The code does not exist for the supplied code system url and/or version";
 
     // active code
     content =
@@ -285,6 +287,29 @@ public class FhirR4Tests {
     assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
   }
 
+  @Test
+  public void testCodeSystemBad() throws Exception {
+    String content = null;
+    // Instantiate a new parser
+    IParser parser = FhirContext.forR4().newJsonParser();
+    Parameters params = null;
+
+    // test validate-code with "system" instead of URI (EVSRESTAPI-499)
+    content =
+        restTemplate.getForObject(
+            "http://localhost:"
+                + port
+                + "/fhir/r4/CodeSystem/$validate-code?"
+                + "code=C3224&system=http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+            String.class);
+    params = parser.parseResource(Parameters.class, content);
+    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
+        .isEqualTo(false);
+    assertThat(((StringType) params.getParameter("message").getValue()).getValue())
+        .isEqualTo("Unable to find matching code system");
+    assertThat(((UriType) params.getParameter("url").getValue()).getValue()).isEqualTo("<null>");
+  }
+
   /**
    * Test ValueSet.
    *
@@ -326,6 +351,20 @@ public class FhirR4Tests {
     assertThat(valueSet.getIdPart()).isEqualTo(firstValueSetId);
     assertThat(valueSet.getName()).isEqualTo(((ValueSet) valueSets.get(0)).getName());
     assertThat(valueSet.getPublisher()).isEqualTo(((ValueSet) valueSets.get(0)).getPublisher());
+
+    // test read for a value set with a code
+    content =
+        this.restTemplate.getForObject(
+            "http://localhost:" + port + "/fhir/r4/ValueSet/ncit_C129091", String.class);
+    valueSet = parser.parseResource(ValueSet.class, content);
+    assertThat(valueSet).isNotNull();
+    assertThat(valueSet.getResourceType().equals(ResourceType.ValueSet));
+    assertThat(valueSet.getIdPart()).isEqualTo("ncit_C129091");
+    assertThat(valueSet.getName())
+        .isEqualTo("CDISC Questionnaire NCCN-FACT FBLSI-18 Version 2 Test Name Terminology");
+    assertThat(valueSet.getPublisher()).isEqualTo("NCI");
+    assertThat(valueSet.getUrl())
+        .isEqualTo("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C129091");
 
     // test validate-code
     String activeCode = "T100";

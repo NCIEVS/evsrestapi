@@ -94,7 +94,11 @@ public class LogicalExpressionGenerator {
 			for (int i=0; i<parents.size(); i++) {
 				String line = (String) parents.elementAt(i);
 				Vector u = StringUtils.parseData(line, '|');
-				parent_vec.add("\t" + (String) u.elementAt(u.size()-1) + " (" + (String) u.elementAt(u.size()-2) + ")");
+				try {
+					parent_vec.add("\t" + (String) u.elementAt(u.size()-1) + " (" + (String) u.elementAt(u.size()-2) + ")");
+				} catch (Exception ex) {
+					ex.printStackTrace();
+				}
 			}
 		}
 		parent_vec = new SortUtils().quickSort(parent_vec);
@@ -153,19 +157,21 @@ public class LogicalExpressionGenerator {
 			Vector simple_role_group_vec = new Vector();
 			int simple_role_group_knt = 0;
 
-
-
-			for (int i=0; i<restrictions.size(); i++) {
-				String line = (String) restrictions.elementAt(i);
-				Vector u1 = StringUtils.parseData(line, '|');
-				String target_1_label = (String) u1.elementAt(u1.size()-1);
-				String target_1_code = (String) u1.elementAt(u1.size()-2);
-				String role_1_code = (String) u1.elementAt(u1.size()-3);
-				String role_1_label = (String) u1.elementAt(u1.size()-4);
-				String range = (String) rangeHashMap.get(role_1_code);
-				if (range.compareTo(key) == 0) {
-					restriction_vec.add("\t" + role_1_label +"\t" + (String) u1.elementAt(u1.size()-1) + " (" + (String) u1.elementAt(u1.size()-2) + ")");
+            if (restrictions != null) {
+				for (int i=0; i<restrictions.size(); i++) {
+					String line = (String) restrictions.elementAt(i);
+					Vector u1 = StringUtils.parseData(line, '|');
+					String target_1_label = (String) u1.elementAt(u1.size()-1);
+					String target_1_code = (String) u1.elementAt(u1.size()-2);
+					String role_1_code = (String) u1.elementAt(u1.size()-3);
+					String role_1_label = (String) u1.elementAt(u1.size()-4);
+					String range = (String) rangeHashMap.get(role_1_code);
+					if (range.compareTo(key) == 0) {
+						restriction_vec.add("\t" + role_1_label +"\t" + (String) u1.elementAt(u1.size()-1) + " (" + (String) u1.elementAt(u1.size()-2) + ")");
+					}
 				}
+			} else {
+				System.out.println("restrictions == null");
 			}
 
 			Iterator it_simple_role_group_hmap = simple_role_group_hmap.keySet().iterator();
@@ -285,14 +291,25 @@ public class LogicalExpressionGenerator {
 
 	public static void main(String[] args) {
 		long ms = System.currentTimeMillis();
+		/*
+		String serviceUrl = ConfigurationController.serviceUrl;
+		String named_graph = ConfigurationController.namedGraph;
+		String username = ConfigurationController.username;
+		String password = ConfigurationController.password;
+		*/
+
 		String serviceUrl = args[0];
 		String named_graph = args[1];
 		String username = args[2];
 		String password = args[3];
+
 		String code = args[4];
         LogicalExpressionGenerator test = new LogicalExpressionGenerator(serviceUrl, named_graph, username, password);
         String expression = test.getLogicalExpression(named_graph, code);
+        Vector w = new Vector();
+        w.add(expression);
         System.out.println("\n\n" + expression);
+        Utils.saveToFile("logical_expression_" + code + ".txt", w);
 		System.out.println("Total run time (ms): " + (System.currentTimeMillis() - ms));
 	}
 }

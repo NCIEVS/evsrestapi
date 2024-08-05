@@ -3479,6 +3479,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3514,6 +3515,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3540,6 +3542,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3565,6 +3568,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3590,6 +3594,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains")
                     .param("term", "Theraccine"))
@@ -3618,6 +3623,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "summary")
                     .param("type", "contains")
                     .param("term", "Liver"))
@@ -3655,6 +3661,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3689,6 +3696,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3727,6 +3735,7 @@ public class SearchControllerTests {
               mvc.perform(
                       MockMvcRequestBuilders.post(exceptionUrl)
                           .content(exceptionQuery)
+                          .contentType("text/plain")
                           .param("include", "minimal")
                           .param("type", "contains"))
                   .andExpect(status().is5xxServerError())
@@ -3754,6 +3763,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains"))
             .andExpect(status().isOk())
@@ -3820,17 +3830,19 @@ public class SearchControllerTests {
    * @throws Exception the exception
    */
   @Test
-  public void testSparqlVariations() throws Exception {
+  public void testSparqlSuccessVariations() throws Exception {
     String url = "/api/v1/sparql/ncit";
 
     for (final String query :
         new String[] {
           // Simple
-          "SELECT ?code { ?x a owl:Class . ?x :NHC0 ?code .?x :P108 \"Melanoma\" }",
+          "SELECT ?code { ?x a owl:Class . ?x :NHC0 ?code . ?x :P108 \"Melanoma\" }",
+          // Simple with comment
+          "SELECT ?code { ?x a owl:Class \n . # ?x :NHC0 ?code .\n ?x :P108 \"Melanoma\" }",
           // Simple with WHERE
-          "SELECT ?code WHERE { ?x a owl:Class . ?x :NHC0 ?code .?x :P108 \"Melanoma\" }",
+          "SELECT ?code WHERE { ?x a owl:Class . ?x :NHC0 ?code . ?x :P108 \"Melanoma\" }",
           // Spacing variation
-          "SELECT?code{ ?x a owl:Class . ?x :NHC0 ?code .?x :P108 \"Melanoma\"}",
+          "SELECT?code{ ?x a owl:Class . ?x :NHC0 ?code . ?x :P108 \"Melanoma\"}",
           // Simple with GRAPH
           "SELECT ?code { GRAPH <http://NCI_T_monthly> { ?x a owl:Class .  ?x :NHC0 ?code . ?x"
               + " :P108 \"Melanoma\" }  }",
@@ -3857,9 +3869,34 @@ public class SearchControllerTests {
       mvc.perform(
               MockMvcRequestBuilders.post(url)
                   .content(query)
+                  .contentType("text/plain")
                   .param("fromRecord", "0")
                   .param("pageSize", "10"))
           .andExpect(status().isOk())
+          .andReturn();
+    }
+  }
+
+  @Test
+  public void testSparqlFailureVariations() throws Exception {
+    String url = "/api/v1/sparql/ncit";
+
+    for (final String query :
+        new String[] {
+          // Comment
+          "SELECT ?code { ?x a owl:Class . # ?x :NHC0 ?code . ?x :P108 \"Melanoma\" }",
+        }) {
+
+      // Just verify the call works
+      log.info("Testing url - " + url + "?terminology=ncit&fromRecord=0&pageSize=10");
+      log.info("  query = " + query);
+      mvc.perform(
+              MockMvcRequestBuilders.post(url)
+                  .content(query)
+                  .contentType("text/plain")
+                  .param("fromRecord", "0")
+                  .param("pageSize", "10"))
+          .andExpect(status().isBadRequest())
           .andReturn();
     }
   }
@@ -3870,7 +3907,7 @@ public class SearchControllerTests {
    * @throws Exception the exception
    */
   @Test
-  public void testSparql() throws Exception {
+  public void testSparqlPaging() throws Exception {
     String url = "/api/v1/sparql/ncit";
     MvcResult result = null;
     String content = null;
@@ -3882,6 +3919,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("fromRecord", "0")
                     .param("pageSize", "10"))
             .andExpect(status().isOk())
@@ -3902,6 +3940,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("fromRecord", "1")
                     .param("pageSize", "5"))
             .andExpect(status().isOk())
@@ -3918,6 +3957,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("fromRecord", "6")
                     .param("pageSize", "5"))
             .andExpect(status().isOk())
@@ -3936,6 +3976,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("fromRecord", "1")
                     .param("pageSize", "0"))
             .andExpect(status().isBadRequest())
@@ -3946,6 +3987,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content(query)
+                    .contentType("text/plain")
                     .param("fromRecord", "1")
                     .param("pageSize", "1001"))
             .andExpect(status().isBadRequest())
@@ -3954,7 +3996,10 @@ public class SearchControllerTests {
     // Try null query
     result =
         mvc.perform(
-                MockMvcRequestBuilders.post(url).param("fromRecord", "1").param("pageSize", "0"))
+                MockMvcRequestBuilders.post(url)
+                    .param("fromRecord", "1")
+                    .param("pageSize", "0")
+                    .contentType("text/plain"))
             .andExpect(status().isBadRequest())
             .andReturn();
 
@@ -3963,6 +4008,7 @@ public class SearchControllerTests {
         mvc.perform(
                 MockMvcRequestBuilders.post(url)
                     .content("")
+                    .contentType("text/plain")
                     .param("fromRecord", "1")
                     .param("pageSize", "1001"))
             .andExpect(status().isBadRequest())

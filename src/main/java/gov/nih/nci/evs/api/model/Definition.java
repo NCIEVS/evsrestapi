@@ -245,4 +245,10 @@ public class Definition extends BaseModel implements Comparable<Definition> {
   public int compareTo(Definition o) {
     return (definition + "").compareTo(o.getDefinition() + "");
   }
+
+  /** Clear hidden. */
+  public void clearHidden() {
+    code = null;
+    getQualifiers().forEach(q -> q.clearHidden());
+  }
 }

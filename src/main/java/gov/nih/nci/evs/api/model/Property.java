@@ -266,4 +266,10 @@ public class Property extends BaseModel implements Comparable<Property> {
   public int compareTo(Property o) {
     return (type + value).compareToIgnoreCase(o.getType() + o.getValue());
   }
+
+  /** Clear hidden. */
+  public void clearHidden() {
+    code = null;
+    getQualifiers().forEach(q -> q.clearHidden());
+  }
 }

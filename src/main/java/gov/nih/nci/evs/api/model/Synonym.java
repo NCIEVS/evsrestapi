@@ -434,4 +434,12 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
     return (source + type + name)
         .compareToIgnoreCase(other.getSource() + other.getType() + other.getName());
   }
+
+  /** Clear hidden. */
+  public void clearHidden() {
+    normName = null;
+    stemName = null;
+    typeCode = null;
+    getQualifiers().forEach(q -> q.clearHidden());
+  }
 }
