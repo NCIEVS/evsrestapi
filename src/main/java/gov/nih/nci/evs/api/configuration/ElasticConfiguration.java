@@ -1,6 +1,8 @@
 package gov.nih.nci.evs.api.configuration;
 
+import org.apache.http.Header;
 import org.apache.http.HttpHost;
+import org.apache.http.message.BasicHeader;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
@@ -28,6 +30,13 @@ public class ElasticConfiguration {
    */
   @Bean
   RestHighLevelClient client() {
+
+    // https://stackoverflow.com/questions/77856007/elasticsearch-resthighlevelclient-save-index-throws-nullpointerexception-in-java
+    Header[] headers = {
+      new BasicHeader("Accept", "application/vnd.elasticsearch+json;compatible-with=7"),
+      new BasicHeader("Content-type", "application/vnd.elasticsearch+json;compatible-with=7")
+    };
+
     final String esHost = env.getProperty("nci.evs.elasticsearch.server.host");
     final int esPort = Integer.parseInt(env.getProperty("nci.evs.elasticsearch.server.port"));
     final String esScheme = env.getProperty("nci.evs.elasticsearch.server.scheme");
@@ -35,6 +44,7 @@ public class ElasticConfiguration {
     logger.info(String.format("Configuring es client for host %s %s %s", esHost, esPort, timeout));
     return new RestHighLevelClient(
         RestClient.builder(new HttpHost(esHost, esPort, esScheme))
+            .setDefaultHeaders(headers)
             .setRequestConfigCallback(
                 builder -> builder.setConnectTimeout(timeout).setSocketTimeout(timeout)));
 
