@@ -4,6 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.InnerField;
+import org.springframework.data.elasticsearch.annotations.MultiField;
 
 /** Represents a map to a concept in another terminology. */
 @Schema(description = "Represents a map from a concept to concepts in other terminologies")
@@ -11,58 +15,84 @@ import java.util.Objects;
 public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
 
   /** The mapset code */
+  @Field(type = FieldType.Keyword)
   private String mapsetCode;
 
   /** The source. */
+  @Field(type = FieldType.Keyword)
   private String source;
 
   /** The source name. */
+  @MultiField(
+      mainField = @Field(type = FieldType.Text),
+      otherFields = {@InnerField(suffix = "keyword", type = FieldType.Keyword)})
   private String sourceName;
 
   /** The source term type. */
+  @Field(type = FieldType.Keyword)
   private String sourceTermType;
 
   /** The source code. */
+  @Field(type = FieldType.Keyword)
   private String sourceCode;
 
   /** The source terminology. */
+  @Field(type = FieldType.Keyword)
   private String sourceTerminology;
 
   /** The source terminology version. */
+  @Field(type = FieldType.Keyword)
   private String sourceTerminologyVersion;
 
   /** Is source terminology loaded */
+  @Field(type = FieldType.Keyword)
   private Boolean sourceLoaded;
 
   /** The type. */
+  @Field(type = FieldType.Keyword)
   private String type;
 
   /** The rank. */
+  @Field(type = FieldType.Keyword)
   private String rank;
 
   /** The group. */
+  @Field(type = FieldType.Keyword)
   private String group;
 
   /** The rule. */
+  @Field(type = FieldType.Keyword)
   private String rule;
 
   /** The target name. */
+  @MultiField(
+      mainField = @Field(type = FieldType.Text),
+      otherFields = {@InnerField(suffix = "keyword", type = FieldType.Keyword)})
   private String targetName;
 
   /** The target term type. */
+  @Field(type = FieldType.Keyword)
   private String targetTermType;
 
   /** The target code. */
+  @Field(type = FieldType.Keyword)
   private String targetCode;
 
   /** The target terminology. */
+  @Field(type = FieldType.Keyword)
   private String targetTerminology;
 
   /** The target terminology version. */
+  @Field(type = FieldType.Keyword)
   private String targetTerminologyVersion;
 
   /** Is target terminology loaded */
+  @Field(type = FieldType.Keyword)
   private Boolean targetLoaded;
+
+  /** The mapset code */
+  @Field(type = FieldType.Keyword)
+  private String sortKey;
 
   /** Instantiates an empty {@link ConceptMap}. */
   public ConceptMap() {
@@ -104,6 +134,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
     targetTerminology = other.getTargetTerminology();
     targetTerminologyVersion = other.getTargetTerminologyVersion();
     targetLoaded = other.getTargetLoaded();
+    sortKey = other.getSortKey();
   }
 
   /**
@@ -432,6 +463,20 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
    */
   public void setTargetLoaded(Boolean targetLoaded) {
     this.targetLoaded = targetLoaded;
+  }
+
+  /**
+   * @return the sortKey
+   */
+  public String getSortKey() {
+    return sortKey;
+  }
+
+  /**
+   * @param sortKey the sortKey to set
+   */
+  public void setSortKey(String sortKey) {
+    this.sortKey = sortKey;
   }
 
   /* see superclass */

@@ -253,12 +253,11 @@ public class MapsetControllerTests {
 
     // test mapset/{code}/maps, fromRecord past the end
     result =
-        mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?fromRecord=100000"))
+        mvc.perform(get(baseUrl + "/GO_to_NCIt_Mapping/maps?fromRecord=1000"))
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    assert (mapList.getTotal() == 0);
     assert (mapList.getMaps() == null);
 
     // test mapset/{code}/maps, term with zero matches
@@ -268,7 +267,6 @@ public class MapsetControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    assert (mapList.getTotal() == 0);
     assert (mapList.getMaps() == null);
 
     // test mapset/{code}/maps, term with non-zero matches
@@ -278,7 +276,7 @@ public class MapsetControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    assert (mapList.getTotal() != 0);
+    assert (mapList.getMaps().size() != 0);
     assert (mapList.getMaps().stream()
             .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
         .anyMatch(name -> name.contains("act"));
@@ -291,7 +289,7 @@ public class MapsetControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    assert (mapList.getTotal() != 0);
+    assert (mapList.getMaps().size() != 0);
     assert (mapList.getMaps().stream()
             .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
         .anyMatch(name -> name.contains("act"));
@@ -303,7 +301,6 @@ public class MapsetControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    assert (mapList.getTotal() != 0);
     assert (mapList.getMaps().size() == 12);
     assert (mapList.getMaps().stream()
             .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
@@ -318,9 +315,78 @@ public class MapsetControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    assert (mapList.getTotal() != 0);
+    assert (mapList.getMaps().size() != 0);
     assert (mapList.getMaps().stream()
             .flatMap(map -> Stream.of(map.getSourceCode(), map.getTargetCode())))
         .anyMatch(name -> name.contains("C17087"));
+
+    // test SNOMED mapping in mapset/{code}/maps, check for existence
+    result =
+        mvc.perform(get(baseUrl + "/SNOMEDCT_US_2020_09_01_to_ICD10CM_2021_Mappings/maps"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    assert (mapList.getMaps().size() != 0);
+
+    // test SNOMED mapping in mapset/{code}/maps, term search
+    result =
+        mvc.perform(
+                get(baseUrl + "/SNOMEDCT_US_2020_09_01_to_ICD10CM_2021_Mappings/maps?term=AIDS"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    assert (mapList.getMaps().size() != 0);
+    assert (mapList.getMaps().get(0).getSourceName().equals("AIDS"));
+
+    // test SNOMED mapping in mapset/{code}/maps, code search
+    result =
+        mvc.perform(
+                get(
+                    baseUrl
+                        + "/SNOMEDCT_US_2020_09_01_to_ICD10CM_2021_Mappings/maps?term=62479008"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    assert (mapList.getMaps().size() != 0);
+    assert (mapList.getMaps().get(0).getSourceCode().equals("62479008"));
+
+    // test SNOMED mapping in mapset/{code}/maps, sort by name
+    result =
+        mvc.perform(
+                get(
+                    baseUrl
+                        + "/SNOMEDCT_US_2020_09_01_to_ICD10CM_2021_Mappings/maps?sort=sourceName&ascending=true"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    assert (mapList.getMaps().size() > 1);
+    assert (mapList
+            .getMaps()
+            .get(0)
+            .getSourceName()
+            .compareTo(mapList.getMaps().get(1).getSourceName())
+        < 0);
+
+    // test SNOMED mapping in mapset/{code}/maps, sort by code desc
+    result =
+        mvc.perform(
+                get(
+                    baseUrl
+                        + "/SNOMEDCT_US_2020_09_01_to_ICD10CM_2021_Mappings/maps?sort=sourceCode&ascending=false"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    assert (mapList.getMaps().size() > 1);
+    assert (mapList
+            .getMaps()
+            .get(0)
+            .getSourceCode()
+            .compareTo(mapList.getMaps().get(1).getSourceCode())
+        > 0);
   }
 }

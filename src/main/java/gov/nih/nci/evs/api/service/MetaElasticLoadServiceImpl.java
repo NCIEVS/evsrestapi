@@ -262,6 +262,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         map.setSourceCode(fields[8]);
         map.setSourceTerminology(fields[1]);
         map.setSourceName(mapsetNameMap.get(fields[6]));
+        map.setSourceTerminologyVersion(mapsetVersionMap.get(fields[0]));
         map.setTargetCode(fields[16].isEmpty() || fields[16].equals("100051") ? "" : fields[16]);
         map.setTargetTermType("PT");
         map.setTargetTerminology(mapsetToTerminologyMap.get(fields[0]).split("_")[0]);
@@ -274,6 +275,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         map.setGroup(fields[2]);
         map.setRank(fields[3]);
         map.setRule(fields[20]);
+        map.setMapsetCode(mapsetNameMap.get(fields[0]).replace(" ", "_"));
         mapCt++;
 
         // Fix source name if null
@@ -461,6 +463,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
               }
             });
         logger.info("    Index map = " + mapset.getName());
+        int i = 1;
+        for (final ConceptMap mapToSort : mapset.getMaps()) {
+          mapToSort.setSortKey(String.valueOf(1000000 + i++));
+        }
         operationsService.bulkIndex(
             mapset.getMaps(), ElasticOperationsService.MAPPINGS_INDEX, ConceptMap.class);
         mapset.setMaps(null);

@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
@@ -143,7 +144,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
         operationsService
             .getElasticsearchOperations()
             .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX))
-            .putMapping(Concept.class);
+            .putMapping(ConceptMap.class);
       }
     } catch (IOException e) {
       logger.error(e.getMessage(), e);
