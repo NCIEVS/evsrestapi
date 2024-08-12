@@ -300,7 +300,7 @@ load_data(){
     load_terminology_data NCIT2 http://OBI_monthly OBI/obi_2022_07.owl
     load_terminology_data NCIT2 http://OBIB OBIB/obib_2021-11.owl
     load_terminology_data NCIT2 http://NDFRT2 NDFRT/NDFRT_Public_2018.02.05_Inferred.owl
-    load_terminology_data NCIT2 http://MGED MGED/MGEDOntology.owl
+    load_terminology_data NCIT2 http://MGED MGED/MGEDOntology.fix.owl
     load_terminology_data NCIT2 http://NPO NPO/npo-2011-12-08_inferred.owl
     load_terminology_data NCIT2 http://MA Mouse_Anatomy/ma_07_27_2016.owl
     load_terminology_data NCIT2 http://Zebrafish Zebrafish/zfa_2019_08_02.owl
