@@ -598,8 +598,8 @@ public class VersionControllerTests {
         log.info("      lexEvsUrl = " + lexEvsUrl);
         log.info("      mapUrl = " + urlMapUrl);
         log.info("      evsExploreUrl = " + evsExploreUrl);
-        // Use this to extract a map
-        System.out.println("YYY\t" + lexEvsUrl + "\t" + evsExploreUrl);
+        // Use this to extract a map to put into a spreadsheet
+        // System.out.println("Y Y Y\t" + lexEvsUrl + "\t" + evsExploreUrl);
         assertThat(evsExploreUrl).isEqualTo(urlMapUrl);
       }
     }
