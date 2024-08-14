@@ -1,19 +1,5 @@
 package gov.nih.nci.evs.api.util;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
-
 import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
@@ -26,8 +12,20 @@ import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
 
 /** Utilities for handling the "include" flag, and converting EVSConcept to Concept. */
 public final class ConceptUtils {
