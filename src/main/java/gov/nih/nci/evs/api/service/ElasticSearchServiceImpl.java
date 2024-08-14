@@ -400,10 +400,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if (null != terminology) {
       termQuery =
           new BoolQueryBuilder()
-              .must(
-                  QueryBuilders.queryStringQuery(terminology)
-                      .field("source")
-                      .field("target"));
+              .must(QueryBuilders.queryStringQuery(terminology).field("source").field("target"));
     }
     // search term processing
     if (conceptCodes != null && conceptCodes.size() > 0) {
