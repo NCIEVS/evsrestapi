@@ -386,6 +386,56 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
+   * Returns the term query for mappings based on concepts.
+   *
+   * @param conceptCodes the concept codes
+   * @param termimology the termimology
+   * @return the mappings
+   * @throws Exception the exception
+   */
+  public List<ConceptMap> getConceptMappings(List<String> conceptCodes, String terminology) {
+    // must match mapsetCode
+
+    BoolQueryBuilder termQuery = new BoolQueryBuilder();
+    if (null != terminology) {
+      termQuery =
+          new BoolQueryBuilder()
+              .must(
+                  QueryBuilders.queryStringQuery(terminology)
+                      .field("source")
+                      .field("target"));
+    }
+    // search term processing
+    if (conceptCodes != null && conceptCodes.size() > 0) {
+      conceptCodes.replaceAll(code -> escape(code));
+
+      termQuery.must(
+          QueryBuilders.queryStringQuery(String.join(" OR ", conceptCodes))
+              .field("sourceCode")
+              .field("targetCode"));
+    }
+
+    final NativeSearchQueryBuilder searchQuery =
+        new NativeSearchQueryBuilder().withQuery(termQuery);
+    final SearchHits<ConceptMap> hits =
+        operations.search(
+            searchQuery.build(),
+            ConceptMap.class,
+            IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
+
+    logger.debug("result count: {}", hits.getTotalHits());
+
+    final ConceptMapResultList result = new ConceptMapResultList();
+
+    result.setTotal(hits.getTotalHits());
+
+    final List<ConceptMap> mappings =
+        hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
+
+    return mappings;
+  }
+
+  /**
    * Returns the contains query.
    *
    * @param type the type

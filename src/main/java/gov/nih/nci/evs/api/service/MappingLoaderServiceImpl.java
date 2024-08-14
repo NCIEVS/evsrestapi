@@ -73,6 +73,15 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
 
     if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
       if (mappingDataList[0].split("\t").length > 2) {
+        // grab source and target terminology search names
+        final String source =
+            termUtils
+                .getIndexedTerminology(metadata[0].split("_")[0].toLowerCase(), esQueryService)
+                .getTerminology();
+        final String target =
+            termUtils
+                .getIndexedTerminology(metadata[0].split("_")[2].toLowerCase(), esQueryService)
+                .getTerminology();
         for (final String conceptMap :
             Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
           final String[] conceptSplit = conceptMap.split("\t");
@@ -82,13 +91,15 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
               !conceptSplit[0].replace("\"", "").isBlank()
                   ? conceptSplit[0].replace("\"", "")
                   : "N/A");
+          conceptToAdd.setSource(source);
           conceptToAdd.setSourceName(
               !conceptSplit[1].replace("\"", "").isBlank()
                   ? conceptSplit[1].replace("\"", "")
                   : "N/A");
-          conceptToAdd.setSource(conceptSplit[2]);
+          conceptToAdd.setSourceTerminology(conceptSplit[2]);
           conceptToAdd.setType(conceptSplit[6]);
           conceptToAdd.setRank(conceptSplit[7]);
+          conceptToAdd.setTarget(target);
           conceptToAdd.setTargetCode(
               !conceptSplit[8].replace("\"", "").isBlank()
                   ? conceptSplit[8].replace("\"", "")
@@ -136,11 +147,14 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           conceptToAdd.setMapsetCode(metadata[0]);
           conceptToAdd.setSourceCode(conceptSplit[0].strip());
           conceptToAdd.setSourceName(sourceName);
-          conceptToAdd.setSource(sourceTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
+          conceptToAdd.setSource(sourceTerminology.getTerminology());
+          conceptToAdd.setSourceTerminology(
+              sourceTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
           conceptToAdd.setType("mapsTo");
           conceptToAdd.setRank("1");
           conceptToAdd.setTargetCode(conceptSplit[1].strip());
           conceptToAdd.setTargetName(targetName);
+          conceptToAdd.setTarget(targetTerminology.getTerminology());
           conceptToAdd.setTargetTerminology(
               targetTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
           conceptToAdd.setTargetTerminologyVersion(targetTerminology.getVersion());
