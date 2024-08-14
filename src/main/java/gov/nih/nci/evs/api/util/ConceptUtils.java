@@ -1,5 +1,19 @@
 package gov.nih.nci.evs.api.util;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+
 import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
@@ -12,19 +26,8 @@ import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
 
 /** Utilities for handling the "include" flag, and converting EVSConcept to Concept. */
 public final class ConceptUtils {
@@ -496,6 +499,32 @@ public final class ConceptUtils {
    */
   public static Map<String, String> asMap(final String... values) {
     final Map<String, String> map = new HashMap<>();
+    if (values.length % 2 != 0) {
+      throw new RuntimeException("Unexpected odd number of parameters");
+    }
+    for (int i = 0; i < values.length; i += 2) {
+      // Patch for default namespace where appropriate
+      if (values[i].endsWith("Code")
+          && !values[i].equals("conceptCode")
+          && !values[i + 1].contains(":")) {
+        map.put(values[i], ":" + values[i + 1]);
+      } else if (values[i].endsWith("Code") && values[i + 1].startsWith("http")) {
+        map.put(values[i], "<" + values[i + 1] + ">");
+      } else {
+        map.put(values[i], values[i + 1]);
+      }
+    }
+    return map;
+  }
+
+  /**
+   * As tree map.
+   *
+   * @param values the values
+   * @return the map
+   */
+  public static Map<String, String> asLinkedMap(final String... values) {
+    final Map<String, String> map = new LinkedHashMap<>();
     if (values.length % 2 != 0) {
       throw new RuntimeException("Unexpected odd number of parameters");
     }
