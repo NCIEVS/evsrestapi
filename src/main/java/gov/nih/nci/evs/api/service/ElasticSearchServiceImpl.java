@@ -240,6 +240,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         new NativeSearchQueryBuilder().withQuery(boolQuery).withPageable(pageable);
 
     if (searchCriteria.getSort() != null) {
+      logger.info("XXX sort = " + searchCriteria.getSort() + ", " + searchCriteria.getAscending());
       // Default is ascending if not specified
       if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
         searchQuery.withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));

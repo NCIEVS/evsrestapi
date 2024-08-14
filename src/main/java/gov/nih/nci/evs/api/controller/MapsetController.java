@@ -254,8 +254,11 @@ public class MapsetController extends BaseController {
       }
 
       searchCriteria.checkPagination();
+      if (searchCriteria.getSort() == null) {
+        searchCriteria.setSort("sortKey");
+      }
       // pre-process certain sorts
-      if ("targetName".equals(searchCriteria.getSort())
+      else if ("targetName".equals(searchCriteria.getSort())
           || "sourceName".equals(searchCriteria.getSort())) {
         searchCriteria.setSort(searchCriteria.getSort() + ".keyword");
       }
