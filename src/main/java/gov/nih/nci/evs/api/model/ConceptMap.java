@@ -19,7 +19,9 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
   private String mapsetCode;
 
   /** The source. */
-  @Field(type = FieldType.Keyword)
+  @MultiField(
+      mainField = @Field(type = FieldType.Text),
+      otherFields = {@InnerField(suffix = "keyword", type = FieldType.Keyword)})
   private String source;
 
   /** The source name. */
@@ -63,6 +65,12 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
   /** The rule. */
   @Field(type = FieldType.Keyword)
   private String rule;
+
+  /** The target. */
+  @MultiField(
+      mainField = @Field(type = FieldType.Text),
+      otherFields = {@InnerField(suffix = "keyword", type = FieldType.Keyword)})
+  private String target;
 
   /** The target name. */
   @MultiField(
@@ -278,6 +286,20 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
    */
   public void setRule(final String rule) {
     this.rule = rule;
+  }
+
+  /**
+   * @return the target
+   */
+  public String getTarget() {
+    return target;
+  }
+
+  /**
+   * @param target the target to set
+   */
+  public void setTarget(String target) {
+    this.target = target;
   }
 
   /**
