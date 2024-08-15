@@ -87,7 +87,7 @@ public class VersionController extends BaseController {
                 mediaType = "application/json",
                 schema = @Schema(implementation = RestException.class)))
   })
-  @RequestMapping(method = RequestMethod.GET, value = "/rewrite", produces = "application/json")
+  @RequestMapping(method = RequestMethod.GET, value = "/rewrite", produces = "text/plain")
   public @ResponseBody String rewriteUrl(
       @RequestParam(required = true, name = "url") final String url) throws IOException {
 
