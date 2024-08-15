@@ -31,6 +31,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -183,15 +184,40 @@ public class ConceptController extends BaseController {
         List<String> conceptCodeList = Arrays.asList(list.split(","));
         List<ConceptMap> secondList =
             elasticSearchService.getConceptMappings(conceptCodeList, terminology);
+
         for (Concept concept : concepts) {
           firstList = concept.getMaps();
-          firstList.addAll(
+
+          // prevent duplicates by searching existing mappings
+          // Create a map from firstList based on targetName and targetCode
+          Map<String, ConceptMap> firstListMap =
+              firstList.stream()
+                  .collect(
+                      Collectors.toMap(
+                          map -> map.getTargetName() + "_" + map.getTargetCode(),
+                          map -> map,
+                          (existing, replacement) -> existing));
+
+          // Filter and iterate through the secondList to replace or add objects
+          for (ConceptMap secondMap :
               secondList.stream()
                   .filter(
                       cm ->
                           cm.getSourceCode().equals(concept.getCode())
                               || cm.getTargetCode().equals(concept.getCode()))
-                  .collect(Collectors.toList()));
+                  .collect(Collectors.toList())) {
+
+            String key = secondMap.getTargetName() + "_" + secondMap.getTargetCode();
+
+            // Replace if exists, or add to the map
+            firstListMap.put(key, secondMap);
+          }
+
+          // Update firstList with the modified or newly added elements
+          firstList = new ArrayList<>(firstListMap.values());
+
+          // Set the updated list back to the concept
+          concept.setMaps(firstList);
         }
       }
 
@@ -314,7 +340,30 @@ public class ConceptController extends BaseController {
         List<ConceptMap> firstList = concept.get().getMaps();
         List<ConceptMap> secondList =
             elasticSearchService.getConceptMappings(Arrays.asList(code), terminology);
-        firstList.addAll(secondList);
+
+        // Create a map to easily find and replace items in firstList based on targetName and
+        // targetCode
+        Map<String, ConceptMap> firstListMap =
+            firstList.stream()
+                .collect(
+                    Collectors.toMap(
+                        map -> map.getTargetName() + "_" + map.getTargetCode(), map -> map));
+
+        for (ConceptMap secondMap : secondList) {
+          String key = secondMap.getTargetName() + "_" + secondMap.getTargetCode();
+
+          // If a match is found, replace it in the map
+          if (firstListMap.containsKey(key)) {
+            firstListMap.put(key, secondMap);
+          } else {
+            // If no match is found, add the new object to the map
+            firstListMap.put(key, secondMap);
+          }
+        }
+
+        // Update firstList with the modified or newly added elements
+        firstList = new ArrayList<>(firstListMap.values());
+
         concept.get().setMaps(firstList);
       }
 

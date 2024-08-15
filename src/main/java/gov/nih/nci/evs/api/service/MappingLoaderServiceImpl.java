@@ -182,6 +182,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                 ? conceptSplit[4].replace("\"", "")
                 : "N/A");
         conceptToAdd.setTargetTermType(conceptSplit[5]);
+        conceptToAdd.setTarget(conceptSplit[6]);
         conceptToAdd.setTargetTerminology(conceptSplit[6]);
         conceptToAdd.setTargetTerminologyVersion(conceptSplit[7].replace("\"", ""));
         maps.add(conceptToAdd);
