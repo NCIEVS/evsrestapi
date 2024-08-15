@@ -31,8 +31,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
@@ -188,33 +188,25 @@ public class ConceptController extends BaseController {
         for (Concept concept : concepts) {
           firstList = concept.getMaps();
 
-          // prevent duplicates by searching existing mappings
-          // Create a map from firstList based on targetName and targetCode
-          Map<String, ConceptMap> firstListMap =
+          // Create a map of existing keys in firstList to easily check for matches
+          Set<String> existingKeys =
               firstList.stream()
-                  .collect(
-                      Collectors.toMap(
-                          map -> map.getTargetName() + "_" + map.getTargetCode(),
-                          map -> map,
-                          (existing, replacement) -> existing));
+                  .map(map -> map.getTargetTerminology() + "_" + map.getTargetCode())
+                  .collect(Collectors.toSet());
 
-          // Filter and iterate through the secondList to replace or add objects
-          for (ConceptMap secondMap :
+          // Filter and add only those ConceptMap objects that don't have a match in firstList
+          List<ConceptMap> mapsToAdd =
               secondList.stream()
                   .filter(
                       cm ->
-                          cm.getSourceCode().equals(concept.getCode())
-                              || cm.getTargetCode().equals(concept.getCode()))
-                  .collect(Collectors.toList())) {
+                          (cm.getSourceCode().equals(concept.getCode())
+                                  || cm.getTargetCode().equals(concept.getCode()))
+                              && !existingKeys.contains(
+                                  cm.getTargetTerminology() + "_" + cm.getTargetCode()))
+                  .collect(Collectors.toList());
 
-            String key = secondMap.getTargetName() + "_" + secondMap.getTargetCode();
-
-            // Replace if exists, or add to the map
-            firstListMap.put(key, secondMap);
-          }
-
-          // Update firstList with the modified or newly added elements
-          firstList = new ArrayList<>(firstListMap.values());
+          // Add the filtered list to firstList
+          firstList.addAll(mapsToAdd);
 
           // Set the updated list back to the concept
           concept.setMaps(firstList);
@@ -341,29 +333,25 @@ public class ConceptController extends BaseController {
         List<ConceptMap> secondList =
             elasticSearchService.getConceptMappings(Arrays.asList(code), terminology);
 
-        // Create a map to easily find and replace items in firstList based on targetName and
-        // targetCode
-        Map<String, ConceptMap> firstListMap =
+        // Create a set of existing keys in firstList to check for matches
+        Set<String> existingKeys =
             firstList.stream()
-                .collect(
-                    Collectors.toMap(
-                        map -> map.getTargetName() + "_" + map.getTargetCode(), map -> map));
+                .map(map -> map.getTargetTerminology() + "_" + map.getTargetCode())
+                .collect(Collectors.toSet());
 
-        for (ConceptMap secondMap : secondList) {
-          String key = secondMap.getTargetName() + "_" + secondMap.getTargetCode();
+        // Filter and add only those ConceptMap objects that don't have a match in firstList
+        List<ConceptMap> mapsToAdd =
+            secondList.stream()
+                .filter(
+                    cm ->
+                        !existingKeys.contains(
+                            cm.getTargetTerminology() + "_" + cm.getTargetCode()))
+                .collect(Collectors.toList());
 
-          // If a match is found, replace it in the map
-          if (firstListMap.containsKey(key)) {
-            firstListMap.put(key, secondMap);
-          } else {
-            // If no match is found, add the new object to the map
-            firstListMap.put(key, secondMap);
-          }
-        }
+        // Add the filtered list to firstList
+        firstList.addAll(mapsToAdd);
 
-        // Update firstList with the modified or newly added elements
-        firstList = new ArrayList<>(firstListMap.values());
-
+        // Set the updated list back to the concept
         concept.get().setMaps(firstList);
       }
 
