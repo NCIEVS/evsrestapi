@@ -137,6 +137,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
     sourceTerminology = other.getSourceTerminology();
     sourceTerminologyVersion = other.getSourceTerminologyVersion();
     sourceLoaded = other.getSourceLoaded();
+    target = other.getTarget();
     targetCode = other.getTargetCode();
     targetName = other.getTargetName();
     targetTerminology = other.getTargetTerminology();
@@ -516,6 +517,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
         sourceTerminology,
         sourceTerminologyVersion,
         sourceLoaded,
+        target,
         targetCode,
         targetName,
         targetTermType,
@@ -543,6 +545,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
         && Objects.equals(sourceTerminology, other.sourceTerminology)
         && Objects.equals(sourceTerminologyVersion, other.sourceTerminologyVersion)
         && Objects.equals(sourceLoaded, other.sourceLoaded)
+        && Objects.equals(target, other.target)
         && Objects.equals(targetCode, other.targetCode)
         && Objects.equals(targetName, other.targetName)
         && Objects.equals(targetTermType, other.targetTermType)
