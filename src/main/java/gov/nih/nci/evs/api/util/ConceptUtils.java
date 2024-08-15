@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -496,6 +497,32 @@ public final class ConceptUtils {
    */
   public static Map<String, String> asMap(final String... values) {
     final Map<String, String> map = new HashMap<>();
+    if (values.length % 2 != 0) {
+      throw new RuntimeException("Unexpected odd number of parameters");
+    }
+    for (int i = 0; i < values.length; i += 2) {
+      // Patch for default namespace where appropriate
+      if (values[i].endsWith("Code")
+          && !values[i].equals("conceptCode")
+          && !values[i + 1].contains(":")) {
+        map.put(values[i], ":" + values[i + 1]);
+      } else if (values[i].endsWith("Code") && values[i + 1].startsWith("http")) {
+        map.put(values[i], "<" + values[i + 1] + ">");
+      } else {
+        map.put(values[i], values[i + 1]);
+      }
+    }
+    return map;
+  }
+
+  /**
+   * As tree map.
+   *
+   * @param values the values
+   * @return the map
+   */
+  public static Map<String, String> asLinkedMap(final String... values) {
+    final Map<String, String> map = new LinkedHashMap<>();
     if (values.length % 2 != 0) {
       throw new RuntimeException("Unexpected odd number of parameters");
     }
