@@ -189,7 +189,7 @@ public class MainTypeHierarchy {
 			String key = (String) it.next();
 			Vector v = (Vector) hmap.get(key);
 			int maxLevel = findMaximumLevel(v);
-			map.put(key, new Integer(maxLevel));
+			map.put(key, Integer.valueOf(maxLevel));
 		}
 		return map;
 	}
@@ -202,7 +202,7 @@ public class MainTypeHierarchy {
 			String key = (String) it.next();
 			Vector v = (Vector) hmap.get(key);
 			int maxLevel = findMaximumLevel(v);
-			map.put(key, new Integer(maxLevel));
+			map.put(key, Integer.valueOf(maxLevel));
 		}
 		return map;
 	}
@@ -377,7 +377,7 @@ public class MainTypeHierarchy {
 			if (hmap.containsKey(code)) {
 				w = (Vector) hmap.get(code);
 			}
-			Integer int_obj = new Integer(level);
+			Integer int_obj = Integer.valueOf(level);
 			if (!w.contains(int_obj)) {
 				w.add(int_obj);
 			}
@@ -398,7 +398,7 @@ public class MainTypeHierarchy {
 			if (hmap.containsKey(code)) {
 				w = (Vector) hmap.get(code);
 			}
-			Integer int_obj = new Integer(level);
+			Integer int_obj = Integer.valueOf(level);
 			if (!w.contains(int_obj)) {
 				w.add(int_obj);
 			}
@@ -446,7 +446,7 @@ public class MainTypeHierarchy {
 			if (hmap.containsKey(code)) {
 				w = (Vector) hmap.get(code);
 			}
-			Integer int_obj = new Integer(level);
+			Integer int_obj = Integer.valueOf(level);
 			if (!w.contains(int_obj)) {
 				w.add(int_obj);
 			}

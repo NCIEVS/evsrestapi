@@ -128,7 +128,7 @@ public class ExcelFileReader {
 
     private static String getCellValue(Cell cell) {
 		String retstr = null;
-        switch (cell.getCellTypeEnum()) {
+        switch (cell.getCellType()) {
             case BOOLEAN:
                 retstr = "" + cell.getBooleanCellValue();
                 break;

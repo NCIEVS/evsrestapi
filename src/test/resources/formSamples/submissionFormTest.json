@@ -3,5 +3,5 @@
   "recipientEmail": "agarcia@westcoastinformatics.com",
   "businessEmail": "bcarlsen@westcoastinformatics.com ",
   "subject": "New Terminology Suggestion: TestTermName",
-  "body": "This is a test body"
+  "body": {"Contact Information": { "Business Email": "testEmail@email.com", "Other": "Test" }, "Term Information": { "Vocabulary": "NCI Thesaurus", "Term": "C65498", "Synonym(s)": "C431587, C94635", "Nearest Code/CUI": "nearest test", "Definition/Other": "this is definition" }, "Additional Information": { "Project/Product term needed for": "Project Term Form", "Reason for suggestion or any additional information": "random reason" } }
 }

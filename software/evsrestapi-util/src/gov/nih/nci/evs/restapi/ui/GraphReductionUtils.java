@@ -694,7 +694,7 @@ public class GraphReductionUtils {
 
 	public String get_removed_node_str(Vector v, HashMap hmap) {
 		int n1 = getNodeCount(v);
-		String groupNodeId = new Integer(n1+1).toString();
+		String groupNodeId = Integer.valueOf(n1+1).toString();
 		Vector w = null;
 		String removed_nodes_str = "";
 		Vector nodes_to_remove = get_nodes_to_remove(v, hmap);
@@ -714,9 +714,9 @@ public class GraphReductionUtils {
 	public Vector reduceGraph(Vector v, HashMap hmap, boolean forward) {
 
 		//int n1 = getNodeCount(v);
-		//String groupNodeId = new Integer(n1+1).toString();
+		//String groupNodeId = Integer.valueOf(n1+1).toString();
 		int n1 = getGroupNodeID();
-		String groupNodeId = new Integer(n1).toString();
+		String groupNodeId = Integer.valueOf(n1).toString();
 		String groupNodeLabel = "Node " + groupNodeId;
 		Vector w = null;
 		try {
@@ -745,7 +745,7 @@ public class GraphReductionUtils {
 
 	public String getGroupNodeId(Vector v) {
 		int n1 = getNodeCount(v);
-		return new Integer(n1+1).toString();
+		return Integer.valueOf(n1+1).toString();
 	}
 
 	public Vector reduce_graph(Vector v, boolean direction) {
@@ -821,7 +821,7 @@ public class GraphReductionUtils {
 		PrintWriter pw = null;
 		Vector v = readFile(inputfile);
 		int n1 = getNodeCount(v);
-		String groupNodeId = new Integer(n1+1).toString();
+		String groupNodeId = Integer.valueOf(n1+1).toString();
 		try {
 			pw = new PrintWriter(outputfile, "UTF-8");
 			HashMap hmap = createSourceEdge2TargetsMap(v);

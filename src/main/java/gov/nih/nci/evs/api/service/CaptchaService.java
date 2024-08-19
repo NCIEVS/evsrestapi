@@ -46,11 +46,11 @@ public class CaptchaService {
    * @param captchaToken recaptcha secret key from the submitted form
    * @return verification response True or False
    */
-  public Boolean verifyRecaptcha(String captchaToken) {
+  public Boolean verifyRecaptcha(String captchaToken) throws NullPointerException {
     // check if the recaptcha server url is set
     if (recaptchaServerUrl == null || recaptchaServerUrl.isBlank()) {
       logger.error("Recaptcha server URL is not specified");
-      return false;
+      throw new NullPointerException("Recaptcha server url is not set");
     }
     // create the request headers
     HttpHeaders headers = new HttpHeaders();
@@ -66,7 +66,7 @@ public class CaptchaService {
     RecaptchaResponse verificationResponse =
         restTemplate.postForObject(recaptchaServerUrl, request, RecaptchaResponse.class);
 
-    // log rsponse details
+    // log response details
     logger.debug("Recaptcha success = " + verificationResponse.isSuccess());
     logger.debug("Recaptcha hostname = " + verificationResponse.getHostname());
     logger.debug("Recaptcha challenge timestamp =" + verificationResponse.getChallenge_ts());

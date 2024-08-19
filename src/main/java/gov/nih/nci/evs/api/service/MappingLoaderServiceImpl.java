@@ -68,18 +68,16 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
    */
   public List<ConceptMap> buildMaps(final String mappingData, final String[] metadata)
       throws Exception {
-    final List<ConceptMap> maps = new ArrayList<ConceptMap>();
+    final List<ConceptMap> maps = new ArrayList<>();
     final String[] mappingDataList = mappingData.split("\n");
 
-    // create concept map at beginning and assign mapsetCode
-    final ConceptMap conceptToAdd = new ConceptMap();
-    conceptToAdd.setMapsetCode(metadata[0]);
-    // welcomeText = true format
     if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
       if (mappingDataList[0].split("\t").length > 2) {
         for (final String conceptMap :
             Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
           final String[] conceptSplit = conceptMap.split("\t");
+          final ConceptMap conceptToAdd = new ConceptMap();
+          conceptToAdd.setMapsetCode(metadata[0]);
           conceptToAdd.setSourceCode(
               !conceptSplit[0].replace("\"", "").isBlank()
                   ? conceptSplit[0].replace("\"", "")
@@ -134,6 +132,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             targetName = targetConcept.getName();
           }
 
+          final ConceptMap conceptToAdd = new ConceptMap();
+          conceptToAdd.setMapsetCode(metadata[0]);
           conceptToAdd.setSourceCode(conceptSplit[0].strip());
           conceptToAdd.setSourceName(sourceName);
           conceptToAdd.setSource(sourceTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
@@ -157,6 +157,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       for (final String conceptMap :
           Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
         final String[] conceptSplit = conceptMap.split("\",\"");
+        final ConceptMap conceptToAdd = new ConceptMap();
+        conceptToAdd.setMapsetCode(metadata[0]);
         conceptToAdd.setSourceCode(
             !conceptSplit[0].replace("\"", "").isBlank()
                 ? conceptSplit[0].replace("\"", "")
@@ -443,6 +445,10 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                           + o2.getTargetName());
             }
           });
+      int i = 1;
+      for (final ConceptMap mapToSort : map.getMaps()) {
+        mapToSort.setSortKey(String.valueOf(1000000 + i++));
+      }
       operationsService.bulkIndex(
           map.getMaps(), ElasticOperationsService.MAPPINGS_INDEX, ConceptMap.class);
       map.setMaps(null);

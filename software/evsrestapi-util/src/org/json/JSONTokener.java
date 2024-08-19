@@ -361,7 +361,7 @@ public class JSONTokener {
                 if (s.length() > 2
                     && (s.charAt(1) == 'x' || s.charAt(1) == 'X')) {
                     try {
-                        //return new Integer(Integer.parseInt(s.substring(2), 16));
+                        //return Integer.valueOf(Integer.parseInt(s.substring(2), 16));
                         return Integer.valueOf(Integer.parseInt(s.substring(2), 16));
                     } catch (Exception e) {
                         /* Ignore the error */
@@ -369,7 +369,7 @@ public class JSONTokener {
                     }
                 } else {
                     try {
-                        //return new Integer(Integer.parseInt(s, 8));
+                        //return Integer.valueOf(Integer.parseInt(s, 8));
                         return Integer.valueOf(Integer.parseInt(s, 8));
                     } catch (Exception e) {
                         /* Ignore the error */
@@ -378,13 +378,13 @@ public class JSONTokener {
                 }
             }
             try {
-                return new Integer(s);
+                return Integer.valueOf(s);
             } catch (Exception e) {
                 try {
-                    return new Long(s);
+                    return Long.valueOf(s);
                 } catch (Exception f) {
                     try {
-                        return new Double(s);
+                        return Double.valueOf(s);
                     } catch (Exception g) {
                         return s;
                     }
