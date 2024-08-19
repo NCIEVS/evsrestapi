@@ -1,26 +1,5 @@
 package gov.nih.nci.evs.api.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.model.Association;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
-import gov.nih.nci.evs.api.model.Definition;
-import gov.nih.nci.evs.api.model.History;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.model.Qualifier;
-import gov.nih.nci.evs.api.model.StatisticsEntry;
-import gov.nih.nci.evs.api.model.Synonym;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
-import gov.nih.nci.evs.api.support.es.ElasticObject;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.PushBackReader;
-import gov.nih.nci.evs.api.util.RrfReaders;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,6 +19,8 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
+
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
@@ -50,6 +31,29 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.stereotype.Service;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.History;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.Qualifier;
+import gov.nih.nci.evs.api.model.StatisticsEntry;
+import gov.nih.nci.evs.api.model.Synonym;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.PushBackReader;
+import gov.nih.nci.evs.api.util.RrfReaders;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /** The implementation for {@link MetaElasticLoadServiceImpl}. */
 @Service
@@ -511,8 +515,11 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         for (final ConceptMap mapToSort : mapset.getMaps()) {
           mapToSort.setSortKey(String.valueOf(1000000 + i++));
         }
-        operationsService.bulkIndex(
-            mapset.getMaps(), ElasticOperationsService.MAPPINGS_INDEX, ConceptMap.class);
+        // Send 10k at at tim
+        for (final List<ConceptMap> batch : ListUtils.partition(mapset.getMaps(), 10000)) {
+          operationsService.bulkIndex(
+              batch, ElasticOperationsService.MAPPINGS_INDEX, ConceptMap.class);
+        }
         mapset.setMaps(null);
         operationsService.index(mapset, ElasticOperationsService.MAPSET_INDEX, Concept.class);
       }
