@@ -29,8 +29,10 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -185,6 +187,10 @@ public class ConceptController extends BaseController {
         List<ConceptMap> secondList =
             elasticSearchService.getConceptMappings(conceptCodeList, terminology);
 
+        // Pre-process secondList into a map
+        Map<String, List<ConceptMap>> secondMap =
+            secondList.stream().collect(Collectors.groupingBy(cm -> cm.getSourceCode()));
+
         for (Concept concept : concepts) {
           firstList = concept.getMaps();
 
@@ -194,15 +200,16 @@ public class ConceptController extends BaseController {
                   .map(map -> map.getTargetTerminology() + "_" + map.getTargetCode())
                   .collect(Collectors.toSet());
 
-          // Filter and add only those ConceptMap objects that don't have a match in firstList
+          // Look up the concept code in the preprocessed map and filter the maps
+          List<ConceptMap> relevantMaps =
+              secondMap.getOrDefault(concept.getCode(), Collections.emptyList());
+
           List<ConceptMap> mapsToAdd =
-              secondList.stream()
+              relevantMaps.stream()
                   .filter(
                       cm ->
-                          (cm.getSourceCode().equals(concept.getCode())
-                                  || cm.getTargetCode().equals(concept.getCode()))
-                              && !existingKeys.contains(
-                                  cm.getTargetTerminology() + "_" + cm.getTargetCode()))
+                          !existingKeys.contains(
+                              cm.getTargetTerminology() + "_" + cm.getTargetCode()))
                   .collect(Collectors.toList());
 
           // Add the filtered list to firstList
