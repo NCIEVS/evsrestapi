@@ -481,7 +481,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       // remove old mappings by code
       for (String mapsetCode : mapsetsToRemove) {
         operationsService.delete(ElasticOperationsService.MAPSET_INDEX, mapsetCode);
-        operationsService.delete(
+        operationsService.deleteQuery(
             "mapsetCode:" + mapsetCode, ElasticOperationsService.MAPPINGS_INDEX);
       }
       for (final Concept mapset : mapsetMap.values()) {
