@@ -407,9 +407,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       conceptCodes.replaceAll(code -> escape(code));
 
       termQuery.must(
-          QueryBuilders.queryStringQuery(String.join(" OR ", conceptCodes))
-              .field("sourceCode")
-              .field("targetCode"));
+          QueryBuilders.queryStringQuery(String.join(" OR ", conceptCodes)).field("sourceCode"));
     }
 
     final NativeSearchQueryBuilder searchQuery =
