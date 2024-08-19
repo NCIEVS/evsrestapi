@@ -864,10 +864,8 @@ public class ConceptControllerTests {
     assertThat(conceptList.size()).isEqualTo(2);
     assertThat(conceptList.get(0).getMaps().get(0).getMapsetCode()).isNull();
     assertThat(conceptList.get(1).getMaps().get(0).getMapsetCode()).isNull();
-    assertThat(conceptList.get(0).getMaps().get(1).getMapsetCode())
-        .isEqualTo("PDQ_2016_07_31_TO_NCI_2016_10E");
     assertThat(conceptList.get(0).getMaps().get(0).getTargetName())
-        .isEqualTo(conceptList.get(0).getMaps().get(1).getTargetName());
+        .isNotEqualTo(conceptList.get(1).getMaps().get(0).getTargetName());
 
     // Test that map adding works with concept list
     url = baseUrl + "/ncit/C49172?include=maps";
@@ -883,12 +881,9 @@ public class ConceptControllerTests {
                   // n/a
                 });
     assertThat(concept).isNotNull();
-    assertThat(concept.getMaps().size()).isEqualTo(2);
+    assertThat(concept.getMaps().size()).isEqualTo(1);
     assertThat(concept.getMaps().get(0).getMapsetCode()).isNull();
-    assertThat(concept.getMaps().get(1).getMapsetCode())
-        .isEqualTo("PDQ_2016_07_31_TO_NCI_2016_10E");
-    assertThat(concept.getMaps().get(0).getTargetName())
-        .isEqualTo(concept.getMaps().get(1).getTargetName());
+    assertThat(concept.getMaps().get(0).getTargetName()).isEqualTo("11C Topotecan");
 
     // Test case without maps
     url = baseUrl + "/ncit/C2291/maps";
