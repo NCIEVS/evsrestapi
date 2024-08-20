@@ -226,37 +226,39 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
             && fields[14].contains("ICD10")) {
           // |SNOMEDCT_US_2020_09_01 to ICD10CM_2021 Mappings
           // |SNOMEDCT_US_2022_03_01 to ICD10_2016 Mappings
-          final ConceptMap map = new ConceptMap();
-          mapsetInfoMap.put(fields[0], map);
-          map.setSourceName("SNOMEDCT_US");
-          map.setSourceTerminology("SNOMEDCT_US");
-          map.setSourceTerminologyVersion(
+          final ConceptMap info = new ConceptMap();
+          mapsetInfoMap.put(fields[0], info);
+          info.setSource("snomedct_us"); // evsrestapi terminology
+          info.setSourceTerminology("SNOMEDCT_US"); // uiLabel
+          info.setSourceTerminologyVersion(
               fields[14].replaceFirst("(.*) to .*", "$1").replaceFirst("SNOMEDCT_US_", ""));
-          map.setTargetName(fields[14].replaceFirst(".* to ([^ ]+)_.*", "$1"));
-          map.setTargetTerminology(fields[14].replaceFirst(".* to ([^ ]+)_.*", "$1"));
-          map.setTargetTerminologyVersion(fields[14].replaceFirst(".* to [^ ]+_([^ ]+).*", "$1"));
-          map.setMapsetCode(fields[14].replaceAll(" ", "_"));
+          info.setTarget(fields[14].replaceFirst(".* to ([^ ]+)_.*", "$1").toLowerCase());
+          info.setTargetName(fields[14].replaceFirst(".* to ([^ ]+)_.*", "$1"));
+          info.setTargetTerminology(fields[14].replaceFirst(".* to ([^ ]+)_.*", "$1"));
+          info.setTargetTerminologyVersion(fields[14].replaceFirst(".* to [^ ]+_([^ ]+).*", "$1"));
+          info.setMapsetCode(fields[14].replaceAll(" ", "_"));
           codeNameMap.put(fields[0], fields[14]);
 
         } else if (fields[11].equals("PDQ")
             && fields[12].equals("XM")
             && fields[14].contains("NCI")) {
           // PDQ_2016_07_31 to NCI_2024_06D Mappings
-          final ConceptMap map = new ConceptMap();
-          mapsetInfoMap.put(fields[0], map);
-          map.setSourceName("PDQ");
-          map.setSourceTerminology("PDQ");
-          map.setSourceTerminologyVersion(
+          final ConceptMap info = new ConceptMap();
+          mapsetInfoMap.put(fields[0], info);
+          info.setSource("pdq");
+          info.setSourceTerminology("PDQ");
+          info.setSourceTerminologyVersion(
               fields[14].replaceFirst("(.*) to .*", "$1").replaceFirst("PDQ_", ""));
-          map.setTargetName("NCI Thesaurus");
-          map.setTargetTerminology("NCI");
+          info.setTarget("nci");
+          info.setTargetName("NCI");
+          info.setTargetTerminology("NCI Thesaurus");
           // Compute EVSRESTAPI-style version for NCIt.
-          map.setTargetTerminologyVersion(
+          info.setTargetTerminologyVersion(
               fields[14]
                   .replaceFirst(".* to NCI_20([^ ]+).*", "$1")
                   .replaceFirst("_", ".")
                   .toLowerCase());
-          map.setMapsetCode(fields[14].replaceAll(" ", "_"));
+          info.setMapsetCode(fields[14].replaceAll(" ", "_"));
           codeNameMap.put(fields[0], fields[14]);
         }
       }
@@ -289,7 +291,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
         final gov.nih.nci.evs.api.model.ConceptMap info = mapsetInfoMap.get(fields[0]);
         final gov.nih.nci.evs.api.model.ConceptMap map = new gov.nih.nci.evs.api.model.ConceptMap();
-        map.setSource(info.getSourceName());
+        map.setSource(info.getSource());
         map.setSourceCode(fields[8]);
         map.setSourceTerminology(info.getSourceTerminology());
         map.setSourceName(
@@ -302,19 +304,21 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         if (!mapsetInfoMap.containsKey(fields[0])) {
           throw new Exception("Encountered unsupported MRMAP CUI = " + fields[0]);
         }
-        map.setTargetTerminology(info.getTargetName());
+        map.setTarget(info.getTarget());
+        map.setTargetTerminology(info.getTargetTerminology());
         map.setTargetTerminologyVersion(info.getTargetTerminologyVersion());
         map.setTargetName(
             fields[16].isEmpty() || fields[16].equals("100051")
                 ? ""
                 : (codeNameMap.containsKey(fields[16])
                     ? codeNameMap.get(fields[16])
-                    : codeNameMap.get(info.getTargetTerminology() + fields[16])));
+                    : codeNameMap.get(info.getTargetName() + fields[16])));
         map.setType(fields[12]);
         map.setGroup(fields[2]);
         map.setRank(fields[3]);
         map.setRule(fields[20]);
         map.setMapsetCode(info.getMapsetCode());
+        logger.info("XXX map = " + map);
         mapCt++;
 
         // Fix source name if null
@@ -397,18 +401,14 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
               .add(
                   new Property(
                       "sourceTerminology",
-                      info.getSourceTerminology() != null
-                          ? info.getSourceTerminology().toLowerCase()
-                          : "not found"));
+                      info.getSourceTerminology() != null ? info.getSource() : "not found"));
           mapset
               .getProperties()
               .add(
                   new Property(
                       "targetTerminology",
-                      info.getTargetTerminology() != null
-                          // Fix terminology for NCI as endpoint of PDQ
-                          ? info.getTargetTerminology().replaceFirst("^NCI$", "ncit").toLowerCase()
-                          : "not found"));
+                      info.getTargetTerminology() != null ? info.getTarget() : "not found"));
+
           mapset
               .getProperties()
               .add(
@@ -426,6 +426,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
                           ? map.getTargetTerminologyVersion()
                           : "not found"));
           mapsetMap.put(fields[0], mapset);
+          logger.info("XXX mapset = " + mapset);
           mapsetCt++;
         }
         mapsetMap.get(fields[0]).getMaps().add(map);

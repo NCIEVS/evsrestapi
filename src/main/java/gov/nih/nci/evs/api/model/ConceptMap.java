@@ -129,8 +129,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
     group = other.getGroup();
     rank = other.getRank();
     rule = other.getRule();
-    targetName = other.getTargetName();
-    targetTermType = other.getTargetTermType();
+    source = other.getSource();
     sourceCode = other.getSourceCode();
     sourceName = other.getSourceName();
     sourceTermType = other.getSourceTermType();
@@ -140,6 +139,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
     target = other.getTarget();
     targetCode = other.getTargetCode();
     targetName = other.getTargetName();
+    targetTermType = other.getTargetTermType();
     targetTerminology = other.getTargetTerminology();
     targetTerminologyVersion = other.getTargetTerminologyVersion();
     targetLoaded = other.getTargetLoaded();
@@ -165,7 +165,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
    *
    * @return the source
    */
-  @Schema(description = "Source terminology of the map")
+  @Schema(description = "Terminology of the source code, e.g. 'ncit'")
   public String getSource() {
     return source;
   }
@@ -292,6 +292,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
   /**
    * @return the target
    */
+  @Schema(description = "Terminology of the target code, e.g. 'ncit'")
   public String getTarget() {
     return target;
   }
@@ -391,7 +392,9 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
    *
    * @return the source terminology
    */
-  @Schema(description = "Terminology of the source code")
+  @Schema(
+      description =
+          "Human-readable label for the terminology of the source code, e.g. 'NCI Thesaurus'")
   public String getSourceTerminology() {
     return sourceTerminology;
   }
@@ -440,7 +443,9 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
    *
    * @return the target terminology
    */
-  @Schema(description = "Terminology of the target code")
+  @Schema(
+      description =
+          "Human-readable label for the terminology of the target code, e.g. 'NCI Thesaurus'")
   public String getTargetTerminology() {
     return targetTerminology;
   }
