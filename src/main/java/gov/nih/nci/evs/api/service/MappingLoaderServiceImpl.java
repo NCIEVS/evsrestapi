@@ -82,13 +82,15 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
               !conceptSplit[0].replace("\"", "").isBlank()
                   ? conceptSplit[0].replace("\"", "")
                   : "N/A");
+          conceptToAdd.setSource(metadata[5]);
           conceptToAdd.setSourceName(
               !conceptSplit[1].replace("\"", "").isBlank()
                   ? conceptSplit[1].replace("\"", "")
                   : "N/A");
-          conceptToAdd.setSource(conceptSplit[2]);
+          conceptToAdd.setSourceTerminology(conceptSplit[2]);
           conceptToAdd.setType(conceptSplit[6]);
           conceptToAdd.setRank(conceptSplit[7]);
+          conceptToAdd.setTarget(metadata[7]);
           conceptToAdd.setTargetCode(
               !conceptSplit[8].replace("\"", "").isBlank()
                   ? conceptSplit[8].replace("\"", "")
@@ -136,11 +138,14 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           conceptToAdd.setMapsetCode(metadata[0]);
           conceptToAdd.setSourceCode(conceptSplit[0].strip());
           conceptToAdd.setSourceName(sourceName);
-          conceptToAdd.setSource(sourceTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
+          conceptToAdd.setSource(metadata[5]);
+          conceptToAdd.setSourceTerminology(
+              sourceTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
           conceptToAdd.setType("mapsTo");
           conceptToAdd.setRank("1");
           conceptToAdd.setTargetCode(conceptSplit[1].strip());
           conceptToAdd.setTargetName(targetName);
+          conceptToAdd.setTarget(metadata[7]);
           conceptToAdd.setTargetTerminology(
               targetTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
           conceptToAdd.setTargetTerminologyVersion(targetTerminology.getVersion());
@@ -177,6 +182,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                 ? conceptSplit[4].replace("\"", "")
                 : "N/A");
         conceptToAdd.setTargetTermType(conceptSplit[5]);
+        conceptToAdd.setTarget(conceptSplit[6]);
         conceptToAdd.setTargetTerminology(conceptSplit[6]);
         conceptToAdd.setTargetTerminologyVersion(conceptSplit[7].replace("\"", ""));
         maps.add(conceptToAdd);

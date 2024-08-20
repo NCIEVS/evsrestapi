@@ -143,6 +143,54 @@ public class ConceptControllerTests {
         .isEqualTo(0);
     assertThat(concept.getRoles().size()).isGreaterThan(0);
     assertThat(concept.getRoles().stream().filter(p -> p.getCode() != null).count()).isEqualTo(0);
+
+    // test that mappings are added
+    assertThat(concept.getMaps().size()).isEqualTo(8);
+    assertThat(concept.getMaps().get(7).getMapsetCode())
+        .isEqualTo("PDQ_2016_07_31_TO_NCI_2016_10E");
+    assertThat(concept.getMaps().get(7).getTargetCode()).isEqualTo("C3224");
+  }
+
+  /**
+   * Test get concept with extra mapping maps.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptExtraMappings() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // Test concept with duplicate mapping map to solo map
+    url = baseUrl + "/ncit/C957?include=maps";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C957");
+    assertThat(concept.getName()).isEqualTo("10-Deacetyltaxol");
+    assertThat(concept.getTerminology()).isEqualTo("ncit");
+    assertThat(concept.getMaps().size()).isEqualTo(1);
+
+    // Test concept with both duplicate mapping map and new mapping map
+    url = baseUrl + "/ncit/C49172?include=maps";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C49172");
+    assertThat(concept.getName()).isEqualTo("11C Topotecan");
+    assertThat(concept.getTerminology()).isEqualTo("ncit");
+    assertThat(concept.getMaps().size()).isEqualTo(2);
+    assertThat(concept.getMaps().get(0).getMapsetCode()).isNull();
+    assertThat(concept.getMaps().get(1).getMapsetCode())
+        .isEqualTo("PDQ_2016_07_31_TO_NCI_2016_10E");
   }
 
   /**
@@ -767,6 +815,75 @@ public class ConceptControllerTests {
                 });
     log.info("  list = " + list.size());
     assertThat(list).isNotEmpty();
+
+    // Test case without maps
+    url = baseUrl + "/ncit/C2291/maps";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<ConceptMap>>() {
+                  // n/a
+                });
+    assertThat(list).isEmpty();
+
+    // Test case with duplicate maps (should only have one)
+    url = baseUrl + "/ncit/C957?include=maps";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    Concept concept =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<Concept>() {
+                  // n/a
+                });
+    assertThat(concept).isNotNull();
+    assertThat(concept.getMaps().size()).isEqualTo(1);
+
+    // Test case with duplicate maps (should have two, one regular and one mapping map)
+    url = baseUrl + "/ncit?include=maps&list=C957,C49172";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    List<Concept> conceptList =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(conceptList).isNotNull();
+    assertThat(conceptList.size()).isEqualTo(2);
+    assertThat(conceptList.get(0).getMaps().get(0).getMapsetCode()).isNull();
+    assertThat(conceptList.get(1).getMaps().get(0).getMapsetCode()).isNull();
+    assertThat(conceptList.get(0).getMaps().get(0).getTargetName())
+        .isNotEqualTo(conceptList.get(1).getMaps().get(0).getTargetName());
+
+    // Test that map adding works with concept list
+    url = baseUrl + "/ncit/C49172?include=maps";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    concept =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<Concept>() {
+                  // n/a
+                });
+    assertThat(concept).isNotNull();
+    assertThat(concept.getMaps().size()).isEqualTo(1);
+    assertThat(concept.getMaps().get(0).getMapsetCode()).isNull();
+    assertThat(concept.getMaps().get(0).getTargetName()).isEqualTo("11C Topotecan");
 
     // Test case without maps
     url = baseUrl + "/ncit/C2291/maps";

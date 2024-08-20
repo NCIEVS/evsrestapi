@@ -19,7 +19,9 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
   private String mapsetCode;
 
   /** The source. */
-  @Field(type = FieldType.Keyword)
+  @MultiField(
+      mainField = @Field(type = FieldType.Text),
+      otherFields = {@InnerField(suffix = "keyword", type = FieldType.Keyword)})
   private String source;
 
   /** The source name. */
@@ -63,6 +65,12 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
   /** The rule. */
   @Field(type = FieldType.Keyword)
   private String rule;
+
+  /** The target. */
+  @MultiField(
+      mainField = @Field(type = FieldType.Text),
+      otherFields = {@InnerField(suffix = "keyword", type = FieldType.Keyword)})
+  private String target;
 
   /** The target name. */
   @MultiField(
@@ -129,6 +137,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
     sourceTerminology = other.getSourceTerminology();
     sourceTerminologyVersion = other.getSourceTerminologyVersion();
     sourceLoaded = other.getSourceLoaded();
+    target = other.getTarget();
     targetCode = other.getTargetCode();
     targetName = other.getTargetName();
     targetTerminology = other.getTargetTerminology();
@@ -278,6 +287,20 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
    */
   public void setRule(final String rule) {
     this.rule = rule;
+  }
+
+  /**
+   * @return the target
+   */
+  public String getTarget() {
+    return target;
+  }
+
+  /**
+   * @param target the target to set
+   */
+  public void setTarget(String target) {
+    this.target = target;
   }
 
   /**
@@ -494,6 +517,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
         sourceTerminology,
         sourceTerminologyVersion,
         sourceLoaded,
+        target,
         targetCode,
         targetName,
         targetTermType,
@@ -521,6 +545,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
         && Objects.equals(sourceTerminology, other.sourceTerminology)
         && Objects.equals(sourceTerminologyVersion, other.sourceTerminologyVersion)
         && Objects.equals(sourceLoaded, other.sourceLoaded)
+        && Objects.equals(target, other.target)
         && Objects.equals(targetCode, other.targetCode)
         && Objects.equals(targetName, other.targetName)
         && Objects.equals(targetTermType, other.targetTermType)
