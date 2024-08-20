@@ -265,6 +265,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         map.setSourceTerminologyVersion(mapsetVersionMap.get(fields[0]));
         map.setTargetCode(fields[16].isEmpty() || fields[16].equals("100051") ? "" : fields[16]);
         map.setTargetTermType("PT");
+        map.setTarget(mapsetToTerminologyMap.get(fields[0]).split("_")[0]);
         map.setTargetTerminology(mapsetToTerminologyMap.get(fields[0]).split("_")[0]);
         map.setTargetTerminologyVersion(mapsetToTerminologyMap.get(fields[0]).split("_")[1]);
         map.setTargetName(

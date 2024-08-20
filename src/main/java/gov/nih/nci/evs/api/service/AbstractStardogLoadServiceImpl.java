@@ -247,9 +247,11 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                             new gov.nih.nci.evs.api.model.ConceptMap(map);
                         copy.setSourceCode(c.getCode());
                         copy.setSourceName(c.getName());
+                        copy.setSource(c.getTerminology());
                         copy.setSourceTerminology(c.getTerminology());
                         if (map.getTargetTerminology().split(" ").length > 1) {
                           copy.setTargetTerminology(mapterm);
+                          copy.setTarget(mapterm);
                           copy.setTargetTerminologyVersion(
                               map.getTargetTerminology().split(" ")[1]);
                         }
