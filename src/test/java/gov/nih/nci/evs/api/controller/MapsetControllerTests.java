@@ -389,4 +389,53 @@ public class MapsetControllerTests {
             .compareTo(mapList.getMaps().get(1).getSourceCode())
         > 0);
   }
+
+  /**
+   * Test mapsets with retired concepts
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testMapsetsNoRetiredConcepts() throws Exception {
+    MvcResult result = null;
+    String content = null;
+    result = mvc.perform(get(baseUrl)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+
+    result =
+        mvc.perform(get(baseUrl + "/NCIt_Maps_To_ICDO3/maps?term=C4303"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    ConceptMapResultList mapList =
+        new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    assert (mapList.getMaps() == null
+        || mapList.getMaps().stream()
+            .noneMatch(
+                map ->
+                    "C34801".equals(map.getSourceCode()) || "C34801".equals(map.getTargetCode())));
+
+    result =
+        mvc.perform(get(baseUrl + "/NCIt_Maps_To_GDC/maps?term=C50583"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    assert (mapList.getMaps() == null
+        || mapList.getMaps().stream()
+            .noneMatch(
+                map -> "C2915".equals(map.getSourceCode()) || "C2915".equals(map.getTargetCode())));
+
+    result =
+        mvc.perform(get(baseUrl + "/NCIt_Maps_To_MedDRA/maps?term=C34801"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    assert (mapList.getMaps() == null
+        || mapList.getMaps().stream()
+            .noneMatch(
+                map ->
+                    "C34801".equals(map.getSourceCode()) || "C34801".equals(map.getTargetCode())));
+  }
 }
