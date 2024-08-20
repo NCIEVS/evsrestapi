@@ -239,7 +239,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                   // logger.info(" concept = " + c.getCode() + " " + c.getName());
                   c.setExtensions(mainTypeHierarchy.getExtensions(c));
                   handleHistory(terminology, c);
-                  if (c.getMaps().size() > 0) {
+                  if (c.getMaps().size() > 0 && c.getActive()) {
                     for (final gov.nih.nci.evs.api.model.ConceptMap map : c.getMaps()) {
                       final String mapterm = map.getTargetTerminology().split(" ")[0];
                       if (mapsets.containsKey(mapterm)) {
