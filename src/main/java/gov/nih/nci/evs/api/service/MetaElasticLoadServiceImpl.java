@@ -357,9 +357,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           final String mapsetUri =
               applicationProperties.getConfigBaseUri()
                   + "/mapping-"
-                  + info.getSourceTerminology().toLowerCase().replaceFirst("snomedct_us", "snomed")
+                  + info.getSource().replaceFirst("snomedct_us", "snomed")
                   + "-"
-                  + info.getTargetTerminology().toLowerCase().replaceFirst("ncit", "nci")
+                  + info.getTarget().replaceFirst("ncit", "nci")
                   + ".html";
           try (final InputStream is = new URL(mapsetUri).openConnection().getInputStream()) {
             final String welcomeText = IOUtils.toString(is, StandardCharsets.UTF_8);
