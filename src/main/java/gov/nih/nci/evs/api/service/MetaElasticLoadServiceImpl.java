@@ -318,7 +318,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         map.setRank(fields[3]);
         map.setRule(fields[20]);
         map.setMapsetCode(info.getMapsetCode());
-        logger.info("XXX map = " + map);
         mapCt++;
 
         // Fix source name if null
@@ -426,7 +425,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
                           ? map.getTargetTerminologyVersion()
                           : "not found"));
           mapsetMap.put(fields[0], mapset);
-          logger.info("XXX mapset = " + mapset);
           mapsetCt++;
         }
         mapsetMap.get(fields[0]).getMaps().add(map);
