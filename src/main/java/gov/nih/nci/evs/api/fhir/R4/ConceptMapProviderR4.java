@@ -1,4 +1,4 @@
-package gov.nih.nci.evs.api.fhir;
+package gov.nih.nci.evs.api.fhir.R4;
 
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.IdParam;
@@ -13,6 +13,8 @@ import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
+import gov.nih.nci.evs.api.fhir.FHIRServerResponseException;
+import gov.nih.nci.evs.api.fhir.FhirUtility;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Property;

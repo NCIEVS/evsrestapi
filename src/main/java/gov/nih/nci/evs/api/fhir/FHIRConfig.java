@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.fhir;
 import ca.uhn.fhir.rest.api.EncodingEnum;
 import ca.uhn.fhir.rest.server.ApacheProxyAddressStrategy;
 import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
+import gov.nih.nci.evs.api.fhir.R4.HapiR4RestfulServlet;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

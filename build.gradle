@@ -78,7 +78,7 @@ dependencies {
 
   // Use version 2 with spring boot 3
   // custom location => springdoc.swagger-ui.path=/swagger-ui/index.html
-  implementation("org.springdoc:springdoc-openapi-ui:1.8.0") {
+  implementation('org.springdoc:springdoc-openapi-ui:1.8.0') {
     exclude group: "org.webjars", module: "swagger-ui"
   }
   implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -112,7 +112,10 @@ dependencies {
   implementation('com.fasterxml.jackson.core:jackson-core:2.15.2') {
     exclude group: 'com.google.guava', module: 'guava'
   }
-  implementation("ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.8.3") {
+  implementation('ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.8.3') {
+    exclude group: "com.google.guava", module: "guava"
+  }
+  implementation('ca.uhn.hapi.fhir:hapi-fhir-structures-r5:6.8.3') {
     exclude group: "com.google.guava", module: "guava"
   }
   implementation("ca.uhn.hapi.fhir:hapi-fhir-server:6.8.3") {

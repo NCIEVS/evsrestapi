@@ -1,4 +1,4 @@
-package gov.nih.nci.evs.api.fhir;
+package gov.nih.nci.evs.api.fhir.R4;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.context.support.IValidationSupport;

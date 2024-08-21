@@ -1,8 +1,9 @@
-package gov.nih.nci.evs.api.fhir;
+package gov.nih.nci.evs.api.fhir.R4;
 
 import static java.lang.String.format;
 
 import ca.uhn.fhir.rest.param.NumberParam;
+import gov.nih.nci.evs.api.fhir.FHIRServerResponseException;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import java.util.Date;
