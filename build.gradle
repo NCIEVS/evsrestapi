@@ -1,4 +1,4 @@
-buildscript {
+ buildscript {
   ext {
     springBootVersion = '2.7.17'
     // Remove this line to see what version is favored by springBootVersion
@@ -144,15 +144,18 @@ dependencies {
    * Test Dependencies
   */
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
-  testImplementation 'junit:junit:4.13.1'
-  testRuntimeOnly "org.junit.platform:junit-platform-commons:1.7.0"
-  testRuntimeOnly "org.junit.platform:junit-platform-runner:1.7.0"
+  testImplementation 'org.junit.jupiter:junit-jupiter-params:5.6.0'
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.6.0'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.6.0'
+  testRuntimeOnly 'org.junit.platform:junit-platform-commons:1.7.0'
+  testRuntimeOnly 'org.junit.platform:junit-platform-runner:1.7.0'
   testCompileOnly 'org.projectlombok:lombok:1.18.32'
   testAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
 
 }
 
 test {
+  useJUnitPlatform{}
   // Args to pass when running the tests to ensure the cglib can be accessed and avoid InaccessibleObjectException
   jvmArgs('-Xmx8G', '--add-opens', 'java.base/java.lang=ALL-UNNAMED')
   // Set the active profile to use our application-test.yml file from test resources

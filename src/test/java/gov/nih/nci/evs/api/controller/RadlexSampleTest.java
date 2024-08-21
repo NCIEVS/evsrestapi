@@ -1,16 +1,16 @@
 package gov.nih.nci.evs.api.controller;
 
-import org.junit.BeforeClass;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /** RadLex samples test. */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class RadlexSampleTest extends SampleTest {
@@ -24,7 +24,7 @@ public class RadlexSampleTest extends SampleTest {
    *
    * @throws Exception the exception
    */
-  @BeforeClass
+  @BeforeAll
   public static void setupClass() throws Exception {
     loadSamples("radlex", "src/test/resources/samples/radlex-samples.txt");
   }
