@@ -1,11 +1,11 @@
 package gov.nih.nci.evs.api.controller;
 
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertThrows;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
@@ -23,9 +23,9 @@ import gov.nih.nci.evs.api.service.TermSuggestionFormServiceImpl;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Objects;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -40,7 +40,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -50,7 +50,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 /** Test class for the Term Form Controller */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 public class TermSuggestionFormControllerTests {
@@ -82,7 +82,7 @@ public class TermSuggestionFormControllerTests {
   private ObjectMapper objectMapper;
 
   /** Setup method to create a mock request for testing */
-  @Before
+  @BeforeEach
   public void setUp() {
     baseUrl = "/api/v1/suggest/";
     termSuggestionFormController =
