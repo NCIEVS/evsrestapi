@@ -3,7 +3,7 @@ package gov.nih.nci.evs.api.fhir.R4;
 import static java.lang.String.format;
 
 import ca.uhn.fhir.rest.param.NumberParam;
-import gov.nih.nci.evs.api.fhir.FHIRServerResponseException;
+import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import java.util.Date;
@@ -25,8 +25,10 @@ import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
+import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.UriType;
@@ -307,8 +309,7 @@ public final class FhirUtilityR4 {
   public static void required(final String param1Name, final Object param1) {
     if (param1 == null) {
       throw exception(
-          format("Must use '%s' parameter.", param1Name),
-          OperationOutcome.IssueType.INVARIANT,
+          format("Must use '%s' parameter.", param1Name), IssueType.INVARIANT,
           400);
     }
   }
@@ -325,8 +326,7 @@ public final class FhirUtilityR4 {
       final String param1Name, final Object param1, final String param2Name, final Object param2) {
     if (param1 != null && param2 != null) {
       throw exception(
-          format("Use one of '%s' or '%s' parameters.", param1Name, param2Name),
-          OperationOutcome.IssueType.INVARIANT,
+          format("Use one of '%s' or '%s' parameters.", param1Name, param2Name), IssueType.INVARIANT,
           400);
     }
   }
@@ -355,7 +355,7 @@ public final class FhirUtilityR4 {
           format(
               "Input parameter '%s' is not supported%s",
               paramName, (additionalDetail == null ? "." : format(" %s", additionalDetail)));
-      throw exception(message, OperationOutcome.IssueType.NOTSUPPORTED, 400);
+      throw exception(message, IssueType.NOTSUPPORTED, 400);
     }
   }
 
@@ -432,8 +432,7 @@ public final class FhirUtilityR4 {
       throw exception(
           format(
               "One of '%s' or '%s' or '%s' parameters must be supplied.",
-              param1Name, param2Name, param3Name),
-          OperationOutcome.IssueType.INVARIANT,
+              param1Name, param2Name, param3Name), IssueType.INVARIANT,
           400);
     } else {
       mutuallyExclusive(param1Name, param1, param2Name, param2);
@@ -499,15 +498,13 @@ public final class FhirUtilityR4 {
   public static String recoverCode(final CodeType code, final Coding coding) {
     if (code == null && coding == null) {
       throw exception(
-          "Use either 'code' or 'coding' parameters, not both.",
-          OperationOutcome.IssueType.INVARIANT,
+          "Use either 'code' or 'coding' parameters, not both.", IssueType.INVARIANT,
           400);
     } else if (code != null) {
       if (code.getCode().contains("|")) {
         throw exception(
             "The 'code' parameter cannot supply a codeSystem. "
-                + "Use 'coding' or provide CodeSystem in 'system' parameter.",
-            OperationOutcome.IssueType.NOTSUPPORTED,
+                + "Use 'coding' or provide CodeSystem in 'system' parameter.", IssueType.NOTSUPPORTED,
             400);
       }
       return code.getCode();
@@ -522,7 +519,7 @@ public final class FhirUtilityR4 {
    * @return the FHIR server response exception
    */
   public static FHIRServerResponseException exceptionNotSupported(final String message) {
-    return exception(message, OperationOutcome.IssueType.NOTSUPPORTED, 501);
+    return exception(message, IssueType.NOTSUPPORTED, 501);
   }
 
   /**
@@ -530,11 +527,11 @@ public final class FhirUtilityR4 {
    *
    * @param message the message
    * @param issueType the issue type
-   * @param theStatusCode the the status code
+   * @param theStatusCode the status code
    * @return the FHIR server response exception
    */
-  public static FHIRServerResponseException exception(
-      final String message, final OperationOutcome.IssueType issueType, final int theStatusCode) {
+  public static FHIRServerResponseException exception(final String message, final IssueType issueType,
+                                                      final int theStatusCode) {
     return exception(message, issueType, theStatusCode, null);
   }
 
@@ -548,14 +545,12 @@ public final class FhirUtilityR4 {
    * @return the FHIR server response exception
    */
   public static FHIRServerResponseException exception(
-      final String message,
-      final OperationOutcome.IssueType issueType,
+      final String message, final IssueType issueType,
       final int theStatusCode,
       final Throwable e) {
     final OperationOutcome outcome = new OperationOutcome();
-    final OperationOutcome.OperationOutcomeIssueComponent component =
-        new OperationOutcome.OperationOutcomeIssueComponent();
-    component.setSeverity(OperationOutcome.IssueSeverity.ERROR);
+    final OperationOutcomeIssueComponent component = new OperationOutcomeIssueComponent();
+    component.setSeverity(IssueSeverity.ERROR);
     component.setCode(issueType);
     component.setDiagnostics(message);
     outcome.addIssue(component);
@@ -570,11 +565,10 @@ public final class FhirUtilityR4 {
    * @param isCode the is code
    * @return the parameters. parameters parameter component
    */
-  public static Parameters.ParametersParameterComponent createProperty(
+  public static ParametersParameterComponent createProperty(
       final String propertyName, final Object propertyValue, final boolean isCode) {
     // Make a property with code as "valueCode"
-    final Parameters.ParametersParameterComponent property =
-        new Parameters.ParametersParameterComponent().setName("property");
+    final ParametersParameterComponent property = new ParametersParameterComponent().setName("property");
     property.addPart().setName("code").setValue(new CodeType(propertyName));
 
     // Determine the value
