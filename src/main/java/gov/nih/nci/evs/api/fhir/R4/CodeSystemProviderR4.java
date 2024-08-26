@@ -15,14 +15,14 @@ import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.controller.ConceptController;
-import gov.nih.nci.evs.api.util.FHIRServerResponseException;
-import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
+import gov.nih.nci.evs.api.util.FHIRServerResponseException;
+import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -336,10 +336,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
 
   /**
    * Validate code implicit.
-   *
-   * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-validate-code.html
-   * </pre>
    *
    * @param request the request
    * @param response the response
@@ -736,14 +732,12 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   public CodeSystem getConceptMap(final ServletRequestDetails details, @IdParam final IdType id)
       throws Exception {
     try {
-
       final List<CodeSystem> candidates = findPossibleCodeSystems(id, null, null, null);
       for (final CodeSystem set : candidates) {
         if (id.getIdPart().equals(set.getId())) {
           return set;
         }
       }
-
       throw FhirUtilityR4.exception(
           "Code system not found = " + (id == null ? "null" : id.getIdPart()),
           IssueType.NOTFOUND,

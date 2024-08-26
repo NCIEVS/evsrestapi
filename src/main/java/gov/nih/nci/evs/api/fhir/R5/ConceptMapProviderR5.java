@@ -1,4 +1,3 @@
 package gov.nih.nci.evs.api.fhir.R5;
 
-public class ConceptMapProviderR5 {
-}
+public class ConceptMapProviderR5 {}
