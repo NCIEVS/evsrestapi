@@ -68,9 +68,11 @@ public class ConceptMapProviderR5 implements IResourceProvider {
 
   /**
    * Perform the lookup in the instance map.
+   *
    * <pre>
    *    <a href="https://hl7.org/fhir/R5/conceptmap-operation-translate.html">Conceptmap operation ref </a>"
    * </pre>
+   *
    * @param request the request
    * @param response the response
    * @param details the details
@@ -194,16 +196,17 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       throw e;
     } catch (final Exception e) {
       logger.error("Error occurred:", e);
-      throw FhirUtilityR5.exception(
-          "Failed to translate concept map", IssueType.EXCEPTION, 500);
+      throw FhirUtilityR5.exception("Failed to translate concept map", IssueType.EXCEPTION, 500);
     }
   }
 
   /**
    * Perform the lookup in the implicit map.
+   *
    * <pre>
    *  <a href="https://hl7.org/fhir/R5/conceptmap-operation-translate.html">Conceptmap operation ref</a>
    * </pre>
+   *
    * @param request the request
    * @param response the response
    * @param details the details
@@ -326,8 +329,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       throw e;
     } catch (final Exception e) {
       logger.error("Error occurred: ", e);
-      throw FhirUtilityR5.exception(
-          "Failed to translate concept map", IssueType.EXCEPTION, 500);
+      throw FhirUtilityR5.exception("Failed to translate concept map", IssueType.EXCEPTION, 500);
     }
   }
 
@@ -363,7 +365,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       for (final Concept mapset : mapsets) {
         final List<Property> props = mapset.getProperties();
         if (props.stream()
-                 .anyMatch(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))) {
+            .anyMatch(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))) {
           continue;
         }
         final ConceptMap cm = FhirUtilityR5.toR5(mapset);
@@ -398,8 +400,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       throw e;
     } catch (final Exception e) {
       logger.error("Unexpected error", e);
-      throw FhirUtilityR5.exception(
-          "Failed to find concept maps", IssueType.EXCEPTION, 500);
+      throw FhirUtilityR5.exception("Failed to find concept maps", IssueType.EXCEPTION, 500);
     }
   }
 
@@ -433,8 +434,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       throw e;
     } catch (final Exception e) {
       logger.error("Unexpected exception", e);
-      throw FhirUtilityR5.exception(
-          "Failed to get concept map", IssueType.EXCEPTION, 500);
+      throw FhirUtilityR5.exception("Failed to get concept map", IssueType.EXCEPTION, 500);
     }
   }
 
@@ -473,7 +473,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       for (final Concept mapset : mapsets) {
         final List<Property> props = mapset.getProperties();
         if (props.stream()
-                 .anyMatch(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))) {
+            .anyMatch(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))) {
           continue;
         }
         final ConceptMap cm = FhirUtilityR5.toR5(mapset);
@@ -516,8 +516,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       throw e;
     } catch (final Exception e) {
       logger.error("Unexpected error", e);
-      throw FhirUtilityR5.exception(
-          "Failed to find concept maps", IssueType.EXCEPTION, 500);
+      throw FhirUtilityR5.exception("Failed to find concept maps", IssueType.EXCEPTION, 500);
     }
   }
 }
