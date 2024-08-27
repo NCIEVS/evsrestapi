@@ -50,7 +50,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   private static Logger logger = LoggerFactory.getLogger(ConceptMapProviderR4.class);
 
   /** the query service. */
-  @Autowired ElasticQueryService queryService;
+  @Autowired ElasticQueryService esQueryService;
 
   /** The code to translate. */
   String codeToTranslate = "";
@@ -58,7 +58,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   /**
    * Perform the lookup in the instance map.
    *
-   * @see https://hl7.org/fhir/R4/conceptmap-operation-translate.html
+   * <p>see https://hl7.org/fhir/R4/conceptmap-operation-translate.html
+   *
    * @param request the request
    * @param response the response
    * @param details the details
@@ -118,7 +119,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           findPossibleConceptMaps(id, null, system, url, version, source, target);
       for (final ConceptMap mapping : cm) {
         final List<gov.nih.nci.evs.api.model.ConceptMap> maps =
-            queryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
+            esQueryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
         List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = new ArrayList<>();
         if (reverse != null && reverse.getValue()) {
           filteredMaps =
@@ -247,7 +248,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           findPossibleConceptMaps(null, null, system, url, version, source, target);
       for (final ConceptMap mapping : cm) {
         final List<gov.nih.nci.evs.api.model.ConceptMap> maps =
-            queryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
+            esQueryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
         List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = new ArrayList<>();
         if (reverse != null && reverse.getValue()) {
           filteredMaps =
@@ -348,7 +349,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           NumberParam offset)
       throws Exception {
     try {
-      final List<Concept> mapsets = queryService.getMapsets(new IncludeParam("properties"));
+      final List<Concept> mapsets = esQueryService.getMapsets(new IncludeParam("properties"));
 
       final List<ConceptMap> list = new ArrayList<>();
       for (final Concept mapset : mapsets) {
@@ -425,7 +426,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
         return new ArrayList<>(0);
       }
 
-      final List<Concept> mapsets = queryService.getMapsets(new IncludeParam("properties"));
+      final List<Concept> mapsets = esQueryService.getMapsets(new IncludeParam("properties"));
 
       final List<ConceptMap> list = new ArrayList<>();
       for (final Concept mapset : mapsets) {
