@@ -70,7 +70,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * Look up implicit
    *
    * <pre>
-   * https://build.fhir.org/codesystem-operation-lookup.html
+   * <a href="https://build.fhir.org/codesystem-operation-lookup.html">...</a>
    * </pre>
    *
    * @param request the request
@@ -107,7 +107,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
 
       final List<CodeSystem> cs = findPossibleCodeSystems(null, date, system, version);
       final Parameters params = new Parameters();
-      if (cs.size() > 0) {
+      if (!cs.isEmpty()) {
         String codeToLookup = "";
         if (code != null) {
           codeToLookup = code.getCode();
@@ -148,10 +148,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   }
 
   /**
-   * Lookup instance. https://build.fhir.org/codesystem-operation-lookup.html
+   * Lookup instance.
    *
    * <pre>
-   *     https://build.fhir.org/codesystem-operation-lookup.html
+   *     <a href="https://build.fhir.org/codesystem-operation-lookup.html">...</a>
    * </pre>
    *
    * @param request the request
@@ -189,7 +189,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       FhirUtilityR5.notSupported(property, "property");
       final List<CodeSystem> cs = findPossibleCodeSystems(id, date, system, version);
       final Parameters params = new Parameters();
-      if (cs.size() > 0) {
+      if (!cs.isEmpty()) {
         String codeToLookup = "";
         if (code != null) {
           codeToLookup = code.getCode();
@@ -233,7 +233,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * Validate code implicit
    *
    * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-validate-code.html
+   * <a href="https://hl7.org/fhir/R4/codesystem-operation-validate-code.html">...</a>
    * </pre>
    *
    * @param request the request
@@ -280,7 +280,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       FhirUtilityR5.notSupported(systemVersion, "systemVersion");
       final List<CodeSystem> cs = findPossibleCodeSystems(null, null, url, version);
       final Parameters params = new Parameters();
-      if (cs.size() > 0) {
+      if (!cs.isEmpty()) {
         final String codeToValidate = code.getCode();
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
@@ -331,7 +331,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * Validate the code instance
    *
    * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-validate-code.html
+   * <a href="https://hl7.org/fhir/R4/codesystem-operation-validate-code.html">...</a>
    * </pre>
    *
    * @param request the request
@@ -380,7 +380,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       FhirUtilityR5.notSupported(systemVersion, "systemVersion");
       final List<CodeSystem> cs = findPossibleCodeSystems(id, null, url, version);
       final Parameters params = new Parameters();
-      if (cs.size() > 0) {
+      if (!cs.isEmpty()) {
         final String codeToValidate = code.getCode();
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
@@ -431,7 +431,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * Subsumes implicit
    *
    * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
+   * <a href="https://hl7.org/fhir/R4/codesystem-operation-subsumes.html">...</a>
    * </pre>
    *
    * @param request the request
@@ -467,7 +467,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyExclusive(codingA, "codingA", codeA, "codeA");
       final List<CodeSystem> cs = findPossibleCodeSystems(null, null, system, version);
       final Parameters params = new Parameters();
-      if (cs.size() > 0) {
+      if (!cs.isEmpty()) {
         String code1 = "";
         String code2 = "";
         if (codeA != null && codeB != null) {
@@ -514,7 +514,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * Subsumes instance
    *
    * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
+   * <a href="https://hl7.org/fhir/R4/codesystem-operation-subsumes.html">...</a>
    * </pre>
    *
    * @param request the request
@@ -550,7 +550,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyExclusive(codingA, "codingA", codeA, "codeA");
       final List<CodeSystem> cs = findPossibleCodeSystems(null, null, system, version);
       final Parameters params = new Parameters();
-      if (cs.size() > 0) {
+      if (!cs.isEmpty()) {
         String code1 = "";
         String code2 = "";
         if (codeA != null && codeB != null) {
@@ -695,7 +695,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @return the list of code systems
    * @throws Exception exception
    */
-  public List<CodeSystem> findPossibleCodeSystems(
+  private List<CodeSystem> findPossibleCodeSystems(
       @OperationParam(name = "_id") final IdType id,
       @OperationParam(name = "date") final DateRangeParam date,
       @OperationParam(name = "url") final UriType url,
@@ -707,8 +707,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       }
 
       final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
-
       final List<CodeSystem> list = new ArrayList<>();
+      // Find the matching code systems
       for (final Terminology terminology : terms) {
         final CodeSystem cs = FhirUtilityR5.toR5(terminology);
         // Skip non-matching
