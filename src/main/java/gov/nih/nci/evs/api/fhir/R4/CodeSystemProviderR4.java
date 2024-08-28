@@ -90,7 +90,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @return the parameters
    * @throws Exception the exception
    */
-  @Operation(name = "$lookup", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_LOOKUP, idempotent = true)
   public Parameters lookupImplicit(
       final HttpServletRequest request,
       final HttpServletResponse response,
@@ -173,7 +173,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @return the parameters
    * @throws Exception the exception
    */
-  @Operation(name = "$lookup", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_LOOKUP, idempotent = true)
   public Parameters lookupInstance(
       final HttpServletRequest request,
       final HttpServletResponse response,
@@ -355,7 +355,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @return the parameters
    * @throws Exception the exception
    */
-  @Operation(name = "$validate-code", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_VALIDATE_CODE, idempotent = true)
   public Parameters validateCodeInstance(
       final HttpServletRequest request,
       final HttpServletResponse response,
@@ -534,7 +534,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @return the parameters
    * @throws Exception the exception
    */
-  @Operation(name = "$subsumes", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_SUBSUMES, idempotent = true)
   public Parameters subsumesInstance(
       final HttpServletRequest request,
       final HttpServletResponse response,

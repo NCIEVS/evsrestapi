@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.fhir.R4;
 
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.IdParam;
 import ca.uhn.fhir.rest.annotation.Operation;
@@ -82,7 +83,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    *     <p>no support for dependency parameter
    */
-  @Operation(name = "$translate", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_TRANSLATE, idempotent = true)
   public Parameters translateInstance(
       final HttpServletRequest request,
       final HttpServletResponse response,
@@ -149,7 +150,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
                   .collect(Collectors.toList());
         }
 
-        if (filteredMaps.size() > 0) {
+        if (!filteredMaps.isEmpty()) {
           final gov.nih.nci.evs.api.model.ConceptMap map = filteredMaps.get(0);
           params.addParameter("result", true);
           final Parameters.ParametersParameterComponent property =
@@ -190,7 +191,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   /**
    * Perform the lookup in the implicit map.
    *
-   * @see https://hl7.org/fhir/R4/conceptmap-operation-translate.html
+   * @see <a href="https://hl7.org/fhir/R4/conceptmap-operation-translate.html">conceptmap operation translate</a>
    * @param request the request
    * @param response the response
    * @param details the details
@@ -212,7 +213,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    *     <p>no support for dependency parameter
    */
-  @Operation(name = "$translate", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_TRANSLATE, idempotent = true)
   public Parameters translateImplicit(
       final HttpServletRequest request,
       final HttpServletResponse response,
