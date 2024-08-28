@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.fhir.R4;
 
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.IdParam;
 import ca.uhn.fhir.rest.annotation.Operation;
@@ -107,7 +108,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @return the value set
    * @throws Exception the exception
    */
-  @Operation(name = "$expand", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_EXPAND, idempotent = true)
   public ValueSet expandImplicit(
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "valueSet") final ValueSet valueSet,
@@ -249,7 +250,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @return the value set
    * @throws Exception the exception
    */
-  @Operation(name = "$expand", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_EXPAND, idempotent = true)
   public ValueSet expandInstance(
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
@@ -383,7 +384,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @return the parameters
    * @throws Exception the exception
    */
-  @Operation(name = "$validate-code", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_VALIDATE_CODE, idempotent = true)
   public Parameters validateCodeImplicit(
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "context") final UriType context,
@@ -491,7 +492,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @return the parameters
    * @throws Exception the exception
    */
-  @Operation(name = "$validate-code", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_VALIDATE_CODE, idempotent = true)
   public Parameters validateCodeInstance(
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
