@@ -2550,8 +2550,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           }
         }
       }
-      // for terminologies without 'Publish_Value_Set' properties, show them also (future looking)
+      // Skip "No" entries
       if (found && !valInSubset) {
+        continue;
+      }
+      // Skip "not found" entries
+      if (!found) {
         continue;
       }
       childFull.setProperties(null);
