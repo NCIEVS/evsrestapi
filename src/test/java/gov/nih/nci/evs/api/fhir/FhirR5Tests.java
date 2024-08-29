@@ -9,7 +9,6 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.List;
 import org.hl7.fhir.r5.model.BooleanType;
 import org.hl7.fhir.r5.model.Bundle;
@@ -47,20 +46,14 @@ class FhirR5Tests {
   /** The rest template. */
   @Autowired private TestRestTemplate restTemplate;
 
-  /** The test properties. */
-  @Autowired TestProperties testProperties;
-
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
-
   /** local host prefix */
-  private String localHost = "http://localhost:";
+  private final String localHost = "http://localhost:";
 
   /** Fhir url paths */
-  private String fhirCSPath = "/fhir/r5/CodeSystem";
+  private final String fhirCSPath = "/fhir/r5/CodeSystem";
 
-  private String fhirVSPath = "/fhir/r5/ValueSet";
-  private String fhirCMPath = "/fhir/r5/ConceptMap";
+  private final String fhirVSPath = "/fhir/r5/ValueSet";
+  private final String fhirCMPath = "/fhir/r5/ConceptMap";
 
   /** The Parser */
   private IParser parser;
@@ -68,7 +61,8 @@ class FhirR5Tests {
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-    objectMapper = new ObjectMapper();
+    /** The object mapper. */
+    ObjectMapper objectMapper = new ObjectMapper();
     JacksonTester.initFields(this, objectMapper);
     // Instantiate a new parser
     parser = FhirContext.forR5().newJsonParser();
@@ -481,6 +475,7 @@ class FhirR5Tests {
 
   /**
    * Test value set validate active code.
+   *
    * @throws Exception exception
    */
   @Test
@@ -514,6 +509,7 @@ class FhirR5Tests {
 
   /**
    * Test value set validate active id, active code and display string
+   *
    * @throws Exception exception
    */
   @Test
@@ -545,11 +541,13 @@ class FhirR5Tests {
 
     // ASSERT
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
-    assertEquals(displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
   }
 
   /**
    * Test value set validate for active code and display string.
+   *
    * @throws Exception exception
    */
   @Test
@@ -562,28 +560,30 @@ class FhirR5Tests {
 
     // ACT
     content =
-            this.restTemplate.getForObject(
-                    localHost
-                    + port
-                    + fhirVSPath
-                    + "/"
-                    + JpaConstants.OPERATION_VALIDATE_CODE
-                    + "?url="
-                    + url
-                    + "&code="
-                    + activeCode
-                    + "&display="
-                    + displayString,
-                    String.class);
+        this.restTemplate.getForObject(
+            localHost
+                + port
+                + fhirVSPath
+                + "/"
+                + JpaConstants.OPERATION_VALIDATE_CODE
+                + "?url="
+                + url
+                + "&code="
+                + activeCode
+                + "&display="
+                + displayString,
+            String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
-    assertEquals(displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
   }
 
   /**
    * Test value set validate code not found.
+   *
    * @throws Exception exception
    */
   @Test
@@ -596,26 +596,28 @@ class FhirR5Tests {
 
     // ACT
     content =
-            this.restTemplate.getForObject(
-                    localHost
-                    + port
-                    + fhirVSPath
-                    + "/"
-                    + JpaConstants.OPERATION_VALIDATE_CODE
-                    + "?url="
-                    + url
-                    + "&code="
-                    + codeNotFound,
-                    String.class);
+        this.restTemplate.getForObject(
+            localHost
+                + port
+                + fhirVSPath
+                + "/"
+                + JpaConstants.OPERATION_VALIDATE_CODE
+                + "?url="
+                + url
+                + "&code="
+                + codeNotFound,
+            String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
     assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
-    assertEquals(messageNotFound, ((StringType) params.getParameter("message").getValue()).getValue());
+    assertEquals(
+        messageNotFound, ((StringType) params.getParameter("message").getValue()).getValue());
   }
 
   /**
    * Test value set code not found for display string.
+   *
    * @throws Exception exception
    */
   @Test
@@ -629,28 +631,30 @@ class FhirR5Tests {
 
     // ACT
     content =
-            this.restTemplate.getForObject(
-                    localHost
-                    + port
-                    + fhirVSPath
-                    + "/"
-                    + JpaConstants.OPERATION_VALIDATE_CODE
-                    + "?url="
-                    + url
-                    + "&code="
-                    + codeNotFound
-                    + "&display="
-                    + displayString,
-                    String.class);
+        this.restTemplate.getForObject(
+            localHost
+                + port
+                + fhirVSPath
+                + "/"
+                + JpaConstants.OPERATION_VALIDATE_CODE
+                + "?url="
+                + url
+                + "&code="
+                + codeNotFound
+                + "&display="
+                + displayString,
+            String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
     assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
-    assertEquals(messageNotFound, ((StringType) params.getParameter("message").getValue()).getValue());
+    assertEquals(
+        messageNotFound, ((StringType) params.getParameter("message").getValue()).getValue());
   }
 
   /**
    * Test value set code not found for activde Id and display string
+   *
    * @throws Exception exception
    */
   @Test
@@ -665,31 +669,33 @@ class FhirR5Tests {
 
     // ACT
     content =
-            this.restTemplate.getForObject(
-                    localHost
-                    + port
-                    + fhirVSPath
-                    + "/"
-                    + activeID
-                    + "/"
-                    + JpaConstants.OPERATION_VALIDATE_CODE
-                    + "?url="
-                    + url
-                    + "&code="
-                    + codeNotFound
-                    + "&display="
-                    + displayString,
-                    String.class);
+        this.restTemplate.getForObject(
+            localHost
+                + port
+                + fhirVSPath
+                + "/"
+                + activeID
+                + "/"
+                + JpaConstants.OPERATION_VALIDATE_CODE
+                + "?url="
+                + url
+                + "&code="
+                + codeNotFound
+                + "&display="
+                + displayString,
+            String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
     assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
-    assertEquals(messageNotFound, ((StringType) params.getParameter("message").getValue()).getValue());
+    assertEquals(
+        messageNotFound, ((StringType) params.getParameter("message").getValue()).getValue());
   }
 
   /**
    * Test value set for retired code.
-   * @throws Exception
+   *
+   * @throws Exception exception
    */
   @Test
   public void testValueSetRetiredCode() throws Exception {
@@ -701,17 +707,17 @@ class FhirR5Tests {
 
     // ACT
     content =
-            this.restTemplate.getForObject(
-                    localHost
-                    + port
-                    + fhirVSPath
-                    + "/"
-                    + JpaConstants.OPERATION_VALIDATE_CODE
-                    + "?url="
-                    + retiredUrl
-                    + "&code="
-                    + retiredCode,
-                    String.class);
+        this.restTemplate.getForObject(
+            localHost
+                + port
+                + fhirVSPath
+                + "/"
+                + JpaConstants.OPERATION_VALIDATE_CODE
+                + "?url="
+                + retiredUrl
+                + "&code="
+                + retiredCode,
+            String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
@@ -721,7 +727,8 @@ class FhirR5Tests {
 
   /**
    * Test value set for retired code and retired display string.
-   * @throws Exception
+   *
+   * @throws Exception exception
    */
   @Test
   public void testValueSetRetiredCodeAndRetireDisplayString() throws Exception {
@@ -733,19 +740,19 @@ class FhirR5Tests {
 
     // ACT
     content =
-            this.restTemplate.getForObject(
-                    localHost
-                    + port
-                    + fhirVSPath
-                    + "/"
-                    + JpaConstants.OPERATION_VALIDATE_CODE
-                    + "?url="
-                    + retiredUrl
-                    + "&code="
-                    + retiredCode
-                    + "&display="
-                    + retiredName,
-                    String.class);
+        this.restTemplate.getForObject(
+            localHost
+                + port
+                + fhirVSPath
+                + "/"
+                + JpaConstants.OPERATION_VALIDATE_CODE
+                + "?url="
+                + retiredUrl
+                + "&code="
+                + retiredCode
+                + "&display="
+                + retiredName,
+            String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
@@ -755,7 +762,8 @@ class FhirR5Tests {
 
   /**
    * Test value set for retired id, retired code and retired display string.
-   * @throws Exception
+   *
+   * @throws Exception exception
    */
   @Test
   public void testValueSetRetiredIdRetiredCodeAndRetireDisplayString() throws Exception {
@@ -768,21 +776,21 @@ class FhirR5Tests {
 
     // ACT
     content =
-            this.restTemplate.getForObject(
-                    localHost
-                    + port
-                    + fhirVSPath
-                    + "/"
-                    + retiredId
-                    + "/"
-                    + JpaConstants.OPERATION_VALIDATE_CODE
-                    + "?url="
-                    + retiredUrl
-                    + "&code="
-                    + retiredCode
-                    + "&display="
-                    + retiredName,
-                    String.class);
+        this.restTemplate.getForObject(
+            localHost
+                + port
+                + fhirVSPath
+                + "/"
+                + retiredId
+                + "/"
+                + JpaConstants.OPERATION_VALIDATE_CODE
+                + "?url="
+                + retiredUrl
+                + "&code="
+                + retiredCode
+                + "&display="
+                + retiredName,
+            String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
@@ -792,20 +800,18 @@ class FhirR5Tests {
 
   /**
    * Test concept map search.
+   *
    * @throws Exception exception
    */
   @Test
   public void testConceptMapSearch() throws Exception {
     // ARRANGE
-    String content = this.restTemplate.getForObject(
-            localHost
-            + port
-            + fhirCMPath,
-            String.class);
+    String content = this.restTemplate.getForObject(localHost + port + fhirCMPath, String.class);
     Bundle data = parser.parseResource(Bundle.class, content);
 
     // ACT
-    List<Resource> conceptMaps = data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    List<Resource> conceptMaps =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     // ASSERT
     assertFalse(conceptMaps.isEmpty());
@@ -823,29 +829,23 @@ class FhirR5Tests {
 
   /**
    * Test concept map read.
+   *
    * @throws Exception exception
    */
   @Test
   public void testConceptMapRead() throws Exception {
     // ARRANGE
-    String content = this.restTemplate.getForObject(
-            localHost
-            + port
-            + fhirCMPath,
-            String.class);
+    String content = this.restTemplate.getForObject(localHost + port + fhirCMPath, String.class);
     Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> conceptMaps = data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    List<Resource> conceptMaps =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     // ACT
     String firstConceptMapId = conceptMaps.get(0).getIdPart();
     // reassign content
-    content = this.restTemplate.getForObject(
-            localHost
-            + port
-            + fhirCMPath
-            + "/"
-            + firstConceptMapId,
-            String.class);
+    content =
+        this.restTemplate.getForObject(
+            localHost + port + fhirCMPath + "/" + firstConceptMapId, String.class);
     ConceptMap conceptMap = parser.parseResource(ConceptMap.class, content);
 
     // ASSERT
