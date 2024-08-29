@@ -195,8 +195,7 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Convert a Concept to r5 concept map.
-   * since setXXXXVersion doesn't doesn't exist
+   * Convert a Concept to r5 concept map. since setXXXXVersion doesn't doesn't exist
    *
    * @param mapset the concept mapset
    * @return the concept map

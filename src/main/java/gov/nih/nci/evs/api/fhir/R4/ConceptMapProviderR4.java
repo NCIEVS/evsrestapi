@@ -191,7 +191,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   /**
    * Perform the lookup in the implicit map.
    *
-   * @see <a href="https://hl7.org/fhir/R4/conceptmap-operation-translate.html">conceptmap operation translate</a>
+   * @see <a href="https://hl7.org/fhir/R4/conceptmap-operation-translate.html">conceptmap operation
+   *     translate</a>
    * @param request the request
    * @param response the response
    * @param details the details
