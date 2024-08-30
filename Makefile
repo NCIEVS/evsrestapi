@@ -23,7 +23,7 @@ clean:
 # Build the library without tests
 # On Windows use: git config core.eol lf
 build:
-	./gradlew clean spotlessApply build -x test
+	gradlew clean spotlessApply build -x test --build-locks
 
 test:
 	./gradlew spotlessCheck -x test 
@@ -41,3 +41,10 @@ version:
 
 devreset: build
 	./src/main/bin/devreset.sh ../data/UnitTestData > log 2>&1 &
+
+scan:
+			gradlew dependencies --write-locks
+			trivy fs gradle.lockfile --format template -o report.html --template "@config/trivy/html.tpl"
+			grep CRITICAL report.html
+			/bin/rm -rf gradle/dependency-locks
+			/bin/rm gradle.lockfile

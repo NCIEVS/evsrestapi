@@ -247,3 +247,7 @@ bootJar {
 zipFile.dependsOn = [bootWar, bootJar]
 build.dependsOn = [spotlessCheck, test, bootWar, bootJar, zipFile]
 publishToMavenLocal.dependsOn = [bootWar, bootJar, zipFile]
+
+dependencyLocking {
+  lockAllConfigurations()
+}
