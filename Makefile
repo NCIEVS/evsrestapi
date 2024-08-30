@@ -23,7 +23,7 @@ clean:
 # Build the library without tests
 # On Windows use: git config core.eol lf
 build:
-	gradlew clean spotlessApply build -x test --build-locks
+	gradlew clean spotlessApply build -x test
 
 test:
 	./gradlew spotlessCheck -x test 
