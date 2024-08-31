@@ -129,36 +129,36 @@ public class OpenApiInterceptorR5 {
   public static final String PAGE_ALL = "All";
 
   /** The Constant FHIR_CONTEXT_CANONICAL. */
-  public static final FhirContext FHIR_CONTEXT_CANONICAL = FhirContext.forR4();
+  public static final FhirContext FHIR_CONTEXT_CANONICAL = FhirContext.forR5();
 
   /** The Constant REQUEST_DETAILS. */
   public static final String REQUEST_DETAILS = "REQUEST_DETAILS";
 
-  /** The my swagger ui version. */
+  /** The swagger ui version. */
   private final String mySwaggerUiVersion;
 
-  /** The my template engine. */
+  /** The template engine. */
   private final TemplateEngine myTemplateEngine;
 
-  /** The my flexmark parser. */
+  /** The flexmark parser. */
   private final Parser myFlexmarkParser;
 
-  /** The my flexmark renderer. */
+  /** The flexmark renderer. */
   private final HtmlRenderer myFlexmarkRenderer;
 
-  /** The my resource path to classpath. */
+  /** The resource path to classpath. */
   private final Map<String, String> myResourcePathToClasspath = new HashMap<>();
 
-  /** The my extension to content type. */
+  /** The extension to content type. */
   private final Map<String, String> myExtensionToContentType = new HashMap<>();
 
-  /** The my banner image. */
+  /** The banner image. */
   private String myBannerImage;
 
-  /** The my css text. */
+  /** The css text. */
   private String myCssText;
 
-  /** The my use resource pages. */
+  /** The use resource pages. */
   private boolean myUseResourcePages;
 
   /** Constructor. */
@@ -678,8 +678,8 @@ public class OpenApiInterceptorR5 {
         operation.setSummary(
             "Get "
                 + unCamelCase(resourceType)
-                + " by ID. For more information see the R4 spec for this resource at"
-                + " https://hl7.org/fhir/R4/"
+                + " by ID. For more information see the R5 spec for this resource at"
+                + " https://hl7.org/fhir/R5/"
                 + resourceType
                 + ".html");
         addResourceIdParameter(operation);
@@ -822,8 +822,8 @@ public class OpenApiInterceptorR5 {
     operation.setSummary(
         "Search for "
             + unCamelCase(resourceType)
-            + " instances. For more information see the R4 spec for this resource at"
-            + " https://hl7.org/fhir/R4/"
+            + " instances. For more information see the R5 spec for this resource at"
+            + " https://hl7.org/fhir/R5/"
             + resourceType
             + ".html");
     addFhirResourceResponse(ctx, openApi, operation, null);

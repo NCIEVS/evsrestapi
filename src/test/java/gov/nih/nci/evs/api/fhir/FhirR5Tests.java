@@ -172,7 +172,7 @@ class FhirR5Tests {
     // ARRANGE
     String content;
     String activeCode = "T100";
-    String activeId = "ulssemnet_2023AA";
+    String activeId = "umlssemnet_2023AA";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
 
@@ -215,7 +215,7 @@ class FhirR5Tests {
     String codeNotFound = "T10";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String messageNotFound =
-        "The code does not exist for the supplied code system url and/or versions";
+        "The code does not exist for the supplied code system url and/or version";
 
     // ACT
     content =
@@ -225,7 +225,7 @@ class FhirR5Tests {
                 + fhirCSPath
                 + "/"
                 + JpaConstants.OPERATION_VALIDATE_CODE
-                + "/url="
+                + "?url="
                 + url
                 + "&code="
                 + codeNotFound,
@@ -251,8 +251,7 @@ class FhirR5Tests {
     String codeNotFound = "T10";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
-    String messageNotFound =
-        "The code does not exist for the supplied code system url and/or versions";
+    String messageNotFound = "Unable to find matching code syste";
 
     // ACT
     content =
@@ -382,7 +381,7 @@ class FhirR5Tests {
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
-    assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertFalse(((BooleanType) params.getParameter("results").getValue()).getValue());
     assertEquals(message, ((StringType) params.getParameter("message").getValue()).getValue());
     assertEquals(isNull, ((UriType) params.getParameter("url").getValue()).getValue());
   }

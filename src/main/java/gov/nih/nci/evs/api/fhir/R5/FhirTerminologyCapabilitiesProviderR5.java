@@ -8,7 +8,6 @@ import ca.uhn.fhir.rest.server.RestfulServer;
 import ca.uhn.fhir.rest.server.RestfulServerConfiguration;
 import ca.uhn.fhir.rest.server.provider.ServerCapabilityStatementProvider;
 import ca.uhn.fhir.rest.server.util.ISearchParamRegistry;
-import gov.nih.nci.evs.api.fhir.R4.FHIRTerminologyCapabilitiesR4;
 import javax.servlet.http.HttpServletRequest;
 import org.hl7.fhir.instance.model.api.IBaseConformance;
 
@@ -66,7 +65,7 @@ public class FhirTerminologyCapabilitiesProviderR5 extends ServerCapabilityState
       final HttpServletRequest request, final RequestDetails requestDetails) {
     if (request.getParameter("mode") != null
         && request.getParameter("mode").equals("terminology")) {
-      return new FHIRTerminologyCapabilitiesR4().withDefaults();
+      return new FhirTerminologyCapabilitiesR5().withDefaults();
     } else {
       return super.getServerConformance(request, requestDetails);
     }
