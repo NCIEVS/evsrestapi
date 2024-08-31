@@ -233,7 +233,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * Validate code implicit
    *
    * <pre>
-   * <a href="https://hl7.org/fhir/R4/codesystem-operation-validate-code.html">...</a>
+   * <a href="https://hl7.org/fhir/R5/codesystem-operation-validate-code.html">...</a>
    * </pre>
    *
    * @param request the request
@@ -331,7 +331,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * Validate the code instance
    *
    * <pre>
-   * <a href="https://hl7.org/fhir/R4/codesystem-operation-validate-code.html">...</a>
+   * <a href="https://hl7.org/fhir/R5/codesystem-operation-validate-code.html">...</a>
    * </pre>
    *
    * @param request the request
@@ -431,7 +431,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * Subsumes implicit
    *
    * <pre>
-   * <a href="https://hl7.org/fhir/R4/codesystem-operation-subsumes.html">...</a>
+   * <a href="https://hl7.org/fhir/R5/codesystem-operation-subsumes.html">...</a>
    * </pre>
    *
    * @param request the request
@@ -514,7 +514,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * Subsumes instance
    *
    * <pre>
-   * <a href="https://hl7.org/fhir/R4/codesystem-operation-subsumes.html">...</a>
+   * <a href="https://hl7.org/fhir/R5/codesystem-operation-subsumes.html">...</a>
    * </pre>
    *
    * @param request the request
@@ -610,11 +610,11 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   @Search
   public Bundle findCodeSystems(
       final HttpServletRequest request,
-      @OperationParam(name = "_id") final TokenParam id,
-      @OperationParam(name = "date") final DateRangeParam date,
-      @OperationParam(name = "system") final StringParam system,
-      @OperationParam(name = "version") final StringParam version,
-      @OperationParam(name = "title") final StringParam title,
+      @OptionalParam(name = "_id") final TokenParam id,
+      @OptionalParam(name = "date") final DateRangeParam date,
+      @OptionalParam(name = "system") final StringParam system,
+      @OptionalParam(name = "version") final StringParam version,
+      @OptionalParam(name = "title") final StringParam title,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
           NumberParam count,
       @Description(shortDefinition = "Start offset, used when reading a next page")

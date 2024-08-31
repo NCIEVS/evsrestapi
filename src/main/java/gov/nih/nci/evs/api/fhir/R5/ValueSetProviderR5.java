@@ -48,7 +48,9 @@ import org.hl7.fhir.r5.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
+@Component
 public class ValueSetProviderR5 implements IResourceProvider {
   /** The logger. */
   private static Logger logger = LoggerFactory.getLogger(ValueSetProviderR5.class);
@@ -220,7 +222,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * Expand instance.
    *
    * <pre>
-   * <a href="https://hl7.org/fhir/R4/valueset-operation-expand.html">valueset operation expand</a>
+   * <a href="https://hl7.org/fhir/R5/valueset-operation-expand.html">valueset operation expand</a>
    * </pre>
    *
    * @param id the id
@@ -362,7 +364,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * Validate code implicit.
    *
    * <pre>
-   * <a href="https://hl7.org/fhir/R4/valueset-operation-validate-code.html">valueset operation validate code</a>
+   * <a href="https://hl7.org/fhir/R5/valueset-operation-validate-code.html">valueset operation validate code</a>
    * </pre>
    *
    * @param url the url
@@ -467,7 +469,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * Validate code instance.
    *
    * <pre>
-   * <a href="https://hl7.org/fhir/R4/valueset-operation-validate-code.html">valueset operation validate code</a>
+   * <a href="https://hl7.org/fhir/R5/valueset-operation-validate-code.html">valueset operation validate code</a>
    * </pre>
    *
    * @param id the id

@@ -26,7 +26,7 @@ public class HapiR5RestfulServlet extends RestfulServer {
   @Override
   protected void initialize() throws ServletException {
     setDefaultResponseEncoding(EncodingEnum.JSON);
-    final FhirContext fhirContext = FhirContext.forR4();
+    final FhirContext fhirContext = FhirContext.forR5();
     final LenientErrorHandler delegateHandler = new LenientErrorHandler();
     // Set the parser error handler
     fhirContext.setParserErrorHandler(
