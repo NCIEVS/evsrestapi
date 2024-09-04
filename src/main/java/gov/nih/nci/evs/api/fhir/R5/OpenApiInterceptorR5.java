@@ -1262,29 +1262,29 @@ public class OpenApiInterceptorR5 {
       thePaths.addPathItem(thePath, pathItem);
     }
     // Now, return the appropriate operation
-    return switch (theMethod) {
+    switch (theMethod) {
       case POST -> {
         assert pathItem.getPost() == null : "Have duplicate POST at path: " + thePath;
-        yield pathItem.post(new Operation()).getPost();
+        return pathItem.post(new Operation()).getPost();
       }
       case GET -> {
         assert pathItem.getGet() == null : "Have duplicate GET at path: " + thePath;
-        yield pathItem.get(new Operation()).getGet();
+        return pathItem.get(new Operation()).getGet();
       }
       case PUT -> {
         assert pathItem.getPut() == null;
-        yield pathItem.put(new Operation()).getPut();
+        return pathItem.put(new Operation()).getPut();
       }
       case PATCH -> {
         assert pathItem.getPatch() == null;
-        yield pathItem.patch(new Operation()).getPatch();
+        return pathItem.patch(new Operation()).getPatch();
       }
       case DELETE -> {
         assert pathItem.getDelete() == null;
-        yield pathItem.delete(new Operation()).getDelete();
+        return pathItem.delete(new Operation()).getDelete();
       }
       default -> throw new IllegalStateException(Msg.code(240));
-    };
+    }
   }
 
   /**
