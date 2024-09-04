@@ -1275,7 +1275,7 @@ public class OpenApiInterceptorR5 {
       case PATCH:
         assert pathItem.getPatch() == null;
         return pathItem.patch(new Operation()).getPatch();
-    case DELETE:
+      case DELETE:
         assert pathItem.getDelete() == null;
         return pathItem.delete(new Operation()).getDelete();
       default:
