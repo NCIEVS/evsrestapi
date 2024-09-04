@@ -199,7 +199,7 @@ class FhirR5Tests {
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
     assertEquals(activeCode, ((StringType) params.getParameter("code").getValue()).getValue());
     assertEquals(
-        displayString, ((StringType) params.getParameter("dispaly").getValue()).getValue());
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
     assertTrue(((BooleanType) params.getParameter("active").getValue()).getValue());
   }
 
@@ -528,6 +528,7 @@ class FhirR5Tests {
                 + fhirVSPath
                 + "/"
                 + activeID
+                + "/"
                 + JpaConstants.OPERATION_VALIDATE_CODE
                 + "?url="
                 + url
