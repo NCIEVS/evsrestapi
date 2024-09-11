@@ -657,7 +657,8 @@ public final class FhirUtilityR4 {
     bundle.setId(UUID.randomUUID().toString());
     bundle.setType(BundleType.SEARCHSET);
     bundle.setTotal(list.size());
-    bundle.addLink(new BundleLinkComponent().setUrl(thisUrl).setRelation("self"));
+    // This isn't adding the link relation, it's automatically being set. Commenting out
+    // bundle.addLink(new BundleLinkComponent().setUrl(thisUrl).setRelation("self"));
     if (offsetInt + countInt < list.size()) {
       bundle.addLink(FhirUtilityR4.getNextLink(thisUrl, offset, offsetInt, count, countInt));
     }
