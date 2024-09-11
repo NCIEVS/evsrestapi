@@ -638,7 +638,8 @@ public class FhirUtilityR5 {
     bundle.setId(UUID.randomUUID().toString());
     bundle.setType(BundleType.SEARCHSET);
     bundle.setTotal(list.size());
-    bundle.addLink(new BundleLinkComponent().setUrl(thisUrl).setRelation(LinkRelationTypes.SELF));
+    // This is causing a duplication of the link relation. Commented out as it's automatically being set
+    // bundle.addLink(new BundleLinkComponent().setUrl(thisUrl).setRelation(LinkRelationTypes.SELF));
 
     if (offsetInt + countInt < list.size()) {
       bundle.addLink(FhirUtilityR5.getNextLink(thisUrl, offset, offsetInt, count, countInt));
