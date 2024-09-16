@@ -103,7 +103,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "displayLanguage") final StringType displayLanguage,
       @OperationParam(name = "property") final CodeType property)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_LOOKUP,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
@@ -187,7 +193,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "displayLanguage") final StringType displayLanguage,
       @OperationParam(name = "property") final CodeType property)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_LOOKUP,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
@@ -276,7 +288,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "displayLanguage") final StringType displayLanguage,
       @OperationParam(name = "systemVersion") final StringType systemVersion)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
       FhirUtilityR4.notSupported("codeSystem", codeSystem);
@@ -373,7 +391,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "displayLanguage") final StringType displayLanguage,
       @OperationParam(name = "systemVersion") final StringType systemVersion)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
       FhirUtilityR4.notSupported("codeSystem", codeSystem);
@@ -462,7 +486,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "codingA") final Coding codingA,
       @OperationParam(name = "codingB") final Coding codingB)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_SUBSUMES,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.mutuallyRequired("codeA", codeA, "system", system);
       FhirUtilityR4.mutuallyRequired("codeB", codeB, "system", system);
@@ -547,7 +577,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "codingA") final Coding codingA,
       @OperationParam(name = "codingB") final Coding codingB)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_SUBSUMES,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.mutuallyRequired("codeA", codeA, "system", system);
       FhirUtilityR4.mutuallyRequired("codeB", codeB, "system", system);

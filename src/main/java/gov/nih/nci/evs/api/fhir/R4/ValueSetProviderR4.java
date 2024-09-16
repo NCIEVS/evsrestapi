@@ -110,6 +110,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
    */
   @Operation(name = JpaConstants.OPERATION_EXPAND, idempotent = true)
   public ValueSet expandImplicit(
+      final HttpServletRequest request,
+      final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "valueSet") final ValueSet valueSet,
       @OperationParam(name = "valueSetVersion") final StringType version,
@@ -132,7 +134,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "check-system-version") final StringType check_system_version,
       @OperationParam(name = "force-system-version") final StringType force_system_version)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_EXPAND,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.required("url", url);
       FhirUtilityR4.notSupported("valueSet", valueSet);
@@ -252,6 +260,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
    */
   @Operation(name = JpaConstants.OPERATION_EXPAND, idempotent = true)
   public ValueSet expandInstance(
+      final HttpServletRequest request,
+      final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "valueSet") final ValueSet valueSet,
@@ -275,7 +285,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "check-system-version") final StringType check_system_version,
       @OperationParam(name = "force-system-version") final StringType force_system_version)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_EXPAND,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.required("url", url);
       FhirUtilityR4.notSupported("valueSet", valueSet);
@@ -386,6 +402,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
    */
   @Operation(name = JpaConstants.OPERATION_VALIDATE_CODE, idempotent = true)
   public Parameters validateCodeImplicit(
+      final HttpServletRequest request,
+      final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "context") final UriType context,
       @OperationParam(name = "valueSet") final ValueSet valueSet,
@@ -401,7 +419,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "abstract") final BooleanType abstractt,
       @OperationParam(name = "displayLanguage") final StringType displayLanguage)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.required("code", code);
       FhirUtilityR4.mutuallyRequired("code", code, "system", system, "url", url);
@@ -494,6 +518,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
    */
   @Operation(name = JpaConstants.OPERATION_VALIDATE_CODE, idempotent = true)
   public Parameters validateCodeInstance(
+      final HttpServletRequest request,
+      final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "context") final UriType context,
@@ -510,7 +536,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "abstract") final BooleanType abstractt,
       @OperationParam(name = "displayLanguage") final StringType displayLanguage)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.requireAtLeastOneOf(
           "code", code, "system", system, "systemVersion", systemVersion, "url", url);
