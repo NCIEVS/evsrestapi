@@ -79,6 +79,110 @@ public class ValueSetProviderR5 implements IResourceProvider {
   }
 
   /**
+   * Find value sets.
+   *
+   * @param request the request
+   * @param id the id
+   * @param code the code
+   * @param name the name
+   * @param system the system
+   * @param url the url
+   * @param version the version
+   * @param count the count
+   * @param offset the offset
+   * @return the list
+   * @throws Exception the exception
+   */
+  @Search
+  public Bundle findValueSets(
+      final HttpServletRequest request,
+      @OptionalParam(name = "_id") final TokenParam id,
+      @OptionalParam(name = "code") final StringParam code,
+      @OptionalParam(name = "name") final StringParam name,
+      @OptionalParam(name = "system") final UriType system,
+      @OptionalParam(name = "url") final StringParam url,
+      @OptionalParam(name = "version") final StringParam version,
+      @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
+          NumberParam count,
+      @Description(shortDefinition = "Start offset, used when reading a next page")
+          @OptionalParam(name = "_offset")
+          NumberParam offset)
+      throws Exception {
+//    FhirUtilityR5.notSupportedSearchParams(request);
+    final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
+    final List<ValueSet> list = new ArrayList<>();
+
+    if (code == null) {
+      for (final Terminology terminology : terms) {
+        final ValueSet vs = FhirUtilityR5.toR5VS(terminology);
+        // Skip non-matching
+        if (id != null && !id.getValue().equals(vs.getId())) {
+          logger.info("  SKIP id mismatch = " + vs.getId());
+          continue;
+        }
+        if (url != null && !url.getValue().equals(vs.getUrl())) {
+          logger.info("  SKIP url mismatch = " + vs.getUrl());
+          continue;
+        }
+        if (system != null && !system.getValue().equals(vs.getTitle())) {
+          logger.info("  SKIP system mismatch = " + vs.getTitle());
+          continue;
+        }
+        if (name != null && !name.getValue().equals(vs.getName())) {
+          logger.info("  SKIP name mismatch = " + vs.getName());
+          continue;
+        }
+        if (version != null && !FhirUtility.compareString(version, vs.getVersion())) {
+          logger.info("  SKIP version mismatch = " + vs.getVersion());
+          continue;
+        }
+        list.add(vs);
+      }
+    }
+
+    final List<Concept> subsets =
+        metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.empty());
+    final Set<String> codes =
+        subsets.stream()
+            .flatMap(Concept::streamSelfAndChildren)
+            .map(c -> c.getCode())
+            .collect(Collectors.toSet());
+    final List<Concept> subsetsAsConcepts =
+        esQueryService.getConcepts(
+            codes,
+            termUtils.getIndexedTerminology("ncit", esQueryService),
+            new IncludeParam("minimal"));
+
+    for (final Concept subset : subsetsAsConcepts) {
+      final ValueSet vs = FhirUtilityR5.toR5VS(subset);
+      // Skip non-matching
+      if (id != null && !id.getValue().equals(vs.getId())) {
+        logger.info("  SKIP id mismatch = " + vs.getUrl());
+        continue;
+      }
+      if (url != null && !url.getValue().equals(vs.getUrl())) {
+        logger.info("  SKIP url mismatch = " + vs.getUrl());
+        continue;
+      }
+      if (system != null && !system.getValue().equals(vs.getTitle())) {
+        logger.info("  SKIP system mismatch = " + vs.getTitle());
+        continue;
+      }
+      if (name != null && !name.getValue().equals(vs.getName())) {
+        logger.info("  SKIP name mismatch = " + vs.getName());
+        continue;
+      }
+      if (code != null
+          && !vs.getIdentifier().stream().anyMatch(i -> i.getValue().equals(code.getValue()))) {
+        logger.info("  SKIP code mismatch = " + vs.getTitle());
+        continue;
+      }
+      list.add(vs);
+    }
+    return FhirUtilityR5.makeBundle(request, list, count, offset);
+  }
+
+  /**
    * Expand implicit.
    *
    * <pre>
@@ -111,6 +215,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
    */
   @Operation(name = JpaConstants.OPERATION_EXPAND, idempotent = true)
   public ValueSet expandImplicit(
+      final HttpServletRequest request,
+      final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "valueSet") final ValueSet valueSet,
       @OperationParam(name = "valueSetVersion") final StringType version,
@@ -133,7 +239,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OperationParam(name = "check-system-version") final StringType check_system_version,
       @OperationParam(name = "force-system-version") final StringType force_system_version)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR5.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_EXPAND,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR5.required(url, "url");
       FhirUtilityR5.notSupported(context, "context");
@@ -252,6 +364,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
    */
   @Operation(name = JpaConstants.OPERATION_EXPAND, idempotent = true)
   public ValueSet expandInstance(
+      final HttpServletRequest request,
+      final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "valueSet") final ValueSet valueSet,
@@ -275,7 +389,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OperationParam(name = "check-system-version") final StringType check_system_version,
       @OperationParam(name = "force-system-version") final StringType force_system_version)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR5.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_EXPAND,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR5.required(url, "url");
       FhirUtilityR5.notSupported(valueSet, "valueSet");
@@ -386,6 +506,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
    */
   @Operation(name = JpaConstants.OPERATION_VALIDATE_CODE, idempotent = true)
   public Parameters validateCodeImplicit(
+      final HttpServletRequest request,
+      final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "context") final UriType context,
       @OperationParam(name = "valueSet") final ValueSet valueSet,
@@ -401,7 +523,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OperationParam(name = "abstract") final BooleanType abstractt,
       @OperationParam(name = "displayLanguage") final StringType displayLanguage)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR5.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR5.required(code, "code");
       FhirUtilityR5.mutuallyRequired(code, "code", system, "system", url, "url");
@@ -492,6 +620,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
    */
   @Operation(name = JpaConstants.OPERATION_VALIDATE_CODE, idempotent = true)
   public Parameters validateCodeInstance(
+      final HttpServletRequest request,
+      final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "context") final UriType context,
@@ -508,6 +638,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OperationParam(name = "abstract") final BooleanType abstractt,
       @OperationParam(name = "displayLanguage") final StringType displayLanguage)
       throws Exception {
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR5.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR5.requireAtLeastOneOf(
           code, "code", system, "system", systemVersion, "systemVersion", url, "url");
@@ -566,109 +703,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
       logger.error("Error occurred: ", e);
       throw FhirUtilityR5.exception("Failed to load value set", IssueType.EXCEPTION, 500);
     }
-  }
-
-  /**
-   * Find value sets.
-   *
-   * @param request the request
-   * @param id the id
-   * @param code the code
-   * @param name the name
-   * @param system the system
-   * @param url the url
-   * @param version the version
-   * @param count the count
-   * @param offset the offset
-   * @return the list
-   * @throws Exception the exception
-   */
-  @Search
-  public Bundle findValueSets(
-      final HttpServletRequest request,
-      @OptionalParam(name = "_id") final TokenParam id,
-      @OptionalParam(name = "code") final StringParam code,
-      @OptionalParam(name = "name") final StringParam name,
-      @OptionalParam(name = "system") final UriType system,
-      @OptionalParam(name = "url") final StringParam url,
-      @OptionalParam(name = "version") final StringParam version,
-      @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
-          NumberParam count,
-      @Description(shortDefinition = "Start offset, used when reading a next page")
-          @OptionalParam(name = "_offset")
-          NumberParam offset)
-      throws Exception {
-    final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
-    final List<ValueSet> list = new ArrayList<ValueSet>();
-
-    if (code == null) {
-      for (final Terminology terminology : terms) {
-        final ValueSet vs = FhirUtilityR5.toR5VS(terminology);
-        // Skip non-matching
-        if (id != null && !id.getValue().equals(vs.getId())) {
-          logger.info("  SKIP id mismatch = " + vs.getId());
-          continue;
-        }
-        if (url != null && !url.getValue().equals(vs.getUrl())) {
-          logger.info("  SKIP url mismatch = " + vs.getUrl());
-          continue;
-        }
-        if (system != null && !system.getValue().equals(vs.getTitle())) {
-          logger.info("  SKIP system mismatch = " + vs.getTitle());
-          continue;
-        }
-        if (name != null && !name.getValue().equals(vs.getName())) {
-          logger.info("  SKIP name mismatch = " + vs.getName());
-          continue;
-        }
-        if (version != null && !FhirUtility.compareString(version, vs.getVersion())) {
-          logger.info("  SKIP version mismatch = " + vs.getVersion());
-          continue;
-        }
-        list.add(vs);
-      }
-    }
-
-    final List<Concept> subsets =
-        metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.empty());
-    final Set<String> codes =
-        subsets.stream()
-            .flatMap(Concept::streamSelfAndChildren)
-            .map(c -> c.getCode())
-            .collect(Collectors.toSet());
-    final List<Concept> subsetsAsConcepts =
-        esQueryService.getConcepts(
-            codes,
-            termUtils.getIndexedTerminology("ncit", esQueryService),
-            new IncludeParam("minimal"));
-
-    for (final Concept subset : subsetsAsConcepts) {
-      final ValueSet vs = FhirUtilityR5.toR5VS(subset);
-      // Skip non-matching
-      if (id != null && !id.getValue().equals(vs.getId())) {
-        logger.info("  SKIP id mismatch = " + vs.getUrl());
-        continue;
-      }
-      if (url != null && !url.getValue().equals(vs.getUrl())) {
-        logger.info("  SKIP url mismatch = " + vs.getUrl());
-        continue;
-      }
-      if (system != null && !system.getValue().equals(vs.getTitle())) {
-        logger.info("  SKIP system mismatch = " + vs.getTitle());
-        continue;
-      }
-      if (name != null && !name.getValue().equals(vs.getName())) {
-        logger.info("  SKIP name mismatch = " + vs.getName());
-        continue;
-      }
-      if (code != null
-          && !vs.getIdentifier().stream().anyMatch(i -> i.getValue().equals(code.getValue()))) {
-        logger.info("  SKIP code mismatch = " + vs.getTitle());
-        continue;
-      }
-      list.add(vs);
-    }
-    return FhirUtilityR5.makeBundle(request, list, count, offset);
   }
 
   /**

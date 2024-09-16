@@ -31,6 +31,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 @ExtendWith(SpringExtension.class)
@@ -76,9 +78,10 @@ class FhirR5Tests {
   @Test
   public void testCodeSystemSearch() throws Exception {
     // ARRANGE
-    String content = this.restTemplate.getForObject(localHost + port + fhirCSPath, String.class);
+    String endpoint = localHost + port + fhirCSPath;
 
     // ACT
+    String content = this.restTemplate.getForObject(endpoint, String.class);
     Bundle data = parser.parseResource(Bundle.class, content);
     List<Resource> codeSystems =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
@@ -104,18 +107,18 @@ class FhirR5Tests {
   @Test
   public void testCodeSystemRead() throws Exception {
     // ARRANGE
-    String content = this.restTemplate.getForObject(localHost + port + fhirCSPath, String.class);
-    ;
+    String endpoint = localHost + port + fhirCSPath;
 
     // ACT
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+
     Bundle data = parser.parseResource(Bundle.class, content);
     List<Resource> codeSystems =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     String firstCodeSystemId = codeSystems.get(0).getIdPart();
+
     // reassign content with firstCodeSystemId
-    content =
-        this.restTemplate.getForObject(
-            localHost + port + fhirCSPath + "/" + firstCodeSystemId, String.class);
+    content = this.restTemplate.getForObject(endpoint + "/" + firstCodeSystemId, String.class);
     CodeSystem codeSystem = parser.parseResource(CodeSystem.class, content);
 
     // ASSERT
@@ -138,20 +141,11 @@ class FhirR5Tests {
     String activeCode = "T100";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
+    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + activeCode;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(
-            localHost
-                + port
-                + fhirCSPath
-                + "/"
-                + JpaConstants.OPERATION_VALIDATE_CODE
-                + "?url="
-                + url
-                + "&code="
-                + activeCode,
-            String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
@@ -175,24 +169,12 @@ class FhirR5Tests {
     String activeId = "umlssemnet_2023AA";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
+    String endpoint =
+        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + activeCode + "&display" + displayString;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(
-            localHost
-                + port
-                + fhirCSPath
-                + "/"
-                + activeId
-                + "/"
-                + JpaConstants.OPERATION_VALIDATE_CODE
-                + "?url="
-                + url
-                + "&code="
-                + activeCode
-                + "&display="
-                + displayString,
-            String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
@@ -216,20 +198,11 @@ class FhirR5Tests {
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String messageNotFound =
         "The code does not exist for the supplied code system url and/or version";
+    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + codeNotFound;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(
-            localHost
-                + port
-                + fhirCSPath
-                + "/"
-                + JpaConstants.OPERATION_VALIDATE_CODE
-                + "?url="
-                + url
-                + "&code="
-                + codeNotFound,
-            String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
@@ -252,24 +225,12 @@ class FhirR5Tests {
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
     String messageNotFound = "Unable to find matching code syste";
+    String endpoint =
+        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + codeNotFound + "$display" + displayString;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(
-            localHost
-                + port
-                + fhirCSPath
-                + "/"
-                + activeId
-                + "/"
-                + JpaConstants.OPERATION_VALIDATE_CODE
-                + "?url="
-                + url
-                + "&code="
-                + codeNotFound
-                + "&display="
-                + displayString,
-            String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
     assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
     assertEquals(
@@ -288,20 +249,11 @@ class FhirR5Tests {
     String retiredCode = "C45683";
     String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     String retiredName = "ABCB1 1 Allele";
+    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + retiredUrl + "&code=" + retiredCode;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(
-            localHost
-                + port
-                + fhirCSPath
-                + "/"
-                + JpaConstants.OPERATION_VALIDATE_CODE
-                + "?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode,
-            String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
@@ -324,24 +276,18 @@ class FhirR5Tests {
     String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     String retiredId = "ncit_21.06e";
     String retiredName = "ABCB1 1 Allele";
+    String endpoint =
+        localHost
+            + port
+            + fhirCSPath
+            + "/"
+            + retiredId
+            + "/"
+            + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(
-            localHost
-                + port
-                + fhirCSPath
-                + "/"
-                + retiredId
-                + "/"
-                + JpaConstants.OPERATION_VALIDATE_CODE
-                + "?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode
-                + "&display="
-                + retiredName,
-            String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
@@ -364,26 +310,40 @@ class FhirR5Tests {
     String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     String message = "Unable to find matching code system";
     String isNull = "<null>";
+    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?code=" + code + "&system=" + url;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(
-            localHost
-                + port
-                + fhirCSPath
-                + "/"
-                + JpaConstants.OPERATION_VALIDATE_CODE
-                + "?code="
-                + code
-                + "&system="
-                + url,
-            String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
     assertFalse(((BooleanType) params.getParameter("results").getValue()).getValue());
     assertEquals(message, ((StringType) params.getParameter("message").getValue()).getValue());
     assertEquals(isNull, ((UriType) params.getParameter("url").getValue()).getValue());
+  }
+
+  /**
+   * Test the CodeSystem rejects a post call when attempted.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemPostRejects() throws Exception {
+    // ARRANGE
+    ResponseEntity<String> content;
+    String message = "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE;
+    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?code=" + null + "&system=" + null;
+
+    // ACT
+    content = this.restTemplate.postForEntity(endpoint + parameters, null, String.class);
+
+    // ASSERT
+    assertEquals(HttpStatus.METHOD_NOT_ALLOWED, content.getStatusCode());
+    assertNotNull(content.getBody());
+    assertTrue(content.getBody().contains(message));
+    assertTrue(content.getBody().contains("not supported"));
   }
 
   /**
@@ -395,9 +355,10 @@ class FhirR5Tests {
   public void testValueSetSearch() throws Exception {
     // ARRANGE
     String content;
+    String endpoint = localHost + port + fhirVSPath;
 
     // ACT
-    content = this.restTemplate.getForObject(localHost + port + fhirVSPath, String.class);
+    content = this.restTemplate.getForObject(endpoint, String.class);
     Bundle data = parser.parseResource(Bundle.class, content);
     List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
@@ -423,7 +384,8 @@ class FhirR5Tests {
   @Test
   public void testValueSetRead() throws Exception {
     // ARRANGE
-    String content = this.restTemplate.getForObject(localHost + port + fhirVSPath, String.class);
+    String endpoint = localHost + port + fhirVSPath;
+    String content = this.restTemplate.getForObject(endpoint, String.class);
     Bundle data = parser.parseResource(Bundle.class, content);
     List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
@@ -431,9 +393,7 @@ class FhirR5Tests {
     // ACT
     String firstValueSetId = valueSets.get(0).getIdPart();
     // reassign content
-    content =
-        this.restTemplate.getForObject(
-            localHost + port + fhirVSPath + "/" + firstValueSetId, String.class);
+    content = this.restTemplate.getForObject(endpoint + "/" + firstValueSetId, String.class);
     ValueSet valueSet = parser.parseResource(ValueSet.class, content);
 
     // ASSERT
@@ -457,10 +417,10 @@ class FhirR5Tests {
     String name = "CDISC Questionnaire NCCN-FACT FBLSI-18 Version 2 Test Name Terminology";
     String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C129091";
     String publisher = "NCI";
+    String endpoint = localHost + port + fhirVSPath;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(localHost + port + fhirVSPath + "/" + code, String.class);
+    content = this.restTemplate.getForObject(endpoint + "/" + code, String.class);
     ValueSet valueSet = parser.parseResource(ValueSet.class, content);
 
     // ASSERT
@@ -484,20 +444,11 @@ class FhirR5Tests {
     String activeCode = "T100";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + activeCode;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(
-            localHost
-                + port
-                + fhirVSPath
-                + "/"
-                + JpaConstants.OPERATION_VALIDATE_CODE
-                + "?url="
-                + url
-                + "&code="
-                + activeCode,
-            String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
@@ -519,24 +470,12 @@ class FhirR5Tests {
     String activeID = "umlssemnet_2023AA";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
+    String endpoint =
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + activeCode + "&display=" + displayString;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(
-            localHost
-                + port
-                + fhirVSPath
-                + "/"
-                + activeID
-                + "/"
-                + JpaConstants.OPERATION_VALIDATE_CODE
-                + "?url="
-                + url
-                + "&code="
-                + activeCode
-                + "&display="
-                + displayString,
-            String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
@@ -557,22 +496,11 @@ class FhirR5Tests {
     String activeCode = "T100";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + activeCode + "&display=" + displayString;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(
-            localHost
-                + port
-                + fhirVSPath
-                + "/"
-                + JpaConstants.OPERATION_VALIDATE_CODE
-                + "?url="
-                + url
-                + "&code="
-                + activeCode
-                + "&display="
-                + displayString,
-            String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
@@ -593,20 +521,11 @@ class FhirR5Tests {
     String codeNotFound = "T10";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String messageNotFound = "The code '" + codeNotFound + "' was not found.";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + codeNotFound;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(
-            localHost
-                + port
-                + fhirVSPath
-                + "/"
-                + JpaConstants.OPERATION_VALIDATE_CODE
-                + "?url="
-                + url
-                + "&code="
-                + codeNotFound,
-            String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
@@ -628,22 +547,11 @@ class FhirR5Tests {
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
     String messageNotFound = "The code '" + codeNotFound + "' was not found.";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + codeNotFound + "&display=" + displayString;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(
-            localHost
-                + port
-                + fhirVSPath
-                + "/"
-                + JpaConstants.OPERATION_VALIDATE_CODE
-                + "?url="
-                + url
-                + "&code="
-                + codeNotFound
-                + "&display="
-                + displayString,
-            String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
@@ -666,24 +574,12 @@ class FhirR5Tests {
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
     String messageNotFound = "The code '" + codeNotFound + "' was not found.";
+    String endpoint =
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + codeNotFound + "&display=" + displayString;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(
-            localHost
-                + port
-                + fhirVSPath
-                + "/"
-                + activeID
-                + "/"
-                + JpaConstants.OPERATION_VALIDATE_CODE
-                + "?url="
-                + url
-                + "&code="
-                + codeNotFound
-                + "&display="
-                + displayString,
-            String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
@@ -704,20 +600,11 @@ class FhirR5Tests {
     String retiredCode = "C45683";
     String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     String retiredName = "ABCB1 1 Allele";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + retiredUrl + "&code=" + retiredCode;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(
-            localHost
-                + port
-                + fhirVSPath
-                + "/"
-                + JpaConstants.OPERATION_VALIDATE_CODE
-                + "?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode,
-            String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
@@ -737,22 +624,11 @@ class FhirR5Tests {
     String retiredCode = "C45683";
     String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     String retiredName = "ABCB1 1 Allele";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(
-            localHost
-                + port
-                + fhirVSPath
-                + "/"
-                + JpaConstants.OPERATION_VALIDATE_CODE
-                + "?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode
-                + "&display="
-                + retiredName,
-            String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
@@ -773,29 +649,47 @@ class FhirR5Tests {
     String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     String retiredId = "ncit_21.06e";
     String retiredName = "ABCB1 1 Allele";
+    String endpoint =
+        localHost
+            + port
+            + fhirVSPath
+            + "/"
+            + retiredId
+            + "/"
+            + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
 
     // ACT
-    content =
-        this.restTemplate.getForObject(
-            localHost
-                + port
-                + fhirVSPath
-                + "/"
-                + retiredId
-                + "/"
-                + JpaConstants.OPERATION_VALIDATE_CODE
-                + "?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode
-                + "&display="
-                + retiredName,
-            String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // ASSERT
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
     assertEquals(retiredName, ((StringType) params.getParameter("display").getValue()).getValue());
+  }
+
+  /**
+   * Test the ValueSet rejects a post call when attempted.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetPostRejects() throws Exception {
+    // ARRANGE
+    ResponseEntity<String> content;
+    String message = "POST method not supported for " + JpaConstants.OPERATION_EXPAND;
+
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String parameters = "?code=" + null + "&system=" + null;
+
+    // ACT
+    content = this.restTemplate.postForEntity(endpoint + parameters, null, String.class);
+
+    // ASSERT
+    assertEquals(HttpStatus.METHOD_NOT_ALLOWED, content.getStatusCode());
+    assertNotNull(content.getBody());
+    assertTrue(content.getBody().contains(message));
+    assertTrue(content.getBody().contains("not supported"));
   }
 
   /**
@@ -835,7 +729,9 @@ class FhirR5Tests {
   @Test
   public void testConceptMapRead() throws Exception {
     // ARRANGE
-    String content = this.restTemplate.getForObject(localHost + port + fhirCMPath, String.class);
+    String endpoint = localHost + port + fhirCMPath;
+
+    String content = this.restTemplate.getForObject(endpoint, String.class);
     Bundle data = parser.parseResource(Bundle.class, content);
     List<Resource> conceptMaps =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
@@ -843,9 +739,7 @@ class FhirR5Tests {
     // ACT
     String firstConceptMapId = conceptMaps.get(0).getIdPart();
     // reassign content
-    content =
-        this.restTemplate.getForObject(
-            localHost + port + fhirCMPath + "/" + firstConceptMapId, String.class);
+    content = this.restTemplate.getForObject(endpoint + "/" + firstConceptMapId, String.class);
     ConceptMap conceptMap = parser.parseResource(ConceptMap.class, content);
 
     // ASSERT
@@ -854,5 +748,29 @@ class FhirR5Tests {
     assertEquals(firstConceptMapId, conceptMap.getIdPart());
     assertEquals(conceptMap.getName(), ((ConceptMap) conceptMaps.get(0)).getName());
     assertEquals(conceptMap.getVersion(), ((ConceptMap) conceptMaps.get(0)).getVersion());
+  }
+
+  /**
+   * Test the ValueSet rejects a post call when attempted.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapPostRejects() throws Exception {
+    // ARRANGE
+    ResponseEntity<String> content;
+    String message = "POST method not supported for " + JpaConstants.OPERATION_TRANSLATE;
+
+    String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + null + "&system=" + null;
+
+    // ACT
+    content = this.restTemplate.postForEntity(endpoint + parameters, null, String.class);
+
+    // ASSERT
+    assertEquals(HttpStatus.METHOD_NOT_ALLOWED, content.getStatusCode());
+    assertNotNull(content.getBody());
+    assertTrue(content.getBody().contains(message));
+    assertTrue(content.getBody().contains("not supported"));
   }
 }

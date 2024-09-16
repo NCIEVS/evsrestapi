@@ -12,6 +12,7 @@ import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.param.UriParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.model.Concept;
@@ -67,6 +68,96 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   }
 
   /**
+   * Find code systems
+   *
+   * @param request the request
+   * @param details the details
+   * @param id the id
+   * @param code the code
+   * @param date the date
+   * @param description the description
+   * @param name the name
+   * @param publisher the publisher
+   * @param title the title
+   * @param url the url (also known as system)
+   * @param version the version
+   * @param count the count
+   * @param offset the offset
+   * @return the bundle
+   * @throws Exception exception
+   */
+  @Search
+  public Bundle findCodeSystems(
+      final HttpServletRequest request,
+      final ServletRequestDetails details,
+      @OptionalParam(name = "_id") TokenParam id,
+      @OptionalParam(name = "code") final TokenParam code,
+      @OptionalParam(name = "date") final DateRangeParam date,
+      @OptionalParam(name = "description") final StringParam description,
+      @OptionalParam(name = "name") final StringParam name,
+      @OptionalParam(name = "publisher") final StringParam publisher,
+      @OptionalParam(name = "title") final StringParam title,
+      @OptionalParam(name = "url") final UriParam url,
+      @OptionalParam(name = "version") final StringParam version,
+      @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
+          NumberParam count,
+      @Description(shortDefinition = "Start offset, used when reading a next page")
+          @OptionalParam(name = "_offset")
+          NumberParam offset)
+      throws Exception {
+    try {
+//      FhirUtilityR5.notSupportedSearchParams(request);
+      // Get the indexed terms
+      final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
+      final List<CodeSystem> list = new ArrayList<>();
+
+      // Find the matching code systems in the list of terms
+      for (final Terminology terminology : terms) {
+        final CodeSystem cs = FhirUtilityR5.toR5(terminology);
+
+        // Skip non-matching
+        if ((id != null && !id.getValue().equals(cs.getIdPart()))
+            || (url != null && !url.getValue().equals(cs.getUrl()))) {
+          logger.info("  SKIP url mismatch = " + cs.getUrl());
+          continue;
+        }
+        if (date != null && !FhirUtility.compareDateRange(date, cs.getDate())) {
+          logger.info("  SKIP date mismatch = " + cs.getDate());
+          continue;
+        }
+        if (description != null && !FhirUtility.compareString(description, cs.getDescription())) {
+          logger.info("  SKIP description mismatch = " + cs.getDescription());
+          continue;
+        }
+        if (name != null && !FhirUtility.compareString(name, cs.getName())) {
+          logger.info("  SKIP name mismatch = " + cs.getName());
+          continue;
+        }
+        if (publisher != null && !FhirUtility.compareString(publisher, cs.getPublisher())) {
+          logger.info("  SKIP publisher mismatch = " + cs.getPublisher());
+          continue;
+        }
+        if (title != null && !FhirUtility.compareString(title, cs.getTitle())) {
+          logger.info("  SKIP title mismatch = " + cs.getTitle());
+          continue;
+        }
+        if (version != null && !FhirUtility.compareString(version, cs.getVersion())) {
+          logger.info("  SKIP version mismatch = " + cs.getVersion());
+          continue;
+        }
+
+        list.add(cs);
+      }
+      return FhirUtilityR5.makeBundle(request, list, count, offset);
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      logger.error("Unexpected error", e);
+      throw FhirUtilityR5.exception("Failed to find code systesm", IssueType.EXCEPTION, 500);
+    }
+  }
+
+  /**
    * Look up implicit
    *
    * <pre>
@@ -99,6 +190,13 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OperationParam(name = "displayLanguage") final StringType displayLanguage,
       @OperationParam(name = "propert") final CodeType property)
       throws Exception {
+    // Check if the request is a POST, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR5.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_LOOKUP,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR5.mutuallyRequired(code, "code", system, "system");
       FhirUtilityR5.mutuallyExclusive(code, "code", coding, "coding");
@@ -182,6 +280,13 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OperationParam(name = "displayLanguage") final StringType displayLanguage,
       @OperationParam(name = "property") final CodeType property)
       throws Exception {
+    // check if the request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR5.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_LOOKUP,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR5.mutuallyRequired(code, "code", system, "system");
       FhirUtilityR5.mutuallyExclusive(code, "code", coding, "coding");
@@ -270,6 +375,13 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OperationParam(name = "displayLanguage") final StringType displayLanguage,
       @OperationParam(name = "systemVersion") final StringType systemVersion)
       throws Exception {
+    // Check if the request is a POST, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR5.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR5.notSupported(codeableConcept, "codeableConcept");
       FhirUtilityR5.notSupported(codeSystem, "codeSystem");
@@ -370,6 +482,13 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OperationParam(name = "displayLanguage") final StringType displayLanguage,
       @OperationParam(name = "systemVersion") final StringType systemVersion)
       throws Exception {
+    // Check if the request is a post, throw exception as we don't support post requests
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR5.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR5.notSupported(codeableConcept, "codeableConcept");
       FhirUtilityR5.notSupported(codeSystem, "codeSystem");
@@ -460,6 +579,13 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OperationParam(name = "codingA") final Coding codingA,
       @OperationParam(name = "codingB") final Coding codingB)
       throws Exception {
+    // Check if the request is a post, throw exception as we don't support post requests
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR5.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_SUBSUMES,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR5.mutuallyRequired(codeA, "codeA", system, "system");
       FhirUtilityR5.mutuallyRequired(codeB, "codeB", system, "system");
@@ -543,6 +669,13 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OperationParam(name = "codingA") final Coding codingA,
       @OperationParam(name = "codingB") final Coding codingB)
       throws Exception {
+    // Check if the request is a post, throw exception as we don't support post requests
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR5.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_SUBSUMES,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR5.mutuallyRequired(codeA, "codeA", system, "system");
       FhirUtilityR5.mutuallyRequired(codeB, "codeB", system, "system");
@@ -590,68 +723,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
     } catch (final Exception e) {
       logger.error("Error occurred: ", e);
       throw FhirUtilityR5.exception("Failed to check if A subsumes B", IssueType.EXCEPTION, 500);
-    }
-  }
-
-  /**
-   * Find code systems
-   *
-   * @param request the request
-   * @param id the id
-   * @param date the date
-   * @param system the system
-   * @param version the version
-   * @param title the title
-   * @param count the count
-   * @param offset the offset
-   * @return the bundle
-   * @throws Exception exception
-   */
-  @Search
-  public Bundle findCodeSystems(
-      final HttpServletRequest request,
-      @OptionalParam(name = "_id") final TokenParam id,
-      @OptionalParam(name = "date") final DateRangeParam date,
-      @OptionalParam(name = "system") final StringParam system,
-      @OptionalParam(name = "version") final StringParam version,
-      @OptionalParam(name = "title") final StringParam title,
-      @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
-          NumberParam count,
-      @Description(shortDefinition = "Start offset, used when reading a next page")
-          @OptionalParam(name = "_offset")
-          NumberParam offset)
-      throws Exception {
-    try {
-      final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
-      final List<CodeSystem> list = new ArrayList<>();
-      for (final Terminology terminology : terms) {
-        final CodeSystem cs = FhirUtilityR5.toR5(terminology);
-        // Skip non-matching
-        if ((id != null && !id.getValue().equals(cs.getIdPart()))
-            || (system != null && !system.getValue().equals(cs.getUrl()))) {
-          logger.info("  SKIP url mismatch = " + cs.getUrl());
-          continue;
-        }
-        if (date != null && !FhirUtility.compareDateRange(date, cs.getDate())) {
-          logger.info("  SKIP date mismatch = " + cs.getDate());
-          continue;
-        }
-        if (title != null && !FhirUtility.compareString(title, cs.getTitle())) {
-          logger.info("  SKIP title mismatch = " + cs.getTitle());
-          continue;
-        }
-        if (version != null && !FhirUtility.compareString(version, cs.getVersion())) {
-          logger.info("  SKIP version mismatch = " + cs.getVersion());
-          continue;
-        }
-        list.add(cs);
-      }
-      return FhirUtilityR5.makeBundle(request, list, count, offset);
-    } catch (final FHIRServerResponseException e) {
-      throw e;
-    } catch (final Exception e) {
-      logger.error("Unexpected error", e);
-      throw FhirUtilityR5.exception("Failed to find code systesm", IssueType.EXCEPTION, 500);
     }
   }
 

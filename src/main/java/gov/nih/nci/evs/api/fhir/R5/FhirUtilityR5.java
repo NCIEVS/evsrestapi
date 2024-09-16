@@ -6,6 +6,7 @@ import ca.uhn.fhir.rest.param.NumberParam;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -355,6 +356,39 @@ public class FhirUtilityR5 {
   }
 
   /**
+   * Not supported search params.
+   *
+   * @param request the request
+   */
+  public static void notSupportedSearchParams(final HttpServletRequest request) {
+    for (final String param :
+        new String[] {
+          "_lastUpdated",
+          "_tag",
+          "_profile",
+          "_security",
+          "_text",
+          "_list",
+          "_type",
+          "_include",
+          "_revinclude",
+          "_summary",
+          "_total",
+          "_elements",
+          "_contained",
+          "_containedType"
+        }) {
+      notSupported(request, param);
+    }
+    if (Collections.list(request.getParameterNames()).stream()
+            .filter(k -> k.startsWith("_has"))
+            .count()
+        > 0) {
+      notSupported(request, "_has");
+    }
+  }
+
+  /**
    * Check we have at least one required object
    *
    * @param obj1 the first object
@@ -595,15 +629,17 @@ public class FhirUtilityR5 {
       final int countInt) {
     final int nextOffset = offsetInt + countInt;
     String nextUri = uri;
-
+    // append ? to url if missing
     if (!uri.contains("?")) {
       nextUri = nextUri + "?";
     }
+    // replace offset if it exists
     if (offset != null) {
       nextUri = nextUri.replaceFirst("offset=\\d+", "_offset=" + nextOffset);
     } else {
       nextUri += (nextUri.endsWith("?") ? "" : "&") + "_offset=" + nextOffset;
     }
+    // replace count if it exists
     if (count != null) {
       nextUri = nextUri.replaceFirst("_count=\\d+", "_count=" + countInt);
     } else {
@@ -611,6 +647,43 @@ public class FhirUtilityR5 {
     }
 
     return new BundleLinkComponent().setUrl(nextUri).setRelation(LinkRelationTypes.NEXT);
+  }
+
+  /**
+   * Get the previous link component
+   *
+   * @param uri the uri
+   * @param offset the offset
+   * @param offsetInt the offset int
+   * @param count the count
+   * @param countInt the count int
+   * @return the previous link component
+   */
+  public static BundleLinkComponent getPrevLink(
+      final String uri,
+      final NumberParam offset,
+      final int offsetInt,
+      final NumberParam count,
+      final int countInt) {
+    final int prevOffset = offsetInt - countInt;
+    String prevUri = uri;
+    // append ? to url if missing
+    if (!uri.contains("?")) {
+      prevUri = prevUri + "?";
+    }
+    // replace offset if it exists
+    if (offset != null) {
+      prevUri = prevUri.replaceFirst("_offset=\\d+", "_offset=" + prevOffset);
+    } else {
+      prevUri += (prevUri.endsWith("?") ? "" : "&") + "_offset=" + prevOffset;
+    }
+    // replace count if it exists
+    if (count != null) {
+      prevUri = prevUri.replaceFirst("_count=\\d+", "_count=" + countInt);
+    } else {
+      prevUri += (prevUri.endsWith("?") ? "" : "&") + "_count=" + countInt;
+    }
+    return new BundleLinkComponent().setUrl(prevUri).setRelation(LinkRelationTypes.PREVIOUS);
   }
 
   /**
@@ -644,6 +717,9 @@ public class FhirUtilityR5 {
 
     if (offsetInt + countInt < list.size()) {
       bundle.addLink(FhirUtilityR5.getNextLink(thisUrl, offset, offsetInt, count, countInt));
+    }
+    if (offsetInt - countInt >= list.size()) {
+      bundle.addLink(FhirUtilityR5.getPrevLink(thisUrl, offset, offsetInt, count, countInt));
     }
     for (int i = offsetInt; i < offsetInt + countInt; i++) {
       if (i > list.size() - 1) {
