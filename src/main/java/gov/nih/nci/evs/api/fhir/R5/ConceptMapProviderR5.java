@@ -67,6 +67,79 @@ public class ConceptMapProviderR5 implements IResourceProvider {
   }
 
   /**
+   * Find concept maps.
+   *
+   * @param id the id
+   * @param date the date
+   * @param system the system
+   * @param url the url
+   * @param version the version
+   * @return the list
+   * @throws Exception the exception
+   */
+  @Search
+  public Bundle findConceptMaps(
+      final HttpServletRequest request,
+      @OptionalParam(name = "_id") final TokenParam id,
+      @OptionalParam(name = "date") final DateRangeParam date,
+      @OptionalParam(name = "system") final StringParam system,
+      @OptionalParam(name = "url") final StringParam url,
+      @OptionalParam(name = "version") final StringParam version,
+      @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
+          NumberParam count,
+      @Description(shortDefinition = "Start offset, used when reading a next page")
+          @OptionalParam(name = "_offset")
+          NumberParam offset)
+      throws Exception {
+    try {
+//      FhirUtilityR5.notSupportedSearchParams(request);
+
+      final List<Concept> mapsets = esQueryService.getMapsets(new IncludeParam("properties"));
+
+      final List<ConceptMap> list = new ArrayList<>();
+      for (final Concept mapset : mapsets) {
+        final List<Property> props = mapset.getProperties();
+        if (props.stream()
+            .anyMatch(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))) {
+          continue;
+        }
+        final ConceptMap cm = FhirUtilityR5.toR5(mapset);
+        // Skip non-matching
+        if (url != null && !url.getValue().equals(cm.getUrl())) {
+          logger.info("  SKIP url mismatch = " + cm.getUrl());
+          continue;
+        }
+        if (id != null && !id.getValue().equals(cm.getId())) {
+          logger.info("  SKIP id mismatch = " + cm.getName());
+          continue;
+        }
+        if (system != null && !system.getValue().equals(cm.getName())) {
+          logger.info("  SKIP system mismatch = " + cm.getName());
+          continue;
+        }
+        if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
+          logger.info("  SKIP date mismatch = " + cm.getDate());
+          continue;
+        }
+        if (version != null && !FhirUtility.compareString(version, cm.getVersion())) {
+          logger.info("  SKIP version mismatch = " + cm.getVersion());
+          continue;
+        }
+
+        list.add(cm);
+      }
+
+      return FhirUtilityR5.makeBundle(request, list, count, offset);
+
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      logger.error("Unexpected error", e);
+      throw FhirUtilityR5.exception("Failed to find concept maps", IssueType.EXCEPTION, 500);
+    }
+  }
+
+  /**
    * Perform the lookup in the instance map.
    *
    * <pre>
@@ -116,6 +189,13 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       @OperationParam(name = "dependency.concept") final CodeableConcept dependencyConcept,
       @OperationParam(name = "reverse", type = BooleanType.class) final BooleanType reverse)
       throws Exception {
+    // Check if request is POST, throw error as we don't support POST calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR5.exception(
+          "POST method nor supported for " + JpaConstants.OPERATION_TRANSLATE,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
 
     try {
       FhirUtilityR5.required(code, "code");
@@ -248,7 +328,14 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       @OperationParam(name = "dependency.concept") final CodeableConcept dependency_concept,
       @OperationParam(name = "reverse", type = BooleanType.class) final BooleanType reverse)
       throws Exception {
-
+    // Check if request is post, throw error as we don't support POST calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR5.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_TRANSLATE,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
+    // TODO: fix issue with reverser,
     try {
       FhirUtilityR5.required(code, "code");
       FhirUtilityR5.notSupported(conceptMap, "conceptMap");
@@ -330,77 +417,6 @@ public class ConceptMapProviderR5 implements IResourceProvider {
     } catch (final Exception e) {
       logger.error("Error occurred: ", e);
       throw FhirUtilityR5.exception("Failed to translate concept map", IssueType.EXCEPTION, 500);
-    }
-  }
-
-  /**
-   * Find concept maps.
-   *
-   * @param id the id
-   * @param date the date
-   * @param system the system
-   * @param url the url
-   * @param version the version
-   * @return the list
-   * @throws Exception the exception
-   */
-  @Search
-  public Bundle findConceptMaps(
-      final HttpServletRequest request,
-      @OptionalParam(name = "_id") final TokenParam id,
-      @OptionalParam(name = "date") final DateRangeParam date,
-      @OptionalParam(name = "system") final StringParam system,
-      @OptionalParam(name = "url") final StringParam url,
-      @OptionalParam(name = "version") final StringParam version,
-      @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
-          NumberParam count,
-      @Description(shortDefinition = "Start offset, used when reading a next page")
-          @OptionalParam(name = "_offset")
-          NumberParam offset)
-      throws Exception {
-    try {
-      final List<Concept> mapsets = esQueryService.getMapsets(new IncludeParam("properties"));
-
-      final List<ConceptMap> list = new ArrayList<>();
-      for (final Concept mapset : mapsets) {
-        final List<Property> props = mapset.getProperties();
-        if (props.stream()
-            .anyMatch(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))) {
-          continue;
-        }
-        final ConceptMap cm = FhirUtilityR5.toR5(mapset);
-        // Skip non-matching
-        if (url != null && !url.getValue().equals(cm.getUrl())) {
-          logger.info("  SKIP url mismatch = " + cm.getUrl());
-          continue;
-        }
-        if (id != null && !id.getValue().equals(cm.getId())) {
-          logger.info("  SKIP id mismatch = " + cm.getName());
-          continue;
-        }
-        if (system != null && !system.getValue().equals(cm.getName())) {
-          logger.info("  SKIP system mismatch = " + cm.getName());
-          continue;
-        }
-        if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
-          logger.info("  SKIP date mismatch = " + cm.getDate());
-          continue;
-        }
-        if (version != null && !FhirUtility.compareString(version, cm.getVersion())) {
-          logger.info("  SKIP version mismatch = " + cm.getVersion());
-          continue;
-        }
-
-        list.add(cm);
-      }
-
-      return FhirUtilityR5.makeBundle(request, list, count, offset);
-
-    } catch (final FHIRServerResponseException e) {
-      throw e;
-    } catch (final Exception e) {
-      logger.error("Unexpected error", e);
-      throw FhirUtilityR5.exception("Failed to find concept maps", IssueType.EXCEPTION, 500);
     }
   }
 
