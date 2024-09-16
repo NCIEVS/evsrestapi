@@ -1,8 +1,12 @@
 package gov.nih.nci.evs.api.fhir;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
@@ -31,6 +35,8 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /** Integration tests for FhirR4Tests. */
@@ -53,6 +59,15 @@ public class FhirR4Tests {
 
   /** The object mapper. */
   private ObjectMapper objectMapper;
+
+  /** local host prefix */
+  private final String localHost = "http://localhost:";
+
+  /** Fhir url paths */
+  private final String fhirCSPath = "/fhir/r5/CodeSystem";
+
+  private final String fhirVSPath = "/fhir/r5/ValueSet";
+  private final String fhirCMPath = "/fhir/r5/ConceptMap";
 
   /** Sets the up. */
   @BeforeEach
@@ -285,6 +300,29 @@ public class FhirR4Tests {
     assertThat(((StringType) params.getParameter("display").getValue()).getValue())
         .isEqualTo(retiredName);
     assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
+  }
+
+  /**
+   * Test the CodeSystem rejects a post call when attempted.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemPostRejects() throws Exception {
+    // ARRANGE
+    ResponseEntity<String> content;
+    String message = "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE;
+    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?code=" + null + "&system=" + null;
+
+    // ACT
+    content = this.restTemplate.postForEntity(endpoint + parameters, null, String.class);
+
+    // ASSERT
+    assertEquals(HttpStatus.METHOD_NOT_ALLOWED, content.getStatusCode());
+    assertNotNull(content.getBody());
+    assertTrue(content.getBody().contains(message));
+    assertTrue(content.getBody().contains("not supported"));
   }
 
   @Test
@@ -530,6 +568,30 @@ public class FhirR4Tests {
   }
 
   /**
+   * Test the ValueSet rejects a post call when attempted.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetPostRejects() throws Exception {
+    // ARRANGE
+    ResponseEntity<String> content;
+    String message = "POST method not supported for " + JpaConstants.OPERATION_EXPAND;
+
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String parameters = "?code=" + null + "&system=" + null;
+
+    // ACT
+    content = this.restTemplate.postForEntity(endpoint + parameters, null, String.class);
+
+    // ASSERT
+    assertEquals(HttpStatus.METHOD_NOT_ALLOWED, content.getStatusCode());
+    assertNotNull(content.getBody());
+    assertTrue(content.getBody().contains(message));
+    assertTrue(content.getBody().contains("not supported"));
+  }
+
+  /**
    * Test ConceptMap.
    *
    * @throws Exception the exception
@@ -571,5 +633,29 @@ public class FhirR4Tests {
     assertThat(conceptMap.getIdPart()).isEqualTo(firstConceptMapId);
     assertThat(conceptMap.getName()).isEqualTo(((ConceptMap) conceptMaps.get(0)).getName());
     assertThat(conceptMap.getVersion()).isEqualTo(((ConceptMap) conceptMaps.get(0)).getVersion());
+  }
+
+  /**
+   * Test the ValueSet rejects a post call when attempted.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapPostRejects() throws Exception {
+    // ARRANGE
+    ResponseEntity<String> content;
+    String message = "POST method not supported for " + JpaConstants.OPERATION_TRANSLATE;
+
+    String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + null + "&system=" + null;
+
+    // ACT
+    content = this.restTemplate.postForEntity(endpoint + parameters, null, String.class);
+
+    // ASSERT
+    assertEquals(HttpStatus.METHOD_NOT_ALLOWED, content.getStatusCode());
+    assertNotNull(content.getBody());
+    assertTrue(content.getBody().contains(message));
+    assertTrue(content.getBody().contains("not supported"));
   }
 }

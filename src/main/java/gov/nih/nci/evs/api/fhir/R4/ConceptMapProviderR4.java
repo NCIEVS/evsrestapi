@@ -104,7 +104,13 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       @OperationParam(name = "dependency.concept") final CodeableConcept dependency_concept,
       @OperationParam(name = "reverse", type = BooleanType.class) final BooleanType reverse)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_TRANSLATE,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.required("code", code);
       FhirUtilityR4.notSupported("conceptMap", conceptMap);
@@ -234,7 +240,13 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       @OperationParam(name = "dependency.concept") final CodeableConcept dependency_concept,
       @OperationParam(name = "reverse", type = BooleanType.class) final BooleanType reverse)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_TRANSLATE,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.required("code", code);
       FhirUtilityR4.notSupported("conceptMap", conceptMap);
