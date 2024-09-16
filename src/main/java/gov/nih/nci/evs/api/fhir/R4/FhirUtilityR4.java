@@ -3,11 +3,9 @@ package gov.nih.nci.evs.api.fhir.R4;
 import static java.lang.String.format;
 
 import ca.uhn.fhir.rest.param.NumberParam;
-import gov.nih.nci.evs.api.fhir.R5.FhirUtilityR5;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
-
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -380,16 +378,29 @@ public final class FhirUtilityR4 {
    * @param request the request
    */
   public static void notSupportedSearchParams(final HttpServletRequest request) {
-    for (final String param : new String[] {
-            "_lastUpdated", "_tag", "_profile", "_security", "_text", "_list", "_type",
-            "_include", "_revinclude", "_summary", "_total", "_elements", "_contained",
-            "_containedType"
-
-    }) {
+    for (final String param :
+        new String[] {
+          "_lastUpdated",
+          "_tag",
+          "_profile",
+          "_security",
+          "_text",
+          "_list",
+          "_type",
+          "_include",
+          "_revinclude",
+          "_summary",
+          "_total",
+          "_elements",
+          "_contained",
+          "_containedType"
+        }) {
       notSupported(request, param);
     }
-    if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
-                   .count() > 0) {
+    if (Collections.list(request.getParameterNames()).stream()
+            .filter(k -> k.startsWith("_has"))
+            .count()
+        > 0) {
       notSupported(request, "_has");
     }
   }
@@ -679,11 +690,11 @@ public final class FhirUtilityR4 {
    * @return the previous link component
    */
   public static BundleLinkComponent getPrevLink(
-          final String uri,
-          final NumberParam offset,
-          final int offsetInt,
-          final NumberParam count,
-          final int countInt) {
+      final String uri,
+      final NumberParam offset,
+      final int offsetInt,
+      final NumberParam count,
+      final int countInt) {
     final int prevOffset = offsetInt - countInt;
     String prevUri = uri;
     // append ? to url if missing
