@@ -123,7 +123,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       codeToTranslate = code.getCode().toLowerCase();
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
-          findPossibleConceptMaps(id, null, system, url, version, source, target);
+          findPossibleConceptMaps(request, details, id, null, system, url, version, source, target);
       for (final ConceptMap mapping : cm) {
         final List<gov.nih.nci.evs.api.model.ConceptMap> maps =
             esQueryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
@@ -259,7 +259,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       codeToTranslate = code.getCode().toLowerCase();
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
-          findPossibleConceptMaps(null, null, system, url, version, source, target);
+          findPossibleConceptMaps(
+              request, details, null, null, system, url, version, source, target);
       for (final ConceptMap mapping : cm) {
         final List<gov.nih.nci.evs.api.model.ConceptMap> maps =
             esQueryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
@@ -414,6 +415,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   /**
    * Find possible concept maps.
    *
+   * @param request the request
+   * @param details the details
    * @param id the id
    * @param date the date
    * @param system the system
@@ -425,6 +428,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   public List<ConceptMap> findPossibleConceptMaps(
+      final HttpServletRequest request,
+      final ServletRequestDetails details,
       @OptionalParam(name = "_id") final IdType id,
       @OptionalParam(name = "date") final DateRangeParam date,
       @OptionalParam(name = "system") final UriType system,
@@ -434,6 +439,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       @OptionalParam(name = "version") final UriType target)
       throws Exception {
     try {
+      //      FhirUtilityR4.notSupportedSearchParams(request);
 
       // If no ID and no url are specified, no code systems match
       if (id == null && url == null && system == null) {
@@ -510,7 +516,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     try {
 
       final List<ConceptMap> candidates =
-          findPossibleConceptMaps(id, null, null, null, null, null, null);
+          findPossibleConceptMaps(null, details, id, null, null, null, null, null, null);
       for (final ConceptMap set : candidates) {
         if (id.getIdPart().equals(set.getId())) {
           return set;

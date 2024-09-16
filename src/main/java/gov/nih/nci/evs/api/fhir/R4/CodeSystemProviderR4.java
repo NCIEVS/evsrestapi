@@ -664,6 +664,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           NumberParam offset)
       throws Exception {
     try {
+      FhirUtilityR4.notSupportedSearchParams(request);
       final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
 
       final List<CodeSystem> list = new ArrayList<>();
