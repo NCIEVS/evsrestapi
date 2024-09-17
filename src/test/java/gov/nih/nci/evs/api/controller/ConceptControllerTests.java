@@ -143,12 +143,6 @@ public class ConceptControllerTests {
         .isEqualTo(0);
     assertThat(concept.getRoles().size()).isGreaterThan(0);
     assertThat(concept.getRoles().stream().filter(p -> p.getCode() != null).count()).isEqualTo(0);
-
-    // test that mappings are added
-    assertThat(concept.getMaps().size()).isEqualTo(8);
-    assertThat(concept.getMaps().get(7).getMapsetCode())
-        .isEqualTo("PDQ_2016_07_31_TO_NCI_2016_10E");
-    assertThat(concept.getMaps().get(7).getTargetCode()).isEqualTo("C3224");
   }
 
   /**
@@ -163,34 +157,31 @@ public class ConceptControllerTests {
     String content = null;
     Concept concept = null;
 
-    // Test concept with duplicate mapping map to solo map
-    url = baseUrl + "/ncit/C957?include=maps";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
-    assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("C957");
-    assertThat(concept.getName()).isEqualTo("10-Deacetyltaxol");
-    assertThat(concept.getTerminology()).isEqualTo("ncit");
-    assertThat(concept.getMaps().size()).isEqualTo(1);
+    // TODO: if there was a case of a map that had a P375 in the owl (mapsTo) and ALSO
+    // was represented in an explicit viewable map - then we could test that concept
+    // details properly de-duplicates that.  But we don't have any such data at the moment.
 
-    // Test concept with both duplicate mapping map and new mapping map
-    url = baseUrl + "/ncit/C49172?include=maps";
+    //
+
+    // Verify this concept has a "maps to" to an HGNC code
+    // This comes from the independent NCI-HGNC map distributed by Liz
+    // and isn't in the owl file itself.
+    url = baseUrl + "/ncit/C143031?include=full";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
-    assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("C49172");
-    assertThat(concept.getName()).isEqualTo("11C Topotecan");
-    assertThat(concept.getTerminology()).isEqualTo("ncit");
-    assertThat(concept.getMaps().size()).isEqualTo(2);
-    assertThat(concept.getMaps().get(0).getMapsetCode()).isNull();
-    assertThat(concept.getMaps().get(1).getMapsetCode())
-        .isEqualTo("PDQ_2016_07_31_TO_NCI_2016_10E");
+    assertThat(concept.getMaps().size()).isGreaterThan(0);
+    assertThat(
+            concept.getMaps().stream()
+                .filter(
+                    m ->
+                        m.getMapsetCode() != null
+                            && m.getMapsetCode().equals("NCIt_to_HGNC_Mapping")
+                            && m.getSourceCode().equals("C143031")
+                            && m.getTargetCode().equals("HGNC:24086"))
+                .count())
+        .isEqualTo(1);
   }
 
   /**

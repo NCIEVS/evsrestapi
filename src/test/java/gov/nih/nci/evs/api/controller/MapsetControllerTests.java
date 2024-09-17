@@ -5,11 +5,16 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.dnault.xmlpatch.internal.Log;
+
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import net.sf.saxon.lib.Logger;
+
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -22,6 +27,7 @@ import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+import static org.assertj.core.api.Assertions.assertThat;
 
 /** mapset tests. */
 @ExtendWith(SpringExtension.class)
@@ -364,12 +370,14 @@ public class MapsetControllerTests {
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getMaps().size() > 1);
-    assert (mapList
-            .getMaps()
-            .get(0)
-            .getSourceName()
-            .compareTo(mapList.getMaps().get(1).getSourceName())
-        < 0);
+    final List<String> sn1 =
+        mapList.getMaps().stream()
+            .map(m -> m.getSourceName())
+            .sorted()
+            .collect(Collectors.toList());
+    final List<String> sn2 =
+        mapList.getMaps().stream().map(m -> m.getSourceName()).collect(Collectors.toList());
+    assertThat(sn1.equals(sn2)).isTrue();
 
     // test SNOMED mapping in mapset/{code}/maps, sort by code desc
     result =
@@ -382,12 +390,15 @@ public class MapsetControllerTests {
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getMaps().size() > 1);
-    assert (mapList
-            .getMaps()
-            .get(0)
-            .getSourceCode()
-            .compareTo(mapList.getMaps().get(1).getSourceCode())
-        > 0);
+    // Sort in descending order
+    final List<String> sc1 =
+        mapList.getMaps().stream()
+            .map(m -> m.getSourceCode())
+            .sorted((a, b) -> b.compareTo(a))
+            .collect(Collectors.toList());
+    final List<String> sc2 =
+        mapList.getMaps().stream().map(m -> m.getSourceCode()).collect(Collectors.toList());
+    assertThat(sc1.equals(sc2)).isTrue();
   }
 
   /**
