@@ -356,6 +356,18 @@ public class FhirUtilityR5 {
   }
 
   /**
+   * Check if the request param is not supported
+   *
+   * @param request the request
+   * @param paramName the parameter name
+   */
+  public static void notSupported(final HttpServletRequest request, final String paramName) {
+    if (request.getParameterMap().containsKey(paramName)) {
+      final String message = format("Input parameter %s is not supported.", paramName);
+      throw exception(message, IssueType.NOTSUPPORTED, 400);
+    }
+  }
+  /**
    * Not supported search params.
    *
    * @param request the request
@@ -389,7 +401,7 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Check we have at least one required object
+   * Check we have at least one required object fopr 2 objects
    *
    * @param obj1 the first object
    * @param obj1Name the first object name
@@ -409,7 +421,38 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Check we have at least one required object
+   * Check we have exactly one required object for 3 objects
+   *
+   * @param obj1 first object
+   * @param obj1Name first object name
+   * @param obj2 second object
+   * @param obj2Name second object name
+   * @param obj3 third object
+   * @param obj3Name third object name
+   */
+  public static void requireExactlyOneOf(
+          final Object obj1,
+          final String obj1Name,
+          final Object obj2,
+          final String obj2Name,
+          final Object obj3,
+          final String obj3Name) {
+    if (obj1 == null && obj2 == null && obj3 == null) {
+      throw exception(
+              format(
+                      "Must supply at least one of %s, %s, or %s parameters.",
+                      obj1Name, obj2Name, obj3Name),
+              IssueType.INVARIANT,
+              400);
+    } else {
+      mutuallyExclusive(obj1, obj1Name, obj2, obj2Name);
+      mutuallyExclusive(obj1, obj1Name, obj3, obj3Name);
+      mutuallyExclusive(obj2, obj2Name, obj3, obj3Name);
+    }
+  }
+
+  /**
+   * Check we have at least one required object for 4 objects
    *
    * @param obj1 first object
    * @param obj1Name first object name
@@ -439,39 +482,10 @@ public class FhirUtilityR5 {
     }
   }
 
-  /**
-   * Check we have exactly one required object
-   *
-   * @param obj1 first object
-   * @param obj1Name first object name
-   * @param obj2 second object
-   * @param obj2Name second object name
-   * @param obj3 third object
-   * @param obj3Name third object name
-   */
-  public static void requireExactlyOneOf(
-      final Object obj1,
-      final String obj1Name,
-      final Object obj2,
-      final String obj2Name,
-      final Object obj3,
-      final String obj3Name) {
-    if (obj1 == null && obj2 == null && obj3 == null) {
-      throw exception(
-          format(
-              "Must supply at least one of %s, %s, or %s parameters.",
-              obj1Name, obj2Name, obj3Name),
-          IssueType.INVARIANT,
-          400);
-    } else {
-      mutuallyExclusive(obj1, obj1Name, obj2, obj2Name);
-      mutuallyExclusive(obj1, obj1Name, obj3, obj3Name);
-      mutuallyExclusive(obj2, obj2Name, obj3, obj3Name);
-    }
-  }
+
 
   /**
-   * Check we have both required fields
+   * Check we have both required fields for 2 objects
    *
    * @param obj1 first object
    * @param obj1Name first object name
@@ -491,7 +505,7 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Check we have all required fields
+   * Check we have all required fields for 3 objects
    *
    * @param obj1 first object
    * @param obj1Name first object name
@@ -590,7 +604,7 @@ public class FhirUtilityR5 {
       final Object propertyValue, final String propertyName, final boolean isCode) {
     String valueName = "value";
     // Create a property and add the code as a valueCode
-    final ParametersParameterComponent property = new ParametersParameterComponent();
+    final ParametersParameterComponent property = new ParametersParameterComponent().setName("property");
     property.addPart().setName("code").setValue(new CodeType(propertyName));
 
     // Define the value based on the property value, if present
