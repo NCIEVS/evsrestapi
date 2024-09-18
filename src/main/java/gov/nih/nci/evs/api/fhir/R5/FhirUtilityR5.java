@@ -204,7 +204,7 @@ public class FhirUtilityR5 {
   public static ConceptMap toR5(final Concept mapset) {
     final ConceptMap cm = new ConceptMap();
     // populate the r5 concept map
-    cm.setId(mapset.getCode() + "_" + mapset.getVersion());
+    cm.setId((mapset.getCode() + "_" + mapset.getVersion()).toLowerCase());
     cm.setName(mapset.getName());
     cm.setTitle(mapset.getCode());
     cm.setExperimental(false);
@@ -367,6 +367,7 @@ public class FhirUtilityR5 {
       throw exception(message, IssueType.NOTSUPPORTED, 400);
     }
   }
+
   /**
    * Not supported search params.
    *
@@ -431,19 +432,19 @@ public class FhirUtilityR5 {
    * @param obj3Name third object name
    */
   public static void requireExactlyOneOf(
-          final Object obj1,
-          final String obj1Name,
-          final Object obj2,
-          final String obj2Name,
-          final Object obj3,
-          final String obj3Name) {
+      final Object obj1,
+      final String obj1Name,
+      final Object obj2,
+      final String obj2Name,
+      final Object obj3,
+      final String obj3Name) {
     if (obj1 == null && obj2 == null && obj3 == null) {
       throw exception(
-              format(
-                      "Must supply at least one of %s, %s, or %s parameters.",
-                      obj1Name, obj2Name, obj3Name),
-              IssueType.INVARIANT,
-              400);
+          format(
+              "Must supply at least one of %s, %s, or %s parameters.",
+              obj1Name, obj2Name, obj3Name),
+          IssueType.INVARIANT,
+          400);
     } else {
       mutuallyExclusive(obj1, obj1Name, obj2, obj2Name);
       mutuallyExclusive(obj1, obj1Name, obj3, obj3Name);
@@ -481,8 +482,6 @@ public class FhirUtilityR5 {
           400);
     }
   }
-
-
 
   /**
    * Check we have both required fields for 2 objects
@@ -604,7 +603,8 @@ public class FhirUtilityR5 {
       final Object propertyValue, final String propertyName, final boolean isCode) {
     String valueName = "value";
     // Create a property and add the code as a valueCode
-    final ParametersParameterComponent property = new ParametersParameterComponent().setName("property");
+    final ParametersParameterComponent property =
+        new ParametersParameterComponent().setName("property");
     property.addPart().setName("code").setValue(new CodeType(propertyName));
 
     // Define the value based on the property value, if present
