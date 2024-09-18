@@ -587,7 +587,7 @@ public final class FhirUtilityR4 {
    *
    * @param message the message
    * @param issueType the issue type
-   * @param theStatusCode the the status code
+   * @param theStatusCode the status code
    * @param e the e
    * @return the FHIR server response exception
    */
