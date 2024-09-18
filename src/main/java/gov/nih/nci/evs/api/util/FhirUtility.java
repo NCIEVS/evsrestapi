@@ -15,7 +15,6 @@ import ca.uhn.fhir.rest.param.StringParam;
 import java.util.Date;
 import org.apache.commons.lang3.StringUtils;
 
-
 /** Utility for fhir data building. */
 public final class FhirUtility {
 
