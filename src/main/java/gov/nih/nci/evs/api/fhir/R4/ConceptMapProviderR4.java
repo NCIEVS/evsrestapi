@@ -123,7 +123,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       codeToTranslate = code.getCode().toLowerCase();
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
-          findPossibleConceptMaps(request, details, id, null, system, url, version, source, target);
+          findPossibleConceptMaps(id, null, system, url, version, source, target);
       for (final ConceptMap mapping : cm) {
         final List<gov.nih.nci.evs.api.model.ConceptMap> maps =
             esQueryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
@@ -260,7 +260,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
           findPossibleConceptMaps(
-              request, details, null, null, system, url, version, source, target);
+              null, null, system, url, version, source, target);
       for (final ConceptMap mapping : cm) {
         final List<gov.nih.nci.evs.api.model.ConceptMap> maps =
             esQueryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
@@ -364,6 +364,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           NumberParam offset)
       throws Exception {
     try {
+      FhirUtilityR4.notSupportedSearchParams(request);
+
       final List<Concept> mapsets = esQueryService.getMapsets(new IncludeParam("properties"));
 
       final List<ConceptMap> list = new ArrayList<>();
@@ -413,10 +415,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   }
 
   /**
-   * Find possible concept maps.
+   * Helper method to find possible concept maps.
    *
-   * @param request the request
-   * @param details the details
    * @param id the id
    * @param date the date
    * @param system the system
@@ -427,9 +427,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @return the list
    * @throws Exception the exception
    */
-  public List<ConceptMap> findPossibleConceptMaps(
-      final HttpServletRequest request,
-      final ServletRequestDetails details,
+  private List<ConceptMap> findPossibleConceptMaps(
       @OptionalParam(name = "_id") final IdType id,
       @OptionalParam(name = "date") final DateRangeParam date,
       @OptionalParam(name = "system") final UriType system,
@@ -516,7 +514,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     try {
 
       final List<ConceptMap> candidates =
-          findPossibleConceptMaps(null, details, id, null, null, null, null, null, null);
+          findPossibleConceptMaps(id, null, null, null, null, null, null);
       for (final ConceptMap set : candidates) {
         if (id.getIdPart().equals(set.getId())) {
           return set;

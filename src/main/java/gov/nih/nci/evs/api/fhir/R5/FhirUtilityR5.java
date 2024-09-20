@@ -183,7 +183,7 @@ public class FhirUtilityR5 {
   public static CodeSystem toR5(final Terminology term) {
     final CodeSystem cs = new CodeSystem();
     // populate the code system
-    cs.setId(term.getTerminologyVersion());
+    cs.setId((term.getTerminologyVersion()).toLowerCase());
     cs.setName(term.getName());
     cs.setTitle(term.getTerminology());
     cs.setExperimental(false);
@@ -263,7 +263,7 @@ public class FhirUtilityR5 {
    */
   public static ValueSet toR5VS(final Terminology term) {
     final ValueSet vs = new ValueSet();
-    vs.setId(term.getTerminology() + "_" + term.getVersion());
+    vs.setId((term.getTerminology() + "_" + term.getVersion()).toLowerCase());
     vs.setName(term.getName());
     vs.setVersion(term.getVersion());
     vs.setTitle(term.getTerminology());
@@ -283,14 +283,14 @@ public class FhirUtilityR5 {
    */
   public static ValueSet toR5VS(final Concept subset) {
     final ValueSet vs = new ValueSet();
-    vs.setId(subset.getTerminology() + "_" + subset.getCode());
+    vs.setId((subset.getTerminology() + "_" + subset.getCode()).toLowerCase());
     vs.setUrl(getUri(subset.getTerminology()) + "?fhir_vs=" + subset.getCode());
     vs.setName(subset.getName());
     vs.setVersion(subset.getVersion());
     vs.setTitle(subset.getTerminology());
     vs.setPublisher(getPublisher(subset.getTerminology()));
     vs.setDescription(
-        "Value set reprenting the " + subset.getTerminology() + "subset" + subset.getCode());
+        "Value set representing the " + subset.getTerminology() + "subset" + subset.getCode());
     vs.addIdentifier(new Identifier().setValue(subset.getCode()));
     vs.setExperimental(false);
     vs.setStatus(Enumerations.PublicationStatus.ACTIVE);

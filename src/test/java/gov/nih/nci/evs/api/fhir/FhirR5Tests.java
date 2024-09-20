@@ -413,7 +413,7 @@ class FhirR5Tests {
   public void testValueSetReadCode() throws Exception {
     // ARRANGE
     String content;
-    String code = "ncit_C129091";
+    String code = "ncit_c129091";
     String name = "CDISC Questionnaire NCCN-FACT FBLSI-18 Version 2 Test Name Terminology";
     String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C129091";
     String publisher = "NCI";
@@ -467,7 +467,7 @@ class FhirR5Tests {
     // ARRANGE
     String content;
     String activeCode = "T100";
-    String activeID = "umlssemnet_2023AA";
+    String activeID = "umlssemnet_2023aa";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
     String endpoint =
