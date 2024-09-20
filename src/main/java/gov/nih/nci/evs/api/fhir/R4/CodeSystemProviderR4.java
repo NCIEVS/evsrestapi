@@ -703,7 +703,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   }
 
   /**
-   * Find possible code systems.
+   * Helper method to find possible code systems.
    *
    * @param id the id
    * @param date the date
@@ -712,14 +712,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @return the list
    * @throws Exception the exception
    */
-  public List<CodeSystem> findPossibleCodeSystems(
+  private List<CodeSystem> findPossibleCodeSystems(
       @OptionalParam(name = "_id") final IdType id,
       @OptionalParam(name = "date") final DateRangeParam date,
       @OptionalParam(name = "url") final UriType url,
       @OptionalParam(name = "version") final StringType version)
       throws Exception {
     try {
-
       // If no ID and no url are specified, no code systems match
       if (id == null && url == null) {
         return new ArrayList<>(0);

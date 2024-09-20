@@ -158,7 +158,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupported("system-version", system_version);
       FhirUtilityR4.notSupported("check-system-version", check_system_version);
       FhirUtilityR4.notSupported("force-system-version", force_system_version);
-      final List<ValueSet> vsList = findPossibleValueSets(null, null, null, null, url, version);
+      final List<ValueSet> vsList = findPossibleValueSets(null, null, url, version);
       if (vsList.size() == 0) {
         throw FhirUtilityR4.exception(
             "Value set " + url + " not found", OperationOutcome.IssueType.EXCEPTION, 500);
@@ -309,7 +309,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupported("system-version", system_version);
       FhirUtilityR4.notSupported("check-system-version", check_system_version);
       FhirUtilityR4.notSupported("force-system-version", force_system_version);
-      final List<ValueSet> vsList = findPossibleValueSets(null, details, id, null, url, version);
+      final List<ValueSet> vsList = findPossibleValueSets(id, null, url, version);
       if (vsList.size() == 0) {
         throw FhirUtilityR4.exception(
             "Value set " + url + " not found", OperationOutcome.IssueType.EXCEPTION, 500);
@@ -440,7 +440,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupported("valueSet", valueSet);
       FhirUtilityR4.notSupported("valueSetVersion", valueSetVersion);
       final List<ValueSet> list =
-          findPossibleValueSets(null, null, null, system, url, systemVersion);
+          findPossibleValueSets(null, system, url, systemVersion);
       final Parameters params = new Parameters();
 
       if (list.size() > 0) {
@@ -556,7 +556,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupported("version", version);
       FhirUtilityR4.notSupported("valueSet", valueSet);
       FhirUtilityR4.notSupported("valueSetVersion", valueSetVersion);
-      final List<ValueSet> list = findPossibleValueSets(null, null, id, system, url, systemVersion);
+      final List<ValueSet> list = findPossibleValueSets(id, system, url, systemVersion);
       final Parameters params = new Parameters();
       if (list.size() > 0) {
         ValueSet vs = list.get(0);
@@ -634,10 +634,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
           @OptionalParam(name = "_offset")
           NumberParam offset)
       throws Exception {
-
+    FhirUtilityR4.notSupportedSearchParams(request);
     final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
+    final List<ValueSet> list = new ArrayList<>();
 
-    final List<ValueSet> list = new ArrayList<ValueSet>();
     if (code == null) {
       for (final Terminology terminology : terms) {
         final ValueSet vs = FhirUtilityR4.toR4VS(terminology);
@@ -723,7 +723,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
   public ValueSet getValueSet(final ServletRequestDetails details, @IdParam final IdType id)
       throws Exception {
     try {
-      final List<ValueSet> candidates = findPossibleValueSets(null, details, id, null, null, null);
+      final List<ValueSet> candidates = findPossibleValueSets(id, null, null, null);
       for (final ValueSet set : candidates) {
         if (id.getIdPart().equals(set.getId())) {
           return set;
@@ -745,10 +745,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
   }
 
   /**
-   * Find possible value sets.
+   * Helper method to find possible value sets.
    *
-   * @param request the request
-   * @param details the details
    * @param id the id
    * @param system the system
    * @param url the url
@@ -756,16 +754,12 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @return the list
    * @throws Exception the exception
    */
-  public List<ValueSet> findPossibleValueSets(
-      final HttpServletRequest request,
-      final ServletRequestDetails details,
+  private List<ValueSet> findPossibleValueSets(
       @OptionalParam(name = "_id") final IdType id,
       @OptionalParam(name = "system") final UriType system,
       @OptionalParam(name = "url") final UriType url,
       @OptionalParam(name = "version") final StringType version)
       throws Exception {
-    //    FhirUtilityR4.notSupportedSearchParams(request);
-
     // If no ID and no url are specified, no code systems match
     if (id == null && url == null) {
       return new ArrayList<>(0);

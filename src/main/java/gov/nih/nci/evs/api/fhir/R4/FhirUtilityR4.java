@@ -191,7 +191,7 @@ public final class FhirUtilityR4 {
    */
   public static CodeSystem toR4(final Terminology term) {
     final CodeSystem cs = new CodeSystem();
-    cs.setId(term.getTerminologyVersion());
+    cs.setId((term.getTerminologyVersion()).toLowerCase());
     cs.setName(term.getName());
     cs.setTitle(term.getTerminology());
     cs.setExperimental(false);
@@ -211,7 +211,7 @@ public final class FhirUtilityR4 {
    */
   public static ConceptMap toR4(final Concept mapset) {
     final ConceptMap cm = new ConceptMap();
-    cm.setId(mapset.getCode() + "_" + mapset.getVersion());
+    cm.setId((mapset.getCode() + "_" + mapset.getVersion()).toLowerCase());
     cm.setName(mapset.getName());
     cm.setTitle(mapset.getCode());
     cm.setExperimental(false);
@@ -267,7 +267,7 @@ public final class FhirUtilityR4 {
    */
   public static ValueSet toR4VS(final Terminology term) {
     final ValueSet vs = new ValueSet();
-    vs.setId(term.getTerminology() + "_" + term.getVersion());
+    vs.setId((term.getTerminology() + "_" + term.getVersion()).toLowerCase());
     vs.setName(term.getName());
     vs.setVersion(term.getVersion());
     vs.setTitle(term.getTerminology());
@@ -287,7 +287,7 @@ public final class FhirUtilityR4 {
    */
   public static ValueSet toR4VS(final Concept subset) {
     final ValueSet vs = new ValueSet();
-    vs.setId(subset.getTerminology() + "_" + subset.getCode());
+    vs.setId((subset.getTerminology() + "_" + subset.getCode()).toLowerCase());
     vs.setUrl(getUri(subset.getTerminology()) + "?fhir_vs=" + subset.getCode());
     vs.setName(subset.getName());
     vs.setVersion(subset.getVersion());
