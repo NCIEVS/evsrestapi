@@ -259,8 +259,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       codeToTranslate = code.getCode().toLowerCase();
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
-          findPossibleConceptMaps(
-              null, null, system, url, version, source, target);
+          findPossibleConceptMaps(null, null, system, url, version, source, target);
       for (final ConceptMap mapping : cm) {
         final List<gov.nih.nci.evs.api.model.ConceptMap> maps =
             esQueryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
