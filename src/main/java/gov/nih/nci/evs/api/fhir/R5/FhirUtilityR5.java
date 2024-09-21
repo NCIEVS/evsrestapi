@@ -183,6 +183,7 @@ public class FhirUtilityR5 {
   public static CodeSystem toR5(final Terminology term) {
     final CodeSystem cs = new CodeSystem();
     // populate the code system
+    // This ensures our id values set internally are always lowercase.
     cs.setId((term.getTerminologyVersion()).toLowerCase());
     cs.setName(term.getName());
     cs.setTitle(term.getTerminology());
@@ -204,6 +205,7 @@ public class FhirUtilityR5 {
   public static ConceptMap toR5(final Concept mapset) {
     final ConceptMap cm = new ConceptMap();
     // populate the r5 concept map
+    // This ensures our id values set internally are always lowercase.
     cm.setId((mapset.getCode() + "_" + mapset.getVersion()).toLowerCase());
     cm.setName(mapset.getName());
     cm.setTitle(mapset.getCode());
@@ -263,6 +265,7 @@ public class FhirUtilityR5 {
    */
   public static ValueSet toR5VS(final Terminology term) {
     final ValueSet vs = new ValueSet();
+    // This ensures our id values set internally are always lowercase.
     vs.setId((term.getTerminology() + "_" + term.getVersion()).toLowerCase());
     vs.setName(term.getName());
     vs.setVersion(term.getVersion());
@@ -283,6 +286,7 @@ public class FhirUtilityR5 {
    */
   public static ValueSet toR5VS(final Concept subset) {
     final ValueSet vs = new ValueSet();
+    // This ensures our id values set internally are always lowercase.
     vs.setId((subset.getTerminology() + "_" + subset.getCode()).toLowerCase());
     vs.setUrl(getUri(subset.getTerminology()) + "?fhir_vs=" + subset.getCode());
     vs.setName(subset.getName());

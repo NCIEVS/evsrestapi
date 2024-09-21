@@ -439,8 +439,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupported("version", version);
       FhirUtilityR4.notSupported("valueSet", valueSet);
       FhirUtilityR4.notSupported("valueSetVersion", valueSetVersion);
-      final List<ValueSet> list =
-          findPossibleValueSets(null, system, url, systemVersion);
+      final List<ValueSet> list = findPossibleValueSets(null, system, url, systemVersion);
       final Parameters params = new Parameters();
 
       if (list.size() > 0) {
