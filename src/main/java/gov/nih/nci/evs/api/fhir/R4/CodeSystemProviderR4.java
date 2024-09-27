@@ -500,7 +500,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.mutuallyExclusive("codingA", codingA, "codeA", codeA);
       final List<CodeSystem> cs = findPossibleCodeSystems(null, null, system, version);
       final Parameters params = new Parameters();
-      if (cs.size() > 0) {
+      if (!cs.isEmpty()) {
         String code1 = "";
         String code2 = "";
         if (codeA != null && codeB != null) {

@@ -760,7 +760,129 @@ public class FhirR4Tests {
   }
 
   /**
-   * Test the ValueSet rejects a post call when attempted.
+   * Test concept map find concept maps by id.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testConceptMapFindConceptMapsById() throws Exception {
+    // Arrange
+    String content;
+    String id = "go_to_ncit_mapping_february2020";
+    String endpoint = localHost + port + fhirCMPath + "/" + id;
+    String conceptName = "GO_to_NCIt_Mapping";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    ConceptMap conceptMap = parser.parseResource(ConceptMap.class, content);
+
+    // Assert
+    assertNotNull(conceptMap);
+    assertEquals(ResourceType.ConceptMap, conceptMap.getResourceType());
+    assertEquals(id, conceptMap.getIdPart());
+    assertEquals(conceptName, conceptMap.getName());
+  }
+
+  /**
+   * Test concept map translate with only a code provided. No id param passed.
+   *
+   * @throws Exception
+   */
+  @Test
+  public void testConceptMapTranslateImplicit() throws Exception {
+    // Arrange
+    String content;
+    String activeCode = "GO:0016887";
+    String url = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + activeCode + "&system=" + url;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+
+  /**
+   * Test concept map translate with an id and code provided.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapTranslateInstance() throws Exception {
+    // Arrange
+    String content;
+    String activeCode = "GO:0016887";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String id = "go_to_ncit_mapping_february2020";
+    String endpoint =
+        localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + activeCode + "&system=" + system;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+
+  /**
+   * Test concept map translate with only a code and reverse provided.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapTranslateReverseWithNoId() throws Exception {
+    // Arrange
+    String content;
+    String activeCode = "GO:0016887";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    boolean reverse = true;
+    String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + activeCode + "&system=" + system + "&reverse=" + reverse;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+
+  /**
+   * Test concept map translate reverse with id, code, and reverse provided
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapTranslateReverseWithId() throws Exception {
+    // Arrange
+    String content;
+    String activeCode = "GO:0016887";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    boolean reverse = true;
+    String id = "go_to_ncit_mapping_february2020";
+    String endpoint =
+        localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + activeCode + "&system=" + system + "&reverse=" + reverse;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+
+  /**
+   * Test the ConceptMap rejects a post call when attempted.
    *
    * @throws Exception exception
    */

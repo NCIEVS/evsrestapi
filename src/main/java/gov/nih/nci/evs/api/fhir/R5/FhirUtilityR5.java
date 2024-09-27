@@ -309,7 +309,7 @@ public class FhirUtilityR5 {
    */
   public static void required(final Object obj, final String objName) {
     if (obj == null) {
-      throw exception(format("Must use %s parameter.", objName), IssueType.INVARIANT, 400);
+      throw exception(format("Must use '%s' parameter.", objName), IssueType.INVARIANT, 400);
     }
   }
 
@@ -325,7 +325,7 @@ public class FhirUtilityR5 {
       final Object obj1, final String obj1Name, final Object obj2, final String obj2Name) {
     if (obj1 != null && obj2 != null) {
       throw exception(
-          format("Must use one of %s or %s parameters", obj1Name, obj2Name),
+          format("Must use one of '%s' or '%s' parameters", obj1Name, obj2Name),
           IssueType.INVARIANT,
           400);
     }
@@ -353,8 +353,8 @@ public class FhirUtilityR5 {
     if (obj != null) {
       final String message =
           format(
-              "Input parameter %s is not supported%s",
-              objName, (additionalDetail == null ? "." : format(" %s", additionalDetail)));
+              "Input parameter '%s' is not supported",
+              objName, (additionalDetail == null ? "." : format(" '%s'", additionalDetail)));
       throw exception(message, IssueType.NOTSUPPORTED, 400);
     }
   }
@@ -367,7 +367,7 @@ public class FhirUtilityR5 {
    */
   public static void notSupported(final HttpServletRequest request, final String paramName) {
     if (request.getParameterMap().containsKey(paramName)) {
-      final String message = format("Input parameter %s is not supported.", paramName);
+      final String message = format("Input parameter '%s' is not supported.", paramName);
       throw exception(message, IssueType.NOTSUPPORTED, 400);
     }
   }
@@ -417,7 +417,7 @@ public class FhirUtilityR5 {
       final Object obj1, final String obj1Name, final Object obj2, final String obj2Name) {
     if (obj1 == null && obj2 == null) {
       throw exception(
-          format("Must supply one of %s or %s parameters.", obj1Name, obj2Name),
+          format("Must supply one of '%s' or '%s' parameters.", obj1Name, obj2Name),
           IssueType.INVARIANT,
           400);
     } else {
@@ -445,7 +445,7 @@ public class FhirUtilityR5 {
     if (obj1 == null && obj2 == null && obj3 == null) {
       throw exception(
           format(
-              "Must supply at least one of %s, %s, or %s parameters.",
+              "Must supply at least one of '%s', '%s', or '%s' parameters.",
               obj1Name, obj2Name, obj3Name),
           IssueType.INVARIANT,
           400);
@@ -453,6 +453,44 @@ public class FhirUtilityR5 {
       mutuallyExclusive(obj1, obj1Name, obj2, obj2Name);
       mutuallyExclusive(obj1, obj1Name, obj3, obj3Name);
       mutuallyExclusive(obj2, obj2Name, obj3, obj3Name);
+    }
+  }
+
+  /**
+   * Check we have exactly one required object for 4 objects
+   *
+   * @param obj1 first object
+   * @param obj1Name first object name
+   * @param obj2 second object
+   * @param obj2Name second object name
+   * @param obj3 third object
+   * @param obj3Name third object name
+   * @param obj4 fourth object
+   * @param obj4Name fourth object name
+   */
+  public static void requireExactlyOneOf(
+      final Object obj1,
+      final String obj1Name,
+      final Object obj2,
+      final String obj2Name,
+      final Object obj3,
+      final String obj3Name,
+      final Object obj4,
+      final String obj4Name) {
+    if (obj1 == null && obj2 == null && obj3 == null && obj4 == null) {
+      throw exception(
+          format(
+              "Must supply at least one of '%s', '%s', '%s' or '%s' parameters.",
+              obj1Name, obj2Name, obj3Name, obj4Name),
+          IssueType.INVARIANT,
+          400);
+    } else {
+      mutuallyExclusive(obj1, obj1Name, obj2, obj2Name);
+      mutuallyExclusive(obj1, obj1Name, obj3, obj3Name);
+      mutuallyExclusive(obj1, obj1Name, obj4, obj4Name);
+      mutuallyExclusive(obj2, obj2Name, obj3, obj3Name);
+      mutuallyExclusive(obj2, obj2Name, obj4, obj4Name);
+      mutuallyExclusive(obj3, obj3Name, obj4, obj4Name);
     }
   }
 
@@ -480,7 +518,7 @@ public class FhirUtilityR5 {
     if (obj1 == null && obj2 == null && obj3 == null && obj4 == null) {
       throw exception(
           format(
-              "Must supply at least one of %s, %s, %s, or %s parameters.",
+              "Must supply at least one of '%s', '%s', '%s', or '%s' parameters.",
               obj1Name, obj2Name, obj3Name, obj4Name),
           IssueType.INVARIANT,
           400);
@@ -500,7 +538,7 @@ public class FhirUtilityR5 {
     if (obj1 != null && obj2 == null) {
       throw exception(
           format(
-              "Input parameter %s can only be used in conjunction with parameter %s.",
+              "Input parameter '%s' can only be used in conjunction with parameter '%s'.",
               obj1Name, obj2Name),
           IssueType.INVARIANT,
           400);
@@ -527,7 +565,7 @@ public class FhirUtilityR5 {
     if (obj1 != null && obj2 == null && obj3 == null) {
       throw exception(
           format(
-              "Use of input parameter %s only allowed if %s or %s is also present.",
+              "Use of input parameter '%s' only allowed if '%s' or '%s' is also present.",
               obj1Name, obj2Name, obj3Name),
           IssueType.INVARIANT,
           400);

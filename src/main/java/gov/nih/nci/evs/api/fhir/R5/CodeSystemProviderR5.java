@@ -547,7 +547,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   }
 
   /**
-   * Subsumes implicit
+   * Subsumes implicit, no id param required
    *
    * <pre>
    * <a href="https://hl7.org/fhir/R5/codesystem-operation-subsumes.html">...</a>
@@ -556,7 +556,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param request the request
    * @param response the response
    * @param details the details
-   * @param id the id
    * @param codeA the code a
    * @param codeB the code b
    * @param system the system
@@ -571,7 +570,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       final HttpServletRequest request,
       final HttpServletResponse response,
       final ServletRequestDetails details,
-      @IdParam final IdType id,
       @OperationParam(name = "codeA") final CodeType codeA,
       @OperationParam(name = "codeB") final CodeType codeB,
       @OperationParam(name = "system") final UriType system,

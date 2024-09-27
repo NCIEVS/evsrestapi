@@ -426,7 +426,7 @@ public final class FhirUtilityR4 {
   }
 
   /**
-   * Require at least one of.
+   * Require at least one of four params.
    *
    * @param param1Name the param 1 name
    * @param param1 the param 1
@@ -458,7 +458,7 @@ public final class FhirUtilityR4 {
   }
 
   /**
-   * Require exactly one of.
+   * Require exactly one of three params.
    *
    * @param param1Name the param 1 name
    * @param param1 the param 1
@@ -489,7 +489,7 @@ public final class FhirUtilityR4 {
   }
 
   /**
-   * Mutually required.
+   * Mutually required two params.
    *
    * @param param1Name the param 1 name
    * @param param1 the param 1
@@ -509,7 +509,7 @@ public final class FhirUtilityR4 {
   }
 
   /**
-   * Mutually required.
+   * Mutually required three params.
    *
    * @param param1Name the param 1 name
    * @param param1 the param 1
