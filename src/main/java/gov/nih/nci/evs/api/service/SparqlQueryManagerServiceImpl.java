@@ -28,10 +28,7 @@ import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -47,9 +44,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import javax.annotation.PostConstruct;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -2631,20 +2626,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String uri = applicationProperties.getConfigBaseUri() + "/ignore-source.txt";
     if (StringUtils.isNotBlank(uri)) {
       log.info("Ignore source file URL:{}", uri);
-      try {
-        try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
-          return IOUtils.readLines(is, "UTF-8");
-        }
-      } catch (final Throwable t) {
-        try {
-          // Try to open URI as a file
-          final File file = new File(uri);
-          return FileUtils.readLines(file, "UTF-8");
-        } catch (final IOException e) {
-          // Log and move on if both URL and file reading fail
-          log.warn("Error occurred when getting ignore sources from uri", uri);
-        }
-      }
+      return EVSUtils.getValueFromFile(uri, "ignore sources from file");
     }
     return Collections.emptyList();
   }
