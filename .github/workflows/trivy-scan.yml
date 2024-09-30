@@ -37,19 +37,16 @@ jobs:
     - name: Run Trivy scan
       id: trivy-scan
       run: |
-        trivy fs --severity HIGH,CRITICAL --format json --output trivy_report.json .
-
-    # Output the entire Trivy report for debugging
-    - name: Output Trivy report
-      run: |
-        echo "Trivy report content:"
-        cat trivy_report.json
+        ./gradlew dependencies --write-locks
+        trivy fs gradle.lockfile --format json --output trivy_report.json --severity HIGH,CRITICAL
+        /bin/rm -rf gradle/dependency-locks
+			  /bin/rm gradle.lockfile
 
     # Check for high or critical vulnerabilities
     - name: Check vulnerabilities
       id: check-vulns
       run: |
-        vuln_count=$(jq '[.Results[]?.Vulnerabilities[] | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | length' trivy_report.json)
+        vuln_count=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | length' trivy_report.json)
         echo "Vulnerability count: $vuln_count"
         if [ "$vuln_count" -gt 0 ]; then
           echo "High or Critical vulnerabilities found!"
