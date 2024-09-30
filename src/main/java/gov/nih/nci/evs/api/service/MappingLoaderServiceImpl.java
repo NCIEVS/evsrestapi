@@ -7,6 +7,7 @@ import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.File;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.tomcat.util.buf.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -234,20 +236,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     final String mappingUri = uri.replaceFirst("config/metadata", "data/mappings/");
     final String mapsetMetadataUri = uri + "/mapsetMetadata.txt";
     logger.info("evs_mapsets " + mapsetMetadataUri);
-    String rawMetadata = null;
-    try (final InputStream is = new URL(mapsetMetadataUri).openConnection().getInputStream()) {
-      rawMetadata = IOUtils.toString(is, StandardCharsets.UTF_8);
-    } catch (final Throwable t) {
-      // read as file if no url
-      try {
-        rawMetadata =
-            FileUtils.readFileToString(new File(mapsetMetadataUri), StandardCharsets.UTF_8);
-      } catch (final IOException ex) {
-        throw new IOException(
-            // only throw exception if both fail
-            "Could not find either file or uri for mapsetMetadataUri: " + mapsetMetadataUri);
-      }
-    }
+    final String rawMetadata =
+        StringUtils.join(EVSUtils.getValueFromFile(mapsetMetadataUri, "mapsetMetadataUri"), '\n');
     List<String> allLines = Arrays.asList(rawMetadata.split("\n"));
     // skip header line
     allLines = allLines.subList(1, allLines.size());
@@ -376,22 +366,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                 + (map.getVersion() != null ? ("_" + map.getVersion()) : "")
                 + ".txt"; // build
         // map
-        try (final InputStream is = new URL(mappingDataUri).openConnection().getInputStream()) {
-          final String mappingData = IOUtils.toString(is, StandardCharsets.UTF_8);
-          map.setMaps(buildMaps(mappingData, metadata));
-        } catch (final Throwable t) { // read as file if no url
-          try {
-            logger.info("mappingUri: " + mappingUri);
-            logger.info("mappingDataUri: " + mappingDataUri);
-            final String mappingData =
-                FileUtils.readFileToString(new File(mappingDataUri), StandardCharsets.UTF_8);
-            map.setMaps(buildMaps(mappingData, metadata));
-          } catch (final IOException ex) {
-            // only throw exception if both fail
-            throw new IOException(
-                "Could not find either file or uri for mappingDataUri: " + mappingDataUri);
-          }
-        }
+        final String mappingData =
+            StringUtils.join(EVSUtils.getValueFromFile(mappingDataUri, "mappingDataUri"), '\n');
+        map.setMaps(buildMaps(mappingData, metadata));
       }
 
       // download links
@@ -409,20 +386,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                   + (map.getVersion() != null ? ("_" + map.getVersion()) : "")
                   + ".csv";
 
-          try (final InputStream is = new URL(mappingDataUri).openConnection().getInputStream()) {
-            final String mappingData = IOUtils.toString(is, StandardCharsets.UTF_8);
-            map.setMaps(buildMaps(mappingData, metadata));
-          } catch (final Throwable t) { // read as file if no url
-            try {
-              final String mappingData =
-                  FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8);
-              map.setMaps(buildMaps(mappingData, metadata));
-            } catch (final IOException ex) {
-              // throw exception if both fail
-              throw new IOException(
-                  "Could not find either file or uri for mappingDataUri: " + mappingDataUri);
-            }
-          }
+          final String mappingData =
+              StringUtils.join(EVSUtils.getValueFromFile(mappingDataUri, "mappingDataUri"), '\n');
+          map.setMaps(buildMaps(mappingData, metadata));
         }
       } else {
         map.getProperties().add(new Property("downloadOnly", "false"));
