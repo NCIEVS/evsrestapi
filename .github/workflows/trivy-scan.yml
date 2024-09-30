@@ -1,4 +1,4 @@
-name: Trivy Vulnerability Scan
+name: Trivy High/Critical Vulnerability Scan
 
 on:
   push:
