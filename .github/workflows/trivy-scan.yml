@@ -1,16 +1,12 @@
-name: Trivy High/Critical Vulnerability Scan
+name: Trivy Vulnerability Scan
 
 on:
-  push:
-    branches:
-      - pva/EVSRESTAPI-520-github-trivy-action-backend
   pull_request:
     branches:
       - develop
       - master
 
-  # Allows the workflow to be triggered manually from the GitHub UI
-  workflow_dispatch:
+  workflow_dispatch:  # Allows manual runs from the GitHub UI
 
 jobs:
   trivy-scan:
@@ -42,16 +38,21 @@ jobs:
       id: trivy-scan
       run: |
         trivy fs --severity HIGH,CRITICAL --format json --output trivy_report.json .
-    
+
+    # Output the entire Trivy report for debugging
+    - name: Output Trivy report
+      run: |
+        echo "Trivy report content:"
+        cat trivy_report.json
+
     # Check for high or critical vulnerabilities
     - name: Check vulnerabilities
       id: check-vulns
       run: |
-        vuln_count=$(jq '.Results[].Vulnerabilities | map(select(.Severity == "HIGH" or .Severity == "CRITICAL")) | length' trivy_report.json | jq -s add)
+        vuln_count=$(jq '[.Results[]?.Vulnerabilities[] | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | length' trivy_report.json)
         echo "Vulnerability count: $vuln_count"
         if [ "$vuln_count" -gt 0 ]; then
           echo "High or Critical vulnerabilities found!"
-          cat trivy_report.json
           exit 1
         else
           echo "No high or critical vulnerabilities found."
