@@ -511,7 +511,7 @@ public class EVSUtils {
         return FileUtils.readLines(file, "UTF-8");
       } catch (final IOException e) {
         // Log and move on if both URL and file reading fail
-        log.warn("Error occurred when getting {}", info);
+        log.warn("Error occurred when getting {} from configBaseUri", info);
       }
     }
     return Collections.emptyList();
