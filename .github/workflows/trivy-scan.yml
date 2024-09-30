@@ -1,0 +1,61 @@
+name: Trivy Vulnerability Scan
+
+on:
+  pull_request:
+    branches:
+      - develop
+      - master
+
+  # Allows the workflow to be triggered manually from the GitHub UI
+  workflow_dispatch:
+
+jobs:
+  trivy-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+    # Checkout the pull request code
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    # Cache Trivy binary
+    - name: Cache Trivy binary
+      id: cache-trivy
+      uses: actions/cache@v3
+      with:
+        path: /usr/local/bin/trivy
+        key: trivy-$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq -r .tag_name)
+
+    # Install Trivy if not cached
+    - name: Install Trivy
+      if: steps.cache-trivy.outputs.cache-hit != 'true'
+      run: |
+        TRIVY_LATEST_VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq -r .tag_name)
+        wget https://github.com/aquasecurity/trivy/releases/download/${TRIVY_LATEST_VERSION}/trivy_${TRIVY_LATEST_VERSION#v}_Linux-64bit.deb
+        sudo dpkg -i trivy_${TRIVY_LATEST_VERSION#v}_Linux-64bit.deb
+    
+    # Run Trivy to scan the repository or container image
+    - name: Run Trivy scan
+      id: trivy-scan
+      run: |
+        trivy fs --severity HIGH,CRITICAL --format json --output trivy_report.json .
+    
+    # Check for high or critical vulnerabilities
+    - name: Check vulnerabilities
+      id: check-vulns
+      run: |
+        vuln_count=$(jq '.Results[].Vulnerabilities | map(select(.Severity == "HIGH" or .Severity == "CRITICAL")) | length' trivy_report.json | jq -s add)
+        echo "Vulnerability count: $vuln_count"
+        if [ "$vuln_count" -gt 0 ]; then
+          echo "High or Critical vulnerabilities found!"
+          cat trivy_report.json
+          exit 1
+        else
+          echo "No high or critical vulnerabilities found."
+        fi
+    
+    # Output the vulnerabilities in a human-readable format
+    - name: Output vulnerabilities
+      if: failure()  # Run only if the previous step fails
+      run: |
+        jq '.Results[]?.Vulnerabilities[] | select(.Severity == "HIGH" or .Severity == "CRITICAL") | "\(.VulnerabilityID): \(.PkgName) - Severity: \(.Severity) - Fixed Version: \(.FixedVersion)"' trivy_report.json
