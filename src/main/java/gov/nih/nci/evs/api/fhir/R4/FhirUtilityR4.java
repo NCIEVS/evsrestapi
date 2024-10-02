@@ -50,6 +50,25 @@ public final class FhirUtilityR4 {
   /** The uris. */
   private static HashMap<String, String> uris = generateUris();
 
+  /** The unsupported params list for search. */
+  private static final String[] unsupportedParams =
+      new String[] {
+        "_lastUpdated",
+        "_tag",
+        "_profile",
+        "_security",
+        "_text",
+        "_list",
+        "_type",
+        "_include",
+        "_revinclude",
+        "_summary",
+        "_total",
+        "_elements",
+        "_contained",
+        "_containedType"
+      };
+
   /** Instantiates an empty {@link FhirUtilityR4}. */
   private FhirUtilityR4() {
     // n/a
@@ -378,23 +397,7 @@ public final class FhirUtilityR4 {
    * @param request the request
    */
   public static void notSupportedSearchParams(final HttpServletRequest request) {
-    for (final String param :
-        new String[] {
-          "_lastUpdated",
-          "_tag",
-          "_profile",
-          "_security",
-          "_text",
-          "_list",
-          "_type",
-          "_include",
-          "_revinclude",
-          "_summary",
-          "_total",
-          "_elements",
-          "_contained",
-          "_containedType"
-        }) {
+    for (final String param : unsupportedParams) {
       notSupported(request, param);
     }
     if (Collections.list(request.getParameterNames()).stream()
