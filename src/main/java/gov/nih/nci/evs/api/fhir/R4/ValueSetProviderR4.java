@@ -1,5 +1,6 @@
-package gov.nih.nci.evs.api.fhir;
+package gov.nih.nci.evs.api.fhir.R4;
 
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.IdParam;
 import ca.uhn.fhir.rest.annotation.Operation;
@@ -21,6 +22,8 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.util.FHIRServerResponseException;
+import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,7 +54,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/** The ValueSet provider. */
+/** FHIR R4 ValueSet provider. */
 @Component
 public class ValueSetProviderR4 implements IResourceProvider {
 
@@ -81,6 +84,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * https://hl7.org/fhir/R4/valueset-operation-expand.html
    * </pre>
    *
+   * @param request the request
+   * @param details the details
    * @param url the url
    * @param valueSet the value set
    * @param version the version
@@ -105,8 +110,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @return the value set
    * @throws Exception the exception
    */
-  @Operation(name = "$expand", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_EXPAND, idempotent = true)
   public ValueSet expandImplicit(
+      final HttpServletRequest request,
+      final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "valueSet") final ValueSet valueSet,
       @OperationParam(name = "valueSetVersion") final StringType version,
@@ -129,7 +136,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "check-system-version") final StringType check_system_version,
       @OperationParam(name = "force-system-version") final StringType force_system_version)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_EXPAND,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.required("url", url);
       FhirUtilityR4.notSupported("valueSet", valueSet);
@@ -222,6 +235,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * https://hl7.org/fhir/R4/valueset-operation-expand.html
    * </pre>
    *
+   * @param request the request
+   * @param details the details
    * @param id the id
    * @param url the url
    * @param valueSet the value set
@@ -247,8 +262,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @return the value set
    * @throws Exception the exception
    */
-  @Operation(name = "$expand", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_EXPAND, idempotent = true)
   public ValueSet expandInstance(
+      final HttpServletRequest request,
+      final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "valueSet") final ValueSet valueSet,
@@ -272,7 +289,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "check-system-version") final StringType check_system_version,
       @OperationParam(name = "force-system-version") final StringType force_system_version)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_EXPAND,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.required("url", url);
       FhirUtilityR4.notSupported("valueSet", valueSet);
@@ -364,6 +387,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * https://hl7.org/fhir/R4/valueset-operation-validate-code.html
    * </pre>
    *
+   * @param request the request
+   * @param details the details
    * @param url the url
    * @param context the context
    * @param valueSet the value set
@@ -381,8 +406,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @return the parameters
    * @throws Exception the exception
    */
-  @Operation(name = "$validate-code", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_VALIDATE_CODE, idempotent = true)
   public Parameters validateCodeImplicit(
+      final HttpServletRequest request,
+      final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "context") final UriType context,
       @OperationParam(name = "valueSet") final ValueSet valueSet,
@@ -398,7 +425,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "abstract") final BooleanType abstractt,
       @OperationParam(name = "displayLanguage") final StringType displayLanguage)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.required("code", code);
       FhirUtilityR4.mutuallyRequired("code", code, "system", system, "url", url);
@@ -416,8 +449,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final Parameters params = new Parameters();
 
       if (list.size() > 0) {
-        ValueSet vs = list.get(0);
-        SearchCriteria sc = new SearchCriteria();
+        final ValueSet vs = list.get(0);
+        final SearchCriteria sc = new SearchCriteria();
         sc.setTerm(code.getCode());
         sc.setInclude("minimal");
         sc.setType("exact");
@@ -429,8 +462,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
         final Terminology term = termUtils.getIndexedTerminology(vs.getTitle(), esQueryService);
         sc.setTerminology(Arrays.asList(vs.getTitle()));
         sc.validate(term, metadataService);
-        List<Terminology> terms = Arrays.asList(term);
-        List<Concept> conc = searchService.search(terms, sc).getConcepts();
+        final List<Terminology> terms = Arrays.asList(term);
+        final List<Concept> conc = searchService.search(terms, sc).getConcepts();
         if (conc.size() > 0) {
           params.addParameter("result", true);
           params.addParameter("display", conc.get(0).getName());
@@ -471,6 +504,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * https://hl7.org/fhir/R4/valueset-operation-validate-code.html
    * </pre>
    *
+   * @param request the request
+   * @param details the details
    * @param id the id
    * @param url the url
    * @param context the context
@@ -489,8 +524,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @return the parameters
    * @throws Exception the exception
    */
-  @Operation(name = "$validate-code", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_VALIDATE_CODE, idempotent = true)
   public Parameters validateCodeInstance(
+      final HttpServletRequest request,
+      final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "context") final UriType context,
@@ -507,7 +544,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "abstract") final BooleanType abstractt,
       @OperationParam(name = "displayLanguage") final StringType displayLanguage)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.requireAtLeastOneOf(
           "code", code, "system", system, "systemVersion", systemVersion, "url", url);
@@ -523,8 +566,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final List<ValueSet> list = findPossibleValueSets(id, system, url, systemVersion);
       final Parameters params = new Parameters();
       if (list.size() > 0) {
-        ValueSet vs = list.get(0);
-        SearchCriteria sc = new SearchCriteria();
+        final ValueSet vs = list.get(0);
+        final SearchCriteria sc = new SearchCriteria();
         sc.setTerm(code.getCode());
         sc.setInclude("minimal");
         sc.setType("exact");
@@ -533,8 +576,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
         }
         final Terminology term = termUtils.getIndexedTerminology(vs.getTitle(), esQueryService);
         sc.validate(term, metadataService);
-        List<Terminology> terms = Arrays.asList(term);
-        List<Concept> conc = searchService.search(terms, sc).getConcepts();
+        final List<Terminology> terms = Arrays.asList(term);
+        final List<Concept> conc = searchService.search(terms, sc).getConcepts();
         if (conc.size() > 0) {
           params.addParameter("result", true);
           params.addParameter("display", conc.get(0).getName());
@@ -593,15 +636,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OptionalParam(name = "url") final StringParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
-          NumberParam count,
+          final NumberParam count,
       @Description(shortDefinition = "Start offset, used when reading a next page")
           @OptionalParam(name = "_offset")
-          NumberParam offset)
+          final NumberParam offset)
       throws Exception {
-
+    FhirUtilityR4.notSupportedSearchParams(request);
     final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
+    final List<ValueSet> list = new ArrayList<>();
 
-    final List<ValueSet> list = new ArrayList<ValueSet>();
     if (code == null) {
       for (final Terminology terminology : terms) {
         final ValueSet vs = FhirUtilityR4.toR4VS(terminology);
@@ -687,7 +730,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
   public ValueSet getValueSet(final ServletRequestDetails details, @IdParam final IdType id)
       throws Exception {
     try {
-
       final List<ValueSet> candidates = findPossibleValueSets(id, null, null, null);
       for (final ValueSet set : candidates) {
         if (id.getIdPart().equals(set.getId())) {
@@ -710,7 +752,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
   }
 
   /**
-   * Find possible value sets.
+   * Helper method to find possible value sets.
    *
    * @param id the id
    * @param system the system
@@ -719,13 +761,12 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @return the list
    * @throws Exception the exception
    */
-  public List<ValueSet> findPossibleValueSets(
+  private List<ValueSet> findPossibleValueSets(
       @OptionalParam(name = "_id") final IdType id,
       @OptionalParam(name = "system") final UriType system,
       @OptionalParam(name = "url") final UriType url,
       @OptionalParam(name = "version") final StringType version)
       throws Exception {
-
     // If no ID and no url are specified, no code systems match
     if (id == null && url == null) {
       return new ArrayList<>(0);

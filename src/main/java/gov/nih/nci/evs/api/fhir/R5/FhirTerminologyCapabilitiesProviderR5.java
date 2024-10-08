@@ -1,4 +1,4 @@
-package gov.nih.nci.evs.api.fhir;
+package gov.nih.nci.evs.api.fhir.R5;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.context.support.IValidationSupport;
@@ -12,29 +12,29 @@ import javax.servlet.http.HttpServletRequest;
 import org.hl7.fhir.instance.model.api.IBaseConformance;
 
 /**
- * See https://www.hl7.org/fhir/terminologycapabilities.html See
- * https://smilecdr.com/hapi-fhir/docs/server_plain/introduction.html#capability-statement-server-metadata
- * Call using GET [base]/metadata?mode=terminology See
- * https://github.com/jamesagnew/hapi-fhir/issues/1681
+ * See <a href="https://www.hl7.org/fhir/terminologycapabilities.html">terminology capabilities</a>
+ * See <a
+ * href="https://smilecdr.com/hapi-fhir/docs/server_plain/introduction.html#capability-statement-server-metadata">capapbility
+ * statement server metadata</a> Call using GET [base]/metadata?mode=terminology See <a
+ * href="https://github.com/jamesagnew/hapi-fhir/issues/1681">github issue 1681</a>
  */
-public class FHIRTerminologyCapabilitiesProviderR4 extends ServerCapabilityStatementProvider {
-
+public class FhirTerminologyCapabilitiesProviderR5 extends ServerCapabilityStatementProvider {
   /**
    * Instantiates a new FHIR terminology capabilities provider.
    *
-   * @param theServer the the server
+   * @param theServer the server
    */
-  public FHIRTerminologyCapabilitiesProviderR4(final RestfulServer theServer) {
+  public FhirTerminologyCapabilitiesProviderR5(final RestfulServer theServer) {
     super(theServer);
   }
 
   /**
    * Instantiates a new FHIR terminology capabilities provider.
    *
-   * @param theContext the the context
-   * @param theServerConfiguration the the server configuration
+   * @param theContext the context
+   * @param theServerConfiguration the server configuration
    */
-  public FHIRTerminologyCapabilitiesProviderR4(
+  public FhirTerminologyCapabilitiesProviderR5(
       final FhirContext theContext, final RestfulServerConfiguration theServerConfiguration) {
     super(theContext, theServerConfiguration);
   }
@@ -42,11 +42,11 @@ public class FHIRTerminologyCapabilitiesProviderR4 extends ServerCapabilityState
   /**
    * Instantiates a new FHIR terminology capabilities provider.
    *
-   * @param theRestfulServer the the restful server
-   * @param theSearchParamRegistry the the search param registry
-   * @param theValidationSupport the the validation support
+   * @param theRestfulServer the restful server
+   * @param theSearchParamRegistry the search param registry
+   * @param theValidationSupport the validation support
    */
-  public FHIRTerminologyCapabilitiesProviderR4(
+  public FhirTerminologyCapabilitiesProviderR5(
       final RestfulServer theRestfulServer,
       final ISearchParamRegistry theSearchParamRegistry,
       final IValidationSupport theValidationSupport) {
@@ -65,7 +65,7 @@ public class FHIRTerminologyCapabilitiesProviderR4 extends ServerCapabilityState
       final HttpServletRequest request, final RequestDetails requestDetails) {
     if (request.getParameter("mode") != null
         && request.getParameter("mode").equals("terminology")) {
-      return new FHIRTerminologyCapabilitiesR4().withDefaults();
+      return new FhirTerminologyCapabilitiesR5().withDefaults();
     } else {
       return super.getServerConformance(request, requestDetails);
     }

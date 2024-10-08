@@ -1,4 +1,4 @@
-package gov.nih.nci.evs.api.fhir;
+package gov.nih.nci.evs.api.fhir.R4;
 
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
@@ -21,6 +21,8 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
+import gov.nih.nci.evs.api.util.FHIRServerResponseException;
+import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +47,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/** The CodeSystem provider. */
+/** FHIR R4 CodeSystem provider. */
 @Component
 public class CodeSystemProviderR4 implements IResourceProvider {
 
@@ -88,7 +90,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @return the parameters
    * @throws Exception the exception
    */
-  @Operation(name = "$lookup", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_LOOKUP, idempotent = true)
   public Parameters lookupImplicit(
       final HttpServletRequest request,
       final HttpServletResponse response,
@@ -101,7 +103,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "displayLanguage") final StringType displayLanguage,
       @OperationParam(name = "property") final CodeType property)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_LOOKUP,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
@@ -171,7 +179,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @return the parameters
    * @throws Exception the exception
    */
-  @Operation(name = "$lookup", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_LOOKUP, idempotent = true)
   public Parameters lookupInstance(
       final HttpServletRequest request,
       final HttpServletResponse response,
@@ -185,7 +193,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "displayLanguage") final StringType displayLanguage,
       @OperationParam(name = "property") final CodeType property)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_LOOKUP,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
@@ -274,7 +288,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "displayLanguage") final StringType displayLanguage,
       @OperationParam(name = "systemVersion") final StringType systemVersion)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
       FhirUtilityR4.notSupported("codeSystem", codeSystem);
@@ -335,10 +355,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Validate code implicit.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-validate-code.html
-   * </pre>
-   *
    * @param request the request
    * @param response the response
    * @param details the details
@@ -357,7 +373,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @return the parameters
    * @throws Exception the exception
    */
-  @Operation(name = "$validate-code", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_VALIDATE_CODE, idempotent = true)
   public Parameters validateCodeInstance(
       final HttpServletRequest request,
       final HttpServletResponse response,
@@ -375,7 +391,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "displayLanguage") final StringType displayLanguage,
       @OperationParam(name = "systemVersion") final StringType systemVersion)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
       FhirUtilityR4.notSupported("codeSystem", codeSystem);
@@ -464,7 +486,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "codingA") final Coding codingA,
       @OperationParam(name = "codingB") final Coding codingB)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_SUBSUMES,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.mutuallyRequired("codeA", codeA, "system", system);
       FhirUtilityR4.mutuallyRequired("codeB", codeB, "system", system);
@@ -536,7 +564,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @return the parameters
    * @throws Exception the exception
    */
-  @Operation(name = "$subsumes", idempotent = true)
+  @Operation(name = JpaConstants.OPERATION_SUBSUMES, idempotent = true)
   public Parameters subsumesInstance(
       final HttpServletRequest request,
       final HttpServletResponse response,
@@ -549,7 +577,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "codingA") final Coding codingA,
       @OperationParam(name = "codingB") final Coding codingB)
       throws Exception {
-
+    // check if request is a post, throw exception as we don't support post calls
+    if (request.getMethod().equals("POST")) {
+      throw FhirUtilityR4.exception(
+          "POST method not supported for " + JpaConstants.OPERATION_SUBSUMES,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
     try {
       FhirUtilityR4.mutuallyRequired("codeA", codeA, "system", system);
       FhirUtilityR4.mutuallyRequired("codeB", codeB, "system", system);
@@ -624,12 +658,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OptionalParam(name = "version") final StringParam version,
       @OptionalParam(name = "title") final StringParam title,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
-          NumberParam count,
+          final NumberParam count,
       @Description(shortDefinition = "Start offset, used when reading a next page")
           @OptionalParam(name = "_offset")
-          NumberParam offset)
+          final NumberParam offset)
       throws Exception {
     try {
+      FhirUtilityR4.notSupportedSearchParams(request);
       final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
 
       final List<CodeSystem> list = new ArrayList<>();
@@ -668,7 +703,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   }
 
   /**
-   * Find possible code systems.
+   * Helper method to find possible code systems.
    *
    * @param id the id
    * @param date the date
@@ -677,14 +712,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @return the list
    * @throws Exception the exception
    */
-  public List<CodeSystem> findPossibleCodeSystems(
+  private List<CodeSystem> findPossibleCodeSystems(
       @OptionalParam(name = "_id") final IdType id,
       @OptionalParam(name = "date") final DateRangeParam date,
       @OptionalParam(name = "url") final UriType url,
       @OptionalParam(name = "version") final StringType version)
       throws Exception {
     try {
-
       // If no ID and no url are specified, no code systems match
       if (id == null && url == null) {
         return new ArrayList<>(0);
@@ -734,14 +768,12 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   public CodeSystem getConceptMap(final ServletRequestDetails details, @IdParam final IdType id)
       throws Exception {
     try {
-
       final List<CodeSystem> candidates = findPossibleCodeSystems(id, null, null, null);
       for (final CodeSystem set : candidates) {
         if (id.getIdPart().equals(set.getId())) {
           return set;
         }
       }
-
       throw FhirUtilityR4.exception(
           "Code system not found = " + (id == null ? "null" : id.getIdPart()),
           IssueType.NOTFOUND,

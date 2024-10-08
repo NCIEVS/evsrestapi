@@ -1,7 +1,6 @@
-package gov.nih.nci.evs.api.fhir;
+package gov.nih.nci.evs.api.fhir.R5;
 
 import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
-import static org.apache.commons.lang3.StringUtils.defaultString;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
 
@@ -28,6 +27,7 @@ import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
 import io.swagger.v3.oas.models.Operation;
 import io.swagger.v3.oas.models.PathItem;
+import io.swagger.v3.oas.models.PathItem.HttpMethod;
 import io.swagger.v3.oas.models.Paths;
 import io.swagger.v3.oas.models.examples.Example;
 import io.swagger.v3.oas.models.info.Contact;
@@ -37,11 +37,11 @@ import io.swagger.v3.oas.models.media.MediaType;
 import io.swagger.v3.oas.models.media.ObjectSchema;
 import io.swagger.v3.oas.models.media.Schema;
 import io.swagger.v3.oas.models.parameters.Parameter;
+import io.swagger.v3.oas.models.parameters.Parameter.StyleEnum;
 import io.swagger.v3.oas.models.parameters.RequestBody;
 import io.swagger.v3.oas.models.responses.ApiResponse;
 import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.security.SecurityScheme;
-import io.swagger.v3.oas.models.security.SecurityScheme.In;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
 import java.io.IOException;
@@ -66,27 +66,36 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.hl7.fhir.convertors.factory.VersionConvertorFactory_30_40;
 import org.hl7.fhir.convertors.factory.VersionConvertorFactory_40_50;
 import org.hl7.fhir.convertors.factory.VersionConvertorFactory_43_50;
 import org.hl7.fhir.instance.model.api.IBaseConformance;
 import org.hl7.fhir.instance.model.api.IBaseResource;
 import org.hl7.fhir.instance.model.api.IPrimitiveType;
-import org.hl7.fhir.r4.model.CapabilityStatement;
-import org.hl7.fhir.r4.model.CodeableConcept;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.DateType;
-import org.hl7.fhir.r4.model.Extension;
-import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.OperationDefinition;
-import org.hl7.fhir.r4.model.OperationDefinition.OperationDefinitionParameterComponent;
-import org.hl7.fhir.r4.model.OperationDefinition.OperationParameterUse;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.Reference;
-import org.hl7.fhir.r4.model.Resource;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.Type;
-import org.hl7.fhir.r4.model.codesystems.DataTypes;
+import org.hl7.fhir.r5.model.BooleanType;
+import org.hl7.fhir.r5.model.CapabilityStatement;
+import org.hl7.fhir.r5.model.CapabilityStatement.CapabilityStatementRestResourceComponent;
+import org.hl7.fhir.r5.model.CapabilityStatement.CapabilityStatementRestResourceOperationComponent;
+import org.hl7.fhir.r5.model.CapabilityStatement.CapabilityStatementRestResourceSearchParamComponent;
+import org.hl7.fhir.r5.model.CapabilityStatement.SystemRestfulInteraction;
+import org.hl7.fhir.r5.model.CapabilityStatement.TypeRestfulInteraction;
+import org.hl7.fhir.r5.model.CodeType;
+import org.hl7.fhir.r5.model.CodeableConcept;
+import org.hl7.fhir.r5.model.Coding;
+import org.hl7.fhir.r5.model.DateType;
+import org.hl7.fhir.r5.model.Enumerations.FHIRTypes;
+import org.hl7.fhir.r5.model.Enumerations.OperationParameterUse;
+import org.hl7.fhir.r5.model.Extension;
+import org.hl7.fhir.r5.model.IdType;
+import org.hl7.fhir.r5.model.IntegerType;
+import org.hl7.fhir.r5.model.OperationDefinition;
+import org.hl7.fhir.r5.model.OperationDefinition.OperationDefinitionParameterComponent;
+import org.hl7.fhir.r5.model.Parameters;
+import org.hl7.fhir.r5.model.Parameters.ParametersParameterComponent;
+import org.hl7.fhir.r5.model.Reference;
+import org.hl7.fhir.r5.model.Resource;
+import org.hl7.fhir.r5.model.StringType;
+import org.hl7.fhir.r5.model.UriType;
+import org.hl7.fhir.r5.model.UrlType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.thymeleaf.IEngineConfiguration;
@@ -103,14 +112,13 @@ import org.thymeleaf.templateresolver.TemplateResolution;
 import org.thymeleaf.templateresource.ClassLoaderTemplateResource;
 
 /**
- * EVSRESTAPI Api interceptor to fix header, inject header auth token. Borrowed from
+ * EVSRESTAPI FHIR R5 interceptor to fix header, inject header auth token. Borrowed from
  * OpenApiInterceptor and modified.
  */
-public class OpenApiInterceptorR4 {
-
+public class OpenApiInterceptorR5 {
   /** The logger. */
   @SuppressWarnings("unused")
-  private static Logger logger = LoggerFactory.getLogger(OpenApiInterceptorR4.class);
+  private static Logger logger = LoggerFactory.getLogger(OpenApiInterceptorR5.class);
 
   /** The Constant FHIR_JSON_RESOURCE. */
   public static final String FHIR_JSON_RESOURCE = "FHIR-JSON-RESOURCE";
@@ -125,50 +133,49 @@ public class OpenApiInterceptorR4 {
   public static final String PAGE_ALL = "All";
 
   /** The Constant FHIR_CONTEXT_CANONICAL. */
-  public static final FhirContext FHIR_CONTEXT_CANONICAL = FhirContext.forR4();
+  public static final FhirContext FHIR_CONTEXT_CANONICAL = FhirContext.forR5();
 
   /** The Constant REQUEST_DETAILS. */
   public static final String REQUEST_DETAILS = "REQUEST_DETAILS";
 
-  /** The my swagger ui version. */
+  /** The swagger ui version. */
   private final String mySwaggerUiVersion;
 
-  /** The my template engine. */
+  /** The template engine. */
   private final TemplateEngine myTemplateEngine;
 
-  /** The my flexmark parser. */
+  /** The flexmark parser. */
   private final Parser myFlexmarkParser;
 
-  /** The my flexmark renderer. */
+  /** The flexmark renderer. */
   private final HtmlRenderer myFlexmarkRenderer;
 
-  /** The my resource path to classpath. */
+  /** The resource path to classpath. */
   private final Map<String, String> myResourcePathToClasspath = new HashMap<>();
 
-  /** The my extension to content type. */
+  /** The extension to content type. */
   private final Map<String, String> myExtensionToContentType = new HashMap<>();
 
-  /** The my banner image. */
+  /** The banner image. */
   private String myBannerImage;
 
-  /** The my css text. */
+  /** The css text. */
   private String myCssText;
 
-  /** The my use resource pages. */
+  /** The use resource pages. */
   private boolean myUseResourcePages;
 
   /** Constructor. */
-  public OpenApiInterceptorR4() {
-
+  public OpenApiInterceptorR5() {
     mySwaggerUiVersion = initSwaggerUiWebJar();
 
     myTemplateEngine = new TemplateEngine();
-    final ITemplateResolver resolver = new SwaggerUiTemplateResolver();
+    final ITemplateResolver resolver = new OpenApiInterceptorR5.SwaggerUiTemplateResolver();
     myTemplateEngine.setTemplateResolver(resolver);
     final StandardDialect dialect = new StandardDialect();
     myTemplateEngine.setDialect(dialect);
 
-    myTemplateEngine.setLinkBuilder(new TemplateLinkBuilder());
+    myTemplateEngine.setLinkBuilder(new OpenApiInterceptorR5.TemplateLinkBuilder());
 
     myFlexmarkParser = Parser.builder().build();
     myFlexmarkRenderer = HtmlRenderer.builder().build();
@@ -192,8 +199,8 @@ public class OpenApiInterceptorR4 {
   /**
    * Adds the resource path to classpath.
    *
-   * @param thePath the the path
-   * @param theClasspath the the classpath
+   * @param thePath the path
+   * @param theClasspath the classpath
    */
   protected void addResourcePathToClasspath(final String thePath, final String theClasspath) {
     myResourcePathToClasspath.put(thePath, theClasspath);
@@ -220,9 +227,9 @@ public class OpenApiInterceptorR4 {
   /**
    * Serve swagger ui.
    *
-   * @param theRequest the the request
-   * @param theResponse the the response
-   * @param theRequestDetails the the request details
+   * @param theRequest the request
+   * @param theResponse the response
+   * @param theRequestDetails the request details
    * @return true, if successful
    * @throws IOException Signals that an I/O exception has occurred.
    */
@@ -235,6 +242,7 @@ public class OpenApiInterceptorR4 {
     final String requestPath = theRequest.getPathInfo();
     final String queryString = theRequest.getQueryString();
 
+    // If the request is for the root, redirect to the swagger UI
     if (isBlank(requestPath) || requestPath.equals("/")) {
       if (isBlank(queryString)) {
         final Set<String> highestRankedAcceptValues =
@@ -254,19 +262,15 @@ public class OpenApiInterceptorR4 {
           return false;
         }
       }
-
       return true;
     }
 
+    // If the request is for the swagger UI, serve it
     if (requestPath.startsWith("/swagger-ui/")) {
-
       return !handleResourceRequest(theResponse, theRequestDetails, requestPath);
-
     } else if (requestPath.equals("/api-docs")) {
-
       final OpenAPI openApi = generateOpenApi(theRequestDetails);
       final String response = Yaml.pretty(openApi);
-
       theResponse.setContentType("text/yaml");
       theResponse.setStatus(200);
       try (final PrintWriter writer = theResponse.getWriter(); ) {
@@ -275,15 +279,14 @@ public class OpenApiInterceptorR4 {
       theResponse.getWriter().close();
       return false;
     }
-
     return true;
   }
 
   /**
    * Handle resource request.
    *
-   * @param theResponse the the response
-   * @param theRequestDetails the the request details
+   * @param theResponse the response
+   * @param theRequestDetails the request details
    * @param requestPath the request path
    * @return true, if successful
    * @throws IOException Signals that an I/O exception has occurred.
@@ -299,13 +302,14 @@ public class OpenApiInterceptorR4 {
     }
 
     final String resourceClasspath = myResourcePathToClasspath.get(requestPath);
+    // If the resource is a classpath resource, serve it
     if (resourceClasspath != null) {
       theResponse.setStatus(200);
-
       final String extension = requestPath.substring(requestPath.lastIndexOf('.'));
       final String contentType = myExtensionToContentType.get(extension);
       assert contentType != null;
       theResponse.setContentType(contentType);
+
       try (InputStream resource = ClasspathUtil.loadResourceAsStream(resourceClasspath);
           final ServletOutputStream os = theResponse.getOutputStream()) {
         IOUtils.copy(resource, os);
@@ -315,7 +319,7 @@ public class OpenApiInterceptorR4 {
     }
 
     final String resourcePath = requestPath.substring("/swagger-ui/".length());
-
+    // If the resource is the custom CSS, serve it
     if (resourcePath.equals("swagger-ui-custom.css") && isNotBlank(myCssText)) {
       theResponse.setContentType("text/css");
       theResponse.setStatus(200);
@@ -325,6 +329,7 @@ public class OpenApiInterceptorR4 {
       return true;
     }
 
+    // If the resource is a webjar resource, serve it
     try (final InputStream resource =
             ClasspathUtil.loadResourceAsStream(
                 "/META-INF/resources/webjars/swagger-ui/"
@@ -332,7 +337,7 @@ public class OpenApiInterceptorR4 {
                     + "/"
                     + resourcePath);
         final ServletOutputStream os = theResponse.getOutputStream()) {
-
+      // If the resource is a JS, CSS, or HTML file, set the content type
       if (resourcePath.endsWith(".js") || resourcePath.endsWith(".map")) {
         theResponse.setContentType("application/javascript");
         theResponse.setStatus(200);
@@ -340,7 +345,6 @@ public class OpenApiInterceptorR4 {
         theResponse.getOutputStream().close();
         return true;
       }
-
       if (resourcePath.endsWith(".css")) {
         theResponse.setContentType("text/css");
         theResponse.setStatus(200);
@@ -348,7 +352,6 @@ public class OpenApiInterceptorR4 {
         theResponse.getOutputStream().close();
         return true;
       }
-
       if (resourcePath.endsWith(".html")) {
         theResponse.setContentType(Constants.CT_HTML);
         theResponse.setStatus(200);
@@ -363,7 +366,7 @@ public class OpenApiInterceptorR4 {
   /**
    * Removes the trailing slash.
    *
-   * @param theUrl the the url
+   * @param theUrl the url
    * @return the string
    */
   public String removeTrailingSlash(final String theUrl) {
@@ -407,8 +410,8 @@ public class OpenApiInterceptorR4 {
   /**
    * Serve swagger ui html.
    *
-   * @param theRequestDetails the the request details
-   * @param theResponse the the response
+   * @param theRequestDetails the request details
+   * @param theResponse the response
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @SuppressWarnings("unchecked")
@@ -487,23 +490,26 @@ public class OpenApiInterceptorR4 {
 
     pageNames.add(0, PAGE_ALL);
     pageNames.add(1, PAGE_SYSTEM);
-
     context.setVariable("PAGE_NAMES", pageNames);
     context.setVariable("PAGE_NAME_TO_COUNT", resourceToCount);
 
     String page;
+    // If a page is specified in the request, use it
     if (isUseResourcePages()) {
       page = extractPageName(theRequestDetails, PAGE_SYSTEM);
     } else {
       page = PAGE_ALL;
     }
     context.setVariable("PAGE", page);
-
     populateOIDCVariables(theRequestDetails, context);
-
     final String outcome = myTemplateEngine.process("index.html", context);
 
+    // Write the response
     try (final PrintWriter writer = theResponse.getWriter(); ) {
+      // verify we don't have a null writer
+      if (writer == null) {
+        throw new RuntimeException("Unexpected null writer");
+      }
       writer.write(outcome);
     }
   }
@@ -511,8 +517,8 @@ public class OpenApiInterceptorR4 {
   /**
    * Populate OIDC variables.
    *
-   * @param theRequestDetails the the request details
-   * @param theContext the the context
+   * @param theRequestDetails the request details
+   * @param theContext the context
    */
   protected void populateOIDCVariables(
       final ServletRequestDetails theRequestDetails, final WebContext theContext) {
@@ -522,8 +528,8 @@ public class OpenApiInterceptorR4 {
   /**
    * Extract page name.
    *
-   * @param theRequestDetails the the request details
-   * @param theDefault the the default
+   * @param theRequestDetails the request details
+   * @param theDefault the default
    * @return the string
    */
   private String extractPageName(
@@ -542,7 +548,7 @@ public class OpenApiInterceptorR4 {
   /**
    * Generate open api.
    *
-   * @param theRequestDetails the the request details
+   * @param theRequestDetails the request details
    * @return the open API
    */
   protected OpenAPI generateOpenApi(final ServletRequestDetails theRequestDetails) {
@@ -599,7 +605,7 @@ public class OpenApiInterceptorR4 {
             .type(SecurityScheme.Type.HTTP)
             .scheme("bearer")
             .bearerFormat("Bearer <JWT>")
-            .in(In.HEADER);
+            .in(SecurityScheme.In.HEADER);
 
     ensureComponentsSchemasPopulated(openApi);
     openApi.getComponents().addSecuritySchemes("bearerAuth", scheme);
@@ -619,13 +625,13 @@ public class OpenApiInterceptorR4 {
       capabilitiesOperation.setSummary("Fetch the server FHIR CapabilityStatement");
       addFhirResourceResponse(ctx, openApi, capabilitiesOperation, "CapabilityStatement");
 
-      final Set<CapabilityStatement.SystemRestfulInteraction> systemInteractions =
+      final Set<SystemRestfulInteraction> systemInteractions =
           cs.getRestFirstRep().getInteraction().stream()
               .map(t -> t.getCode())
               .collect(Collectors.toSet());
       // Transaction Operation
-      if (systemInteractions.contains(CapabilityStatement.SystemRestfulInteraction.TRANSACTION)
-          || systemInteractions.contains(CapabilityStatement.SystemRestfulInteraction.BATCH)) {
+      if (systemInteractions.contains(SystemRestfulInteraction.TRANSACTION)
+          || systemInteractions.contains(SystemRestfulInteraction.BATCH)) {
         final Operation transaction = getPathItem(paths, "/", PathItem.HttpMethod.POST);
         transaction.addTagsItem(PAGE_SYSTEM);
         transaction.setSummary("Execute a FHIR Transaction (or FHIR Batch) Bundle");
@@ -634,7 +640,7 @@ public class OpenApiInterceptorR4 {
       }
 
       // System History Operation
-      if (systemInteractions.contains(CapabilityStatement.SystemRestfulInteraction.HISTORYSYSTEM)) {
+      if (systemInteractions.contains(SystemRestfulInteraction.HISTORYSYSTEM)) {
         final Operation systemHistory = getPathItem(paths, "/_history", PathItem.HttpMethod.GET);
         systemHistory.addTagsItem(PAGE_SYSTEM);
         systemHistory.setSummary(
@@ -643,14 +649,14 @@ public class OpenApiInterceptorR4 {
       }
 
       // System-level Operations
-      for (final CapabilityStatement.CapabilityStatementRestResourceOperationComponent
-          nextOperation : cs.getRestFirstRep().getOperation()) {
+      for (final CapabilityStatementRestResourceOperationComponent nextOperation :
+          cs.getRestFirstRep().getOperation()) {
         addFhirOperation(
             ctx, openApi, theRequestDetails, capabilitiesProvider, paths, null, nextOperation);
       }
     }
 
-    for (final CapabilityStatement.CapabilityStatementRestResourceComponent nextResource :
+    for (final CapabilityStatementRestResourceComponent nextResource :
         cs.getRestFirstRep().getResource()) {
       final String resourceType = nextResource.getType();
 
@@ -658,7 +664,7 @@ public class OpenApiInterceptorR4 {
         continue;
       }
 
-      final Set<CapabilityStatement.TypeRestfulInteraction> typeRestfulInteractions =
+      final Set<TypeRestfulInteraction> typeRestfulInteractions =
           nextResource.getInteraction().stream()
               .map(t -> t.getCodeElement().getValue())
               .collect(Collectors.toSet());
@@ -669,15 +675,15 @@ public class OpenApiInterceptorR4 {
       openApi.addTagsItem(resourceTag);
 
       // Instance Read
-      if (typeRestfulInteractions.contains(CapabilityStatement.TypeRestfulInteraction.READ)) {
+      if (typeRestfulInteractions.contains(TypeRestfulInteraction.READ)) {
         final Operation operation =
             getPathItem(paths, "/" + resourceType + "/{id}", PathItem.HttpMethod.GET);
         operation.addTagsItem(resourceType);
         operation.setSummary(
             "Get "
                 + unCamelCase(resourceType)
-                + " by ID. For more information see the R4 spec for this resource at"
-                + " https://hl7.org/fhir/R4/"
+                + " by ID. For more information see the R5 spec for this resource at"
+                + " https://hl7.org/fhir/R5/"
                 + resourceType
                 + ".html");
         addResourceIdParameter(operation);
@@ -685,7 +691,7 @@ public class OpenApiInterceptorR4 {
       }
 
       // Instance VRead
-      if (typeRestfulInteractions.contains(CapabilityStatement.TypeRestfulInteraction.VREAD)) {
+      if (typeRestfulInteractions.contains(TypeRestfulInteraction.VREAD)) {
         final Operation operation =
             getPathItem(
                 paths, "/" + resourceType + "/{id}/_history/{version_id}", PathItem.HttpMethod.GET);
@@ -698,7 +704,7 @@ public class OpenApiInterceptorR4 {
       }
 
       // Type Create
-      if (typeRestfulInteractions.contains(CapabilityStatement.TypeRestfulInteraction.CREATE)) {
+      if (typeRestfulInteractions.contains(TypeRestfulInteraction.CREATE)) {
         final Operation operation =
             getPathItem(paths, "/" + resourceType, PathItem.HttpMethod.POST);
         operation.addTagsItem(resourceType);
@@ -709,7 +715,7 @@ public class OpenApiInterceptorR4 {
       }
 
       // Instance Update
-      if (typeRestfulInteractions.contains(CapabilityStatement.TypeRestfulInteraction.UPDATE)) {
+      if (typeRestfulInteractions.contains(TypeRestfulInteraction.UPDATE)) {
         final Operation operation =
             getPathItem(paths, "/" + resourceType + "/{id}", PathItem.HttpMethod.PUT);
         operation.addTagsItem(resourceType);
@@ -724,8 +730,7 @@ public class OpenApiInterceptorR4 {
       }
 
       // Type history
-      if (typeRestfulInteractions.contains(
-          CapabilityStatement.TypeRestfulInteraction.HISTORYTYPE)) {
+      if (typeRestfulInteractions.contains(TypeRestfulInteraction.HISTORYTYPE)) {
         final Operation operation =
             getPathItem(paths, "/" + resourceType + "/_history", PathItem.HttpMethod.GET);
         operation.addTagsItem(resourceType);
@@ -735,8 +740,7 @@ public class OpenApiInterceptorR4 {
       }
 
       // Instance history
-      if (typeRestfulInteractions.contains(
-          CapabilityStatement.TypeRestfulInteraction.HISTORYTYPE)) {
+      if (typeRestfulInteractions.contains(TypeRestfulInteraction.HISTORYTYPE)) {
         final Operation operation =
             getPathItem(paths, "/" + resourceType + "/{id}/_history", PathItem.HttpMethod.GET);
         operation.addTagsItem(resourceType);
@@ -747,7 +751,7 @@ public class OpenApiInterceptorR4 {
       }
 
       // Instance Patch
-      if (typeRestfulInteractions.contains(CapabilityStatement.TypeRestfulInteraction.PATCH)) {
+      if (typeRestfulInteractions.contains(TypeRestfulInteraction.PATCH)) {
         final Operation operation =
             getPathItem(paths, "/" + resourceType + "/{id}", PathItem.HttpMethod.PATCH);
         operation.addTagsItem(resourceType);
@@ -760,7 +764,7 @@ public class OpenApiInterceptorR4 {
       }
 
       // Instance Delete
-      if (typeRestfulInteractions.contains(CapabilityStatement.TypeRestfulInteraction.DELETE)) {
+      if (typeRestfulInteractions.contains(TypeRestfulInteraction.DELETE)) {
         final Operation operation =
             getPathItem(paths, "/" + resourceType + "/{id}", PathItem.HttpMethod.DELETE);
         operation.addTagsItem(resourceType);
@@ -770,7 +774,7 @@ public class OpenApiInterceptorR4 {
       }
 
       // Search
-      if (typeRestfulInteractions.contains(CapabilityStatement.TypeRestfulInteraction.SEARCHTYPE)) {
+      if (typeRestfulInteractions.contains(TypeRestfulInteraction.SEARCHTYPE)) {
         addSearchOperation(
             openApi,
             getPathItem(paths, "/" + resourceType, PathItem.HttpMethod.GET),
@@ -786,8 +790,8 @@ public class OpenApiInterceptorR4 {
       }
 
       // Resource-level Operations
-      for (final CapabilityStatement.CapabilityStatementRestResourceOperationComponent
-          nextOperation : nextResource.getOperation()) {
+      for (final CapabilityStatementRestResourceOperationComponent nextOperation :
+          nextResource.getOperation()) {
         addFhirOperation(
             ctx,
             openApi,
@@ -816,27 +820,27 @@ public class OpenApiInterceptorR4 {
       final Operation operation,
       final FhirContext ctx,
       final String resourceType,
-      final CapabilityStatement.CapabilityStatementRestResourceComponent nextResource) {
+      final CapabilityStatementRestResourceComponent nextResource) {
     operation.addTagsItem(resourceType);
     operation.setDescription("This is a search type");
     operation.setSummary(
         "Search for "
             + unCamelCase(resourceType)
-            + " instances. For more information see the R4 spec for this resource at"
-            + " https://hl7.org/fhir/R4/"
+            + " instances. For more information see the R5 spec for this resource at"
+            + " https://hl7.org/fhir/R5/"
             + resourceType
             + ".html");
     addFhirResourceResponse(ctx, openApi, operation, null);
 
-    for (final CapabilityStatement.CapabilityStatementRestResourceSearchParamComponent
-        nextSearchParam : nextResource.getSearchParam()) {
+    for (final CapabilityStatementRestResourceSearchParamComponent nextSearchParam :
+        nextResource.getSearchParam()) {
       final Parameter parametersItem = new Parameter();
       operation.addParametersItem(parametersItem);
 
       parametersItem.setName(nextSearchParam.getName());
       parametersItem.setIn("query");
       parametersItem.setDescription(nextSearchParam.getDocumentation());
-      parametersItem.setStyle(Parameter.StyleEnum.SIMPLE);
+      parametersItem.setStyle(StyleEnum.SIMPLE);
     }
   }
 
@@ -861,7 +865,7 @@ public class OpenApiInterceptorR4 {
   /**
    * Adds the schema fhir resource.
    *
-   * @param theOpenApi the the open api
+   * @param theOpenApi the open api
    */
   private void addSchemaFhirResource(final OpenAPI theOpenApi) {
     ensureComponentsSchemasPopulated(theOpenApi);
@@ -882,7 +886,7 @@ public class OpenApiInterceptorR4 {
   /**
    * Ensure components schemas populated.
    *
-   * @param theOpenApi the the open api
+   * @param theOpenApi the open api
    */
   private void ensureComponentsSchemasPopulated(final OpenAPI theOpenApi) {
     if (theOpenApi.getComponents() == null) {
@@ -896,7 +900,7 @@ public class OpenApiInterceptorR4 {
   /**
    * Gets the capability statement.
    *
-   * @param theRequestDetails the the request details
+   * @param theRequestDetails the request details
    * @return the capability statement
    */
   private CapabilityStatement getCapabilityStatement(
@@ -910,13 +914,13 @@ public class OpenApiInterceptorR4 {
   /**
    * Adds the fhir operation.
    *
-   * @param theFhirContext the the fhir context
-   * @param theOpenApi the the open api
-   * @param theRequestDetails the the request details
-   * @param theCapabilitiesProvider the the capabilities provider
-   * @param thePaths the the paths
-   * @param theResourceType the the resource type
-   * @param theOperation the the operation
+   * @param theFhirContext the fhir context
+   * @param theOpenApi the open api
+   * @param theRequestDetails the request details
+   * @param theCapabilitiesProvider the capabilities provider
+   * @param thePaths the paths
+   * @param theResourceType the resource type
+   * @param theOperation the operation
    */
   private void addFhirOperation(
       final FhirContext theFhirContext,
@@ -925,7 +929,7 @@ public class OpenApiInterceptorR4 {
       final IServerConformanceProvider<?> theCapabilitiesProvider,
       final Paths thePaths,
       final String theResourceType,
-      final CapabilityStatement.CapabilityStatementRestResourceOperationComponent theOperation) {
+      final CapabilityStatementRestResourceOperationComponent theOperation) {
     if (theCapabilitiesProvider != null) {
       final IdType definitionId = new IdType(theOperation.getDefinition());
       final IBaseResource operationDefinitionNonCanonical =
@@ -947,7 +951,6 @@ public class OpenApiInterceptorR4 {
                       });
 
       if (!postOnly) {
-
         // GET form for non-state-affecting operations
         if (theResourceType != null) {
           if (operationDefinition.getType()) {
@@ -962,13 +965,7 @@ public class OpenApiInterceptorR4 {
             operation.setSummary(
                 unCamelCase(theResourceType)
                     + " operation to perform "
-                    + operationDefinition.getCode()
-                    + ". For more information on this operation, see the R4 spec at"
-                    + " https://hl7.org/fhir/R4/"
-                    + theResourceType
-                    + "-operation-"
-                    + operationDefinition.getCode()
-                    + ".html");
+                    + operationDefinition.getCode());
           }
           if (operationDefinition.getInstance()) {
             final Operation operation =
@@ -984,13 +981,7 @@ public class OpenApiInterceptorR4 {
             operation.setSummary(
                 unCamelCase(theResourceType)
                     + " operation to perform "
-                    + operationDefinition.getCode()
-                    + ". For more information on this operation, see the R4 spec at"
-                    + " https://hl7.org/fhir/R4/"
-                    + theResourceType
-                    + "-operation-"
-                    + operationDefinition.getCode()
-                    + ".html");
+                    + operationDefinition.getCode());
           }
         } else {
           if (operationDefinition.getSystem()) {
@@ -1003,13 +994,7 @@ public class OpenApiInterceptorR4 {
             operation.setSummary(
                 unCamelCase(theResourceType)
                     + " operation to perform "
-                    + operationDefinition.getCode()
-                    + ". For more information on this operation, see the R4 spec at"
-                    + " https://hl7.org/fhir/R4/"
-                    + theResourceType
-                    + "-operation-"
-                    + operationDefinition.getCode()
-                    + ".html");
+                    + operationDefinition.getCode());
           }
         }
       }
@@ -1028,13 +1013,7 @@ public class OpenApiInterceptorR4 {
           operation.setSummary(
               unCamelCase(theResourceType)
                   + " operation to perform "
-                  + operationDefinition.getCode()
-                  + ". For more information on this operation, see the R4 spec at"
-                  + " https://hl7.org/fhir/R4/"
-                  + theResourceType
-                  + "-operation-"
-                  + operationDefinition.getCode()
-                  + ".html");
+                  + operationDefinition.getCode());
         }
         if (operationDefinition.getInstance()) {
           final Operation operation =
@@ -1049,13 +1028,7 @@ public class OpenApiInterceptorR4 {
           operation.setSummary(
               unCamelCase(theResourceType)
                   + " operation to perform "
-                  + operationDefinition.getCode()
-                  + ". For more information on this operation, see the R4 spec at"
-                  + " https://hl7.org/fhir/R4/"
-                  + theResourceType
-                  + "-operation-"
-                  + operationDefinition.getCode()
-                  + ".html");
+                  + operationDefinition.getCode());
         }
       } else {
         if (operationDefinition.getSystem()) {
@@ -1067,42 +1040,36 @@ public class OpenApiInterceptorR4 {
           operation.setSummary(
               unCamelCase(theResourceType)
                   + " operation to perform "
-                  + operationDefinition.getCode()
-                  + ". For more information on this operation, see the R4 spec at"
-                  + " https://hl7.org/fhir/R4/"
-                  + theResourceType
-                  + "-operation-"
-                  + operationDefinition.getCode()
-                  + ".html");
+                  + operationDefinition.getCode());
         }
       }
     }
   }
 
   /** The primitive types. */
-  private static List<String> primitiveTypes =
+  private static List<FHIRTypes> primitiveTypes =
       Arrays.asList(
-          DataTypes.BOOLEAN.toCode(),
-          DataTypes.INTEGER.toCode(),
-          DataTypes.STRING.toCode(),
-          DataTypes.DECIMAL.toCode(),
-          DataTypes.URI.toCode(),
-          DataTypes.URL.toCode(),
-          DataTypes.CANONICAL.toCode(),
-          DataTypes.REFERENCE.toCode(),
-          DataTypes.BASE64BINARY.toCode(),
-          DataTypes.INSTANT.toCode(),
-          DataTypes.DATE.toCode(),
-          DataTypes.DATETIME.toCode(),
-          DataTypes.TIME.toCode(),
-          DataTypes.CODE.toCode(),
-          DataTypes.CODING.toCode(),
-          DataTypes.OID.toCode(),
-          DataTypes.ID.toCode(),
-          DataTypes.MARKDOWN.toCode(),
-          DataTypes.UNSIGNEDINT.toCode(),
-          DataTypes.POSITIVEINT.toCode(),
-          DataTypes.UUID.toCode());
+          FHIRTypes.BOOLEAN,
+          FHIRTypes.INTEGER,
+          FHIRTypes.STRING,
+          FHIRTypes.DECIMAL,
+          FHIRTypes.URI,
+          FHIRTypes.URL,
+          FHIRTypes.CANONICAL,
+          FHIRTypes.REFERENCE,
+          FHIRTypes.BASE64BINARY,
+          FHIRTypes.INSTANT,
+          FHIRTypes.DATE,
+          FHIRTypes.DATETIME,
+          FHIRTypes.TIME,
+          FHIRTypes.CODE,
+          FHIRTypes.CODING,
+          FHIRTypes.OID,
+          FHIRTypes.ID,
+          FHIRTypes.MARKDOWN,
+          FHIRTypes.UNSIGNEDINT,
+          FHIRTypes.POSITIVEINT,
+          FHIRTypes.UUID);
 
   /**
    * Checks if is primitive.
@@ -1117,12 +1084,12 @@ public class OpenApiInterceptorR4 {
   /**
    * Populate operation.
    *
-   * @param theFhirContext the the fhir context
-   * @param theOpenApi the the open api
-   * @param theResourceType the the resource type
-   * @param theOperationDefinition the the operation definition
-   * @param theOperation the the operation
-   * @param theGet the the get
+   * @param theFhirContext the fhir context
+   * @param theOpenApi the open api
+   * @param theResourceType the resource type
+   * @param theOperationDefinition the operation definition
+   * @param theOperation the operation
+   * @param theGet the get
    */
   private void populateOperation(
       final FhirContext theFhirContext,
@@ -1140,25 +1107,25 @@ public class OpenApiInterceptorR4 {
     theOperation.setDescription(theOperationDefinition.getDescription());
     addFhirResourceResponse(theFhirContext, theOpenApi, theOperation, null);
     if (theGet) {
-
-      for (final OperationDefinition.OperationDefinitionParameterComponent nextParameter :
+      for (final OperationDefinitionParameterComponent nextParameter :
           theOperationDefinition.getParameter()) {
         if ("0".equals(nextParameter.getMax())
             || !nextParameter.getUse().equals(OperationParameterUse.IN)
             || (!isPrimitive(nextParameter) && nextParameter.getMin() == 0)) {
           continue;
         }
+
         final Parameter parametersItem = new Parameter();
         theOperation.addParametersItem(parametersItem);
 
         parametersItem.setName(nextParameter.getName());
         parametersItem.setIn("query");
         parametersItem.setDescription(nextParameter.getDocumentation());
-        parametersItem.setStyle(Parameter.StyleEnum.SIMPLE);
+        parametersItem.setStyle(StyleEnum.SIMPLE);
         parametersItem.setRequired(nextParameter.getMin() > 0);
-
         final List<Extension> exampleExtensions =
             nextParameter.getExtensionsByUrl(HapiExtensions.EXT_OP_PARAMETER_EXAMPLE_VALUE);
+
         if (exampleExtensions.size() == 1) {
           parametersItem.setExample(
               exampleExtensions.get(0).getValueAsPrimitive().getValueAsString());
@@ -1173,79 +1140,93 @@ public class OpenApiInterceptorR4 {
     } else {
 
       final Parameters exampleRequestBody = new Parameters();
-      for (final OperationDefinition.OperationDefinitionParameterComponent nextSearchParam :
+      for (final OperationDefinitionParameterComponent nextSearchParam :
           theOperationDefinition.getParameter()) {
         if ("0".equals(nextSearchParam.getMax())
             || !nextSearchParam.getUse().equals(OperationParameterUse.IN)) {
           continue;
         }
-        final Parameters.ParametersParameterComponent param = exampleRequestBody.addParameter();
+        final ParametersParameterComponent param = exampleRequestBody.addParameter();
         param.setName(nextSearchParam.getName());
-        final String paramType = nextSearchParam.getType();
-        switch (defaultString(paramType)) {
-          case "uri":
-          case "url":
-          case "code":
-          case "string":
-            {
-              final IPrimitiveType<?> type =
-                  (IPrimitiveType<?>)
-                      FHIR_CONTEXT_CANONICAL.getElementDefinition(paramType).newInstance();
-              type.setValueAsString("example");
-              param.setValue((Type) type);
-              break;
-            }
-          case "integer":
-            {
-              final IPrimitiveType<?> type =
-                  (IPrimitiveType<?>)
-                      FHIR_CONTEXT_CANONICAL.getElementDefinition(paramType).newInstance();
-              type.setValueAsString("0");
-              param.setValue((Type) type);
-              break;
-            }
-          case "boolean":
-            {
-              final IPrimitiveType<?> type =
-                  (IPrimitiveType<?>)
-                      FHIR_CONTEXT_CANONICAL.getElementDefinition(paramType).newInstance();
-              type.setValueAsString("false");
-              param.setValue((Type) type);
-              break;
-            }
-          case "CodeableConcept":
-            {
-              final CodeableConcept type = new CodeableConcept();
-              type.getCodingFirstRep().setSystem("http://example.com");
-              type.getCodingFirstRep().setCode("1234");
-              param.setValue(type);
-              break;
-            }
-          case "Coding":
-            {
-              final Coding type = new Coding();
-              type.setSystem("http://example.com");
-              type.setCode("1234");
-              param.setValue(type);
-              break;
-            }
-          case "Reference":
-            final Reference reference = new Reference("example");
-            param.setValue(reference);
-            break;
-          case "Resource":
-            if (theResourceType != null) {
-              if (FHIR_CONTEXT_CANONICAL.getResourceTypes().contains(theResourceType)) {
-                final IBaseResource resource =
-                    FHIR_CONTEXT_CANONICAL.getResourceDefinition(theResourceType).newInstance();
-                resource.setId("1");
-                param.setResource((Resource) resource);
+        final FHIRTypes paramType = nextSearchParam.getType();
+        if (paramType != null) {
+          switch (paramType) {
+            case URI:
+              {
+                final UriType type = new UriType();
+                type.setValue("example");
+                param.setValue(type);
+                break;
               }
-            }
-            break;
-          default:
-            // do nothing
-            break;
+            case URL:
+              {
+                final UrlType type = new UrlType();
+                type.setValue("example");
+                param.setValue(type);
+                break;
+              }
+            case CODE:
+              {
+                final CodeType type = new CodeType();
+                type.setValue("example");
+                param.setValue(type);
+                break;
+              }
+            case STRING:
+              {
+                final StringType type = new StringType();
+                type.setValue("example");
+                param.setValue(type);
+                break;
+              }
+            case INTEGER:
+              {
+                final IntegerType type = new IntegerType();
+                type.setValue(0);
+                param.setValue(type);
+                break;
+              }
+            case BOOLEAN:
+              {
+                final BooleanType type = new BooleanType();
+                type.setValue(false);
+                param.setValue(type);
+                break;
+              }
+            case CODEABLECONCEPT:
+              {
+                final CodeableConcept type = new CodeableConcept();
+                type.getCodingFirstRep().setSystem("http://example.com");
+                type.getCodingFirstRep().setCode("1234");
+                param.setValue(type);
+                break;
+              }
+            case CODING:
+              {
+                final Coding type = new Coding();
+                type.setSystem("http://example.com");
+                type.setCode("1234");
+                param.setValue(type);
+                break;
+              }
+            case REFERENCE:
+              final Reference reference = new Reference("example");
+              param.setValue(reference);
+              break;
+            case RESOURCE:
+              if (theResourceType != null) {
+                if (FHIR_CONTEXT_CANONICAL.getResourceTypes().contains(theResourceType)) {
+                  final IBaseResource resource =
+                      FHIR_CONTEXT_CANONICAL.getResourceDefinition(theResourceType).newInstance();
+                  resource.setId("1");
+                  param.setResource((Resource) resource);
+                }
+              }
+              break;
+            default:
+              // do nothing
+              break;
+          }
         }
       }
 
@@ -1269,22 +1250,22 @@ public class OpenApiInterceptorR4 {
   /**
    * Gets the path item.
    *
-   * @param thePaths the the paths
-   * @param thePath the the path
-   * @param theMethod the the method
+   * @param thePaths the paths
+   * @param thePath the path
+   * @param theMethod the method
    * @return the path item
    */
   protected Operation getPathItem(
-      final Paths thePaths, final String thePath, final PathItem.HttpMethod theMethod) {
+      final Paths thePaths, final String thePath, final HttpMethod theMethod) {
     PathItem pathItem;
-
+    // If the path already exists, use it, otherwise create a new one
     if (thePaths.containsKey(thePath)) {
       pathItem = thePaths.get(thePath);
     } else {
       pathItem = new PathItem();
       thePaths.addPathItem(thePath, pathItem);
     }
-
+    // Now, return the appropriate operation
     switch (theMethod) {
       case POST:
         assert pathItem.getPost() == null : "Have duplicate POST at path: " + thePath;
@@ -1301,9 +1282,6 @@ public class OpenApiInterceptorR4 {
       case DELETE:
         assert pathItem.getDelete() == null;
         return pathItem.delete(new Operation()).getDelete();
-      case HEAD:
-      case OPTIONS:
-      case TRACE:
       default:
         throw new IllegalStateException(Msg.code(240));
     }
@@ -1312,10 +1290,10 @@ public class OpenApiInterceptorR4 {
   /**
    * Adds the fhir resource request body.
    *
-   * @param theOpenApi the the open api
-   * @param theOperation the the operation
-   * @param theExampleFhirContext the the example fhir context
-   * @param theExampleSupplier the the example supplier
+   * @param theOpenApi the open api
+   * @param theOperation the operation
+   * @param theExampleFhirContext the example fhir context
+   * @param theExampleSupplier the example supplier
    */
   private void addFhirResourceRequestBody(
       final OpenAPI theOpenApi,
@@ -1331,7 +1309,7 @@ public class OpenApiInterceptorR4 {
   /**
    * Adds the resource version id parameter.
    *
-   * @param theOperation the the operation
+   * @param theOperation the operation
    */
   private void addResourceVersionIdParameter(final Operation theOperation) {
     final Parameter parameter = new Parameter();
@@ -1340,17 +1318,17 @@ public class OpenApiInterceptorR4 {
     parameter.setDescription("The resource version ID");
     parameter.setExample("1");
     parameter.setSchema(new Schema<>().type("string").minimum(new BigDecimal(1)));
-    parameter.setStyle(Parameter.StyleEnum.SIMPLE);
+    parameter.setStyle(StyleEnum.SIMPLE);
     theOperation.addParametersItem(parameter);
   }
 
   /**
    * Adds the fhir resource response.
    *
-   * @param theFhirContext the the fhir context
-   * @param theOpenApi the the open api
-   * @param theOperation the the operation
-   * @param theResourceType the the resource type
+   * @param theFhirContext the fhir context
+   * @param theOpenApi the open api
+   * @param theOperation the operation
+   * @param theResourceType the resource type
    */
   private void addFhirResourceResponse(
       final FhirContext theFhirContext,
@@ -1369,8 +1347,8 @@ public class OpenApiInterceptorR4 {
   /**
    * Generic example supplier.
    *
-   * @param theFhirContext the the fhir context
-   * @param theResourceType the the resource type
+   * @param theFhirContext the fhir context
+   * @param theResourceType the resource type
    * @return the supplier
    */
   private Supplier<IBaseResource> genericExampleSupplier(
@@ -1390,9 +1368,9 @@ public class OpenApiInterceptorR4 {
   /**
    * Provide content fhir resource.
    *
-   * @param theOpenApi the the open api
-   * @param theExampleFhirContext the the example fhir context
-   * @param theExampleSupplier the the example supplier
+   * @param theOpenApi the open api
+   * @param theExampleFhirContext the example fhir context
+   * @param theExampleSupplier the example supplier
    * @return the content
    */
   private Content provideContentFhirResource(
@@ -1431,7 +1409,7 @@ public class OpenApiInterceptorR4 {
   /**
    * Adds the resource id parameter.
    *
-   * @param theOperation the the operation
+   * @param theOperation the operation
    */
   private void addResourceIdParameter(final Operation theOperation) {
     final Parameter parameter = new Parameter();
@@ -1440,7 +1418,25 @@ public class OpenApiInterceptorR4 {
     parameter.setDescription("The resource ID");
     parameter.setExample("123");
     parameter.setSchema(new Schema<>().type("string").minimum(new BigDecimal(1)));
-    parameter.setStyle(Parameter.StyleEnum.SIMPLE);
+    parameter.setStyle(StyleEnum.SIMPLE);
+    theOperation.addParametersItem(parameter);
+  }
+
+  /**
+   * Adds the auth parameter.
+   *
+   * @param theOperation the the operation
+   */
+  @SuppressWarnings("unused")
+  private void addAuthParameter(final Operation theOperation) {
+    final Parameter parameter = new Parameter();
+    parameter.setName("token");
+    parameter.setIn("header");
+    parameter.setDescription("the 'Authorization: Bearer <token>'");
+    // parameter.setExample("sandbox");
+    parameter.setSchema(new Schema<>().type("string").minimum(new BigDecimal(1)));
+    parameter.setStyle(StyleEnum.SIMPLE);
+    parameter.setRequired(true);
     theOperation.addParametersItem(parameter);
   }
 
@@ -1467,10 +1463,10 @@ public class OpenApiInterceptorR4 {
   /**
    * Sets the banner image.
    *
-   * @param theBannerImage the the banner image
+   * @param theBannerImage the banner image
    * @return the open api interceptor
    */
-  public OpenApiInterceptorR4 setBannerImage(final String theBannerImage) {
+  public OpenApiInterceptorR5 setBannerImage(final String theBannerImage) {
     myBannerImage = StringUtils.defaultIfBlank(theBannerImage, null);
     return this;
   }
@@ -1497,20 +1493,16 @@ public class OpenApiInterceptorR4 {
    * To canonical version.
    *
    * @param <T> the generic type
-   * @param theNonCanonical the the non canonical
+   * @param theNonCanonical the non canonical
    * @return the t
    */
   @SuppressWarnings("unchecked")
   private static <T extends Resource> T toCanonicalVersion(final IBaseResource theNonCanonical) {
     IBaseResource canonical;
-    if (theNonCanonical instanceof org.hl7.fhir.dstu3.model.Resource) {
-      canonical =
-          VersionConvertorFactory_30_40.convertResource(
-              (org.hl7.fhir.dstu3.model.Resource) theNonCanonical);
-    } else if (theNonCanonical instanceof org.hl7.fhir.r5.model.Resource) {
+    if (theNonCanonical instanceof org.hl7.fhir.r4.model.Resource) {
       canonical =
           VersionConvertorFactory_40_50.convertResource(
-              (org.hl7.fhir.r5.model.Resource) theNonCanonical);
+              (org.hl7.fhir.r4.model.Resource) theNonCanonical);
     } else if (theNonCanonical instanceof org.hl7.fhir.r4b.model.Resource) {
       final org.hl7.fhir.r5.model.Resource r5 =
           VersionConvertorFactory_43_50.convertResource(
@@ -1522,6 +1514,12 @@ public class OpenApiInterceptorR4 {
     return (T) canonical;
   }
 
+  /**
+   * Un camel case.
+   *
+   * @param str the str
+   * @return the string
+   */
   public static String unCamelCase(final String str) {
     // insert a space between lower & upper
     return capitalize(
@@ -1530,6 +1528,12 @@ public class OpenApiInterceptorR4 {
             .replaceAll("\\b([A-Z]+)([A-Z])([a-z])", "$1 $2$3"));
   }
 
+  /**
+   * Capitalize.
+   *
+   * @param value the value
+   * @return the string
+   */
   public static String capitalize(final String value) {
     if (isEmpty(value)) {
       return value;
@@ -1537,6 +1541,12 @@ public class OpenApiInterceptorR4 {
     return value.substring(0, 1).toUpperCase() + value.substring(1);
   }
 
+  /**
+   * Indicates whether or not empty is the case.
+   *
+   * @param str the str
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
   public static boolean isEmpty(final String str) {
     return str == null || str.isEmpty();
   }
@@ -1592,6 +1602,7 @@ public class OpenApiInterceptorR4 {
       final StringBuilder builder = new StringBuilder();
       builder.append(baseUrl);
       builder.append(theBase);
+
       if (!theParameters.isEmpty()) {
         builder.append("?");
         for (final Iterator<Map.Entry<String, Object>> iter = theParameters.entrySet().iterator();
@@ -1606,7 +1617,6 @@ public class OpenApiInterceptorR4 {
           }
         }
       }
-
       return builder.toString();
     }
   }

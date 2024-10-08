@@ -10,21 +10,19 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import org.hl7.fhir.r4.model.BooleanType;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
-import org.hl7.fhir.r4.model.CodeSystem;
-import org.hl7.fhir.r4.model.ConceptMap;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.Resource;
-import org.hl7.fhir.r4.model.ResourceType;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.UriType;
-import org.hl7.fhir.r4.model.ValueSet;
+import org.hl7.fhir.r5.model.BooleanType;
+import org.hl7.fhir.r5.model.Bundle;
+import org.hl7.fhir.r5.model.CodeSystem;
+import org.hl7.fhir.r5.model.ConceptMap;
+import org.hl7.fhir.r5.model.Parameters;
+import org.hl7.fhir.r5.model.Resource;
+import org.hl7.fhir.r5.model.ResourceType;
+import org.hl7.fhir.r5.model.StringType;
+import org.hl7.fhir.r5.model.UriType;
+import org.hl7.fhir.r5.model.ValueSet;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
@@ -43,16 +40,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /**
- * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
- * ValueSet, and ConceptMap. All passed ids MUST be lowercase, so they match our internally set id's
+ * Unit FhirR5Tests. Tests the functionality of the FHIR R5 endpoints, CodeSystem, ValueSet, and
+ * ConceptMap. All passed ids MUST be lowercase, so they match our internally set id's
  */
 @ExtendWith(SpringExtension.class)
-@SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-public class FhirR4Tests {
-
+class FhirR5Tests {
   /** The logger. */
-  private static final Logger log = LoggerFactory.getLogger(FhirR4Tests.class);
+  private static final Logger log = LoggerFactory.getLogger(FhirR5Tests.class);
 
   /** The port. */
   @LocalServerPort private int port;
@@ -60,46 +56,40 @@ public class FhirR4Tests {
   /** The rest template. */
   @Autowired private TestRestTemplate restTemplate;
 
-  /** The test properties. */
-  @Autowired TestProperties testProperties;
-
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
-
   /** local host prefix. */
   private final String localHost = "http://localhost:";
 
   /** Fhir url paths. */
-  private final String fhirCSPath = "/fhir/r4/CodeSystem";
+  private final String fhirCSPath = "/fhir/r5/CodeSystem";
 
   /** The fhir VS path. */
-  private final String fhirVSPath = "/fhir/r4/ValueSet";
+  private final String fhirVSPath = "/fhir/r5/ValueSet";
 
   /** The fhir CM path. */
-  private final String fhirCMPath = "/fhir/r4/ConceptMap";
+  private final String fhirCMPath = "/fhir/r5/ConceptMap";
 
-  /** The parser. */
+  /** The Parser. */
   private static IParser parser;
 
   /** Sets the up once. */
   @BeforeAll
   public static void setUpOnce() {
     // Instantiate parser
-    parser = FhirContext.forR4().newJsonParser();
+    parser = FhirContext.forR5().newJsonParser();
   }
 
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-    // The object mapper
-    objectMapper = new ObjectMapper();
+    // the object mapper
+    ObjectMapper objectMapper = new ObjectMapper();
     JacksonTester.initFields(this, objectMapper);
   }
 
   /**
    * Test code system search.
    *
-   * @throws Exception the exception
+   * @throws Exception exception
    */
   @Test
   public void testCodeSystemSearch() throws Exception {
@@ -111,7 +101,7 @@ public class FhirR4Tests {
     content = this.restTemplate.getForObject(endpoint, String.class);
     Bundle data = parser.parseResource(Bundle.class, content);
     List<Resource> codeSystems =
-        data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     // Verify things about this one
     // {"resourceType":"CodeSystem","id":"ncit_21.06e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"21.06e","name":"NCI Thesaurus 21.06e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","hierarchyMeaning":"is-a"}
@@ -139,7 +129,7 @@ public class FhirR4Tests {
   /**
    * Test code system read.
    *
-   * @throws Exception the exception
+   * @throws Exception exception
    */
   @Test
   public void testCodeSystemRead() throws Exception {
@@ -149,12 +139,13 @@ public class FhirR4Tests {
 
     // Act
     content = this.restTemplate.getForObject(endpoint, String.class);
+
     Bundle data = parser.parseResource(Bundle.class, content);
     List<Resource> codeSystems =
-        data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     String firstCodeSystemId = codeSystems.get(0).getIdPart();
 
-    // reassign content with the firstCodeSystemId
+    // reassign content with firstCodeSystemId
     content = this.restTemplate.getForObject(endpoint + "/" + firstCodeSystemId, String.class);
     CodeSystem codeSystem = parser.parseResource(CodeSystem.class, content);
 
@@ -170,7 +161,7 @@ public class FhirR4Tests {
   /**
    * Test code system validate active code.
    *
-   * @throws Exception the exception
+   * @throws Exception exception
    */
   @Test
   public void testCodeSystemValidateActiveCode() throws Exception {
@@ -258,11 +249,11 @@ public class FhirR4Tests {
   public void testCodeSystemCodeNotFoundAndDisplayString() throws Exception {
     // Arrange
     String content;
-    String activeId = "ulssemnet_2023aa";
+    String activeId = "ulssemnet_2023AA";
     String codeNotFound = "T10";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
-    String messageNotFound = "Unable to find matching code system";
+    String messageNotFound = "Unable to find matching code syste";
     String endpoint =
         localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?url=" + url + "&code=" + codeNotFound + "$display" + displayString;
@@ -352,11 +343,11 @@ public class FhirR4Tests {
     String parameters = "?code=" + code + "&system=" + url;
 
     // Act
-    content = restTemplate.getForObject(endpoint + parameters, String.class);
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
-    assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertFalse(((BooleanType) params.getParameter("results").getValue()).getValue());
     assertEquals(message, ((StringType) params.getParameter("message").getValue()).getValue());
     assertEquals(isNull, ((UriType) params.getParameter("url").getValue()).getValue());
   }
@@ -606,6 +597,7 @@ public class FhirR4Tests {
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
+    log.info("  params = " + parser.encodeResourceToString(params));
 
     // Assert
     assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
