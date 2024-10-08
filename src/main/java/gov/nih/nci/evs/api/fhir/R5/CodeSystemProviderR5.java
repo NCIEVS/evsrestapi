@@ -571,7 +571,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       final HttpServletRequest request,
       final HttpServletResponse response,
       final ServletRequestDetails details,
-      @IdParam final IdType id,
       @OperationParam(name = "codeA") final CodeType codeA,
       @OperationParam(name = "codeB") final CodeType codeB,
       @OperationParam(name = "system") final UriType system,
