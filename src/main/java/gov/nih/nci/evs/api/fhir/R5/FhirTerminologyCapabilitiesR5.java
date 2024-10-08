@@ -9,7 +9,7 @@ import org.hl7.fhir.r5.model.ContactPoint;
 import org.hl7.fhir.r5.model.Enumerations;
 import org.hl7.fhir.r5.model.TerminologyCapabilities;
 
-/** Specification of the FHIR TerminologyCapabilities */
+/** Specification of the FHIR TerminologyCapabilities. */
 @ResourceDef(
     name = "TerminologyCapabilities",
     profile = "http://hl7.org/fhir/StructureDefinition/TerminologyCapabilities")

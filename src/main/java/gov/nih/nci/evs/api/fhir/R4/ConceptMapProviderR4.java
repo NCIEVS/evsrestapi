@@ -43,7 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/** The ConceptMap provider. */
+/** FHIR R4 ConceptMap provider. */
 @Component
 public class ConceptMapProviderR4 implements IResourceProvider {
 
@@ -197,8 +197,6 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   /**
    * Perform the lookup in the implicit map.
    *
-   * @see <a href="https://hl7.org/fhir/R4/conceptmap-operation-translate.html">conceptmap operation
-   *     translate</a>
    * @param request the request
    * @param response the response
    * @param details the details
@@ -219,6 +217,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @return the parameters
    * @throws Exception the exception
    *     <p>no support for dependency parameter
+   * @see <a href="https://hl7.org/fhir/R4/conceptmap-operation-translate.html">conceptmap operation
+   *     translate</a>
    */
   @Operation(name = JpaConstants.OPERATION_TRANSLATE, idempotent = true)
   public Parameters translateImplicit(
@@ -340,11 +340,14 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   /**
    * Find concept maps.
    *
+   * @param request the request
    * @param id the id
    * @param date the date
    * @param system the system
    * @param url the url
    * @param version the version
+   * @param count the count
+   * @param offset the offset
    * @return the list
    * @throws Exception the exception
    */
@@ -357,10 +360,10 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       @OptionalParam(name = "url") final StringParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
-          NumberParam count,
+          final NumberParam count,
       @Description(shortDefinition = "Start offset, used when reading a next page")
           @OptionalParam(name = "_offset")
-          NumberParam offset)
+          final NumberParam offset)
       throws Exception {
     try {
       FhirUtilityR4.notSupportedSearchParams(request);

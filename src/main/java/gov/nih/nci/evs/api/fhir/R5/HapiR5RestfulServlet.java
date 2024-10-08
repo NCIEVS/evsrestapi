@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-/** The Hapi servlet */
+/** The FHIR R5 Hapi servlet. */
 public class HapiR5RestfulServlet extends RestfulServer {
   /** The logger. */
   private static Logger logger = LoggerFactory.getLogger(HapiR5RestfulServlet.class);

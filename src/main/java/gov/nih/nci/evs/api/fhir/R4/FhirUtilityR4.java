@@ -37,7 +37,7 @@ import org.hl7.fhir.r4.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Utility for fhir data building. */
+/** Utility for FHIR R4. */
 public final class FhirUtilityR4 {
 
   /** The logger. */
@@ -290,7 +290,7 @@ public final class FhirUtilityR4 {
     vs.setName(term.getName());
     vs.setVersion(term.getVersion());
     vs.setTitle(term.getTerminology());
-    vs.setUrl(getUri(term.getTerminology()));
+    vs.setUrl(getUri(term.getTerminology()) + "?fhir_vs");
     vs.setPublisher(getPublisher(term.getTerminology()));
     vs.setExperimental(false);
     vs.setStatus(Enumerations.PublicationStatus.ACTIVE);
@@ -683,7 +683,7 @@ public final class FhirUtilityR4 {
   }
 
   /**
-   * Get the previous link component
+   * Get the previous link component.
    *
    * @param uri the uri
    * @param offset the offset
@@ -734,8 +734,8 @@ public final class FhirUtilityR4 {
       final NumberParam count,
       final NumberParam offset) {
 
-    int countInt = count == null ? 100 : count.getValue().intValue();
-    int offsetInt = offset == null ? 0 : offset.getValue().intValue();
+    final int countInt = count == null ? 100 : count.getValue().intValue();
+    final int offsetInt = offset == null ? 0 : offset.getValue().intValue();
     final String thisUrl =
         request.getQueryString() == null
             ? request.getRequestURL().toString()

@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.fhir;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -10,7 +11,9 @@ import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
@@ -22,6 +25,7 @@ import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.UriType;
 import org.hl7.fhir.r4.model.ValueSet;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -62,16 +66,27 @@ public class FhirR4Tests {
   /** The object mapper. */
   private ObjectMapper objectMapper;
 
-  /** local host prefix */
+  /** local host prefix. */
   private final String localHost = "http://localhost:";
 
-  /** Fhir url paths */
+  /** Fhir url paths. */
   private final String fhirCSPath = "/fhir/r4/CodeSystem";
 
+  /** The fhir VS path. */
   private final String fhirVSPath = "/fhir/r4/ValueSet";
+
+  /** The fhir CM path. */
   private final String fhirCMPath = "/fhir/r4/ConceptMap";
 
-  private IParser parser;
+  /** The parser. */
+  private static IParser parser;
+
+  /** Sets the up once. */
+  @BeforeAll
+  public static void setUpOnce() {
+    // Instantiate parser
+    parser = FhirContext.forR4().newJsonParser();
+  }
 
   /** Sets the up. */
   @BeforeEach
@@ -79,8 +94,6 @@ public class FhirR4Tests {
     // The object mapper
     objectMapper = new ObjectMapper();
     JacksonTester.initFields(this, objectMapper);
-    // Instantiate a new parser
-    parser = FhirContext.forR4().newJsonParser();
   }
 
   /**
@@ -100,17 +113,27 @@ public class FhirR4Tests {
     List<Resource> codeSystems =
         data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
+    // Verify things about this one
+    // {"resourceType":"CodeSystem","id":"ncit_21.06e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"21.06e","name":"NCI Thesaurus 21.06e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","hierarchyMeaning":"is-a"}
+    final Set<String> ids = new HashSet<>(Set.of("ncit_21.06e"));
+    final Set<String> urls =
+        new HashSet<>(Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl"));
+
     // Assert
     assertFalse(codeSystems.isEmpty());
     for (Resource cs : codeSystems) {
-      log.info("  code system = " + FhirContext.forR4().newJsonParser().encodeResourceToString(cs));
+      log.info("  code system = " + parser.encodeResourceToString(cs));
       CodeSystem css = (CodeSystem) cs;
       assertNotNull(css);
       assertEquals(ResourceType.CodeSystem, css.getResourceType());
       assertNotNull(css.getIdPart());
       assertNotNull(css.getPublisher());
       assertNotNull(css.getUrl());
+      ids.remove(css.getIdPart());
+      urls.remove(css.getUrl());
     }
+    assertThat(ids).isEmpty();
+    assertThat(urls).isEmpty();
   }
 
   /**
@@ -139,10 +162,16 @@ public class FhirR4Tests {
     assertNotNull(codeSystem);
     assertEquals(ResourceType.CodeSystem, codeSystem.getResourceType());
     assertEquals(firstCodeSystemId, codeSystem.getIdPart());
+    assertEquals(((CodeSystem) codeSystems.get(0)).getUrl(), codeSystem.getUrl());
     assertEquals(((CodeSystem) codeSystems.get(0)).getName(), codeSystem.getName());
     assertEquals(((CodeSystem) codeSystems.get(0)).getPublisher(), codeSystem.getPublisher());
   }
 
+  /**
+   * Test code system validate active code.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemValidateActiveCode() throws Exception {
     // Arrange
@@ -372,17 +401,31 @@ public class FhirR4Tests {
     List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
+    // Verify things about these
+    // {"resourceType":"ValueSet","id":"ncit_21.06e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"21.06e","name":"NCI Thesaurus 21.06e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","description":"NCI Thesaurus, a controlled vocabulary in support of NCI administrative and scientific activities. Produced by the Enterprise Vocabulary System (EVS), a project by the NCI Center for Biomedical Informatics and Information Technology. National Cancer Institute, National Institutes of Health, Bethesda, MD 20892, U.S.A."}
+    // {"resourceType":"ValueSet","id":"ncit_c100110","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110","identifier":[{"value":"C100110"}],"version":"21.06e","name":"CDISC Questionnaire Terminology","title":"ncit","status":"active","experimental":false,"publisher":"NCI","description":"Value set representing the ncitsubsetC100110"}
+    final Set<String> ids = new HashSet<>(Set.of("ncit_21.06e", "ncit_c100110"));
+    final Set<String> urls =
+        new HashSet<>(
+            Set.of(
+                "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs",
+                "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110"));
+
     // Assert
     assertFalse(valueSets.isEmpty());
     for (Resource vs : valueSets) {
-      log.info("  value set = " + FhirContext.forR4().newJsonParser().encodeResourceToString(vs));
+      log.info("  value set = " + parser.encodeResourceToString(vs));
       ValueSet vss = (ValueSet) vs;
       assertNotNull(vss);
       assertEquals(ResourceType.ValueSet, vss.getResourceType());
       assertNotNull(vss.getIdPart());
       assertNotNull(vss.getPublisher());
       assertNotNull(vss.getUrl());
+      ids.remove(vss.getIdPart());
+      urls.remove(vss.getUrl());
     }
+    assertThat(ids).isEmpty();
+    assertThat(urls).isEmpty();
   }
 
   /**
@@ -409,6 +452,7 @@ public class FhirR4Tests {
     assertNotNull(valueSet);
     assertEquals(ResourceType.ValueSet, valueSet.getResourceType());
     assertEquals(firstValueSetId, valueSet.getIdPart());
+    assertEquals(valueSet.getUrl(), ((ValueSet) valueSets.get(0)).getUrl());
     assertEquals(valueSet.getName(), ((ValueSet) valueSets.get(0)).getName());
     assertEquals(valueSet.getPublisher(), ((ValueSet) valueSets.get(0)).getPublisher());
   }
@@ -451,7 +495,7 @@ public class FhirR4Tests {
     // Arrange
     String content;
     String activeCode = "T100";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     String displayString = "Age Group";
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?url=" + url + "&code=" + activeCode;
@@ -467,7 +511,7 @@ public class FhirR4Tests {
   }
 
   /**
-   * Test value set validate active id, active code and display string
+   * Test value set validate active id, active code and display string.
    *
    * @throws Exception exception
    */
@@ -477,7 +521,7 @@ public class FhirR4Tests {
     String content;
     String activeCode = "T100";
     String activeID = "umlssemnet_2023aa";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     String displayString = "Age Group";
     String endpoint =
         localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
@@ -503,7 +547,7 @@ public class FhirR4Tests {
     // Arrange
     String content;
     String activeCode = "T100";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     String displayString = "Age Group";
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?url=" + url + "&code=" + activeCode + "&display=" + displayString;
@@ -528,7 +572,7 @@ public class FhirR4Tests {
     // Arrange
     String content;
     String codeNotFound = "T10";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     String messageNotFound = "The code '" + codeNotFound + "' was not found.";
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?url=" + url + "&code=" + codeNotFound;
@@ -553,7 +597,7 @@ public class FhirR4Tests {
     // Arrange
     String content;
     String codeNotFound = "T10";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     String displayString = "Age Group";
     String messageNotFound = "The code '" + codeNotFound + "' was not found.";
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
@@ -570,7 +614,7 @@ public class FhirR4Tests {
   }
 
   /**
-   * Test value set code not found for activde Id and display string
+   * Test value set code not found for activde Id and display string.
    *
    * @throws Exception exception
    */
@@ -580,7 +624,7 @@ public class FhirR4Tests {
     String content;
     String activeID = "umlssemnet_2023aa";
     String codeNotFound = "10";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     String displayString = "Age Group";
     String messageNotFound = "The code '" + codeNotFound + "' was not found.";
     String endpoint =
@@ -607,7 +651,7 @@ public class FhirR4Tests {
     // Arrange
     String content;
     String retiredCode = "C45683";
-    String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
+    String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
     String retiredName = "ABCB1 1 Allele";
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?url=" + retiredUrl + "&code=" + retiredCode;
@@ -631,7 +675,7 @@ public class FhirR4Tests {
     // Arrange
     String content;
     String retiredCode = "C45683";
-    String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
+    String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
     String retiredName = "ABCB1 1 Allele";
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
@@ -655,7 +699,7 @@ public class FhirR4Tests {
     // Arrange
     String content;
     String retiredCode = "C45683";
-    String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
+    String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
     String retiredId = "ncit_21.06e";
     String retiredName = "ABCB1 1 Allele";
     String endpoint =
@@ -716,10 +760,18 @@ public class FhirR4Tests {
     List<Resource> conceptMaps =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
+    // Verify things about this one
+    // {"resourceType":"ConceptMap","id":"ncit_to_hgnc_mapping_aug2024","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_cm=NCIt_to_HGNC_Mapping","version":"Aug2024","name":"NCIt_to_HGNC_Mapping","title":"NCIt_to_HGNC_Mapping","status":"active","experimental":false,"publisher":"NCI","group":[{"source":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","target":"http://www.genenames.org"}]}
+    final Set<String> ids = new HashSet<>(Set.of("ncit_to_hgnc_mapping_aug2024"));
+    final Set<String> urls =
+        new HashSet<>(
+            Set.of(
+                "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_cm=NCIt_to_HGNC_Mapping"));
+
     // Assert
     assertFalse(conceptMaps.isEmpty());
     for (Resource cm : conceptMaps) {
-      log.info("  concept map = " + FhirContext.forR4().newJsonParser().encodeResourceToString(cm));
+      log.info("  concept map = " + parser.encodeResourceToString(cm));
       ConceptMap cmm = (ConceptMap) cm;
       assertNotNull(cmm);
       assertEquals(ResourceType.ConceptMap, cmm.getResourceType());
@@ -727,7 +779,11 @@ public class FhirR4Tests {
       assertNotNull(cmm.getGroup());
       assertNotNull(cmm.getVersion());
       assertNotNull(cmm.getUrl());
+      ids.remove(cmm.getIdPart());
+      urls.remove(cmm.getUrl());
     }
+    assertThat(ids).isEmpty();
+    assertThat(urls).isEmpty();
   }
 
   /**
@@ -755,6 +811,7 @@ public class FhirR4Tests {
     assertNotNull(conceptMap);
     assertEquals(ResourceType.ConceptMap, conceptMap.getResourceType());
     assertEquals(firstConceptMapId, conceptMap.getIdPart());
+    assertEquals(conceptMap.getUrl(), ((ConceptMap) conceptMaps.get(0)).getUrl());
     assertEquals(conceptMap.getName(), ((ConceptMap) conceptMaps.get(0)).getName());
     assertEquals(conceptMap.getVersion(), ((ConceptMap) conceptMaps.get(0)).getVersion());
   }

@@ -39,6 +39,7 @@ import org.hl7.fhir.r5.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+/** Utility for FHIR R4. */
 public class FhirUtilityR5 {
   /** The logger. */
   @SuppressWarnings("unused")
@@ -47,7 +48,7 @@ public class FhirUtilityR5 {
   /** The publishers. */
   private static HashMap<String, String> publishers = generatePublishers();
 
-  /** The URIs */
+  /** The URIs. */
   private static HashMap<String, String> uris = generateUris();
 
   /** The unsupported params list for search. */
@@ -69,7 +70,7 @@ public class FhirUtilityR5 {
         "_containedType"
       };
 
-  /** Instantiates an empty {@link FhirUtilityR5} */
+  /** Instantiates an empty {@link FhirUtilityR5}. */
   private FhirUtilityR5() {
     // n/a
   }
@@ -289,7 +290,7 @@ public class FhirUtilityR5 {
     vs.setName(term.getName());
     vs.setVersion(term.getVersion());
     vs.setTitle(term.getTerminology());
-    vs.setUrl(getUri(term.getTerminology()));
+    vs.setUrl(getUri(term.getTerminology()) + "?fhir_vs");
     vs.setPublisher(getPublisher(term.getTerminology()));
     vs.setExperimental(false);
     vs.setStatus(Enumerations.PublicationStatus.ACTIVE);
@@ -379,7 +380,7 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Check if the request param is not supported
+   * Check if the request param is not supported.
    *
    * @param request the request
    * @param paramName the parameter name
@@ -409,7 +410,7 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Check we have at least one required object fopr 2 objects
+   * Check we have at least one required object fopr 2 objects.
    *
    * @param obj1 the first object
    * @param obj1Name the first object name
@@ -429,7 +430,7 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Check we have exactly one required object for 3 objects
+   * Check we have exactly one required object for 3 objects.
    *
    * @param obj1 first object
    * @param obj1Name first object name
@@ -460,7 +461,7 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Check we have at least one required object for 4 objects
+   * Check we have at least one required object for 4 objects.
    *
    * @param obj1 first object
    * @param obj1Name first object name
@@ -491,7 +492,7 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Check we have both required fields for 2 objects
+   * Check we have both required fields for 2 objects.
    *
    * @param obj1 first object
    * @param obj1Name first object name
@@ -511,7 +512,7 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Check we have all required fields for 3 objects
+   * Check we have all required fields for 3 objects.
    *
    * @param obj1 first object
    * @param obj1Name first object name
@@ -538,7 +539,7 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Get the recover code for a CodeType or Coding System
+   * Get the recover code for a CodeType or Coding System.
    *
    * @param code CodeType code
    * @param coding Coding Type
@@ -561,7 +562,7 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Method for reporting unsupported exception
+   * Method for reporting unsupported exception.
    *
    * @param message the message
    * @return the fhir server response exception
@@ -570,6 +571,14 @@ public class FhirUtilityR5 {
     return exception(message, IssueType.NOTSUPPORTED, 501);
   }
 
+  /**
+   * Exception.
+   *
+   * @param message the message
+   * @param issueType the issue type
+   * @param theStatusCode the the status code
+   * @return the FHIR server response exception
+   */
   public static FHIRServerResponseException exception(
       final String message, final IssueType issueType, final int theStatusCode) {
     return exception(message, issueType, theStatusCode, null);
@@ -581,6 +590,7 @@ public class FhirUtilityR5 {
    * @param message the error message
    * @param issueType the issue type
    * @param theStatusCode the status code
+   * @param error the error
    * @return the FHIR server response exception
    */
   public static FHIRServerResponseException exception(
@@ -599,7 +609,7 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Create a property for a parameter
+   * Create a property for a parameter.
    *
    * @param propertyValue the property value
    * @param propertyName the property name
@@ -608,7 +618,7 @@ public class FhirUtilityR5 {
    */
   public static ParametersParameterComponent createProperty(
       final Object propertyValue, final String propertyName, final boolean isCode) {
-    String valueName = "value";
+    final String valueName = "value";
     // Create a property and add the code as a valueCode
     final ParametersParameterComponent property =
         new ParametersParameterComponent().setName("property");
@@ -633,7 +643,7 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Get the next link component
+   * Get the next link component.
    *
    * @param uri the uri
    * @param offset the offset
@@ -671,7 +681,7 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Get the previous link component
+   * Get the previous link component.
    *
    * @param uri the uri
    * @param offset the offset
@@ -708,7 +718,7 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Make a bundle
+   * Make a bundle.
    *
    * @param request the request
    * @param list the list
@@ -721,8 +731,8 @@ public class FhirUtilityR5 {
       final List<? extends Resource> list,
       final NumberParam count,
       final NumberParam offset) {
-    int countInt = count == null ? 100 : count.getValue().intValue();
-    int offsetInt = offset == null ? 0 : offset.getValue().intValue();
+    final int countInt = count == null ? 100 : count.getValue().intValue();
+    final int offsetInt = offset == null ? 0 : offset.getValue().intValue();
     final String thisUrl =
         request.getQueryString() == null
             ? request.getRequestURL().toString()

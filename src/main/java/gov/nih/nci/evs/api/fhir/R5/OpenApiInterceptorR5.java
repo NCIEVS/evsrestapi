@@ -111,6 +111,10 @@ import org.thymeleaf.templateresolver.ITemplateResolver;
 import org.thymeleaf.templateresolver.TemplateResolution;
 import org.thymeleaf.templateresource.ClassLoaderTemplateResource;
 
+/**
+ * EVSRESTAPI FHIR R5 interceptor to fix header, inject header auth token. Borrowed from
+ * OpenApiInterceptor and modified.
+ */
 public class OpenApiInterceptorR5 {
   /** The logger. */
   @SuppressWarnings("unused")
@@ -1510,6 +1514,12 @@ public class OpenApiInterceptorR5 {
     return (T) canonical;
   }
 
+  /**
+   * Un camel case.
+   *
+   * @param str the str
+   * @return the string
+   */
   public static String unCamelCase(final String str) {
     // insert a space between lower & upper
     return capitalize(
@@ -1518,6 +1528,12 @@ public class OpenApiInterceptorR5 {
             .replaceAll("\\b([A-Z]+)([A-Z])([a-z])", "$1 $2$3"));
   }
 
+  /**
+   * Capitalize.
+   *
+   * @param value the value
+   * @return the string
+   */
   public static String capitalize(final String value) {
     if (isEmpty(value)) {
       return value;
@@ -1525,6 +1541,12 @@ public class OpenApiInterceptorR5 {
     return value.substring(0, 1).toUpperCase() + value.substring(1);
   }
 
+  /**
+   * Indicates whether or not empty is the case.
+   *
+   * @param str the str
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
   public static boolean isEmpty(final String str) {
     return str == null || str.isEmpty();
   }

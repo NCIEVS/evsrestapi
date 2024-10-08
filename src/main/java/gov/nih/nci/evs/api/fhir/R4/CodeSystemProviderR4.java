@@ -47,7 +47,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/** The CodeSystem provider. */
+/** FHIR R4 CodeSystem provider. */
 @Component
 public class CodeSystemProviderR4 implements IResourceProvider {
 
@@ -658,10 +658,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OptionalParam(name = "version") final StringParam version,
       @OptionalParam(name = "title") final StringParam title,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
-          NumberParam count,
+          final NumberParam count,
       @Description(shortDefinition = "Start offset, used when reading a next page")
           @OptionalParam(name = "_offset")
-          NumberParam offset)
+          final NumberParam offset)
       throws Exception {
     try {
       FhirUtilityR4.notSupportedSearchParams(request);

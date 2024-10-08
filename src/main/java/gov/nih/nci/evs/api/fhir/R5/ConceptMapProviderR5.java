@@ -42,12 +42,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/** The ConceptMap provider. */
+/** FHIR R5 ConceptMap provider. */
 @Component
 public class ConceptMapProviderR5 implements IResourceProvider {
 
   /** The logger. */
-  @SuppressWarnings("unused")
   private static Logger logger = LoggerFactory.getLogger(ConceptMapProviderR5.class);
 
   /** the query service. */
@@ -57,7 +56,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
   String codeToTranslate = "";
 
   /**
-   * Returns the type of resource for this provider
+   * Returns the type of resource for this provider.
    *
    * @return the resource
    */
@@ -69,11 +68,14 @@ public class ConceptMapProviderR5 implements IResourceProvider {
   /**
    * Find concept maps.
    *
+   * @param request the request
    * @param id the id
    * @param date the date
    * @param system the system
    * @param url the url
    * @param version the version
+   * @param count the count
+   * @param offset the offset
    * @return the list
    * @throws Exception the exception
    */
@@ -86,10 +88,10 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       @OptionalParam(name = "url") final StringParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
-          NumberParam count,
+          final NumberParam count,
       @Description(shortDefinition = "Start offset, used when reading a next page")
           @OptionalParam(name = "_offset")
-          NumberParam offset)
+          final NumberParam offset)
       throws Exception {
     try {
       FhirUtilityR5.notSupportedSearchParams(request);

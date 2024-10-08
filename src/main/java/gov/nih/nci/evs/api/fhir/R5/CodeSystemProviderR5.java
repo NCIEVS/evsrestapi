@@ -44,10 +44,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+/** FHIR R5 CodeSystem provider. */
 @Component
 public class CodeSystemProviderR5 implements IResourceProvider {
   /** The logger. */
-  @SuppressWarnings("unused")
   private static Logger logger = LoggerFactory.getLogger(CodeSystemProviderR5.class);
 
   /** the query service. */
@@ -58,7 +58,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   @Autowired TerminologyUtils termUtils;
 
   /**
-   * Returns the type of resource for this provider
+   * Returns the type of resource for this provider.
    *
    * @return the resource
    */
@@ -68,7 +68,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   }
 
   /**
-   * Find code systems
+   * Find code systems.
    *
    * @param request the request
    * @param details the details
@@ -90,7 +90,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   public Bundle findCodeSystems(
       final HttpServletRequest request,
       final ServletRequestDetails details,
-      @OptionalParam(name = "_id") TokenParam id,
+      @OptionalParam(name = "_id") final TokenParam id,
       @OptionalParam(name = "code") final TokenParam code,
       @OptionalParam(name = "date") final DateRangeParam date,
       @OptionalParam(name = "description") final StringParam description,
@@ -100,10 +100,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OptionalParam(name = "url") final UriParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
-          NumberParam count,
+          final NumberParam count,
       @Description(shortDefinition = "Start offset, used when reading a next page")
           @OptionalParam(name = "_offset")
-          NumberParam offset)
+          final NumberParam offset)
       throws Exception {
     try {
       FhirUtilityR5.notSupportedSearchParams(request);
@@ -727,7 +727,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   }
 
   /**
-   * Returns the concept map for the specified details
+   * Returns the concept map for the specified details.
    *
    * @param details the details
    * @param id the id

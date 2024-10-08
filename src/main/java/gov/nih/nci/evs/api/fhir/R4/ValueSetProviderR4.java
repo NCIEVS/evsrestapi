@@ -54,7 +54,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-/** The ValueSet provider. */
+/** FHIR R4 ValueSet provider. */
 @Component
 public class ValueSetProviderR4 implements IResourceProvider {
 
@@ -84,6 +84,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * https://hl7.org/fhir/R4/valueset-operation-expand.html
    * </pre>
    *
+   * @param request the request
+   * @param details the details
    * @param url the url
    * @param valueSet the value set
    * @param version the version
@@ -233,6 +235,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * https://hl7.org/fhir/R4/valueset-operation-expand.html
    * </pre>
    *
+   * @param request the request
+   * @param details the details
    * @param id the id
    * @param url the url
    * @param valueSet the value set
@@ -383,6 +387,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * https://hl7.org/fhir/R4/valueset-operation-validate-code.html
    * </pre>
    *
+   * @param request the request
+   * @param details the details
    * @param url the url
    * @param context the context
    * @param valueSet the value set
@@ -443,8 +449,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final Parameters params = new Parameters();
 
       if (list.size() > 0) {
-        ValueSet vs = list.get(0);
-        SearchCriteria sc = new SearchCriteria();
+        final ValueSet vs = list.get(0);
+        final SearchCriteria sc = new SearchCriteria();
         sc.setTerm(code.getCode());
         sc.setInclude("minimal");
         sc.setType("exact");
@@ -456,8 +462,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
         final Terminology term = termUtils.getIndexedTerminology(vs.getTitle(), esQueryService);
         sc.setTerminology(Arrays.asList(vs.getTitle()));
         sc.validate(term, metadataService);
-        List<Terminology> terms = Arrays.asList(term);
-        List<Concept> conc = searchService.search(terms, sc).getConcepts();
+        final List<Terminology> terms = Arrays.asList(term);
+        final List<Concept> conc = searchService.search(terms, sc).getConcepts();
         if (conc.size() > 0) {
           params.addParameter("result", true);
           params.addParameter("display", conc.get(0).getName());
@@ -498,6 +504,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * https://hl7.org/fhir/R4/valueset-operation-validate-code.html
    * </pre>
    *
+   * @param request the request
+   * @param details the details
    * @param id the id
    * @param url the url
    * @param context the context
@@ -558,8 +566,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final List<ValueSet> list = findPossibleValueSets(id, system, url, systemVersion);
       final Parameters params = new Parameters();
       if (list.size() > 0) {
-        ValueSet vs = list.get(0);
-        SearchCriteria sc = new SearchCriteria();
+        final ValueSet vs = list.get(0);
+        final SearchCriteria sc = new SearchCriteria();
         sc.setTerm(code.getCode());
         sc.setInclude("minimal");
         sc.setType("exact");
@@ -568,8 +576,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
         }
         final Terminology term = termUtils.getIndexedTerminology(vs.getTitle(), esQueryService);
         sc.validate(term, metadataService);
-        List<Terminology> terms = Arrays.asList(term);
-        List<Concept> conc = searchService.search(terms, sc).getConcepts();
+        final List<Terminology> terms = Arrays.asList(term);
+        final List<Concept> conc = searchService.search(terms, sc).getConcepts();
         if (conc.size() > 0) {
           params.addParameter("result", true);
           params.addParameter("display", conc.get(0).getName());
@@ -628,10 +636,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OptionalParam(name = "url") final StringParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
-          NumberParam count,
+          final NumberParam count,
       @Description(shortDefinition = "Start offset, used when reading a next page")
           @OptionalParam(name = "_offset")
-          NumberParam offset)
+          final NumberParam offset)
       throws Exception {
     FhirUtilityR4.notSupportedSearchParams(request);
     final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
