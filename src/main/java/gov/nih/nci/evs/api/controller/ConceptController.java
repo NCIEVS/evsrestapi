@@ -6,12 +6,14 @@ import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Role;
+import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
@@ -2138,6 +2140,90 @@ public class ConceptController extends BaseController {
       handleException(e);
       return null;
     }
+  }
+
+  /**
+   * Returns the codes for a given terminology.
+   *
+   * @param terminology the terminology
+   * @return the terminology codes
+   * @throws Exception the exception
+   */
+  @Operation(summary = "Get codes for the specified terminology")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Successfully retrieved the requested information",
+        content = @Content(schema = @Schema(implementation = ArrayList.class))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Resource not found",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = RestException.class))),
+    @ApiResponse(
+        responseCode = "417",
+        description = "Expectation failed",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+    @Parameter(
+        name = "terminology",
+        description = "Terminology, e.g. 'ncit'",
+        required = true,
+        schema = @Schema(implementation = String.class),
+        example = "ncit"),
+    @Parameter(
+        name = "X-EVSRESTAPI-License-Key",
+        description =
+            "Required license information for restricted terminologies. <a"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " target='_blank'>See here for detailed information</a>.",
+        required = false,
+        schema = @Schema(implementation = String.class))
+  })
+  @RecordMetric
+  @GetMapping(value = "/concept/{terminology}/codes", produces = "application/json")
+  public @ResponseBody ArrayList<String> getAllCodesForTerminology(
+      @PathVariable(value = "terminology") final String terminology,
+      @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
+      throws Exception {
+    ArrayList<String> codes = new ArrayList<String>();
+    try {
+      ConceptResultList list = null;
+      int fromRecord = 0;
+      int pageSize = 10000;
+
+      final List<Terminology> terminologies = new ArrayList<>();
+      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      termUtils.checkLicense(term, license);
+      terminologies.add(term);
+      while (true) {
+        SearchCriteria sc = new SearchCriteria();
+        sc.setFromRecord(fromRecord);
+        sc.setPageSize(pageSize);
+        sc.setTerminology(Arrays.asList(terminology));
+        list = elasticSearchService.search(terminologies, sc);
+        if (list.getConcepts() == null || list.getConcepts().isEmpty()) {
+          logger.info(
+              "  read {} total concepts for {}",
+              Math.min(list.getTotal(), fromRecord + pageSize),
+              terminology);
+          break;
+        }
+        codes.addAll(
+            list.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
+        fromRecord += pageSize;
+      }
+    } catch (final Exception e) {
+      handleException(e);
+      return null;
+    }
+    return codes;
   }
 
   // Used for QA to expose a mechanism to calculate extension for a single case.
