@@ -1,19 +1,10 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
-import gov.nih.nci.evs.api.model.ConceptMapResultList;
-import gov.nih.nci.evs.api.model.ConceptResultList;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.SearchCriteria;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.EVSPageable;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.elasticsearch.common.unit.Fuzziness;
@@ -39,6 +30,17 @@ import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.ConceptMapResultList;
+import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.support.es.EVSPageable;
+import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 @Service
 public class ElasticSearchServiceImpl implements ElasticSearchService {
@@ -389,10 +391,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * Returns the term query for mappings based on concepts.
    *
    * @param conceptCodes the concept codes
-   * @param termimology the termimology
+   * @param terminology the terminology
    * @return the mappings
-   * @throws Exception the exception
    */
+  @Override
   public List<ConceptMap> getConceptMappings(List<String> conceptCodes, String terminology) {
     // must match mapsetCode
 

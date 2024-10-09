@@ -4076,7 +4076,8 @@ public class SearchControllerTests {
   }
 
   /**
-   * Test searct all ncit with sort.
+   * Test searct all ncit with sort. This is separate from the prior test because we want to verify
+   * that both "rank" sort and a fielded sort behave the same way with respect to this paging stuff.
    *
    * @throws Exception the exception
    */
