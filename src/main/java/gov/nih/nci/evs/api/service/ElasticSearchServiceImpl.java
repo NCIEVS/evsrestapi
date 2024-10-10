@@ -389,10 +389,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * Returns the term query for mappings based on concepts.
    *
    * @param conceptCodes the concept codes
-   * @param termimology the termimology
+   * @param terminology the terminology
    * @return the mappings
-   * @throws Exception the exception
    */
+  @Override
   public List<ConceptMap> getConceptMappings(List<String> conceptCodes, String terminology) {
     // must match mapsetCode
 
