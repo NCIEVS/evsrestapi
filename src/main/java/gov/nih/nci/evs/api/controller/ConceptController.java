@@ -24,6 +24,7 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -2149,12 +2150,12 @@ public class ConceptController extends BaseController {
    * @return the terminology codes
    * @throws Exception the exception
    */
-  @Operation(summary = "Get codes for the specified terminology")
+  @Operation(summary = "Get all codes for the specified terminology")
   @ApiResponses({
     @ApiResponse(
         responseCode = "200",
         description = "Successfully retrieved the requested information",
-        content = @Content(schema = @Schema(implementation = ArrayList.class))),
+        content = @Content(array = @ArraySchema(schema = @Schema(implementation = String.class)))),
     @ApiResponse(
         responseCode = "404",
         description = "Resource not found",
@@ -2188,17 +2189,17 @@ public class ConceptController extends BaseController {
   })
   @RecordMetric
   @GetMapping(value = "/concept/{terminology}/codes", produces = "application/json")
-  public @ResponseBody ArrayList<String> getAllCodesForTerminology(
+  public @ResponseBody List<String> getAllCodesForTerminology(
       @PathVariable(value = "terminology") final String terminology,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
-    ArrayList<String> codes = new ArrayList<String>();
+    List<String> codes = new ArrayList<String>();
     try {
       ConceptResultList list = null;
       int fromRecord = 0;
       int pageSize = 10000;
 
-      final List<Terminology> terminologies = new ArrayList<>();
+      final List<Terminology> terminologies = new ArrayList<Terminology>();
       final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
       terminologies.add(term);
