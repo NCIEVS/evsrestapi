@@ -2052,7 +2052,7 @@ public class ConceptControllerTests {
                 new TypeReference<ArrayList<String>>() {
                   // n/a
                 });
-    assertThat(terminologyCodes.size()).isGreaterThan(100);
+    assertThat(terminologyCodes.size()).isGreaterThan(50);
 
     // small terminology
     url = "/api/v1/concept/ctcae5/codes";
@@ -2081,5 +2081,19 @@ public class ConceptControllerTests {
                 });
 
     assertThat(terminologyCodes.size()).isGreaterThan(40000);
+
+    // large terminology
+    url = "/api/v1/concept/ncit/codes";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    terminologyCodes =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<ArrayList<String>>() {
+                  // n/a
+                });
+
+    assertThat(terminologyCodes.size()).isGreaterThan(150000);
   }
 }

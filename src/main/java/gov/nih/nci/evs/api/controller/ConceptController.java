@@ -2194,35 +2194,73 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     List<String> codes = new ArrayList<String>();
-    try {
-      ConceptResultList list = null;
-      int fromRecord = 0;
-      int pageSize = 10000;
+    final List<Terminology> terminologies = new ArrayList<Terminology>();
+    final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+    // First get root concepts
+    final List<Concept> roots =
+        elasticQueryService.getRootNodes(term, new IncludeParam("children,descendants"));
+    if (roots != null && !roots.isEmpty()) {
+      codes.addAll(roots.stream().map(c -> c.getCode()).collect(Collectors.toList()));
+      // Handle case where root has no descendants (children will)
+      // this is like SNOMED root which has too many descendants to load
+      codes.addAll(
+          roots.stream()
+              .filter(c -> c.getDescendants().size() == 0 && c.getChildren().size() > 0)
+              .flatMap(c -> c.getChildren().stream())
+              .flatMap(
+                  c -> {
+                    try {
+                      return elasticQueryService
+                          .getConcept(c.getCode(), term, new IncludeParam("descendants"))
+                          .stream();
+                    } catch (Exception e) {
+                      throw new RuntimeException(e);
+                    }
+                  })
+              .map(c -> c.getCode())
+              .collect(Collectors.toList()));
+      // get any child codes
+      codes.addAll(
+          roots.stream()
+              .flatMap(c -> c.getChildren().stream())
+              .map(c -> c.getCode())
+              .collect(Collectors.toList()));
+      // Handle case where root has descendants
+      codes.addAll(
+          roots.stream()
+              .filter(c -> c.getDescendants().size() > 0)
+              .flatMap(c -> c.getDescendants().stream())
+              .map(c -> c.getCode())
+              .collect(Collectors.toList()));
+    } else {
+      try {
+        ConceptResultList list = null;
+        int fromRecord = 0;
+        int pageSize = 10000;
 
-      final List<Terminology> terminologies = new ArrayList<Terminology>();
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
-      termUtils.checkLicense(term, license);
-      terminologies.add(term);
-      while (true) {
-        SearchCriteria sc = new SearchCriteria();
-        sc.setFromRecord(fromRecord);
-        sc.setPageSize(pageSize);
-        sc.setTerminology(Arrays.asList(terminology));
-        list = elasticSearchService.search(terminologies, sc);
-        if (list.getConcepts() == null || list.getConcepts().isEmpty()) {
-          logger.info(
-              "  read {} total concepts for {}",
-              Math.min(list.getTotal(), fromRecord + pageSize),
-              terminology);
-          break;
+        termUtils.checkLicense(term, license);
+        terminologies.add(term);
+        while (true) {
+          SearchCriteria sc = new SearchCriteria();
+          sc.setFromRecord(fromRecord);
+          sc.setPageSize(pageSize);
+          sc.setTerminology(Arrays.asList(terminology));
+          list = elasticSearchService.search(terminologies, sc);
+          if (list.getConcepts() == null || list.getConcepts().isEmpty()) {
+            logger.info(
+                "  read {} total concepts for {}",
+                Math.min(list.getTotal(), fromRecord + pageSize),
+                terminology);
+            break;
+          }
+          codes.addAll(
+              list.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
+          fromRecord += pageSize;
         }
-        codes.addAll(
-            list.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
-        fromRecord += pageSize;
+      } catch (final Exception e) {
+        handleException(e);
+        return null;
       }
-    } catch (final Exception e) {
-      handleException(e);
-      return null;
     }
     return codes;
   }
