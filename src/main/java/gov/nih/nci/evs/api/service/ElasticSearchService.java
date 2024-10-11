@@ -20,7 +20,7 @@ public interface ElasticSearchService {
    * @throws Exception the exception
    * @throws HttpClientErrorException the http client error exception
    */
-  public ConceptResultList search(List<Terminology> terminologies, SearchCriteria searchCriteria)
+  public ConceptResultList findConcepts(List<Terminology> terminologies, SearchCriteria searchCriteria)
       throws Exception;
 
   /**
@@ -31,7 +31,7 @@ public interface ElasticSearchService {
    * @return the result list with concepts
    * @throws Exception the exception
    */
-  ConceptMapResultList search(String code, SearchCriteria searchCriteria);
+  ConceptMapResultList findConceptMapsets(String code, SearchCriteria searchCriteria);
 
   /**
    * Returns the term query for mappings based on concepts.

@@ -2245,7 +2245,7 @@ public class ConceptController extends BaseController {
           sc.setFromRecord(fromRecord);
           sc.setPageSize(pageSize);
           sc.setTerminology(Arrays.asList(terminology));
-          list = elasticSearchService.search(terminologies, sc);
+          list = elasticSearchService.findConcepts(terminologies, sc);
           if (list.getConcepts() == null || list.getConcepts().isEmpty()) {
             logger.info(
                 "  read {} total concepts for {}",

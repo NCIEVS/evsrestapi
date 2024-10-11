@@ -66,7 +66,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @throws Exception the exception
    */
   @Override
-  public ConceptResultList search(List<Terminology> terminologies, SearchCriteria searchCriteria)
+  public ConceptResultList findConcepts(List<Terminology> terminologies, SearchCriteria searchCriteria)
       throws Exception {
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
     // PageRequest.of(page, searchCriteria.getPageSize());
@@ -211,10 +211,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    *
    * @param searchCriteria the search criteria
    * @return the result list with concepts
-   * @throws Exception the exception
    */
   @Override
-  public ConceptMapResultList search(String code, SearchCriteria searchCriteria) {
+  public ConceptMapResultList findConceptMapsets(String code, SearchCriteria searchCriteria) {
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
     // PageRequest.of(page, searchCriteria.getPageSize());
 
@@ -315,7 +314,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   /**
    * Returns the term query.
    *
-   * @param type the type
+   * @param searchCriteria the search criteria
    * @param term the term
    * @return the term query
    * @throws Exception the exception
@@ -433,7 +432,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   /**
    * Returns the contains query.
    *
-   * @param type the type
+   * @param searchCriteria the search criteria
    * @param term the term
    * @param fuzzyFlag the fuzzy flag
    * @param andFlag the and flag

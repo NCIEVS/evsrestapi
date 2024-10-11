@@ -303,7 +303,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         sc.setType("contains");
         sc.setTerminology(
             terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
-        subsetMembers = searchService.search(terminologies, sc).getConcepts();
+        subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();
       }
       final ValueSet.ValueSetExpansionComponent vsExpansion =
           new ValueSet.ValueSetExpansionComponent();
@@ -455,7 +455,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         sc.setType("contains");
         sc.setTerminology(
             terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
-        subsetMembers = searchService.search(terminologies, sc).getConcepts();
+        subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();
       }
       final ValueSet.ValueSetExpansionComponent vsExpansion =
           new ValueSet.ValueSetExpansionComponent();
@@ -568,7 +568,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         sc.setTerminology(Arrays.asList(vs.getTitle()));
         sc.validate(term, metadataService);
         final List<Terminology> terms = Arrays.asList(term);
-        final List<Concept> conc = searchService.search(terms, sc).getConcepts();
+        final List<Concept> conc = searchService.findConcepts(terms, sc).getConcepts();
         if (!conc.isEmpty()) {
           params.addParameter("result", true);
           params.addParameter("display", conc.get(0).getName());
@@ -681,7 +681,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         final Terminology term = termUtils.getIndexedTerminology(vs.getTitle(), esQueryService);
         sc.validate(term, metadataService);
         final List<Terminology> terms = Arrays.asList(term);
-        final List<Concept> conc = searchService.search(terms, sc).getConcepts();
+        final List<Concept> conc = searchService.findConcepts(terms, sc).getConcepts();
 
         if (!conc.isEmpty()) {
           params.addParameter("result", true);
