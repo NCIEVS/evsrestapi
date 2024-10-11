@@ -148,28 +148,29 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * <pre>
    *    <a href="https://hl7.org/fhir/R5/conceptmap-operation-translate.html">Conceptmap operation ref </a>"
    * </pre>
-   *
-   * @param request the request
-   * @param response the response
-   * @param details the details
-   * @param id the id
-   * @param url the url
-   * @param conceptMap the concept map
-   * @param conceptMapVersion the concept map version
-   * @param code the code
-   * @param system the system
-   * @param version the version
-   * @param source the source
-   * @param coding the coding
-   * @param codeableConcept the codeable concept
-   * @param target the target
-   * @param targetSystem the targetsystem
-   * @param dependencyElement the dependency element
-   * @param dependencyConcept the dependency concept
-   * @param reverse the reverse
-   * @return the parameters
-   * @throws Exception the exception
-   *     <p>no support for dependency parameter
+   * @param request the servlet request
+   * @param response the servlet response
+   * @param details the servlet request details
+   * @param id the lookup id
+   * @param url the canonical URL for a concept map
+   * @param conceptMap The concept map is provided directly as part of the request.
+   * @param conceptMapVersion The identifier that is used to identify a specific version of the concept map to be used
+   * @param sourceCode The code that is to be translated. If a code is provided, a system must be provided.
+   * @param system The system for the code that is to be translated.
+   * @param version The version of the system, if one was provided in the source data.
+   * @param sourceScope Limits the scope of the $translate operation to source codes that are members of this value set.
+   * @param sourceCoding A coding to translate.
+   * @param sourceCodeableConcept A full codeableConcept to validate.
+   * @param targetCode The target code that is to be translated to. If a code is provided, a system must be provided.
+   * @param targetSystem Identifies a target code system in which a mapping is sought. This parameter is an alternative
+   *                    to the targetScope parameter - only one is required.
+   * @param targetCoding A target coding to translate to.
+   * @param targetScope Limits the scope of the $translate operation to target codes that are members of this value set.
+   * @param targetCodeableConcept A full codeableConcept to validate.
+   * @param dependencyAttribute The attribute for this dependency.
+   * @param dependencyValue The value for this dependency.
+   * @return
+   * @throws Exception
    */
   @Operation(name = JpaConstants.OPERATION_TRANSLATE, idempotent = true)
   public Parameters translateInstance(
@@ -180,17 +181,19 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
-      @OperationParam(name = "code") final CodeType code,
+      @OperationParam(name = "code") final CodeType sourceCode,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
-      @OperationParam(name = "source") final UriType source,
-      @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-      @OperationParam(name = "target") final UriType target,
-      @OperationParam(name = "targetsystem") final UriType targetSystem,
-      @OperationParam(name = "dependency.element") final UriType dependencyElement,
-      @OperationParam(name = "dependency.concept") final CodeableConcept dependencyConcept,
-      @OperationParam(name = "reverse", type = BooleanType.class) final BooleanType reverse)
+      @OperationParam(name = "source") final UriType sourceScope,
+      @OperationParam(name = "coding") final Coding sourceCoding,
+      @OperationParam(name = "codeableConcept") final CodeableConcept sourceCodeableConcept,
+      @OperationParam(name = "target") final UriType targetCode,
+      @OperationParam(name = "targetSystem") final UriType targetSystem,
+      @OperationParam(name = "targetCoding") final UriType targetCoding,
+      @OperationParam(name = "targetScope") final UriType targetScope,
+      @OperationParam(name = "targetCodeableConcept") final UriType targetCodeableConcept,
+      @OperationParam(name = "dependency.attribute") final UriType dependencyAttribute,
+      @OperationParam(name = "dependency.value") final CodeableConcept dependencyValue)
       throws Exception {
     // Check if request is POST, throw error as we don't support POST calls
     if (request.getMethod().equals("POST")) {
@@ -201,18 +204,18 @@ public class ConceptMapProviderR5 implements IResourceProvider {
     }
 
     try {
-      FhirUtilityR5.required(code, "code");
+      FhirUtilityR5.required(sourceCode, "code");
       FhirUtilityR5.notSupported(conceptMap, "conceptMap");
       FhirUtilityR5.notSupported(conceptMapVersion, "conceptMapVersion");
-      FhirUtilityR5.notSupported(coding, "coding");
-      FhirUtilityR5.notSupported(codeableConcept, "codeableConcept");
-      FhirUtilityR5.notSupported(targetSystem, "targetsystem");
-      FhirUtilityR5.notSupported(dependencyElement, "dependency_element");
-      FhirUtilityR5.notSupported(dependencyConcept, "dependency_concept");
-      codeToTranslate = code.getCode().toLowerCase();
+      FhirUtilityR5.notSupported(sourceCoding, "coding");
+      FhirUtilityR5.notSupported(sourceCodeableConcept, "codeableConcept");
+      FhirUtilityR5.notSupported(targetSystem, "targetSystem");
+      FhirUtilityR5.notSupported(dependencyAttribute, "dependency_attribute");
+      FhirUtilityR5.notSupported(dependencyValue, "dependency_value");
+      codeToTranslate = sourceCode.getCode().toLowerCase();
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
-          findPossibleConceptMaps(id, null, system, url, version, source, target);
+          findPossibleConceptMaps(id, null, system, url, version, sourceScope, targetCode);
       for (final ConceptMap mapping : cm) {
         final List<Mappings> maps =
             esQueryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
@@ -289,27 +292,30 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * <pre>
    *  <a href="https://hl7.org/fhir/R5/conceptmap-operation-translate.html">Conceptmap operation ref</a>
    * </pre>
-   *
-   * @param request the request
-   * @param response the response
-   * @param details the details
-   * @param url the url
-   * @param conceptMap the concept map
-   * @param conceptMapVersion the concept map version
-   * @param code the code
-   * @param system the system
-   * @param version the version
-   * @param source the source
-   * @param coding the coding
-   * @param codeableConcept the codeable concept
-   * @param target the target
-   * @param targetsystem the targetsystem
-   * @param dependency_element the dependency element
-   * @param dependency_concept the dependency concept
-   * @param reverse the reverse
+   * @param request the servlet request.
+   * @param response the servlet response.
+   * @param details the servlet request details.
+   * @param url A canonical URL for a concept map. The server must know the concept map.
+   * @param conceptMap The concept map is provided directly as part of the request.
+   * @param conceptMapVersion The identifier that is used to identify a specific version of the concept map to be used
+   *                          for the translation. This is an arbitrary value managed by the concept map author and is
+   *                          not expected to be globally unique.
+   * @param sourceCode The code that is to be translated. If a code is provided, a system must be provided.
+   * @param system The system for the code that is to be translated.
+   * @param version The version of the system, if one was provided in the source data.
+   * @param sourceScope Limits the scope of the $translate operation to source codes that are members of this value set.
+   * @param sourceCoding A coding to translate.
+   * @param sourceCodeableConcept A full codeableConcept to validate.
+   * @param targetCode The target code that is to be translated to. If a code is provided, a system must be provided.
+   * @param targetSystem Identifies a target code system in which a mapping is sought. This parameter is an
+   *                     alternative to the targetScope parameter - only one is required.
+   * @param targetCoding A target coding to translate to.
+   * @param targetScope Limits the scope of the $translate operation to target codes that are members of this value set.
+   * @param targetCodeableConcept A full codeableConcept to validate.
+   * @param dependencyAttribute The attribute for this dependency.
+   * @param dependencyValue The value for this dependency.
    * @return the parameters
-   * @throws Exception the exception
-   *     <p>no support for dependency parameter
+   * @throws Exception throws exception if error occurs.
    */
   @Operation(name = JpaConstants.OPERATION_TRANSLATE, idempotent = true)
   public Parameters translateImplicit(
@@ -319,17 +325,19 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
-      @OperationParam(name = "code") final CodeType code,
+      @OperationParam(name = "code") final CodeType sourceCode,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
-      @OperationParam(name = "source") final UriType source,
-      @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-      @OperationParam(name = "target") final UriType target,
-      @OperationParam(name = "targetsystem") final UriType targetsystem,
-      @OperationParam(name = "dependency.element") final UriType dependency_element,
-      @OperationParam(name = "dependency.concept") final CodeableConcept dependency_concept,
-      @OperationParam(name = "reverse", type = BooleanType.class) final BooleanType reverse)
+      @OperationParam(name = "source") final UriType sourceScope,
+      @OperationParam(name = "coding") final Coding sourceCoding,
+      @OperationParam(name = "codeableConcept") final CodeableConcept sourceCodeableConcept,
+      @OperationParam(name = "target") final UriType targetCode,
+      @OperationParam(name = "targetSystem") final UriType targetSystem,
+      @OperationParam(name = "targetCoding") final UriType targetCoding,
+      @OperationParam(name = "targetScope") final UriType targetScope,
+      @OperationParam(name = "targetCodeableConcept") final UriType targetCodeableConcept,
+      @OperationParam(name = "dependency.attribute") final UriType dependencyAttribute,
+      @OperationParam(name = "dependency.value") final CodeableConcept dependencyValue)
       throws Exception {
     // Check if request is post, throw error as we don't support POST calls
     if (request.getMethod().equals("POST")) {
@@ -340,18 +348,18 @@ public class ConceptMapProviderR5 implements IResourceProvider {
     }
     // TODO: fix issue with reverser,
     try {
-      FhirUtilityR5.required(code, "code");
+      FhirUtilityR5.required(sourceCode, "code");
       FhirUtilityR5.notSupported(conceptMap, "conceptMap");
       FhirUtilityR5.notSupported(conceptMapVersion, "conceptMapVersion");
-      FhirUtilityR5.notSupported(coding, "coding");
-      FhirUtilityR5.notSupported(codeableConcept, "codeableConcept");
-      FhirUtilityR5.notSupported(targetsystem, "targetsystem");
-      FhirUtilityR5.notSupported(dependency_element, "dependency_element");
-      FhirUtilityR5.notSupported(dependency_concept, "dependency_concept");
-      codeToTranslate = code.getCode().toLowerCase();
+      FhirUtilityR5.notSupported(sourceCoding, "coding");
+      FhirUtilityR5.notSupported(sourceCodeableConcept, "codeableConcept");
+      FhirUtilityR5.notSupported(targetSystem, "targetSystem");
+      FhirUtilityR5.notSupported(dependencyAttribute, "dependency_attribute");
+      FhirUtilityR5.notSupported(dependencyValue, "dependency_value");
+      codeToTranslate = sourceCode.getCode().toLowerCase();
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
-          findPossibleConceptMaps(null, null, system, url, version, source, target);
+          findPossibleConceptMaps(null, null, system, url, version, sourceScope, targetCode);
       for (final ConceptMap mapping : cm) {
         final List<Mappings> maps =
             esQueryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
