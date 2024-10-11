@@ -6,7 +6,7 @@ import com.fasterxml.jackson.databind.JsonMappingException;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -827,14 +827,14 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   }
 
   @Override
-  public List<ConceptMap> getMapsetMappings(String code) throws Exception {
+  public List<Mappings> getMapsetMappings(String code) throws Exception {
 
     NativeSearchQuery query =
         new NativeSearchQueryBuilder()
             .withFilter(QueryBuilders.termQuery("mapsetCode.keyword", code))
             .build();
 
-    return getResults(query, ConceptMap.class, ElasticOperationsService.MAPPINGS_INDEX);
+    return getResults(query, Mappings.class, ElasticOperationsService.MAPPINGS_INDEX);
   }
 
   /**

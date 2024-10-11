@@ -7,7 +7,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.List;
@@ -228,7 +228,7 @@ public class MapsetControllerTests {
         new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() > 0);
     assert (mapList.getMaps().size() == 10);
-    ConceptMap tenFromZero = mapList.getMaps().get(9);
+    Mappings tenFromZero = mapList.getMaps().get(9);
 
     // testing fromRecord and pageSize
     result =
@@ -239,7 +239,7 @@ public class MapsetControllerTests {
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() > 0);
     assert (mapList.getMaps().size() == 23);
-    ConceptMap tenFromTen = mapList.getMaps().get(0);
+    Mappings tenFromTen = mapList.getMaps().get(0);
     assert (tenFromTen.equals(tenFromZero));
 
     // test mapset/{code}/maps, fromRecord off page size
@@ -250,7 +250,7 @@ public class MapsetControllerTests {
     content = result.getResponse().getContentAsString();
     mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
     assert (mapList.getTotal() > 0);
-    ConceptMap tenFromOne = mapList.getMaps().get(8);
+    Mappings tenFromOne = mapList.getMaps().get(8);
     assert (tenFromTen.equals(tenFromOne));
 
     // test mapset/{code}/maps, fromRecord past the end
@@ -282,7 +282,7 @@ public class MapsetControllerTests {
     assert (mapList.getMaps().stream()
             .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
         .anyMatch(name -> name.contains("act"));
-    ConceptMap sixFromZero = mapList.getMaps().get(5);
+    Mappings sixFromZero = mapList.getMaps().get(5);
 
     // test mapset/{code}/maps, term with non-zero matches, trim spacing
     result =
@@ -307,7 +307,7 @@ public class MapsetControllerTests {
     assert (mapList.getMaps().stream()
             .flatMap(map -> Stream.of(map.getSourceName(), map.getTargetName())))
         .anyMatch(name -> name.contains("act"));
-    ConceptMap sixFromThree = mapList.getMaps().get(2);
+    Mappings sixFromThree = mapList.getMaps().get(2);
     assert (sixFromThree.equals(sixFromZero));
 
     // test mapset/{code}/maps, code with non-zero matches

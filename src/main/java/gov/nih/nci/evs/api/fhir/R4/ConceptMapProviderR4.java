@@ -16,6 +16,7 @@ import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
@@ -125,9 +126,9 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final List<ConceptMap> cm =
           findPossibleConceptMaps(id, null, system, url, version, source, target);
       for (final ConceptMap mapping : cm) {
-        final List<gov.nih.nci.evs.api.model.ConceptMap> maps =
+        final List<Mappings> maps =
             esQueryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
-        List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = new ArrayList<>();
+        List<Mappings> filteredMaps = new ArrayList<>();
         if (reverse != null && reverse.getValue()) {
           filteredMaps =
               maps.stream()
@@ -157,7 +158,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
         }
 
         if (!filteredMaps.isEmpty()) {
-          final gov.nih.nci.evs.api.model.ConceptMap map = filteredMaps.get(0);
+          final Mappings map = filteredMaps.get(0);
           params.addParameter("result", true);
           final Parameters.ParametersParameterComponent property =
               new Parameters.ParametersParameterComponent().setName("match");
@@ -261,9 +262,9 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final List<ConceptMap> cm =
           findPossibleConceptMaps(null, null, system, url, version, source, target);
       for (final ConceptMap mapping : cm) {
-        final List<gov.nih.nci.evs.api.model.ConceptMap> maps =
+        final List<Mappings> maps =
             esQueryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
-        List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = new ArrayList<>();
+        List<Mappings> filteredMaps = new ArrayList<>();
         if (reverse != null && reverse.getValue()) {
           filteredMaps =
               maps.stream()
@@ -293,7 +294,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
         }
 
         if (filteredMaps.size() > 0) {
-          final gov.nih.nci.evs.api.model.ConceptMap map = filteredMaps.get(0);
+          final Mappings map = filteredMaps.get(0);
           params.addParameter("result", true);
           final Parameters.ParametersParameterComponent property =
               new Parameters.ParametersParameterComponent().setName("match");

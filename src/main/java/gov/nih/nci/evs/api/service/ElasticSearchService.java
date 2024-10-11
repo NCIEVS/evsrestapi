@@ -1,6 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
@@ -41,5 +41,5 @@ public interface ElasticSearchService {
    * @return the mappings
    * @throws Exception the exception
    */
-  public List<ConceptMap> getConceptMappings(List<String> asList, String terminology);
+  public List<Mappings> getConceptMappings(List<String> asList, String terminology);
 }

@@ -9,7 +9,7 @@ import java.util.List;
 public class ConceptMapResultList extends ResultList {
 
   /** The maps. */
-  private List<ConceptMap> maps;
+  private List<Mappings> maps;
 
   /** Instantiates an empty {@link ConceptMapResultList}. */
   public ConceptMapResultList() {
@@ -31,7 +31,7 @@ public class ConceptMapResultList extends ResultList {
    * @param total the total
    * @param maps the maps
    */
-  public ConceptMapResultList(final long total, final List<ConceptMap> maps) {
+  public ConceptMapResultList(final long total, final List<Mappings> maps) {
     super.setTotal(total);
     this.maps = new ArrayList<>(maps);
   }
@@ -52,7 +52,7 @@ public class ConceptMapResultList extends ResultList {
    * @return the maps
    */
   @Schema(description = "List of maps")
-  public List<ConceptMap> getMaps() {
+  public List<Mappings> getMaps() {
     return maps;
   }
 
@@ -61,7 +61,7 @@ public class ConceptMapResultList extends ResultList {
    *
    * @param maps the maps to set
    */
-  public void setMaps(List<ConceptMap> maps) {
+  public void setMaps(List<Mappings> maps) {
     this.maps = maps;
   }
 }

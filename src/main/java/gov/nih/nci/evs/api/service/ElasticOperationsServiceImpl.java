@@ -1,6 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.Metric;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import java.io.IOException;
@@ -150,7 +150,7 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
     try {
       NativeSearchQuery deleteQuery =
           new NativeSearchQueryBuilder().withQuery(QueryBuilders.queryStringQuery(query)).build();
-      operations.delete(deleteQuery, ConceptMap.class, IndexCoordinates.of(indexName));
+      operations.delete(deleteQuery, Mappings.class, IndexCoordinates.of(indexName));
       return true;
     } catch (Exception e) {
       logger.error("query delete failed: " + e.getMessage());

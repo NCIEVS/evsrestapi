@@ -5,7 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -471,5 +471,5 @@ public interface ElasticQueryService {
    * @throws ClassNotFoundException the class not found exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  List<ConceptMap> getMapsetMappings(String code) throws Exception;
+  List<Mappings> getMapsetMappings(String code) throws Exception;
 }

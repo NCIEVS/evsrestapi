@@ -12,7 +12,7 @@ import org.springframework.data.elasticsearch.annotations.MultiField;
 /** Represents a map to a concept in another terminology. */
 @Schema(description = "Represents a map from a concept to concepts in other terminologies")
 @JsonInclude(Include.NON_EMPTY)
-public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
+public class Mappings extends BaseModel implements Comparable<Mappings> {
 
   /** The mapset code */
   @Field(type = FieldType.Keyword)
@@ -102,17 +102,17 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
   @Field(type = FieldType.Keyword)
   private String sortKey;
 
-  /** Instantiates an empty {@link ConceptMap}. */
-  public ConceptMap() {
+  /** Instantiates an empty {@link Mappings}. */
+  public Mappings() {
     // n/a
   }
 
   /**
-   * Instantiates a {@link ConceptMap} from the specified parameters.
+   * Instantiates a {@link Mappings} from the specified parameters.
    *
    * @param other the other
    */
-  public ConceptMap(final ConceptMap other) {
+  public Mappings(final Mappings other) {
     populateFrom(other);
   }
 
@@ -121,7 +121,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
    *
    * @param other the other
    */
-  public void populateFrom(final ConceptMap other) {
+  public void populateFrom(final Mappings other) {
     super.populateFrom(other);
     mapsetCode = other.getMapsetCode();
     source = other.getSource();
@@ -538,7 +538,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
     if (this == obj) return true;
     if (obj == null) return false;
     if (getClass() != obj.getClass()) return false;
-    ConceptMap other = (ConceptMap) obj;
+    Mappings other = (Mappings) obj;
     return Objects.equals(mapsetCode, other.mapsetCode)
         && Objects.equals(group, other.group)
         && Objects.equals(rank, other.rank)
@@ -562,7 +562,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
 
   /* see superclass */
   @Override
-  public int compareTo(ConceptMap o) {
+  public int compareTo(Mappings o) {
     return (sourceCode + sourceTerminology + group + rank + targetName + targetCode)
         .compareToIgnoreCase(
             o.getSourceCode()

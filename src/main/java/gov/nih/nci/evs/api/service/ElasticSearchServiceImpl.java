@@ -1,7 +1,7 @@
 package gov.nih.nci.evs.api.service;
 
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -275,10 +275,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     // query on operations
-    final SearchHits<ConceptMap> hits =
+    final SearchHits<Mappings> hits =
         operations.search(
             searchQuery.build(),
-            ConceptMap.class,
+            Mappings.class,
             IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
 
     logger.debug("result count: {}", hits.getTotalHits());
@@ -300,7 +300,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if (fromOffset == 0) {
       result.setMaps(hits.stream().map(SearchHit::getContent).collect(Collectors.toList()));
     } else {
-      final List<ConceptMap> results =
+      final List<Mappings> results =
           hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
       if (fromIndex >= results.size()) {
         result.setMaps(new ArrayList<>());
@@ -392,7 +392,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @return the mappings
    */
   @Override
-  public List<ConceptMap> getConceptMappings(List<String> conceptCodes, String terminology) {
+  public List<Mappings> getConceptMappings(List<String> conceptCodes, String terminology) {
     // must match mapsetCode
 
     BoolQueryBuilder termQuery = new BoolQueryBuilder();
@@ -411,10 +411,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     final NativeSearchQueryBuilder searchQuery =
         new NativeSearchQueryBuilder().withQuery(termQuery);
-    final SearchHits<ConceptMap> hits =
+    final SearchHits<Mappings> hits =
         operations.search(
             searchQuery.build(),
-            ConceptMap.class,
+            Mappings.class,
             IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
 
     logger.debug("result count: {}", hits.getTotalHits());
@@ -423,7 +423,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     result.setTotal(hits.getTotalHits());
 
-    final List<ConceptMap> mappings =
+    final List<Mappings> mappings =
         hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
 
     return mappings;

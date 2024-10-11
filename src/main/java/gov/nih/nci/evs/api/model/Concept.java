@@ -250,7 +250,7 @@ public class Concept extends ConceptMinimal {
    */
   @Field(type = FieldType.Object, enabled = false)
   @DynamicMapping(DynamicMappingValue.False)
-  private List<ConceptMap> maps;
+  private List<Mappings> maps;
 
   /**
    * The paths to root. enabled = false will set the index = false, to avoid indexing the fields in
@@ -870,7 +870,7 @@ public class Concept extends ConceptMinimal {
    * @return the maps
    */
   @Schema(description = "Maps from this concept to concepts in other terminologies")
-  public List<ConceptMap> getMaps() {
+  public List<Mappings> getMaps() {
     if (maps == null) {
       maps = new ArrayList<>();
     }
@@ -882,7 +882,7 @@ public class Concept extends ConceptMinimal {
    *
    * @param maps the maps
    */
-  public void setMaps(final List<ConceptMap> maps) {
+  public void setMaps(final List<Mappings> maps) {
     this.maps = maps;
   }
 
