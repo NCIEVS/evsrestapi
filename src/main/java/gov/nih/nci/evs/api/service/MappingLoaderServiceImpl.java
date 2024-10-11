@@ -1,8 +1,8 @@
 package gov.nih.nci.evs.api.service;
 
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
@@ -434,9 +434,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           map.getMaps(),
           new Comparator<Mappings>() {
             @Override
-            public int compare(
-                final Mappings o1,
-                final Mappings o2) {
+            public int compare(final Mappings o1, final Mappings o2) {
               // Assume maps are not null
               return (o1.getSourceName()
                       + o1.getType()

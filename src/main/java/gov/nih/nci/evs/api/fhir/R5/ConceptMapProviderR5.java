@@ -27,10 +27,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.hl7.fhir.r5.model.BooleanType;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.CodeType;
-import org.hl7.fhir.r5.model.CodeableConcept;
 import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.ConceptMap;
 import org.hl7.fhir.r5.model.IdType;
@@ -148,30 +146,36 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * <pre>
    *    <a href="https://hl7.org/fhir/R5/conceptmap-operation-translate.html">Conceptmap operation ref </a>"
    * </pre>
+   *
    * @param request the servlet request
    * @param response the servlet response
    * @param details the servlet request details
    * @param id the lookup id
    * @param url the canonical URL for a concept map
    * @param conceptMap The concept map is provided directly as part of the request.
-   * @param conceptMapVersion The identifier that is used to identify a specific version of the concept map to be used
-   * @param sourceCode The code that is to be translated. If a code is provided, a system must be provided.
+   * @param conceptMapVersion The identifier that is used to identify a specific version of the
+   *     concept map to be used
+   * @param sourceCode The code that is to be translated. If a code is provided, a system must be
+   *     provided.
    * @param system The system for the code that is to be translated.
    * @param version The version of the system, if one was provided in the source data.
-   * @param sourceScope Limits the scope of the $translate operation to source codes that are members of this value set.
+   * @param sourceScope Limits the scope of the $translate operation to source codes that are
+   *     members of this value set.
    * @param sourceCoding A coding to translate.
    * @param sourceCodeableConcept A full codeableConcept to validate.
-   * @param targetCode The target code that is to be translated to. If a code is provided, a system must be provided.
-   * @param targetSystem Identifies a target code system in which a mapping is sought. This parameter is an alternative
-   *                    to the targetScope parameter - only one is required.
+   * @param targetCode The target code that is to be translated to. If a code is provided, a system
+   *     must be provided.
+   * @param targetSystem Identifies a target code system in which a mapping is sought. This
+   *     parameter is an alternative to the targetScope parameter - only one is required.
    * @param targetCoding A target coding to translate to.
-   * @param targetScope Limits the scope of the $translate operation to target codes that are members of this value set.
+   * @param targetScope Limits the scope of the $translate operation to target codes that are
+   *     members of this value set.
    * @param targetCodeableConcept A full codeableConcept to validate.
    * @param dependencyAttribute The attribute for this dependency.
    * @param dependencyValue The value for this dependency.
    * @return the parameters
    * @throws Exception throws exception if error occurs.
-   *      <p>no support for dependency parameter
+   *     <p>no support for dependency parameter
    */
   @Operation(name = JpaConstants.OPERATION_TRANSLATE, idempotent = true)
   public Parameters translateInstance(
@@ -180,22 +184,22 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-//      @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
+      //      @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
       @OperationParam(name = "sourceCode") final CodeType sourceCode,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "source") final UriType sourceScope,
-//      @OperationParam(name = "coding") final Coding sourceCoding,
-//      @OperationParam(name = "codeableConcept") final CodeableConcept sourceCodeableConcept,
+      //      @OperationParam(name = "coding") final Coding sourceCoding,
+      //      @OperationParam(name = "codeableConcept") final CodeableConcept sourceCodeableConcept,
       @OperationParam(name = "target") final UriType targetCode,
-//      @OperationParam(name = "targetCoding") final UriType targetCoding,
-//      @OperationParam(name = "targetCodeableConcept") final CodeableConcept targetCodeableConcept,
+      //      @OperationParam(name = "targetCoding") final UriType targetCoding,
+      //      @OperationParam(name = "targetCodeableConcept") final CodeableConcept
+      // targetCodeableConcept,
       @OperationParam(name = "targetScope") final UriType targetScope,
       @OperationParam(name = "targetSystem") final UriType targetSystem
-//      @OperationParam(name = "dependency") final String dependency
-        )
-      throws Exception {
+      //      @OperationParam(name = "dependency") final String dependency
+      ) throws Exception {
     // Check if request is POST, throw error as we don't support POST calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
@@ -289,31 +293,34 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * <pre>
    *  <a href="https://hl7.org/fhir/R5/conceptmap-operation-translate.html">Conceptmap operation ref</a>
    * </pre>
+   *
    * @param request the servlet request.
    * @param response the servlet response.
    * @param details the servlet request details.
-   * @param url A canonical URL for a concept map. The server must know the concept map.
-//   * @param conceptMap The concept map is provided directly as part of the request.
-   * @param conceptMapVersion The identifier that is used to identify a specific version of the concept map to be used
-   *                          for the translation. This is an arbitrary value managed by the concept map author and is
-   *                          not expected to be globally unique.
-   * @param sourceCode The code that is to be translated. If a code is provided, a system must be provided.
+   * @param url A canonical URL for a concept map. The server must know the concept map. // * @param
+   *     conceptMap The concept map is provided directly as part of the request.
+   * @param conceptMapVersion The identifier that is used to identify a specific version of the
+   *     concept map to be used for the translation. This is an arbitrary value managed by the
+   *     concept map author and is not expected to be globally unique.
+   * @param sourceCode The code that is to be translated. If a code is provided, a system must be
+   *     provided.
    * @param system The system for the code that is to be translated.
    * @param version The version of the system, if one was provided in the source data.
-   * @param sourceScope Limits the scope of the $translate operation to source codes that are members of this value set.
-//   * @param sourceCoding A coding to translate.
-//   * @param sourceCodeableConcept A full codeableConcept to validate.
-   * @param targetCode The target code that is to be translated to. If a code is provided, a system must be provided.
-   * @param targetSystem Identifies a target code system in which a mapping is sought. This parameter is an
-   *                     alternative to the targetScope parameter - only one is required.
-//   * @param targetCoding A target coding to translate to.
-   * @param targetScope Limits the scope of the $translate operation to target codes that are members of this value set.
-//   * @param targetCodeableConcept A full codeableConcept to validate.
-//   * @param dependencyAttribute The attribute for this dependency.
-//   * @param dependencyValue The value for this dependency.
+   * @param sourceScope Limits the scope of the $translate operation to source codes that are
+   *     members of this value set. // * @param sourceCoding A coding to translate. // * @param
+   *     sourceCodeableConcept A full codeableConcept to validate.
+   * @param targetCode The target code that is to be translated to. If a code is provided, a system
+   *     must be provided.
+   * @param targetSystem Identifies a target code system in which a mapping is sought. This
+   *     parameter is an alternative to the targetScope parameter - only one is required. //
+   *     * @param targetCoding A target coding to translate to.
+   * @param targetScope Limits the scope of the $translate operation to target codes that are
+   *     members of this value set. // * @param targetCodeableConcept A full codeableConcept to
+   *     validate. // * @param dependencyAttribute The attribute for this dependency. // * @param
+   *     dependencyValue The value for this dependency.
    * @return the parameters
    * @throws Exception throws exception if error occurs.
-   *      <p>no support for dependency parameter
+   *     <p>no support for dependency parameter
    */
   @Operation(name = JpaConstants.OPERATION_TRANSLATE, idempotent = true)
   public Parameters translateImplicit(
@@ -321,22 +328,22 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       final HttpServletResponse response,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-      //@OperationParam(name = "conceptMap") final ConceptMap conceptMap,
+      // @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
       @OperationParam(name = "sourceCode") final CodeType sourceCode,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "sourceScope") final UriType sourceScope,
-//      @OperationParam(name = "sourceCoding") final Coding sourceCoding,
-//      @OperationParam(name = "codeableConcept") final CodeableConcept sourceCodeableConcept,
+      //      @OperationParam(name = "sourceCoding") final Coding sourceCoding,
+      //      @OperationParam(name = "codeableConcept") final CodeableConcept sourceCodeableConcept,
       @OperationParam(name = "targetCode") final UriType targetCode,
-//      @OperationParam(name = "targetCoding") final UriType targetCoding,
-//      @OperationParam(name = "targetCodeableConcept") final CodeableConcept targetCodeableConcept,
+      //      @OperationParam(name = "targetCoding") final UriType targetCoding,
+      //      @OperationParam(name = "targetCodeableConcept") final CodeableConcept
+      // targetCodeableConcept,
       @OperationParam(name = "targetScope") final UriType targetScope,
       @OperationParam(name = "targetSystem") final UriType targetSystem
-//      @OperationParam(name = "dependency") final UriType dependency
-      )
-      throws Exception {
+      //      @OperationParam(name = "dependency") final UriType dependency
+      ) throws Exception {
     // Check if request is post, throw error as we don't support POST calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(

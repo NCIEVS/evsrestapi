@@ -7,8 +7,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.ConceptMapResultList;
+import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.List;
 import java.util.stream.Collectors;

@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
@@ -489,9 +489,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
             mapset.getMaps(),
             new Comparator<Mappings>() {
               @Override
-              public int compare(
-                  final Mappings o1,
-                  final Mappings o2) {
+              public int compare(final Mappings o1, final Mappings o2) {
                 // Assume maps are not null
                 return (o1.getSourceName()
                         + o1.getType()

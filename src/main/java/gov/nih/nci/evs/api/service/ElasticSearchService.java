@@ -1,8 +1,8 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
@@ -20,8 +20,8 @@ public interface ElasticSearchService {
    * @throws Exception the exception
    * @throws HttpClientErrorException the http client error exception
    */
-  public ConceptResultList findConcepts(List<Terminology> terminologies, SearchCriteria searchCriteria)
-      throws Exception;
+  public ConceptResultList findConcepts(
+      List<Terminology> terminologies, SearchCriteria searchCriteria) throws Exception;
 
   /**
    * search for the given search criteria in mappings.

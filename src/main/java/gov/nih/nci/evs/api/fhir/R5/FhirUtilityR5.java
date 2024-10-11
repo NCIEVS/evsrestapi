@@ -21,12 +21,10 @@ import org.hl7.fhir.r5.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r5.model.Bundle.BundleLinkComponent;
 import org.hl7.fhir.r5.model.Bundle.BundleType;
 import org.hl7.fhir.r5.model.Bundle.LinkRelationTypes;
-import org.hl7.fhir.r5.model.CanonicalType;
 import org.hl7.fhir.r5.model.CodeSystem;
 import org.hl7.fhir.r5.model.CodeType;
 import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.ConceptMap;
-import org.hl7.fhir.r5.model.ConceptMap.ConceptMapGroupComponent;
 import org.hl7.fhir.r5.model.DateTimeType;
 import org.hl7.fhir.r5.model.Enumerations;
 import org.hl7.fhir.r5.model.Identifier;
@@ -50,9 +48,12 @@ public class FhirUtilityR5 {
 
   /** The publishers. */
   private static HashMap<String, String> publishers = new HashMap<>();
+
   static {
-    publishers.put("mdr", "MedDRA Maintenance and Support Services Organization (MedDRA MSSO); Mr. Patrick Revelle;" +
-                          " MSSO Director");
+    publishers.put(
+        "mdr",
+        "MedDRA Maintenance and Support Services Organization (MedDRA MSSO); Mr. Patrick Revelle;"
+            + " MSSO Director");
     publishers.put("umlssemnet", "National Library of Medicine");
     publishers.put("go", "GO Consortium");
     publishers.put("icd10cm", "NCHS");
@@ -81,10 +82,9 @@ public class FhirUtilityR5 {
     publishers.put("zfa", "National Cancer Institute");
   }
 
-  /**
-   * The URIs
-   */
+  /** The URIs */
   private static final HashMap<String, String> uris = new HashMap<>();
+
   static {
     uris.put("mdr", "https://www.meddra.org");
     uris.put("umlssemnet", "http://www.nlm.nih.gov/research/umls/umlssemnet.owl");
@@ -107,7 +107,9 @@ public class FhirUtilityR5 {
     uris.put("chebi", "http://www.ebi.ac.uk/chebi/");
     uris.put("ncim", "https://ncim.nci.nih.gov/ncimbrowser/");
     uris.put("pdq", "https://www.cancer.gov/publications/pdq");
-    uris.put("hl7v30", "https://www.nlm.nih.gov/research/umls/sourcereleasedocs/current/HL7V3.0/index.html");
+    uris.put(
+        "hl7v30",
+        "https://www.nlm.nih.gov/research/umls/sourcereleasedocs/current/HL7V3.0/index.html");
     uris.put("mged", "http://mged.sourceforge.net/ontologies/MGEDOntology.owl");
     uris.put("npo", "http://purl.bioontology.org/ontology/npo");
     uris.put("ma", "http://purl.obolibrary.org/obo/emap.owl");
@@ -238,15 +240,33 @@ public class FhirUtilityR5 {
                         .findFirst()
                         .orElse(null))
                 .getValue()));
-    cm.setSourceScope(new UriType(getUri(mapset.getProperties().stream()
-                                                 .filter(m -> m.getType().equals("sourceTerminology"))
-                                                 .findFirst().get().getValue()) + "?fhir_vs"));
-    cm.setTargetScope(new UriType(getUri(mapset.getProperties().stream()
-                                                 .filter(m -> m.getType().equals("targetTerminology"))
-                                                 .findFirst().get().getValue()) + "?fhir_vs"));
-    cm.setUrl(getUri(mapset.getProperties().stream()
-                            .filter(m -> m.getType().equals("sourceTerminology"))
-                            .findFirst().get().getValue()) + "?fhir_cm=" + mapset.getCode());
+    cm.setSourceScope(
+        new UriType(
+            getUri(
+                    mapset.getProperties().stream()
+                        .filter(m -> m.getType().equals("sourceTerminology"))
+                        .findFirst()
+                        .get()
+                        .getValue())
+                + "?fhir_vs"));
+    cm.setTargetScope(
+        new UriType(
+            getUri(
+                    mapset.getProperties().stream()
+                        .filter(m -> m.getType().equals("targetTerminology"))
+                        .findFirst()
+                        .get()
+                        .getValue())
+                + "?fhir_vs"));
+    cm.setUrl(
+        getUri(
+                mapset.getProperties().stream()
+                    .filter(m -> m.getType().equals("sourceTerminology"))
+                    .findFirst()
+                    .get()
+                    .getValue())
+            + "?fhir_cm="
+            + mapset.getCode());
     return cm;
   }
 

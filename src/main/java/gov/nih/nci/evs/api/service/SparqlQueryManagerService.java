@@ -296,8 +296,7 @@ public interface SparqlQueryManagerService {
    * @return the maps to
    * @throws Exception the exception
    */
-  public List<Mappings> getMapsTo(
-      String conceptCode, Terminology terminology) throws Exception;
+  public List<Mappings> getMapsTo(String conceptCode, Terminology terminology) throws Exception;
 
   /**
    * Returns the root nodes.

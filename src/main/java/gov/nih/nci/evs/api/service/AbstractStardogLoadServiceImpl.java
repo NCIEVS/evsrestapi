@@ -5,10 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
@@ -243,8 +243,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                     for (final Mappings map : c.getMaps()) {
                       final String mapterm = map.getTargetTerminology().split(" ")[0];
                       if (mapsets.containsKey(mapterm)) {
-                        final Mappings copy =
-                            new Mappings(map);
+                        final Mappings copy = new Mappings(map);
                         copy.setSourceCode(c.getCode());
                         copy.setSourceName(c.getName());
                         copy.setSource(c.getTerminology());
@@ -318,9 +317,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
             mapset.getValue().getMaps(),
             new Comparator<Mappings>() {
               @Override
-              public int compare(
-                  final Mappings o1,
-                  final Mappings o2) {
+              public int compare(final Mappings o1, final Mappings o2) {
                 // Assume maps are not null
                 return (o1.getSourceName()
                         + o1.getType()

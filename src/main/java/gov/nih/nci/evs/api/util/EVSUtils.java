@@ -2,8 +2,8 @@ package gov.nih.nci.evs.api.util;
 
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;

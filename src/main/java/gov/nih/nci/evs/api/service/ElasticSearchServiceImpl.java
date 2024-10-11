@@ -1,10 +1,10 @@
 package gov.nih.nci.evs.api.service;
 
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.EVSPageable;
@@ -66,8 +66,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @throws Exception the exception
    */
   @Override
-  public ConceptResultList findConcepts(List<Terminology> terminologies, SearchCriteria searchCriteria)
-      throws Exception {
+  public ConceptResultList findConcepts(
+      List<Terminology> terminologies, SearchCriteria searchCriteria) throws Exception {
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
     // PageRequest.of(page, searchCriteria.getPageSize());
 

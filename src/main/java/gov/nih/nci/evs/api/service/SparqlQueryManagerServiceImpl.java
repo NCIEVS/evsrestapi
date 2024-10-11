@@ -255,8 +255,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<Mappings> getMapsTo(
-      final String conceptCode, final Terminology terminology) throws Exception {
+  public List<Mappings> getMapsTo(final String conceptCode, final Terminology terminology)
+      throws Exception {
     final List<Axiom> axioms = getAxioms(conceptCode, terminology, true);
     return EVSUtils.getMapsTo(terminology, axioms);
   }
