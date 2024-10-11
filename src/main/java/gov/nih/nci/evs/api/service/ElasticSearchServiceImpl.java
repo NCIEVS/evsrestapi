@@ -207,13 +207,14 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * search for the given search criteria in mappings.
+   * Find the concept mappings based on a provided query and search criteria.
    *
+   * @param query the query string to search for
    * @param searchCriteria the search criteria
    * @return the result list with concepts
    */
   @Override
-  public ConceptMapResultList findConceptMapsets(String code, SearchCriteria searchCriteria) {
+  public ConceptMapResultList findConceptMappings(String query, SearchCriteria searchCriteria) {
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
     // PageRequest.of(page, searchCriteria.getPageSize());
 
@@ -231,12 +232,11 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     // final String term = escape(searchCriteria.getTerm());
     logger.debug("query string [{}]", searchCriteria.getTerm());
 
-    final BoolQueryBuilder boolQuery =
-        new BoolQueryBuilder().must(getMappingQuery(searchCriteria.getTerm(), code));
-
-    // build final search query
+    // build search query from string query
     final NativeSearchQueryBuilder searchQuery =
-        new NativeSearchQueryBuilder().withQuery(boolQuery).withPageable(pageable);
+        new NativeSearchQueryBuilder()
+            .withQuery(QueryBuilders.queryStringQuery(query))
+            .withPageable(pageable);
 
     if (searchCriteria.getSort() != null) {
       // Default is ascending if not specified
@@ -341,47 +341,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         // Default to contains query
         return getContainsQuery(searchCriteria, term, false, false);
     }
-  }
-
-  /**
-   * Returns the term query for mappings.
-   *
-   * @param term the term
-   * @return the term query
-   * @throws Exception the exception
-   */
-  private BoolQueryBuilder getMappingQuery(String term, String code) {
-    // must match mapsetCode
-    BoolQueryBuilder termQuery =
-        new BoolQueryBuilder().must(QueryBuilders.queryStringQuery("mapsetCode:" + code));
-    // search term processing
-    if (term != null && !term.isEmpty()) {
-      final List<String> words = ConceptUtils.wordind(term);
-      // create search term clause
-      if (ConceptUtils.isCode(term) || words.size() == 1) {
-        // match on either word or code, case insensitive
-        if (term.matches("[A-Za-z]+:\\d+")) {
-          termQuery.must(
-              QueryBuilders.queryStringQuery(escape(term) + "*")
-                  .field("sourceCode")
-                  .field("targetCode"));
-        } else {
-          termQuery.must(QueryBuilders.queryStringQuery(escape(term) + "*").field("*"));
-        }
-
-      } else {
-        // search for all words in name fields
-        BoolQueryBuilder multiWordQuery = QueryBuilders.boolQuery();
-
-        // match all words in at least one of the names
-        for (String word : words) {
-          multiWordQuery.must(QueryBuilders.queryStringQuery(word + "*").field("*"));
-        }
-
-        termQuery.must(multiWordQuery);
-      }
-    }
-    return termQuery;
   }
 
   /**

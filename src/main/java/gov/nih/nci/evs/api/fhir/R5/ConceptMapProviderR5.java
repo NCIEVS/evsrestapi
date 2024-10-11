@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.api.fhir.R5;
 
+import static gov.nih.nci.evs.api.service.ElasticSearchServiceImpl.escape;
+
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.IdParam;
@@ -27,13 +29,10 @@ import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.CodeType;
-import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.ConceptMap;
 import org.hl7.fhir.r5.model.IdType;
 import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
@@ -44,8 +43,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import static gov.nih.nci.evs.api.service.ElasticSearchServiceImpl.escape;
 
 /** FHIR R5 ConceptMap provider. */
 @Component
@@ -157,8 +154,8 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * @param response the servlet response
    * @param details the servlet request details
    * @param id the lookup id
-   * @param url the canonical URL for a concept map
-//   * @param conceptMap The concept map is provided directly as part of the request.
+   * @param url the canonical URL for a concept map // * @param conceptMap The concept map is
+   *     provided directly as part of the request.
    * @param conceptMapVersion The identifier that is used to identify a specific version of the
    *     concept map to be used
    * @param sourceCode The code that is to be translated. If a code is provided, a system must be
@@ -166,19 +163,17 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * @param system The system for the code that is to be translated.
    * @param version The version of the system, if one was provided in the source data.
    * @param sourceScope Limits the scope of the $translate operation to source codes that are
-   *     members of this value set.
-//   * @param sourceCoding A coding to translate.
-//   * @param sourceCodeableConcept A full codeableConcept to validate.
+   *     members of this value set. // * @param sourceCoding A coding to translate. // * @param
+   *     sourceCodeableConcept A full codeableConcept to validate.
    * @param targetCode The target code that is to be translated to. If a code is provided, a system
-   *     must be provided.
-//   * @param targetCoding A target coding to translate to.
-//   * @param targetCodeableConcept A full codeableConcept to validate.
+   *     must be provided. // * @param targetCoding A target coding to translate to. // * @param
+   *     targetCodeableConcept A full codeableConcept to validate.
    * @param targetScope Limits the scope of the $translate operation to target codes that are
    *     members of this value set.
    * @param targetSystem Identifies a target code system in which a mapping is sought. This
-   *     parameter is an alternative to the targetScope parameter - only one is required.
-//   * @param dependencyAttribute The attribute for this dependency.
-//   * @param dependencyValue The value for this dependency.
+   *     parameter is an alternative to the targetScope parameter - only one is required. //
+   *     * @param dependencyAttribute The attribute for this dependency. // * @param dependencyValue
+   *     The value for this dependency.
    * @return the parameters
    * @throws Exception throws exception if error occurs.
    *     <p>no support for dependency parameter
@@ -197,7 +192,8 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "sourceScope") final UriType sourceScope,
       //      @OperationParam(name = "sourceCoding") final Coding sourceCoding,
-      //      @OperationParam(name = "sourceCodeableConcept") final CodeableConcept sourceCodeableConcept,
+      //      @OperationParam(name = "sourceCodeableConcept") final CodeableConcept
+      // sourceCodeableConcept,
       @OperationParam(name = "targetCode") final UriType targetCode,
       //      @OperationParam(name = "targetCoding") final UriType targetCoding,
       //      @OperationParam(name = "targetCodeableConcept") final CodeableConcept
@@ -224,7 +220,8 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       String query = buildFhirQueryString(sourceCode, targetCode, system, targetSystem, "AND");
       logger.debug("   R5 translateImplicit query = " + query);
 
-      final List<ConceptMap> cm = findPossibleConceptMaps(id, null, system, url, version, targetCode);
+      final List<ConceptMap> cm =
+          findPossibleConceptMaps(id, null, system, url, version, targetCode);
       ConceptMapResultList filteredMaps;
 
       for (final ConceptMap mapping : cm) {
@@ -233,7 +230,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
         criteria.setPageSize(10000);
         criteria.setFromRecord(0);
 
-        filteredMaps = esSearchService.findConceptMapsets(query, criteria);
+        filteredMaps = esSearchService.findConceptMappings(query, criteria);
         final List<Mappings> allMaps = filteredMaps.getMaps();
 
         if (!allMaps.isEmpty()) {
@@ -333,7 +330,8 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       String query = buildFhirQueryString(sourceCode, targetCode, system, targetSystem, "AND");
       logger.debug("   R5 translateImplicit query = " + query);
 
-      final List<ConceptMap> cm = findPossibleConceptMaps(null, null, system, url, version, targetCode);
+      final List<ConceptMap> cm =
+          findPossibleConceptMaps(null, null, system, url, version, targetCode);
       ConceptMapResultList filteredMaps;
 
       for (final ConceptMap mapping : cm) {
@@ -342,7 +340,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
         criteria.setPageSize(10000);
         criteria.setFromRecord(0);
 
-        filteredMaps = esSearchService.findConceptMapsets(query, criteria);
+        filteredMaps = esSearchService.findConceptMappings(query, criteria);
         final List<Mappings> allMaps = filteredMaps.getMaps();
 
         if (!allMaps.isEmpty()) {
@@ -381,8 +379,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       throws Exception {
     try {
 
-      final List<ConceptMap> candidates =
-          findPossibleConceptMaps(id, null, null, null, null, null);
+      final List<ConceptMap> candidates = findPossibleConceptMaps(id, null, null, null, null, null);
       for (final ConceptMap set : candidates) {
         if (id.getIdPart().equals(set.getId())) {
           return set;
@@ -442,8 +439,10 @@ public class ConceptMapProviderR5 implements IResourceProvider {
           logger.info("  SKIP id mismatch = " + cm.getName());
           continue;
         }
-        if (system != null && !system.getValue().equals(cm.getSourceScopeUriType().getValue().replaceFirst(
-                "\\?fhir_vs$", ""))) {
+        if (system != null
+            && !system
+                .getValue()
+                .equals(cm.getSourceScopeUriType().getValue().replaceFirst("\\?fhir_vs$", ""))) {
           logger.info("  SKIP system mismatch = " + cm.getSourceScopeUriType().getValue());
           continue;
         }
@@ -455,8 +454,10 @@ public class ConceptMapProviderR5 implements IResourceProvider {
           logger.info("  SKIP version mismatch = " + cm.getVersion());
           continue;
         }
-        if (targetCode != null && !targetCode.getValue().equals(cm.getTargetScopeUriType().getValue().replaceFirst(
-                "\\?fhir_vs$", ""))) {
+        if (targetCode != null
+            && !targetCode
+                .getValue()
+                .equals(cm.getTargetScopeUriType().getValue().replaceFirst("\\?fhir_vs$", ""))) {
           logger.info("  SKIP target mismatch = " + cm.getTargetScopeUriType().getValue());
           continue;
         }
@@ -474,6 +475,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
 
   /**
    * Helper method for building a query string for the source or target code for FHIR
+   *
    * @param sourceCode the code being translated
    * @param targetCode the target value set to be used for translation
    * @param system the system for the code that is being translated, if provided
@@ -481,8 +483,12 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * @param operator the operator to use for the query
    * @return the query string
    */
-  private String buildFhirQueryString(CodeType sourceCode, UriType targetCode, UriType system, UriType targetSystem,
-                                      String operator) {
+  private String buildFhirQueryString(
+      CodeType sourceCode,
+      UriType targetCode,
+      UriType system,
+      UriType targetSystem,
+      String operator) {
     List<String> clauses = new ArrayList<>();
     String query;
     if (sourceCode != null) {

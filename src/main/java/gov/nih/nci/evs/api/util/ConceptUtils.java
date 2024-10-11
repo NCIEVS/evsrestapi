@@ -12,7 +12,6 @@ import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -704,6 +703,7 @@ public final class ConceptUtils {
 
   /**
    * Compose a string clause for a query
+   *
    * @param fieldName the query field name
    * @param fieldValue the query field value
    * @param escapeValue the flag to escape the value
@@ -711,7 +711,7 @@ public final class ConceptUtils {
    * @throws Exception if the query string cannot be composed
    */
   public static String composeClause(
-          final String fieldName, final String fieldValue, final boolean escapeValue) throws Exception {
+      final String fieldName, final String fieldValue, final boolean escapeValue) throws Exception {
 
     if (!ConceptUtils.isEmpty(fieldValue)) {
       if (escapeValue) {

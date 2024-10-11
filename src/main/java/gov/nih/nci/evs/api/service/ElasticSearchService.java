@@ -31,7 +31,7 @@ public interface ElasticSearchService {
    * @return the result list with concepts
    * @throws Exception the exception
    */
-  ConceptMapResultList findConceptMapsets(String code, SearchCriteria searchCriteria);
+  ConceptMapResultList findConceptMappings(String code, SearchCriteria searchCriteria);
 
   /**
    * Returns the term query for mappings based on concepts.

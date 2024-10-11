@@ -261,7 +261,7 @@ public class MapsetController extends BaseController {
       }
       logger.debug("  Search = " + searchCriteria);
 
-      final ConceptMapResultList list = esSearchService.findConceptMapsets(code, searchCriteria);
+      final ConceptMapResultList list = esSearchService.findConceptMappings(code, searchCriteria);
 
       return list;
     } catch (Exception e) {
