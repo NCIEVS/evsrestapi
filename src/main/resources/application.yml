@@ -111,6 +111,8 @@ springdoc:
     tagsSorter: alpha
     operationsSorter: alpha
     doc-expansion: none
+    syntaxHighlight:
+      activated: false
 
 # Google Recaptcha
 google:

@@ -753,12 +753,10 @@ class FhirR5Tests {
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     // Verify things about this one
-    // {"resourceType":"ConceptMap","id":"ncit_to_hgnc_mapping_aug2024","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_cm=NCIt_to_HGNC_Mapping","version":"Aug2024","name":"NCIt_to_HGNC_Mapping","title":"NCIt_to_HGNC_Mapping","status":"active","experimental":false,"publisher":"NCI","group":[{"source":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","target":"http://www.genenames.org"}]}
-    final Set<String> ids = new HashSet<>(Set.of("ncit_to_hgnc_mapping_aug2024"));
+    // {"resourceType":"ConceptMap","id":"ma_to_ncit_mapping_november2011","url":"http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping","version":"Aug2024","name":"NCIt_to_HGNC_Mapping","title":"NCIt_to_HGNC_Mapping","status":"active","experimental":false,"publisher":"NCI","group":[{"source":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","target":"http://www.genenames.org"}]}
+    final Set<String> ids = new HashSet<>(Set.of("ma_to_ncit_mapping_november2011"));
     final Set<String> urls =
-        new HashSet<>(
-            Set.of(
-                "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_cm=NCIt_to_HGNC_Mapping"));
+        new HashSet<>(Set.of("http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping"));
 
     // Assert
     assertFalse(conceptMaps.isEmpty());

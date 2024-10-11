@@ -21,6 +21,7 @@ import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -2027,5 +2028,72 @@ public class ConceptControllerTests {
                   // n/a
                 });
     assertThat(conceptResults.get(0).getVersion() == terminology.getVersion());
+  }
+
+  /**
+   * Test get terminology concepts.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetTerminologyConcepts() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    url = "/api/v1/concept/radlex/codes";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+
+    // very small terminology
+    ArrayList<String> terminologyCodes =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<ArrayList<String>>() {
+                  // n/a
+                });
+    assertThat(terminologyCodes.size()).isGreaterThan(50);
+
+    // small terminology
+    url = "/api/v1/concept/ctcae5/codes";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    terminologyCodes =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<ArrayList<String>>() {
+                  // n/a
+                });
+
+    assertThat(terminologyCodes.size()).isGreaterThan(4000);
+
+    // medium terminology
+    url = "/api/v1/concept/go/codes";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    terminologyCodes =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<ArrayList<String>>() {
+                  // n/a
+                });
+
+    assertThat(terminologyCodes.size()).isGreaterThan(40000);
+
+    // large terminology
+    url = "/api/v1/concept/ncit/codes";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    terminologyCodes =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<ArrayList<String>>() {
+                  // n/a
+                });
+
+    assertThat(terminologyCodes.size()).isGreaterThan(150000);
   }
 }
