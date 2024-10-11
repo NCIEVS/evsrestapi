@@ -12,6 +12,8 @@ import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,6 +25,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import opennlp.tools.stemmer.snowball.SnowballStemmer;
 import opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM;
+import org.apache.lucene.queryparser.classic.QueryParserBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
@@ -601,5 +604,133 @@ public final class ConceptUtils {
         qualMap.get(key).add("... additional values ...");
       }
     }
+  }
+
+  /**
+   * Compose query string from map of clauses containing the query terms.
+   *
+   * @param clauses the map of clauses to query on
+   * @return the query string
+   * @throws Exception if the query string cannot be composed
+   */
+  public static String composeQueryString(final Map<String, String> clauses) throws Exception {
+    final StringBuilder sb = new StringBuilder();
+    for (final String key : clauses.keySet()) {
+      // Skip empty key or value
+      if (ConceptUtils.isEmpty(key) || ConceptUtils.isEmpty(clauses.get(key))) {
+        continue;
+      }
+      if (sb.length() > 1) {
+        sb.append("&");
+      }
+      sb.append(key).append("=");
+      final String value = clauses.get(key);
+      if (value.matches("^[0-9a-zA-Z\\-\\.]*$")) {
+        sb.append(value);
+      } else {
+        sb.append(URLEncoder.encode(value, "UTF-8").replaceAll("\\+", "%20"));
+      }
+    }
+    return (sb.length() > 0 ? "?" + sb.toString() : "");
+  }
+
+  /**
+   * Compose query from map of clauses containing the query terms and the operators.
+   *
+   * @param operator the query operator to use
+   * @param clauses the map of clauses to query on
+   * @return the query string
+   */
+  public static String composeQuery(final String operator, final List<String> clauses) {
+    final StringBuilder sb = new StringBuilder();
+    if (operator.equals("OR")) {
+      sb.append("(");
+    }
+    for (final String clause : clauses) {
+      if (ConceptUtils.isEmpty(clause)) {
+        continue;
+      }
+      if (sb.length() > 0 && !operator.equals("OR")) {
+        sb.append(" ").append(operator).append(" ");
+      }
+      if (sb.length() > 1 && operator.equals("OR")) {
+        sb.append(" ").append(operator).append(" ");
+      }
+      sb.append(clause);
+    }
+    if (operator.equals("OR")) {
+      sb.append(")");
+    }
+    if (operator.equals("OR") && sb.toString().equals("()")) {
+      return "";
+    }
+
+    return sb.toString();
+  }
+
+  /**
+   * Compose query from a variable length of map of clauses containing the query terms and the
+   * operators.
+   *
+   * @param operator the query operator to use
+   * @param clauses the map of clauses to query on (can be variable length)
+   * @return the query string
+   */
+  public static String composeQuery(final String operator, final String... clauses) {
+    final StringBuilder sb = new StringBuilder();
+    if (operator.equals("OR")) {
+      sb.append("(");
+    }
+    for (final String clause : clauses) {
+      if (ConceptUtils.isEmpty(clause)) {
+        continue;
+      } else if (sb.length() > 0 && !operator.equals("OR")) {
+        sb.append(" ").append(operator).append(" ");
+      } else if (sb.length() > 1 && operator.equals("OR")) {
+        sb.append(" ").append(operator).append(" ");
+      }
+
+      sb.append(clause);
+    }
+    if (operator.equals("OR")) {
+      sb.append(")");
+    }
+    if (operator.equals("OR") && sb.toString().equals("()")) {
+      return "";
+    }
+
+    return sb.toString();
+  }
+
+  /**
+   * Compose a string clause for a query
+   * @param fieldName the query field name
+   * @param fieldValue the query field value
+   * @param escapeValue the flag to escape the value
+   * @return the query string
+   * @throws Exception if the query string cannot be composed
+   */
+  public static String composeClause(
+          final String fieldName, final String fieldValue, final boolean escapeValue) throws Exception {
+
+    if (!ConceptUtils.isEmpty(fieldValue)) {
+      if (escapeValue) {
+        return fieldName + ":\"" + QueryParserBase.escape(fieldValue) + "\"";
+      } else {
+        return fieldName + ":" + fieldValue;
+      }
+    } else {
+      return "NOT " + fieldName + ":[* TO *]";
+    }
+  }
+
+  /**
+   * Check if a string is empty.
+   *
+   * @param str the string to check
+   * @return true if the string is null or empty
+   */
+  public static boolean isEmpty(final String str) {
+    return str == null || str.isEmpty();
   }
 }
