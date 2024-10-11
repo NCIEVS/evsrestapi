@@ -765,7 +765,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Read
-  public CodeSystem getConceptMap(final ServletRequestDetails details, @IdParam final IdType id)
+  public CodeSystem getCodeSystem(final ServletRequestDetails details, @IdParam final IdType id)
       throws Exception {
     try {
       final List<CodeSystem> candidates = findPossibleCodeSystems(id, null, null, null);
