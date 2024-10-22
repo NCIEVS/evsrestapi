@@ -404,12 +404,12 @@ public class FhirR4Tests {
     // Verify things about these
     // {"resourceType":"ValueSet","id":"ncit_21.06e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"21.06e","name":"NCI Thesaurus 21.06e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","description":"NCI Thesaurus, a controlled vocabulary in support of NCI administrative and scientific activities. Produced by the Enterprise Vocabulary System (EVS), a project by the NCI Center for Biomedical Informatics and Information Technology. National Cancer Institute, National Institutes of Health, Bethesda, MD 20892, U.S.A."}
     // {"resourceType":"ValueSet","id":"ncit_c100110","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110","identifier":[{"value":"C100110"}],"version":"21.06e","name":"CDISC Questionnaire Terminology","title":"ncit","status":"active","experimental":false,"publisher":"NCI","description":"Value set representing the ncitsubsetC100110"}
-    final Set<String> ids = new HashSet<>(Set.of("ncit_21.06e", "ncit_c100110"));
+    final Set<String> ids = new HashSet<>(Set.of("ncit_21.06e", "ncit_c115406"));
     final Set<String> urls =
         new HashSet<>(
             Set.of(
                 "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs",
-                "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110"));
+                "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C115406"));
 
     // Assert
     assertFalse(valueSets.isEmpty());
@@ -424,8 +424,8 @@ public class FhirR4Tests {
       ids.remove(vss.getIdPart());
       urls.remove(vss.getUrl());
     }
-    assertThat(ids).isEmpty();
-    assertThat(urls).isEmpty();
+    assertTrue(ids.isEmpty());
+    assertTrue(urls.isEmpty());
   }
 
   /**
