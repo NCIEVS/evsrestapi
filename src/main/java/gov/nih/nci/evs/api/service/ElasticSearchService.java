@@ -26,18 +26,18 @@ public interface ElasticSearchService {
   /**
    * search for the given search criteria in mappings.
    *
-   * @param code the mapping code
+   * @param query the query to search for the mappings
    * @param searchCriteria the search criteria
    * @return the result list with concepts
    * @throws Exception the exception
    */
-  ConceptMapResultList findConceptMappings(String code, SearchCriteria searchCriteria);
+  ConceptMapResultList findConceptMappings(String query, SearchCriteria searchCriteria);
 
   /**
    * Returns the term query for mappings based on concepts.
    *
-   * @param conceptCodes the concept codes
-   * @param termimology the termimology
+   * @param asList the concept codes
+   * @param terminology the terminology
    * @return the mappings
    * @throws Exception the exception
    */
