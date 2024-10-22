@@ -172,11 +172,7 @@ public class MapsetController extends BaseController {
    * Returns the mapset maps.
    *
    * @param code the code
-   * @param fromRecord the from record
-   * @param pageSize the page size
-   * @param term the term
-   * @param ascending the ascending
-   * @param sort the sort
+   * @param searchCriteria the search criteria
    * @return the mapsets
    * @throws Exception the exception
    */
