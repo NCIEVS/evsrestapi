@@ -218,7 +218,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       final Parameters params = new Parameters();
       // Build a string query to search for the source code and target code
       String query = buildFhirQueryString(sourceCode, targetCode, system, targetSystem, "AND");
-      logger.debug("   R5 translateImplicit query = " + query);
+      logger.debug("   Fhir query string = " + query);
 
       final List<ConceptMap> cm =
           findPossibleConceptMaps(id, null, system, url, version, targetCode);
@@ -315,7 +315,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       ) throws Exception {
     // Check if request is post, throw error as we don't support POST calls
     if (request.getMethod().equals("POST")) {
-      throw FhirUtilityR5.exception(
+      throw FhirUtilityR5.exception(0
           "POST method not supported for " + JpaConstants.OPERATION_TRANSLATE,
           IssueType.NOTSUPPORTED,
           405);
@@ -328,7 +328,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       final Parameters params = new Parameters();
       // Build a string query to search for the source code and target code
       String query = buildFhirQueryString(sourceCode, targetCode, system, targetSystem, "AND");
-      logger.debug("   R5 translateImplicit query = " + query);
+      logger.debug("   Fhir query string = " + query);
 
       final List<ConceptMap> cm =
           findPossibleConceptMaps(null, null, system, url, version, targetCode);
@@ -442,8 +442,8 @@ public class ConceptMapProviderR5 implements IResourceProvider {
         if (system != null
             && !system
                 .getValue()
-                .equals(cm.getSourceScopeUriType().getValue().replaceFirst("\\?fhir_vs$", ""))) {
-          logger.info("  SKIP system mismatch = " + cm.getSourceScopeUriType().getValue());
+                .equals(cm.getUrl())) {
+          logger.info("  SKIP system mismatch = " + cm.getUrl());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
@@ -495,12 +495,12 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       if (system != null) {
         // compose query string for source code and system uri
         clauses.add("sourceCode:\"" + escape(sourceCode.getValue()) + "\"");
-        clauses.add("source:" + system.getValue());
+        clauses.add("source:\"" + escape(system.getValue()) + "\"");
         query = ConceptUtils.composeQuery(operator, clauses);
       } else if (targetSystem != null) {
         // compose query string for source code and targetSystem uri
         clauses.add("sourceCode:\"" + escape(sourceCode.getValue()) + "\"");
-        clauses.add("target:" + targetSystem.getValue());
+        clauses.add("target:\"" + escape(targetSystem.getValue()) + "\"");
         query = ConceptUtils.composeQuery(operator, clauses);
       } else {
         // create query string with the source code
@@ -510,12 +510,12 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       if (targetSystem != null) {
         // compose query for target code and targetSystem uri
         clauses.add("targetCode:\"" + escape(targetCode.getValue()) + "\"");
-        clauses.add("target:" + targetSystem.getValue());
+        clauses.add("target:\"" + escape(targetSystem.getValue()) + "\"");
         query = ConceptUtils.composeQuery(operator, clauses);
       } else if (system != null) {
         // compose query for target code and system uri
         clauses.add("targetCode:\"" + escape(targetCode.getValue()) + "\"");
-        clauses.add("source:" + system.getValue());
+        clauses.add("source:\"" + escape(system.getValue()) + "\"");
         query = ConceptUtils.composeQuery(operator, clauses);
       } else {
         // create query string with the targetCode
