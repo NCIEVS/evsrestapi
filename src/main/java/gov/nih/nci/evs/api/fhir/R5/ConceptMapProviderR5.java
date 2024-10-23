@@ -315,7 +315,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       ) throws Exception {
     // Check if request is post, throw error as we don't support POST calls
     if (request.getMethod().equals("POST")) {
-      throw FhirUtilityR5.exception(0
+      throw FhirUtilityR5.exception(
           "POST method not supported for " + JpaConstants.OPERATION_TRANSLATE,
           IssueType.NOTSUPPORTED,
           405);
