@@ -64,10 +64,10 @@ public class ConceptUnitTest {
   private List<Role> r2;
 
   /** The m 1. */
-  private List<ConceptMap> m1;
+  private List<Mappings> m1;
 
   /** The m 2. */
-  private List<ConceptMap> m2;
+  private List<Mappings> m2;
 
   /**
    * Setup.
@@ -108,11 +108,11 @@ public class ConceptUnitTest {
     r2 = new ArrayList<>();
     r2.add((Role) tester5.createObject(2));
 
-    final ProxyTester tester6 = new ProxyTester(new ConceptMap());
+    final ProxyTester tester6 = new ProxyTester(new Mappings());
     m1 = new ArrayList<>();
-    m1.add((ConceptMap) tester6.createObject(1));
+    m1.add((Mappings) tester6.createObject(1));
     m2 = new ArrayList<>();
-    m2.add((ConceptMap) tester6.createObject(2));
+    m2.add((Mappings) tester6.createObject(2));
 
     final ProxyTester tester7 = new ProxyTester(new History());
     h1 = new ArrayList<>();

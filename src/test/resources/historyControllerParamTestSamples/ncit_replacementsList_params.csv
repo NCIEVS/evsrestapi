@@ -1,0 +1,3 @@
+codeList, expectedAction, expectedReplacementCode, size
+"C3224", active,,1
+"C169836,C3224", merge, C120319,2

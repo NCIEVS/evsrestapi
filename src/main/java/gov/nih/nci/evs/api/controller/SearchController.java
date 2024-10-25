@@ -610,7 +610,8 @@ public class SearchController extends BaseController {
         terminologies.add(term);
       }
 
-      final ConceptResultList results = elasticSearchService.search(terminologies, searchCriteria);
+      final ConceptResultList results =
+          elasticSearchService.findConcepts(terminologies, searchCriteria);
 
       // Look up info for all the concepts
       for (final Concept result : results.getConcepts()) {
