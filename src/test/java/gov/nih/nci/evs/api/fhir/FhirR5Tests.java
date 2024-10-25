@@ -807,7 +807,7 @@ class FhirR5Tests {
   }
 
   /**
-   * Test concept map tranlate with only a sourceCode provided.
+   * Test concept map translate with instance system; id, sourceCode, and system provided.
    *
    * @throws Exception throws exception when error occurs
    */
@@ -818,18 +818,24 @@ class FhirR5Tests {
     String sourceCode = "GO:0016887";
     String id = "go_to_ncit_mapping_february2020";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
-    String endpoint = localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String endpoint =
+        localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
     String parameters = "?sourceCode=" + sourceCode + "&system=" + system;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
-    // Assertb
+    // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
   }
 
+  /**
+   * Test concept map translate with implicit system; sourceCode and system provided.
+   *
+   * @throws Exception throws exception when error occurs
+   */
   @Test
   public void testConceptMapTranslateImplicit() throws Exception {
     // Arrange
@@ -861,7 +867,7 @@ class FhirR5Tests {
     String message = "POST method not supported for " + JpaConstants.OPERATION_TRANSLATE;
 
     String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
-    String parameters = "?code=" + null + "&system=" + null;
+    String parameters = "?sourceCode=" + null + "&system=" + null;
 
     // Act
     content = this.restTemplate.postForEntity(endpoint + parameters, null, String.class);

@@ -815,6 +815,105 @@ public class FhirR4Tests {
   }
 
   /**
+   * Test concept map translate with instance system; id, code, and system provided.
+   *
+   * @throws Exception throws exception when error occurs
+   */
+  @Test
+  public void testConceptMapTranslateInstance() throws Exception {
+    // Arrange
+    String content;
+    String code = "GO:0016887";
+    String id = "go_to_ncit_mapping_february2020";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint =
+        localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + code + "&system=" + system;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+
+  /**
+   * Test concept map translate with instance system with reverse = true; id, code, system, and
+   * display provided.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMaptTranslateInstanceWithReverse() throws Exception {
+    // Arrange
+    String content;
+    String code = "C19939";
+    String id = "go_to_ncit_mapping_february2020";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String reverse = "true";
+    String endpoint =
+        localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + code + "&system=" + system + "&reverse=" + reverse;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+
+  /**
+   * Test concept map translate with implicit system; code and system provided.
+   *
+   * @throws Exception throws exception when error occurs
+   */
+  @Test
+  public void testConceptMapTranslateImplicit() throws Exception {
+    // Arrange
+    String content;
+    String code = "GO:0016887";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + code + "&system=" + system;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+
+  /**
+   * Test concept map translate with implicit system with reverse = true; code and system provided.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapTranslateImplicitWithReverse() throws Exception {
+    // Arrange
+    String content;
+    String code = "C19939";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String reverse = "true";
+    String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + code + "&system=" + system + "&reverse=" + reverse;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+
+  /**
    * Test the ValueSet rejects a post call when attempted.
    *
    * @throws Exception exception

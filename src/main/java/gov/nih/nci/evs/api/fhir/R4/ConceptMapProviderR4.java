@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.api.fhir.R4;
 
+import static gov.nih.nci.evs.api.service.ElasticSearchServiceImpl.escape;
+
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.IdParam;
@@ -15,22 +17,23 @@ import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Mappings;
 import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.ElasticSearchService;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ConceptMap;
 import org.hl7.fhir.r4.model.IdType;
@@ -54,6 +57,9 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   /** the query service. */
   @Autowired ElasticQueryService esQueryService;
 
+  /** the elastic search service. */
+  @Autowired ElasticSearchService esSearchService;
+
   /** The code to translate. */
   String codeToTranslate = "";
 
@@ -66,20 +72,24 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @param response the response
    * @param details the details
    * @param id the id
-   * @param url the url
-   * @param conceptMap the concept map
-   * @param conceptMapVersion the concept map version
-   * @param code the code
-   * @param system the system
-   * @param version the version
-   * @param source the source
-   * @param coding the coding
-   * @param codeableConcept the codeable concept
-   * @param target the target
-   * @param targetsystem the targetsystem
-   * @param dependency_element the dependency element
-   * @param dependency_concept the dependency concept
-   * @param reverse the reverse
+   * @param url A canonical URL for a concept map. The server must know the concept map (
+   * @param conceptMap the concept map, The concept map is provided directly as part of the request.
+   *     Servers may choose not to accept concept maps in this fashion.
+   * @param conceptMapVersion The identifier that is used to identify a specific version of the
+   *     concept map to be used for the translation.
+   * @param code The code that is to be translated. If a code is provided, a system must be provided
+   * @param system The system for the code that is to be translated
+   * @param version The version of the system, if one was provided in the source data
+   * @param source Identifies the value set used when the concept (system/code pair) was chosen.
+   *     Optional because user may not always know it
+   * @param coding A coding to translate
+   * @param codeableConcept A full codeableConcept to validate.
+   * @param target Identifies the value set in which a translation is sought. If there's no target
+   *     specified, the server should return all known translations, along with their source
+   * @param targetSystem identifies a target code system in which a mapping is sought. This
+   *     parameter is an alternative to the target parameter.
+   * @param dependency the element for the dependency, may help produce the correct mapping
+   * @param reverse This parameter reverses the meaning of the source and target parameters
    * @return the parameters
    * @throws Exception the exception
    *     <p>no support for dependency parameter
@@ -91,18 +101,17 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-      @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
+      //      @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "source") final UriType source,
-      @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      //      @OperationParam(name = "coding") final Coding coding,
+      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       @OperationParam(name = "target") final UriType target,
-      @OperationParam(name = "targetsystem") final UriType targetsystem,
-      @OperationParam(name = "dependency.element") final UriType dependency_element,
-      @OperationParam(name = "dependency.concept") final CodeableConcept dependency_concept,
+      @OperationParam(name = "targetSystem") final UriType targetSystem,
+      //      @OperationParam(name = "dependency") final UriType dependency,
       @OperationParam(name = "reverse", type = BooleanType.class) final BooleanType reverse)
       throws Exception {
     // check if request is a post, throw exception as we don't support post calls
@@ -113,73 +122,48 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR4.required("code", code);
-      FhirUtilityR4.notSupported("conceptMap", conceptMap);
-      FhirUtilityR4.notSupported("conceptMapVersion", conceptMapVersion);
-      FhirUtilityR4.notSupported("coding", coding);
-      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
-      FhirUtilityR4.notSupported("targetsystem", targetsystem);
-      FhirUtilityR4.notSupported("dependency_element", dependency_element);
-      FhirUtilityR4.notSupported("dependency_concept", dependency_concept);
-      codeToTranslate = code.getCode().toLowerCase();
-      final Parameters params = new Parameters();
-      final List<ConceptMap> cm =
-          findPossibleConceptMaps(id, null, system, url, version, source, target);
-      for (final ConceptMap mapping : cm) {
-        final List<Mappings> maps =
-            esQueryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
-        List<Mappings> filteredMaps = new ArrayList<>();
-        if (reverse != null && reverse.getValue()) {
-          filteredMaps =
-              maps.stream()
-                  .filter(
-                      m ->
-                          m.getTargetCode().toLowerCase().contains(codeToTranslate)
-                              || m.getTargetName()
-                                  .toLowerCase()
-                                  .matches("^" + Pattern.quote(codeToTranslate) + ".*")
-                              || m.getTargetName()
-                                  .toLowerCase()
-                                  .matches(".*\\b" + Pattern.quote(codeToTranslate) + ".*"))
-                  .collect(Collectors.toList());
-        } else {
-          filteredMaps =
-              maps.stream()
-                  .filter(
-                      m ->
-                          m.getSourceCode().toLowerCase().contains(codeToTranslate)
-                              || m.getSourceName()
-                                  .toLowerCase()
-                                  .matches("^" + Pattern.quote(codeToTranslate) + ".*")
-                              || m.getSourceName()
-                                  .toLowerCase()
-                                  .matches(".*\\b" + Pattern.quote(codeToTranslate) + ".*"))
-                  .collect(Collectors.toList());
-        }
+      FhirUtilityR4.mutuallyRequired("code", code, "system", system);
+      FhirUtilityR4.mutuallyExclusive("target", target, "targetSystem", targetSystem);
 
-        if (!filteredMaps.isEmpty()) {
-          final Mappings map = filteredMaps.get(0);
-          params.addParameter("result", true);
-          final Parameters.ParametersParameterComponent property =
-              new Parameters.ParametersParameterComponent().setName("match");
-          property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
-          if (reverse != null && reverse.getValue()) {
-            property
-                .addPart()
-                .setName("concept")
-                .setValue(
-                    new Coding(
-                        map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
-          } else {
-            property
-                .addPart()
-                .setName("concept")
-                .setValue(
-                    new Coding(
-                        map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
-          }
-          params.addParameter(property);
+      final Parameters params = new Parameters();
+      // Extract the mapsetCode from the system uri
+      String systemUri = system.getValue();
+      final String mapsetCode = systemUri.substring(systemUri.lastIndexOf("fhir_cm=") + 8);
+
+      // Build a string query to search for the code/target
+      String query = buildFhirQueryString(code, target, mapsetCode, reverse, "AND");
+      logger.debug("   Fhir query string = " + query);
+
+      ConceptMapResultList filteredMaps;
+
+      SearchCriteria criteria = new SearchCriteria();
+      // Set as high as we can, should not be more than 10000 in reality.
+      criteria.setPageSize(10000);
+      criteria.setFromRecord(0);
+
+      filteredMaps = esSearchService.findConceptMappings(query, criteria);
+      final List<Mappings> allMaps = filteredMaps.getMaps();
+
+      if (!allMaps.isEmpty()) {
+        final Mappings map = allMaps.get(0);
+        params.addParameter("result", true);
+        final Parameters.ParametersParameterComponent property =
+            new Parameters.ParametersParameterComponent().setName("match");
+        property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
+        if (reverse != null && reverse.getValue()) {
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
+        } else {
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
         }
+        params.addParameter(property);
       }
       if (!params.hasParameter()) {
         params.addParameter("result", false);
@@ -201,20 +185,24 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @param request the request
    * @param response the response
    * @param details the details
-   * @param url the url
-   * @param conceptMap the concept map
-   * @param conceptMapVersion the concept map version
-   * @param code the code
-   * @param system the system
-   * @param version the version
-   * @param source the source
-   * @param coding the coding
-   * @param codeableConcept the codeable concept
-   * @param target the target
-   * @param targetsystem the targetsystem
-   * @param dependency_element the dependency element
-   * @param dependency_concept the dependency concept
-   * @param reverse the reverse
+   * @param url A canonical URL for a concept map. The server must know the concept map.
+   * @param conceptMap the concept map, The concept map is provided directly as part of the request.
+   *     Servers may choose not to accept concept maps in this fashion.
+   * @param conceptMapVersion The identifier that is used to identify a specific version of the
+   *     concept map to be used for the translation.
+   * @param code The code that is to be translated. If a code is provided, a system must be provided
+   * @param system The system for the code that is to be translated
+   * @param version The version of the system, if one was provided in the source data
+   * @param source Identifies the value set used when the concept (system/code pair) was chosen.
+   *     Optional because user may not always know it
+   * @param coding A coding to translate
+   * @param codeableConcept A full codeableConcept to validate.
+   * @param target Identifies the value set in which a translation is sought. If there's no target
+   *     specified, the server should return all known translations, along with their source
+   * @param targetSystem identifies a target code system in which a mapping is sought. This
+   *     parameter is an alternative to the target parameter.
+   * @param dependency the element for the dependency, may help produce the correct mapping
+   * @param reverse This parameter reverses the meaning of the source and target parameters
    * @return the parameters
    * @throws Exception the exception
    *     <p>no support for dependency parameter
@@ -227,18 +215,17 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final HttpServletResponse response,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-      @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
+      //      @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "source") final UriType source,
-      @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      //      @OperationParam(name = "coding") final Coding coding,
+      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       @OperationParam(name = "target") final UriType target,
-      @OperationParam(name = "targetsystem") final UriType targetsystem,
-      @OperationParam(name = "dependency.element") final UriType dependency_element,
-      @OperationParam(name = "dependency.concept") final CodeableConcept dependency_concept,
+      @OperationParam(name = "targetSystem") final UriType targetSystem,
+      //      @OperationParam(name = "dependency") final UriType dependency,
       @OperationParam(name = "reverse", type = BooleanType.class) final BooleanType reverse)
       throws Exception {
     // check if request is a post, throw exception as we don't support post calls
@@ -249,74 +236,51 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR4.required("code", code);
-      FhirUtilityR4.notSupported("conceptMap", conceptMap);
-      FhirUtilityR4.notSupported("conceptMapVersion", conceptMapVersion);
-      FhirUtilityR4.notSupported("coding", coding);
-      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
-      FhirUtilityR4.notSupported("targetsystem", targetsystem);
-      FhirUtilityR4.notSupported("dependency_element", dependency_element);
-      FhirUtilityR4.notSupported("dependency_concept", dependency_concept);
-      codeToTranslate = code.getCode().toLowerCase();
+      FhirUtilityR4.mutuallyRequired("code", code, "system", system);
+      FhirUtilityR4.mutuallyExclusive("target", target, "targetSystem", targetSystem);
+
       final Parameters params = new Parameters();
-      final List<ConceptMap> cm =
-          findPossibleConceptMaps(null, null, system, url, version, source, target);
-      for (final ConceptMap mapping : cm) {
-        final List<Mappings> maps =
-            esQueryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
-        List<Mappings> filteredMaps = new ArrayList<>();
+      // Extract the mapsetCode from the system uri
+      String systemUri = system.getValue();
+      final String mapsetCode = systemUri.substring(systemUri.lastIndexOf("fhir_cm=") + 8);
+
+      // Build a string query to search for the code/target
+      String query = buildFhirQueryString(code, target, mapsetCode, reverse, "AND");
+      logger.debug("   Fhir query string = " + query);
+
+      //      final List<ConceptMap> cm =
+      //          findPossibleConceptMaps(null, null, system, url, version, source, target);
+      ConceptMapResultList filteredMaps;
+
+      SearchCriteria criteria = new SearchCriteria();
+      // Set as high as we can, should not be more than 10000 in reality.
+      criteria.setPageSize(10000);
+      criteria.setFromRecord(0);
+
+      filteredMaps = esSearchService.findConceptMappings(query, criteria);
+      final List<Mappings> allMaps = filteredMaps.getMaps();
+
+      if (!allMaps.isEmpty()) {
+        final Mappings map = allMaps.get(0);
+        params.addParameter("result", true);
+        final Parameters.ParametersParameterComponent property =
+            new Parameters.ParametersParameterComponent().setName("match");
+        property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
         if (reverse != null && reverse.getValue()) {
-          filteredMaps =
-              maps.stream()
-                  .filter(
-                      m ->
-                          m.getTargetCode().toLowerCase().contains(codeToTranslate)
-                              || m.getTargetName()
-                                  .toLowerCase()
-                                  .matches("^" + Pattern.quote(codeToTranslate) + ".*")
-                              || m.getTargetName()
-                                  .toLowerCase()
-                                  .matches(".*\\b" + Pattern.quote(codeToTranslate) + ".*"))
-                  .collect(Collectors.toList());
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
         } else {
-          filteredMaps =
-              maps.stream()
-                  .filter(
-                      m ->
-                          m.getSourceCode().toLowerCase().contains(codeToTranslate)
-                              || m.getSourceName()
-                                  .toLowerCase()
-                                  .matches("^" + Pattern.quote(codeToTranslate) + ".*")
-                              || m.getSourceName()
-                                  .toLowerCase()
-                                  .matches(".*\\b" + Pattern.quote(codeToTranslate) + ".*"))
-                  .collect(Collectors.toList());
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
         }
 
-        if (filteredMaps.size() > 0) {
-          final Mappings map = filteredMaps.get(0);
-          params.addParameter("result", true);
-          final Parameters.ParametersParameterComponent property =
-              new Parameters.ParametersParameterComponent().setName("match");
-          property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
-          if (reverse != null && reverse.getValue()) {
-            property
-                .addPart()
-                .setName("concept")
-                .setValue(
-                    new Coding(
-                        map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
-          } else {
-            property
-                .addPart()
-                .setName("concept")
-                .setValue(
-                    new Coding(
-                        map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
-          }
-
-          params.addParameter(property);
-        }
+        params.addParameter(property);
       }
       if (!params.hasParameter()) {
         params.addParameter("result", false);
@@ -375,9 +339,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       for (final Concept mapset : mapsets) {
         final List<Property> props = mapset.getProperties();
         if (props.stream()
-            .filter(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))
-            .findAny()
-            .isPresent()) {
+            .anyMatch(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))) {
           continue;
         }
         final ConceptMap cm = FhirUtilityR4.toR4(mapset);
@@ -453,9 +415,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       for (final Concept mapset : mapsets) {
         final List<Property> props = mapset.getProperties();
         if (props.stream()
-            .filter(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))
-            .findAny()
-            .isPresent()) {
+            .anyMatch(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))) {
           continue;
         }
         final ConceptMap cm = FhirUtilityR4.toR4(mapset);
@@ -535,6 +495,63 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       logger.error("Unexpected exception", e);
       throw FhirUtilityR4.exception(
           "Failed to get concept map", OperationOutcome.IssueType.EXCEPTION, 500);
+    }
+  }
+
+  /**
+   * Helper method for building a FHIR query string. If the code is not null, it will return a query
+   *
+   * @param code the code being translated
+   * @param mapsetCode target value set to be used for translations. Extracted from system uri
+   * @param operator the operator to use for the query
+   * @return
+   */
+  private String buildFhirQueryString(
+      CodeType code, UriType target, String mapsetCode, BooleanType reverse, String operator)
+      throws Exception {
+    // Check the required parameter is provided
+    if (code == null && target == null) {
+      throw FhirUtilityR4.exception(
+          "Either code or target parameter is required", OperationOutcome.IssueType.REQUIRED, 400);
+    }
+    List<String> clauses = new ArrayList<>();
+    if (code != null) {
+      if (mapsetCode != null) {
+        if (reverse != null && reverse.getValue()) {
+          // compose query string for code, mapsetCode and reverse
+          clauses.add("code:\"" + escape(code.getCode()) + "\"");
+          clauses.add("mapsetCode:\"" + escape(mapsetCode) + "\"");
+          clauses.add("reverse:\"" + reverse + "\"");
+          return ConceptUtils.composeQuery(operator, clauses);
+        } else {
+          // compose query string for code and mapsetCode
+          clauses.add("code:\"" + escape(code.getCode()) + "\"");
+          clauses.add("mapsetCode:\"" + escape(mapsetCode) + "\"");
+          return ConceptUtils.composeQuery(operator, clauses);
+        }
+      } else {
+        // return query string for code
+        return "code:\"" + escape(code.getCode()) + "\"";
+      }
+    } else {
+      // We should have a target code, build the query string for the target code
+      if (mapsetCode != null) {
+        if (reverse != null && reverse.getValue()) {
+          // compose query string for target, mapsetCode, and reverse
+          clauses.add("target:\"" + escape(target.getValue()) + "\"");
+          clauses.add("mapsetCode:\"" + escape(mapsetCode) + "\"");
+          clauses.add("reverse:\"" + reverse + "\"");
+          return ConceptUtils.composeQuery(operator, clauses);
+        } else {
+          // compose query string for target and mapsetCode
+          clauses.add("target:\"" + escape(target.getValue()) + "\"");
+          clauses.add("mapsetCode:\"" + escape(mapsetCode) + "\"");
+          return ConceptUtils.composeQuery(operator, clauses);
+        }
+      } else {
+        // compose query string for code
+        return "target:\"" + escape(target.getValue()) + "\"";
+      }
     }
   }
 }
