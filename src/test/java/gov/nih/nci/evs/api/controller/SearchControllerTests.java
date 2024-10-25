@@ -1,9 +1,9 @@
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -17,12 +17,15 @@ import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,13 +34,13 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /** Integration tests for SearchController. */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
@@ -65,7 +68,7 @@ public class SearchControllerTests {
   private String baseUrlNoTerm = "";
 
   /** Sets the up. */
-  @Before
+  @BeforeEach
   public void setUp() {
     /*
      * Configure the JacksonTester object
@@ -4013,6 +4016,116 @@ public class SearchControllerTests {
                     .param("pageSize", "1001"))
             .andExpect(status().isBadRequest())
             .andReturn();
+  }
+
+  /**
+   * Test search all ncit.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearctAllNcit() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    url = baseUrl;
+    int fromRecord = 0;
+    int pageSize = 500;
+    long total = 0;
+    final List<String> codes = new ArrayList<>();
+    while (true) {
+      log.info(
+          "Testing url - "
+              + url
+              + "?terminology=ncit&fromRecord="
+              + fromRecord
+              + "&pageSize="
+              + pageSize);
+      // Test a basic term search
+      result =
+          this.mvc
+              .perform(
+                  get(url)
+                      .param("terminology", "ncit")
+                      .param("fromRecord", "" + fromRecord)
+                      .param("pageSize", "" + pageSize))
+              .andExpect(status().isOk())
+              .andReturn();
+      content = result.getResponse().getContentAsString();
+      assertThat(content).isNotNull();
+      list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      total = list.getTotal();
+      if (list.getConcepts() == null || list.getConcepts().isEmpty()) {
+        log.info("  done reading");
+        break;
+      }
+      codes.addAll(list.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
+      fromRecord += pageSize;
+    }
+
+    // Verify no duplicate codes
+    final Set<String> codeSet = new HashSet<>(codes);
+    assertThat(codeSet.size()).isEqualTo(codes.size());
+    assertThat(total).isEqualTo(codeSet.size());
+    assertThat((long) fromRecord).isGreaterThan(total);
+  }
+
+  /**
+   * Test searct all ncit with sort. This is separate from the prior test because we want to verify
+   * that both "rank" sort and a fielded sort behave the same way with respect to this paging stuff.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearctAllNcitWithSort() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    url = baseUrl;
+    int fromRecord = 0;
+    int pageSize = 500;
+    long total = 0;
+    final List<String> codes = new ArrayList<>();
+    while (true) {
+      log.info(
+          "Testing url - "
+              + url
+              + "?terminology=ncit&sort=code&fromRecord="
+              + fromRecord
+              + "&pageSize="
+              + pageSize);
+      // Test a basic term search
+      result =
+          this.mvc
+              .perform(
+                  get(url)
+                      .param("sort", "code")
+                      .param("terminology", "ncit")
+                      .param("fromRecord", "" + fromRecord)
+                      .param("pageSize", "" + pageSize))
+              .andExpect(status().isOk())
+              .andReturn();
+      content = result.getResponse().getContentAsString();
+      assertThat(content).isNotNull();
+      list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      total = list.getTotal();
+      if (list.getConcepts() == null || list.getConcepts().isEmpty()) {
+        log.info("  done reading");
+        break;
+      }
+      codes.addAll(list.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
+      fromRecord += pageSize;
+    }
+
+    // Verify no duplicate codes
+    final Set<String> codeSet = new HashSet<>(codes);
+    assertThat(codeSet.size()).isEqualTo(codes.size());
+    assertThat(total).isEqualTo(codeSet.size());
+    assertThat((long) fromRecord).isGreaterThan(total);
   }
 
   /**

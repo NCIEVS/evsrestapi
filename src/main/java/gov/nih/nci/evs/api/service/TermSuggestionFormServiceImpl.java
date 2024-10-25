@@ -37,6 +37,9 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
   // path for the form file
   URL formFilePath;
 
+  /** The object mapper to read the config url with readTree. */
+  private final ObjectMapper mapper;
+
   /**
    * Constructor: Instantiates dependencies.
    *
@@ -44,9 +47,12 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @param applicationProperties the application properties
    */
   public TermSuggestionFormServiceImpl(
-      final JavaMailSender mailSender, final ApplicationProperties applicationProperties) {
+      final JavaMailSender mailSender,
+      final ApplicationProperties applicationProperties,
+      ObjectMapper mapper) {
     this.mailSender = mailSender;
     this.applicationProperties = applicationProperties;
+    this.mapper = mapper;
   }
 
   /**
@@ -69,7 +75,6 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       formFilePath = new URL(applicationProperties.getConfigBaseUri() + "/" + formType + ".json");
     }
     // Create objectMapper. Read file and return JsonNode
-    final ObjectMapper mapper = new ObjectMapper();
     JsonNode termForm = mapper.readTree(formFilePath);
     // Get the recaptcha_site_key from application properties
     String recaptchaSiteKey = applicationProperties.getRecaptchaSiteKey();
@@ -79,6 +84,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       ((ObjectNode) termForm).put("recaptchaSiteKey", recaptchaSiteKey);
     } else {
       logger.error("Cannot add recaptcha site key. Form template is not a JSON object.");
+      throw new IllegalArgumentException("Invalid form template.");
     }
 
     return termForm;
@@ -98,22 +104,30 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       final String starttls = mailProperties.getProperty("mail.smtp.starttls.enable");
       // check we want to start the tls
       if ("false".equals(starttls)) {
-        return; // do nothing
+        throw new MessagingException(
+            "Unable to start TLS to send on a secure connection, aborting send email");
       }
     }
-    // Create the MimeMessage
-    final MimeMessage message = mailSender.createMimeMessage();
-    logger.info(
-        "   Sending email for {} form to {}", emailDetails.getSource(), emailDetails.getToEmail());
-    // Set the email details
-    message.setRecipients(RecipientType.TO, emailDetails.getToEmail());
-    message.setFrom(new InternetAddress(emailDetails.getFromEmail()));
-    message.setSubject(emailDetails.getSubject());
-    if (emailDetails.getMsgBody().contains("<html")) {
-      message.setContent(emailDetails.getMsgBody(), "text/html; charset=utf-8");
-    } else {
-      message.setText(String.valueOf(emailDetails.getMsgBody()));
+    try {
+      // Create the MimeMessage
+      final MimeMessage message = mailSender.createMimeMessage();
+      logger.info(
+          "   Sending email for {} form to {}",
+          emailDetails.getSource(),
+          emailDetails.getToEmail());
+      // Set the email details
+      message.setRecipients(RecipientType.TO, emailDetails.getToEmail());
+      message.setFrom(new InternetAddress(emailDetails.getFromEmail()));
+      message.setSubject(emailDetails.getSubject());
+      if (emailDetails.getMsgBody().contains("<html")) {
+        message.setContent(emailDetails.getMsgBody(), "text/html; charset=utf-8");
+      } else {
+        message.setText(String.valueOf(emailDetails.getMsgBody()));
+      }
+      mailSender.send(message);
+    } catch (MessagingException e) {
+      logger.error(e.getMessage());
+      throw new MessagingException("Failed to send email, {}", e);
     }
-    mailSender.send(message);
   }
 }

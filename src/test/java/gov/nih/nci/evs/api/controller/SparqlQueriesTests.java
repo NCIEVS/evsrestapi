@@ -1,6 +1,6 @@
 package gov.nih.nci.evs.api.controller;
 
-import static org.junit.Assert.fail;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import java.io.InputStream;
 import java.util.HashSet;
@@ -12,15 +12,15 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.common.util.set.Sets;
-import org.junit.BeforeClass;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /** Integration tests for SearchController. */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 // @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class SparqlQueriesTests {
 
@@ -35,7 +35,7 @@ public class SparqlQueriesTests {
    *
    * @throws Exception the exception
    */
-  @BeforeClass
+  @BeforeAll
   public static void setup() throws Exception {
     prop = new Properties();
     try (final InputStream is =

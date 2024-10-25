@@ -1,4 +1,4 @@
-buildscript {
+ buildscript {
   ext {
     springBootVersion = '2.7.17'
     // Remove this line to see what version is favored by springBootVersion
@@ -56,7 +56,7 @@ ext {
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
-version = "1.10.0.RELEASE"
+version = "2.0.0.RELEASE"
 
 sourceCompatibility = 17
 targetCompatibility = 17
@@ -78,7 +78,7 @@ dependencies {
 
   // Use version 2 with spring boot 3
   // custom location => springdoc.swagger-ui.path=/swagger-ui/index.html
-  implementation("org.springdoc:springdoc-openapi-ui:1.8.0") {
+  implementation('org.springdoc:springdoc-openapi-ui:1.8.0') {
     exclude group: "org.webjars", module: "swagger-ui"
   }
   implementation 'org.springframework.boot:spring-boot-starter-web'
@@ -112,7 +112,10 @@ dependencies {
   implementation('com.fasterxml.jackson.core:jackson-core:2.15.2') {
     exclude group: 'com.google.guava', module: 'guava'
   }
-  implementation("ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.8.3") {
+  implementation('ca.uhn.hapi.fhir:hapi-fhir-structures-r4:6.8.3') {
+    exclude group: "com.google.guava", module: "guava"
+  }
+  implementation('ca.uhn.hapi.fhir:hapi-fhir-structures-r5:6.8.3') {
     exclude group: "com.google.guava", module: "guava"
   }
   implementation("ca.uhn.hapi.fhir:hapi-fhir-server:6.8.3") {
@@ -144,15 +147,18 @@ dependencies {
    * Test Dependencies
   */
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
-  testImplementation 'junit:junit:4.13.1'
-  testRuntimeOnly "org.junit.platform:junit-platform-commons:1.7.0"
-  testRuntimeOnly "org.junit.platform:junit-platform-runner:1.7.0"
+  testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.3'
+  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
+  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
+  testRuntimeOnly 'org.junit.platform:junit-platform-commons:1.9.3'
+  testRuntimeOnly 'org.junit.platform:junit-platform-runner:1.9.3'
   testCompileOnly 'org.projectlombok:lombok:1.18.32'
   testAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
 
 }
 
 test {
+  useJUnitPlatform{}
   // Args to pass when running the tests to ensure the cglib can be accessed and avoid InaccessibleObjectException
   jvmArgs('-Xmx8G', '--add-opens', 'java.base/java.lang=ALL-UNNAMED')
   // Set the active profile to use our application-test.yml file from test resources
@@ -241,3 +247,7 @@ bootJar {
 zipFile.dependsOn = [bootWar, bootJar]
 build.dependsOn = [spotlessCheck, test, bootWar, bootJar, zipFile]
 publishToMavenLocal.dependsOn = [bootWar, bootJar, zipFile]
+
+dependencyLocking {
+  lockAllConfigurations()
+}

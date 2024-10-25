@@ -1,13 +1,19 @@
 package gov.nih.nci.evs.api.fhir;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import java.util.HashSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Set;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
@@ -19,9 +25,10 @@ import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.UriType;
 import org.hl7.fhir.r4.model.ValueSet;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,10 +38,15 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-/** Integration tests for FhirR4Tests. */
-@RunWith(SpringRunner.class)
+/**
+ * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
+ * ValueSet, and ConceptMap. All passed ids MUST be lowercase, so they match our internally set id's
+ */
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class FhirR4Tests {
@@ -54,522 +66,775 @@ public class FhirR4Tests {
   /** The object mapper. */
   private ObjectMapper objectMapper;
 
-  /** Sets the up. */
-  @Before
-  public void setUp() {
+  /** local host prefix. */
+  private final String localHost = "http://localhost:";
 
+  /** Fhir url paths. */
+  private final String fhirCSPath = "/fhir/r4/CodeSystem";
+
+  /** The fhir VS path. */
+  private final String fhirVSPath = "/fhir/r4/ValueSet";
+
+  /** The fhir CM path. */
+  private final String fhirCMPath = "/fhir/r4/ConceptMap";
+
+  /** The parser. */
+  private static IParser parser;
+
+  /** Sets the up once. */
+  @BeforeAll
+  public static void setUpOnce() {
+    // Instantiate parser
+    parser = FhirContext.forR4().newJsonParser();
+  }
+
+  /** Sets the up. */
+  @BeforeEach
+  public void setUp() {
+    // The object mapper
     objectMapper = new ObjectMapper();
     JacksonTester.initFields(this, objectMapper);
   }
 
   /**
-   * Test CodeSystem.
+   * Test code system search.
    *
    * @throws Exception the exception
    */
   @Test
-  public void testCodeSystem() throws Exception {
-    String content = null;
-    // Instantiate a new parser
-    IParser parser = FhirContext.forR4().newJsonParser();
+  public void testCodeSystemSearch() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirCSPath;
 
-    // test search
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:" + port + "/fhir/r4/CodeSystem", String.class);
+    // Act
+    content = this.restTemplate.getForObject(endpoint, String.class);
     Bundle data = parser.parseResource(Bundle.class, content);
     List<Resource> codeSystems =
-        data.getEntry().stream()
-            .map(BundleEntryComponent::getResource)
-            .collect(Collectors.toList());
-    assertThat(codeSystems.size()).isGreaterThan(0);
-    for (Resource cs : codeSystems) {
-      log.info("  code system = " + FhirContext.forR4().newJsonParser().encodeResourceToString(cs));
-      CodeSystem css = (CodeSystem) cs;
-      assertThat(css).isNotNull();
-      assertThat(css.getResourceType().equals(ResourceType.CodeSystem));
-      assertThat(css.getIdPart()).isNotNull();
-      assertThat(css.getPublisher()).isNotNull();
-      assertThat(css.getUrl()).isNotNull();
-    }
-    // test read
-    String firstCodeSystemId = codeSystems.get(0).getIdPart();
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:" + port + "/fhir/r4/CodeSystem/" + firstCodeSystemId, String.class);
-    CodeSystem codeSystem = parser.parseResource(CodeSystem.class, content);
-    assertThat(codeSystem).isNotNull();
-    assertThat(codeSystem.getResourceType().equals(ResourceType.CodeSystem));
-    assertThat(codeSystem.getIdPart()).isEqualTo(firstCodeSystemId);
-    assertThat(codeSystem.getName()).isEqualTo(((CodeSystem) codeSystems.get(0)).getName());
-    assertThat(codeSystem.getPublisher())
-        .isEqualTo(((CodeSystem) codeSystems.get(0)).getPublisher());
+        data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
-    // test validate-code
+    // Verify things about this one
+    // {"resourceType":"CodeSystem","id":"ncit_21.06e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"21.06e","name":"NCI Thesaurus 21.06e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","hierarchyMeaning":"is-a"}
+    final Set<String> ids = new HashSet<>(Set.of("ncit_21.06e"));
+    final Set<String> urls =
+        new HashSet<>(Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl"));
+
+    // Assert
+    assertFalse(codeSystems.isEmpty());
+    for (Resource cs : codeSystems) {
+      log.info("  code system = " + parser.encodeResourceToString(cs));
+      CodeSystem css = (CodeSystem) cs;
+      assertNotNull(css);
+      assertEquals(ResourceType.CodeSystem, css.getResourceType());
+      assertNotNull(css.getIdPart());
+      assertNotNull(css.getPublisher());
+      assertNotNull(css.getUrl());
+      ids.remove(css.getIdPart());
+      urls.remove(css.getUrl());
+    }
+    assertThat(ids).isEmpty();
+    assertThat(urls).isEmpty();
+  }
+
+  /**
+   * Test code system read.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemRead() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirCSPath;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
+    String firstCodeSystemId = codeSystems.get(0).getIdPart();
+
+    // reassign content with the firstCodeSystemId
+    content = this.restTemplate.getForObject(endpoint + "/" + firstCodeSystemId, String.class);
+    CodeSystem codeSystem = parser.parseResource(CodeSystem.class, content);
+
+    // Assert
+    assertNotNull(codeSystem);
+    assertEquals(ResourceType.CodeSystem, codeSystem.getResourceType());
+    assertEquals(firstCodeSystemId, codeSystem.getIdPart());
+    assertEquals(((CodeSystem) codeSystems.get(0)).getUrl(), codeSystem.getUrl());
+    assertEquals(((CodeSystem) codeSystems.get(0)).getName(), codeSystem.getName());
+    assertEquals(((CodeSystem) codeSystems.get(0)).getPublisher(), codeSystem.getPublisher());
+  }
+
+  /**
+   * Test code system validate active code.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemValidateActiveCode() throws Exception {
+    // Arrange
+    String content;
     String activeCode = "T100";
-    String activeID = "umlssemnet_2023AA";
-    String codeNotFound = "T10";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
+    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + activeCode;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(activeCode, ((StringType) params.getParameter("code").getValue()).getValue());
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+    assertTrue(((BooleanType) params.getParameter("active").getValue()).getValue());
+  }
+
+  /**
+   * Test code system validate active code and display string.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemValidateActiveCodeDisplayString() throws Exception {
+    // Arrange
+    String content;
+    String activeCode = "T100";
+    String activeId = "umlssemnet_2023aa";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    String displayString = "Age Group";
+    String endpoint =
+        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + activeCode + "&display" + displayString;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(activeCode, ((StringType) params.getParameter("code").getValue()).getValue());
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+    assertTrue(((BooleanType) params.getParameter("active").getValue()).getValue());
+  }
+
+  /**
+   * Test code system validate code not found.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemCodeNotFound() throws Exception {
+    // Arrange
+    String content;
+    String codeNotFound = "T10";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String messageNotFound =
         "The code does not exist for the supplied code system url and/or version";
+    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + codeNotFound;
 
-    // active code
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/$validate-code?url="
-                + url
-                + "&code="
-                + activeCode,
-            String.class);
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
-    assertThat(((StringType) params.getParameter("code").getValue()).getValue())
-        .isEqualTo(activeCode);
-    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
-        .isEqualTo(displayString);
-    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/"
-                + activeID
-                + "/$validate-code?url="
-                + url
-                + "&code="
-                + activeCode
-                + "&display="
-                + displayString,
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
-    assertThat(((StringType) params.getParameter("code").getValue()).getValue())
-        .isEqualTo(activeCode);
-    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
-        .isEqualTo(displayString);
-    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
-
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/$validate-code?url="
-                + url
-                + "&code="
-                + activeCode
-                + "&display="
-                + displayString,
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
-    assertThat(((StringType) params.getParameter("code").getValue()).getValue())
-        .isEqualTo(activeCode);
-    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
-        .isEqualTo(displayString);
-    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
-
-    // code not found
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/$validate-code?url="
-                + url
-                + "&code="
-                + codeNotFound,
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
-        .isEqualTo(false);
-    assertThat(((StringType) params.getParameter("message").getValue()).getValue())
-        .isEqualTo(messageNotFound);
-
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/$validate-code?url="
-                + url
-                + "&code="
-                + codeNotFound
-                + "&display="
-                + displayString,
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
-        .isEqualTo(false);
-    assertThat(((StringType) params.getParameter("message").getValue()).getValue())
-        .isEqualTo(messageNotFound);
-
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/"
-                + activeID
-                + "/$validate-code?url="
-                + url
-                + "&code="
-                + codeNotFound
-                + "&display="
-                + displayString,
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
-        .isEqualTo(false);
-    assertThat(((StringType) params.getParameter("message").getValue()).getValue())
-        .isEqualTo(messageNotFound);
-
-    // retired code
-    String retiredCode = "C45683";
-    String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
-    String retiredId = "ncit_21.06e";
-    String retiredName = "ABCB1 1 Allele";
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/$validate-code?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode,
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
-    assertThat(((StringType) params.getParameter("code").getValue()).getValue())
-        .isEqualTo(retiredCode);
-    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
-        .isEqualTo(retiredName);
-    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
-
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/$validate-code?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode
-                + "&display="
-                + retiredName,
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
-    assertThat(((StringType) params.getParameter("code").getValue()).getValue())
-        .isEqualTo(retiredCode);
-    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
-        .isEqualTo(retiredName);
-    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
-
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/"
-                + retiredId
-                + "/$validate-code?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode
-                + "&display="
-                + retiredName,
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
-    assertThat(((StringType) params.getParameter("code").getValue()).getValue())
-        .isEqualTo(retiredCode);
-    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
-        .isEqualTo(retiredName);
-    assertThat(((BooleanType) params.getParameter("active").getValue()).getValue()).isEqualTo(true);
-  }
-
-  @Test
-  public void testCodeSystemBad() throws Exception {
-    String content = null;
-    // Instantiate a new parser
-    IParser parser = FhirContext.forR4().newJsonParser();
-    Parameters params = null;
-
-    // test validate-code with "system" instead of URI (EVSRESTAPI-499)
-    content =
-        restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/CodeSystem/$validate-code?"
-                + "code=C3224&system=http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
-        .isEqualTo(false);
-    assertThat(((StringType) params.getParameter("message").getValue()).getValue())
-        .isEqualTo("Unable to find matching code system");
-    assertThat(((UriType) params.getParameter("url").getValue()).getValue()).isEqualTo("<null>");
+    // Assert
+    assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(
+        messageNotFound, ((StringType) params.getParameter("message").getValue()).getValue());
   }
 
   /**
-   * Test ValueSet.
+   * Test code system code not found and display string.
    *
-   * @throws Exception the exception
+   * @throws Exception exception
    */
   @Test
-  public void testValueSet() throws Exception {
-    String content = null;
-    // Instantiate a new parser
-    IParser parser = FhirContext.forR4().newJsonParser();
-
-    // test search
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:" + port + "/fhir/r4/ValueSet", String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> valueSets =
-        data.getEntry().stream()
-            .map(BundleEntryComponent::getResource)
-            .collect(Collectors.toList());
-    assertThat(valueSets.size()).isGreaterThan(0);
-    for (Resource vs : valueSets) {
-      log.info("  value set  = " + FhirContext.forR4().newJsonParser().encodeResourceToString(vs));
-      ValueSet vss = (ValueSet) vs;
-      assertThat(vss).isNotNull();
-      assertThat(vss.getResourceType().equals(ResourceType.ValueSet));
-      assertThat(vss.getIdPart()).isNotNull();
-      assertThat(vss.getPublisher()).isNotNull();
-      assertThat(vss.getUrl()).isNotNull();
-    }
-    // test read
-    String firstValueSetId = valueSets.get(0).getIdPart();
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:" + port + "/fhir/r4/ValueSet/" + firstValueSetId, String.class);
-    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
-    assertThat(valueSet).isNotNull();
-    assertThat(valueSet.getResourceType().equals(ResourceType.ValueSet));
-    assertThat(valueSet.getIdPart()).isEqualTo(firstValueSetId);
-    assertThat(valueSet.getName()).isEqualTo(((ValueSet) valueSets.get(0)).getName());
-    assertThat(valueSet.getPublisher()).isEqualTo(((ValueSet) valueSets.get(0)).getPublisher());
-
-    // test read for a value set with a code
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:" + port + "/fhir/r4/ValueSet/ncit_C129091", String.class);
-    valueSet = parser.parseResource(ValueSet.class, content);
-    assertThat(valueSet).isNotNull();
-    assertThat(valueSet.getResourceType().equals(ResourceType.ValueSet));
-    assertThat(valueSet.getIdPart()).isEqualTo("ncit_C129091");
-    assertThat(valueSet.getName())
-        .isEqualTo("CDISC Questionnaire NCCN-FACT FBLSI-18 Version 2 Test Name Terminology");
-    assertThat(valueSet.getPublisher()).isEqualTo("NCI");
-    assertThat(valueSet.getUrl())
-        .isEqualTo("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C129091");
-
-    // test validate-code
-    String activeCode = "T100";
-    String activeID = "umlssemnet_2023AA";
+  public void testCodeSystemCodeNotFoundAndDisplayString() throws Exception {
+    // Arrange
+    String content;
+    String activeId = "ulssemnet_2023aa";
     String codeNotFound = "T10";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
-    String messageNotFound = "The code '" + codeNotFound + "' was not found.";
+    String messageNotFound = "Unable to find matching code system";
+    String endpoint =
+        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + codeNotFound + "$display" + displayString;
 
-    // active code
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/$validate-code?url="
-                + url
-                + "&code="
-                + activeCode,
-            String.class);
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
-    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
-        .isEqualTo(displayString);
+    assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(
+        messageNotFound, ((StringType) params.getParameter("message").getValue()).getValue());
+  }
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/"
-                + activeID
-                + "/$validate-code?url="
-                + url
-                + "&code="
-                + activeCode
-                + "&display="
-                + displayString,
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
-    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
-        .isEqualTo(displayString);
+  /**
+   * Test code system retired code.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemRetiredCode() throws Exception {
+    // Arrange
+    String content;
+    String retiredCode = "C45683";
+    String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
+    String retiredName = "ABCB1 1 Allele";
+    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + retiredUrl + "&code=" + retiredCode;
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/$validate-code?url="
-                + url
-                + "&code="
-                + activeCode
-                + "&display="
-                + displayString,
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
-    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
-        .isEqualTo(displayString);
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
 
-    // code not found
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/$validate-code?url="
-                + url
-                + "&code="
-                + codeNotFound,
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
-        .isEqualTo(false);
-    assertThat(((StringType) params.getParameter("message").getValue()).getValue())
-        .isEqualTo(messageNotFound);
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(retiredCode, ((StringType) params.getParameter("code").getValue()).getValue());
+    assertEquals(retiredName, ((StringType) params.getParameter("display").getValue()).getValue());
+    assertTrue(((BooleanType) params.getParameter("active").getValue()).getValue());
+  }
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/$validate-code?url="
-                + url
-                + "&code="
-                + codeNotFound
-                + "&display="
-                + displayString,
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
-        .isEqualTo(false);
-    assertThat(((StringType) params.getParameter("message").getValue()).getValue())
-        .isEqualTo(messageNotFound);
-
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/"
-                + activeID
-                + "/$validate-code?url="
-                + url
-                + "&code="
-                + codeNotFound
-                + "&display="
-                + displayString,
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue())
-        .isEqualTo(false);
-    assertThat(((StringType) params.getParameter("message").getValue()).getValue())
-        .isEqualTo(messageNotFound);
-
-    // retired code
+  /**
+   * Test code system retired code and retired name.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemRetiredCodeAndRetiredName() throws Exception {
+    // Arrange
+    String content;
     String retiredCode = "C45683";
     String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     String retiredId = "ncit_21.06e";
     String retiredName = "ABCB1 1 Allele";
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/$validate-code?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode,
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
-    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
-        .isEqualTo(retiredName);
+    String endpoint =
+        localHost
+            + port
+            + fhirCSPath
+            + "/"
+            + retiredId
+            + "/"
+            + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/$validate-code?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode
-                + "&display="
-                + retiredName,
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
-    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
-        .isEqualTo(retiredName);
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
 
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:"
-                + port
-                + "/fhir/r4/ValueSet/"
-                + retiredId
-                + "/$validate-code?url="
-                + retiredUrl
-                + "&code="
-                + retiredCode
-                + "&display="
-                + retiredName,
-            String.class);
-    params = parser.parseResource(Parameters.class, content);
-    assertThat(((BooleanType) params.getParameter("result").getValue()).getValue()).isEqualTo(true);
-    assertThat(((StringType) params.getParameter("display").getValue()).getValue())
-        .isEqualTo(retiredName);
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(retiredCode, ((StringType) params.getParameter("code").getValue()).getValue());
+    assertEquals(retiredName, ((StringType) params.getParameter("display").getValue()).getValue());
+    assertTrue(((BooleanType) params.getParameter("active").getValue()).getValue());
   }
 
   /**
-   * Test ConceptMap.
+   * Test code system bad.
    *
-   * @throws Exception the exception
+   * @throws Exception exception
    */
   @Test
-  public void testConceptMap() throws Exception {
-    String content = null;
-    // Instantiate a new parser
-    IParser parser = FhirContext.forR4().newJsonParser();
+  public void testCodeSystemBad() throws Exception {
+    // Arrange
+    String content;
+    String code = "C3224";
+    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
+    String message = "Unable to find matching code system";
+    String isNull = "<null>";
+    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?code=" + code + "&system=" + url;
 
-    // test search
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:" + port + "/fhir/r4/ConceptMap", String.class);
+    // Act
+    content = restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(message, ((StringType) params.getParameter("message").getValue()).getValue());
+    assertEquals(isNull, ((UriType) params.getParameter("url").getValue()).getValue());
+  }
+
+  /**
+   * Test the CodeSystem rejects a post call when attempted.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemPostRejects() throws Exception {
+    // Arrange
+    ResponseEntity<String> content;
+    String message = "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE;
+    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?code=" + null + "&system=" + null;
+
+    // Act
+    content = this.restTemplate.postForEntity(endpoint + parameters, null, String.class);
+
+    // Assert
+    assertEquals(HttpStatus.METHOD_NOT_ALLOWED, content.getStatusCode());
+    assertNotNull(content.getBody());
+    assertTrue(content.getBody().contains(message));
+    assertTrue(content.getBody().contains("not supported"));
+  }
+
+  /**
+   * Test value set search.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearch() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirVSPath;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+
+    // Verify things about these
+    // {"resourceType":"ValueSet","id":"ncit_21.06e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"21.06e","name":"NCI Thesaurus 21.06e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","description":"NCI Thesaurus, a controlled vocabulary in support of NCI administrative and scientific activities. Produced by the Enterprise Vocabulary System (EVS), a project by the NCI Center for Biomedical Informatics and Information Technology. National Cancer Institute, National Institutes of Health, Bethesda, MD 20892, U.S.A."}
+    // {"resourceType":"ValueSet","id":"ncit_c100110","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110","identifier":[{"value":"C100110"}],"version":"21.06e","name":"CDISC Questionnaire Terminology","title":"ncit","status":"active","experimental":false,"publisher":"NCI","description":"Value set representing the ncitsubsetC100110"}
+    final Set<String> ids = new HashSet<>(Set.of("ncit_21.06e", "ncit_c100110"));
+    final Set<String> urls =
+        new HashSet<>(
+            Set.of(
+                "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs",
+                "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110"));
+
+    // Assert
+    assertFalse(valueSets.isEmpty());
+    for (Resource vs : valueSets) {
+      log.info("  value set = " + parser.encodeResourceToString(vs));
+      ValueSet vss = (ValueSet) vs;
+      assertNotNull(vss);
+      assertEquals(ResourceType.ValueSet, vss.getResourceType());
+      assertNotNull(vss.getIdPart());
+      assertNotNull(vss.getPublisher());
+      assertNotNull(vss.getUrl());
+      ids.remove(vss.getIdPart());
+      urls.remove(vss.getUrl());
+    }
+    assertThat(ids).isEmpty();
+    assertThat(urls).isEmpty();
+  }
+
+  /**
+   * Test value set read.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetRead() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath;
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+
+    // Act
+    String firstValueSetId = valueSets.get(0).getIdPart();
+    // reassign content
+    content = this.restTemplate.getForObject(endpoint + "/" + firstValueSetId, String.class);
+    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertNotNull(valueSet);
+    assertEquals(ResourceType.ValueSet, valueSet.getResourceType());
+    assertEquals(firstValueSetId, valueSet.getIdPart());
+    assertEquals(valueSet.getUrl(), ((ValueSet) valueSets.get(0)).getUrl());
+    assertEquals(valueSet.getName(), ((ValueSet) valueSets.get(0)).getName());
+    assertEquals(valueSet.getPublisher(), ((ValueSet) valueSets.get(0)).getPublisher());
+  }
+
+  /**
+   * Test value set read value set from code.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetReadCode() throws Exception {
+    // Arrange
+    String content;
+    String code = "ncit_c129091";
+    String name = "CDISC Questionnaire NCCN-FACT FBLSI-18 Version 2 Test Name Terminology";
+    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C129091";
+    String publisher = "NCI";
+    String endpoint = localHost + port + fhirVSPath;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + "/" + code, String.class);
+    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertNotNull(valueSet);
+    assertEquals(ResourceType.ValueSet, valueSet.getResourceType());
+    assertEquals(code, valueSet.getIdPart());
+    assertEquals(name, valueSet.getName());
+    assertEquals(publisher, valueSet.getPublisher());
+    assertEquals(url, valueSet.getUrl());
+  }
+
+  /**
+   * Test value set validate active code.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetValidateActiveCode() throws Exception {
+    // Arrange
+    String content;
+    String activeCode = "T100";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String displayString = "Age Group";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + activeCode;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+  }
+
+  /**
+   * Test value set validate active id, active code and display string.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetValidateActiveIdAndActiveCodeAndDisplayString() throws Exception {
+    // Arrange
+    String content;
+    String activeCode = "T100";
+    String activeID = "umlssemnet_2023aa";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String displayString = "Age Group";
+    String endpoint =
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + activeCode + "&display=" + displayString;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+  }
+
+  /**
+   * Test value set validate for active code and display string.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetValidateActiveCodeAndDisplayString() throws Exception {
+    // Arrange
+    String content;
+    String activeCode = "T100";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String displayString = "Age Group";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + activeCode + "&display=" + displayString;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+  }
+
+  /**
+   * Test value set validate code not found.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetCodeNotFound() throws Exception {
+    // Arrange
+    String content;
+    String codeNotFound = "T10";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String messageNotFound = "The code '" + codeNotFound + "' was not found.";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + codeNotFound;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(
+        messageNotFound, ((StringType) params.getParameter("message").getValue()).getValue());
+  }
+
+  /**
+   * Test value set code not found for display string.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetCodeNotFoundAndDisplayString() throws Exception {
+    // Arrange
+    String content;
+    String codeNotFound = "T10";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String displayString = "Age Group";
+    String messageNotFound = "The code '" + codeNotFound + "' was not found.";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + codeNotFound + "&display=" + displayString;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(
+        messageNotFound, ((StringType) params.getParameter("message").getValue()).getValue());
+  }
+
+  /**
+   * Test value set code not found for activde Id and display string.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetCodeNotFoundActiveIdAndDisplayString() throws Exception {
+    // Arrange
+    String content;
+    String activeID = "umlssemnet_2023aa";
+    String codeNotFound = "10";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String displayString = "Age Group";
+    String messageNotFound = "The code '" + codeNotFound + "' was not found.";
+    String endpoint =
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + codeNotFound + "&display=" + displayString;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(
+        messageNotFound, ((StringType) params.getParameter("message").getValue()).getValue());
+  }
+
+  /**
+   * Test value set for retired code.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetRetiredCode() throws Exception {
+    // Arrange
+    String content;
+    String retiredCode = "C45683";
+    String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
+    String retiredName = "ABCB1 1 Allele";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + retiredUrl + "&code=" + retiredCode;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(retiredName, ((StringType) params.getParameter("display").getValue()).getValue());
+  }
+
+  /**
+   * Test value set for retired code and retired display string.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetRetiredCodeAndRetireDisplayString() throws Exception {
+    // Arrange
+    String content;
+    String retiredCode = "C45683";
+    String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
+    String retiredName = "ABCB1 1 Allele";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(retiredName, ((StringType) params.getParameter("display").getValue()).getValue());
+  }
+
+  /**
+   * Test value set for retired id, retired code and retired display string.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetRetiredIdRetiredCodeAndRetireDisplayString() throws Exception {
+    // Arrange
+    String content;
+    String retiredCode = "C45683";
+    String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
+    String retiredId = "ncit_21.06e";
+    String retiredName = "ABCB1 1 Allele";
+    String endpoint =
+        localHost
+            + port
+            + fhirVSPath
+            + "/"
+            + retiredId
+            + "/"
+            + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(retiredName, ((StringType) params.getParameter("display").getValue()).getValue());
+  }
+
+  /**
+   * Test the ValueSet rejects a post call when attempted.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetPostRejects() throws Exception {
+    // Arrange
+    ResponseEntity<String> content;
+    String message = "POST method not supported for " + JpaConstants.OPERATION_EXPAND;
+
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String parameters = "?code=" + null + "&system=" + null;
+
+    // Act
+    content = this.restTemplate.postForEntity(endpoint + parameters, null, String.class);
+
+    // Assert
+    assertEquals(HttpStatus.METHOD_NOT_ALLOWED, content.getStatusCode());
+    assertNotNull(content.getBody());
+    assertTrue(content.getBody().contains(message));
+    assertTrue(content.getBody().contains("not supported"));
+  }
+
+  /**
+   * Test concept map search.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapSearch() throws Exception {
+    // Arrange
+    String content = this.restTemplate.getForObject(localHost + port + fhirCMPath, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Act
+    List<Resource> conceptMaps =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+
+    // Verify things about this one
+    // {"resourceType":"ConceptMap","id":"ma_to_ncit_mapping_november2011","url":"http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping","version":"Aug2024","name":"NCIt_to_HGNC_Mapping","title":"NCIt_to_HGNC_Mapping","status":"active","experimental":false,"publisher":"NCI","group":[{"source":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","target":"http://www.genenames.org"}]}
+    final Set<String> ids = new HashSet<>(Set.of("ma_to_ncit_mapping_november2011"));
+    final Set<String> urls =
+        new HashSet<>(Set.of("http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping"));
+
+    // Assert
+    assertFalse(conceptMaps.isEmpty());
+    for (Resource cm : conceptMaps) {
+      log.info("  concept map = " + parser.encodeResourceToString(cm));
+      ConceptMap cmm = (ConceptMap) cm;
+      assertNotNull(cmm);
+      assertEquals(ResourceType.ConceptMap, cmm.getResourceType());
+      assertNotNull(cmm.getIdPart());
+      assertNotNull(cmm.getGroup());
+      assertNotNull(cmm.getVersion());
+      assertNotNull(cmm.getUrl());
+      ids.remove(cmm.getIdPart());
+      urls.remove(cmm.getUrl());
+    }
+    assertThat(ids).isEmpty();
+    assertThat(urls).isEmpty();
+  }
+
+  /**
+   * Test concept map read.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapRead() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCMPath;
+
+    String content = this.restTemplate.getForObject(endpoint, String.class);
     Bundle data = parser.parseResource(Bundle.class, content);
     List<Resource> conceptMaps =
-        data.getEntry().stream()
-            .map(BundleEntryComponent::getResource)
-            .collect(Collectors.toList());
-    assertThat(conceptMaps.size()).isGreaterThan(0);
-    for (Resource cm : conceptMaps) {
-      log.info("  concept map = " + FhirContext.forR4().newJsonParser().encodeResourceToString(cm));
-      ConceptMap cmm = (ConceptMap) cm;
-      assertThat(cmm).isNotNull();
-      assertThat(cmm.getResourceType().equals(ResourceType.ConceptMap));
-      assertThat(cmm.getIdPart()).isNotNull();
-      assertThat(cmm.getGroup()).isNotNull();
-      assertThat(cmm.getVersion()).isNotNull();
-      assertThat(cmm.getUrl()).isNotNull();
-    }
-    // test read
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+
+    // Act
     String firstConceptMapId = conceptMaps.get(0).getIdPart();
-    content =
-        this.restTemplate.getForObject(
-            "http://localhost:" + port + "/fhir/r4/ConceptMap/" + firstConceptMapId, String.class);
+    // reassign content
+    content = this.restTemplate.getForObject(endpoint + "/" + firstConceptMapId, String.class);
     ConceptMap conceptMap = parser.parseResource(ConceptMap.class, content);
-    assertThat(conceptMap).isNotNull();
-    assertThat(conceptMap.getResourceType().equals(ResourceType.ConceptMap));
-    assertThat(conceptMap.getIdPart()).isEqualTo(firstConceptMapId);
-    assertThat(conceptMap.getName()).isEqualTo(((ConceptMap) conceptMaps.get(0)).getName());
-    assertThat(conceptMap.getVersion()).isEqualTo(((ConceptMap) conceptMaps.get(0)).getVersion());
+
+    // Assert
+    assertNotNull(conceptMap);
+    assertEquals(ResourceType.ConceptMap, conceptMap.getResourceType());
+    assertEquals(firstConceptMapId, conceptMap.getIdPart());
+    assertEquals(conceptMap.getUrl(), ((ConceptMap) conceptMaps.get(0)).getUrl());
+    assertEquals(conceptMap.getName(), ((ConceptMap) conceptMaps.get(0)).getName());
+    assertEquals(conceptMap.getVersion(), ((ConceptMap) conceptMaps.get(0)).getVersion());
+  }
+
+  /**
+   * Test the ValueSet rejects a post call when attempted.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapPostRejects() throws Exception {
+    // Arrange
+    ResponseEntity<String> content;
+    String message = "POST method not supported for " + JpaConstants.OPERATION_TRANSLATE;
+
+    String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + null + "&system=" + null;
+
+    // Act
+    content = this.restTemplate.postForEntity(endpoint + parameters, null, String.class);
+
+    // Assert
+    assertEquals(HttpStatus.METHOD_NOT_ALLOWED, content.getStatusCode());
+    assertNotNull(content.getBody());
+    assertTrue(content.getBody().contains(message));
+    assertTrue(content.getBody().contains("not supported"));
   }
 }

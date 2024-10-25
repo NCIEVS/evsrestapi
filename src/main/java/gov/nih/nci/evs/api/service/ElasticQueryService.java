@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -459,4 +460,16 @@ public interface ElasticQueryService {
    */
   Map<String, List<StatisticsEntry>> getSourceStats(Terminology terminology, String source)
       throws JsonMappingException, JsonProcessingException;
+
+  /**
+   * Returns mappings by code filter.
+   *
+   * @param code the code to filter
+   * @return the list of mappings
+   * @throws JsonProcessingException
+   * @throws JsonMappingException
+   * @throws ClassNotFoundException the class not found exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  List<ConceptMap> getMapsetMappings(String code) throws Exception;
 }

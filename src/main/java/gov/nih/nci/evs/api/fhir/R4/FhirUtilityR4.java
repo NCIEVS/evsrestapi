@@ -1,10 +1,12 @@
-package gov.nih.nci.evs.api.fhir;
+package gov.nih.nci.evs.api.fhir.R4;
 
 import static java.lang.String.format;
 
 import ca.uhn.fhir.rest.param.NumberParam;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.util.FHIRServerResponseException;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -24,8 +26,10 @@ import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.Identifier;
 import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
+import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.UriType;
@@ -33,7 +37,7 @@ import org.hl7.fhir.r4.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Utility for fhir data building. */
+/** Utility for FHIR R4. */
 public final class FhirUtilityR4 {
 
   /** The logger. */
@@ -45,6 +49,25 @@ public final class FhirUtilityR4 {
 
   /** The uris. */
   private static HashMap<String, String> uris = generateUris();
+
+  /** The unsupported params list for search. */
+  private static final String[] unsupportedParams =
+      new String[] {
+        "_lastUpdated",
+        "_tag",
+        "_profile",
+        "_security",
+        "_text",
+        "_list",
+        "_type",
+        "_include",
+        "_revinclude",
+        "_summary",
+        "_total",
+        "_elements",
+        "_contained",
+        "_containedType"
+      };
 
   /** Instantiates an empty {@link FhirUtilityR4}. */
   private FhirUtilityR4() {
@@ -187,7 +210,7 @@ public final class FhirUtilityR4 {
    */
   public static CodeSystem toR4(final Terminology term) {
     final CodeSystem cs = new CodeSystem();
-    cs.setId(term.getTerminologyVersion());
+    cs.setId((term.getTerminologyVersion()).toLowerCase());
     cs.setName(term.getName());
     cs.setTitle(term.getTerminology());
     cs.setExperimental(false);
@@ -207,7 +230,7 @@ public final class FhirUtilityR4 {
    */
   public static ConceptMap toR4(final Concept mapset) {
     final ConceptMap cm = new ConceptMap();
-    cm.setId(mapset.getCode() + "_" + mapset.getVersion());
+    cm.setId((mapset.getCode() + "_" + mapset.getVersion()).toLowerCase());
     cm.setName(mapset.getName());
     cm.setTitle(mapset.getCode());
     cm.setExperimental(false);
@@ -263,11 +286,11 @@ public final class FhirUtilityR4 {
    */
   public static ValueSet toR4VS(final Terminology term) {
     final ValueSet vs = new ValueSet();
-    vs.setId(term.getTerminology() + "_" + term.getVersion());
+    vs.setId((term.getTerminology() + "_" + term.getVersion()).toLowerCase());
     vs.setName(term.getName());
     vs.setVersion(term.getVersion());
     vs.setTitle(term.getTerminology());
-    vs.setUrl(getUri(term.getTerminology()));
+    vs.setUrl(getUri(term.getTerminology()) + "?fhir_vs");
     vs.setPublisher(getPublisher(term.getTerminology()));
     vs.setExperimental(false);
     vs.setStatus(Enumerations.PublicationStatus.ACTIVE);
@@ -283,7 +306,7 @@ public final class FhirUtilityR4 {
    */
   public static ValueSet toR4VS(final Concept subset) {
     final ValueSet vs = new ValueSet();
-    vs.setId(subset.getTerminology() + "_" + subset.getCode());
+    vs.setId((subset.getTerminology() + "_" + subset.getCode()).toLowerCase());
     vs.setUrl(getUri(subset.getTerminology()) + "?fhir_vs=" + subset.getCode());
     vs.setName(subset.getName());
     vs.setVersion(subset.getVersion());
@@ -305,10 +328,7 @@ public final class FhirUtilityR4 {
    */
   public static void required(final String param1Name, final Object param1) {
     if (param1 == null) {
-      throw exception(
-          format("Must use '%s' parameter.", param1Name),
-          OperationOutcome.IssueType.INVARIANT,
-          400);
+      throw exception(format("Must use '%s' parameter.", param1Name), IssueType.INVARIANT, 400);
     }
   }
 
@@ -325,7 +345,7 @@ public final class FhirUtilityR4 {
     if (param1 != null && param2 != null) {
       throw exception(
           format("Use one of '%s' or '%s' parameters.", param1Name, param2Name),
-          OperationOutcome.IssueType.INVARIANT,
+          IssueType.INVARIANT,
           400);
     }
   }
@@ -354,7 +374,37 @@ public final class FhirUtilityR4 {
           format(
               "Input parameter '%s' is not supported%s",
               paramName, (additionalDetail == null ? "." : format(" %s", additionalDetail)));
+      throw exception(message, IssueType.NOTSUPPORTED, 400);
+    }
+  }
+
+  /**
+   * Not supported.
+   *
+   * @param request the request
+   * @param paramName the param name
+   */
+  public static void notSupported(final HttpServletRequest request, final String paramName) {
+    if (request.getParameterMap().containsKey(paramName)) {
+      final String message = format("Input parameter '%s' is not supported", paramName);
       throw exception(message, OperationOutcome.IssueType.NOTSUPPORTED, 400);
+    }
+  }
+
+  /**
+   * Not supported search params.
+   *
+   * @param request the request
+   */
+  public static void notSupportedSearchParams(final HttpServletRequest request) {
+    for (final String param : unsupportedParams) {
+      notSupported(request, param);
+    }
+    if (Collections.list(request.getParameterNames()).stream()
+            .filter(k -> k.startsWith("_has"))
+            .count()
+        > 0) {
+      notSupported(request, "_has");
     }
   }
 
@@ -432,7 +482,7 @@ public final class FhirUtilityR4 {
           format(
               "One of '%s' or '%s' or '%s' parameters must be supplied.",
               param1Name, param2Name, param3Name),
-          OperationOutcome.IssueType.INVARIANT,
+          IssueType.INVARIANT,
           400);
     } else {
       mutuallyExclusive(param1Name, param1, param2Name, param2);
@@ -498,15 +548,13 @@ public final class FhirUtilityR4 {
   public static String recoverCode(final CodeType code, final Coding coding) {
     if (code == null && coding == null) {
       throw exception(
-          "Use either 'code' or 'coding' parameters, not both.",
-          OperationOutcome.IssueType.INVARIANT,
-          400);
+          "Use either 'code' or 'coding' parameters, not both.", IssueType.INVARIANT, 400);
     } else if (code != null) {
       if (code.getCode().contains("|")) {
         throw exception(
             "The 'code' parameter cannot supply a codeSystem. "
                 + "Use 'coding' or provide CodeSystem in 'system' parameter.",
-            OperationOutcome.IssueType.NOTSUPPORTED,
+            IssueType.NOTSUPPORTED,
             400);
       }
       return code.getCode();
@@ -521,7 +569,7 @@ public final class FhirUtilityR4 {
    * @return the FHIR server response exception
    */
   public static FHIRServerResponseException exceptionNotSupported(final String message) {
-    return exception(message, OperationOutcome.IssueType.NOTSUPPORTED, 501);
+    return exception(message, IssueType.NOTSUPPORTED, 501);
   }
 
   /**
@@ -529,11 +577,11 @@ public final class FhirUtilityR4 {
    *
    * @param message the message
    * @param issueType the issue type
-   * @param theStatusCode the the status code
+   * @param theStatusCode the status code
    * @return the FHIR server response exception
    */
   public static FHIRServerResponseException exception(
-      final String message, final OperationOutcome.IssueType issueType, final int theStatusCode) {
+      final String message, final IssueType issueType, final int theStatusCode) {
     return exception(message, issueType, theStatusCode, null);
   }
 
@@ -542,19 +590,15 @@ public final class FhirUtilityR4 {
    *
    * @param message the message
    * @param issueType the issue type
-   * @param theStatusCode the the status code
+   * @param theStatusCode the status code
    * @param e the e
    * @return the FHIR server response exception
    */
   public static FHIRServerResponseException exception(
-      final String message,
-      final OperationOutcome.IssueType issueType,
-      final int theStatusCode,
-      final Throwable e) {
+      final String message, final IssueType issueType, final int theStatusCode, final Throwable e) {
     final OperationOutcome outcome = new OperationOutcome();
-    final OperationOutcome.OperationOutcomeIssueComponent component =
-        new OperationOutcome.OperationOutcomeIssueComponent();
-    component.setSeverity(OperationOutcome.IssueSeverity.ERROR);
+    final OperationOutcomeIssueComponent component = new OperationOutcomeIssueComponent();
+    component.setSeverity(IssueSeverity.ERROR);
     component.setCode(issueType);
     component.setDiagnostics(message);
     outcome.addIssue(component);
@@ -569,11 +613,11 @@ public final class FhirUtilityR4 {
    * @param isCode the is code
    * @return the parameters. parameters parameter component
    */
-  public static Parameters.ParametersParameterComponent createProperty(
+  public static ParametersParameterComponent createProperty(
       final String propertyName, final Object propertyValue, final boolean isCode) {
     // Make a property with code as "valueCode"
-    final Parameters.ParametersParameterComponent property =
-        new Parameters.ParametersParameterComponent().setName("property");
+    final ParametersParameterComponent property =
+        new ParametersParameterComponent().setName("property");
     property.addPart().setName("code").setValue(new CodeType(propertyName));
 
     // Determine the value
@@ -639,6 +683,43 @@ public final class FhirUtilityR4 {
   }
 
   /**
+   * Get the previous link component.
+   *
+   * @param uri the uri
+   * @param offset the offset
+   * @param offsetInt the offset int
+   * @param count the count
+   * @param countInt the count int
+   * @return the previous link component
+   */
+  public static BundleLinkComponent getPrevLink(
+      final String uri,
+      final NumberParam offset,
+      final int offsetInt,
+      final NumberParam count,
+      final int countInt) {
+    final int prevOffset = offsetInt - countInt;
+    String prevUri = uri;
+    // append ? to url if missing
+    if (!uri.contains("?")) {
+      prevUri = prevUri + "?";
+    }
+    // replace offset if it exists
+    if (offset != null) {
+      prevUri = prevUri.replaceFirst("_offset=\\d+", "_offset=" + prevOffset);
+    } else {
+      prevUri += (prevUri.endsWith("?") ? "" : "&") + "_offset=" + prevOffset;
+    }
+    // replace count if it exists
+    if (count != null) {
+      prevUri = prevUri.replaceFirst("_count=\\d+", "_count=" + countInt);
+    } else {
+      prevUri += (prevUri.endsWith("?") ? "" : "&") + "_count=" + countInt;
+    }
+    return new BundleLinkComponent().setUrl(prevUri).setRelation("previous");
+  }
+
+  /**
    * Make bundle.
    *
    * @param request the request
@@ -653,8 +734,8 @@ public final class FhirUtilityR4 {
       final NumberParam count,
       final NumberParam offset) {
 
-    int countInt = count == null ? 100 : count.getValue().intValue();
-    int offsetInt = offset == null ? 0 : offset.getValue().intValue();
+    final int countInt = count == null ? 100 : count.getValue().intValue();
+    final int offsetInt = offset == null ? 0 : offset.getValue().intValue();
     final String thisUrl =
         request.getQueryString() == null
             ? request.getRequestURL().toString()
@@ -663,9 +744,13 @@ public final class FhirUtilityR4 {
     bundle.setId(UUID.randomUUID().toString());
     bundle.setType(BundleType.SEARCHSET);
     bundle.setTotal(list.size());
-    bundle.addLink(new BundleLinkComponent().setUrl(thisUrl).setRelation("self"));
+    // This isn't adding the link relation, it's automatically being set. Commenting out
+    // bundle.addLink(new BundleLinkComponent().setUrl(thisUrl).setRelation("self"));
     if (offsetInt + countInt < list.size()) {
       bundle.addLink(FhirUtilityR4.getNextLink(thisUrl, offset, offsetInt, count, countInt));
+    }
+    if (offsetInt - countInt >= list.size()) {
+      bundle.addLink(FhirUtilityR4.getPrevLink(thisUrl, offset, offsetInt, count, countInt));
     }
     for (int i = offsetInt; i < offsetInt + countInt; i++) {
       if (i > list.size() - 1) {

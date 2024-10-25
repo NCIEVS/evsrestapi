@@ -3,17 +3,15 @@ package gov.nih.nci.evs.api.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
+import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -23,8 +21,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.elasticsearch.action.delete.DeleteRequest;
 import org.elasticsearch.client.RequestOptions;
@@ -131,14 +127,19 @@ public abstract class BaseLoaderService implements ElasticLoadService {
             .putMapping(IndexMetadata.class);
       }
 
-      // Create the mapping index if it doesn't exist
+      // Create the mapping indexes if they don't exist
       boolean createdMapset =
-          operationsService.createIndex(ElasticOperationsService.MAPPING_INDEX, false);
+          operationsService.createIndex(ElasticOperationsService.MAPSET_INDEX, false);
+      operationsService.createIndex(ElasticOperationsService.MAPPINGS_INDEX, false);
       if (createdMapset) {
         operationsService
             .getElasticsearchOperations()
-            .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPING_INDEX))
+            .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPSET_INDEX))
             .putMapping(Concept.class);
+        operationsService
+            .getElasticsearchOperations()
+            .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX))
+            .putMapping(ConceptMap.class);
       }
     } catch (IOException e) {
       logger.error(e.getMessage(), e);
@@ -454,20 +455,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
             + termUtils.getTerminologyName(terminology)
             + ".json";
     logger.info("  get config for " + terminology + " = " + uri);
-
-    try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
-      return new ObjectMapper().readTree(IOUtils.toString(is, "UTF-8"));
-    } catch (Throwable t) {
-      // read as file if no url
-      logger.info("try config as file: " + uri);
-      try {
-        return new ObjectMapper()
-            .readTree(FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8));
-      } catch (IOException ex) {
-        // only throw exception if both fail
-        throw new IOException("Could not find either file or uri for welcomeText: " + uri);
-      }
-    }
+    return new ObjectMapper()
+        .readTree(StringUtils.join(EVSUtils.getValueFromFile(uri, "metadata info"), '\n'));
   }
 
   /**
@@ -486,20 +475,6 @@ public abstract class BaseLoaderService implements ElasticLoadService {
             + termUtils.getTerminologyName(terminology)
             + ".html";
     logger.info("  get welcome text for " + terminology + " = " + uri);
-    try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
-      return IOUtils.toString(is, StandardCharsets.UTF_8);
-    } catch (Throwable t) { // read as file if no url
-      logger.info("try config as file: " + uri);
-      try {
-        return FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8);
-      } catch (IOException ex) {
-        throw new IOException("Could not find either file or uri for welcomeText: " + uri); // only
-        // throw
-        // exception
-        // if
-        // both
-        // fail
-      }
-    }
+    return StringUtils.join(EVSUtils.getValueFromFile(uri, "welcome text"), '\n');
   }
 }

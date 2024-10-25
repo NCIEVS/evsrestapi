@@ -17,8 +17,11 @@ public interface ElasticOperationsService {
   /** The index in ES for index metadata *. */
   public static final String METADATA_INDEX = "evs_metadata";
 
-  /** The index in ES for index metadata *. */
-  public static final String MAPPING_INDEX = "evs_mapsets";
+  /** The index in ES for index mappings *. */
+  public static final String MAPPINGS_INDEX = "evs_mappings";
+
+  /** The index in ES for index mapsets *. */
+  public static final String MAPSET_INDEX = "evs_mapsets";
 
   /**
    * create index using the given index name.
@@ -101,4 +104,13 @@ public interface ElasticOperationsService {
    * @param id the id of the {@link IndexMetadata} object
    */
   String deleteIndexMetadata(String id);
+
+  /**
+   * Delete the query from the index.
+   *
+   * @param query the query to delete
+   * @param indexName the name of the index
+   * @return success or failure to delete
+   */
+  Boolean deleteQuery(String query, String indexName);
 }

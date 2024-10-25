@@ -289,6 +289,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         map.setTargetCode(fields[16]);
         // map.setTargetName(nameMap.get(fields[16]));
         map.setTargetTermType("PT");
+        map.setTarget(mapsets.get(fields[0]).split("_")[0]);
         map.setTargetTerminology(mapsets.get(fields[0]).split("_")[0]);
         map.setTargetTerminologyVersion(mapsets.get(fields[0]).split("_")[1]);
         map.setType(fields[12]);

@@ -7,6 +7,7 @@ import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.File;
@@ -25,6 +26,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
+import org.apache.tomcat.util.buf.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,26 +70,29 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
    */
   public List<ConceptMap> buildMaps(final String mappingData, final String[] metadata)
       throws Exception {
-    final List<ConceptMap> maps = new ArrayList<ConceptMap>();
+    final List<ConceptMap> maps = new ArrayList<>();
     final String[] mappingDataList = mappingData.split("\n");
-    // welcomeText = true format
+
     if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
       if (mappingDataList[0].split("\t").length > 2) {
         for (final String conceptMap :
             Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
           final String[] conceptSplit = conceptMap.split("\t");
           final ConceptMap conceptToAdd = new ConceptMap();
+          conceptToAdd.setMapsetCode(metadata[0]);
           conceptToAdd.setSourceCode(
               !conceptSplit[0].replace("\"", "").isBlank()
                   ? conceptSplit[0].replace("\"", "")
                   : "N/A");
+          conceptToAdd.setSource(metadata[5]);
           conceptToAdd.setSourceName(
               !conceptSplit[1].replace("\"", "").isBlank()
                   ? conceptSplit[1].replace("\"", "")
                   : "N/A");
-          conceptToAdd.setSource(conceptSplit[2]);
+          conceptToAdd.setSourceTerminology(conceptSplit[2]);
           conceptToAdd.setType(conceptSplit[6]);
           conceptToAdd.setRank(conceptSplit[7]);
+          conceptToAdd.setTarget(metadata[7]);
           conceptToAdd.setTargetCode(
               !conceptSplit[8].replace("\"", "").isBlank()
                   ? conceptSplit[8].replace("\"", "")
@@ -132,13 +137,17 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           }
 
           final ConceptMap conceptToAdd = new ConceptMap();
+          conceptToAdd.setMapsetCode(metadata[0]);
           conceptToAdd.setSourceCode(conceptSplit[0].strip());
           conceptToAdd.setSourceName(sourceName);
-          conceptToAdd.setSource(sourceTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
+          conceptToAdd.setSource(metadata[5]);
+          conceptToAdd.setSourceTerminology(
+              sourceTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
           conceptToAdd.setType("mapsTo");
           conceptToAdd.setRank("1");
           conceptToAdd.setTargetCode(conceptSplit[1].strip());
           conceptToAdd.setTargetName(targetName);
+          conceptToAdd.setTarget(metadata[7]);
           conceptToAdd.setTargetTerminology(
               targetTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
           conceptToAdd.setTargetTerminologyVersion(targetTerminology.getVersion());
@@ -156,6 +165,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
         final String[] conceptSplit = conceptMap.split("\",\"");
         final ConceptMap conceptToAdd = new ConceptMap();
+        conceptToAdd.setMapsetCode(metadata[0]);
         conceptToAdd.setSourceCode(
             !conceptSplit[0].replace("\"", "").isBlank()
                 ? conceptSplit[0].replace("\"", "")
@@ -174,6 +184,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                 ? conceptSplit[4].replace("\"", "")
                 : "N/A");
         conceptToAdd.setTargetTermType(conceptSplit[5]);
+        conceptToAdd.setTarget(conceptSplit[6]);
         conceptToAdd.setTargetTerminology(conceptSplit[6]);
         conceptToAdd.setTargetTerminologyVersion(conceptSplit[7].replace("\"", ""));
         maps.add(conceptToAdd);
@@ -224,21 +235,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     final String uri = applicationProperties.getConfigBaseUri();
     final String mappingUri = uri.replaceFirst("config/metadata", "data/mappings/");
     final String mapsetMetadataUri = uri + "/mapsetMetadata.txt";
-    logger.info("Get mapset metadata = " + mapsetMetadataUri);
-    String rawMetadata = null;
-    try (final InputStream is = new URL(mapsetMetadataUri).openConnection().getInputStream()) {
-      rawMetadata = IOUtils.toString(is, StandardCharsets.UTF_8);
-    } catch (final Throwable t) {
-      // read as file if no url
-      try {
-        rawMetadata =
-            FileUtils.readFileToString(new File(mapsetMetadataUri), StandardCharsets.UTF_8);
-      } catch (final IOException ex) {
-        throw new IOException(
-            // only throw exception if both fail
-            "Could not find either file or uri for mapsetMetadataUri: " + mapsetMetadataUri);
-      }
-    }
+    logger.info("evs_mapsets " + mapsetMetadataUri);
+    final String rawMetadata =
+        StringUtils.join(EVSUtils.getValueFromFile(mapsetMetadataUri, "mapsetMetadataUri"), '\n');
     List<String> allLines = Arrays.asList(rawMetadata.split("\n"));
     // skip header line
     allLines = allLines.subList(1, allLines.size());
@@ -304,7 +303,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       // remove and skip
       if (mapsetsToRemove.contains(metadata[0])) {
         logger.info("  deleting " + metadata[0] + " " + metadata[2]);
-        operationsService.delete(ElasticOperationsService.MAPPING_INDEX, metadata[0]);
+        operationsService.deleteQuery(
+            ElasticOperationsService.MAPSET_INDEX, "mapsetCode:" + metadata[0]);
+        operationsService.delete(metadata[0], ElasticOperationsService.MAPPINGS_INDEX);
         continue;
       }
 
@@ -314,6 +315,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         continue;
       } else if (!mapsetsToAdd.contains(metadata[0])) {
         logger.info("  " + metadata[0] + " needs update to version: " + metadata[2]);
+        operationsService.deleteQuery(
+            ElasticOperationsService.MAPSET_INDEX, "mapsetCode:" + metadata[0]);
       }
       final Concept map = new Concept();
       map.setName(metadata[0]);
@@ -363,20 +366,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                 + (map.getVersion() != null ? ("_" + map.getVersion()) : "")
                 + ".txt"; // build
         // map
-        try (final InputStream is = new URL(mappingDataUri).openConnection().getInputStream()) {
-          final String mappingData = IOUtils.toString(is, StandardCharsets.UTF_8);
-          map.setMaps(buildMaps(mappingData, metadata));
-        } catch (final Throwable t) { // read as file if no url
-          try {
-            final String mappingData =
-                FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8);
-            map.setMaps(buildMaps(mappingData, metadata));
-          } catch (final IOException ex) {
-            // only throw exception if both fail
-            throw new IOException(
-                "Could not find either file or uri for mappingDataUri: " + mappingDataUri);
-          }
-        }
+        final String mappingData =
+            StringUtils.join(EVSUtils.getValueFromFile(mappingDataUri, "mappingDataUri"), '\n');
+        map.setMaps(buildMaps(mappingData, metadata));
       }
 
       // download links
@@ -394,20 +386,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                   + (map.getVersion() != null ? ("_" + map.getVersion()) : "")
                   + ".csv";
 
-          try (final InputStream is = new URL(mappingDataUri).openConnection().getInputStream()) {
-            final String mappingData = IOUtils.toString(is, StandardCharsets.UTF_8);
-            map.setMaps(buildMaps(mappingData, metadata));
-          } catch (final Throwable t) { // read as file if no url
-            try {
-              final String mappingData =
-                  FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8);
-              map.setMaps(buildMaps(mappingData, metadata));
-            } catch (final IOException ex) {
-              // throw exception if both fail
-              throw new IOException(
-                  "Could not find either file or uri for mappingDataUri: " + mappingDataUri);
-            }
-          }
+          final String mappingData =
+              StringUtils.join(EVSUtils.getValueFromFile(mappingDataUri, "mappingDataUri"), '\n');
+          map.setMaps(buildMaps(mappingData, metadata));
         }
       } else {
         map.getProperties().add(new Property("downloadOnly", "false"));
@@ -436,7 +417,14 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                           + o2.getTargetName());
             }
           });
-      operationsService.index(map, ElasticOperationsService.MAPPING_INDEX, Concept.class);
+      int i = 1;
+      for (final ConceptMap mapToSort : map.getMaps()) {
+        mapToSort.setSortKey(String.valueOf(1000000 + i++));
+      }
+      operationsService.bulkIndex(
+          map.getMaps(), ElasticOperationsService.MAPPINGS_INDEX, ConceptMap.class);
+      map.setMaps(null);
+      operationsService.index(map, ElasticOperationsService.MAPSET_INDEX, Concept.class);
     }
   }
 

@@ -1,22 +1,22 @@
 package gov.nih.nci.evs.api.model;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import gov.nih.nci.evs.api.CopyConstructorTester;
 import gov.nih.nci.evs.api.EqualsHashcodeTester;
 import gov.nih.nci.evs.api.GetterSetterTester;
 import gov.nih.nci.evs.api.SerializationTester;
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /** Unit test for {@link ConceptMap}. */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestConfiguration.class)
 public class MapUnitTest {
 
@@ -32,7 +32,7 @@ public class MapUnitTest {
    *
    * @throws Exception the exception
    */
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     object = new ConceptMap();
   }
@@ -57,6 +57,7 @@ public class MapUnitTest {
   @Test
   public void testModelEqualsHashcode() throws Exception {
     final EqualsHashcodeTester tester = new EqualsHashcodeTester(object);
+    tester.include("mapsetCode");
     tester.include("source");
     tester.include("type");
     tester.include("group");
@@ -70,12 +71,14 @@ public class MapUnitTest {
     tester.include("sourceTerminology");
     tester.include("sourceTerminologyVersion");
     tester.include("sourceLoaded");
+    tester.include("target");
     tester.include("targetCode");
     tester.include("targetName");
     tester.include("targetTermType");
     tester.include("targetTerminology");
     tester.include("targetTerminologyVersion");
     tester.include("targetLoaded");
+    // tester.include("sortKey");
 
     assertTrue(tester.testIdentityFieldEquals());
     assertTrue(tester.testNonIdentityFieldEquals());

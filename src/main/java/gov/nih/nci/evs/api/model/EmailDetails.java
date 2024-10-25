@@ -1,8 +1,9 @@
 package gov.nih.nci.evs.api.model;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import java.util.Objects;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * EmailDetails model, created from a JsonObject data form. This allows us to handle the form data
@@ -11,6 +12,9 @@ import java.util.Objects;
 // BAC: for now back away from this
 // @Data
 public class EmailDetails extends BaseModel {
+  /** The Constant logger. */
+  // Logger
+  private static final Logger logger = LoggerFactory.getLogger(EmailDetails.class);
 
   /** The source. */
   private String source;
@@ -147,8 +151,9 @@ public class EmailDetails extends BaseModel {
       final String recipientEmail = formData.get("recipientEmail").textValue();
       final String businessEmail = formData.get("businessEmail").textValue();
       final String subject = formData.get("subject").textValue();
+
       // format the json object to a string
-      final String body = formatBody(formData.get("body"));
+      final String body = generateHtmlEmailBody(formData.get("body"));
 
       if (formName == null
           || formName.isEmpty()
@@ -178,58 +183,64 @@ public class EmailDetails extends BaseModel {
   }
 
   /**
-   * Format the body of the email.
+   * create the html body of the email.
    *
    * @param body JsonNode body of the email
    * @return formatted string of the body
    */
-  public static String formatBody(JsonNode body) {
-    StringBuilder formattedBody = new StringBuilder();
-    formatBodyRecursive(body, formattedBody, "");
-    return formattedBody.toString();
-  }
+  public static String generateHtmlEmailBody(JsonNode body) {
+    StringBuilder htmlBody = new StringBuilder("<html><head><style>");
+    // append html styles
+    htmlBody.append("body { font-size: 12px; }");
+    htmlBody.append("h2 { font-size: 14px; }");
+    htmlBody.append("ul, li { font-size: 14px; font-weight: normal }");
+    htmlBody.append("</style></head><body>");
 
-  /**
-   * Recursive helper function to format the body of the email.
-   *
-   * @param body the JsonNode body of the email
-   * @param formattedBody the formatted body we are building
-   * @param indent the indent between key/values
-   */
-  private static void formatBodyRecursive(
-      JsonNode body, StringBuilder formattedBody, String indent) {
-    if (body.isObject()) {
-      ObjectNode object = (ObjectNode) body;
-      object
-          .fields()
-          .forEachRemaining(
-              entry -> {
-                String key = entry.getKey();
-                // Skip processing if the key is 'recaptcha'
-                if (key.equals("recaptcha")) {
-                  return;
-                }
-                String capitalizedKey = Character.toUpperCase(key.charAt(0)) + key.substring(1);
-                // check we are on the root node
-                if (indent.isEmpty()) {
-                  // we are in the root node and want to print the key
-                  formattedBody.append(indent).append(capitalizedKey).append(":\n");
-                  formatBodyRecursive(entry.getValue(), formattedBody, indent + "  ");
-                } else {
-                  // we are in the field and want both key/value pairs
-                  formattedBody.append(indent).append(capitalizedKey).append(": ");
-                  formatBodyRecursive(entry.getValue(), formattedBody, indent);
-                }
-              });
-    } else if (body.isArray()) {
-      // check if we have an array
-      for (JsonNode field : body) {
-        formatBodyRecursive(field, formattedBody, indent + "  ");
-      }
-    } else {
-      // we are at the leaf node
-      formattedBody.append(indent).append(body.asText()).append("\n");
-    }
+    // Iterate over each section in the body object
+    body.fields()
+        .forEachRemaining(
+            section -> {
+              String sectionName = section.getKey();
+              JsonNode sectionNode = section.getValue();
+              // Append section name as a header
+              htmlBody.append("<h2>").append(sectionName).append("</h2");
+              // Create a list format of each subsection content with <ul>
+              htmlBody.append("<ul>");
+              sectionNode
+                  .fields()
+                  .forEachRemaining(
+                      field -> {
+                        String fieldName = field.getKey();
+                        JsonNode fieldValueNode = field.getValue();
+                        // check if the field is an array
+                        if (fieldValueNode.isArray()) {
+                          // append the list to the field as a list item
+                          htmlBody.append("<li>").append(fieldName).append(": <ul>");
+                          fieldValueNode.forEach(
+                              value -> {
+                                // Check the value is textual, convert to an empty value if not
+                                String fieldValue = value.isTextual() ? value.asText() : "";
+                                htmlBody.append("<li>").append(fieldValue).append("</li>");
+                              });
+                          htmlBody.append("</ul></li>");
+                        } else {
+                          // Check the value is textual, convert to an empty value if not
+                          String fieldValue =
+                              fieldValueNode.isTextual() ? fieldValueNode.asText() : "";
+                          // Append each field as a list item
+                          htmlBody
+                              .append("<li>")
+                              .append(fieldName)
+                              .append(": ")
+                              .append(fieldValue)
+                              .append("</li>");
+                        }
+                      });
+              htmlBody.append("</ul>");
+            });
+
+    htmlBody.append("</body></html>");
+    return htmlBody.toString();
   }
 
   /* see superclass */

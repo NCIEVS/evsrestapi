@@ -1,4 +1,4 @@
-package gov.nih.nci.evs.api.fhir;
+package gov.nih.nci.evs.api.fhir.R4;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.LenientErrorHandler;
@@ -11,7 +11,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.web.context.WebApplicationContext;
 import org.springframework.web.context.support.WebApplicationContextUtils;
 
-/** The Hapi servlet itself. */
+/** The FHIR R4 Hapi servlet. */
 public class HapiR4RestfulServlet extends RestfulServer {
 
   /** The logger. */

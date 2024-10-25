@@ -3,18 +3,18 @@ package gov.nih.nci.evs.api.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.configuration.EVSElasticsearchRestTemplate;
 import gov.nih.nci.evs.api.model.Concept;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.data.elasticsearch.core.document.Document;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /** Unit test for accessing the concept mapping. */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 public class ConceptMappingTest {
 

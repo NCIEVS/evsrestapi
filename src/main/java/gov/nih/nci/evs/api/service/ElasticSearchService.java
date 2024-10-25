@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -20,4 +22,24 @@ public interface ElasticSearchService {
    */
   public ConceptResultList search(List<Terminology> terminologies, SearchCriteria searchCriteria)
       throws Exception;
+
+  /**
+   * search for the given search criteria in mappings.
+   *
+   * @param code the mapping code
+   * @param searchCriteria the search criteria
+   * @return the result list with concepts
+   * @throws Exception the exception
+   */
+  ConceptMapResultList search(String code, SearchCriteria searchCriteria);
+
+  /**
+   * Returns the term query for mappings based on concepts.
+   *
+   * @param conceptCodes the concept codes
+   * @param termimology the termimology
+   * @return the mappings
+   * @throws Exception the exception
+   */
+  public List<ConceptMap> getConceptMappings(List<String> asList, String terminology);
 }

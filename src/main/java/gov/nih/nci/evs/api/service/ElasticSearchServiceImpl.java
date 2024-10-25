@@ -1,6 +1,8 @@
 package gov.nih.nci.evs.api.service;
 
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.SearchCriteria;
@@ -43,6 +45,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(ElasticSearchServiceImpl.class);
+
+  /** The Elastic operations service * */
+  @Autowired ElasticOperationsService esOperationsService;
 
   /** The Elasticsearch operations * */
   @Autowired ElasticsearchOperations operations;
@@ -202,6 +207,112 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
+   * search for the given search criteria in mappings.
+   *
+   * @param searchCriteria the search criteria
+   * @return the result list with concepts
+   * @throws Exception the exception
+   */
+  @Override
+  public ConceptMapResultList search(String code, SearchCriteria searchCriteria) {
+    int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
+    // PageRequest.of(page, searchCriteria.getPageSize());
+
+    // handle fromRecord offset from pageSize (e.g. fromRecord=6, pageSize=10)
+    final int fromOffset = searchCriteria.getFromRecord() % searchCriteria.getPageSize();
+    final int esFromRecord = searchCriteria.getFromRecord() - fromOffset;
+    final int esPageSize =
+        fromOffset == 0 ? searchCriteria.getPageSize() : (searchCriteria.getPageSize() * 2);
+    final int fromIndex = searchCriteria.getFromRecord() % searchCriteria.getPageSize();
+    final int toIndex = fromIndex + searchCriteria.getPageSize();
+
+    final Pageable pageable = new EVSPageable(page, esPageSize, esFromRecord);
+
+    // Escape the term in case it has special characters
+    // final String term = escape(searchCriteria.getTerm());
+    logger.debug("query string [{}]", searchCriteria.getTerm());
+
+    final BoolQueryBuilder boolQuery =
+        new BoolQueryBuilder().must(getMappingQuery(searchCriteria.getTerm(), code));
+
+    // build final search query
+    final NativeSearchQueryBuilder searchQuery =
+        new NativeSearchQueryBuilder().withQuery(boolQuery).withPageable(pageable);
+
+    if (searchCriteria.getSort() != null) {
+      // Default is ascending if not specified
+      if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
+        searchQuery.withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
+      } else {
+        searchQuery.withSort(
+            SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.DESC));
+      }
+    }
+
+    if (searchCriteria.getSort() != null) {
+      // get sortField, start with default
+      String sortField = searchCriteria.getSort();
+      if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
+        searchQuery
+            .withSort(SortBuilders.scoreSort())
+            .withSort(SortBuilders.fieldSort(sortField).order(SortOrder.ASC));
+      } else {
+        searchQuery
+            .withSort(SortBuilders.scoreSort())
+            .withSort(SortBuilders.fieldSort(sortField).order(SortOrder.DESC));
+      }
+
+    } else {
+      // default to sortKey
+      if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
+        searchQuery
+            .withSort(SortBuilders.scoreSort())
+            .withSort(SortBuilders.fieldSort("sortKey").order(SortOrder.ASC));
+      } else {
+        searchQuery
+            .withSort(SortBuilders.scoreSort())
+            .withSort(SortBuilders.fieldSort("sortKey").order(SortOrder.DESC));
+      }
+    }
+
+    // query on operations
+    final SearchHits<ConceptMap> hits =
+        operations.search(
+            searchQuery.build(),
+            ConceptMap.class,
+            IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
+
+    logger.debug("result count: {}", hits.getTotalHits());
+
+    final ConceptMapResultList result = new ConceptMapResultList();
+
+    if (hits.getTotalHits() >= 10000) {
+      result.setTotal(
+          operations.count(
+              searchQuery.build(),
+              Concept.class,
+              IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX)));
+    } else {
+      result.setTotal(hits.getTotalHits());
+    }
+
+    result.setParameters(searchCriteria);
+
+    if (fromOffset == 0) {
+      result.setMaps(hits.stream().map(SearchHit::getContent).collect(Collectors.toList()));
+    } else {
+      final List<ConceptMap> results =
+          hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
+      if (fromIndex >= results.size()) {
+        result.setMaps(new ArrayList<>());
+      } else {
+        result.setMaps(results.subList(fromIndex, Math.min(toIndex, results.size())));
+      }
+    }
+    return result;
+  }
+
+  /**
    * Returns the term query.
    *
    * @param type the type
@@ -231,6 +342,92 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         // Default to contains query
         return getContainsQuery(searchCriteria, term, false, false);
     }
+  }
+
+  /**
+   * Returns the term query for mappings.
+   *
+   * @param term the term
+   * @return the term query
+   * @throws Exception the exception
+   */
+  private BoolQueryBuilder getMappingQuery(String term, String code) {
+    // must match mapsetCode
+    BoolQueryBuilder termQuery =
+        new BoolQueryBuilder().must(QueryBuilders.queryStringQuery("mapsetCode:" + code));
+    // search term processing
+    if (term != null && !term.isEmpty()) {
+      final List<String> words = ConceptUtils.wordind(term);
+      // create search term clause
+      if (ConceptUtils.isCode(term) || words.size() == 1) {
+        // match on either word or code, case insensitive
+        if (term.matches("[A-Za-z]+:\\d+")) {
+          termQuery.must(
+              QueryBuilders.queryStringQuery(escape(term) + "*")
+                  .field("sourceCode")
+                  .field("targetCode"));
+        } else {
+          termQuery.must(QueryBuilders.queryStringQuery(escape(term) + "*").field("*"));
+        }
+
+      } else {
+        // search for all words in name fields
+        BoolQueryBuilder multiWordQuery = QueryBuilders.boolQuery();
+
+        // match all words in at least one of the names
+        for (String word : words) {
+          multiWordQuery.must(QueryBuilders.queryStringQuery(word + "*").field("*"));
+        }
+
+        termQuery.must(multiWordQuery);
+      }
+    }
+    return termQuery;
+  }
+
+  /**
+   * Returns the term query for mappings based on concepts.
+   *
+   * @param conceptCodes the concept codes
+   * @param terminology the terminology
+   * @return the mappings
+   */
+  @Override
+  public List<ConceptMap> getConceptMappings(List<String> conceptCodes, String terminology) {
+    // must match mapsetCode
+
+    BoolQueryBuilder termQuery = new BoolQueryBuilder();
+    if (null != terminology) {
+      termQuery =
+          new BoolQueryBuilder()
+              .must(QueryBuilders.queryStringQuery(terminology).field("source").field("target"));
+    }
+    // search term processing
+    if (conceptCodes != null && conceptCodes.size() > 0) {
+      conceptCodes.replaceAll(code -> escape(code));
+
+      termQuery.must(
+          QueryBuilders.queryStringQuery(String.join(" OR ", conceptCodes)).field("sourceCode"));
+    }
+
+    final NativeSearchQueryBuilder searchQuery =
+        new NativeSearchQueryBuilder().withQuery(termQuery);
+    final SearchHits<ConceptMap> hits =
+        operations.search(
+            searchQuery.build(),
+            ConceptMap.class,
+            IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
+
+    logger.debug("result count: {}", hits.getTotalHits());
+
+    final ConceptMapResultList result = new ConceptMapResultList();
+
+    result.setTotal(hits.getTotalHits());
+
+    final List<ConceptMap> mappings =
+        hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
+
+    return mappings;
   }
 
   /**

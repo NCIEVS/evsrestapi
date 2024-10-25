@@ -4,62 +4,103 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.InnerField;
+import org.springframework.data.elasticsearch.annotations.MultiField;
 
 /** Represents a map to a concept in another terminology. */
 @Schema(description = "Represents a map from a concept to concepts in other terminologies")
 @JsonInclude(Include.NON_EMPTY)
 public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
 
+  /** The mapset code */
+  @Field(type = FieldType.Keyword)
+  private String mapsetCode;
+
   /** The source. */
+  @MultiField(
+      mainField = @Field(type = FieldType.Text),
+      otherFields = {@InnerField(suffix = "keyword", type = FieldType.Keyword)})
   private String source;
 
   /** The source name. */
+  @MultiField(
+      mainField = @Field(type = FieldType.Text),
+      otherFields = {@InnerField(suffix = "keyword", type = FieldType.Keyword)})
   private String sourceName;
 
   /** The source term type. */
+  @Field(type = FieldType.Keyword)
   private String sourceTermType;
 
   /** The source code. */
+  @Field(type = FieldType.Keyword)
   private String sourceCode;
 
   /** The source terminology. */
+  @Field(type = FieldType.Keyword)
   private String sourceTerminology;
 
   /** The source terminology version. */
+  @Field(type = FieldType.Keyword)
   private String sourceTerminologyVersion;
 
   /** Is source terminology loaded */
+  @Field(type = FieldType.Keyword)
   private Boolean sourceLoaded;
 
   /** The type. */
+  @Field(type = FieldType.Keyword)
   private String type;
 
   /** The rank. */
+  @Field(type = FieldType.Keyword)
   private String rank;
 
   /** The group. */
+  @Field(type = FieldType.Keyword)
   private String group;
 
   /** The rule. */
+  @Field(type = FieldType.Keyword)
   private String rule;
 
+  /** The target. */
+  @MultiField(
+      mainField = @Field(type = FieldType.Text),
+      otherFields = {@InnerField(suffix = "keyword", type = FieldType.Keyword)})
+  private String target;
+
   /** The target name. */
+  @MultiField(
+      mainField = @Field(type = FieldType.Text),
+      otherFields = {@InnerField(suffix = "keyword", type = FieldType.Keyword)})
   private String targetName;
 
   /** The target term type. */
+  @Field(type = FieldType.Keyword)
   private String targetTermType;
 
   /** The target code. */
+  @Field(type = FieldType.Keyword)
   private String targetCode;
 
   /** The target terminology. */
+  @Field(type = FieldType.Keyword)
   private String targetTerminology;
 
   /** The target terminology version. */
+  @Field(type = FieldType.Keyword)
   private String targetTerminologyVersion;
 
   /** Is target terminology loaded */
+  @Field(type = FieldType.Keyword)
   private Boolean targetLoaded;
+
+  /** The mapset code */
+  @Field(type = FieldType.Keyword)
+  private String sortKey;
 
   /** Instantiates an empty {@link ConceptMap}. */
   public ConceptMap() {
@@ -82,24 +123,41 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
    */
   public void populateFrom(final ConceptMap other) {
     super.populateFrom(other);
+    mapsetCode = other.getMapsetCode();
     source = other.getSource();
     type = other.getType();
     group = other.getGroup();
     rank = other.getRank();
     rule = other.getRule();
-    targetName = other.getTargetName();
-    targetTermType = other.getTargetTermType();
+    source = other.getSource();
     sourceCode = other.getSourceCode();
     sourceName = other.getSourceName();
     sourceTermType = other.getSourceTermType();
     sourceTerminology = other.getSourceTerminology();
     sourceTerminologyVersion = other.getSourceTerminologyVersion();
     sourceLoaded = other.getSourceLoaded();
+    target = other.getTarget();
     targetCode = other.getTargetCode();
     targetName = other.getTargetName();
+    targetTermType = other.getTargetTermType();
     targetTerminology = other.getTargetTerminology();
     targetTerminologyVersion = other.getTargetTerminologyVersion();
     targetLoaded = other.getTargetLoaded();
+    sortKey = other.getSortKey();
+  }
+
+  /**
+   * @return the mapsetCode
+   */
+  public String getMapsetCode() {
+    return mapsetCode;
+  }
+
+  /**
+   * @param mapsetCode the mapsetCode to set
+   */
+  public void setMapsetCode(String mapsetCode) {
+    this.mapsetCode = mapsetCode;
   }
 
   /**
@@ -107,7 +165,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
    *
    * @return the source
    */
-  @Schema(description = "Source terminology of the map")
+  @Schema(description = "Terminology of the source code, e.g. 'ncit'")
   public String getSource() {
     return source;
   }
@@ -232,6 +290,21 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
   }
 
   /**
+   * @return the target
+   */
+  @Schema(description = "Terminology of the target code, e.g. 'ncit'")
+  public String getTarget() {
+    return target;
+  }
+
+  /**
+   * @param target the target to set
+   */
+  public void setTarget(String target) {
+    this.target = target;
+  }
+
+  /**
    * Returns the target name.
    *
    * @return the target name
@@ -319,7 +392,9 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
    *
    * @return the source terminology
    */
-  @Schema(description = "Terminology of the source code")
+  @Schema(
+      description =
+          "Human-readable label for the terminology of the source code, e.g. 'NCI Thesaurus'")
   public String getSourceTerminology() {
     return sourceTerminology;
   }
@@ -368,7 +443,9 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
    *
    * @return the target terminology
    */
-  @Schema(description = "Terminology of the target code")
+  @Schema(
+      description =
+          "Human-readable label for the terminology of the target code, e.g. 'NCI Thesaurus'")
   public String getTargetTerminology() {
     return targetTerminology;
   }
@@ -416,10 +493,25 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
     this.targetLoaded = targetLoaded;
   }
 
+  /**
+   * @return the sortKey
+   */
+  public String getSortKey() {
+    return sortKey;
+  }
+
+  /**
+   * @param sortKey the sortKey to set
+   */
+  public void setSortKey(String sortKey) {
+    this.sortKey = sortKey;
+  }
+
   /* see superclass */
   @Override
   public int hashCode() {
     return Objects.hash(
+        mapsetCode,
         group,
         rank,
         rule,
@@ -430,6 +522,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
         sourceTerminology,
         sourceTerminologyVersion,
         sourceLoaded,
+        target,
         targetCode,
         targetName,
         targetTermType,
@@ -446,7 +539,8 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
     if (obj == null) return false;
     if (getClass() != obj.getClass()) return false;
     ConceptMap other = (ConceptMap) obj;
-    return Objects.equals(group, other.group)
+    return Objects.equals(mapsetCode, other.mapsetCode)
+        && Objects.equals(group, other.group)
         && Objects.equals(rank, other.rank)
         && Objects.equals(rule, other.rule)
         && Objects.equals(source, other.source)
@@ -456,6 +550,7 @@ public class ConceptMap extends BaseModel implements Comparable<ConceptMap> {
         && Objects.equals(sourceTerminology, other.sourceTerminology)
         && Objects.equals(sourceTerminologyVersion, other.sourceTerminologyVersion)
         && Objects.equals(sourceLoaded, other.sourceLoaded)
+        && Objects.equals(target, other.target)
         && Objects.equals(targetCode, other.targetCode)
         && Objects.equals(targetName, other.targetName)
         && Objects.equals(targetTermType, other.targetTermType)
