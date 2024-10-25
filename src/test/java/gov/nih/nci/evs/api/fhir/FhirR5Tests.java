@@ -825,6 +825,33 @@ class FhirR5Tests {
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
+    log.info("  translate params =\n" + parser.encodeResourceToString(params));
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+
+  /**
+   * Test concept map translate with instance system; id, targetCode, and system provided.
+   *
+   * @throws Exception throws exception when error occurs
+   */
+  @Test
+  public void testConceptMapTranslateInstanceWithTargetCode() throws Exception {
+    // Arrange
+    String content;
+    String targetCode = "C19939";
+    String id = "go_to_ncit_mapping_february2020";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint =
+        localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?targetCode=" + targetCode + "&system=" + system;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+    log.info("  translate params =\n" + parser.encodeResourceToString(params));
 
     // Assert
     assertNotNull(params);
@@ -849,6 +876,32 @@ class FhirR5Tests {
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
+    log.info("  translate params =\n" + parser.encodeResourceToString(params));
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+
+  /**
+   * Test concept map translate with implicit system; targetCode and system provided.
+   *
+   * @throws Exception throws exception when error occurs
+   */
+  @Test
+  public void testConceptMapTranslateImplicitWithTargetCode() throws Exception {
+    // Arrange
+
+    String content;
+    String targetCode = "C19939";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?system=" + system + "&targetCode=" + targetCode;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+    log.info("  translate params =\n" + parser.encodeResourceToString(params));
 
     // Assert
     assertNotNull(params);

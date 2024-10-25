@@ -860,6 +860,7 @@ public class FhirR4Tests {
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
+    log.info("  translate params =\n" + parser.encodeResourceToString(params));
 
     // Assert
     assertNotNull(params);
@@ -883,6 +884,7 @@ public class FhirR4Tests {
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
+    log.info("  translate params =\n" + parser.encodeResourceToString(params));
 
     // Assert
     assertNotNull(params);

@@ -134,18 +134,18 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       String query = buildFhirQueryString(code, target, mapsetCode, reverse, "AND");
       logger.debug("   Fhir query string = " + query);
 
-      ConceptMapResultList filteredMaps;
+      ConceptMapResultList maps;
 
       SearchCriteria criteria = new SearchCriteria();
       // Set as high as we can, should not be more than 10000 in reality.
       criteria.setPageSize(10000);
       criteria.setFromRecord(0);
 
-      filteredMaps = esSearchService.findConceptMappings(query, criteria);
-      final List<Mappings> allMaps = filteredMaps.getMaps();
+      maps = esSearchService.findConceptMappings(query, criteria);
+      final List<Mappings> conceptMaps = maps.getMaps();
 
-      if (!allMaps.isEmpty()) {
-        final Mappings map = allMaps.get(0);
+      if (!conceptMaps.isEmpty()) {
+        final Mappings map = conceptMaps.get(0);
         params.addParameter("result", true);
         final Parameters.ParametersParameterComponent property =
             new Parameters.ParametersParameterComponent().setName("match");
@@ -250,18 +250,18 @@ public class ConceptMapProviderR4 implements IResourceProvider {
 
       //      final List<ConceptMap> cm =
       //          findPossibleConceptMaps(null, null, system, url, version, source, target);
-      ConceptMapResultList filteredMaps;
+      ConceptMapResultList maps;
 
       SearchCriteria criteria = new SearchCriteria();
       // Set as high as we can, should not be more than 10000 in reality.
       criteria.setPageSize(10000);
       criteria.setFromRecord(0);
 
-      filteredMaps = esSearchService.findConceptMappings(query, criteria);
-      final List<Mappings> allMaps = filteredMaps.getMaps();
+      maps = esSearchService.findConceptMappings(query, criteria);
+      final List<Mappings> conceptMaps = maps.getMaps();
 
-      if (!allMaps.isEmpty()) {
-        final Mappings map = allMaps.get(0);
+      if (!conceptMaps.isEmpty()) {
+        final Mappings map = conceptMaps.get(0);
         params.addParameter("result", true);
         final Parameters.ParametersParameterComponent property =
             new Parameters.ParametersParameterComponent().setName("match");

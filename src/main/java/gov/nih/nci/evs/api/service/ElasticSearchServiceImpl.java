@@ -228,10 +228,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     final Pageable pageable = new EVSPageable(page, esPageSize, esFromRecord);
 
-    // Escape the term in case it has special characters
-    // final String term = escape(searchCriteria.getTerm());
-    logger.debug("query string [{}]", searchCriteria.getTerm());
-
     // build search query from string query
     final NativeSearchQueryBuilder searchQuery =
         new NativeSearchQueryBuilder()

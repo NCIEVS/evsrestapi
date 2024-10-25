@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.api.controller;
 
+import static gov.nih.nci.evs.api.service.ElasticSearchServiceImpl.escape;
+
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMapResultList;
@@ -257,7 +259,10 @@ public class MapsetController extends BaseController {
       }
       logger.debug("  Search = " + searchCriteria);
 
-      final ConceptMapResultList list = esSearchService.findConceptMappings(code, searchCriteria);
+      // Build the query for finding concept mappings
+      String query = "code:\"" + escape(code) + "\"";
+
+      final ConceptMapResultList list = esSearchService.findConceptMappings(query, searchCriteria);
 
       return list;
     } catch (Exception e) {
