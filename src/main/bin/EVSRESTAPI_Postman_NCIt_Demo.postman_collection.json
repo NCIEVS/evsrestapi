@@ -1,0 +1,3291 @@
+{
+	"info": {
+		"_postman_id": "7712e7d1-aa69-469d-83b3-065b15acf495",
+		"name": "EVSRESTAPI_Postman_NCIt_Demo",
+		"description": "Collection of postman calls for demonstrating functionality of the EVSRESTAPI with NCIt terminology\n\nPrerequisites:  \n1\\. Node.js and npm package manager. Installers can be found here: [https://nodejs.org/en/download/package-manager](https://nodejs.org/en/download/package-manager)\n\n2\\. newman node.js package. Can be installed after node.js and npm are installed with the following command:\n\n``` bash\nnewman run my-collection.json\n\n ```\n\nTo run: Navigate to the src/main/bin folder, in which this collection resides, and run the following command in a CLI:\n\n``` bash\nnewman run EVSRESTAPI_Postman_NCIt_Demo.postman_collection.json\n\n ```\n\nAlternatively, run the ncit_postman.sh script, found in the src/main/bin folder. Running the collection via the script will support whatever environment you are currently working on (e.g. localhost, dev, qa) as determined by the environment variables in \\~/.bashrc, while running with newman will default to production environment variables.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30894083"
+	},
+	"item": [
+		{
+			"name": "Get Terminologies",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Body is valid JSON array\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.be.an(\"array\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"At least 1 terminology\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData.length).to.be.at.least(1);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/terminologies",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"terminologies"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get concept by code (minimum information)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Body is valid JSON\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.be.an(\"object\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"C3224\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/C3224?include=minimal",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"C3224"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "minimal"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get concepts by list of codes (minimum information)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Concept array is present and contains 2 elements\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.exist.and.to.be.an('array');\r",
+							"    pm.expect(responseData).to.have.lengthOf(2);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept entries have the correct code field\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    responseData.forEach(function(concept) {\r",
+							"        pm.expect(concept.code).to.satisfy(function(val) {\r",
+							"            return val === \"C3224\" || val === \"C3910\";\r",
+							"        });\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit?list=C3224,C3910&include=minimal",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit"
+					],
+					"query": [
+						{
+							"key": "list",
+							"value": "C3224,C3910"
+						},
+						{
+							"key": "include",
+							"value": "minimal"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get concept by code (summary information)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"C3224\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has synonyms\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"synonyms\"]).to.exist;\r",
+							"    pm.expect(jsonData[\"synonyms\"]).to.have.length.above(0);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/C3224",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"C3224"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get concept by code (full information)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"C3224\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has children\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"children\"]).to.exist;\r",
+							"    pm.expect(jsonData[\"children\"]).to.have.length.above(0);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/C3224?include=full",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"C3224"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "full"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get concept by code (custom include)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"C3224\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has synonyms\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"synonyms\"]).to.exist;\r",
+							"    pm.expect(jsonData[\"synonyms\"]).to.have.length.above(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has children\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"children\"]).to.exist;\r",
+							"    pm.expect(jsonData[\"children\"]).to.have.length.above(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has maps\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"maps\"]).to.exist;\r",
+							"    pm.expect(jsonData[\"maps\"]).to.have.length.above(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has inverseAssociations\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"inverseAssociations\"]).to.exist;\r",
+							"    pm.expect(jsonData[\"inverseAssociations\"]).to.have.length.above(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept does not have definition\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"definition\"]).to.not.exist;\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/C3224?include=synonyms,children,maps,inverseAssociations",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"C3224"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "synonyms,children,maps,inverseAssociations"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get concept part",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test to check if the result is an array and the array is at least 1 in length\r",
+							"pm.test(\"Response is an array with at least one entry\", function () {\r",
+							"    pm.expect(pm.response.json()).to.be.an('array').and.to.have.lengthOf.at.least(1);\r",
+							"});\r",
+							"\r",
+							"// Test to check if the name field in each array entry contains \"Melanoma\"\r",
+							"pm.test(\"Each array entry contains the name 'Melanoma'\", function () {\r",
+							"    pm.response.json().forEach(function(entry) {\r",
+							"        pm.expect(entry.name).to.include('Melanoma');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/C3224/children",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"C3224",
+						"children"
+					]
+				},
+				"description": "Returns sub-part of the concept for a given terminology and code.  NOTE: in the call below, you can replace \"children\" in the URL with any of the following and retrieve the \r\ncorresponding underlying info: children, parents, roles, associations, inverseRoles, inverseAssociations, maps, or disjointWith."
+			},
+			"response": []
+		},
+		{
+			"name": "Get concept descendants",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test to check if the result is an array\r",
+							"pm.test(\"Result is an array\", function () {\r",
+							"    pm.expect(pm.response.json()).to.be.an('array');\r",
+							"});\r",
+							"\r",
+							"// Test to check if the array length is greater than 0\r",
+							"pm.test(\"Array length is greater than 0\", function () {\r",
+							"    pm.expect(pm.response.json().length).to.be.greaterThan(0);\r",
+							"});\r",
+							"\r",
+							"// Test to check if no level field in the array entries is greater than 4\r",
+							"pm.test(\"No level field in the array entries is greater than 4\", function () {\r",
+							"    pm.response.json().forEach(function(entry) {\r",
+							"        pm.expect(entry).to.have.property('level');\r",
+							"        pm.expect(entry.level).to.be.at.most(4);\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/C3224/descendants?maxLevel=4",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"C3224",
+						"descendants"
+					],
+					"query": [
+						{
+							"key": "maxLevel",
+							"value": "4"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all properties",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"ncit\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Properties array is present and contains expected number of elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/ncit/properties",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"ncit",
+						"properties"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get property by code (or label)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.code).to.exist;\r",
+							"    pm.expect(responseData.name).to.exist;\r",
+							"    pm.expect(responseData.terminology).to.exist;\r",
+							"    pm.expect(responseData.version).to.exist;\r",
+							"    pm.expect(responseData.synonyms).to.exist;\r",
+							"    pm.expect(responseData.definitions).to.exist;\r",
+							"    pm.expect(responseData.properties).to.exist;\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Synonyms array contains correct name and code fields\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"P302\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"Accepted_Therapeutic_Use_For\");\r",
+							"  \r",
+							"    pm.expect(responseData.synonyms).to.be.an('array');\r",
+							"    responseData.synonyms.forEach(function(synonym) {\r",
+							"        pm.expect(synonym.type).to.exist;\r",
+							"        pm.expect(synonym.name).to.exist;\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/ncit/property/P302?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"ncit",
+						"property",
+						"P302"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all qualifiers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"ncit\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Qualifiers array is present and contains elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/ncit/qualifiers",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"ncit",
+						"qualifiers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Ge qualifier by code (or label)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.code).to.exist;\r",
+							"    pm.expect(responseData.name).to.exist;\r",
+							"    pm.expect(responseData.terminology).to.exist;\r",
+							"    pm.expect(responseData.version).to.exist;\r",
+							"    pm.expect(responseData.synonyms).to.exist;\r",
+							"    pm.expect(responseData.definitions).to.exist;\r",
+							"    pm.expect(responseData.properties).to.exist;\r",
+							"\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"P387\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"go-id\");\r",
+							"    pm.expect(responseData.terminology).to.exist.and.to.equal(\"ncit\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/ncit/qualifier/P387?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"ncit",
+						"qualifier",
+						"P387"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all roles",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"ncit\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Roles array is present and contains elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/ncit/roles",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"ncit",
+						"roles"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get role by code (or label)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.code).to.exist;\r",
+							"    pm.expect(responseData.name).to.exist;\r",
+							"    pm.expect(responseData.terminology).to.exist;\r",
+							"    pm.expect(responseData.version).to.exist;\r",
+							"    pm.expect(responseData.synonyms).to.exist;\r",
+							"    pm.expect(responseData.definitions).to.exist;\r",
+							"    pm.expect(responseData.properties).to.exist;\r",
+							"\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"R123\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"Chemotherapy_Regimen_Has_Component\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/ncit/role/R123?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"ncit",
+						"role",
+						"R123"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all associations",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"ncit\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Associations array is present and contains elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/ncit/associations",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"ncit",
+						"associations"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get association by code (or label)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.code).to.exist;\r",
+							"    pm.expect(responseData.name).to.exist;\r",
+							"    pm.expect(responseData.terminology).to.exist;\r",
+							"    pm.expect(responseData.version).to.exist;\r",
+							"    pm.expect(responseData.synonyms).to.exist;\r",
+							"    pm.expect(responseData.definitions).to.exist;\r",
+							"    pm.expect(responseData.properties).to.exist;\r",
+							"\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"A12\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"Has_Data_Element\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/ncit/association/A12?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"ncit",
+						"association",
+						"A12"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all term types",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"ncit\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Term Types array is present and contains elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/ncit/termTypes",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"ncit",
+						"termTypes"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all synonym sources",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"ncit\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Synonym Sources array is present and contains elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/ncit/synonymSources",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"ncit",
+						"synonymSources"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all definition types",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"ncit\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Definition Types array is present and contains elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/ncit/definitionTypes?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"ncit",
+						"definitionTypes"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get definition type by code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.code).to.exist;\r",
+							"    pm.expect(responseData.name).to.exist;\r",
+							"    pm.expect(responseData.terminology).to.exist;\r",
+							"    pm.expect(responseData.version).to.exist;\r",
+							"    pm.expect(responseData.synonyms).to.exist;\r",
+							"    pm.expect(responseData.definitions).to.exist;\r",
+							"    pm.expect(responseData.properties).to.exist;\r",
+							"\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"P325\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"ALT_DEFINITION\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/ncit/definitionType/P325?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"ncit",
+						"definitionType",
+						"P325"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all synonym types",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"ncit\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Synonym Types array is present and contains elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/ncit/synonymTypes?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"ncit",
+						"synonymTypes"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get synonym type by code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.code).to.exist;\r",
+							"    pm.expect(responseData.name).to.exist;\r",
+							"    pm.expect(responseData.terminology).to.exist;\r",
+							"    pm.expect(responseData.version).to.exist;\r",
+							"    pm.expect(responseData.synonyms).to.exist;\r",
+							"    pm.expect(responseData.definitions).to.exist;\r",
+							"    pm.expect(responseData.properties).to.exist;\r",
+							"\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"P90\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"FULL_SYN\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/ncit/synonymType/P90?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"ncit",
+						"synonymType",
+						"P90"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find root concepts",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('array');\r",
+							"    \r",
+							"\r",
+							"    responseData.forEach(function(item) {\r",
+							"        pm.expect(item.code).to.exist;\r",
+							"        pm.expect(item.name).to.exist;\r",
+							"        pm.expect(item.terminology).to.exist;\r",
+							"        pm.expect(item.version).to.exist;\r",
+							"        pm.expect(item.conceptStatus).to.exist;\r",
+							"        pm.expect(item.leaf).to.exist;\r",
+							"        pm.expect(item.active).to.exist;\r",
+							"\r",
+							"        pm.expect(item.terminology).to.exist.and.to.equal(\"ncit\");\r",
+							"        pm.expect(item.leaf).to.exist.and.to.equal(false);\r",
+							"        pm.expect(item.active).to.exist.and.to.equal(true);\r",
+							"  });\r",
+							"    \r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/roots",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"roots"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get paths to root from a code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response is an array of arrays, and each entry contains at least 2 entries\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    pm.expect(array).to.be.an('array');\r",
+							"    pm.expect(array).to.have.lengthOf.above(1);\r",
+							"    array.forEach((entry) => {\r",
+							"      pm.expect(entry).to.have.property('code');\r",
+							"      pm.expect(entry).to.have.property('name');\r",
+							"      pm.expect(entry).to.have.property('terminology');\r",
+							"      pm.expect(entry).to.have.property('leaf');\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							"pm.test(\"Each array entry has the first entry's code as C3224\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  const firstEntryCode = \"C3224\";\r",
+							"\r",
+							"  responseData.forEach((array) => {\r",
+							"    pm.expect(array[0].code).to.equal(firstEntryCode);\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry's level field is one higher than the last one, starting at 0 from the first one\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    let prevLevel = -1;\r",
+							"    array.forEach((entry) => {\r",
+							"      pm.expect(entry.level).to.equal(prevLevel + 1);\r",
+							"      prevLevel = entry.level;\r",
+							"    });\r",
+							"  });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/C3224/pathsToRoot",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"C3224",
+						"pathsToRoot"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get paths from root from a code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Update the test to handle undefined array entries\r",
+							"pm.test(\"Response is an array of arrays, and each entry contains at least 2 entries\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    pm.expect(array).to.be.an('array');\r",
+							"    pm.expect(array).to.have.lengthOf.at.least(2);\r",
+							"    array.forEach((entry) => {\r",
+							"      pm.expect(entry).to.have.property('code');\r",
+							"      pm.expect(entry).to.have.property('name');\r",
+							"      pm.expect(entry).to.have.property('terminology');\r",
+							"      pm.expect(entry).to.have.property('leaf');\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each array entry has the last entry's code as C3224\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  const lastEntryCode = \"C3224\";\r",
+							"\r",
+							"  responseData.forEach((array) => {\r",
+							"    if (array.length > 0) {\r",
+							"      pm.expect(array[array.length - 1].code).to.equal(lastEntryCode);\r",
+							"    }\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry's level field is one higher than the last one, starting at 0 from the first one\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    let prevLevel = -1;\r",
+							"    array.forEach((entry) => {\r",
+							"      if (prevLevel !== -1) {\r",
+							"        pm.expect(entry.level).to.equal(prevLevel + 1);\r",
+							"      }\r",
+							"      prevLevel = entry.level;\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/C3224/pathsFromRoot",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"C3224",
+						"pathsFromRoot"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get paths to an ancestor from a code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Update the test to handle undefined array entries\r",
+							"pm.test(\"Response is an array of arrays, and each entry contains at least 2 entries\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    pm.expect(array).to.be.an('array');\r",
+							"    pm.expect(array).to.have.lengthOf.at.least(2);\r",
+							"    array.forEach((entry) => {\r",
+							"      pm.expect(entry).to.have.property('code');\r",
+							"      pm.expect(entry).to.have.property('name');\r",
+							"      pm.expect(entry).to.have.property('terminology');\r",
+							"      pm.expect(entry).to.have.property('leaf');\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each array entry has the first entry's code as C3224 and last entry's code as C2991\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  const firstEntryCode = \"C3224\";\r",
+							"  const lastEntryCode = \"C2991\";\r",
+							"\r",
+							"  responseData.forEach((array) => {\r",
+							"    if (array.length > 0) {\r",
+							"        pm.expect(array[0].code).to.equal(firstEntryCode);\r",
+							"        pm.expect(array[array.length - 1].code).to.equal(lastEntryCode);\r",
+							"    }\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry's level field is one higher than the last one, starting at 0 from the first one\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    let prevLevel = -1;\r",
+							"    array.forEach((entry) => {\r",
+							"      if (prevLevel !== -1) {\r",
+							"        pm.expect(entry.level).to.equal(prevLevel + 1);\r",
+							"      }\r",
+							"      prevLevel = entry.level;\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/C3224/pathsToAncestor/C2991",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"C3224",
+						"pathsToAncestor",
+						"C2991"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get subtree for a code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response is an array, not empty, and has at least one entry\", function () {\r",
+							"    var responseData = pm.response.json();\r",
+							"    pm.expect(responseData).to.be.an('array').and.to.not.be.empty;\r",
+							"    pm.expect(responseData.length).to.be.greaterThan(0);\r",
+							"});\r",
+							"\r",
+							"// Test to check that the 'code' and 'label' fields are not empty strings\r",
+							"pm.test(\"Code and label fields are not empty strings\", function () {\r",
+							"    pm.response.json().forEach(function(concept) {\r",
+							"        pm.expect(concept.code).to.be.a('string').and.to.not.be.empty;\r",
+							"        pm.expect(concept.label).to.be.a('string').and.to.not.be.empty;\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"// Test to check that the 'leaf' field is a boolean value\r",
+							"pm.test(\"Leaf field is a boolean value\", function () {\r",
+							"    pm.response.json().forEach(function(concept) {\r",
+							"        pm.expect(concept.leaf).to.be.a('boolean');\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Check if 'expanded' field has a non-empty 'children' field that is an array\", function () {\r",
+							"    pm.response.json().forEach(function(concept) {\r",
+							"        if (concept.hasOwnProperty('expanded')) {\r",
+							"            pm.expect(concept.children).to.be.an('array').and.to.not.be.empty;\r",
+							"        }\r",
+							"    });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/C3224/subtree",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"C3224",
+						"subtree"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get subtree children for a code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Test to check that the 'code' and 'label' fields are not empty strings\r",
+							"pm.test(\"Code and label fields are not empty strings\", function () {\r",
+							"    pm.response.json().forEach(function(concept) {\r",
+							"        pm.expect(concept.code).to.be.a('string').and.to.not.be.empty;\r",
+							"        pm.expect(concept.label).to.be.a('string').and.to.not.be.empty;\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"// Test to check that the 'leaf' field is a boolean value\r",
+							"pm.test(\"Leaf field is a boolean value\", function () {\r",
+							"    pm.response.json().forEach(function(concept) {\r",
+							"        pm.expect(concept.leaf).to.be.a('boolean');\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response is an array, not empty, and has at least one entry\", function () {\r",
+							"    var responseData = pm.response.json();\r",
+							"    pm.expect(responseData).to.be.an('array').and.to.not.be.empty;\r",
+							"    pm.expect(responseData.length).to.be.greaterThan(0);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/C3224/subtree/children",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"C3224",
+						"subtree",
+						"children"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (use paging to get only first 5 results)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Concepts field is a non-empty array with 5 entries\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.concepts).to.be.an('array').that.is.not.empty;\r",
+							"    pm.expect(responseData.concepts).to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Each entry in concepts has 'Melanoma' in the name field and terminology = ncit\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.concepts).to.be.an('array').that.is.not.empty;\r",
+							"    \r",
+							"    responseData.concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('melanoma');\r",
+							"        pm.expect(concept.terminology).to.equal('ncit');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/search?term=melanoma&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"search"
+					],
+					"query": [
+						{
+							"key": "term",
+							"value": "melanoma"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (restrict by concept status)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Concepts field is a non-empty array with 5 entries\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.concepts).to.be.an('array').that.is.not.empty;\r",
+							"    pm.expect(responseData.concepts).to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Each entry in concepts has 'Melanoma' in the name field and terminology = ncit\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.concepts).to.be.an('array').that.is.not.empty;\r",
+							"    \r",
+							"    responseData.concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('melanoma');\r",
+							"        pm.expect(concept.terminology).to.equal('ncit');\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry in concepts has conceptStatus as Retired_Concept\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    responseData.concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.conceptStatus).to.equal('Retired_Concept');\r",
+							"    });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/search?terminology=ncit&term=melanoma&conceptStatus=Retired_Concept&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "ncit"
+						},
+						{
+							"key": "term",
+							"value": "melanoma"
+						},
+						{
+							"key": "conceptStatus",
+							"value": "Retired_Concept"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (restrict by contributing source)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Concepts field is a non-empty array with 5 entries\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.concepts).to.be.an('array').that.is.not.empty;\r",
+							"    pm.expect(responseData.concepts).to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry in concepts has 'Melanoma' in the name field and terminology = ncit\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.concepts).to.be.an('array').that.is.not.empty;\r",
+							"    \r",
+							"    responseData.concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('melanoma');\r",
+							"        pm.expect(concept.terminology).to.equal('ncit');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/search?terminology=ncit&term=melanoma&contributingSource=CDISC&pageSize=5&include=properties",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "ncit"
+						},
+						{
+							"key": "term",
+							"value": "melanoma"
+						},
+						{
+							"key": "contributingSource",
+							"value": "CDISC"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						},
+						{
+							"key": "include",
+							"value": "properties"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (restrict by definition source)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Concepts field is a non-empty array with 5 entries\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.concepts).to.be.an('array').that.is.not.empty;\r",
+							"    pm.expect(responseData.concepts).to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry in concepts has 'Melanoma' in the name field and terminology = ncit\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.concepts).to.be.an('array').that.is.not.empty;\r",
+							"    \r",
+							"    responseData.concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('melanoma');\r",
+							"        pm.expect(concept.terminology).to.equal('ncit');\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept entry has at least one synonym with source = NCI\", function () {\r",
+							"    const responseData = pm.response.json().concepts;\r",
+							"\r",
+							"    responseData.forEach(function(concept) {\r",
+							"        pm.expect(concept.synonyms.some(synonym => synonym.source === 'NCI')).to.be.true;\r",
+							"    });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/search?terminology=ncit&term=melanoma&definitionSource=NCI&pageSize=5&include=synonyms",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "ncit"
+						},
+						{
+							"key": "term",
+							"value": "melanoma"
+						},
+						{
+							"key": "definitionSource",
+							"value": "NCI"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						},
+						{
+							"key": "include",
+							"value": "synonyms"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (restrict by definition type)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Concepts field is a non-empty array with 5 entries\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.concepts).to.be.an('array').that.is.not.empty;\r",
+							"    pm.expect(responseData.concepts).to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry in concepts has 'Melanoma' in the name field and terminology = ncit\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.concepts).to.be.an('array').that.is.not.empty;\r",
+							"    \r",
+							"    responseData.concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('melanoma');\r",
+							"        pm.expect(concept.terminology).to.equal('ncit');\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept entry has at least one definition with type = DEFINITION\", function () {\r",
+							"    const responseData = pm.response.json().concepts;\r",
+							"\r",
+							"    responseData.forEach(function(concept) {\r",
+							"        pm.expect(concept.definitions.some(definition => definition.type === 'DEFINITION')).to.be.true;\r",
+							"    });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/search?terminology=ncit&term=melanoma&definitionType=DEFINITION&pageSize=5&include=definitions",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "ncit"
+						},
+						{
+							"key": "term",
+							"value": "melanoma"
+						},
+						{
+							"key": "definitionType",
+							"value": "DEFINITION"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						},
+						{
+							"key": "include",
+							"value": "definitions"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (restrict by synonym source)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Concepts field is a non-empty array with 10 entries\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.concepts).to.be.an('array').that.is.not.empty;\r",
+							"    pm.expect(responseData.concepts).to.have.lengthOf(10);\r",
+							"});\r",
+							"\r",
+							"// Updated test to check if the concept entry's name includes 'dna' or at least one synonym entry's name includes 'dna'\r",
+							"pm.test(\"Each entry in concepts has 'dna' in the name field or at least one synonym entry's name includes 'dna' and terminology = ncit\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.concepts).to.be.an('array').that.is.not.empty;\r",
+							"    \r",
+							"    responseData.concepts.forEach(function(concept) {\r",
+							"        if (concept.name.toLowerCase().includes('dna') || concept.synonyms.some(synonym => synonym.name.toLowerCase().includes('dna'))) {\r",
+							"            pm.expect(concept.terminology).to.equal('ncit');\r",
+							"        }\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept entry has at least one synonym with source = NCI\", function () {\r",
+							"    const responseData = pm.response.json().concepts;\r",
+							"\r",
+							"    responseData.forEach(function(concept) {\r",
+							"        pm.expect(concept.synonyms.some(synonym => synonym.source === 'NCI')).to.be.true;\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/search?terminology=ncit&term=DNA&synonymSource=NCI&include=synonyms",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "ncit"
+						},
+						{
+							"key": "term",
+							"value": "DNA"
+						},
+						{
+							"key": "synonymSource",
+							"value": "NCI"
+						},
+						{
+							"key": "include",
+							"value": "synonyms"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (restrict by synonym type)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Concepts field is a non-empty array with 10 entries\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.concepts).to.be.an('array').that.is.not.empty;\r",
+							"    pm.expect(responseData.concepts).to.have.lengthOf(10);\r",
+							"});\r",
+							"\r",
+							"// Updated test to check if the concept entry's name includes 'dna' or at least one synonym entry's name includes 'dna'\r",
+							"pm.test(\"Each entry in concepts has 'dna' in the name field or at least one synonym entry's name includes 'dna' and terminology = ncit\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.concepts).to.be.an('array').that.is.not.empty;\r",
+							"    \r",
+							"    responseData.concepts.forEach(function(concept) {\r",
+							"        if (concept.name.toLowerCase().includes('dna') || concept.synonyms.some(synonym => synonym.name.toLowerCase().includes('dna'))) {\r",
+							"            pm.expect(concept.terminology).to.equal('ncit');\r",
+							"        }\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept entry has at least one synonym with type = FULL_SYN\", function () {\r",
+							"    const responseData = pm.response.json().concepts;\r",
+							"\r",
+							"    responseData.forEach(function(concept) {\r",
+							"        pm.expect(concept.synonyms.some(synonym => synonym.type === 'FULL_SYN')).to.be.true;\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/search?terminology=ncit&term=dsDNA&synonymType=FULL_SYN&include=synonyms",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "ncit"
+						},
+						{
+							"key": "term",
+							"value": "dsDNA"
+						},
+						{
+							"key": "synonymType",
+							"value": "FULL_SYN"
+						},
+						{
+							"key": "include",
+							"value": "synonyms"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (where term is a code)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Concept results exist\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.above(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry in results has code 'C3224' and terminology 'ncit'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.code).to.equal('C3224');\r",
+							"        pm.expect(concept.terminology).to.equal('ncit');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/search?terminology=ncit&term=C3224",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "ncit"
+						},
+						{
+							"key": "term",
+							"value": "C3224"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=match)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.above(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name 'Lung Carcinoma' and terminology 'ncit'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name).to.equal('Lung Carcinoma');\r",
+							"        pm.expect(concept.terminology).to.equal('ncit');\r",
+							"    });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/search?terminology=ncit&term=Lung%20Carcinoma&type=match&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "ncit"
+						},
+						{
+							"key": "term",
+							"value": "Lung%20Carcinoma"
+						},
+						{
+							"key": "type",
+							"value": "match"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=startsWith)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist, 5 total by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that starts with 'enzyme' and terminology 'ncit'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name).to.satisfy(name => name.toLowerCase().startsWith('enzyme'));\r",
+							"        pm.expect(concept.terminology).to.equal('ncit');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/search?terminology=ncit&term=enzyme&type=startsWith&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "ncit"
+						},
+						{
+							"key": "term",
+							"value": "enzyme"
+						},
+						{
+							"key": "type",
+							"value": "startsWith"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=phrase)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist, 5 total by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that contains 'malignant melanoma' and terminology 'ncit'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('malignant melanoma');\r",
+							"        pm.expect(concept.terminology).to.equal('ncit');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/search?terminology=ncit&term=malignant%20melanoma&type=phrase&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "ncit"
+						},
+						{
+							"key": "term",
+							"value": "malignant%20melanoma"
+						},
+						{
+							"key": "type",
+							"value": "phrase"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=fuzzy)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist, 5 total by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that contains 'enzyme' (fuzzy search from enzymi) and terminology 'ncit'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('enzyme');\r",
+							"        pm.expect(concept.terminology).to.equal('ncit');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/search?terminology=ncit&term=enzymi&type=fuzzy&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "ncit"
+						},
+						{
+							"key": "term",
+							"value": "enzymi"
+						},
+						{
+							"key": "type",
+							"value": "fuzzy"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=AND)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist, 5 total by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that contains 'lentiginous' + 'melanoma' and terminology 'ncit'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('lentiginous').and.to.include('melanoma');\r",
+							"        pm.expect(concept.terminology).to.equal('ncit');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/search?terminology=ncit&term=lentiginous%20melanoma&type=AND&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "ncit"
+						},
+						{
+							"key": "term",
+							"value": "lentiginous%20melanoma"
+						},
+						{
+							"key": "type",
+							"value": "AND"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=OR)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist, 5 total by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that contains 'lentiginous' or 'melanoma' and terminology 'ncit'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include.oneOf(['lentiginous', 'melanoma']);\r",
+							"        pm.expect(concept.terminology).to.equal('ncit');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/search?terminology=ncit&term=lentiginous%20melanoma&type=OR&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "ncit"
+						},
+						{
+							"key": "term",
+							"value": "lentiginous%20melanoma"
+						},
+						{
+							"key": "type",
+							"value": "OR"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (with highlights)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"\r",
+							"pm.test(\"Valid results exist, 5 total by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that contains highlighted 'melanoma' and terminology 'ncit'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.highlight).to.not.be.empty;\r",
+							"        pm.expect(concept.highlight.toLowerCase()).to.include.oneOf(['<em>Melanoma</em>','<em>melanoma</em>']);\r",
+							"        pm.expect(concept.terminology).to.equal('ncit');\r",
+							"    });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/search?terminology=ncit&term=melanoma&include=synonyms,highlights&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "ncit"
+						},
+						{
+							"key": "term",
+							"value": "melanoma"
+						},
+						{
+							"key": "include",
+							"value": "synonyms,highlights"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by property",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(1);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has at least one property entry with type = FDA_UNII_CODE and value = XAV05295I5\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        var uniiCodeProperties = concept.properties.filter((property) => property.type === \"FDA_UNII_Code\" && property.value === \"XAV05295I5\");\r",
+							"        pm.expect(uniiCodeProperties).to.have.lengthOf(1);\r",
+							"    });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/search?terminology=ncit&term=XAV05295I5&property=FDA_UNII_Code&include=properties",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "ncit"
+						},
+						{
+							"key": "term",
+							"value": "XAV05295I5"
+						},
+						{
+							"key": "property",
+							"value": "FDA_UNII_Code"
+						},
+						{
+							"key": "include",
+							"value": "properties"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by subset",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"At least one valid result exists in concepts array\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    const concepts = responseData.concepts;\r",
+							"   \r",
+							"    pm.expect(concepts.length).to.be.greaterThan(0, \"At least one valid concept should exist\");\r",
+							"});\r",
+							"pm.test(\"Each search result has a Concept_In_Subset relationship with C165258\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    const concepts = responseData.concepts;\r",
+							"   \r",
+							"    concepts.forEach((concept) => {\r",
+							"        const associations = concept.associations;\r",
+							"        pm.expect(associations.some((association) => {\r",
+							"            return association.type === \"Concept_In_Subset\" && association.relatedCode === \"C165258\";\r",
+							"        })).to.be.true;\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/search?terminology=ncit&term=immune&subset=C165258&include=associations",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "ncit"
+						},
+						{
+							"key": "term",
+							"value": "immune"
+						},
+						{
+							"key": "subset",
+							"value": "C165258"
+						},
+						{
+							"key": "include",
+							"value": "associations"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find Concepts by SPARQL code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"At least one valid entry in concepts\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    const concepts = responseData.concepts;\r",
+							"\r",
+							"    pm.expect(concepts.length).to.be.greaterThan(0, \"At least one valid entry in concepts\");\r",
+							"\r",
+							"});\r",
+							"\r",
+							"pm.test(\"correct entries in concepts\", function ()\r",
+							" {\r",
+							"    const responseData = pm.response.json();\r",
+							"    const concepts = responseData.concepts;\r",
+							"    concepts.forEach((concept) => {\r",
+							"        pm.expect(concept.name).to.include(\"Melanoma\");\r",
+							"    });\r",
+							" });"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "SELECT ?code ?name\r\n{\r\n  ?x a owl:Class . \r\n  ?x :NHC0 ?code .\r\n  ?x :P108 \"Melanoma\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/search",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"search"
+					],
+					"query": [
+						{
+							"key": "query",
+							"value": "SELECT%20%3Fcode%20%3Fname%0A%7B%0A%20%20%3Fx%20a%20owl%3AClass%20.%20%0A%20%20%3Fx%20%3ANHC0%20%3Fcode%20.%0A%20%20%3Fx%20%3AP108%20%22Melanoma%22%0A%7D\n",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find Concepts Based on Associations Query",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Each entry in results has a nonempty code and name, and name starts with C\", function () {\r",
+							"    pm.response.json().results.forEach(function(entry) {\r",
+							"        pm.expect(entry.code).to.not.be.empty;\r",
+							"        pm.expect(entry.name).to.not.be.empty;\r",
+							"        pm.expect(entry.code).to.match(/^C/);\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "SELECT ?code ?name\r\n  { \r\n    ?concept a owl:Class . \r\n    ?concept :NHC0 ?code . \r\n    ?concept :P108 ?name . \r\n    ?concept ?relationship ?relatedConcept . \r\n    ?relationship :NHC0 \"A13\" . \r\n    ?relationship :P108 \"Related_To_Genetic_Biomarker\" .\r\n    ?relatedConcept a owl:Class .\r\n    ?relatedConcept :NHC0 \"C26585\" .\r\n    ?relatedConcept :P108 \"KLK3 Gene\" .\r\n  }",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_URL}}/sparql/ncit",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"sparql",
+						"ncit"
+					],
+					"query": [
+						{
+							"key": "query",
+							"value": "SELECT ?code ?name\n  { \n    ?concept a owl:Class . \n    ?concept :NHC0 ?code . \n    ?concept :P108 ?name . \n    ?concept ?relationship ?relatedConcept . \n    ?relationship :NHC0 \"A13\" . \n    ?relationship :P108 \"Related_To_Genetic_Biomarker\" .\n    ?relatedConcept a owl:Class .\n    ?relatedConcept :NHC0 \"C26585\" .\n    ?relatedConcept :P108 \"KLK3 Gene\" .\n  }",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all subsets",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Validate the structure of the response\r",
+							"pm.test(\"Response structure is valid\", function () {\r",
+							"    var response = pm.response.json();\r",
+							"  \r",
+							"    response.forEach((subset) => {\r",
+							"        pm.expect(subset).to.have.property('code').that.is.not.empty;\r",
+							"        pm.expect(subset).to.have.property('name').that.is.not.empty;\r",
+							"        pm.expect(subset).to.have.property('terminology', 'ncit');\r",
+							"      \r",
+							"        if (subset.children) {\r",
+							"            pm.expect(subset.children).to.be.an('array');\r",
+							"            subset.children.forEach((child) => {\r",
+							"                pm.expect(child).to.have.property('code').that.is.not.empty;\r",
+							"                pm.expect(child).to.have.property('name').that.is.not.empty;\r",
+							"                pm.expect(child).to.have.property('terminology', 'ncit');\r",
+							"            });\r",
+							"        }\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/ncit/subsets",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"ncit",
+						"subsets"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get subset by code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Validate the structure of the response\r",
+							"pm.test(\"Response structure is valid and correct\", function () {\r",
+							"    var response = pm.response.json();\r",
+							"  \r",
+							"    pm.expect(response.code).to.equal(\"C81222\");\r",
+							"    pm.expect(response.name).to.equal(\"CDISC ADaM Terminology\");\r",
+							"    pm.expect(response.terminology).to.equal(\"ncit\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/ncit/subset/C81222?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"ncit",
+						"subset",
+						"C81222"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get subset members by code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"At least one valid result exists in concepts array\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"   \r",
+							"    pm.expect(responseData.length).to.equal(10, \"10 results for pagesize 10\");\r",
+							"});\r",
+							"pm.test(\"Each search result has a Concept_In_Subset relationship with C81222\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"   \r",
+							"    responseData.forEach((concept) => {\r",
+							"        const associations = concept.associations;\r",
+							"        pm.expect(associations.some((association) => {\r",
+							"            return association.type === \"Concept_In_Subset\" && association.relatedCode === \"C81222\";\r",
+							"        })).to.be.true;\r",
+							"    });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/subsetMembers/C81222?fromRecord=0&pageSize=10&include=associations",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"subsetMembers",
+						"C81222"
+					],
+					"query": [
+						{
+							"key": "fromRecord",
+							"value": "0"
+						},
+						{
+							"key": "pageSize",
+							"value": "10"
+						},
+						{
+							"key": "include",
+							"value": "associations"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all mapsets",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Validate the structure of the response\r",
+							"pm.test(\"Response structure is valid\", function () {\r",
+							"    var response = pm.response.json();\r",
+							"  \r",
+							"    response.forEach((mapset) => {\r",
+							"        pm.expect(mapset).to.have.property('code').that.is.not.empty;\r",
+							"        pm.expect(mapset).to.have.property('name').that.is.not.empty;\r",
+							"        pm.expect(mapset).to.have.property('version').that.is.not.empty;\r",
+							"      \r",
+							"        if (mapset.properties) {\r",
+							"            pm.expect(mapset.properties.some((property) => {\r",
+							"                return property.type === \"loader\" && property.value.includes(\"Impl\");\r",
+							"        })).to.be.true;\r",
+							"        }\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/mapset?include=properties",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"mapset"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "properties"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get mapset by code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Validate the structure of the response\r",
+							"pm.test(\"Response structure is valid and correct\", function () {\r",
+							"    var response = pm.response.json();\r",
+							"  \r",
+							"    pm.expect(response.code).to.equal(\"GO_to_NCIt_Mapping\");\r",
+							"    pm.expect(response.name).to.equal(\"GO_to_NCIt_Mapping\");\r",
+							"    pm.expect(response.version).to.equal(\"February2020\");\r",
+							"    pm.expect(response.properties.some((property) => {\r",
+							"                return property.type === \"loader\" && property.value === \"MappingLoadServiceImpl\";\r",
+							"        })).to.be.true;\r",
+							"    pm.expect(response.properties.some((property) => {\r",
+							"                return property.type === \"welcomeText\" && property.value != undefined;\r",
+							"        })).to.be.true;\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/mapset/GO_to_NCIt_Mapping?include=properties",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"mapset",
+						"GO_to_NCIt_Mapping"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "properties"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get maps by mapset code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Validate the structure of the response\r",
+							"pm.test(\"Response structure is valid\", function () {\r",
+							"    var response = pm.response.json();\r",
+							"  \r",
+							"    pm.expect(response.maps).is.not.empty;\r",
+							"    pm.expect(response.maps.length).equals(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Response data is correct\", function () {\r",
+							"     var responseData = pm.response.json().maps;\r",
+							"     \r",
+							"     responseData.forEach((mapset) => {\r",
+							"        pm.expect(mapset).to.have.property('type').that.is.not.empty;\r",
+							"        pm.expect(mapset.type).to.equal(\"mapsTo\");\r",
+							"        pm.expect(mapset.sourceCode).includes(\"GO:\");\r",
+							"        pm.expect(mapset.targetCode).includes(\"C\");\r",
+							"    });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/mapset/GO_to_NCIt_Mapping/maps?pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"mapset",
+						"GO_to_NCIt_Mapping",
+						"maps"
+					],
+					"query": [
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get replacement concepts for an inactive code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response structure is valid and correct\", function () {\r",
+							"    var responseData = pm.response.json();\r",
+							"\r",
+							"    pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"    pm.expect(responseData).to.have.lengthOf(1);\r",
+							"\r",
+							"    pm.expect(responseData[0].code).to.equal(\"C12658\");\r",
+							"    pm.expect(responseData[0].replacementCode).to.equal(\"C19157\");\r",
+							"    pm.expect(responseData[0].action).to.equal(\"retire\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/history/ncit/C12658/replacements",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"history",
+						"ncit",
+						"C12658",
+						"replacements"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get replacement concepts for a list of inactive codes",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response structure is valid and correct\", function () {\r",
+							"    var responseData = pm.response.json();\r",
+							"\r",
+							"    pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"    pm.expect(responseData).to.have.lengthOf(2);\r",
+							"\r",
+							"    pm.expect(responseData[0].code).to.equal(\"C12658\");\r",
+							"    pm.expect(responseData[0].replacementCode).to.equal(\"C19157\");\r",
+							"    pm.expect(responseData[0].action).to.equal(\"retire\");\r",
+							"\r",
+							"    pm.expect(responseData[1].code).to.equal(\"C13320\");\r",
+							"    pm.expect(responseData[1].replacementCode).to.equal(\"C12756\");\r",
+							"    pm.expect(responseData[1].action).to.equal(\"merge\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/history/ncit/replacements?list=C12658,C13320",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"history",
+						"ncit",
+						"replacements"
+					],
+					"query": [
+						{
+							"key": "list",
+							"value": "C12658,C13320"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get SPARQL Bindings",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response is a valid JSON\", function () {\r",
+							"    pm.response.to.be.json;\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Total should be more than or equal to 150000\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.total).to.be.at.least(150000);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Results has valid entries\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('object');\r",
+							"  pm.expect(responseData.results).to.be.an('array').and.to.have.lengthOf.at.least(1);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Each entry in the result has a code field that matches ncit conventions\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.results).to.be.an('array');\r",
+							"    responseData.results.forEach(function(entry) {\r",
+							"        pm.expect(entry.code).to.be.a('string');\r",
+							"        pm.expect(entry.code).to.match(/^C/);\r",
+							"    });\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Each entry in the result has an 'x' field that starts with 'http://'\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData.results).to.be.an('array');\r",
+							"    responseData.results.forEach(function(entry) {\r",
+							"        pm.expect(entry.x).to.be.a('string');\r",
+							"        pm.expect(entry.x).to.match(/^http:\\/\\//);\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "SELECT ?code ?x { GRAPH <http://NCI_T_monthly>    {      ?x a owl:Class .      ?x :NHC0 ?code .   }  }",
+					"options": {
+						"raw": {
+							"language": "text"
+						}
+					}
+				},
+				"url": {
+					"raw": "{{API_URL}}/sparql/ncit",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"sparql",
+						"ncit"
+					],
+					"query": [
+						{
+							"key": "query",
+							"value": "SELECT%20%3Fcode%20%3Fx%20%7B%20GRAPH%20%3Chttp%3A%2F%2FNCI_T_monthly%3E%20%20%20%20%7B%20%20%20%20%20%20%3Fx%20a%20owl%3AClass%20.%20%20%20%20%20%20%3Fx%20%3ANHC0%20%3Fcode%20.%20%20%20%7D%20%20%7D",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"pm.test(\"Status code is 200\", function () {\r",
+					"    pm.response.to.have.status(200);\r",
+					"});\r",
+					"pm.test(\"Response is not empty\", function () {\r",
+					"    pm.response.to.have.body();\r",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "API_URL",
+			"value": "https://api-evsrest.nci.nih.gov/api/v1",
+			"type": "string"
+		}
+	]
+}
