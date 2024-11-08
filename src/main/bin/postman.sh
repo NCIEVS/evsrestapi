@@ -15,8 +15,11 @@ if [ -z "$API_URL" ]; then
     exit 1
 fi
 
-# Define the Postman collection and environment file paths
-COLLECTION_FILE="EVSRESTAPI_Postman_NCIt_Demo.postman_collection.json"
+# Default value for the collection name placeholder
+COLLECTION_NAME="${1:-ncit}"
+
+# Construct the collection file name with the specified or default collection name
+COLLECTION_FILE="EVSRESTAPI_Postman_${COLLECTION_NAME}_Demo.postman_collection.json"
 
 # Verify if newman is installed
 if ! command -v newman &> /dev/null; then
