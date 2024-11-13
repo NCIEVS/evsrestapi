@@ -42,42 +42,106 @@ if [[ $historyFileOverride ]]; then
 fi
 echo ""
 
-# Setup configuration
-echo "  Setup configuration"
-if [[ $config -eq 1 ]]; then
-    APP_HOME=/local/content/evsrestapi
-    CONFIG_DIR=${APP_HOME}/${APP_NAME}/config
+setup_configuration() {
+  if [[ $config -eq 1 ]]; then
+    APP_HOME="${APP_HOME:-/local/content/evsrestapi}"
+    CONFIG_DIR=${APP_HOME}/config
     CONFIG_ENV_FILE=${CONFIG_DIR}/setenv.sh
-    echo "    config = $CONFIG_ENV_FILE"
-    . $CONFIG_ENV_FILE
-    if [[ $? -ne 0 ]]; then
-        echo "ERROR: $CONFIG_ENV_FILE does not exist or has a problem"
-        echo "       consider using --noconfig (if working in dev environment)"
-        exit 1
+    if [[ -e $CONFIG_ENV_FILE ]]; then
+      echo "    config = $CONFIG_ENV_FILE"
+      . $CONFIG_ENV_FILE
+    else
+      echo "    ERROR: $CONFIG_ENV_FILE does not exist, consider using --noconfig"
+      exit 1
     fi
-elif [[ -z $STARDOG_HOST ]]; then
-    echo "ERROR: STARDOG_HOST is not set"
-    exit 1
-elif [[ -z $STARDOG_PORT ]]; then
-    echo "ERROR: STARDOG_PORT is not set"
-    exit 1
-elif [[ -z $STARDOG_USERNAME ]]; then
-    echo "ERROR: STARDOG_USERNAME is not set"
-    exit 1
-elif [[ -z $STARDOG_PASSWORD ]]; then
-    echo "ERROR: STARDOG_PASSWORD is not set"
-    exit 1
-elif [[ -z $ES_SCHEME ]]; then
-    echo "ERROR: ES_SCHEME is not set"
-    exit 1
-elif [[ -z $ES_HOST ]]; then
-    echo "ERROR: ES_HOST is not set"
-    exit 1
-elif [[ -z $ES_PORT ]]; then
-    echo "ERROR: ES_PORT is not set"
-    exit 1
-fi
+  fi
+}
 
+# Setup configuration
+setup_configuration() {
+  echo "  Setup configuration"
+  if [[ $config -eq 1 ]]; then
+      APP_HOME=/local/content/evsrestapi
+      CONFIG_DIR=${APP_HOME}/${APP_NAME}/config
+      CONFIG_ENV_FILE=${CONFIG_DIR}/setenv.sh
+      echo "    config = $CONFIG_ENV_FILE"
+      . $CONFIG_ENV_FILE
+      if [[ $? -ne 0 ]]; then
+          echo "ERROR: $CONFIG_ENV_FILE does not exist or has a problem"
+          echo "       consider using --noconfig (if working in dev environment)"
+          exit 1
+      fi
+  fi
+}
+setup_configuration
+l_graph_db_type=${GRAPH_DB_TYPE:-"stardog"}
+l_graph_db_port=${GRAPH_DB_PORT:-"5820"}
+validate_setup() {
+  if [[ $l_graph_db_type == "stardog" ]]; then
+    if [[ -n "$GRAPH_DB_HOME" ]]; then
+      l_graph_db_home="$GRAPH_DB_HOME"
+    elif [[ -n "$STARDOG_HOME" ]]; then
+      l_graph_db_home="$STARDOG_HOME"
+    else
+      echo "Error: Both GRAPH_DB_HOME and STARDOG_HOME are not set."
+      exit 1
+    fi
+    if [[ -n "$GRAPH_DB_HOST" ]]; then
+      l_graph_db_host="$GRAPH_DB_HOST"
+    elif [[ -n "$STARDOG_HOST" ]]; then
+      l_graph_db_host="$STARDOG_HOST"
+    else
+      echo "Error: Both GRAPH_DB_HOST and STARDOG_HOST are not set."
+      exit 1
+    fi
+    if [[ -n "$GRAPH_DB_USERNAME" ]]; then
+      l_graph_db_username="$GRAPH_DB_USERNAME"
+    elif [[ -n "$STARDOG_USERNAME" ]]; then
+      l_graph_db_username="$STARDOG_USERNAME"
+    else
+      echo "Error: Both GRAPH_DB_USERNAME and STARDOG_USERNAME are not set."
+      exit 1
+    fi
+        if [[ -n "$GRAPH_DB_PASSWORD" ]]; then
+      l_graph_db_password="$GRAPH_DB_PASSWORD"
+    elif [[ -n "$STARDOG_PASSWORD" ]]; then
+      l_graph_db_password="$STARDOG_PASSWORD"
+    else
+      echo "Error: Both GRAPH_DB_PASSWORD and STARDOG_PASSWORD are not set."
+      exit 1
+    fi
+  elif [[ $l_graph_db_type == "jena" ]]; then
+    if [[ -n "$GRAPH_DB_HOST" ]]; then
+      l_graph_db_host="$GRAPH_DB_HOST"
+    elif [[ -n "$STARDOG_HOST" ]]; then
+      l_graph_db_host="$STARDOG_HOST"
+    else
+      echo "Error: Both GRAPH_DB_HOST and STARDOG_HOST are not set."
+      exit 1
+    fi
+    if [[ -n "$GRAPH_DB_PORT" ]]; then
+      l_graph_db_port="$GRAPH_DB_PORT"
+    elif [[ -n "$STARDOG_PORT" ]]; then
+      l_graph_db_port="$STARDOG_PORT"
+    else
+      echo "Error: Both GRAPH_DB_PORT and STARDOG_PORT are not set."
+      exit 1
+    fi
+  fi
+  if [[ -z $ES_SCHEME ]]; then
+      echo "ERROR: ES_SCHEME is not set"
+      exit 1
+  elif [[ -z $ES_HOST ]]; then
+      echo "ERROR: ES_HOST is not set"
+      exit 1
+  elif [[ -z $ES_PORT ]]; then
+      echo "ERROR: ES_PORT is not set"
+      exit 1
+  fi
+}
+validate_setup
+echo "    GRAPH_DB_TYPE = $l_graph_db_type"
+echo "    GRAPH_DB_PORT = $l_graph_db_port"
 if [[ $force -eq 1 ]]; then
     echo "  force = 1"
 elif [[ $ES_CLEAN == "true" ]]; then
@@ -87,29 +151,29 @@ fi
 
 metadata_config_url=${CONFIG_BASE_URI:-"https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata"}
 
-response=$(curl -f -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
-    "http://${STARDOG_HOST}:${STARDOG_PORT}/admin/databases")
-if [[ $? -ne 0 ]]; then
-    echo "ERROR: problem listing databases. Trying a different URL"
-    curl -s "http://${STARDOG_HOST}:${STARDOG_PORT}/$/server" | jq -r '.datasets|.[]|."ds.name" | gsub("^/";"")' > /tmp/db.$$.txt
-    if [[ $? -ne 0 ]]; then
-      echo "ERROR: unexpected problem listing databases. Exiting"
+get_databases(){
+  if [[ $l_graph_db_type == "stardog" ]]; then
+    curl -s -g -u "${l_graph_db_username}:$l_graph_db_password" \
+        "http://${l_graph_db_host}:${l_graph_db_port}/admin/databases" |\
+        python3 "$DIR/get_databases.py" "$GRAPH_DB_TYPE" > /tmp/db.$$.txt
+  elif [[ $l_graph_db_type == "jena" ]]; then
+    curl -s -g "http://${l_graph_db_host}:${l_graph_db_port}/$/server" |\
+        python3 "$DIR/get_databases.py" "$GRAPH_DB_TYPE" > /tmp/db.$$.txt
+  fi
+  if [[ $? -ne 0 ]]; then
+      echo "ERROR: unexpected problem listing databases"
       exit 1
-    fi
-else
-    echo "$response" | $jq | perl -ne 's/\r//; $x=0 if /\]/;
-            if ($x) { s/.* "//; s/",?$//; print "$_"; };
-            $x=1 if/\[/;' > /tmp/db.$$.txt
-fi
+  fi
 
+  echo "  databases = " `cat /tmp/db.$$.txt`
 
-echo "  databases = " `cat /tmp/db.$$.txt`
-ct=`cat /tmp/db.$$.txt | wc -l`
-if [[ $ct -eq 0 ]]; then
-    echo "ERROR: no stardog databases, this is unexpected"
-    exit 1
-fi
-
+  ct=`cat /tmp/db.$$.txt | wc -l`
+  if [[ $ct -eq 0 ]]; then
+      echo "ERROR: no graph databases, this is unexpected"
+      exit 1
+  fi
+}
+get_databases
 # Open a new file descriptor that redirects to stdout:
 exec 3>&1
 
@@ -139,7 +203,8 @@ ignored_sources=$(get_ignored_sources)
 echo "Ignored source URLs:${ignored_sources}"
 
 # Prep query to read all version info
-echo "  Lookup terminology, version info in stardog"
+echo "  Lookup terminology, version info in graph db"
+get_graph_query(){
 if [ -n "$ignored_sources" ];then
 cat > /tmp/x.$$.txt << EOF
 query=PREFIX owl:<http://www.w3.org/2002/07/owl#>
@@ -189,35 +254,31 @@ select distinct ?source ?graphName ?version where {
 }
 EOF
 fi
-query=`cat /tmp/x.$$.txt`
-
+query=$(cat /tmp/x.$$.txt)
+}
+get_graph_query
 # Run the query against each of the databases
-/bin/rm -f /tmp/y.$$.txt
-touch /tmp/y.$$.txt
-for db in `cat /tmp/db.$$.txt`; do
-    curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
-        http://${STARDOG_HOST}:${STARDOG_PORT}/$db/query \
-        --data-urlencode "$query" -H "Accept: application/sparql-results+json" |\
-        $jq | perl -ne '
-            chop; $x="version" if /"version"/; 
-            $x="source" if /"source"/; 
-            $x=0 if /\}/; 
-            if ($x && /"value"/) { 
-                s/.* "//; s/".*//;
-                ${$x} = $_;                
-                print "$version|'$db'|$source\n" if $x eq "version"; 
-            } ' >> /tmp/y.$$.txt
-    if [[ $? -ne 0 ]]; then
-        echo "ERROR: unexpected problem obtaining $db versions from stardog"
-        exit 1
-    fi
-done
-# Sort by version then reverse by DB (NCIT2 goes before CTRP)
-# this is because we need "monthly" to be indexed from the "monthlyDb"
-# defined in ncit.json
-# NOTE: version isn't cleaned up here so from where versionIRI is still an IRI
-sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
-cat /tmp/y.$$.txt | sed 's/^/    version = /;'
+get_graphs(){
+  /bin/rm -f /tmp/y.$$.txt
+  touch /tmp/y.$$.txt
+  for db in `cat /tmp/db.$$.txt`; do
+      curl -s -g -u "${l_graph_db_username}:$l_graph_db_password" \
+          http://${l_graph_db_host}:${l_graph_db_port}/$db/query \
+          --data-urlencode "$query" -H "Accept: application/sparql-results+json" |\
+          $jq | python3 "$DIR/get_graphs.py" "$db" >> /tmp/y.$$.txt
+      if [[ $? -ne 0 ]]; then
+          echo "ERROR: unexpected problem obtaining $db versions from stardog"
+          exit 1
+      fi
+  done
+  # Sort by version then reverse by DB (NCIT2 goes before CTRP)
+  # this is because we need "monthly" to be indexed from the "monthlyDb"
+  # defined in ncit.json
+  # NOTE: version isn't cleaned up here so from where versionIRI is still an IRI
+  sort -t\| -k 1,1 -k 2,2r -o /tmp/y.$$.txt /tmp/y.$$.txt
+  cat /tmp/y.$$.txt | sed 's/^/    version = /;'
+}
+get_graphs
 
 if [[ $ES_CLEAN == "true" ]]; then
     echo "  Remove and recreate evs_metadata index"
