@@ -4,8 +4,8 @@ import static gov.nih.nci.evs.api.service.ElasticSearchServiceImpl.escape;
 
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
@@ -238,7 +238,7 @@ public class MapsetController extends BaseController {
   })
   @RecordMetric
   @GetMapping(value = "/mapset/{code}/maps", produces = "application/json")
-  public @ResponseBody ConceptMapResultList getMapsetMappingsByCode(
+  public @ResponseBody MappingResultList getMapsetMappingsByCode(
       @PathVariable(value = "code") final String code, SearchCriteria searchCriteria)
       throws Exception {
     try {
@@ -260,9 +260,9 @@ public class MapsetController extends BaseController {
       logger.debug("  Search = " + searchCriteria);
 
       // Build the query for finding concept mappings
-      String query = "code:\"" + escape(code) + "\"";
+      String query = "mapsetCode:\"" + escape(code) + "\"";
 
-      final ConceptMapResultList list = esSearchService.findConceptMappings(query, searchCriteria);
+      final MappingResultList list = esSearchService.findConceptMappings(query, searchCriteria);
 
       return list;
     } catch (Exception e) {

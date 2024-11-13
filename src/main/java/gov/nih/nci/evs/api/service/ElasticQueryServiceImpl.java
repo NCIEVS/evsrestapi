@@ -9,7 +9,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Mappings;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.SearchCriteria;
@@ -827,14 +827,14 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   }
 
   @Override
-  public List<Mappings> getMapsetMappings(String code) throws Exception {
+  public List<Mapping> getMapsetMappings(String code) throws Exception {
 
     NativeSearchQuery query =
         new NativeSearchQueryBuilder()
             .withFilter(QueryBuilders.termQuery("mapsetCode.keyword", code))
             .build();
 
-    return getResults(query, Mappings.class, ElasticOperationsService.MAPPINGS_INDEX);
+    return getResults(query, Mapping.class, ElasticOperationsService.MAPPINGS_INDEX);
   }
 
   /**

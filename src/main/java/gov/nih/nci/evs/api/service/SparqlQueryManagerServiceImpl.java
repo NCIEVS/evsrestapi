@@ -11,7 +11,7 @@ import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Mappings;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Property;
@@ -250,7 +250,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<Mappings> getMapsTo(final String conceptCode, final Terminology terminology)
+  public List<Mapping> getMapsTo(final String conceptCode, final Terminology terminology)
       throws Exception {
     final List<Axiom> axioms = getAxioms(conceptCode, terminology, true);
     return EVSUtils.getMapsTo(terminology, axioms);

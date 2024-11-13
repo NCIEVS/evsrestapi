@@ -1,8 +1,8 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.ConceptResultList;
-import gov.nih.nci.evs.api.model.Mappings;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
@@ -31,7 +31,7 @@ public interface ElasticSearchService {
    * @return the result list with concepts
    * @throws Exception the exception
    */
-  ConceptMapResultList findConceptMappings(String query, SearchCriteria searchCriteria);
+  MappingResultList findConceptMappings(String query, SearchCriteria searchCriteria);
 
   /**
    * Returns the term query for mappings based on concepts.
@@ -41,5 +41,5 @@ public interface ElasticSearchService {
    * @return the mappings
    * @throws Exception the exception
    */
-  public List<Mappings> getConceptMappings(List<String> asList, String terminology);
+  public List<Mapping> getConceptMappings(List<String> asList, String terminology);
 }

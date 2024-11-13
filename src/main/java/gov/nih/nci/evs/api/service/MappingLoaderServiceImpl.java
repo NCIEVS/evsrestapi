@@ -2,7 +2,7 @@ package gov.nih.nci.evs.api.service;
 
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Mappings;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
@@ -68,9 +68,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
    * @return the list
    * @throws Exception the exception
    */
-  public List<Mappings> buildMaps(final String mappingData, final String[] metadata)
+  public List<Mapping> buildMaps(final String mappingData, final String[] metadata)
       throws Exception {
-    final List<Mappings> maps = new ArrayList<>();
+    final List<Mapping> maps = new ArrayList<>();
     final String[] mappingDataList = mappingData.split("\n");
 
     if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
@@ -78,7 +78,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         for (final String conceptMap :
             Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
           final String[] conceptSplit = conceptMap.split("\t");
-          final Mappings conceptToAdd = new Mappings();
+          final Mapping conceptToAdd = new Mapping();
           conceptToAdd.setMapsetCode(metadata[0]);
           conceptToAdd.setSourceCode(
               !conceptSplit[0].replace("\"", "").isBlank()
@@ -136,7 +136,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             targetName = targetConcept.getName();
           }
 
-          final Mappings conceptToAdd = new Mappings();
+          final Mapping conceptToAdd = new Mapping();
           conceptToAdd.setMapsetCode(metadata[0]);
           conceptToAdd.setSourceCode(conceptSplit[0].strip());
           conceptToAdd.setSourceName(sourceName);
@@ -164,7 +164,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       for (final String conceptMap :
           Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
         final String[] conceptSplit = conceptMap.split("\",\"");
-        final Mappings conceptToAdd = new Mappings();
+        final Mapping conceptToAdd = new Mapping();
         conceptToAdd.setMapsetCode(metadata[0]);
         conceptToAdd.setSourceCode(
             !conceptSplit[0].replace("\"", "").isBlank()
@@ -397,10 +397,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
 
       // Sort maps (e.g. mostly for SNOMED maps)
       Collections.sort(
-          map.getMaps(),
-          new Comparator<Mappings>() {
+          map.getMaps(), new Comparator<Mapping>() {
             @Override
-            public int compare(final Mappings o1, final Mappings o2) {
+            public int compare(final Mapping o1, final Mapping o2) {
               // Assume maps are not null
               return (o1.getSourceName()
                       + o1.getType()
@@ -416,11 +415,10 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             }
           });
       int i = 1;
-      for (final Mappings mapToSort : map.getMaps()) {
+      for (final Mapping mapToSort : map.getMaps()) {
         mapToSort.setSortKey(String.valueOf(1000000 + i++));
       }
-      operationsService.bulkIndex(
-          map.getMaps(), ElasticOperationsService.MAPPINGS_INDEX, Mappings.class);
+      operationsService.bulkIndex(map.getMaps(), ElasticOperationsService.MAPPINGS_INDEX, Mapping.class);
       map.setMaps(null);
       operationsService.index(map, ElasticOperationsService.MAPSET_INDEX, Concept.class);
     }

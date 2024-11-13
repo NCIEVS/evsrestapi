@@ -11,8 +11,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMapResultList;
-import gov.nih.nci.evs.api.model.Mappings;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -287,8 +287,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    ConceptMapResultList mapList =
-        new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
 
     // Assert
     assertTrue(mapList.getTotal() > 0);
@@ -310,15 +309,14 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    ConceptMapResultList mapList =
-        new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    Mappings tenFromZero = mapList.getMaps().get(9);
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    Mapping tenFromZero = mapList.getMaps().get(9);
 
     // testing fromRecord and pageSize
     result = mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    Mappings tenFromTen = mapList.getMaps().get(0);
+    mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    Mapping tenFromTen = mapList.getMaps().get(0);
 
     // Assert
     assertTrue(mapList.getTotal() > 0);
@@ -341,15 +339,14 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    ConceptMapResultList mapList =
-        new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    Mappings tenFromZero = mapList.getMaps().get(9);
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    Mapping tenFromZero = mapList.getMaps().get(9);
 
     // testing fromRecord off page size
     result = mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    Mappings tenFromOne = mapList.getMaps().get(8);
+    mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    Mapping tenFromOne = mapList.getMaps().get(8);
 
     // Assert
     assertTrue(mapList.getTotal() > 0);
@@ -371,8 +368,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    ConceptMapResultList mapList =
-        new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
 
     // Assert
     assertNull(mapList.getMaps());
@@ -393,8 +389,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    ConceptMapResultList mapList =
-        new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
 
     // Assert
     assertNull(mapList.getMaps());
@@ -415,8 +410,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    ConceptMapResultList mapList =
-        new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());
@@ -441,8 +435,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    ConceptMapResultList mapList =
-        new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());
@@ -468,15 +461,14 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    ConceptMapResultList mapList =
-        new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    Mappings sixFromZero = mapList.getMaps().get(5);
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    Mapping sixFromZero = mapList.getMaps().get(5);
 
     result =
         mvc.perform(get(baseUrl + "/" + path + params2)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    mapList = new ObjectMapper().readValue(content, ConceptMapResultList.class);
-    Mappings sixFromThree = mapList.getMaps().get(2);
+    mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    Mapping sixFromThree = mapList.getMaps().get(2);
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());
@@ -498,8 +490,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    ConceptMapResultList mapList =
-        new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());
@@ -523,8 +514,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    ConceptMapResultList mapList =
-        new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());
@@ -545,8 +535,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    ConceptMapResultList mapList =
-        new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());
@@ -568,8 +557,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    ConceptMapResultList mapList =
-        new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());
@@ -591,15 +579,12 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    ConceptMapResultList mapList =
-        new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
     List<String> sortedNames =
-        mapList.getMaps().stream()
-            .map(Mappings::getSourceName)
+        mapList.getMaps().stream().map(Mapping::getSourceName)
             .sorted()
             .collect(Collectors.toList());
-    List<String> unsortedNames =
-        mapList.getMaps().stream().map(Mappings::getSourceName).collect(Collectors.toList());
+    List<String> unsortedNames = mapList.getMaps().stream().map(Mapping::getSourceName).collect(Collectors.toList());
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());
@@ -621,15 +606,12 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    ConceptMapResultList mapList =
-        new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
     List<String> sortedNames =
-        mapList.getMaps().stream()
-            .map(Mappings::getSourceName)
+        mapList.getMaps().stream().map(Mapping::getSourceName)
             .sorted((a, b) -> b.compareTo(a))
             .collect(Collectors.toList());
-    List<String> unsortedNames =
-        mapList.getMaps().stream().map(Mappings::getSourceName).collect(Collectors.toList());
+    List<String> unsortedNames = mapList.getMaps().stream().map(Mapping::getSourceName).collect(Collectors.toList());
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());
@@ -650,8 +632,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    ConceptMapResultList mapList =
-        new ObjectMapper().readValue(content, ConceptMapResultList.class);
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
 
     // Assert
     assertNull(mapList.getMaps());

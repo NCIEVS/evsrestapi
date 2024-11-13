@@ -3,7 +3,7 @@ package gov.nih.nci.evs.api.util;
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
-import gov.nih.nci.evs.api.model.Mappings;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;
@@ -240,13 +240,13 @@ public class EVSUtils {
    * @param axioms the axioms
    * @return the maps to
    */
-  public static List<Mappings> getMapsTo(Terminology terminology, List<Axiom> axioms) {
-    ArrayList<Mappings> results = new ArrayList<Mappings>();
+  public static List<Mapping> getMapsTo(Terminology terminology, List<Axiom> axioms) {
+      ArrayList<Mapping> results = new ArrayList<Mapping>();
     final String mapCode = terminology.getMetadata().getMap();
     for (Axiom axiom : axioms) {
       final String axiomCode = EVSUtils.getQualifiedCodeFromUri(axiom.getAnnotatedProperty());
       if (axiomCode.equals(mapCode)) {
-        Mappings mapsTo = new Mappings();
+          Mapping mapsTo = new Mapping();
         mapsTo.setTargetName(axiom.getAnnotatedTarget());
         mapsTo.setType(axiom.getRelationshipToTarget());
         mapsTo.setTargetTermType(axiom.getTargetTermType());

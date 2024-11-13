@@ -15,7 +15,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-/** Unit test for {@link Mappings}. */
+/**
+ * Unit test for {@link Mapping}.
+ */
 @ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestConfiguration.class)
 public class MapUnitTest {
@@ -25,7 +27,7 @@ public class MapUnitTest {
   private static final Logger log = LoggerFactory.getLogger(MapUnitTest.class);
 
   /** The model object to test. */
-  private Mappings object;
+  private Mapping object;
 
   /**
    * Setup.
@@ -34,7 +36,7 @@ public class MapUnitTest {
    */
   @BeforeEach
   public void setup() throws Exception {
-    object = new Mappings();
+      object = new Mapping();
   }
 
   /**
@@ -96,7 +98,7 @@ public class MapUnitTest {
   @Test
   public void testModelCopy() throws Exception {
     final CopyConstructorTester tester = new CopyConstructorTester(object);
-    assertTrue(tester.testCopyConstructor(Mappings.class));
+      assertTrue(tester.testCopyConstructor(Mapping.class));
   }
 
   /**

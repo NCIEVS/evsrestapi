@@ -9,7 +9,7 @@ import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Mappings;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Role;
@@ -185,13 +185,13 @@ public class ConceptController extends BaseController {
           elasticQueryService.getConcepts(Arrays.asList(codes), term, ip);
 
       if (ip.isMaps() && concepts.size() > 0) {
-        List<Mappings> firstList = null;
+        List<Mapping> firstList = null;
         List<String> conceptCodeList = Arrays.asList(list.split(","));
-        List<Mappings> secondList =
+        List<Mapping> secondList =
             elasticSearchService.getConceptMappings(conceptCodeList, terminology);
 
         // Pre-process secondList into a map
-        Map<String, List<Mappings>> secondMap =
+        Map<String, List<Mapping>> secondMap =
             secondList.stream().collect(Collectors.groupingBy(cm -> cm.getSourceCode()));
 
         for (Concept concept : concepts) {
@@ -204,10 +204,10 @@ public class ConceptController extends BaseController {
                   .collect(Collectors.toSet());
 
           // Look up the concept code in the preprocessed map and filter the maps
-          List<Mappings> relevantMaps =
+          List<Mapping> relevantMaps =
               secondMap.getOrDefault(concept.getCode(), Collections.emptyList());
 
-          List<Mappings> mapsToAdd =
+          List<Mapping> mapsToAdd =
               relevantMaps.stream()
                   .filter(
                       cm ->
@@ -339,8 +339,8 @@ public class ConceptController extends BaseController {
       }
 
       if (ip.isMaps()) {
-        List<Mappings> firstList = concept.get().getMaps();
-        List<Mappings> secondList =
+        List<Mapping> firstList = concept.get().getMaps();
+        List<Mapping> secondList =
             elasticSearchService.getConceptMappings(Arrays.asList(code), terminology);
 
         // Create a set of existing keys in firstList to check for matches
@@ -350,7 +350,7 @@ public class ConceptController extends BaseController {
                 .collect(Collectors.toSet());
 
         // Filter and add only those ConceptMap objects that don't have a match in firstList
-        List<Mappings> mapsToAdd =
+        List<Mapping> mapsToAdd =
             secondList.stream()
                 .filter(
                     cm ->
@@ -1238,7 +1238,7 @@ public class ConceptController extends BaseController {
   })
   @RecordMetric
   @GetMapping(value = "/concept/{terminology}/{code}/maps", produces = "application/json")
-  public @ResponseBody List<Mappings> getMaps(
+  public @ResponseBody List<Mapping> getMaps(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)

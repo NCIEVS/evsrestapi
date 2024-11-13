@@ -12,7 +12,7 @@ import org.springframework.data.elasticsearch.annotations.MultiField;
 /** Represents a map to a concept in another terminology. */
 @Schema(description = "Represents a map from a concept to concepts in other terminologies")
 @JsonInclude(Include.NON_EMPTY)
-public class Mappings extends BaseModel implements Comparable<Mappings> {
+public class Mapping extends BaseModel implements Comparable<Mapping> {
 
   /** The mapset code */
   @Field(type = FieldType.Keyword)
@@ -102,17 +102,19 @@ public class Mappings extends BaseModel implements Comparable<Mappings> {
   @Field(type = FieldType.Keyword)
   private String sortKey;
 
-  /** Instantiates an empty {@link Mappings}. */
-  public Mappings() {
+  /**
+   * Instantiates an empty {@link Mapping}.
+   */
+  public Mapping() {
     // n/a
   }
 
   /**
-   * Instantiates a {@link Mappings} from the specified parameters.
+   * Instantiates a {@link Mapping} from the specified parameters.
    *
    * @param other the other
    */
-  public Mappings(final Mappings other) {
+  public Mapping(final Mapping other) {
     populateFrom(other);
   }
 
@@ -121,7 +123,7 @@ public class Mappings extends BaseModel implements Comparable<Mappings> {
    *
    * @param other the other
    */
-  public void populateFrom(final Mappings other) {
+  public void populateFrom(final Mapping other) {
     super.populateFrom(other);
     mapsetCode = other.getMapsetCode();
     source = other.getSource();
@@ -538,7 +540,7 @@ public class Mappings extends BaseModel implements Comparable<Mappings> {
     if (this == obj) return true;
     if (obj == null) return false;
     if (getClass() != obj.getClass()) return false;
-    Mappings other = (Mappings) obj;
+    Mapping other = (Mapping) obj;
     return Objects.equals(mapsetCode, other.mapsetCode)
         && Objects.equals(group, other.group)
         && Objects.equals(rank, other.rank)
@@ -562,7 +564,7 @@ public class Mappings extends BaseModel implements Comparable<Mappings> {
 
   /* see superclass */
   @Override
-  public int compareTo(Mappings o) {
+  public int compareTo(Mapping o) {
     return (sourceCode + sourceTerminology + group + rank + targetName + targetCode)
         .compareToIgnoreCase(
             o.getSourceCode()

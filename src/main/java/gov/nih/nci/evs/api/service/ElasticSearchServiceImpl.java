@@ -1,10 +1,10 @@
 package gov.nih.nci.evs.api.service;
 
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Mappings;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.EVSPageable;
@@ -214,7 +214,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @return the result list with concepts
    */
   @Override
-  public ConceptMapResultList findConceptMappings(String query, SearchCriteria searchCriteria) {
+  public MappingResultList findConceptMappings(String query, SearchCriteria searchCriteria) {
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
     // PageRequest.of(page, searchCriteria.getPageSize());
 
@@ -271,15 +271,14 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     // query on operations
-    final SearchHits<Mappings> hits =
+    final SearchHits<Mapping> hits =
         elasticsearchOperations.search(
-            searchQuery.build(),
-            Mappings.class,
+            searchQuery.build(), Mapping.class,
             IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
 
     logger.debug("result count: {}", hits.getTotalHits());
 
-    final ConceptMapResultList result = new ConceptMapResultList();
+    final MappingResultList result = new MappingResultList();
 
     if (hits.getTotalHits() >= 10000) {
       result.setTotal(
@@ -296,7 +295,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if (fromOffset == 0) {
       result.setMaps(hits.stream().map(SearchHit::getContent).collect(Collectors.toList()));
     } else {
-      final List<Mappings> results =
+      final List<Mapping> results =
           hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
       if (fromIndex >= results.size()) {
         result.setMaps(new ArrayList<>());
@@ -347,7 +346,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @return the mappings
    */
   @Override
-  public List<Mappings> getConceptMappings(List<String> conceptCodes, String terminology) {
+  public List<Mapping> getConceptMappings(List<String> conceptCodes, String terminology) {
     // must match mapsetCode
 
     BoolQueryBuilder termQuery = new BoolQueryBuilder();
@@ -366,19 +365,18 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     final NativeSearchQueryBuilder searchQuery =
         new NativeSearchQueryBuilder().withQuery(termQuery);
-    final SearchHits<Mappings> hits =
+    final SearchHits<Mapping> hits =
         elasticsearchOperations.search(
-            searchQuery.build(),
-            Mappings.class,
+            searchQuery.build(), Mapping.class,
             IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
 
     logger.debug("result count: {}", hits.getTotalHits());
 
-    final ConceptMapResultList result = new ConceptMapResultList();
+    final MappingResultList result = new MappingResultList();
 
     result.setTotal(hits.getTotalHits());
 
-    final List<Mappings> mappings =
+    final List<Mapping> mappings =
         hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
 
     return mappings;

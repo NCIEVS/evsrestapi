@@ -8,7 +8,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Mappings;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -471,5 +471,5 @@ public interface ElasticQueryService {
    * @throws ClassNotFoundException the class not found exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  List<Mappings> getMapsetMappings(String code) throws Exception;
+  List<Mapping> getMapsetMappings(String code) throws Exception;
 }
