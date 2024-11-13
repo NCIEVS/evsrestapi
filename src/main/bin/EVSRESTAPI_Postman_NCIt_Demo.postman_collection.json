@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "7712e7d1-aa69-469d-83b3-065b15acf495",
+		"_postman_id": "8dfcf6b4-f233-4888-b072-e2c2390a7a40",
 		"name": "EVSRESTAPI_Postman_ncit_Demo",
-		"description": "Collection of postman calls for demonstrating functionality of the EVSRESTAPI with NCIt terminology\n\nPrerequisites:  \n1\\. Node.js and npm package manager. Installers can be found here: [https://nodejs.org/en/download/package-manager](https://nodejs.org/en/download/package-manager)\n\n2\\. newman node.js package. Can be installed after node.js and npm are installed with the following command:\n\n``` bash\nnewman run my-collection.json\n\n ```\n\nTo run: Navigate to the src/main/bin folder, in which this collection resides, and run the following command in a CLI:\n\n``` bash\nnewman run EVSRESTAPI_Postman_ncit_Demo.postman_collection.json\n\n ```\n\nAlternatively, run the postman.sh script with a terminology parameter (such as 'ncit') and the script will automatically find the corresponding terminology postman collection in the src/main/bin folder. Running the collection via the script will support whatever environment you are currently working on (e.g. localhost, dev, qa) as determined by the environment variables in \\~/.bashrc, while running with newman will default to production environment variables.",
+		"description": "Collection of postman calls for demonstrating functionality of the EVSRESTAPI with NCIt terminology\n\nPrerequisites:  \n1\\. Node.js and npm package manager. Installers can be found here: [https://nodejs.org/en/download/package-manager](https://nodejs.org/en/download/package-manager)\n\n2\\. newman node.js package. Can be installed after node.js and npm are installed with the following command:\n\n``` bash\nnewman run my-collection.json\n\n ```\n\nTo run: Navigate to the src/main/bin folder, in which this collection resides, and run the following command in a CLI:\n\n``` bash\nnewman run EVSRESTAPI_Postman_ncit_Demo.postman_collection.json\n\n ```\n\nAlternatively, run the postman.sh script with a terminology parameter (such as 'ncit') and the script will automatically find the corresponding terminology postman collection in the src/main/bin folder.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "30894083"
 	},
@@ -229,6 +229,116 @@
 						{
 							"key": "include",
 							"value": "full"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Concept Information - C3224 (All but disjointWith)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"C3224\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has children\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"children\"]).to.exist;\r",
+							"    pm.expect(jsonData[\"children\"]).to.have.length.above(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has all information\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.exist;\r",
+							"    pm.expect(jsonData[\"synonyms\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"definitions\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"properties\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"children\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"parents\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"associations\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"inverseAssociations\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"roles\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"inverseRoles\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"history\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"maps\"]).to.have.length.above(0);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/C3224?include=full",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"C3224"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "full"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Concept Information - C20047 (disjointWith)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"C20047\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has disjointWith\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.exist;\r",
+							"    pm.expect(jsonData[\"disjointWith\"]).to.have.length.above(0);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/ncit/C20047?include=disjointWith",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"ncit",
+						"C20047"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "disjointWith"
 						}
 					]
 				}
