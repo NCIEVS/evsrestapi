@@ -17,9 +17,9 @@ import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Mappings;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
@@ -217,15 +217,16 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyExclusive(targetScope, "targetScope", targetSystem, "targetSystem");
 
       final Parameters params = new Parameters();
-      // Extract the mapsetcode from the system uri to build the query
-      String systemUri = system.getValue();
-      final String mapsetCode = systemUri.substring(systemUri.lastIndexOf("fhir_cm=") + 8);
+      final List<ConceptMap> cm =
+          findPossibleConceptMaps(null, null, system, url, version, targetSystem);
+      // Extract the mapsetcode from cm build the query
+      final List<String> mapsetCodes = cm.stream().map(m -> m.getTitle()).toList();
 
       // Build a string query to search for the source code and target code
-      String query = buildFhirQueryString(sourceCode, targetCode, mapsetCode, "AND");
+      String query = buildFhirQueryString(sourceCode, targetCode, mapsetCodes, "AND");
       logger.debug("   Fhir query string = " + query);
 
-      ConceptMapResultList maps;
+      MappingResultList maps;
 
       SearchCriteria criteria = new SearchCriteria();
       // Set as high as we can, should not be more than 10000 in reality. (Unlimited support?)
@@ -233,10 +234,10 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       criteria.setFromRecord(0);
 
       maps = esSearchService.findConceptMappings(query, criteria);
-      final List<Mappings> conceptMaps = maps.getMaps();
+      final List<Mapping> conceptMaps = maps.getMaps();
 
       if (!conceptMaps.isEmpty()) {
-        final Mappings map = conceptMaps.get(0);
+        final Mapping map = conceptMaps.get(0);
         params.addParameter("result", true);
         final Parameters.ParametersParameterComponent property =
             new Parameters.ParametersParameterComponent().setName("match");
@@ -328,15 +329,16 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyExclusive(targetScope, "targetScope", targetSystem, "targetSystem");
 
       final Parameters params = new Parameters();
-      // Extract the mapsetcode from the system uri to build the query
-      String systemUri = system.getValue();
-      final String mapsetCode = systemUri.substring(systemUri.lastIndexOf("fhir_cm=") + 8);
+      final List<ConceptMap> cm =
+          findPossibleConceptMaps(null, null, system, url, version, targetSystem);
+      // Extract the mapsetcode from cm build the query
+      final List<String> mapsetCodes = cm.stream().map(m -> m.getTitle()).toList();
 
       // Build a string query to search for the source code and target code
-      String query = buildFhirQueryString(sourceCode, targetCode, mapsetCode, "AND");
+      String query = buildFhirQueryString(sourceCode, targetCode, mapsetCodes, "AND");
       logger.debug("   Fhir query string = " + query);
 
-      ConceptMapResultList maps;
+      MappingResultList maps;
 
       SearchCriteria criteria = new SearchCriteria();
       // Set as high as we can, should not be more than 10000 in reality. (Unlimited support?)
@@ -344,10 +346,10 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       criteria.setFromRecord(0);
 
       maps = esSearchService.findConceptMappings(query, criteria);
-      final List<Mappings> conceptMaps = maps.getMaps();
+      final List<Mapping> conceptMaps = maps.getMaps();
 
       if (!conceptMaps.isEmpty()) {
-        final Mappings map = conceptMaps.get(0);
+        final Mapping map = conceptMaps.get(0);
         params.addParameter("result", true);
         final Parameters.ParametersParameterComponent property =
             new Parameters.ParametersParameterComponent().setName("match");
@@ -409,7 +411,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * @param system the system
    * @param url the url
    * @param version the version
-   * @param targetCode the target
+   * @param targetSystem the target
    * @return the list
    * @throws Exception the exception
    */
@@ -419,7 +421,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       final UriType system,
       final UriType url,
       final StringType version,
-      final UriType targetCode)
+      final UriType targetSystem)
       throws Exception {
     try {
       final List<Concept> mapsets = esQueryService.getMapsets(new IncludeParam("properties"));
@@ -453,8 +455,8 @@ public class ConceptMapProviderR5 implements IResourceProvider {
           logger.info("  SKIP version mismatch = " + cm.getVersion());
           continue;
         }
-        if (targetCode != null
-            && !targetCode
+        if (targetSystem != null
+            && !targetSystem
                 .getValue()
                 .equals(cm.getTargetScopeUriType().getValue().replaceFirst("\\?fhir_vs$", ""))) {
           logger.info("  SKIP target mismatch = " + cm.getTargetScopeUriType().getValue());
@@ -478,12 +480,12 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * @param sourceCode the code being translated
    * @param targetCode the target value set to be used for translation. Extracted from the system
    *     uri
-   * @param mapsetCode the system for the code that is being translated, if provided
+   * @param mapsetCodes the system for the code that is being translated, if provided
    * @param operator the operator to use for the query
    * @return the query string
    */
   private String buildFhirQueryString(
-      CodeType sourceCode, UriType targetCode, String mapsetCode, String operator)
+      CodeType sourceCode, UriType targetCode, List<String> mapsetCodes, String operator)
       throws Exception {
     // Check our required parameters are provided
     if (sourceCode == null && targetCode == null) {
@@ -492,26 +494,21 @@ public class ConceptMapProviderR5 implements IResourceProvider {
     }
 
     List<String> clauses = new ArrayList<>();
+    if (!mapsetCodes.isEmpty()) {
+      // compose query string for source code and system uri
+      clauses.add(
+          "mapsetCode:("
+              + String.join(" ", mapsetCodes.stream().map(c -> escape(c)).toList())
+              + ")");
+    }
     if (sourceCode != null) {
-      if (mapsetCode != null) {
-        // compose query string for source code and system uri
-        clauses.add("sourceCode:\"" + escape(sourceCode.getValue()) + "\"");
-        clauses.add("mapsetCode:\"" + escape(mapsetCode) + "\"");
-        return ConceptUtils.composeQuery(operator, clauses);
-      } else {
-        // create query string with the source code
-        return "sourceCode:\"" + escape(sourceCode.getValue()) + "\"";
-      }
+      // compose query string for source code and system uri
+      clauses.add("sourceCode:\"" + escape(sourceCode.getValue()) + "\"");
+      return ConceptUtils.composeQuery(operator, clauses);
     } else {
-      if (mapsetCode != null) {
-        // compose query for target code and system uri
-        clauses.add("targetCode:\"" + escape(targetCode.getValue()) + "\"");
-        clauses.add("mapsetCode:\"" + escape(mapsetCode) + "\"");
-        return ConceptUtils.composeQuery(operator, clauses);
-      } else {
-        // create query string with the targetCode
-        return "targetCode:\"" + escape(targetCode.getValue()) + "\"";
-      }
+      // compose query for target code
+      clauses.add("targetCode:\"" + escape(targetCode.getValue()) + "\"");
+      return ConceptUtils.composeQuery(operator, clauses);
     }
   }
 }

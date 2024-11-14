@@ -17,9 +17,9 @@ import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Mappings;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
@@ -126,15 +126,16 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       FhirUtilityR4.mutuallyExclusive("target", target, "targetSystem", targetSystem);
 
       final Parameters params = new Parameters();
-      // Extract the mapsetCode from the system uri
-      String systemUri = system.getValue();
-      final String mapsetCode = systemUri.substring(systemUri.lastIndexOf("fhir_cm=") + 8);
+      final List<ConceptMap> cm =
+              findPossibleConceptMaps(null, null, system, url, version, source, target, targetSystem);
+      // Extract the mapsetcode from cm build the query
+      final List<String> mapsetCodes = cm.stream().map(m -> m.getTitle()).toList();
 
       // Build a string query to search for the code/target
-      String query = buildFhirQueryString(code, target, mapsetCode, reverse, "AND");
+      String query = buildFhirQueryString(code, mapsetCodes, reverse, "AND");
       logger.debug("   Fhir query string = " + query);
 
-      ConceptMapResultList maps;
+      MappingResultList maps;
 
       SearchCriteria criteria = new SearchCriteria();
       // Set as high as we can, should not be more than 10000 in reality.
@@ -142,10 +143,10 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       criteria.setFromRecord(0);
 
       maps = esSearchService.findConceptMappings(query, criteria);
-      final List<Mappings> conceptMaps = maps.getMaps();
+      final List<Mapping> conceptMaps = maps.getMaps();
 
       if (!conceptMaps.isEmpty()) {
-        final Mappings map = conceptMaps.get(0);
+        final Mapping map = conceptMaps.get(0);
         params.addParameter("result", true);
         final Parameters.ParametersParameterComponent property =
             new Parameters.ParametersParameterComponent().setName("match");
@@ -240,17 +241,18 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       FhirUtilityR4.mutuallyExclusive("target", target, "targetSystem", targetSystem);
 
       final Parameters params = new Parameters();
-      // Extract the mapsetCode from the system uri
-      String systemUri = system.getValue();
-      final String mapsetCode = systemUri.substring(systemUri.lastIndexOf("fhir_cm=") + 8);
+      final List<ConceptMap> cm =
+          findPossibleConceptMaps(null, null, system, url, version, source, target, targetSystem);
+      // Extract the mapsetcode from cm build the query
+      final List<String> mapsetCodes = cm.stream().map(m -> m.getTitle()).toList();
 
       // Build a string query to search for the code/target
-      String query = buildFhirQueryString(code, target, mapsetCode, reverse, "AND");
+      String query = buildFhirQueryString(code, mapsetCodes, reverse, "AND");
       logger.debug("   Fhir query string = " + query);
 
       //      final List<ConceptMap> cm =
       //          findPossibleConceptMaps(null, null, system, url, version, source, target);
-      ConceptMapResultList maps;
+      MappingResultList maps;
 
       SearchCriteria criteria = new SearchCriteria();
       // Set as high as we can, should not be more than 10000 in reality.
@@ -258,10 +260,10 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       criteria.setFromRecord(0);
 
       maps = esSearchService.findConceptMappings(query, criteria);
-      final List<Mappings> conceptMaps = maps.getMaps();
+      final List<Mapping> conceptMaps = maps.getMaps();
 
       if (!conceptMaps.isEmpty()) {
-        final Mappings map = conceptMaps.get(0);
+        final Mapping map = conceptMaps.get(0);
         params.addParameter("result", true);
         final Parameters.ParametersParameterComponent property =
             new Parameters.ParametersParameterComponent().setName("match");
@@ -393,13 +395,14 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   private List<ConceptMap> findPossibleConceptMaps(
-      @OptionalParam(name = "_id") final IdType id,
-      @OptionalParam(name = "date") final DateRangeParam date,
-      @OptionalParam(name = "system") final UriType system,
-      @OptionalParam(name = "url") final UriType url,
-      @OptionalParam(name = "version") final StringType version,
-      @OptionalParam(name = "version") final UriType source,
-      @OptionalParam(name = "version") final UriType target)
+      final IdType id,
+      final DateRangeParam date,
+      final UriType system,
+      final UriType url,
+      final StringType version,
+      final UriType source,
+      final UriType target,
+      final UriType targetSystem)
       throws Exception {
     try {
       //      FhirUtilityR4.notSupportedSearchParams(request);
@@ -428,8 +431,12 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           logger.info("  SKIP id mismatch = " + cm.getName());
           continue;
         }
-        if (system != null && !system.getValue().equals(cm.getName())) {
+        if (system != null && !system.getValue().equals(cm.getSourceUriType().getValue())) {
           logger.info("  SKIP system mismatch = " + cm.getName());
+          continue;
+        }
+        if (targetSystem != null && !targetSystem.getValue().equals(cm.getTargetUriType().getValue())) {
+          logger.info("  SKIP targetSystem mismatch = " + cm.getName());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
@@ -440,13 +447,11 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           logger.info("  SKIP version mismatch = " + cm.getVersion());
           continue;
         }
-        if (source != null
-            && !source.getValue().equals(cm.getGroup().get(0).getSourceElement().getValue())) {
+        if (source != null && !source.getValue().equals(cm.getSourceUriType().getValue() + "?fhir_vs")) {
           logger.info("  SKIP source mismatch = " + cm.getVersion());
           continue;
         }
-        if (target != null
-            && !target.getValue().equals(cm.getGroup().get(0).getTargetElement().getValue())) {
+        if (target != null && !target.getValue().equals(cm.getTargetUriType().getValue() + "?fhir_vs")) {
           logger.info("  SKIP target mismatch = " + cm.getVersion());
           continue;
         }
@@ -477,7 +482,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     try {
 
       final List<ConceptMap> candidates =
-          findPossibleConceptMaps(id, null, null, null, null, null, null);
+          findPossibleConceptMaps(id, null, null, null, null, null, null, null);
       for (final ConceptMap set : candidates) {
         if (id.getIdPart().equals(set.getId())) {
           return set;
@@ -502,56 +507,33 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * Helper method for building a FHIR query string. If the code is not null, it will return a query
    *
    * @param code the code being translated
-   * @param mapsetCode target value set to be used for translations. Extracted from system uri
+   * @param mapsetCodes target value set to be used for translations. Extracted from system uri
    * @param operator the operator to use for the query
    * @return
    */
   private String buildFhirQueryString(
-      CodeType code, UriType target, String mapsetCode, BooleanType reverse, String operator)
+      CodeType code, List<String> mapsetCodes, BooleanType reverse, String operator)
       throws Exception {
     // Check the required parameter is provided
-    if (code == null && target == null) {
+    if (code == null) {
       throw FhirUtilityR4.exception(
           "Either code or target parameter is required", OperationOutcome.IssueType.REQUIRED, 400);
     }
     List<String> clauses = new ArrayList<>();
-    if (code != null) {
-      if (mapsetCode != null) {
-        if (reverse != null && reverse.getValue()) {
-          // compose query string for code, mapsetCode and reverse
-          clauses.add("code:\"" + escape(code.getCode()) + "\"");
-          clauses.add("mapsetCode:\"" + escape(mapsetCode) + "\"");
-          clauses.add("reverse:\"" + reverse + "\"");
-          return ConceptUtils.composeQuery(operator, clauses);
-        } else {
-          // compose query string for code and mapsetCode
-          clauses.add("code:\"" + escape(code.getCode()) + "\"");
-          clauses.add("mapsetCode:\"" + escape(mapsetCode) + "\"");
-          return ConceptUtils.composeQuery(operator, clauses);
-        }
-      } else {
-        // return query string for code
-        return "code:\"" + escape(code.getCode()) + "\"";
-      }
+    if (!mapsetCodes.isEmpty()) {
+      clauses.add(
+          "mapsetCode:("
+              + String.join(" ", mapsetCodes.stream().map(c -> escape(c)).toList())
+              + ")");
+    }
+    if (reverse != null && reverse.booleanValue()) {
+      // compose query string for source code and system uri
+      clauses.add("targetCode:\"" + escape(code.getValue()) + "\"");
+      return ConceptUtils.composeQuery(operator, clauses);
     } else {
-      // We should have a target code, build the query string for the target code
-      if (mapsetCode != null) {
-        if (reverse != null && reverse.getValue()) {
-          // compose query string for target, mapsetCode, and reverse
-          clauses.add("target:\"" + escape(target.getValue()) + "\"");
-          clauses.add("mapsetCode:\"" + escape(mapsetCode) + "\"");
-          clauses.add("reverse:\"" + reverse + "\"");
-          return ConceptUtils.composeQuery(operator, clauses);
-        } else {
-          // compose query string for target and mapsetCode
-          clauses.add("target:\"" + escape(target.getValue()) + "\"");
-          clauses.add("mapsetCode:\"" + escape(mapsetCode) + "\"");
-          return ConceptUtils.composeQuery(operator, clauses);
-        }
-      } else {
-        // compose query string for code
-        return "target:\"" + escape(target.getValue()) + "\"";
-      }
+      // compose query for target code
+      clauses.add("sourceCode:\"" + escape(code.getValue()) + "\"");
+      return ConceptUtils.composeQuery(operator, clauses);
     }
   }
 }
