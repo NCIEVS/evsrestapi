@@ -8,10 +8,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.annotation.Transient;
-import org.springframework.data.elasticsearch.annotations.DynamicMapping;
-import org.springframework.data.elasticsearch.annotations.DynamicMappingValue;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.Mapping;
 
 /** Represents a connection between two concepts. */
 @Schema(description = "Represents a connection between two concepts")
@@ -45,7 +44,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
 
   /** The qualifiers. */
   @Field(type = FieldType.Object, enabled = false)
-  @DynamicMapping(DynamicMappingValue.False)
+  @Mapping(enabled = false)
   private List<Qualifier> qualifiers;
 
   /** Instantiates an empty {@link Relationship}. */

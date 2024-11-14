@@ -22,11 +22,11 @@ import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.hl7.fhir.r5.model.BooleanType;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.CodeSystem;
@@ -556,7 +556,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param request the request
    * @param response the response
    * @param details the details
-   * @param id the id
    * @param codeA the code a
    * @param codeB the code b
    * @param system the system

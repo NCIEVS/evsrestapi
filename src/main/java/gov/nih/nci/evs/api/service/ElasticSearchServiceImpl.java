@@ -16,17 +16,18 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
-import org.elasticsearch.common.unit.Fuzziness;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.NestedQueryBuilder;
-import org.elasticsearch.index.query.Operator;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.QueryStringQueryBuilder;
-import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
+import org.opensearch.common.unit.Fuzziness;
+import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
+import org.opensearch.index.query.BoolQueryBuilder;
+import org.opensearch.index.query.MatchQueryBuilder;
+import org.opensearch.index.query.NestedQueryBuilder;
+import org.opensearch.index.query.Operator;
+import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.index.query.QueryStringQueryBuilder;
+import org.opensearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.opensearch.search.sort.SortBuilders;
+import org.opensearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -36,31 +37,36 @@ import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+/**
+ * Reference implementation of {@link ElasticSearchService}. Includes hibernate tags for MEME
+ * database.
+ */
 @Service
 public class ElasticSearchServiceImpl implements ElasticSearchService {
 
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(ElasticSearchServiceImpl.class);
 
-  /** The Elastic operations service * */
+  /** The Elastic operations service *. */
   @Autowired ElasticOperationsService esOperationsService;
 
-  /** The Elasticsearch operations * */
+  /** The Elasticsearch operations *. */
   @Autowired ElasticsearchOperations operations;
 
-  /** The Elastic query service * */
+  /** The Elastic query service *. */
   @Autowired ElasticQueryService esQueryService;
 
+  /** The term utils. */
   /* The terminology utils */
   @Autowired TerminologyUtils termUtils;
 
   /**
    * search for the given search criteria.
    *
+   * @param terminologies the terminologies
    * @param searchCriteria the search criteria
    * @return the result list with concepts
    * @throws Exception the exception
@@ -209,9 +215,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   /**
    * search for the given search criteria in mappings.
    *
+   * @param code the code
    * @param searchCriteria the search criteria
    * @return the result list with concepts
-   * @throws Exception the exception
    */
   @Override
   public ConceptMapResultList search(String code, SearchCriteria searchCriteria) {
@@ -315,7 +321,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   /**
    * Returns the term query.
    *
-   * @param type the type
+   * @param searchCriteria the search criteria
    * @param term the term
    * @return the term query
    * @throws Exception the exception
@@ -348,8 +354,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * Returns the term query for mappings.
    *
    * @param term the term
+   * @param code the code
    * @return the term query
-   * @throws Exception the exception
    */
   private BoolQueryBuilder getMappingQuery(String term, String code) {
     // must match mapsetCode
@@ -433,7 +439,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   /**
    * Returns the contains query.
    *
-   * @param type the type
+   * @param searchCriteria the search criteria
    * @param term the term
    * @param fuzzyFlag the fuzzy flag
    * @param andFlag the and flag
@@ -706,7 +712,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * update term based on type of search
+   * update term based on type of search.
    *
    * @param term the term to be updated
    * @param type the type of search
@@ -737,7 +743,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * append each token from a term with given modifier
+   * append each token from a term with given modifier.
    *
    * @param term the term or phrase
    * @param modifier the modifier
@@ -756,7 +762,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds terminology query based on input search criteria
+   * builds terminology query based on input search criteria.
    *
    * @param terminologies list of terminologies
    * @return the terminology query builder
@@ -784,8 +790,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds list of queries for field specific criteria from the search criteria
+   * builds list of queries for field specific criteria from the search criteria.
    *
+   * @param terminologies the terminologies
    * @param searchCriteria the search criteria
    * @return list of nested queries
    */
@@ -921,7 +928,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for property criteria on type or code field
+   * builds nested query for property criteria on type or code field.
    *
    * @param searchCriteria the search criteria
    * @return the nested query
@@ -958,7 +965,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for synonym source criteria
+   * builds nested query for synonym source criteria.
    *
    * @param searchCriteria the search criteria
    * @return the nested query
@@ -1021,7 +1028,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for definition source criteria
+   * builds nested query for definition source criteria.
    *
    * @param searchCriteria the search criteria
    * @return the nested query
@@ -1084,7 +1091,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for synonym term type criteria
+   * builds nested query for synonym term type criteria.
    *
    * @param searchCriteria the search criteria
    * @return the nested query
@@ -1114,7 +1121,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for synonym term type + source criteria
+   * builds nested query for synonym term type + source criteria.
    *
    * @param searchCriteria the search criteria
    * @return the nested query
@@ -1157,7 +1164,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * build array of index names
+   * build array of index names.
    *
    * @param searchCriteria the search criteria
    * @return the array of index names

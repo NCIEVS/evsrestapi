@@ -65,7 +65,8 @@ logging:
     org.springframework: WARN
     gov.nih.nci.evs.api: DEBUG
     org.springframework.data.elasticsearch.core: DEBUG
-    gov.nih.nci.evs.api.configuration.EVSElasticsearchRestTemplate: DEBUG
+    org.springframework.data.opensearch.core: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
+    gov.nih.nci.evs.api.configuration.EVSOpenSearchRestTemplate: DEBUG
     org.apache.http: INFO # change to DEBUG when needed but INFO for now to avoid logspam
 
 #

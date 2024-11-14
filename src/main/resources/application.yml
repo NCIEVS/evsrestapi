@@ -56,7 +56,8 @@ logging:
     org.springframework: ${LOGGING_LEVEL_ORG_SPRINGFRAMEWORK:WARN}
     gov.nih.nci.evs.api: ${LOGGING_LEVEL_GOV_NIH_NCI_EVS_API:INFO}
     org.springframework.data.elasticsearch.core: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
-    gov.nih.nci.evs.api.configuration.EVSElasticsearchRestTemplate: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
+    org.springframework.data.opensearch.core: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
+    gov.nih.nci.evs.api.configuration.EVSOpenSearchRestTemplate: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
 
 #
 # Server Properties

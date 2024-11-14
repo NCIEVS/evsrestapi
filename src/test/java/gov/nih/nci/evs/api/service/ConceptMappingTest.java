@@ -1,7 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.configuration.EVSElasticsearchRestTemplate;
 import gov.nih.nci.evs.api.model.Concept;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,9 +22,6 @@ public class ConceptMappingTest {
 
   /** The Elasticsearch operations service instance *. */
   @Autowired ElasticOperationsService operationsService;
-
-  /** The template. */
-  @Autowired EVSElasticsearchRestTemplate template;
 
   /**
    * Test concept mapping.
