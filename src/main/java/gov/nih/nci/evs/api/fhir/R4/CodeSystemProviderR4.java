@@ -74,19 +74,19 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * Lookup implicit.
    *
    * <pre>
-   * https://build.fhir.org/codesystem-operation-lookup.html
+   * https://hl7.org/fhir/R4/codesystem-operation-lookup.html
    * </pre>
    *
    * @param request the request
    * @param response the response
    * @param details the details
-   * @param code the code
-   * @param system the system
-   * @param version the version
-   * @param coding the coding
-   * @param date the date
+   * @param code the code that is to be located. If provided, a system must be provided.
+   * @param system the system for the code that is be located.
+   * @param version the version of the system
+   * @param coding the coding to look up
+   * @param date the date the information should be returned for.
    * @param displayLanguage the display language
-   * @param property the property
+   * @param property the property that we want to return. If not present, the system chooses what to return.
    * @return the parameters
    * @throws Exception the exception
    */
@@ -159,23 +159,23 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   }
 
   /**
-   * Lookup instance. https://build.fhir.org/codesystem-operation-lookup.html
+   * Lookup instance.
    *
    * <pre>
-   * https://build.fhir.org/codesystem-operation-lookup.html
+   * https://hl7.org/fhir/R4/codesystem-operation-lookup.html
    * </pre>
    *
    * @param request the request
    * @param response the response
    * @param details the details
    * @param id the id
-   * @param code the code
-   * @param system the system
-   * @param version the version
-   * @param coding the coding
-   * @param date the date
+   * @param code the code that is to be located. If provided, a system must be provided.
+   * @param system the system for the code that is be located.
+   * @param version the version of the system
+   * @param coding the coding to look up
+   * @param date the date the information should be returned for.
    * @param displayLanguage the display language
-   * @param property the property
+   * @param property the property that we want to return. If not present, the system chooses what to return.
    * @return the parameters
    * @throws Exception the exception
    */
@@ -257,17 +257,18 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param request the request
    * @param response the response
    * @param details the details
-   * @param url the url
-   * @param codeSystem the code system
-   * @param code the code
-   * @param version the version
-   * @param display the display
-   * @param coding the coding
-   * @param codeableConcept the codeable concept
-   * @param date the date
-   * @param abstractt the abstractt
-   * @param displayLanguage the display language
-   * @param systemVersion the system version
+   * @param url the CodeSystem URL.
+   * @param codeSystem the code system provided directly as a part of the request.
+   * @param code the code that is to be validated.
+   * @param version the version of the code system.
+   * @param display the display associated with the code If provided, a code must be provided.
+   * @param coding the coding to validate.
+   * @param codeableConcept the full codeable concept to validate.
+   * @param date the date for when the validation should be checked
+   * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True, the validation is
+   *                 being performed in a context where a concept designated as 'abstract' is appropriate/allowed to
+   *                  be used
+   * @param displayLanguage the display language to be used for the description when validating the display property
    * @return the parameters
    * @throws Exception the exception
    */
@@ -285,8 +286,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       @OperationParam(name = "date") final DateTimeType date,
       @OperationParam(name = "abstract") final BooleanType abstractt,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      @OperationParam(name = "systemVersion") final StringType systemVersion)
+      @OperationParam(name = "displayLanguage") final StringType displayLanguage)
       throws Exception {
     // check if request is a post, throw exception as we don't support post calls
     if (request.getMethod().equals("POST")) {
@@ -302,7 +302,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupported("date", date);
       FhirUtilityR4.notSupported("abstract", abstractt);
       FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
-      FhirUtilityR4.notSupported("systemVersion", systemVersion);
+
       final List<CodeSystem> cs = findPossibleCodeSystems(null, null, url, version);
       final Parameters params = new Parameters();
       if (cs.size() > 0) {
@@ -359,17 +359,18 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param response the response
    * @param details the details
    * @param id the id
-   * @param url the url
-   * @param codeSystem the code system
-   * @param code the code
-   * @param version the version
-   * @param display the display
-   * @param coding the coding
-   * @param codeableConcept the codeable concept
-   * @param date the date
-   * @param abstractt the abstractt
-   * @param displayLanguage the display language
-   * @param systemVersion the system version
+   * @param url the CodeSystem URL.
+   * @param codeSystem the code system provided directly as a part of the request.
+   * @param code the code that is to be validated.
+   * @param version the version of the code system.
+   * @param display the display associated with the code If provided, a code must be provided.
+   * @param coding the coding to validate.
+   * @param codeableConcept the full codeable concept to validate.
+   * @param date the date for when the validation should be checked
+   * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True, the validation is
+   *                 being performed in a context where a concept designated as 'abstract' is appropriate/allowed to
+   *                  be used
+   * @param displayLanguage the display language to be used for the description when validating the display property
    * @return the parameters
    * @throws Exception the exception
    */
@@ -388,8 +389,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       @OperationParam(name = "date") final DateTimeType date,
       @OperationParam(name = "abstract") final BooleanType abstractt,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      @OperationParam(name = "systemVersion") final StringType systemVersion)
+      @OperationParam(name = "displayLanguage") final StringType displayLanguage)
       throws Exception {
     // check if request is a post, throw exception as we don't support post calls
     if (request.getMethod().equals("POST")) {
@@ -405,7 +405,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupported("date", date);
       FhirUtilityR4.notSupported("abstract", abstractt);
       FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
-      FhirUtilityR4.notSupported("systemVersion", systemVersion);
       final List<CodeSystem> cs = findPossibleCodeSystems(id, null, url, version);
       final Parameters params = new Parameters();
       if (cs.size() > 0) {
@@ -465,12 +464,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param request the request
    * @param response the response
    * @param details the details
-   * @param codeA the code A
-   * @param codeB the code B
-   * @param system the system
-   * @param version the version
-   * @param codingA the coding A
-   * @param codingB the coding B
+   * @param codeA the code A to be tested. If provided, a system must be provided
+   * @param codeB the code B to be tested. If provided, a system must be provided
+   * @param system the code system in with the subsumption testing is to be performed. Must be provided unless the
+   *               operation is invoked on a code system instance.
+   * @param version the version of the code system.
+   * @param codingA the coding A to be tested
+   * @param codingB the coding B to be tested
    * @return the parameters
    * @throws Exception the exception
    */
@@ -555,12 +555,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param response the response
    * @param details the details
    * @param id the id
-   * @param codeA the code A
-   * @param codeB the code B
-   * @param system the system
-   * @param version the version
-   * @param codingA the coding A
-   * @param codingB the coding B
+   * @param codeA the code A to be tested. If not provided, a system must be provided
+   * @param codeB the code B to be tested. If not provided, a system must be provided
+   * @param system the code system in with the subsumption testing is to be performed. Must be provided unless the
+   *               operation is invoked on a code system instance.
+   * @param version the version of the code system.
+   * @param codingA the coding A to be tested
+   * @param codingB the coding B to be tested
    * @return the parameters
    * @throws Exception the exception
    */

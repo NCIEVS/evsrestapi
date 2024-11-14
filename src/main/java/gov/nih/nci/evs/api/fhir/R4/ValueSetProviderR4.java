@@ -86,27 +86,28 @@ public class ValueSetProviderR4 implements IResourceProvider {
    *
    * @param request the request
    * @param details the details
-   * @param url the url
+   * @param url the canonical reference to the value set.
    * @param valueSet the value set
-   * @param version the version
-   * @param context the context
-   * @param contextDirection the context direction
-   * @param filter the filter
-   * @param date the date
-   * @param offset the offset
-   * @param count the count
-   * @param includeDesignations the include designations
-   * @param designation the designation
-   * @param includeDefinition the include definition
-   * @param activeOnly the active only
-   * @param excludeNested the exclude nested
-   * @param excludeNotForUI the exclude not for UI
-   * @param excludePostCoordinated the exclude post coordinated
-   * @param displayLanguage the display language
-   * @param exclude_system the exclude system
-   * @param system_version the system version
-   * @param check_system_version the check system version
-   * @param force_system_version the force system version
+   * @param version the value set version to specify the version to be used when generating the expansion
+   * @param context the context of the value set.
+   * @param contextDirection the context direction, incoming or outgoing. Usually accompanied by context.
+   * @param filter the text filter applied to restrict code that are returned.
+   * @param date the date for which the expansion should be generated.
+   * @param offset the offset for number of records.
+   * @param count the count for codes that should be provided in the partial page view.
+   * @param includeDesignations the include designations flag for included/excluded in value set expansions
+   * @param designation the designation token that specifies the system + code that either a use or language.
+   * @param includeDefinition controls whether the value set definition is included or excluded in value set expansions
+   * @param activeOnly controls whether inactive concepts are included or excluded in value set expansions.
+   * @param excludeNested controls whether the value set expansion nests codes or not
+   * @param excludeNotForUI controls whether the value set expansion is assembled for a user interface use
+   * @param excludePostCoordinated controls whether the value set expansion includes post coordinated codes
+   * @param displayLanguage specifies the language to be used for description in teh expansions
+   * @param exclude_system the code system or particular version of a code system to be excluded from the expansion
+   * @param system_version the version to use for a system
+   * @param check_system_version specifies a version to use for a system.
+   * @param force_system_version specifies a version to use for a system. Overrides any specified version in the
+   *                             value set
    * @return the value set
    * @throws Exception the exception
    */
@@ -238,27 +239,28 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param request the request
    * @param details the details
    * @param id the id
-   * @param url the url
+   * @param url the canonical reference to the value set.
    * @param valueSet the value set
-   * @param version the version
-   * @param context the context
-   * @param contextDirection the context direction
-   * @param filter the filter
-   * @param date the date
-   * @param offset the offset
-   * @param count the count
-   * @param includeDesignations the include designations
-   * @param designation the designation
-   * @param includeDefinition the include definition
-   * @param activeOnly the active only
-   * @param excludeNested the exclude nested
-   * @param excludeNotForUI the exclude not for UI
-   * @param excludePostCoordinated the exclude post coordinated
-   * @param displayLanguage the display language
-   * @param exclude_system the exclude system
-   * @param system_version the system version
-   * @param check_system_version the check system version
-   * @param force_system_version the force system version
+   * @param version the value set version to specify the version to be used when generating the expansion
+   * @param context the context of the value set.
+   * @param contextDirection the context direction, incoming or outgoing. Usually accompanied by context.
+   * @param filter the text filter applied to restrict code that are returned.
+   * @param date the date for which the expansion should be generated.
+   * @param offset the offset for number of records.
+   * @param count the count for codes that should be provided in the partial page view.
+   * @param includeDesignations the include designations flag for included/excluded in value set expansions
+   * @param designation the designation token that specifies the system + code that either a use or language.
+   * @param includeDefinition controls whether the value set definition is included or excluded in value set expansions
+   * @param activeOnly controls whether inactive concepts are included or excluded in value set expansions.
+   * @param excludeNested controls whether the value set expansion nests codes or not
+   * @param excludeNotForUI controls whether the value set expansion is assembled for a user interface use
+   * @param excludePostCoordinated controls whether the value set expansion includes post coordinated codes
+   * @param displayLanguage specifies the language to be used for description in teh expansions
+   * @param exclude_system the code system or particular version of a code system to be excluded from the expansion
+   * @param system_version the version to use for a system
+   * @param check_system_version specifies a version to use for a system.
+   * @param force_system_version specifies a version to use for a system. Overrides any specified version in the
+   *                             value set
    * @return the value set
    * @throws Exception the exception
    */
@@ -389,20 +391,23 @@ public class ValueSetProviderR4 implements IResourceProvider {
    *
    * @param request the request
    * @param details the details
-   * @param url the url
-   * @param context the context
+   * @param url the value set canonical url
+   * @param context the context of the value set, allows the server to resolve the value set to validate against
    * @param valueSet the value set
-   * @param valueSetVersion the value set version
-   * @param code the code
-   * @param system the system
-   * @param systemVersion the system version
+   * @param valueSetVersion the value set version identifier use to specify the version of the value set to be used
+   *                        when validating the code
+   * @param code the code that is to be validated. If provided, systems or context must be provided
+   * @param system the system for the code that is to be validated
+   * @param systemVersion the version of the system
    * @param version the version
-   * @param display the display
-   * @param coding the coding
-   * @param codeableConcept the codeable concept
-   * @param date the date
-   * @param abstractt the abstractt
-   * @param displayLanguage the display language
+   * @param display the display associated with the code, if provided. If provided, a code must be provided
+   * @param coding the coding to be validated
+   * @param codeableConcept the codeable concept to validate
+   * @param date the date that the validation should be checked.
+   * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True, the validation is
+   *                 being performed in a context where a concept designated as 'abstract' is appropriate/allowed to
+   *                  be used
+   * @param displayLanguage the display language for the description when validating a display property
    * @return the parameters
    * @throws Exception the exception
    */
@@ -507,20 +512,23 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param request the request
    * @param details the details
    * @param id the id
-   * @param url the url
-   * @param context the context
+   * @param url the value set canonical url
+   * @param context the context of the value set, allows the server to resolve the value set to validate against
    * @param valueSet the value set
-   * @param valueSetVersion the value set version
-   * @param code the code
-   * @param system the system
-   * @param systemVersion the system version
+   * @param valueSetVersion the value set version identifier use to specify the version of the value set to be used
+   *                        when validating the code
+   * @param code the code that is to be validated. If provided, systems or context must be provided
+   * @param system the system for the code that is to be validated
+   * @param systemVersion the version of the system
    * @param version the version
-   * @param display the display
-   * @param coding the coding
-   * @param codeableConcept the codeable concept
-   * @param date the date
-   * @param abstractt the abstractt
-   * @param displayLanguage the display language
+   * @param display the display associated with the code, if provided. If provided, a code must be provided
+   * @param coding the coding to be validated
+   * @param codeableConcept the codeable concept to validate
+   * @param date the date that the validation should be checked.
+   * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True, the validation is
+   *                 being performed in a context where a concept designated as 'abstract' is appropriate/allowed to
+   *                  be used
+   * @param displayLanguage the display language for the description when validating a display property
    * @return the parameters
    * @throws Exception the exception
    */
