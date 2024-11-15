@@ -62,7 +62,7 @@ public class MetricAdvice {
      * + "-" + String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
      *
      * <p>boolean result = operationsService.createIndex(indexName, false); if (result) {
-     * operationsService.getElasticsearchOperations().putMapping(indexName,
+     * operationsService.getOpenSearchOperations().putMapping(indexName,
      * ElasticOperationsService.METRIC_TYPE, Metric.class); }
      */
   }

@@ -1,23 +1,15 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
-import gov.nih.nci.evs.api.model.ConceptMapResultList;
-import gov.nih.nci.evs.api.model.ConceptResultList;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.SearchCriteria;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.EVSPageable;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
 import org.opensearch.common.unit.Fuzziness;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
+import org.opensearch.data.core.OpenSearchOperations;
 import org.opensearch.index.query.BoolQueryBuilder;
 import org.opensearch.index.query.MatchQueryBuilder;
 import org.opensearch.index.query.NestedQueryBuilder;
@@ -32,13 +24,23 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.ConceptMapResultList;
+import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.support.es.EVSPageable;
+import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * Reference implementation of {@link ElasticSearchService}. Includes hibernate tags for MEME
@@ -54,7 +56,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   @Autowired ElasticOperationsService esOperationsService;
 
   /** The Elasticsearch operations *. */
-  @Autowired ElasticsearchOperations operations;
+  @Autowired OpenSearchOperations operations;
 
   /** The Elastic query service *. */
   @Autowired ElasticQueryService esQueryService;
@@ -142,16 +144,17 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if (searchCriteria.getSort() != null) {
       // Default is ascending if not specified
       if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
-        searchQuery.withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
+        searchQuery.withSorts(
+            SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
       } else {
-        searchQuery.withSort(
+        searchQuery.withSorts(
             SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.DESC));
       }
 
     } else {
       searchQuery
-          .withSort(SortBuilders.scoreSort())
-          .withSort(SortBuilders.fieldSort("code").order(SortOrder.ASC));
+          .withSorts(SortBuilders.scoreSort())
+          .withSorts(SortBuilders.fieldSort("code").order(SortOrder.ASC));
     }
 
     // query on operations
@@ -248,9 +251,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if (searchCriteria.getSort() != null) {
       // Default is ascending if not specified
       if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
-        searchQuery.withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
+        searchQuery.withSorts(
+            SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
       } else {
-        searchQuery.withSort(
+        searchQuery.withSorts(
             SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.DESC));
       }
     }
@@ -260,24 +264,24 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       String sortField = searchCriteria.getSort();
       if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
         searchQuery
-            .withSort(SortBuilders.scoreSort())
-            .withSort(SortBuilders.fieldSort(sortField).order(SortOrder.ASC));
+            .withSorts(SortBuilders.scoreSort())
+            .withSorts(SortBuilders.fieldSort(sortField).order(SortOrder.ASC));
       } else {
         searchQuery
-            .withSort(SortBuilders.scoreSort())
-            .withSort(SortBuilders.fieldSort(sortField).order(SortOrder.DESC));
+            .withSorts(SortBuilders.scoreSort())
+            .withSorts(SortBuilders.fieldSort(sortField).order(SortOrder.DESC));
       }
 
     } else {
       // default to sortKey
       if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
         searchQuery
-            .withSort(SortBuilders.scoreSort())
-            .withSort(SortBuilders.fieldSort("sortKey").order(SortOrder.ASC));
+            .withSorts(SortBuilders.scoreSort())
+            .withSorts(SortBuilders.fieldSort("sortKey").order(SortOrder.ASC));
       } else {
         searchQuery
-            .withSort(SortBuilders.scoreSort())
-            .withSort(SortBuilders.fieldSort("sortKey").order(SortOrder.DESC));
+            .withSorts(SortBuilders.scoreSort())
+            .withSorts(SortBuilders.fieldSort("sortKey").order(SortOrder.DESC));
       }
     }
 

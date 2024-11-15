@@ -168,19 +168,18 @@ public class TermSuggestionFormServiceTest {
   public void testGetFormTemplateThrowsFileNotFound() throws Exception {
     // SET UP - create an invalid term form object
     String formType = "invalid-form";
-    JsonNode termForm = new ObjectMapper().createArrayNode();
+    //    JsonNode termForm = new ObjectMapper().createArrayNode();
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
     when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json")))
         .thenThrow(FileNotFoundException.class);
 
     // ACT & ASSERT
-    Exception exception =
-        assertThrows(
-            FileNotFoundException.class,
-            () -> {
-              termFormService.getFormTemplate(formType);
-            });
+    assertThrows(
+        FileNotFoundException.class,
+        () -> {
+          termFormService.getFormTemplate(formType);
+        });
   }
 
   /**

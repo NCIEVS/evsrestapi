@@ -31,7 +31,7 @@ public class ConceptMappingTest {
   @Test
   public void testConceptMapping() throws Exception {
     final Document doc =
-        operationsService.getElasticsearchOperations().indexOps(Concept.class).createMapping();
+        operationsService.getOpenSearchOperations().indexOps(Concept.class).createMapping();
     logger.info(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(doc));
   }
 }
