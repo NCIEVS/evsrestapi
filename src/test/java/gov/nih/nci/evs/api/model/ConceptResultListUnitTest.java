@@ -117,11 +117,11 @@ public class ConceptResultListUnitTest {
     r2 = new ArrayList<>();
     r2.add((Role) tester5.createObject(2));
 
-      final ProxyTester tester6 = new ProxyTester(new Mapping());
+    final ProxyTester tester6 = new ProxyTester(new Mapping());
     m1 = new ArrayList<>();
-      m1.add((Mapping) tester6.createObject(1));
+    m1.add((Mapping) tester6.createObject(1));
     m2 = new ArrayList<>();
-      m2.add((Mapping) tester6.createObject(2));
+    m2.add((Mapping) tester6.createObject(2));
 
     final ProxyTester tester7 = new ProxyTester(new SearchCriteria());
     sc1 = (SearchCriteria) tester7.createObject(1);

@@ -194,26 +194,32 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param details the details
    * @param url a canonical reference to the value set.
    * @param valueSet the value set
-   * @param version the identifier used to identify the specific version of the value set to be used to generate
-   *                expansion.
+   * @param version the identifier used to identify the specific version of the value set to be used
+   *     to generate expansion.
    * @param context the context of the value set to expand.
-   * @param contextDirection the context direction, incoming or outgoing. Usually accompanied by context
+   * @param contextDirection the context direction, incoming or outgoing. Usually accompanied by
+   *     context
    * @param filter the text filter applied to the restrict codes that are returned.
    * @param date the date the expansion should be generated.
    * @param offset the offset for the records.
    * @param count the count for how many codes should be returned in partial page view.
-   * @param includeDesignations controls whether concept designations are to be included in the expansion.
+   * @param includeDesignations controls whether concept designations are to be included in the
+   *     expansion.
    * @param designation a token that specifies a system + code that is either a use or a language.
-   * @param includeDefinition controls whether the value set definition in include/excluded in the expansion.
+   * @param includeDefinition controls whether the value set definition in include/excluded in the
+   *     expansion.
    * @param activeOnly controls whether the inactive concepts are include/excluded in the expansion.
    * @param excludeNested controls whether the value set expansion may nest codes.
-   * @param excludeNotForUI controls whether the VS expansion includes codes form the CodeSystem, nested contains with
-   *                      no code, or nested contains in the ValueSet with abstract=true.
-   * @param excludePostCoordinated controls whether the value set expansion includes post coordinated codes.
+   * @param excludeNotForUI controls whether the VS expansion includes codes form the CodeSystem,
+   *     nested contains with no code, or nested contains in the ValueSet with abstract=true.
+   * @param excludePostCoordinated controls whether the value set expansion includes post
+   *     coordinated codes.
    * @param displayLanguage specifies the language to be used for description in the expansion.
-   * @param exclude_system code system, or a particular version of a code system to be excluded from the expansion.
-   * @param system_version specifies a version to use for a system, if the value set doesn't specify one.
-   * @param check_system_version  specifies a version to use for a system.
+   * @param exclude_system code system, or a particular version of a code system to be excluded from
+   *     the expansion.
+   * @param system_version specifies a version to use for a system, if the value set doesn't specify
+   *     one.
+   * @param check_system_version specifies a version to use for a system.
    * @param force_system_version specifies a version to use for a system.
    * @return the value set
    * @throws Exception the exception
@@ -347,26 +353,32 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param id the id
    * @param url a canonical reference to the value set.
    * @param valueSet the value set
-   * @param version the identifier used to identify the specific version of the value set to be used to generate
-   *                expansion.
+   * @param version the identifier used to identify the specific version of the value set to be used
+   *     to generate expansion.
    * @param context the context of the value set to expand.
-   * @param contextDirection the context direction, incoming or outgoing. Usually accompanied by context
+   * @param contextDirection the context direction, incoming or outgoing. Usually accompanied by
+   *     context
    * @param filter the text filter applied to the restrict codes that are returned.
    * @param date the date the expansion should be generated.
    * @param offset the offset for the records.
    * @param count the count for how many codes should be returned in partial page view.
-   * @param includeDesignations controls whether concept designations are to be included in the expansion.
+   * @param includeDesignations controls whether concept designations are to be included in the
+   *     expansion.
    * @param designation a token that specifies a system + code that is either a use or a language.
-   * @param includeDefinition controls whether the value set definition in include/excluded in the expansion.
+   * @param includeDefinition controls whether the value set definition in include/excluded in the
+   *     expansion.
    * @param activeOnly controls whether the inactive concepts are include/excluded in the expansion.
    * @param excludeNested controls whether the value set expansion may nest codes.
-   * @param excludeNotForUI controls whether the VS expansion includes codes form the CodeSystem, nested contains with
-   *                      no code, or nested contains in the ValueSet with abstract=true.
-   * @param excludePostCoordinated controls whether the value set expansion includes post coordinated codes.
+   * @param excludeNotForUI controls whether the VS expansion includes codes form the CodeSystem,
+   *     nested contains with no code, or nested contains in the ValueSet with abstract=true.
+   * @param excludePostCoordinated controls whether the value set expansion includes post
+   *     coordinated codes.
    * @param displayLanguage specifies the language to be used for description in the expansion.
-   * @param exclude_system code system, or a particular version of a code system to be excluded from the expansion.
-   * @param system_version specifies a version to use for a system, if the value set doesn't specify one.
-   * @param check_system_version  specifies a version to use for a system.
+   * @param exclude_system code system, or a particular version of a code system to be excluded from
+   *     the expansion.
+   * @param system_version specifies a version to use for a system, if the value set doesn't specify
+   *     one.
+   * @param check_system_version specifies a version to use for a system.
    * @param force_system_version specifies a version to use for a system.
    * @return the value set
    * @throws Exception the exception
@@ -499,10 +511,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param request the request
    * @param details the details
    * @param url value set canonical URL.
-   * @param context the context of the value set, so the server can resolve this to a value set to validate against.
+   * @param context the context of the value set, so the server can resolve this to a value set to
+   *     validate against.
    * @param valueSet the value set
-   * @param valueSetVersion the identifier used to identify the specific version of the value set to be used to validate
-   * @param code the code that is to be validated. If provided, a system or context must be provided.
+   * @param valueSetVersion the identifier used to identify the specific version of the value set to
+   *     be used to validate
+   * @param code the code that is to be validated. If provided, a system or context must be
+   *     provided.
    * @param system the system for the code that is to be validated.
    * @param systemVersion the version of the system, if one was provided.
    * @param version the version
@@ -510,9 +525,10 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param coding the coding to validate.
    * @param codeableConcept the codeable concept to validate
    * @param date the date to check the validation against.
-   * @param abstractt the abstractt is a logical grouping concept that is not intended to be used as a 'concrete'
-   *                  concept to in an actual patient/care/process record.
-   * @param displayLanguage specifies the language to be used for description when validating the display property.
+   * @param abstractt the abstractt is a logical grouping concept that is not intended to be used as
+   *     a 'concrete' concept to in an actual patient/care/process record.
+   * @param displayLanguage specifies the language to be used for description when validating the
+   *     display property.
    * @return the parameters
    * @throws Exception the exception
    */
@@ -617,10 +633,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param details the details
    * @param id the id
    * @param url value set canonical URL.
-   * @param context the context of the value set, so the server can resolve this to a value set to validate against.
+   * @param context the context of the value set, so the server can resolve this to a value set to
+   *     validate against.
    * @param valueSet the value set
-   * @param valueSetVersion the identifier used to identify the specific version of the value set to be used to validate
-   * @param code the code that is to be validated. If provided, a system or context must be provided.
+   * @param valueSetVersion the identifier used to identify the specific version of the value set to
+   *     be used to validate
+   * @param code the code that is to be validated. If provided, a system or context must be
+   *     provided.
    * @param system the system for the code that is to be validated.
    * @param systemVersion the version of the system, if one was provided.
    * @param version the version
@@ -628,9 +647,10 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param coding the coding to validate.
    * @param codeableConcept the codeable concept to validate
    * @param date the date to check the validation against.
-   * @param abstractt the abstractt is a logical grouping concept that is not intended to be used as a 'concrete'
-   *                  concept to in an actual patient/care/process record.
-   * @param displayLanguage specifies the language to be used for description when validating the display property.
+   * @param abstractt the abstractt is a logical grouping concept that is not intended to be used as
+   *     a 'concrete' concept to in an actual patient/care/process record.
+   * @param displayLanguage specifies the language to be used for description when validating the
+   *     display property.
    * @return the parameters
    * @throws Exception the exception
    */

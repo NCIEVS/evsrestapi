@@ -173,8 +173,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param coding the coding to look up
    * @param date the date that the information should be returned.
    * @param displayLanguage the requested language for display.
-   * @param property the code type property that the client wished to be returned in the output. If none provided, the
-   *                 server will choose the properties to return.
+   * @param property the code type property that the client wished to be returned in the output. If
+   *     none provided, the server will choose the properties to return.
    * @return the parameters
    * @throws Exception exception
    */
@@ -263,8 +263,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param coding the coding to look up
    * @param date the date that the information should be returned.
    * @param displayLanguage the requested language for display.
-   * @param property the code type property that the client wished to be returned in the output. If none provided, the
-   *                 server will choose the properties to return.
+   * @param property the code type property that the client wished to be returned in the output. If
+   *     none provided, the server will choose the properties to return.
    * @return the parameters
    * @throws Exception exception
    */
@@ -354,9 +354,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param coding the coding to validate
    * @param codeableConcept the codeable concept to validate
    * @param date the date that the validation should be checked
-   * @param abstractt the abstract flag, a logical grouping concept that is not intended to be used as a 'concrete'
-   *                  concept to in an actual patient/care/process record.
-   * @param displayLanguage the display language for the description when validating the display property
+   * @param abstractt the abstract flag, a logical grouping concept that is not intended to be used
+   *     as a 'concrete' concept to in an actual patient/care/process record.
+   * @param displayLanguage the display language for the description when validating the display
+   *     property
    * @return the parameters
    * @throws Exception exception
    */
@@ -459,9 +460,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param coding the coding to validate
    * @param codeableConcept the codeable concept to validate
    * @param date the date that the validation should be checked
-   * @param abstractt the abstract flag, a logical grouping concept that is not intended to be used as a 'concrete'
-   *                  concept to in an actual patient/care/process record.
-   * @param displayLanguage the display language for the description when validating the display property
+   * @param abstractt the abstract flag, a logical grouping concept that is not intended to be used
+   *     as a 'concrete' concept to in an actual patient/care/process record.
+   * @param displayLanguage the display language for the description when validating the display
+   *     property
    * @return the parameters
    * @throws Exception exception
    */

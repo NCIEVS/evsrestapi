@@ -241,12 +241,12 @@ public class EVSUtils {
    * @return the maps to
    */
   public static List<Mapping> getMapsTo(Terminology terminology, List<Axiom> axioms) {
-      ArrayList<Mapping> results = new ArrayList<Mapping>();
+    ArrayList<Mapping> results = new ArrayList<Mapping>();
     final String mapCode = terminology.getMetadata().getMap();
     for (Axiom axiom : axioms) {
       final String axiomCode = EVSUtils.getQualifiedCodeFromUri(axiom.getAnnotatedProperty());
       if (axiomCode.equals(mapCode)) {
-          Mapping mapsTo = new Mapping();
+        Mapping mapsTo = new Mapping();
         mapsTo.setTargetName(axiom.getAnnotatedTarget());
         mapsTo.setType(axiom.getRelationshipToTarget());
         mapsTo.setTargetTermType(axiom.getTargetTermType());

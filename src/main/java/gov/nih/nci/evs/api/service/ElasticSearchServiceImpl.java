@@ -273,7 +273,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     // query on operations
     final SearchHits<Mapping> hits =
         elasticsearchOperations.search(
-            searchQuery.build(), Mapping.class,
+            searchQuery.build(),
+            Mapping.class,
             IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
 
     logger.debug("result count: {}", hits.getTotalHits());
@@ -367,7 +368,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         new NativeSearchQueryBuilder().withQuery(termQuery);
     final SearchHits<Mapping> hits =
         elasticsearchOperations.search(
-            searchQuery.build(), Mapping.class,
+            searchQuery.build(),
+            Mapping.class,
             IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
 
     logger.debug("result count: {}", hits.getTotalHits());

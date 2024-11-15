@@ -86,7 +86,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param coding the coding to look up
    * @param date the date the information should be returned for.
    * @param displayLanguage the display language
-   * @param property the property that we want to return. If not present, the system chooses what to return.
+   * @param property the property that we want to return. If not present, the system chooses what to
+   *     return.
    * @return the parameters
    * @throws Exception the exception
    */
@@ -175,7 +176,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param coding the coding to look up
    * @param date the date the information should be returned for.
    * @param displayLanguage the display language
-   * @param property the property that we want to return. If not present, the system chooses what to return.
+   * @param property the property that we want to return. If not present, the system chooses what to
+   *     return.
    * @return the parameters
    * @throws Exception the exception
    */
@@ -265,10 +267,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param coding the coding to validate.
    * @param codeableConcept the full codeable concept to validate.
    * @param date the date for when the validation should be checked
-   * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True, the validation is
-   *                 being performed in a context where a concept designated as 'abstract' is appropriate/allowed to
-   *                  be used
-   * @param displayLanguage the display language to be used for the description when validating the display property
+   * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
+   *     the validation is being performed in a context where a concept designated as 'abstract' is
+   *     appropriate/allowed to be used
+   * @param displayLanguage the display language to be used for the description when validating the
+   *     display property
    * @return the parameters
    * @throws Exception the exception
    */
@@ -367,10 +370,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param coding the coding to validate.
    * @param codeableConcept the full codeable concept to validate.
    * @param date the date for when the validation should be checked
-   * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True, the validation is
-   *                 being performed in a context where a concept designated as 'abstract' is appropriate/allowed to
-   *                  be used
-   * @param displayLanguage the display language to be used for the description when validating the display property
+   * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
+   *     the validation is being performed in a context where a concept designated as 'abstract' is
+   *     appropriate/allowed to be used
+   * @param displayLanguage the display language to be used for the description when validating the
+   *     display property
    * @return the parameters
    * @throws Exception the exception
    */
@@ -466,8 +470,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param details the details
    * @param codeA the code A to be tested. If provided, a system must be provided
    * @param codeB the code B to be tested. If provided, a system must be provided
-   * @param system the code system in with the subsumption testing is to be performed. Must be provided unless the
-   *               operation is invoked on a code system instance.
+   * @param system the code system in with the subsumption testing is to be performed. Must be
+   *     provided unless the operation is invoked on a code system instance.
    * @param version the version of the code system.
    * @param codingA the coding A to be tested
    * @param codingB the coding B to be tested
@@ -557,8 +561,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param id the id
    * @param codeA the code A to be tested. If not provided, a system must be provided
    * @param codeB the code B to be tested. If not provided, a system must be provided
-   * @param system the code system in with the subsumption testing is to be performed. Must be provided unless the
-   *               operation is invoked on a code system instance.
+   * @param system the code system in with the subsumption testing is to be performed. Must be
+   *     provided unless the operation is invoked on a code system instance.
    * @param version the version of the code system.
    * @param codingA the coding A to be tested
    * @param codingB the coding B to be tested

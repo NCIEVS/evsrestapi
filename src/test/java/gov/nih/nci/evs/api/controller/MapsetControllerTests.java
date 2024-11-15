@@ -44,7 +44,7 @@ public class MapsetControllerTests {
   @Autowired private MockMvc mvc;
 
   /** The base url. */
-  private String baseUrl = "";
+  private String baseUrl;
 
   /** The object mapper. */
   private ObjectMapper objectMapper;
@@ -581,10 +581,12 @@ public class MapsetControllerTests {
     String content = result.getResponse().getContentAsString();
     MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
     List<String> sortedNames =
-        mapList.getMaps().stream().map(Mapping::getSourceName)
+        mapList.getMaps().stream()
+            .map(Mapping::getSourceName)
             .sorted()
             .collect(Collectors.toList());
-    List<String> unsortedNames = mapList.getMaps().stream().map(Mapping::getSourceName).collect(Collectors.toList());
+    List<String> unsortedNames =
+        mapList.getMaps().stream().map(Mapping::getSourceName).collect(Collectors.toList());
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());
@@ -608,10 +610,12 @@ public class MapsetControllerTests {
     String content = result.getResponse().getContentAsString();
     MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
     List<String> sortedNames =
-        mapList.getMaps().stream().map(Mapping::getSourceName)
+        mapList.getMaps().stream()
+            .map(Mapping::getSourceName)
             .sorted((a, b) -> b.compareTo(a))
             .collect(Collectors.toList());
-    List<String> unsortedNames = mapList.getMaps().stream().map(Mapping::getSourceName).collect(Collectors.toList());
+    List<String> unsortedNames =
+        mapList.getMaps().stream().map(Mapping::getSourceName).collect(Collectors.toList());
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());

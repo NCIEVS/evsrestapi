@@ -466,7 +466,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       }
       for (final Concept mapset : mapsetMap.values()) {
         Collections.sort(
-            mapset.getMaps(), new Comparator<Mapping>() {
+            mapset.getMaps(),
+            new Comparator<Mapping>() {
               @Override
               public int compare(final Mapping o1, final Mapping o2) {
                 // Assume maps are not null
@@ -490,7 +491,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         }
         // Send 10k at at tim
         for (final List<Mapping> batch : ListUtils.partition(mapset.getMaps(), 10000)) {
-          operationsService.bulkIndex(batch, ElasticOperationsService.MAPPINGS_INDEX, Mapping.class);
+          operationsService.bulkIndex(
+              batch, ElasticOperationsService.MAPPINGS_INDEX, Mapping.class);
         }
         mapset.setMaps(null);
         operationsService.index(mapset, ElasticOperationsService.MAPSET_INDEX, Concept.class);

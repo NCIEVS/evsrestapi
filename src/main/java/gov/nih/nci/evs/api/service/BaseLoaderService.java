@@ -138,7 +138,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
             .putMapping(Concept.class);
         operationsService
             .getElasticsearchOperations()
-            .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX)).putMapping(Mapping.class);
+            .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX))
+            .putMapping(Mapping.class);
       }
     } catch (IOException e) {
       logger.error(e.getMessage(), e);

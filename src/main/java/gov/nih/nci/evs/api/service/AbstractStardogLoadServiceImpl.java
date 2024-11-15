@@ -314,7 +314,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           logger.warn("UNABLE TO DELETE INDEX: " + NCIT_MAPS_TO + mapset.getKey() + " NOT FOUND!");
         }
         Collections.sort(
-            mapset.getValue().getMaps(), new Comparator<Mapping>() {
+            mapset.getValue().getMaps(),
+            new Comparator<Mapping>() {
               @Override
               public int compare(final Mapping o1, final Mapping o2) {
                 // Assume maps are not null
@@ -336,8 +337,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 + mapset.getValue().getName()
                 + ", "
                 + mapset.getValue().getMaps().size());
-        operationsService.bulkIndex(mapset.getValue().getMaps(), ElasticOperationsService.MAPPINGS_INDEX,
-                                    Mapping.class);
+        operationsService.bulkIndex(
+            mapset.getValue().getMaps(), ElasticOperationsService.MAPPINGS_INDEX, Mapping.class);
         mapset.getValue().setMaps(null);
         operationsService.index(
             mapset.getValue(), ElasticOperationsService.MAPSET_INDEX, Concept.class);

@@ -11,9 +11,7 @@ public class MappingResultList extends ResultList {
   /** The maps. */
   private List<Mapping> maps;
 
-  /**
-   * Instantiates an empty {@link MappingResultList}.
-   */
+  /** Instantiates an empty {@link MappingResultList}. */
   public MappingResultList() {
     // n/a
   }

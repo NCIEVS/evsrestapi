@@ -102,9 +102,7 @@ public class Mapping extends BaseModel implements Comparable<Mapping> {
   @Field(type = FieldType.Keyword)
   private String sortKey;
 
-  /**
-   * Instantiates an empty {@link Mapping}.
-   */
+  /** Instantiates an empty {@link Mapping}. */
   public Mapping() {
     // n/a
   }

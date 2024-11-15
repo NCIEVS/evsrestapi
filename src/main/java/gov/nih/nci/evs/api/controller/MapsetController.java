@@ -10,6 +10,7 @@ import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -19,6 +20,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -260,14 +263,33 @@ public class MapsetController extends BaseController {
       logger.debug("  Search = " + searchCriteria);
 
       // Build the query for finding concept mappings
-      String query = "mapsetCode:\"" + escape(code) + "\"";
+      String query = buildQueryString(code, searchCriteria.getTerm());
 
-      final MappingResultList list = esSearchService.findConceptMappings(query, searchCriteria);
+      logger.debug("  Query = " + query);
 
-      return list;
+      return esSearchService.findConceptMappings(query, searchCriteria);
     } catch (Exception e) {
       handleException(e);
       return null;
     }
+  }
+
+  private String buildQueryString(String code, String term) throws Exception {
+    if (code == null) {
+      throw new Exception("Code is required");
+    }
+    List<String> termClauses = new ArrayList<>();
+    List<String> queryClauses = new ArrayList<>();
+    queryClauses.add("mapsetCode:\"" + escape(code) + "\"");
+
+    // Mapset searches on sourceName, sourceCode, targetName, targetCode, so we set the term to each of these values
+    if (term != null) {
+     termClauses.add("sourceName:\"" + escape(term) + "\"");
+     termClauses.add("sourceCode:\"" + escape(term) + "\"");
+     termClauses.add("targetName:\"" + escape(term) + "\"");
+     termClauses.add("targetCode:\"" + escape(term) + "\"");
+     queryClauses.add(ConceptUtils.composeQuery("OR", termClauses));
+    }
+    return ConceptUtils.composeQuery("AND", queryClauses);
   }
 }

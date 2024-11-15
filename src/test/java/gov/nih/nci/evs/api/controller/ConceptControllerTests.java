@@ -801,7 +801,8 @@ public class ConceptControllerTests {
     list =
         new ObjectMapper()
             .readValue(
-                content, new TypeReference<List<Mapping>>() {
+                content,
+                new TypeReference<List<Mapping>>() {
                   // n/a
                 });
     log.info("  list = " + list.size());
@@ -816,7 +817,8 @@ public class ConceptControllerTests {
     list =
         new ObjectMapper()
             .readValue(
-                content, new TypeReference<List<Mapping>>() {
+                content,
+                new TypeReference<List<Mapping>>() {
                   // n/a
                 });
     assertThat(list).isEmpty();
@@ -884,7 +886,8 @@ public class ConceptControllerTests {
     list =
         new ObjectMapper()
             .readValue(
-                content, new TypeReference<List<Mapping>>() {
+                content,
+                new TypeReference<List<Mapping>>() {
                   // n/a
                 });
     assertThat(list).isEmpty();

@@ -127,7 +127,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
 
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
-              findPossibleConceptMaps(null, null, system, url, version, source, target, targetSystem);
+          findPossibleConceptMaps(null, null, system, url, version, source, target, targetSystem);
       // Extract the mapsetcode from cm build the query
       final List<String> mapsetCodes = cm.stream().map(m -> m.getTitle()).toList();
 
@@ -435,7 +435,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           logger.info("  SKIP system mismatch = " + cm.getName());
           continue;
         }
-        if (targetSystem != null && !targetSystem.getValue().equals(cm.getTargetUriType().getValue())) {
+        if (targetSystem != null
+            && !targetSystem.getValue().equals(cm.getTargetUriType().getValue())) {
           logger.info("  SKIP targetSystem mismatch = " + cm.getName());
           continue;
         }
@@ -447,11 +448,13 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           logger.info("  SKIP version mismatch = " + cm.getVersion());
           continue;
         }
-        if (source != null && !source.getValue().equals(cm.getSourceUriType().getValue() + "?fhir_vs")) {
+        if (source != null
+            && !source.getValue().equals(cm.getSourceUriType().getValue() + "?fhir_vs")) {
           logger.info("  SKIP source mismatch = " + cm.getVersion());
           continue;
         }
-        if (target != null && !target.getValue().equals(cm.getTargetUriType().getValue() + "?fhir_vs")) {
+        if (target != null
+            && !target.getValue().equals(cm.getTargetUriType().getValue() + "?fhir_vs")) {
           logger.info("  SKIP target mismatch = " + cm.getVersion());
           continue;
         }

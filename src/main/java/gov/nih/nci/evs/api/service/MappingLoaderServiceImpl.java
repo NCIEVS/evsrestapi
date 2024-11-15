@@ -397,7 +397,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
 
       // Sort maps (e.g. mostly for SNOMED maps)
       Collections.sort(
-          map.getMaps(), new Comparator<Mapping>() {
+          map.getMaps(),
+          new Comparator<Mapping>() {
             @Override
             public int compare(final Mapping o1, final Mapping o2) {
               // Assume maps are not null
@@ -418,7 +419,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       for (final Mapping mapToSort : map.getMaps()) {
         mapToSort.setSortKey(String.valueOf(1000000 + i++));
       }
-      operationsService.bulkIndex(map.getMaps(), ElasticOperationsService.MAPPINGS_INDEX, Mapping.class);
+      operationsService.bulkIndex(
+          map.getMaps(), ElasticOperationsService.MAPPINGS_INDEX, Mapping.class);
       map.setMaps(null);
       operationsService.index(map, ElasticOperationsService.MAPSET_INDEX, Concept.class);
     }
