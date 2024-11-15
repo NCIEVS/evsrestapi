@@ -284,10 +284,10 @@ public class MapsetController extends BaseController {
     // Mapset searches on sourceName, sourceCode, targetName, targetCode, so we set the term to each
     // of these values
     if (term != null) {
-      termClauses.add("sourceName:\"" + escape(term) + "\"");
-      termClauses.add("sourceCode:\"" + escape(term) + "\"");
-      termClauses.add("targetName:\"" + escape(term) + "\"");
-      termClauses.add("targetCode:\"" + escape(term) + "\"");
+      termClauses.add("sourceName:(\"" + escape(term) + "\" OR " + escape(term) + "*)");
+      termClauses.add("sourceCode:(\"" + escape(term) + "\" OR " + escape(term) + "*)");
+      termClauses.add("targetName:(\"" + escape(term) + "\" OR " + escape(term) + "*)");
+      termClauses.add("targetCode:(\"" + escape(term) + "\" OR " + escape(term) + "*)");
       queryClauses.add(ConceptUtils.composeQuery("OR", termClauses));
     }
     return ConceptUtils.composeQuery("AND", queryClauses);
