@@ -20,7 +20,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -282,13 +281,14 @@ public class MapsetController extends BaseController {
     List<String> queryClauses = new ArrayList<>();
     queryClauses.add("mapsetCode:\"" + escape(code) + "\"");
 
-    // Mapset searches on sourceName, sourceCode, targetName, targetCode, so we set the term to each of these values
+    // Mapset searches on sourceName, sourceCode, targetName, targetCode, so we set the term to each
+    // of these values
     if (term != null) {
-     termClauses.add("sourceName:\"" + escape(term) + "\"");
-     termClauses.add("sourceCode:\"" + escape(term) + "\"");
-     termClauses.add("targetName:\"" + escape(term) + "\"");
-     termClauses.add("targetCode:\"" + escape(term) + "\"");
-     queryClauses.add(ConceptUtils.composeQuery("OR", termClauses));
+      termClauses.add("sourceName:\"" + escape(term) + "\"");
+      termClauses.add("sourceCode:\"" + escape(term) + "\"");
+      termClauses.add("targetName:\"" + escape(term) + "\"");
+      termClauses.add("targetCode:\"" + escape(term) + "\"");
+      queryClauses.add(ConceptUtils.composeQuery("OR", termClauses));
     }
     return ConceptUtils.composeQuery("AND", queryClauses);
   }
