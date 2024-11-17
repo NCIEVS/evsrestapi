@@ -24,11 +24,20 @@ COLLECTION_FILE="EVSRESTAPI_Postman_${COLLECTION_NAME}_Demo.postman_collection.j
 # Verify if newman is installed
 if ! command -v newman &> /dev/null; then
     echo "Newman is not installed. Attempting to install it locally..."
-    # Try installing Newman locally
-    npm install newman
+    # Try installing Newman globally
+    # Newman site suggests global install over local
+    npm install -g newman
     if [ $? -ne 0 ]; then
         echo "Error: Newman installation failed. Please install it manually."
-        exit 2
+        exit 1
+    fi
+
+    # Verify if Newman is installed correctly
+    if ! command -v newman &> /dev/null; then
+        echo "Error: Newman is still not recognized after installation."
+        echo "Please try installing it manually using the following command:"
+        echo "npm install -g newman"
+        exit 1
     fi
 fi
 
