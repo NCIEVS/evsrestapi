@@ -33,6 +33,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.CodeType;
+import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.ConceptMap;
 import org.hl7.fhir.r5.model.IdType;
 import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
@@ -243,6 +244,19 @@ public class ConceptMapProviderR5 implements IResourceProvider {
             new Parameters.ParametersParameterComponent().setName("match");
         property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
         params.addParameter(property);
+        if (sourceCode != null) {
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
+        } else {
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
+        }
       }
       if (!params.hasParameter()) {
         params.addParameter("result", false);
@@ -355,6 +369,19 @@ public class ConceptMapProviderR5 implements IResourceProvider {
             new Parameters.ParametersParameterComponent().setName("match");
         property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
         params.addParameter(property);
+        if (sourceCode != null) {
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
+        } else {
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
+        }
       }
       if (!params.hasParameter()) {
         params.addParameter("result", false);
