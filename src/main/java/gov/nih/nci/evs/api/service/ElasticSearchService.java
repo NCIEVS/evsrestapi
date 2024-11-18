@@ -1,14 +1,12 @@
 package gov.nih.nci.evs.api.service;
 
-import java.util.List;
-
-import org.springframework.web.client.HttpClientErrorException;
-
 import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
+import java.util.List;
+import org.springframework.web.client.HttpClientErrorException;
 
 /** The Interface ElasticSearchService. */
 public interface ElasticSearchService {

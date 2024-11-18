@@ -138,6 +138,7 @@ dependencies {
    * Test Dependencies
   */
   testImplementation 'org.springframework.boot:spring-boot-starter-test'
+  testImplementation 'org.opensearch.client:spring-data-opensearch-test-autoconfigure:1.5.3'
   testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.3'
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'

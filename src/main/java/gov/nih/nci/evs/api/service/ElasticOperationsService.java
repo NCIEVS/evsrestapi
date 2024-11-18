@@ -1,12 +1,10 @@
 package gov.nih.nci.evs.api.service;
 
-import java.io.IOException;
-import java.util.List;
-
-import org.opensearch.data.core.OpenSearchOperations;
-
 import gov.nih.nci.evs.api.model.Metric;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
+import java.io.IOException;
+import java.util.List;
+import org.opensearch.data.core.OpenSearchOperations;
 
 /**
  * The service for performing index related operations on Elasticsearch/OpenSearch.

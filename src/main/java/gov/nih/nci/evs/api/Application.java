@@ -1,7 +1,6 @@
 package gov.nih.nci.evs.api;
 
 import java.util.Map;
-
 import org.springdoc.core.utils.SpringDocUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

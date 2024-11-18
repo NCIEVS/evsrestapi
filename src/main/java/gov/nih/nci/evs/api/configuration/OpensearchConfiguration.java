@@ -5,6 +5,8 @@ package gov.nih.nci.evs.api.configuration;
 import org.apache.http.HttpHost;
 import org.opensearch.client.RestClient;
 import org.opensearch.client.RestHighLevelClient;
+import org.opensearch.data.client.orhlc.OpenSearchRestTemplate;
+import org.opensearch.data.core.OpenSearchOperations;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,19 +42,21 @@ public class OpensearchConfiguration {
             .setRequestConfigCallback(
                 builder -> builder.setConnectTimeout(timeout).setSocketTimeout(timeout)));
 
+    // Alternate:
     // ClientConfiguration clientConfiguration =
     // ClientConfiguration.builder().connectedTo(esHost)..build();
     // return RestClients.create(clientConfiguration).rest();
   }
 
   /**
-   * Elastic rest template.
+   * Open search operations. This is needed in order to inject an OpenSearchOperations into the
+   * right place.
    *
-   * @return the elasticsearch rest template
+   * @return the open search operations
    */
-  //  @SuppressWarnings("resource")
-  //  @Bean(name = "elasticsearchTemplate")
-  //  ElasticsearchRestTemplate elasticRestTemplate() {
-  //    return new EVSElasticsearchRestTemplate(client());
-  //  }
+  @SuppressWarnings("resource")
+  @Bean
+  public OpenSearchOperations openSearchOperations() {
+    return new OpenSearchRestTemplate(client());
+  }
 }
