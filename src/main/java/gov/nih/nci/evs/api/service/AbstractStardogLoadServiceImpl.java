@@ -5,10 +5,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
@@ -240,11 +240,10 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                   c.setExtensions(mainTypeHierarchy.getExtensions(c));
                   handleHistory(terminology, c);
                   if (c.getMaps().size() > 0 && c.getActive()) {
-                    for (final gov.nih.nci.evs.api.model.ConceptMap map : c.getMaps()) {
+                    for (final Mapping map : c.getMaps()) {
                       final String mapterm = map.getTargetTerminology().split(" ")[0];
                       if (mapsets.containsKey(mapterm)) {
-                        final gov.nih.nci.evs.api.model.ConceptMap copy =
-                            new gov.nih.nci.evs.api.model.ConceptMap(map);
+                        final Mapping copy = new Mapping(map);
                         copy.setSourceCode(c.getCode());
                         copy.setSourceName(c.getName());
                         copy.setSource(c.getTerminology());
@@ -316,11 +315,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         }
         Collections.sort(
             mapset.getValue().getMaps(),
-            new Comparator<gov.nih.nci.evs.api.model.ConceptMap>() {
+            new Comparator<Mapping>() {
               @Override
-              public int compare(
-                  final gov.nih.nci.evs.api.model.ConceptMap o1,
-                  final gov.nih.nci.evs.api.model.ConceptMap o2) {
+              public int compare(final Mapping o1, final Mapping o2) {
                 // Assume maps are not null
                 return (o1.getSourceName()
                         + o1.getType()
@@ -341,7 +338,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 + ", "
                 + mapset.getValue().getMaps().size());
         operationsService.bulkIndex(
-            mapset.getValue().getMaps(), ElasticOperationsService.MAPPINGS_INDEX, ConceptMap.class);
+            mapset.getValue().getMaps(), ElasticOperationsService.MAPPINGS_INDEX, Mapping.class);
         mapset.getValue().setMaps(null);
         operationsService.index(
             mapset.getValue(), ElasticOperationsService.MAPSET_INDEX, Concept.class);

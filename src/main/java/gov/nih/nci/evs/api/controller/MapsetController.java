@@ -1,13 +1,16 @@
 package gov.nih.nci.evs.api.controller;
 
+import static gov.nih.nci.evs.api.service.ElasticSearchServiceImpl.escape;
+
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -17,6 +20,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import org.slf4j.Logger;
@@ -172,11 +176,7 @@ public class MapsetController extends BaseController {
    * Returns the mapset maps.
    *
    * @param code the code
-   * @param fromRecord the from record
-   * @param pageSize the page size
-   * @param term the term
-   * @param ascending the ascending
-   * @param sort the sort
+   * @param searchCriteria the search criteria
    * @return the mapsets
    * @throws Exception the exception
    */
@@ -240,7 +240,7 @@ public class MapsetController extends BaseController {
   })
   @RecordMetric
   @GetMapping(value = "/mapset/{code}/maps", produces = "application/json")
-  public @ResponseBody ConceptMapResultList getMapsetMappingsByCode(
+  public @ResponseBody MappingResultList getMapsetMappingsByCode(
       @PathVariable(value = "code") final String code, SearchCriteria searchCriteria)
       throws Exception {
     try {
@@ -261,12 +261,35 @@ public class MapsetController extends BaseController {
       }
       logger.debug("  Search = " + searchCriteria);
 
-      final ConceptMapResultList list = esSearchService.search(code, searchCriteria);
+      // Build the query for finding concept mappings
+      String query = buildQueryString(code, searchCriteria.getTerm());
 
-      return list;
+      logger.debug("  Query = " + query);
+
+      return esSearchService.findConceptMappings(query, searchCriteria);
     } catch (Exception e) {
       handleException(e);
       return null;
     }
+  }
+
+  private String buildQueryString(String code, String term) throws Exception {
+    if (code == null) {
+      throw new Exception("Code is required");
+    }
+    List<String> termClauses = new ArrayList<>();
+    List<String> queryClauses = new ArrayList<>();
+    queryClauses.add("mapsetCode:\"" + escape(code) + "\"");
+
+    // Mapset searches on sourceName, sourceCode, targetName, targetCode, so we set the term to each
+    // of these values
+    if (term != null) {
+      termClauses.add("sourceName:(\"" + escape(term) + "\" OR " + escape(term) + "*)");
+      termClauses.add("sourceCode:(\"" + escape(term) + "\" OR " + escape(term) + "*)");
+      termClauses.add("targetName:(\"" + escape(term) + "\" OR " + escape(term) + "*)");
+      termClauses.add("targetCode:(\"" + escape(term) + "\" OR " + escape(term) + "*)");
+      queryClauses.add(ConceptUtils.composeQuery("OR", termClauses));
+    }
+    return ConceptUtils.composeQuery("AND", queryClauses);
   }
 }

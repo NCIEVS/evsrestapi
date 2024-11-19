@@ -1,10 +1,10 @@
 package gov.nih.nci.evs.api.service;
 
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
-import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.EVSPageable;
@@ -50,7 +50,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   @Autowired ElasticOperationsService esOperationsService;
 
   /** The Elasticsearch operations * */
-  @Autowired ElasticsearchOperations operations;
+  @Autowired ElasticsearchOperations elasticsearchOperations;
 
   /** The Elastic query service * */
   @Autowired ElasticQueryService esQueryService;
@@ -66,8 +66,8 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @throws Exception the exception
    */
   @Override
-  public ConceptResultList search(List<Terminology> terminologies, SearchCriteria searchCriteria)
-      throws Exception {
+  public ConceptResultList findConcepts(
+      List<Terminology> terminologies, SearchCriteria searchCriteria) throws Exception {
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
     // PageRequest.of(page, searchCriteria.getPageSize());
 
@@ -150,7 +150,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // query on operations
     final SearchHits<Concept> hits =
-        operations.search(
+        elasticsearchOperations.search(
             searchQuery.build(),
             Concept.class,
             IndexCoordinates.of(buildIndicesArray(searchCriteria)));
@@ -161,7 +161,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     if (hits.getTotalHits() >= 10000) {
       result.setTotal(
-          operations.count(
+          elasticsearchOperations.count(
               searchQuery.build(),
               Concept.class,
               IndexCoordinates.of(buildIndicesArray(searchCriteria))));
@@ -207,14 +207,14 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * search for the given search criteria in mappings.
+   * Find the concept mappings based on a provided query and search criteria.
    *
+   * @param query the query string to search for
    * @param searchCriteria the search criteria
    * @return the result list with concepts
-   * @throws Exception the exception
    */
   @Override
-  public ConceptMapResultList search(String code, SearchCriteria searchCriteria) {
+  public MappingResultList findConceptMappings(String query, SearchCriteria searchCriteria) {
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
     // PageRequest.of(page, searchCriteria.getPageSize());
 
@@ -228,16 +228,11 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     final Pageable pageable = new EVSPageable(page, esPageSize, esFromRecord);
 
-    // Escape the term in case it has special characters
-    // final String term = escape(searchCriteria.getTerm());
-    logger.debug("query string [{}]", searchCriteria.getTerm());
-
-    final BoolQueryBuilder boolQuery =
-        new BoolQueryBuilder().must(getMappingQuery(searchCriteria.getTerm(), code));
-
-    // build final search query
+    // build search query from string query
     final NativeSearchQueryBuilder searchQuery =
-        new NativeSearchQueryBuilder().withQuery(boolQuery).withPageable(pageable);
+        new NativeSearchQueryBuilder()
+            .withQuery(QueryBuilders.queryStringQuery(query))
+            .withPageable(pageable);
 
     if (searchCriteria.getSort() != null) {
       // Default is ascending if not specified
@@ -276,19 +271,19 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     }
 
     // query on operations
-    final SearchHits<ConceptMap> hits =
-        operations.search(
+    final SearchHits<Mapping> hits =
+        elasticsearchOperations.search(
             searchQuery.build(),
-            ConceptMap.class,
+            Mapping.class,
             IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
 
     logger.debug("result count: {}", hits.getTotalHits());
 
-    final ConceptMapResultList result = new ConceptMapResultList();
+    final MappingResultList result = new MappingResultList();
 
     if (hits.getTotalHits() >= 10000) {
       result.setTotal(
-          operations.count(
+          elasticsearchOperations.count(
               searchQuery.build(),
               Concept.class,
               IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX)));
@@ -301,7 +296,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if (fromOffset == 0) {
       result.setMaps(hits.stream().map(SearchHit::getContent).collect(Collectors.toList()));
     } else {
-      final List<ConceptMap> results =
+      final List<Mapping> results =
           hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
       if (fromIndex >= results.size()) {
         result.setMaps(new ArrayList<>());
@@ -315,7 +310,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   /**
    * Returns the term query.
    *
-   * @param type the type
+   * @param searchCriteria the search criteria
    * @param term the term
    * @return the term query
    * @throws Exception the exception
@@ -345,47 +340,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * Returns the term query for mappings.
-   *
-   * @param term the term
-   * @return the term query
-   * @throws Exception the exception
-   */
-  private BoolQueryBuilder getMappingQuery(String term, String code) {
-    // must match mapsetCode
-    BoolQueryBuilder termQuery =
-        new BoolQueryBuilder().must(QueryBuilders.queryStringQuery("mapsetCode:" + code));
-    // search term processing
-    if (term != null && !term.isEmpty()) {
-      final List<String> words = ConceptUtils.wordind(term);
-      // create search term clause
-      if (ConceptUtils.isCode(term) || words.size() == 1) {
-        // match on either word or code, case insensitive
-        if (term.matches("[A-Za-z]+:\\d+")) {
-          termQuery.must(
-              QueryBuilders.queryStringQuery(escape(term) + "*")
-                  .field("sourceCode")
-                  .field("targetCode"));
-        } else {
-          termQuery.must(QueryBuilders.queryStringQuery(escape(term) + "*").field("*"));
-        }
-
-      } else {
-        // search for all words in name fields
-        BoolQueryBuilder multiWordQuery = QueryBuilders.boolQuery();
-
-        // match all words in at least one of the names
-        for (String word : words) {
-          multiWordQuery.must(QueryBuilders.queryStringQuery(word + "*").field("*"));
-        }
-
-        termQuery.must(multiWordQuery);
-      }
-    }
-    return termQuery;
-  }
-
-  /**
    * Returns the term query for mappings based on concepts.
    *
    * @param conceptCodes the concept codes
@@ -393,7 +347,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
    * @return the mappings
    */
   @Override
-  public List<ConceptMap> getConceptMappings(List<String> conceptCodes, String terminology) {
+  public List<Mapping> getConceptMappings(List<String> conceptCodes, String terminology) {
     // must match mapsetCode
 
     BoolQueryBuilder termQuery = new BoolQueryBuilder();
@@ -412,19 +366,19 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     final NativeSearchQueryBuilder searchQuery =
         new NativeSearchQueryBuilder().withQuery(termQuery);
-    final SearchHits<ConceptMap> hits =
-        operations.search(
+    final SearchHits<Mapping> hits =
+        elasticsearchOperations.search(
             searchQuery.build(),
-            ConceptMap.class,
+            Mapping.class,
             IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
 
     logger.debug("result count: {}", hits.getTotalHits());
 
-    final ConceptMapResultList result = new ConceptMapResultList();
+    final MappingResultList result = new MappingResultList();
 
     result.setTotal(hits.getTotalHits());
 
-    final List<ConceptMap> mappings =
+    final List<Mapping> mappings =
         hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
 
     return mappings;
@@ -433,7 +387,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   /**
    * Returns the contains query.
    *
-   * @param type the type
+   * @param searchCriteria the search criteria
    * @param term the term
    * @param fuzzyFlag the fuzzy flag
    * @param andFlag the and flag

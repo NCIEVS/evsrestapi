@@ -161,19 +161,20 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * Look up implicit
    *
    * <pre>
-   * <a href="https://build.fhir.org/codesystem-operation-lookup.html">...</a>
+   * <a href="https://hl7.org/fhir/R5/codesystem-operation-lookup.html">...</a>
    * </pre>
    *
    * @param request the request
    * @param response the response
    * @param details the details
-   * @param code the codeType code
-   * @param system the uriType
-   * @param version the string type version
-   * @param coding the coding
-   * @param date the date range param
-   * @param displayLanguage the string type display language
-   * @param property the code type property
+   * @param code the code to lookup
+   * @param system the system for the code being looked up
+   * @param version the version of the system, if provided.
+   * @param coding the coding to look up
+   * @param date the date that the information should be returned.
+   * @param displayLanguage the requested language for display.
+   * @param property the code type property that the client wished to be returned in the output. If
+   *     none provided, the server will choose the properties to return.
    * @return the parameters
    * @throws Exception exception
    */
@@ -249,20 +250,21 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * Lookup instance.
    *
    * <pre>
-   *     <a href="https://build.fhir.org/codesystem-operation-lookup.html">...</a>
+   *     <a href="https://hl7.org/fhir/R5/codesystem-operation-lookup.html">...</a>
    * </pre>
    *
    * @param request the request
    * @param response the response
    * @param details the details
    * @param id the id
-   * @param code the code
-   * @param system the system
-   * @param version the version
-   * @param coding the coding
-   * @param date the date
-   * @param displayLanguage the display language
-   * @param property the property
+   * @param code the code to lookup
+   * @param system the system for the code being looked up
+   * @param version the version of the system, if provided.
+   * @param coding the coding to look up
+   * @param date the date that the information should be returned.
+   * @param displayLanguage the requested language for display.
+   * @param property the code type property that the client wished to be returned in the output. If
+   *     none provided, the server will choose the properties to return.
    * @return the parameters
    * @throws Exception exception
    */
@@ -344,17 +346,18 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param request the request
    * @param response the response
    * @param details the details
-   * @param url the url
+   * @param url the CodeSystem URL
    * @param codeSystem the code system
-   * @param code the code
-   * @param version the version
-   * @param display the display
-   * @param coding the coding
-   * @param codeableConcept the codeable concept
-   * @param date the date
-   * @param abstractt the abstract
-   * @param displayLanguage the display language
-   * @param systemVersion the system version
+   * @param code the code to be validated
+   * @param version the version of the code system, if provided
+   * @param display the display associated with the code. If provided, a code must be provided.
+   * @param coding the coding to validate
+   * @param codeableConcept the codeable concept to validate
+   * @param date the date that the validation should be checked
+   * @param abstractt the abstract flag, a logical grouping concept that is not intended to be used
+   *     as a 'concrete' concept to in an actual patient/care/process record.
+   * @param displayLanguage the display language for the description when validating the display
+   *     property
    * @return the parameters
    * @throws Exception exception
    */
@@ -372,8 +375,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       @OperationParam(name = "date") final DateRangeParam date,
       @OperationParam(name = "abstract") final BooleanType abstractt,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      @OperationParam(name = "systemVersion") final StringType systemVersion)
+      @OperationParam(name = "displayLanguage") final StringType displayLanguage)
       throws Exception {
     // Check if the request is a POST, throw exception as we don't support post calls
     if (request.getMethod().equals("POST")) {
@@ -383,13 +385,13 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           405);
     }
     try {
+      FhirUtilityR5.mutuallyRequired(display, "display", code, "code");
       FhirUtilityR5.notSupported(codeableConcept, "codeableConcept");
       FhirUtilityR5.notSupported(codeSystem, "codeSystem");
       FhirUtilityR5.notSupported(coding, "coding");
       FhirUtilityR5.notSupported(date, "date");
       FhirUtilityR5.notSupported(abstractt, "abstract");
       FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
-      FhirUtilityR5.notSupported(systemVersion, "systemVersion");
       final List<CodeSystem> cs = findPossibleCodeSystems(null, null, url, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
@@ -450,17 +452,18 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param response the response
    * @param details the details
    * @param id the id
-   * @param url the url
+   * @param url the CodeSystem URL
    * @param codeSystem the code system
-   * @param code the code
-   * @param version the version
-   * @param display the display
-   * @param coding the coding
-   * @param codeableConcept the codeable concept
-   * @param date the date
-   * @param abstractt the abstract
-   * @param displayLanguage the display language
-   * @param systemVersion the system version
+   * @param code the code to be validated
+   * @param version the version of the code system, if provided
+   * @param display the display associated with the code. If provided, a code must be provided.
+   * @param coding the coding to validate
+   * @param codeableConcept the codeable concept to validate
+   * @param date the date that the validation should be checked
+   * @param abstractt the abstract flag, a logical grouping concept that is not intended to be used
+   *     as a 'concrete' concept to in an actual patient/care/process record.
+   * @param displayLanguage the display language for the description when validating the display
+   *     property
    * @return the parameters
    * @throws Exception exception
    */
@@ -479,8 +482,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       @OperationParam(name = "date") final DateTimeType date,
       @OperationParam(name = "abstract") final BooleanType abstractt,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      @OperationParam(name = "systemVersion") final StringType systemVersion)
+      @OperationParam(name = "displayLanguage") final StringType displayLanguage)
       throws Exception {
     // Check if the request is a post, throw exception as we don't support post requests
     if (request.getMethod().equals("POST")) {
@@ -490,13 +492,13 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           405);
     }
     try {
+      FhirUtilityR5.mutuallyRequired(display, "display", code, "code");
       FhirUtilityR5.notSupported(codeableConcept, "codeableConcept");
       FhirUtilityR5.notSupported(codeSystem, "codeSystem");
       FhirUtilityR5.notSupported(coding, "coding");
       FhirUtilityR5.notSupported(date, "date");
       FhirUtilityR5.notSupported(abstractt, "abstract");
       FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
-      FhirUtilityR5.notSupported(systemVersion, "systemVersion");
       final List<CodeSystem> cs = findPossibleCodeSystems(id, null, url, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
@@ -556,13 +558,12 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param request the request
    * @param response the response
    * @param details the details
-   * @param id the id
-   * @param codeA the code a
-   * @param codeB the code b
-   * @param system the system
-   * @param version the version
-   * @param codingA the coding a
-   * @param codingB the coding b
+   * @param codeA the code a to be tested. If provided, system must be provided.
+   * @param codeB the code b to be tested. If provided, system must be provided.
+   * @param system the code system the subsumption test is performed on.
+   * @param version the version of the code system, if provided.
+   * @param codingA the coding a to be tested.
+   * @param codingB the coding b to be tested.
    * @return the parameters
    * @throws Exception exception
    */
@@ -646,12 +647,12 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param response the response
    * @param details the details
    * @param id the id
-   * @param codeA the code a
-   * @param codeB the code b
-   * @param system the system
-   * @param version the version
-   * @param codingA the coding a
-   * @param codingB the coding b
+   * @param codeA the code a to be tested. If provided, system must be provided.
+   * @param codeB the code b to be tested. If provided, system must be provided.
+   * @param system the code system the subsumption test is performed on.
+   * @param version the version of the code system, if provided.
+   * @param codingA the coding a to be tested.
+   * @param codingB the coding b to be tested.
    * @return the parameters
    * @throws Exception exception
    */
@@ -734,7 +735,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @throws Exception exception
    */
   @Read
-  public CodeSystem getConceptMap(final ServletRequestDetails details, @IdParam final IdType id)
+  public CodeSystem getCodeSystem(final ServletRequestDetails details, @IdParam final IdType id)
       throws Exception {
     try {
       final List<CodeSystem> candidates = findPossibleCodeSystems(id, null, null, null);

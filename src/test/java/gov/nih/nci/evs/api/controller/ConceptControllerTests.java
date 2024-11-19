@@ -11,11 +11,11 @@ import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.History;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -789,7 +789,7 @@ public class ConceptControllerTests {
     String url = null;
     MvcResult result = null;
     String content = null;
-    List<ConceptMap> list = null;
+    List<Mapping> list = null;
 
     // NOTE, this includes a middle concept code that is bougs
     url = baseUrl + "/ncit/C3224/maps";
@@ -802,7 +802,7 @@ public class ConceptControllerTests {
         new ObjectMapper()
             .readValue(
                 content,
-                new TypeReference<List<ConceptMap>>() {
+                new TypeReference<List<Mapping>>() {
                   // n/a
                 });
     log.info("  list = " + list.size());
@@ -818,7 +818,7 @@ public class ConceptControllerTests {
         new ObjectMapper()
             .readValue(
                 content,
-                new TypeReference<List<ConceptMap>>() {
+                new TypeReference<List<Mapping>>() {
                   // n/a
                 });
     assertThat(list).isEmpty();
@@ -887,7 +887,7 @@ public class ConceptControllerTests {
         new ObjectMapper()
             .readValue(
                 content,
-                new TypeReference<List<ConceptMap>>() {
+                new TypeReference<List<Mapping>>() {
                   // n/a
                 });
     assertThat(list).isEmpty();
