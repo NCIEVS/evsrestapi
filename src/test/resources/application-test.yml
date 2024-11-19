@@ -109,7 +109,7 @@ nci:
     elasticsearch:
       server:
         host: ${ES_HOST:localhost}
-        port: ${ES_PORT:9200}
+        port: ${ES_PORT:9201}
         scheme: ${ES_SCHEME:http}
       timeout: 200000
     sparql:
