@@ -17,6 +17,7 @@ import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PushBackReader;
 import gov.nih.nci.evs.api.util.RrfReaders;
@@ -27,8 +28,6 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -41,8 +40,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import org.apache.tomcat.util.buf.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -282,12 +280,12 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         // OK: IFA 248153007 &#x7C; Male (finding) &#x7C;
 
         // Change this to keep all rules
-        //        if (fields[20].startsWith("IFA")
-        //            && !fields[20].startsWith("IFA 445518008")
-        //            && !fields[20].startsWith("IFA 248152002")
-        //            && !fields[20].startsWith("IFA 248153007")) {
-        //          continue;
-        //        }
+        // if (fields[20].startsWith("IFA")
+        // && !fields[20].startsWith("IFA 445518008")
+        // && !fields[20].startsWith("IFA 248152002")
+        // && !fields[20].startsWith("IFA 248153007")) {
+        // continue;
+        // }
 
         final gov.nih.nci.evs.api.model.ConceptMap info = mapsetInfoMap.get(fields[0]);
         final gov.nih.nci.evs.api.model.ConceptMap map = new gov.nih.nci.evs.api.model.ConceptMap();
@@ -360,27 +358,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
                   + "-"
                   + info.getTarget().replaceFirst("ncit", "nci")
                   + ".html";
-          try (final InputStream is = new URL(mapsetUri).openConnection().getInputStream()) {
-            final String welcomeText = IOUtils.toString(is, StandardCharsets.UTF_8);
-            mapset.getProperties().add(new Property("welcomeText", welcomeText));
-          } catch (Throwable t) { // read as file if no url
-            try {
-              if (!new File(mapsetUri).exists()) {
-                throw new Exception("Unable to find welcome text for mapset = " + mapsetUri);
-              }
-              final String welcomeText =
-                  FileUtils.readFileToString(new File(mapsetUri), StandardCharsets.UTF_8);
-              mapset.getProperties().add(new Property("welcomeText", welcomeText));
-            } catch (IOException ex) {
-              throw new IOException(
-                  "Could not find either file or uri for welcome text: " + mapsetUri); // only
-              // throw
-              // exception
-              // if
-              // both
-              // fail
-            }
-          }
+          final String welcomeText =
+              StringUtils.join(EVSUtils.getValueFromFile(mapsetUri, "welcome text"), '\n');
+          mapset.getProperties().add(new Property("welcomeText", welcomeText));
           mapset.getProperties().add(new Property("mapsetLink", null));
           mapset.getProperties().add(new Property("downloadOnly", "false"));
           mapset
