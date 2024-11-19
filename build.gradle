@@ -76,11 +76,12 @@ java {
 
 dependencies {
 
+  implementation 'org.springframework.boot:spring-boot-starter-web'
+
   // Use version 2 with spring boot 3
   // custom location => springdoc.swagger-ui.path=/swagger-ui/index.html
   implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
 
-  implementation 'org.springframework.boot:spring-boot-starter-web'
   implementation 'org.springframework.boot:spring-boot-devtools'
   implementation 'org.springframework.boot:spring-boot-starter-actuator'
   implementation 'org.springframework.boot:spring-boot-starter-cache'

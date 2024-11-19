@@ -5,27 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.model.Association;
-import gov.nih.nci.evs.api.model.AssociationEntry;
-import gov.nih.nci.evs.api.model.AssociationEntryResultList;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
-import gov.nih.nci.evs.api.model.Definition;
-import gov.nih.nci.evs.api.model.DisjointWith;
-import gov.nih.nci.evs.api.model.HierarchyNode;
-import gov.nih.nci.evs.api.model.History;
-import gov.nih.nci.evs.api.model.Role;
-import gov.nih.nci.evs.api.model.Synonym;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -41,6 +26,25 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.CollectionUtils;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.AssociationEntry;
+import gov.nih.nci.evs.api.model.AssociationEntryResultList;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.DisjointWith;
+import gov.nih.nci.evs.api.model.HierarchyNode;
+import gov.nih.nci.evs.api.model.History;
+import gov.nih.nci.evs.api.model.Role;
+import gov.nih.nci.evs.api.model.Synonym;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+
 /** Integration tests for ConceptController. */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -49,6 +53,9 @@ public class ConceptControllerTests {
 
   /** The logger. */
   private static final Logger log = LoggerFactory.getLogger(ConceptControllerTests.class);
+
+  /** The sparql query manager service. */
+  @Autowired SparqlQueryManagerService sparqlQueryManagerService;
 
   /** The mvc. */
   @Autowired private MockMvc mvc;
