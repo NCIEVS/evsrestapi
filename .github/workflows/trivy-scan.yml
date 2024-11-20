@@ -44,6 +44,9 @@ jobs:
         trivy fs gradle.lockfile --format json --output trivy_report.json --severity HIGH,CRITICAL
         /bin/rm -rf gradle/dependency-locks
         /bin/rm gradle.lockfile
+      env:
+        TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
+        TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
 
     # Check for high or critical vulnerabilities
     - name: Check vulnerabilities
