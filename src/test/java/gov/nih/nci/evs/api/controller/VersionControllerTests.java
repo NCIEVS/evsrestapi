@@ -1,13 +1,10 @@
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.properties.TestProperties;
-import gov.nih.nci.evs.api.support.ApplicationVersion;
-import gov.nih.nci.evs.api.util.ConceptUtils;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -15,8 +12,8 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.Set;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +29,12 @@ import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.support.ApplicationVersion;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 
 /** Integration tests for VersionController. */
 @ExtendWith(SpringExtension.class)
@@ -633,18 +636,29 @@ public class VersionControllerTests {
    */
   @Test
   public void testGetSwaggerUIVersion() throws Exception {
-    // Load properties from pom.properties
-    Properties properties = new Properties();
-    properties.load(
-        Files.newInputStream(
-            Paths.get("src/main/resources/META-INF/maven/org.webjars/swagger-ui/pom.properties")));
 
     // Get swagger-ui version
-    String swaggerUiVersion = properties.getProperty("version");
+    String swaggerUiVersion = null;
+
+    // Load .jar file from classpath
+    final String classpath = System.getProperty("java.class.path");
+    final String[] classPathValues = classpath.split(File.pathSeparator);
+    for (final String cp : classPathValues) {
+      if (cp.contains("org.webjars") && cp.contains("swagger-ui")) {
+        if (swaggerUiVersion != null) {
+          fail("Unexpected multiple swagger ui versions = " + swaggerUiVersion + ", " + cp);
+        }
+        swaggerUiVersion =
+            classpath
+                .replaceFirst(".*org.webjars.*swagger-ui.([\\d\\.]+).*", "$1")
+                .replaceFirst("\\.$", "");
+      }
+    }
 
     if (swaggerUiVersion == null || swaggerUiVersion.isEmpty()) {
-      throw new IllegalStateException("Swagger UI version not found in properties");
+      throw new IllegalStateException("org.webjars.*swagger-ui not found in classpath");
     }
+    log.info("  swaggerUiVersion = " + swaggerUiVersion);
 
     // Get path to version
     String path = "src/main/resources/META-INF/resources/webjars/swagger-ui/" + swaggerUiVersion;
@@ -652,7 +666,7 @@ public class VersionControllerTests {
     // Check if the path exists and the versions match
     assertThat(Files.exists(Paths.get(path)))
         .withFailMessage(
-            "The Swagger UI version might not match the folder structure: expected version %s at"
+            "The Swagger UI version does not match the folder structure: expected version %s at"
                 + " path %s",
             swaggerUiVersion, path)
         .isTrue();
