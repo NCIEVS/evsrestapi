@@ -3,10 +3,12 @@
 *.java eol=lf
 # Set the default behavior for text to use LF line ending
 * text eol=lf
+*.txt eol=lf
 # Denote all files that are truly binary and should not be modified.
 *.png binary
 *.jpg binary
 *.jar binary
+*.gif binary
 *.bmp binary
 *.db binary
-*.gif binary
+

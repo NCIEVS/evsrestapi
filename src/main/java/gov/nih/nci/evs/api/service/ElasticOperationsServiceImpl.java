@@ -1,6 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Metric;
 import java.io.IOException;
 import java.util.ArrayList;

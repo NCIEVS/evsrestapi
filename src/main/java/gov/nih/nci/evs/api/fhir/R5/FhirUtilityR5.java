@@ -10,7 +10,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import org.hl7.fhir.r5.model.BooleanType;
@@ -19,12 +21,10 @@ import org.hl7.fhir.r5.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r5.model.Bundle.BundleLinkComponent;
 import org.hl7.fhir.r5.model.Bundle.BundleType;
 import org.hl7.fhir.r5.model.Bundle.LinkRelationTypes;
-import org.hl7.fhir.r5.model.CanonicalType;
 import org.hl7.fhir.r5.model.CodeSystem;
 import org.hl7.fhir.r5.model.CodeType;
 import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.ConceptMap;
-import org.hl7.fhir.r5.model.ConceptMap.ConceptMapGroupComponent;
 import org.hl7.fhir.r5.model.DateTimeType;
 import org.hl7.fhir.r5.model.Enumerations;
 import org.hl7.fhir.r5.model.Identifier;
@@ -35,6 +35,7 @@ import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r5.model.Parameters.ParametersParameterComponent;
 import org.hl7.fhir.r5.model.Resource;
 import org.hl7.fhir.r5.model.StringType;
+import org.hl7.fhir.r5.model.UriType;
 import org.hl7.fhir.r5.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,10 +47,74 @@ public class FhirUtilityR5 {
   private static Logger logger = LoggerFactory.getLogger(FhirUtilityR5.class);
 
   /** The publishers. */
-  private static HashMap<String, String> publishers = generatePublishers();
+  private static HashMap<String, String> publishers = new HashMap<>();
 
-  /** The URIs. */
-  private static HashMap<String, String> uris = generateUris();
+  static {
+    publishers.put(
+        "mdr",
+        "MedDRA Maintenance and Support Services Organization (MedDRA MSSO); Mr. Patrick Revelle;"
+            + " MSSO Director");
+    publishers.put("umlssemnet", "National Library of Medicine");
+    publishers.put("go", "GO Consortium");
+    publishers.put("icd10cm", "NCHS");
+    publishers.put("icd10", "World Health Organization");
+    publishers.put("hgnc", "HUGO Gene Nomenclature Committee");
+    publishers.put("duo", "Data Use Ontology");
+    publishers.put("obi", "Ontology for Biomedical Investigations");
+    publishers.put("obib", "Ontology for Biobanking");
+    publishers.put("ndfrt", "Veterans Health Administration");
+    publishers.put("snomedct_us", "National Library of Medicine");
+    publishers.put("ctcae5", "NCI");
+    publishers.put("lnc", "LOINC and Health Data Standards, Regenstrief Institute, Inc.");
+    publishers.put("ncit", "NCI");
+    publishers.put("icd9cm", "NCHS");
+    publishers.put("radlex", "RSNA (Radiological Society of North America)");
+    publishers.put("canmed", "National Cancer Institute Enterprise Vocabulary Services");
+    publishers.put("medrt", "National Library of Medicine");
+    publishers.put("chebi", "Open Biomedical Ontologies - European Bioinformatics Institute");
+    publishers.put("ncim", "National Cancer Institute Enterprise Vocabulary Services");
+    publishers.put("pdq", "National Cancer Institute");
+    publishers.put("ma", "The Jackson Laboratory");
+    publishers.put("hl7v30", "Health Level Seven International");
+    publishers.put("mged", "National Cancer Institute");
+    publishers.put("npo", "National Cancer Institute");
+    publishers.put("ma", "National Cancer Institute");
+    publishers.put("zfa", "National Cancer Institute");
+  }
+
+  /** The URIs */
+  private static final HashMap<String, String> uris = new HashMap<>();
+
+  static {
+    uris.put("mdr", "https://www.meddra.org");
+    uris.put("umlssemnet", "http://www.nlm.nih.gov/research/umls/umlssemnet.owl");
+    uris.put("go", "http://purl.obolibrary.org/obo/go.owl");
+    uris.put("icd10", "http://hl7.org/fhir/sid/icd-10");
+    uris.put("icd10cm", "http://hl7.org/fhir/sid/icd-10-cm");
+    uris.put("hgnc", "http://www.genenames.org");
+    uris.put("duo", "https://obofoundry.org/ontology/duo.html");
+    uris.put("obi", "https://obi-ontology.org/");
+    uris.put("obib", "https://obofoundry.org/ontology/obib.html");
+    uris.put("ndfrt", "https://bioportal.bioontology.org/ontologies/NDF-RT");
+    uris.put("snomedct_us", "http://terminology.hl7.org/CodeSystem/snomedct_us");
+    uris.put("ctcae5", "http://hl7.org/fhir/us/ctcae");
+    uris.put("lnc", "http://loinc.org");
+    uris.put("ncit", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    uris.put("icd9cm", "http://terminology.hl7.org/CodeSystem/icd9cm");
+    uris.put("radlex", "http://radlex.org/");
+    uris.put("canmed", "http://seer.nci.nih.gov/CanMED.owl");
+    uris.put("medrt", "http://va.gov/terminology/medrt");
+    uris.put("chebi", "http://www.ebi.ac.uk/chebi/");
+    uris.put("ncim", "https://ncim.nci.nih.gov/ncimbrowser/");
+    uris.put("pdq", "https://www.cancer.gov/publications/pdq");
+    uris.put(
+        "hl7v30",
+        "https://www.nlm.nih.gov/research/umls/sourcereleasedocs/current/HL7V3.0/index.html");
+    uris.put("mged", "http://mged.sourceforge.net/ontologies/MGEDOntology.owl");
+    uris.put("npo", "http://purl.bioontology.org/ontology/npo");
+    uris.put("ma", "http://purl.obolibrary.org/obo/emap.owl");
+    uris.put("zfa", "http://purl.obolibrary.org/obo/zfa.owl");
+  }
 
   /** The unsupported params list for search. */
   private static final String[] unsupportedParams =
@@ -76,81 +141,16 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Generate publishers.
-   *
-   * @return the hash map
-   */
-  private static HashMap<String, String> generatePublishers() {
-    final HashMap<String, String> publish = new HashMap<>();
-    publish.put(
-        "mdr",
-        "MedDRA Maintenance and Support Services Organization (MedDRA MSSO); Mr. Patrick Revelle;"
-            + " MSSO Director");
-    publish.put("umlssemnet", "National Library of Medicine");
-    publish.put("go", "GO Consortium");
-    publish.put("icd10cm", "NCHS");
-    publish.put("icd10", "World Health Organization");
-    publish.put("hgnc", "HUGO Gene Nomenclature Committee");
-    publish.put("duo", "Data Use Ontology");
-    publish.put("obi", "Ontology for Biomedical Investigations");
-    publish.put("obib", "Ontology for Biobanking");
-    publish.put("ndfrt", "Veterans Health Administration");
-    publish.put("snomedct_us", "National Library of Medicine");
-    publish.put("ctcae5", "NCI");
-    publish.put("lnc", "LOINC and Health Data Standards, Regenstrief Institute, Inc.");
-    publish.put("ncit", "NCI");
-    publish.put("icd9cm", "NCHS");
-    publish.put("radlex", "RSNA (Radiological Society of North America)");
-    publish.put("canmed", "National Cancer Institute Enterprise Vocabulary Services");
-    publish.put("medrt", "National Library of Medicine");
-    publish.put("chebi", "Open Biomedical Ontologies - European Bioinformatics Institute");
-    publish.put("ncim", "National Cancer Institute Enterprise Vocabulary Services");
-    publish.put("pdq", "National Cancer Institute");
-    publish.put("ma", "The Jackson Laboratory");
-    publish.put("hl7v30", "Health Level Seven International");
-    publish.put("mged", "National Cancer Institute");
-    publish.put("npo", "National Cancer Institute");
-    publish.put("ma", "National Cancer Institute");
-    publish.put("zfa", "National Cancer Institute");
-    return publish;
-  }
-
-  /**
    * Generate uris.
    *
    * @return the hash map
    */
   private static HashMap<String, String> generateUris() {
-    final HashMap<String, String> uri = new HashMap<>();
-    uri.put("mdr", "https://www.meddra.org");
-    uri.put("umlssemnet", "http://www.nlm.nih.gov/research/umls/umlssemnet.owl");
-    uri.put("go", "http://purl.obolibrary.org/obo/go.owl");
-    uri.put("icd10", "http://hl7.org/fhir/sid/icd-10");
-    uri.put("icd10cm", "http://hl7.org/fhir/sid/icd-10-cm");
-    uri.put("hgnc", "http://www.genenames.org");
-    uri.put("duo", "https://obofoundry.org/ontology/duo.html");
-    uri.put("obi", "https://obi-ontology.org/");
-    uri.put("obib", "https://obofoundry.org/ontology/obib.html");
-    uri.put("ndfrt", "https://bioportal.bioontology.org/ontologies/NDF-RT");
-    uri.put("snomedct_us", "http://terminology.hl7.org/CodeSystem/snomedct_us");
-    uri.put("ctcae5", "http://hl7.org/fhir/us/ctcae");
-    uri.put("lnc", "http://loinc.org");
-    uri.put("ncit", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    uri.put("icd9cm", "http://terminology.hl7.org/CodeSystem/icd9cm");
-    uri.put("radlex", "http://radlex.org/");
-    uri.put("canmed", "http://seer.nci.nih.gov/CanMED.owl");
-    uri.put("medrt", "http://va.gov/terminology/medrt");
-    uri.put("chebi", "http://www.ebi.ac.uk/chebi/");
-    uri.put("ncim", "https://ncim.nci.nih.gov/ncimbrowser/");
-    uri.put("pdq", "https://www.cancer.gov/publications/pdq");
-    uri.put(
-        "hl7v30",
-        "https://www.nlm.nih.gov/research/umls/sourcereleasedocs/current/HL7V3.0/index.html");
-    uri.put("mged", "http://mged.sourceforge.net/ontologies/MGEDOntology.owl");
-    uri.put("npo", "http://purl.bioontology.org/ontology/npo");
-    uri.put("ma", "http://purl.obolibrary.org/obo/emap.owl");
-    uri.put("zfa", "http://purl.obolibrary.org/obo/zfa.owl");
-    return uri;
+    // create a reverse map
+    for (final Map.Entry<String, String> entry : new HashSet<>(uris.entrySet())) {
+      uris.put(entry.getValue(), entry.getKey());
+    }
+    return uris;
   }
 
   /**
@@ -240,40 +240,33 @@ public class FhirUtilityR5 {
                         .findFirst()
                         .orElse(null))
                 .getValue()));
-
-    // populate the r5 concept map group
-    final ConceptMapGroupComponent group = new ConceptMapGroupComponent();
-    group.setSource(
-        mapset.getProperties().stream()
-            .filter(m -> m.getType().equals("sourceTerminology"))
-            .findFirst()
-            .get()
-            .getValue());
-    group.setTarget(
-        mapset.getProperties().stream()
-            .filter(m -> m.getType().equals("targetTerminology"))
-            .findFirst()
-            .get()
-            .getValue());
-    group.setSourceElement(
-        new CanonicalType(
+    cm.setSourceScope(
+        new UriType(
             getUri(
+                    mapset.getProperties().stream()
+                        .filter(m -> m.getType().equals("sourceTerminology"))
+                        .findFirst()
+                        .get()
+                        .getValue())
+                + "?fhir_vs"));
+    cm.setTargetScope(
+        new UriType(
+            getUri(
+                    mapset.getProperties().stream()
+                        .filter(m -> m.getType().equals("targetTerminology"))
+                        .findFirst()
+                        .get()
+                        .getValue())
+                + "?fhir_vs"));
+    cm.setUrl(
+        getUri(
                 mapset.getProperties().stream()
                     .filter(m -> m.getType().equals("sourceTerminology"))
                     .findFirst()
                     .get()
-                    .getValue())));
-    group.setTargetElement(
-        new CanonicalType(
-            getUri(
-                mapset.getProperties().stream()
-                    .filter(m -> m.getType().equals("targetTerminology"))
-                    .findFirst()
-                    .get()
-                    .getValue())));
-    // populate the r5 concept map group element
-    cm.addGroup(group);
-    cm.setUrl(group.getSourceElement().asStringValue() + "?fhir_cm=" + mapset.getCode());
+                    .getValue())
+            + "?fhir_cm="
+            + mapset.getCode());
     return cm;
   }
 
@@ -329,7 +322,7 @@ public class FhirUtilityR5 {
    */
   public static void required(final Object obj, final String objName) {
     if (obj == null) {
-      throw exception(format("Must use %s parameter.", objName), IssueType.INVARIANT, 400);
+      throw exception(format("Must use '%s' parameter.", objName), IssueType.INVARIANT, 400);
     }
   }
 
@@ -345,7 +338,7 @@ public class FhirUtilityR5 {
       final Object obj1, final String obj1Name, final Object obj2, final String obj2Name) {
     if (obj1 != null && obj2 != null) {
       throw exception(
-          format("Must use one of %s or %s parameters", obj1Name, obj2Name),
+          format("Must use one of '%s' or '%s' parameters", obj1Name, obj2Name),
           IssueType.INVARIANT,
           400);
     }
@@ -373,8 +366,8 @@ public class FhirUtilityR5 {
     if (obj != null) {
       final String message =
           format(
-              "Input parameter %s is not supported%s",
-              objName, (additionalDetail == null ? "." : format(" %s", additionalDetail)));
+              "Input parameter '%s' is not supported '%s'",
+              objName, (additionalDetail == null ? "." : format(" '%s'", additionalDetail)));
       throw exception(message, IssueType.NOTSUPPORTED, 400);
     }
   }
@@ -387,7 +380,7 @@ public class FhirUtilityR5 {
    */
   public static void notSupported(final HttpServletRequest request, final String paramName) {
     if (request.getParameterMap().containsKey(paramName)) {
-      final String message = format("Input parameter %s is not supported.", paramName);
+      final String message = format("Input parameter '%s' is not supported.", paramName);
       throw exception(message, IssueType.NOTSUPPORTED, 400);
     }
   }
@@ -421,7 +414,7 @@ public class FhirUtilityR5 {
       final Object obj1, final String obj1Name, final Object obj2, final String obj2Name) {
     if (obj1 == null && obj2 == null) {
       throw exception(
-          format("Must supply one of %s or %s parameters.", obj1Name, obj2Name),
+          format("Must supply one of '%s' or '%s' parameters.", obj1Name, obj2Name),
           IssueType.INVARIANT,
           400);
     } else {
@@ -449,7 +442,7 @@ public class FhirUtilityR5 {
     if (obj1 == null && obj2 == null && obj3 == null) {
       throw exception(
           format(
-              "Must supply at least one of %s, %s, or %s parameters.",
+              "Must supply at least one of '%s', '%s', or '%s' parameters.",
               obj1Name, obj2Name, obj3Name),
           IssueType.INVARIANT,
           400);
@@ -484,7 +477,7 @@ public class FhirUtilityR5 {
     if (obj1 == null && obj2 == null && obj3 == null && obj4 == null) {
       throw exception(
           format(
-              "Must supply at least one of %s, %s, %s, or %s parameters.",
+              "Must supply at least one of '%s', '%s', '%s', or '%s' parameters.",
               obj1Name, obj2Name, obj3Name, obj4Name),
           IssueType.INVARIANT,
           400);
@@ -504,7 +497,7 @@ public class FhirUtilityR5 {
     if (obj1 != null && obj2 == null) {
       throw exception(
           format(
-              "Input parameter %s can only be used in conjunction with parameter %s.",
+              "Input parameter '%s' can only be used in conjunction with parameter '%s'.",
               obj1Name, obj2Name),
           IssueType.INVARIANT,
           400);
@@ -531,7 +524,7 @@ public class FhirUtilityR5 {
     if (obj1 != null && obj2 == null && obj3 == null) {
       throw exception(
           format(
-              "Use of input parameter %s only allowed if %s or %s is also present.",
+              "Use of input parameter '%s' only allowed if '%s' or '%s' is also present.",
               obj1Name, obj2Name, obj3Name),
           IssueType.INVARIANT,
           400);
@@ -576,7 +569,7 @@ public class FhirUtilityR5 {
    *
    * @param message the message
    * @param issueType the issue type
-   * @param theStatusCode the the status code
+   * @param theStatusCode the status code
    * @return the FHIR server response exception
    */
   public static FHIRServerResponseException exception(
