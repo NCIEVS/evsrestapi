@@ -7,9 +7,12 @@ OS_DIR=c:$dir/opensearch/data`
 
 See https://github.com/opensearch-project/spring-data-opensearch for setting up the project
 
+NOTE: the examples below use 9201 as a port so as to avoid conflicting with other elasticsearch implementations running on 9200.
+When operating this tool, `export ES_PORT=9201` when using the configuration below.
+
 ## Running Opensearch 1.3.x Locally
 
-In a terminal, run the following to have an opensearch instance running on the background without security.
+In a terminal, run the following to have an opensearch instance running on the background without security. 
 
     docker run --rm -d -p 9201:9200 -p 9600:9600 -e "discovery.type=single-node" \
       -v "$OS_DIR":/usr/share/opensearch/data \
