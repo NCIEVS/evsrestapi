@@ -109,10 +109,9 @@ dependencies {
   //implementation 'commons-cli:commons-cli:1.4'
   implementation 'cglib:cglib:3.3.0'
   implementation 'com.google.protobuf:protobuf-java:3.25.5'
-  
+
   // fhir dependencies
   implementation 'ca.uhn.hapi.fhir:hapi-fhir-base:7.4.5';
-  implementation 'ca.uhn.hapi.fhir:org.hl7.fhir.utilities::7.4.5';
   implementation 'ca.uhn.hapi.fhir:hapi-fhir-structures-r4:7.4.5'
   implementation 'ca.uhn.hapi.fhir:hapi-fhir-structures-r5:7.4.5'
   implementation 'ca.uhn.hapi.fhir:hapi-fhir-server:7.4.5'
@@ -129,7 +128,7 @@ dependencies {
   }
   implementation 'ca.uhn.hapi.fhir:hapi-fhir-server-openapi:7.4.5'
 
-  // For the moment, these require explicit 6.4 until we can update from 7.4.5
+  // For the moment, these require explicit 6.4.0 to resolve vulnerabilities (as 7.4.5 above is current)
   implementation 'ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.4.0'
   implementation 'ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.4.0'
   implementation 'ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.4.0'
@@ -140,7 +139,7 @@ dependencies {
   implementation 'ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.4.0'
   implementation 'ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.4.0'
 
-  // Lombok dependencies
+  // Lombok dependencies (avoid using lombok for now)
   //implementation 'org.projectlombok:lombok:1.18.32'
   //annotationProcessor 'org.projectlombok:lombok:1.18.32'
   //compileOnly 'org.projectlombok:lombok:1.18.32'
@@ -157,6 +156,7 @@ dependencies {
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
   testRuntimeOnly 'org.junit.platform:junit-platform-commons:1.9.3'
   testRuntimeOnly 'org.junit.platform:junit-platform-runner:1.9.3'
+  // (avoid using lombok for now)
   //testCompileOnly 'org.projectlombok:lombok:1.18.32'
   //testAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
 
