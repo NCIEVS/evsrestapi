@@ -89,8 +89,8 @@ nci:
       queryUrl: http://${nci.evs.stardog.host}:${nci.evs.stardog.port}/${nci.evs.stardog.db}/query
       username: admin
       password: admin
-      readTimeout: 30000
-      connectTimeout: 30000
+      readTimeout: 500000
+      connectTimeout: 500000
     elasticsearch:
       server:
         host: ${ES_HOST:localhost}
