@@ -147,25 +147,25 @@ public class ConceptMapProviderR4 implements IResourceProvider {
 
       if (!conceptMaps.isEmpty()) {
         final Mapping map = conceptMaps.get(0);
-          params.addParameter("result", true);
-          final Parameters.ParametersParameterComponent property =
-              new Parameters.ParametersParameterComponent().setName("match");
-          property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
-          if (reverse != null && reverse.getValue()) {
-            property
-                .addPart()
-                .setName("concept")
-                .setValue(
+        params.addParameter("result", true);
+        final Parameters.ParametersParameterComponent property =
+            new Parameters.ParametersParameterComponent().setName("match");
+        property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
+        if (reverse != null && reverse.getValue()) {
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
                   new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
-          } else {
-            property
-                .addPart()
-                .setName("concept")
-                .setValue(
+        } else {
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
                   new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
-          }
-          params.addParameter(property);
         }
+        params.addParameter(property);
+      }
       if (!params.hasParameter()) {
         params.addParameter("result", false);
         params.addParameter("match", "none");
@@ -264,26 +264,26 @@ public class ConceptMapProviderR4 implements IResourceProvider {
 
       if (!conceptMaps.isEmpty()) {
         final Mapping map = conceptMaps.get(0);
-          params.addParameter("result", true);
-          final Parameters.ParametersParameterComponent property =
-              new Parameters.ParametersParameterComponent().setName("match");
-          property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
-          if (reverse != null && reverse.getValue()) {
-            property
-                .addPart()
-                .setName("concept")
-                .setValue(
+        params.addParameter("result", true);
+        final Parameters.ParametersParameterComponent property =
+            new Parameters.ParametersParameterComponent().setName("match");
+        property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
+        if (reverse != null && reverse.getValue()) {
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
                   new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
-          } else {
-            property
-                .addPart()
-                .setName("concept")
-                .setValue(
+        } else {
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
                   new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
-          }
-
-          params.addParameter(property);
         }
+
+        params.addParameter(property);
+      }
       if (!params.hasParameter()) {
         params.addParameter("result", false);
         params.addParameter("match", "none");
@@ -521,7 +521,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     if (code == null) {
       throw FhirUtilityR4.exception(
           "Either code or target parameter is required", OperationOutcome.IssueType.REQUIRED, 400);
-}
+    }
     List<String> clauses = new ArrayList<>();
     if (!mapsetCodes.isEmpty()) {
       clauses.add(

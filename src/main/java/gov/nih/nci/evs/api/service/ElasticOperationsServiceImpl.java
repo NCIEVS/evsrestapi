@@ -149,9 +149,7 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
           new NativeSearchQueryBuilder().withQuery(QueryBuilders.queryStringQuery(query)).build();
 
       operations.delete(
-          DeleteQuery.builder(deleteQuery).build(),
-          ConceptMap.class,
-          IndexCoordinates.of(indexName));
+          DeleteQuery.builder(deleteQuery).build(), Mapping.class, IndexCoordinates.of(indexName));
       return true;
     } catch (Exception e) {
       logger.error("query delete failed: " + e.getMessage());

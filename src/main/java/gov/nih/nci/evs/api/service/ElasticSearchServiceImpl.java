@@ -157,7 +157,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // query on operations
     final SearchHits<Concept> hits =
-        elasticsearchOperations.search(
+        operations.search(
             searchQuery.build(),
             Concept.class,
             IndexCoordinates.of(buildIndicesArray(searchCriteria)));
@@ -168,7 +168,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     if (hits.getTotalHits() >= 10000) {
       result.setTotal(
-          elasticsearchOperations.count(
+          operations.count(
               searchQuery.build(),
               Concept.class,
               IndexCoordinates.of(buildIndicesArray(searchCriteria))));
@@ -280,7 +280,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     // query on operations
     final SearchHits<Mapping> hits =
-        elasticsearchOperations.search(
+        operations.search(
             searchQuery.build(),
             Mapping.class,
             IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
@@ -291,7 +291,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     if (hits.getTotalHits() >= 10000) {
       result.setTotal(
-          elasticsearchOperations.count(
+          operations.count(
               searchQuery.build(),
               Concept.class,
               IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX)));
@@ -375,7 +375,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     final NativeSearchQueryBuilder searchQuery =
         new NativeSearchQueryBuilder().withQuery(termQuery);
     final SearchHits<Mapping> hits =
-        elasticsearchOperations.search(
+        operations.search(
             searchQuery.build(),
             Mapping.class,
             IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));

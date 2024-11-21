@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 public class EVSUtils {
 
   /** The Constant log. */
-  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(EVSUtils.class);
 
   /**
@@ -494,9 +493,11 @@ public class EVSUtils {
   }
 
   /**
-   * returns the read value from the given uri (local or repository file)
+   * returns the read value from the given uri (local or repository file).
    *
    * @param uri the uri to read from
+   * @param info the info
+   * @return the value from file
    * @info the info needing to be read (mostly for error message specificity)
    */
   public static List<String> getValueFromFile(String uri, String info) {

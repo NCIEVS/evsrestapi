@@ -82,7 +82,7 @@ public class FhirUtilityR5 {
     publishers.put("zfa", "National Cancer Institute");
   }
 
-  /** The URIs */
+  /** The URIs. */
   private static final HashMap<String, String> uris = new HashMap<>();
 
   static {
@@ -114,6 +114,9 @@ public class FhirUtilityR5 {
     uris.put("npo", "http://purl.bioontology.org/ontology/npo");
     uris.put("ma", "http://purl.obolibrary.org/obo/emap.owl");
     uris.put("zfa", "http://purl.obolibrary.org/obo/zfa.owl");
+    for (final Map.Entry<String, String> entry : new HashSet<>(uris.entrySet())) {
+      uris.put(entry.getValue(), entry.getKey());
+    }
   }
 
   /** The unsupported params list for search. */
@@ -138,19 +141,6 @@ public class FhirUtilityR5 {
   /** Instantiates an empty {@link FhirUtilityR5}. */
   private FhirUtilityR5() {
     // n/a
-  }
-
-  /**
-   * Generate uris.
-   *
-   * @return the hash map
-   */
-  private static HashMap<String, String> generateUris() {
-    // create a reverse map
-    for (final Map.Entry<String, String> entry : new HashSet<>(uris.entrySet())) {
-      uris.put(entry.getValue(), entry.getKey());
-    }
-    return uris;
   }
 
   /**
