@@ -297,7 +297,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR4.required("url", url);
+      // URL is not required because "id" is provided
+      // FhirUtilityR4.required("url", url);
       FhirUtilityR4.notSupported("valueSet", valueSet);
       FhirUtilityR4.notSupported("context", context);
       FhirUtilityR4.notSupported("contextDirection", contextDirection);
