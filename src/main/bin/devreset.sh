@@ -272,8 +272,9 @@ echo "    load data"
 /opt/stardog/bin/stardog data add --named-graph http://MA NCIT2 /data/UnitTestData/Mouse_Anatomy/ma_07_27_2016.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://Zebrafish NCIT2 /data/UnitTestData/Zebrafish/zfa_2019_08_02.owl | sed 's/^/      /'
 echo "    optimize databases"
-/opt/stardog/bin/stardog-admin db optimize -n CTRP | sed 's/^/      /'
-/opt/stardog/bin/stardog-admin db optimize -n NCIT2 | sed 's/^/      /'
+# The -n parameter remvoed before DB name as per updated stardog (may need to re-pull latest)
+/opt/stardog/bin/stardog-admin db optimize CTRP | sed 's/^/      /'
+/opt/stardog/bin/stardog-admin db optimize NCIT2 | sed 's/^/      /'
 EOF
 chmod 755 $dir/x.sh
 chmod ag+rwx $dir

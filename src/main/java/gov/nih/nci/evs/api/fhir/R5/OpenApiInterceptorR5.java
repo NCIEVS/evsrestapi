@@ -844,7 +844,8 @@ public class OpenApiInterceptorR5 {
 
       parametersItem.setName(nextSearchParam.getName());
       parametersItem.setIn("query");
-      parametersItem.setDescription(nextSearchParam.getDocumentation());
+      parametersItem.setDescription("the " + resourceType + " " + nextSearchParam.getName());
+      //      parametersItem.setDescription(nextSearchParam.getDocumentation());
       parametersItem.setStyle(StyleEnum.SIMPLE);
     }
   }
@@ -1421,7 +1422,7 @@ public class OpenApiInterceptorR5 {
     parameter.setName("id");
     parameter.setIn("path");
     parameter.setDescription("The resource ID");
-    parameter.setExample("123");
+    //    parameter.setExample("");
     parameter.setSchema(new Schema<>().type("string").minimum(new BigDecimal(1)));
     parameter.setStyle(StyleEnum.SIMPLE);
     theOperation.addParametersItem(parameter);

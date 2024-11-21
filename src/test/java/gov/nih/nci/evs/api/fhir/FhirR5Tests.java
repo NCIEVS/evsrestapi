@@ -384,7 +384,7 @@ class FhirR5Tests {
   public void testValueSetSearch() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirVSPath;
+    String endpoint = localHost + port + fhirVSPath + "?_count=2000";
 
     // Act
     content = this.restTemplate.getForObject(endpoint, String.class);
