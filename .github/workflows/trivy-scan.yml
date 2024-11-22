@@ -11,23 +11,22 @@ on:
 jobs:
   trivy-scan:
     runs-on: ubuntu-latest
+      
 
     steps:
     # Checkout the pull request code
     - name: Checkout code
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
-    # Cache Trivy binary
-    - name: Cache Trivy binary
-      id: cache-trivy
-      uses: actions/cache@v3
-      with:
-        path: /usr/local/bin/trivy
-        key: trivy-$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq -r .tag_name)
+    # Setup Java
+    - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
     # Install Trivy if not cached
     - name: Install Trivy
-      if: steps.cache-trivy.outputs.cache-hit != 'true'
       run: |
         TRIVY_LATEST_VERSION=$(curl --silent "https://api.github.com/repos/aquasecurity/trivy/releases/latest" | jq -r .tag_name)
         wget https://github.com/aquasecurity/trivy/releases/download/${TRIVY_LATEST_VERSION}/trivy_${TRIVY_LATEST_VERSION#v}_Linux-64bit.deb
