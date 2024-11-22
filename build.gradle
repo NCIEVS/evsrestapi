@@ -100,13 +100,12 @@ dependencies {
 
   // Upgrade ecache to use jakarta - https://groups.google.com/g/ehcache-users/c/sKfxWuTpY-U
   // See also: https://stackoverflow.com/questions/75813659/gradle-could-not-find-org-ehcacheehcache-after-upgrading-to-spring-boot-3-0-x
-  implementation "org.ehcache:ehcache::jakarta"
-  //implementation "org.ehcache:ehcache:${dependencyManagement.importedProperties['ehcache3.version']}:jakarta"
-  //implementation('org.ehcache:ehcache:3.10.8') {
+  implementation 'org.ehcache:ehcache:3.10.8:jakarta'
+  // {
   //  capabilities {
   //    requireCapability('org.ehcache:ehcache-jakarta')
   //  }
-  //}
+  // }
 
   //implementation 'commons-io:commons-io:2.14.0'
   //implementation 'commons-cli:commons-cli:1.4'
