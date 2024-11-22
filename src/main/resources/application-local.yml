@@ -91,7 +91,7 @@ nci:
       username: admin
       password: admin
       readTimeout: 500000
-      connectTimeout: 30000
+      connectTimeout: 500000
     elasticsearch:
       server:
         host: ${ES_HOST:localhost}
