@@ -54,7 +54,8 @@ logging:
         org.springframework: WARN
         gov.nih.nci.evs.api: DEBUG
         org.springframework.data.elasticsearch.core: DEBUG
-        gov.nih.nci.evs.api.configuration.EVSElasticsearchRestTemplate: DEBUG
+        org.springframework.data.opensearch.core: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
+        gov.nih.nci.evs.api.configuration.EVSOpenSearchRestTemplate: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
         org.apache.http: INFO # change to DEBUG when needed but INFO for now to avoid logspam
 
 #
@@ -89,12 +90,12 @@ nci:
       queryUrl: http://${nci.evs.stardog.host}:${nci.evs.stardog.port}/${nci.evs.stardog.db}/query
       username: admin
       password: admin
-      readTimeout: 30000
+      readTimeout: 500000
       connectTimeout: 30000
     elasticsearch:
       server:
         host: ${ES_HOST:localhost}
-        port: ${ES_PORT:9200}
+        port: ${ES_PORT:9201}
         scheme: ${ES_SCHEME:http}
       timeout: 200000
     sparql:

@@ -44,6 +44,10 @@ import io.swagger.v3.oas.models.responses.ApiResponses;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.servers.Server;
 import io.swagger.v3.oas.models.tags.Tag;
+import jakarta.servlet.ServletContext;
+import jakarta.servlet.ServletOutputStream;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -60,10 +64,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import javax.servlet.ServletContext;
-import javax.servlet.ServletOutputStream;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.hl7.fhir.convertors.factory.VersionConvertorFactory_40_50;
@@ -110,6 +110,8 @@ import org.thymeleaf.templatemode.TemplateMode;
 import org.thymeleaf.templateresolver.ITemplateResolver;
 import org.thymeleaf.templateresolver.TemplateResolution;
 import org.thymeleaf.templateresource.ClassLoaderTemplateResource;
+import org.thymeleaf.web.servlet.IServletWebExchange;
+import org.thymeleaf.web.servlet.JakartaServletWebApplication;
 
 /**
  * EVSRESTAPI FHIR R5 interceptor to fix header, inject header auth token. Borrowed from
@@ -434,7 +436,10 @@ public class OpenApiInterceptorR5 {
     final HttpServletRequest servletRequest = theRequestDetails.getServletRequest();
     final ServletContext servletContext = servletRequest.getServletContext();
 
-    final WebContext context = new WebContext(servletRequest, theResponse, servletContext);
+    final JakartaServletWebApplication application =
+        JakartaServletWebApplication.buildApplication(servletContext);
+    final IServletWebExchange exchange = application.buildExchange(servletRequest, theResponse);
+    final WebContext context = new WebContext(exchange);
     context.setVariable(REQUEST_DETAILS, theRequestDetails);
     context.setVariable("DESCRIPTION", cs.getImplementation().getDescription());
     context.setVariable("SERVER_NAME", cs.getSoftware().getName());
@@ -839,7 +844,8 @@ public class OpenApiInterceptorR5 {
 
       parametersItem.setName(nextSearchParam.getName());
       parametersItem.setIn("query");
-      parametersItem.setDescription(nextSearchParam.getDocumentation());
+      parametersItem.setDescription("the " + resourceType + " " + nextSearchParam.getName());
+      //      parametersItem.setDescription(nextSearchParam.getDocumentation());
       parametersItem.setStyle(StyleEnum.SIMPLE);
     }
   }
@@ -1416,7 +1422,7 @@ public class OpenApiInterceptorR5 {
     parameter.setName("id");
     parameter.setIn("path");
     parameter.setDescription("The resource ID");
-    parameter.setExample("123");
+    //    parameter.setExample("");
     parameter.setSchema(new Schema<>().type("string").minimum(new BigDecimal(1)));
     parameter.setStyle(StyleEnum.SIMPLE);
     theOperation.addParametersItem(parameter);

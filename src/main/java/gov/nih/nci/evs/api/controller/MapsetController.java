@@ -42,7 +42,6 @@ import org.springframework.web.server.ResponseStatusException;
 public class MapsetController extends BaseController {
 
   /** Logger. */
-  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(MapsetController.class);
 
   /** The metadata service. */

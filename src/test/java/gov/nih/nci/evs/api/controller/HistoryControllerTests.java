@@ -60,6 +60,9 @@ public class HistoryControllerTests {
   /**
    * Test replacements with a NCIt codes.
    *
+   * @param code the code
+   * @param expectedAction the expected action
+   * @param expectedReplacementCode the expected replacement code
    * @throws Exception the exception
    */
   @ParameterizedTest
@@ -76,7 +79,12 @@ public class HistoryControllerTests {
     MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    List<History> list = objectMapper.readValue(content, new TypeReference<List<History>>() {});
+    List<History> list =
+        objectMapper.readValue(
+            content,
+            new TypeReference<List<History>>() {
+              // n/a
+            });
 
     // Assert
     assertNotNull(list);
@@ -91,6 +99,9 @@ public class HistoryControllerTests {
   /**
    * Test replacements with NCIm codes.
    *
+   * @param code the code
+   * @param expectedAction the expected action
+   * @param expectedReplacementCode the expected replacement code
    * @throws Exception the exception
    */
   @ParameterizedTest
@@ -108,7 +119,12 @@ public class HistoryControllerTests {
     String content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     List<History> list =
-        new ObjectMapper().readValue(content, new TypeReference<List<History>>() {});
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<History>>() {
+                  // n/a
+                });
 
     // Assert
     assertNotNull(list);
@@ -123,6 +139,10 @@ public class HistoryControllerTests {
   /**
    * Test replacements list with a list of NCIt codes.
    *
+   * @param codeList the code list
+   * @param expectedAction the expected action
+   * @param expectedReplacementCode the expected replacement code
+   * @param size the size
    * @throws Exception the exception
    */
   @ParameterizedTest
@@ -142,7 +162,12 @@ public class HistoryControllerTests {
     String content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     List<History> list =
-        new ObjectMapper().readValue(content, new TypeReference<List<History>>() {});
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<History>>() {
+                  // n/a
+                });
 
     // Assert
     assertNotNull(list);

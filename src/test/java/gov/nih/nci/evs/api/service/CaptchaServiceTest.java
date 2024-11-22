@@ -39,7 +39,6 @@ public class CaptchaServiceTest {
   String token = "validToken";
 
   /** Setup before each test. */
-  @SuppressWarnings("resource")
   @BeforeEach
   public void setUp() {
     when(restTemplateBuilder.build()).thenReturn(restTemplate);
@@ -80,7 +79,6 @@ public class CaptchaServiceTest {
   }
 
   /** Test verifyRecaptcha method return a failure when the token isn't verifiable */
-  @SuppressWarnings("unchecked")
   @Test
   public void testVerifyRecaptchaVerificationFails() {
     // Arrange

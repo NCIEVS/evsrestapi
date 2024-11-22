@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * The elasticsearch DB query service.
+ * The elasticsearch/OpenSearch DB query service.
  *
  * @author Arun
  */

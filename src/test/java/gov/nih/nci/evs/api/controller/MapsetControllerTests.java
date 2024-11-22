@@ -265,9 +265,8 @@ public class MapsetControllerTests {
     // Act
     MvcResult result =
         mvc.perform(get(baseUrl + "/noMap")).andExpect(status().isNotFound()).andReturn();
-    ;
+
     String content = result.getResponse().getContentAsString();
-    ;
 
     // Assert
     assertEquals(0, content.length());
