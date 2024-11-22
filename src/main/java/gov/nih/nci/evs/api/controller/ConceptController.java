@@ -327,6 +327,7 @@ public class ConceptController extends BaseController {
       @RequestParam(required = false, name = "include") final Optional<String> include,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
+
     try {
       final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
