@@ -5,6 +5,7 @@ import gov.nih.nci.evs.api.model.Metric;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import org.opensearch.data.client.orhlc.NativeSearchQuery;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
 import org.opensearch.data.core.OpenSearchOperations;
@@ -51,6 +52,19 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
     // create index
     operations.indexOps(IndexCoordinates.of(index)).create();
     return true;
+  }
+
+  /**
+   * Returns the mapping.
+   *
+   * @param name the name
+   * @return the mapping
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  /* see superclass */
+  @Override
+  public Map<String, Object> getMapping(String name) throws IOException {
+    return operations.indexOps(IndexCoordinates.of(name)).getMapping();
   }
 
   /* see superclass */

@@ -17,6 +17,7 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.annotations.Mapping;
+import org.springframework.data.elasticsearch.annotations.WriteOnlyProperty;
 
 /**
  * Represents a concept with a code from a terminology.
@@ -60,12 +61,14 @@ public class Concept extends ConceptMinimal {
   /** The normName. */
   // In the future we can use @WriteOnlyProperty
   // this does not work: @JsonProperty(access = Access.READ_ONLY)
+  @WriteOnlyProperty
   @Field(type = FieldType.Keyword)
   private String normName;
 
   /** The stemName. */
   // In the future we can use @WriteOnlyProperty
   // this does not work: @JsonProperty(access = Access.READ_ONLY)
+  @WriteOnlyProperty
   @Field(type = FieldType.Text)
   private String stemName;
 
@@ -988,7 +991,7 @@ public class Concept extends ConceptMinimal {
         Stream.of(this), getChildren().stream().flatMap(Concept::streamSelfAndChildren));
   }
 
-  /** Clear hidden. */
+  /** Clear hidden. Still used by Sparql concept lookups since no index is involved. */
   public void clearHidden() {
     normName = null;
     stemName = null;
