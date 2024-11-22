@@ -17,17 +17,18 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import opennlp.tools.stemmer.snowball.SnowballStemmer;
-import opennlp.tools.stemmer.snowball.SnowballStemmer.ALGORITHM;
 import org.apache.lucene.queryparser.classic.QueryParserBase;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.CollectionUtils;
+import org.tartarus.snowball.SnowballStemmer;
+import org.tartarus.snowball.ext.EnglishStemmer;
 
 /** Utilities for handling the "include" flag, and converting EVSConcept to Concept. */
 public final class ConceptUtils {
@@ -74,11 +75,18 @@ public final class ConceptUtils {
    * @return the string
    */
   public static String normalizeWithStemming(final String value) {
-    final SnowballStemmer stemmer = new SnowballStemmer(ALGORITHM.ENGLISH);
+    final SnowballStemmer stemmer = new EnglishStemmer();
     String norm = normalize(value);
     // split by spaces and stem everything, then rejoin
     return norm != null
-        ? Arrays.stream(norm.split(" ")).map(stemmer::stem).collect(Collectors.joining(" "))
+        ? Arrays.stream(norm.split(" "))
+            .map(
+                w -> {
+                  stemmer.setCurrent(w);
+                  stemmer.stem();
+                  return stemmer.getCurrent();
+                })
+            .collect(Collectors.joining(" "))
         : "";
   }
 
@@ -603,6 +611,32 @@ public final class ConceptUtils {
         qualMap.get(key).add("... additional values ...");
       }
     }
+  }
+
+  /**
+   * Intersection.
+   *
+   * @param s1 the s 1
+   * @param s2 the s 2
+   * @return the sets the
+   */
+  public static Set<String> intersection(final Set<String> s1, final Set<String> s2) {
+    final Set<String> s1copy = new HashSet<>(s1);
+    s1copy.retainAll(s2);
+    return s1copy;
+  }
+
+  /**
+   * Difference.
+   *
+   * @param s1 the s 1
+   * @param s2 the s 2
+   * @return the sets the
+   */
+  public static Set<String> difference(final Set<String> s1, final Set<String> s2) {
+    final Set<String> s1copy = new HashSet<>(s1);
+    s1copy.removeAll(s2);
+    return s1copy;
   }
 
   /**

@@ -21,6 +21,7 @@ import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -49,6 +50,9 @@ public class ConceptControllerTests {
 
   /** The logger. */
   private static final Logger log = LoggerFactory.getLogger(ConceptControllerTests.class);
+
+  /** The sparql query manager service. */
+  @Autowired SparqlQueryManagerService sparqlQueryManagerService;
 
   /** The mvc. */
   @Autowired private MockMvc mvc;

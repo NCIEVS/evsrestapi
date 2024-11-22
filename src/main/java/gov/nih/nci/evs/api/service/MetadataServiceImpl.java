@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -53,17 +52,17 @@ public class MetadataServiceImpl implements MetadataService {
    * @throws Exception the exception
    */
   @Override
-  @Cacheable(
-      value = "metadata",
-      key = "{#root.methodName,#include.orElse(''),#terminology}",
-      condition = "#list.orElse('').isEmpty()")
+  // @Cacheable(
+  //    value = "metadata",
+  //   key = "{#root.methodName,#include,#terminology}",
+  //    condition = "#list == null || list.isEmpty()")
   public List<Concept> getAssociations(
       String terminology, Optional<String> include, Optional<String> list) throws Exception {
     final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
     final IncludeParam ip = new IncludeParam(include.orElse(null));
 
     final List<Concept> associations = esQueryService.getAssociations(term, ip);
-    return ConceptUtils.applyList(associations, ip, list.orElse(null));
+    return ConceptUtils.applyList(associations, ip, list == null ? null : list.orElse(null));
   }
 
   /**

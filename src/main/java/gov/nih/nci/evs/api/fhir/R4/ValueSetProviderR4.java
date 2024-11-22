@@ -25,6 +25,7 @@ import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -32,7 +33,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeType;
@@ -317,7 +317,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR4.required("url", url);
+      // URL is not required because "id" is provided
+      // FhirUtilityR4.required("url", url);
       FhirUtilityR4.notSupported("valueSet", valueSet);
       FhirUtilityR4.notSupported("context", context);
       FhirUtilityR4.notSupported("contextDirection", contextDirection);

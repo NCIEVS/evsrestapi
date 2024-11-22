@@ -191,7 +191,7 @@ public class SubsetControllerTests {
     List<Concept> list = null;
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    final String content = result.getResponse().getContentAsString();
+    String content = result.getResponse().getContentAsString();
     list =
         new ObjectMapper()
             .readValue(

@@ -16,51 +16,57 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
-import org.elasticsearch.common.unit.Fuzziness;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.NestedQueryBuilder;
-import org.elasticsearch.index.query.Operator;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.QueryStringQueryBuilder;
-import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
+import org.opensearch.common.unit.Fuzziness;
+import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
+import org.opensearch.data.core.OpenSearchOperations;
+import org.opensearch.index.query.BoolQueryBuilder;
+import org.opensearch.index.query.MatchQueryBuilder;
+import org.opensearch.index.query.NestedQueryBuilder;
+import org.opensearch.index.query.Operator;
+import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.index.query.QueryStringQueryBuilder;
+import org.opensearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.opensearch.search.sort.SortBuilders;
+import org.opensearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+/**
+ * Reference implementation of {@link ElasticSearchService}. Includes hibernate tags for MEME
+ * database.
+ */
 @Service
 public class ElasticSearchServiceImpl implements ElasticSearchService {
 
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(ElasticSearchServiceImpl.class);
 
-  /** The Elastic operations service * */
+  /** The Elastic operations service *. */
   @Autowired ElasticOperationsService esOperationsService;
 
-  /** The Elasticsearch operations * */
-  @Autowired ElasticsearchOperations elasticsearchOperations;
+  /** The Elasticsearch operations *. */
+  @Autowired OpenSearchOperations operations;
 
-  /** The Elastic query service * */
+  /** The Elastic query service *. */
   @Autowired ElasticQueryService esQueryService;
 
+  /** The term utils. */
   /* The terminology utils */
   @Autowired TerminologyUtils termUtils;
 
   /**
    * search for the given search criteria.
    *
+   * @param terminologies the terminologies
    * @param searchCriteria the search criteria
    * @return the result list with concepts
    * @throws Exception the exception
@@ -136,21 +142,22 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if (searchCriteria.getSort() != null) {
       // Default is ascending if not specified
       if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
-        searchQuery.withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
+        searchQuery.withSorts(
+            SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
       } else {
-        searchQuery.withSort(
+        searchQuery.withSorts(
             SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.DESC));
       }
 
     } else {
       searchQuery
-          .withSort(SortBuilders.scoreSort())
-          .withSort(SortBuilders.fieldSort("code").order(SortOrder.ASC));
+          .withSorts(SortBuilders.scoreSort())
+          .withSorts(SortBuilders.fieldSort("code").order(SortOrder.ASC));
     }
 
     // query on operations
     final SearchHits<Concept> hits =
-        elasticsearchOperations.search(
+        operations.search(
             searchQuery.build(),
             Concept.class,
             IndexCoordinates.of(buildIndicesArray(searchCriteria)));
@@ -161,7 +168,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     if (hits.getTotalHits() >= 10000) {
       result.setTotal(
-          elasticsearchOperations.count(
+          operations.count(
               searchQuery.build(),
               Concept.class,
               IndexCoordinates.of(buildIndicesArray(searchCriteria))));
@@ -237,9 +244,10 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if (searchCriteria.getSort() != null) {
       // Default is ascending if not specified
       if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
-        searchQuery.withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
+        searchQuery.withSorts(
+            SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
       } else {
-        searchQuery.withSort(
+        searchQuery.withSorts(
             SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.DESC));
       }
     }
@@ -249,30 +257,30 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       String sortField = searchCriteria.getSort();
       if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
         searchQuery
-            .withSort(SortBuilders.scoreSort())
-            .withSort(SortBuilders.fieldSort(sortField).order(SortOrder.ASC));
+            .withSorts(SortBuilders.scoreSort())
+            .withSorts(SortBuilders.fieldSort(sortField).order(SortOrder.ASC));
       } else {
         searchQuery
-            .withSort(SortBuilders.scoreSort())
-            .withSort(SortBuilders.fieldSort(sortField).order(SortOrder.DESC));
+            .withSorts(SortBuilders.scoreSort())
+            .withSorts(SortBuilders.fieldSort(sortField).order(SortOrder.DESC));
       }
 
     } else {
       // default to sortKey
       if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
         searchQuery
-            .withSort(SortBuilders.scoreSort())
-            .withSort(SortBuilders.fieldSort("sortKey").order(SortOrder.ASC));
+            .withSorts(SortBuilders.scoreSort())
+            .withSorts(SortBuilders.fieldSort("sortKey").order(SortOrder.ASC));
       } else {
         searchQuery
-            .withSort(SortBuilders.scoreSort())
-            .withSort(SortBuilders.fieldSort("sortKey").order(SortOrder.DESC));
+            .withSorts(SortBuilders.scoreSort())
+            .withSorts(SortBuilders.fieldSort("sortKey").order(SortOrder.DESC));
       }
     }
 
     // query on operations
     final SearchHits<Mapping> hits =
-        elasticsearchOperations.search(
+        operations.search(
             searchQuery.build(),
             Mapping.class,
             IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
@@ -283,7 +291,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     if (hits.getTotalHits() >= 10000) {
       result.setTotal(
-          elasticsearchOperations.count(
+          operations.count(
               searchQuery.build(),
               Concept.class,
               IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX)));
@@ -367,7 +375,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     final NativeSearchQueryBuilder searchQuery =
         new NativeSearchQueryBuilder().withQuery(termQuery);
     final SearchHits<Mapping> hits =
-        elasticsearchOperations.search(
+        operations.search(
             searchQuery.build(),
             Mapping.class,
             IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
@@ -660,7 +668,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * update term based on type of search
+   * update term based on type of search.
    *
    * @param term the term to be updated
    * @param type the type of search
@@ -691,7 +699,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * append each token from a term with given modifier
+   * append each token from a term with given modifier.
    *
    * @param term the term or phrase
    * @param modifier the modifier
@@ -710,7 +718,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds terminology query based on input search criteria
+   * builds terminology query based on input search criteria.
    *
    * @param terminologies list of terminologies
    * @return the terminology query builder
@@ -738,8 +746,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds list of queries for field specific criteria from the search criteria
+   * builds list of queries for field specific criteria from the search criteria.
    *
+   * @param terminologies the terminologies
    * @param searchCriteria the search criteria
    * @return list of nested queries
    */
@@ -875,7 +884,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for property criteria on type or code field
+   * builds nested query for property criteria on type or code field.
    *
    * @param searchCriteria the search criteria
    * @return the nested query
@@ -912,7 +921,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for synonym source criteria
+   * builds nested query for synonym source criteria.
    *
    * @param searchCriteria the search criteria
    * @return the nested query
@@ -975,7 +984,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for definition source criteria
+   * builds nested query for definition source criteria.
    *
    * @param searchCriteria the search criteria
    * @return the nested query
@@ -1038,7 +1047,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for synonym term type criteria
+   * builds nested query for synonym term type criteria.
    *
    * @param searchCriteria the search criteria
    * @return the nested query
@@ -1068,7 +1077,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for synonym term type + source criteria
+   * builds nested query for synonym term type + source criteria.
    *
    * @param searchCriteria the search criteria
    * @return the nested query
@@ -1111,7 +1120,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * build array of index names
+   * build array of index names.
    *
    * @param searchCriteria the search criteria
    * @return the array of index names

@@ -6,12 +6,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -1354,14 +1354,14 @@ public class MetadataControllerTests {
             .filter(c -> !terminology.getMetadata().isRemodeledQualifier(c))
             .collect(Collectors.toSet());
     // All sets are mutually exclusive with respect to each other.
-    assertThat(Sets.intersection(properties, qualifiers)).isEmpty();
+    assertThat(ConceptUtils.intersection(properties, qualifiers)).isEmpty();
     // Properties with "remodeled" flag are included now in "properties"
-    assertThat(Sets.intersection(properties, synonymTypes).size()).isEqualTo(3);
+    assertThat(ConceptUtils.intersection(properties, synonymTypes).size()).isEqualTo(3);
     // Properties with "remodeled" flag are included now in "properties"
-    assertThat(Sets.intersection(properties, definitionTypes).size()).isEqualTo(2);
-    assertThat(Sets.intersection(qualifiers, synonymTypes)).isEmpty();
-    assertThat(Sets.intersection(qualifiers, definitionTypes)).isEmpty();
-    assertThat(Sets.intersection(synonymTypes, definitionTypes)).isEmpty();
+    assertThat(ConceptUtils.intersection(properties, definitionTypes).size()).isEqualTo(2);
+    assertThat(ConceptUtils.intersection(qualifiers, synonymTypes)).isEmpty();
+    assertThat(ConceptUtils.intersection(qualifiers, definitionTypes)).isEmpty();
+    assertThat(ConceptUtils.intersection(synonymTypes, definitionTypes)).isEmpty();
   }
 
   /**

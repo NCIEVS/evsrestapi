@@ -15,10 +15,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import jakarta.mail.internet.MimeMessage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
-import javax.mail.internet.MimeMessage;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -168,19 +168,18 @@ public class TermSuggestionFormServiceTest {
   public void testGetFormTemplateThrowsFileNotFound() throws Exception {
     // SET UP - create an invalid term form object
     String formType = "invalid-form";
-    JsonNode termForm = new ObjectMapper().createArrayNode();
+    //    JsonNode termForm = new ObjectMapper().createArrayNode();
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
     when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json")))
         .thenThrow(FileNotFoundException.class);
 
     // ACT & ASSERT
-    Exception exception =
-        assertThrows(
-            FileNotFoundException.class,
-            () -> {
-              termFormService.getFormTemplate(formType);
-            });
+    assertThrows(
+        FileNotFoundException.class,
+        () -> {
+          termFormService.getFormTemplate(formType);
+        });
   }
 
   /**

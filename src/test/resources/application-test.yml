@@ -10,6 +10,9 @@ spring:
   #profiles:
   #  include: metadata
 
+  #autoconfigure:
+  #  exclude: org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration,org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
+
   #
   # JSON Formatting Properties
   #
@@ -65,7 +68,8 @@ logging:
     org.springframework: WARN
     gov.nih.nci.evs.api: DEBUG
     org.springframework.data.elasticsearch.core: DEBUG
-    gov.nih.nci.evs.api.configuration.EVSElasticsearchRestTemplate: DEBUG
+    org.springframework.data.opensearch.core: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
+    gov.nih.nci.evs.api.configuration.EVSOpenSearchRestTemplate: DEBUG
     org.apache.http: INFO # change to DEBUG when needed but INFO for now to avoid logspam
 
 #
@@ -105,7 +109,7 @@ nci:
     elasticsearch:
       server:
         host: ${ES_HOST:localhost}
-        port: ${ES_PORT:9200}
+        port: ${ES_PORT:9201}
         scheme: ${ES_SCHEME:http}
       timeout: 200000
     sparql:

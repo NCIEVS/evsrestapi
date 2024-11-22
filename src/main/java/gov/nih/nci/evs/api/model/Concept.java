@@ -14,10 +14,9 @@ import java.util.Map;
 import java.util.stream.Stream;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Document;
-import org.springframework.data.elasticsearch.annotations.DynamicMapping;
-import org.springframework.data.elasticsearch.annotations.DynamicMappingValue;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.Mapping;
 
 /**
  * Represents a concept with a code from a terminology.
@@ -196,7 +195,7 @@ public class Concept extends ConceptMinimal {
    * DynamicMappingValue.False will prevent indexing fields from the Qualifiers object.
    */
   @Field(type = FieldType.Object, includeInParent = false, enabled = false)
-  @DynamicMapping(DynamicMappingValue.False)
+  @Mapping(enabled = false)
   private List<Qualifier> qualifiers;
 
   /**
@@ -240,7 +239,8 @@ public class Concept extends ConceptMinimal {
    * object.
    */
   @Field(type = FieldType.Object, enabled = false)
-  @DynamicMapping(DynamicMappingValue.False)
+  // @DynamicMapping(DynamicMappingValue.False)
+  @Mapping(enabled = false)
   private List<History> history;
 
   /**
@@ -249,8 +249,9 @@ public class Concept extends ConceptMinimal {
    * object.
    */
   @Field(type = FieldType.Object, enabled = false)
-  @DynamicMapping(DynamicMappingValue.False)
-  private List<Mapping> maps;
+  // @DynamicMapping(DynamicMappingValue.False)
+  @Mapping(enabled = false)
+  private List<gov.nih.nci.evs.api.model.Mapping> maps;
 
   /**
    * The paths to root. enabled = false will set the index = false, to avoid indexing the fields in
@@ -258,7 +259,8 @@ public class Concept extends ConceptMinimal {
    * object.
    */
   @Field(type = FieldType.Object, enabled = false)
-  @DynamicMapping(DynamicMappingValue.False)
+  // @DynamicMapping(DynamicMappingValue.False)
+  @Mapping(enabled = false)
   private Paths paths;
 
   /**
@@ -267,7 +269,8 @@ public class Concept extends ConceptMinimal {
    * Extensions object.
    */
   @Field(type = FieldType.Object, enabled = false)
-  @DynamicMapping(DynamicMappingValue.False)
+  // @DynamicMapping(DynamicMappingValue.False)
+  @Mapping(enabled = false)
   private Extensions extensions;
 
   /** Instantiates an empty {@link Concept}. */
@@ -444,6 +447,8 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
+   * Returns the stem name.
+   *
    * @return the stemName
    */
   @Schema(hidden = true)
@@ -452,6 +457,8 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
+   * Sets the stem name.
+   *
    * @param stemName the stemName to set
    */
   public void setStemName(String stemName) {
@@ -870,7 +877,7 @@ public class Concept extends ConceptMinimal {
    * @return the maps
    */
   @Schema(description = "Maps from this concept to concepts in other terminologies")
-  public List<Mapping> getMaps() {
+  public List<gov.nih.nci.evs.api.model.Mapping> getMaps() {
     if (maps == null) {
       maps = new ArrayList<>();
     }
@@ -882,7 +889,7 @@ public class Concept extends ConceptMinimal {
    *
    * @param maps the maps
    */
-  public void setMaps(final List<Mapping> maps) {
+  public void setMaps(final List<gov.nih.nci.evs.api.model.Mapping> maps) {
     this.maps = maps;
   }
 

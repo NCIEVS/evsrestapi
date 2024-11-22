@@ -8,7 +8,7 @@ import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
 import org.springframework.web.client.HttpClientErrorException;
 
-/** Represents a service that performs a search against an elasticsearch endpoint. */
+/** The Interface ElasticSearchService. */
 public interface ElasticSearchService {
 
   /**
@@ -29,7 +29,6 @@ public interface ElasticSearchService {
    * @param query the query to search for the mappings
    * @param searchCriteria the search criteria
    * @return the result list with concepts
-   * @throws Exception the exception
    */
   MappingResultList findConceptMappings(String query, SearchCriteria searchCriteria);
 
@@ -39,7 +38,6 @@ public interface ElasticSearchService {
    * @param asList the concept codes
    * @param terminology the terminology
    * @return the mappings
-   * @throws Exception the exception
    */
   public List<Mapping> getConceptMappings(List<String> asList, String terminology);
 }

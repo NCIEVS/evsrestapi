@@ -6,7 +6,7 @@
 # directory is mounted as /data within the stardog container.  Thus, while in
 # the stardog container the path /data/UnitTestData must be available.
 #
-# It resets the stardog and elasticsearch data sets locally to update to
+# It resets the stardog and opensearch data sets locally to update to
 # the latest dev testing data set at that google drive URL.
 #
 help=0
@@ -159,19 +159,19 @@ if [[ ! -e "$datadir/UnitTestData" ]]; then
     exit 1
 fi
 
-# Verify docker elasticsearch is running
-echo "    verify docker elasticsearch is running"
-ct=`docker ps | grep 'elasticsearch/elasticsearch' | wc -l`
+# Verify docker opensearch is running
+echo "    verify docker opensearch is running"
+ct=`docker ps | grep 'opensearchproject/opensearch' | wc -l`
 if [[ $ct -lt 1 ]]; then
-    echo "    ERROR: elasticsearch docker is not running"
+    echo "    ERROR: opensearch docker is not running"
     exit 1
 fi
 
-# Verify docker elasticsearch can be reached
-echo "    verify docker elasticsearch can be reached"
+# Verify docker opensearch can be reached
+echo "    verify docker opensearch can be reached at $ES_SCHEME://$ES_HOST:$ES_PORT"
 curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices" >> /dev/null
 if [[ $? -ne 0 ]]; then
-    echo "ERROR: problem connecting to docker elasticsearch"
+    echo "ERROR: problem connecting to docker opensearch"
     exit 1
 fi
 
@@ -188,7 +188,7 @@ pid=`docker ps | grep stardog/stardog | cut -f 1 -d\  `
 # note: //data is required for gitbash
 docker exec $pid //data/UnitTestData/x.sh
 if [[ $? -ne 0 ]]; then
-    echo "ERROR: problem connecting to docker elasticsearch"
+    echo "ERROR: problem connecting to docker opensearch"
     exit 1
 fi
 ct=`grep -c owl $dir/x.txt`
@@ -200,18 +200,18 @@ fi
 
 
 
-# Remove elasticsearch indexes
-echo "  Remove elasticsearch indexes"
+# Remove opensearch indexes
+echo "  Remove opensearch indexes"
 curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices" | cut -d\  -f 3 | egrep "metrics|concept|evs" | cat > /tmp/x.$$.txt
 if [[ $? -ne 0 ]]; then
-    echo "ERROR: problem connecting to docker elasticsearch"
+    echo "ERROR: problem connecting to docker opensearch"
     exit 1
 fi
 for i in `cat /tmp/x.$$.txt`; do
     echo "    remove $i"
     curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$i" >> /dev/null
     if [[ $? -ne 0 ]]; then
-        echo "ERROR: problem removing elasticsearch index $i"
+        echo "ERROR: problem removing opensearch index $i"
         exit 1
     fi
 done
@@ -272,6 +272,7 @@ echo "    load data"
 /opt/stardog/bin/stardog data add --named-graph http://MA NCIT2 /data/UnitTestData/Mouse_Anatomy/ma_07_27_2016.owl | sed 's/^/      /'
 /opt/stardog/bin/stardog data add --named-graph http://Zebrafish NCIT2 /data/UnitTestData/Zebrafish/zfa_2019_08_02.owl | sed 's/^/      /'
 echo "    optimize databases"
+# The -n parameter remvoed before DB name as per updated stardog (may need to re-pull latest)
 /opt/stardog/bin/stardog-admin db optimize CTRP | sed 's/^/      /'
 /opt/stardog/bin/stardog-admin db optimize NCIT2 | sed 's/^/      /'
 EOF
