@@ -8,10 +8,9 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.data.annotation.Transient;
-import org.springframework.data.elasticsearch.annotations.DynamicMapping;
-import org.springframework.data.elasticsearch.annotations.DynamicMappingValue;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.Mapping;
 
 /** Represents a synonym of a concept. */
 @Schema(description = "Represents one of the (potentially many) names for a concept")
@@ -65,7 +64,8 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
 
   /** The qualifiers - not NCIT, but could be other terminologies. */
   @Field(type = FieldType.Object, enabled = false)
-  @DynamicMapping(DynamicMappingValue.False)
+  //  @DynamicMapping(DynamicMappingValue.False)
+  @Mapping(enabled = false)
   private List<Qualifier> qualifiers;
 
   /** The active flag. */

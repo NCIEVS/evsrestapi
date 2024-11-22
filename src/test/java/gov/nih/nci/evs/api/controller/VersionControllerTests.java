@@ -1,6 +1,7 @@
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -9,6 +10,8 @@ import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.support.ApplicationVersion;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -620,5 +623,49 @@ public class VersionControllerTests {
     }
 
     return null;
+  }
+
+  /**
+   * Returns the builds the gradle version.
+   *
+   * @return the builds the gradle version
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetSwaggerUIVersion() throws Exception {
+
+    // Get swagger-ui version
+    String swaggerUiVersion = null;
+
+    // Load .jar file from classpath
+    final String classpath = System.getProperty("java.class.path");
+    final String[] classPathValues = classpath.split(File.pathSeparator);
+    for (final String cp : classPathValues) {
+      if (cp.contains("org.webjars") && cp.contains("swagger-ui")) {
+        if (swaggerUiVersion != null) {
+          fail("Unexpected multiple swagger ui versions = " + swaggerUiVersion + ", " + cp);
+        }
+        swaggerUiVersion =
+            classpath
+                .replaceFirst(".*org.webjars.*swagger-ui.([\\d\\.]+).*", "$1")
+                .replaceFirst("\\.$", "");
+      }
+    }
+
+    if (swaggerUiVersion == null || swaggerUiVersion.isEmpty()) {
+      throw new IllegalStateException("org.webjars.*swagger-ui not found in classpath");
+    }
+    log.info("  swaggerUiVersion = " + swaggerUiVersion);
+
+    // Get path to version
+    String path = "src/main/resources/META-INF/resources/webjars/swagger-ui/" + swaggerUiVersion;
+
+    // Check if the path exists and the versions match
+    assertThat(Files.exists(Paths.get(path)))
+        .withFailMessage(
+            "The Swagger UI version does not match the folder structure: expected version %s at"
+                + " path %s",
+            swaggerUiVersion, path)
+        .isTrue();
   }
 }

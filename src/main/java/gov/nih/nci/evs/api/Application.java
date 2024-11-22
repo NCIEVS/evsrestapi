@@ -1,9 +1,10 @@
 package gov.nih.nci.evs.api;
 
 import java.util.Map;
-import org.springdoc.core.SpringDocUtils;
+import org.springdoc.core.utils.SpringDocUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration;
 import org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
@@ -16,7 +17,9 @@ import org.springframework.scheduling.annotation.EnableScheduling;
       // This is to avoid "Failed to configure a DataSource: 'url' attribute is not specified and no
       // embedded datasource could be configured" error
       // that arose when FHIR libraries were added
-      DataSourceAutoConfiguration.class
+      DataSourceAutoConfiguration.class,
+      // Disable elasticsearch autoconfiguration (embedded in spring boot)
+      ElasticsearchDataAutoConfiguration.class
     })
 @EnableCaching
 @EnableScheduling

@@ -11,16 +11,18 @@ import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.History;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -48,6 +50,9 @@ public class ConceptControllerTests {
 
   /** The logger. */
   private static final Logger log = LoggerFactory.getLogger(ConceptControllerTests.class);
+
+  /** The sparql query manager service. */
+  @Autowired SparqlQueryManagerService sparqlQueryManagerService;
 
   /** The mvc. */
   @Autowired private MockMvc mvc;
@@ -788,7 +793,7 @@ public class ConceptControllerTests {
     String url = null;
     MvcResult result = null;
     String content = null;
-    List<ConceptMap> list = null;
+    List<Mapping> list = null;
 
     // NOTE, this includes a middle concept code that is bougs
     url = baseUrl + "/ncit/C3224/maps";
@@ -801,7 +806,7 @@ public class ConceptControllerTests {
         new ObjectMapper()
             .readValue(
                 content,
-                new TypeReference<List<ConceptMap>>() {
+                new TypeReference<List<Mapping>>() {
                   // n/a
                 });
     log.info("  list = " + list.size());
@@ -817,7 +822,7 @@ public class ConceptControllerTests {
         new ObjectMapper()
             .readValue(
                 content,
-                new TypeReference<List<ConceptMap>>() {
+                new TypeReference<List<Mapping>>() {
                   // n/a
                 });
     assertThat(list).isEmpty();
@@ -886,7 +891,7 @@ public class ConceptControllerTests {
         new ObjectMapper()
             .readValue(
                 content,
-                new TypeReference<List<ConceptMap>>() {
+                new TypeReference<List<Mapping>>() {
                   // n/a
                 });
     assertThat(list).isEmpty();
@@ -2027,5 +2032,72 @@ public class ConceptControllerTests {
                   // n/a
                 });
     assertThat(conceptResults.get(0).getVersion() == terminology.getVersion());
+  }
+
+  /**
+   * Test get terminology concepts.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetTerminologyConcepts() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    url = "/api/v1/concept/radlex/codes";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+
+    // very small terminology
+    ArrayList<String> terminologyCodes =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<ArrayList<String>>() {
+                  // n/a
+                });
+    assertThat(terminologyCodes.size()).isGreaterThan(50);
+
+    // small terminology
+    url = "/api/v1/concept/ctcae5/codes";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    terminologyCodes =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<ArrayList<String>>() {
+                  // n/a
+                });
+
+    assertThat(terminologyCodes.size()).isGreaterThan(4000);
+
+    // medium terminology
+    url = "/api/v1/concept/go/codes";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    terminologyCodes =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<ArrayList<String>>() {
+                  // n/a
+                });
+
+    assertThat(terminologyCodes.size()).isGreaterThan(40000);
+
+    // large terminology
+    url = "/api/v1/concept/ncit/codes";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    terminologyCodes =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<ArrayList<String>>() {
+                  // n/a
+                });
+
+    assertThat(terminologyCodes.size()).isGreaterThan(150000);
   }
 }

@@ -1,10 +1,10 @@
 package gov.nih.nci.evs.api.service;
 
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
-import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.EVSPageable;
@@ -16,58 +16,64 @@ import java.util.Map;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
-import org.elasticsearch.common.unit.Fuzziness;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-import org.elasticsearch.index.query.MatchQueryBuilder;
-import org.elasticsearch.index.query.NestedQueryBuilder;
-import org.elasticsearch.index.query.Operator;
-import org.elasticsearch.index.query.QueryBuilder;
-import org.elasticsearch.index.query.QueryBuilders;
-import org.elasticsearch.index.query.QueryStringQueryBuilder;
-import org.elasticsearch.search.fetch.subphase.highlight.HighlightBuilder;
-import org.elasticsearch.search.sort.SortBuilders;
-import org.elasticsearch.search.sort.SortOrder;
+import org.opensearch.common.unit.Fuzziness;
+import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
+import org.opensearch.data.core.OpenSearchOperations;
+import org.opensearch.index.query.BoolQueryBuilder;
+import org.opensearch.index.query.MatchQueryBuilder;
+import org.opensearch.index.query.NestedQueryBuilder;
+import org.opensearch.index.query.Operator;
+import org.opensearch.index.query.QueryBuilder;
+import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.index.query.QueryStringQueryBuilder;
+import org.opensearch.search.fetch.subphase.highlight.HighlightBuilder;
+import org.opensearch.search.sort.SortBuilders;
+import org.opensearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
+/**
+ * Reference implementation of {@link ElasticSearchService}. Includes hibernate tags for MEME
+ * database.
+ */
 @Service
 public class ElasticSearchServiceImpl implements ElasticSearchService {
 
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(ElasticSearchServiceImpl.class);
 
-  /** The Elastic operations service * */
+  /** The Elastic operations service *. */
   @Autowired ElasticOperationsService esOperationsService;
 
-  /** The Elasticsearch operations * */
-  @Autowired ElasticsearchOperations operations;
+  /** The Elasticsearch operations *. */
+  @Autowired OpenSearchOperations operations;
 
-  /** The Elastic query service * */
+  /** The Elastic query service *. */
   @Autowired ElasticQueryService esQueryService;
 
+  /** The term utils. */
   /* The terminology utils */
   @Autowired TerminologyUtils termUtils;
 
   /**
    * search for the given search criteria.
    *
+   * @param terminologies the terminologies
    * @param searchCriteria the search criteria
    * @return the result list with concepts
    * @throws Exception the exception
    */
   @Override
-  public ConceptResultList search(List<Terminology> terminologies, SearchCriteria searchCriteria)
-      throws Exception {
+  public ConceptResultList findConcepts(
+      List<Terminology> terminologies, SearchCriteria searchCriteria) throws Exception {
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
     // PageRequest.of(page, searchCriteria.getPageSize());
 
@@ -136,16 +142,17 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if (searchCriteria.getSort() != null) {
       // Default is ascending if not specified
       if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
-        searchQuery.withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
+        searchQuery.withSorts(
+            SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
       } else {
-        searchQuery.withSort(
+        searchQuery.withSorts(
             SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.DESC));
       }
 
     } else {
       searchQuery
-          .withSort(SortBuilders.scoreSort())
-          .withSort(SortBuilders.fieldSort("code").order(SortOrder.ASC));
+          .withSorts(SortBuilders.scoreSort())
+          .withSorts(SortBuilders.fieldSort("code").order(SortOrder.ASC));
     }
 
     // query on operations
@@ -207,14 +214,14 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * search for the given search criteria in mappings.
+   * Find the concept mappings based on a provided query and search criteria.
    *
+   * @param query the query string to search for
    * @param searchCriteria the search criteria
    * @return the result list with concepts
-   * @throws Exception the exception
    */
   @Override
-  public ConceptMapResultList search(String code, SearchCriteria searchCriteria) {
+  public MappingResultList findConceptMappings(String query, SearchCriteria searchCriteria) {
     int page = searchCriteria.getFromRecord() / searchCriteria.getPageSize();
     // PageRequest.of(page, searchCriteria.getPageSize());
 
@@ -228,23 +235,19 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     final Pageable pageable = new EVSPageable(page, esPageSize, esFromRecord);
 
-    // Escape the term in case it has special characters
-    // final String term = escape(searchCriteria.getTerm());
-    logger.debug("query string [{}]", searchCriteria.getTerm());
-
-    final BoolQueryBuilder boolQuery =
-        new BoolQueryBuilder().must(getMappingQuery(searchCriteria.getTerm(), code));
-
-    // build final search query
+    // build search query from string query
     final NativeSearchQueryBuilder searchQuery =
-        new NativeSearchQueryBuilder().withQuery(boolQuery).withPageable(pageable);
+        new NativeSearchQueryBuilder()
+            .withQuery(QueryBuilders.queryStringQuery(query))
+            .withPageable(pageable);
 
     if (searchCriteria.getSort() != null) {
       // Default is ascending if not specified
       if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
-        searchQuery.withSort(SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
+        searchQuery.withSorts(
+            SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
       } else {
-        searchQuery.withSort(
+        searchQuery.withSorts(
             SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.DESC));
       }
     }
@@ -254,37 +257,37 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       String sortField = searchCriteria.getSort();
       if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
         searchQuery
-            .withSort(SortBuilders.scoreSort())
-            .withSort(SortBuilders.fieldSort(sortField).order(SortOrder.ASC));
+            .withSorts(SortBuilders.scoreSort())
+            .withSorts(SortBuilders.fieldSort(sortField).order(SortOrder.ASC));
       } else {
         searchQuery
-            .withSort(SortBuilders.scoreSort())
-            .withSort(SortBuilders.fieldSort(sortField).order(SortOrder.DESC));
+            .withSorts(SortBuilders.scoreSort())
+            .withSorts(SortBuilders.fieldSort(sortField).order(SortOrder.DESC));
       }
 
     } else {
       // default to sortKey
       if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
         searchQuery
-            .withSort(SortBuilders.scoreSort())
-            .withSort(SortBuilders.fieldSort("sortKey").order(SortOrder.ASC));
+            .withSorts(SortBuilders.scoreSort())
+            .withSorts(SortBuilders.fieldSort("sortKey").order(SortOrder.ASC));
       } else {
         searchQuery
-            .withSort(SortBuilders.scoreSort())
-            .withSort(SortBuilders.fieldSort("sortKey").order(SortOrder.DESC));
+            .withSorts(SortBuilders.scoreSort())
+            .withSorts(SortBuilders.fieldSort("sortKey").order(SortOrder.DESC));
       }
     }
 
     // query on operations
-    final SearchHits<ConceptMap> hits =
+    final SearchHits<Mapping> hits =
         operations.search(
             searchQuery.build(),
-            ConceptMap.class,
+            Mapping.class,
             IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
 
     logger.debug("result count: {}", hits.getTotalHits());
 
-    final ConceptMapResultList result = new ConceptMapResultList();
+    final MappingResultList result = new MappingResultList();
 
     if (hits.getTotalHits() >= 10000) {
       result.setTotal(
@@ -301,7 +304,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     if (fromOffset == 0) {
       result.setMaps(hits.stream().map(SearchHit::getContent).collect(Collectors.toList()));
     } else {
-      final List<ConceptMap> results =
+      final List<Mapping> results =
           hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
       if (fromIndex >= results.size()) {
         result.setMaps(new ArrayList<>());
@@ -315,7 +318,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   /**
    * Returns the term query.
    *
-   * @param type the type
+   * @param searchCriteria the search criteria
    * @param term the term
    * @return the term query
    * @throws Exception the exception
@@ -345,55 +348,14 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * Returns the term query for mappings.
-   *
-   * @param term the term
-   * @return the term query
-   * @throws Exception the exception
-   */
-  private BoolQueryBuilder getMappingQuery(String term, String code) {
-    // must match mapsetCode
-    BoolQueryBuilder termQuery =
-        new BoolQueryBuilder().must(QueryBuilders.queryStringQuery("mapsetCode:" + code));
-    // search term processing
-    if (term != null && !term.isEmpty()) {
-      final List<String> words = ConceptUtils.wordind(term);
-      // create search term clause
-      if (ConceptUtils.isCode(term) || words.size() == 1) {
-        // match on either word or code, case insensitive
-        if (term.matches("[A-Za-z]+:\\d+")) {
-          termQuery.must(
-              QueryBuilders.queryStringQuery(escape(term) + "*")
-                  .field("sourceCode")
-                  .field("targetCode"));
-        } else {
-          termQuery.must(QueryBuilders.queryStringQuery(escape(term) + "*").field("*"));
-        }
-
-      } else {
-        // search for all words in name fields
-        BoolQueryBuilder multiWordQuery = QueryBuilders.boolQuery();
-
-        // match all words in at least one of the names
-        for (String word : words) {
-          multiWordQuery.must(QueryBuilders.queryStringQuery(word + "*").field("*"));
-        }
-
-        termQuery.must(multiWordQuery);
-      }
-    }
-    return termQuery;
-  }
-
-  /**
    * Returns the term query for mappings based on concepts.
    *
    * @param conceptCodes the concept codes
-   * @param termimology the termimology
+   * @param terminology the terminology
    * @return the mappings
-   * @throws Exception the exception
    */
-  public List<ConceptMap> getConceptMappings(List<String> conceptCodes, String terminology) {
+  @Override
+  public List<Mapping> getConceptMappings(List<String> conceptCodes, String terminology) {
     // must match mapsetCode
 
     BoolQueryBuilder termQuery = new BoolQueryBuilder();
@@ -412,19 +374,19 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
 
     final NativeSearchQueryBuilder searchQuery =
         new NativeSearchQueryBuilder().withQuery(termQuery);
-    final SearchHits<ConceptMap> hits =
+    final SearchHits<Mapping> hits =
         operations.search(
             searchQuery.build(),
-            ConceptMap.class,
+            Mapping.class,
             IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
 
     logger.debug("result count: {}", hits.getTotalHits());
 
-    final ConceptMapResultList result = new ConceptMapResultList();
+    final MappingResultList result = new MappingResultList();
 
     result.setTotal(hits.getTotalHits());
 
-    final List<ConceptMap> mappings =
+    final List<Mapping> mappings =
         hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
 
     return mappings;
@@ -433,7 +395,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   /**
    * Returns the contains query.
    *
-   * @param type the type
+   * @param searchCriteria the search criteria
    * @param term the term
    * @param fuzzyFlag the fuzzy flag
    * @param andFlag the and flag
@@ -706,7 +668,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * update term based on type of search
+   * update term based on type of search.
    *
    * @param term the term to be updated
    * @param type the type of search
@@ -737,7 +699,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * append each token from a term with given modifier
+   * append each token from a term with given modifier.
    *
    * @param term the term or phrase
    * @param modifier the modifier
@@ -756,7 +718,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds terminology query based on input search criteria
+   * builds terminology query based on input search criteria.
    *
    * @param terminologies list of terminologies
    * @return the terminology query builder
@@ -784,8 +746,9 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds list of queries for field specific criteria from the search criteria
+   * builds list of queries for field specific criteria from the search criteria.
    *
+   * @param terminologies the terminologies
    * @param searchCriteria the search criteria
    * @return list of nested queries
    */
@@ -921,7 +884,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for property criteria on type or code field
+   * builds nested query for property criteria on type or code field.
    *
    * @param searchCriteria the search criteria
    * @return the nested query
@@ -958,7 +921,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for synonym source criteria
+   * builds nested query for synonym source criteria.
    *
    * @param searchCriteria the search criteria
    * @return the nested query
@@ -1021,7 +984,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for definition source criteria
+   * builds nested query for definition source criteria.
    *
    * @param searchCriteria the search criteria
    * @return the nested query
@@ -1084,7 +1047,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for synonym term type criteria
+   * builds nested query for synonym term type criteria.
    *
    * @param searchCriteria the search criteria
    * @return the nested query
@@ -1114,7 +1077,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * builds nested query for synonym term type + source criteria
+   * builds nested query for synonym term type + source criteria.
    *
    * @param searchCriteria the search criteria
    * @return the nested query
@@ -1157,7 +1120,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   }
 
   /**
-   * build array of index names
+   * build array of index names.
    *
    * @param searchCriteria the search criteria
    * @return the array of index names

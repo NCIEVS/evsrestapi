@@ -78,7 +78,7 @@ public class DynamicMappingTest {
 
     if (result) {
       operationsService
-          .getElasticsearchOperations()
+          .getOpenSearchOperations()
           .indexOps(IndexCoordinates.of(indexName))
           .putMapping(Concept.class);
     }

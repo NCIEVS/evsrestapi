@@ -4,14 +4,16 @@ import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Role;
+import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
@@ -22,11 +24,13 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -37,7 +41,6 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -182,13 +185,13 @@ public class ConceptController extends BaseController {
           elasticQueryService.getConcepts(Arrays.asList(codes), term, ip);
 
       if (ip.isMaps() && concepts.size() > 0) {
-        List<ConceptMap> firstList = null;
+        List<Mapping> firstList = null;
         List<String> conceptCodeList = Arrays.asList(list.split(","));
-        List<ConceptMap> secondList =
+        List<Mapping> secondList =
             elasticSearchService.getConceptMappings(conceptCodeList, terminology);
 
         // Pre-process secondList into a map
-        Map<String, List<ConceptMap>> secondMap =
+        Map<String, List<Mapping>> secondMap =
             secondList.stream().collect(Collectors.groupingBy(cm -> cm.getSourceCode()));
 
         for (Concept concept : concepts) {
@@ -201,10 +204,10 @@ public class ConceptController extends BaseController {
                   .collect(Collectors.toSet());
 
           // Look up the concept code in the preprocessed map and filter the maps
-          List<ConceptMap> relevantMaps =
+          List<Mapping> relevantMaps =
               secondMap.getOrDefault(concept.getCode(), Collections.emptyList());
 
-          List<ConceptMap> mapsToAdd =
+          List<Mapping> mapsToAdd =
               relevantMaps.stream()
                   .filter(
                       cm ->
@@ -324,6 +327,7 @@ public class ConceptController extends BaseController {
       @RequestParam(required = false, name = "include") final Optional<String> include,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
+
     try {
       final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
@@ -336,8 +340,8 @@ public class ConceptController extends BaseController {
       }
 
       if (ip.isMaps()) {
-        List<ConceptMap> firstList = concept.get().getMaps();
-        List<ConceptMap> secondList =
+        List<Mapping> firstList = concept.get().getMaps();
+        List<Mapping> secondList =
             elasticSearchService.getConceptMappings(Arrays.asList(code), terminology);
 
         // Create a set of existing keys in firstList to check for matches
@@ -347,7 +351,7 @@ public class ConceptController extends BaseController {
                 .collect(Collectors.toSet());
 
         // Filter and add only those ConceptMap objects that don't have a match in firstList
-        List<ConceptMap> mapsToAdd =
+        List<Mapping> mapsToAdd =
             secondList.stream()
                 .filter(
                     cm ->
@@ -1235,7 +1239,7 @@ public class ConceptController extends BaseController {
   })
   @RecordMetric
   @GetMapping(value = "/concept/{terminology}/{code}/maps", produces = "application/json")
-  public @ResponseBody List<ConceptMap> getMaps(
+  public @ResponseBody List<Mapping> getMaps(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
@@ -2138,6 +2142,128 @@ public class ConceptController extends BaseController {
       handleException(e);
       return null;
     }
+  }
+
+  /**
+   * Returns the codes for a given terminology.
+   *
+   * @param terminology the terminology
+   * @return the terminology codes
+   * @throws Exception the exception
+   */
+  @Operation(summary = "Get all codes for the specified terminology")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Successfully retrieved the requested information",
+        content = @Content(array = @ArraySchema(schema = @Schema(implementation = String.class)))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Resource not found",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = RestException.class))),
+    @ApiResponse(
+        responseCode = "417",
+        description = "Expectation failed",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+    @Parameter(
+        name = "terminology",
+        description = "Terminology, e.g. 'ncit'",
+        required = true,
+        schema = @Schema(implementation = String.class),
+        example = "ncit"),
+    @Parameter(
+        name = "X-EVSRESTAPI-License-Key",
+        description =
+            "Required license information for restricted terminologies. <a"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " target='_blank'>See here for detailed information</a>.",
+        required = false,
+        schema = @Schema(implementation = String.class))
+  })
+  @RecordMetric
+  @GetMapping(value = "/concept/{terminology}/codes", produces = "application/json")
+  public @ResponseBody List<String> getAllCodesForTerminology(
+      @PathVariable(value = "terminology") final String terminology,
+      @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
+      throws Exception {
+    List<String> codes = new ArrayList<String>();
+    final List<Terminology> terminologies = new ArrayList<Terminology>();
+    final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+    // First get root concepts
+    final List<Concept> roots =
+        elasticQueryService.getRootNodes(term, new IncludeParam("children,descendants"));
+    if (roots != null && !roots.isEmpty()) {
+      codes.addAll(roots.stream().map(c -> c.getCode()).collect(Collectors.toList()));
+      // Handle case where root has no descendants (children will)
+      // this is like SNOMED root which has too many descendants to load
+      codes.addAll(
+          roots.stream()
+              .filter(c -> c.getDescendants().size() == 0 && c.getChildren().size() > 0)
+              .flatMap(c -> c.getChildren().stream())
+              .flatMap(
+                  c -> {
+                    try {
+                      return elasticQueryService
+                          .getConcept(c.getCode(), term, new IncludeParam("descendants"))
+                          .stream();
+                    } catch (Exception e) {
+                      throw new RuntimeException(e);
+                    }
+                  })
+              .map(c -> c.getCode())
+              .collect(Collectors.toList()));
+      // get any child codes
+      codes.addAll(
+          roots.stream()
+              .flatMap(c -> c.getChildren().stream())
+              .map(c -> c.getCode())
+              .collect(Collectors.toList()));
+      // Handle case where root has descendants
+      codes.addAll(
+          roots.stream()
+              .filter(c -> c.getDescendants().size() > 0)
+              .flatMap(c -> c.getDescendants().stream())
+              .map(c -> c.getCode())
+              .collect(Collectors.toList()));
+    } else {
+      try {
+        ConceptResultList list = null;
+        int fromRecord = 0;
+        int pageSize = 10000;
+
+        termUtils.checkLicense(term, license);
+        terminologies.add(term);
+        while (true) {
+          SearchCriteria sc = new SearchCriteria();
+          sc.setFromRecord(fromRecord);
+          sc.setPageSize(pageSize);
+          sc.setTerminology(Arrays.asList(terminology));
+          list = elasticSearchService.findConcepts(terminologies, sc);
+          if (list.getConcepts() == null || list.getConcepts().isEmpty()) {
+            logger.info(
+                "  read {} total concepts for {}",
+                Math.min(list.getTotal(), fromRecord + pageSize),
+                terminology);
+            break;
+          }
+          codes.addAll(
+              list.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
+          fromRecord += pageSize;
+        }
+      } catch (final Exception e) {
+        handleException(e);
+        return null;
+      }
+    }
+    return codes;
   }
 
   // Used for QA to expose a mechanism to calculate extension for a single case.

@@ -5,10 +5,10 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -22,7 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * The elasticsearch DB query service.
+ * The elasticsearch/OpenSearch DB query service.
  *
  * @author Arun
  */
@@ -471,5 +471,5 @@ public interface ElasticQueryService {
    * @throws ClassNotFoundException the class not found exception
    * @throws IOException Signals that an I/O exception has occurred.
    */
-  List<ConceptMap> getMapsetMappings(String code) throws Exception;
+  List<Mapping> getMapsetMappings(String code) throws Exception;
 }

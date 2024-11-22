@@ -4,10 +4,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
@@ -17,6 +17,7 @@ import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PushBackReader;
 import gov.nih.nci.evs.api.util.RrfReaders;
@@ -27,8 +28,6 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -41,8 +40,7 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import org.apache.tomcat.util.buf.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,7 +89,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   private Set<String> ruiQualSabs = new HashSet<>();
 
   /** The maps. */
-  private Map<String, Set<gov.nih.nci.evs.api.model.ConceptMap>> maps = new HashMap<>();
+  private Map<String, Set<Mapping>> maps = new HashMap<>();
 
   /** The rui inverse map. */
   private Map<String, String> ruiInverseMap = new HashMap<>();
@@ -183,7 +181,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
       String line = null;
       final Map<String, String> codeNameMap = new HashMap<>();
-      final Map<String, ConceptMap> mapsetInfoMap = new HashMap<>();
+      final Map<String, Mapping> mapsetInfoMap = new HashMap<>();
 
       // Loop through concept lines until we reach "the end"
       while ((line = mrconso.readLine()) != null) {
@@ -226,7 +224,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
             && fields[14].contains("ICD10")) {
           // |SNOMEDCT_US_2020_09_01 to ICD10CM_2021 Mappings
           // |SNOMEDCT_US_2022_03_01 to ICD10_2016 Mappings
-          final ConceptMap info = new ConceptMap();
+          final Mapping info = new Mapping();
           mapsetInfoMap.put(fields[0], info);
           info.setSource("snomedct_us"); // evsrestapi terminology
           info.setSourceTerminology("SNOMEDCT_US"); // uiLabel
@@ -243,7 +241,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
             && fields[12].equals("XM")
             && fields[14].contains("NCI")) {
           // PDQ_2016_07_31 to NCI_2024_06D Mappings
-          final ConceptMap info = new ConceptMap();
+          final Mapping info = new Mapping();
           mapsetInfoMap.put(fields[0], info);
           info.setSource("pdq");
           info.setSourceTerminology("PDQ");
@@ -282,15 +280,15 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         // OK: IFA 248153007 &#x7C; Male (finding) &#x7C;
 
         // Change this to keep all rules
-        //        if (fields[20].startsWith("IFA")
-        //            && !fields[20].startsWith("IFA 445518008")
-        //            && !fields[20].startsWith("IFA 248152002")
-        //            && !fields[20].startsWith("IFA 248153007")) {
-        //          continue;
-        //        }
+        // if (fields[20].startsWith("IFA")
+        // && !fields[20].startsWith("IFA 445518008")
+        // && !fields[20].startsWith("IFA 248152002")
+        // && !fields[20].startsWith("IFA 248153007")) {
+        // continue;
+        // }
 
-        final gov.nih.nci.evs.api.model.ConceptMap info = mapsetInfoMap.get(fields[0]);
-        final gov.nih.nci.evs.api.model.ConceptMap map = new gov.nih.nci.evs.api.model.ConceptMap();
+        final Mapping info = mapsetInfoMap.get(fields[0]);
+        final Mapping map = new Mapping();
         map.setSource(info.getSource());
         map.setSourceCode(fields[8]);
         map.setSourceTerminology(info.getSourceTerminology());
@@ -360,27 +358,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
                   + "-"
                   + info.getTarget().replaceFirst("ncit", "nci")
                   + ".html";
-          try (final InputStream is = new URL(mapsetUri).openConnection().getInputStream()) {
-            final String welcomeText = IOUtils.toString(is, StandardCharsets.UTF_8);
-            mapset.getProperties().add(new Property("welcomeText", welcomeText));
-          } catch (Throwable t) { // read as file if no url
-            try {
-              if (!new File(mapsetUri).exists()) {
-                throw new Exception("Unable to find welcome text for mapset = " + mapsetUri);
-              }
-              final String welcomeText =
-                  FileUtils.readFileToString(new File(mapsetUri), StandardCharsets.UTF_8);
-              mapset.getProperties().add(new Property("welcomeText", welcomeText));
-            } catch (IOException ex) {
-              throw new IOException(
-                  "Could not find either file or uri for welcome text: " + mapsetUri); // only
-              // throw
-              // exception
-              // if
-              // both
-              // fail
-            }
-          }
+          final String welcomeText =
+              StringUtils.join(EVSUtils.getValueFromFile(mapsetUri, "welcome text"), '\n');
+          mapset.getProperties().add(new Property("welcomeText", welcomeText));
           mapset.getProperties().add(new Property("mapsetLink", null));
           mapset.getProperties().add(new Property("downloadOnly", "false"));
           mapset
@@ -487,11 +467,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       for (final Concept mapset : mapsetMap.values()) {
         Collections.sort(
             mapset.getMaps(),
-            new Comparator<gov.nih.nci.evs.api.model.ConceptMap>() {
+            new Comparator<Mapping>() {
               @Override
-              public int compare(
-                  final gov.nih.nci.evs.api.model.ConceptMap o1,
-                  final gov.nih.nci.evs.api.model.ConceptMap o2) {
+              public int compare(final Mapping o1, final Mapping o2) {
                 // Assume maps are not null
                 return (o1.getSourceName()
                         + o1.getType()
@@ -508,13 +486,13 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
             });
         logger.info("    Index map = " + mapset.getName());
         int i = 1;
-        for (final ConceptMap mapToSort : mapset.getMaps()) {
+        for (final Mapping mapToSort : mapset.getMaps()) {
           mapToSort.setSortKey(String.valueOf(1000000 + i++));
         }
         // Send 10k at at tim
-        for (final List<ConceptMap> batch : ListUtils.partition(mapset.getMaps(), 10000)) {
+        for (final List<Mapping> batch : ListUtils.partition(mapset.getMaps(), 10000)) {
           operationsService.bulkIndex(
-              batch, ElasticOperationsService.MAPPINGS_INDEX, ConceptMap.class);
+              batch, ElasticOperationsService.MAPPINGS_INDEX, Mapping.class);
         }
         mapset.setMaps(null);
         operationsService.index(mapset, ElasticOperationsService.MAPSET_INDEX, Concept.class);
@@ -685,7 +663,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
     if (result) {
       operationsService
-          .getElasticsearchOperations()
+          .getOpenSearchOperations()
           .indexOps(IndexCoordinates.of(terminology.getIndexName()))
           .putMapping(Concept.class);
     }

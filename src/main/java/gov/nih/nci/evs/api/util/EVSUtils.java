@@ -2,19 +2,26 @@ package gov.nih.nci.evs.api.util;
 
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,7 +29,6 @@ import org.slf4j.LoggerFactory;
 public class EVSUtils {
 
   /** The Constant log. */
-  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(EVSUtils.class);
 
   /**
@@ -233,13 +239,13 @@ public class EVSUtils {
    * @param axioms the axioms
    * @return the maps to
    */
-  public static List<ConceptMap> getMapsTo(Terminology terminology, List<Axiom> axioms) {
-    ArrayList<ConceptMap> results = new ArrayList<ConceptMap>();
+  public static List<Mapping> getMapsTo(Terminology terminology, List<Axiom> axioms) {
+    ArrayList<Mapping> results = new ArrayList<Mapping>();
     final String mapCode = terminology.getMetadata().getMap();
     for (Axiom axiom : axioms) {
       final String axiomCode = EVSUtils.getQualifiedCodeFromUri(axiom.getAnnotatedProperty());
       if (axiomCode.equals(mapCode)) {
-        ConceptMap mapsTo = new ConceptMap();
+        Mapping mapsTo = new Mapping();
         mapsTo.setTargetName(axiom.getAnnotatedTarget());
         mapsTo.setType(axiom.getRelationshipToTarget());
         mapsTo.setTargetTermType(axiom.getTargetTermType());
@@ -484,5 +490,31 @@ public class EVSUtils {
     } else {
       return b.getConceptLabel().getValue();
     }
+  }
+
+  /**
+   * returns the read value from the given uri (local or repository file).
+   *
+   * @param uri the uri to read from
+   * @param info the info
+   * @return the value from file
+   * @info the info needing to be read (mostly for error message specificity)
+   */
+  public static List<String> getValueFromFile(String uri, String info) {
+    try {
+      try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
+        return IOUtils.readLines(is, "UTF-8");
+      }
+    } catch (final Throwable t) {
+      try {
+        // Try to open URI as a file
+        final File file = new File(uri);
+        return FileUtils.readLines(file, "UTF-8");
+      } catch (final IOException e) {
+        // Log and move on if both URL and file reading fail
+        log.warn("Error occurred when getting {} from configBaseUri", info);
+      }
+    }
+    return Collections.emptyList();
   }
 }

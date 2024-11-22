@@ -30,13 +30,13 @@ import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.PostConstruct;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import javax.annotation.PostConstruct;
 import org.apache.jena.query.QueryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -610,7 +610,8 @@ public class SearchController extends BaseController {
         terminologies.add(term);
       }
 
-      final ConceptResultList results = elasticSearchService.search(terminologies, searchCriteria);
+      final ConceptResultList results =
+          elasticSearchService.findConcepts(terminologies, searchCriteria);
 
       // Look up info for all the concepts
       for (final Concept result : results.getConcepts()) {
@@ -888,14 +889,13 @@ public class SearchController extends BaseController {
       res = restUtils.runSPARQL(sparqlQuery, stardogProperties.getQueryUrl(), sparqlTimeout);
 
     } catch (final QueryException e) {
-      final String errorMessage =
-          extractErrorMessage(e.getMessage()).replace("\\", "").replace("\r\n", " ");
+      final String errorMessage = extractErrorMessage(e.getMessage());
       throw new QueryException(
           "SPARQL query failed validation. Please review your query for syntax mistakes.\n"
               + errorMessage);
 
     } catch (final Exception e) {
-      String errorMessage = extractErrorMessage(e.getMessage()).replace("\\", "");
+      String errorMessage = extractErrorMessage(e.getMessage());
 
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
     }
@@ -1088,14 +1088,13 @@ public class SearchController extends BaseController {
       return resultList;
 
     } catch (final QueryException e) {
-      String errorMessage =
-          extractErrorMessage(e.getMessage()).replace("\\", "").replace("\r\n", " ");
+      String errorMessage = extractErrorMessage(e.getMessage());
 
       throw new QueryException(
           "SPARQL query failed validation. Please review your query for syntax mistakes.\n"
               + errorMessage);
     } catch (final Exception e) {
-      String errorMessage = extractErrorMessage(e.getMessage()).replace("\\", "");
+      String errorMessage = extractErrorMessage(e.getMessage());
 
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
     }
@@ -1142,9 +1141,9 @@ public class SearchController extends BaseController {
     int startIndex = errorString.indexOf("Invalid SPARQL query");
     if (startIndex != -1) {
       String substring = errorString.substring(startIndex);
-      return substring;
+      return substring.replaceAll("\\\\\\\"", "\"");
     } else {
-      return errorString;
+      return errorString.replaceAll("\\\\\\\"", "\"");
     }
   }
 }

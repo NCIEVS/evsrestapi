@@ -2,9 +2,8 @@ package gov.nih.nci.evs.api.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
-import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
@@ -18,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.server.ResponseStatusException;
 
 /** Handler for errors when accessing API thru browser. */
 @Controller
@@ -26,6 +26,7 @@ import org.springframework.web.context.request.WebRequest;
 public class ErrorHandlerController implements ErrorController {
 
   /** Logger. */
+  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(ErrorHandlerController.class);
 
   /** The error attributes. */
@@ -53,8 +54,9 @@ public class ErrorHandlerController implements ErrorController {
   @RequestMapping(produces = MediaType.TEXT_HTML_VALUE)
   @ResponseBody
   public String handleErrorHtml(final HttpServletRequest request) {
-    final Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
     final Map<String, Object> body = getErrorAttributes(request, options);
+    final String statusCode = body.get("status") == null ? null : body.get("status").toString();
+
     String ppBody = null;
     try {
       ppBody = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(body);
@@ -115,44 +117,43 @@ public class ErrorHandlerController implements ErrorController {
   protected Map<String, Object> getErrorAttributes(
       HttpServletRequest request, ErrorAttributeOptions options) {
     WebRequest webRequest = new ServletWebRequest(request);
-    Map<String, Object> body = errorAttributes.getErrorAttributes(webRequest, options);
+    final Map<String, Object> body = errorAttributes.getErrorAttributes(webRequest, options);
 
-    // Hack to convert "trace" to message
-    // TODO: fix this, and probably override what getErrorAttributes is doing to include the
-    // "reason" from the response status exception
-    if (body.containsKey("trace")) {
-      final String message =
-          body.get("trace")
-              .toString()
-              .split("\n")[0]
-              .replaceFirst(".*?\"", "")
-              .replaceFirst("[\"\r]+$", "")
-              .replaceFirst("400 BAD_REQUEST \"", "");
-      body.put("message", message);
+    final Throwable error = errorAttributes.getError(webRequest);
+    // To pass an error through, use ResponseStatusException
+    if (error instanceof ResponseStatusException) {
+      body.put("message", ((ResponseStatusException) error).getReason());
+    } else {
+      body.put("message", error == null ? "No message" : error.getMessage());
     }
 
-    if (body.containsKey("message")) {
-      try {
-        final String message = body.get("message").toString();
-        final StringBuilder sb = new StringBuilder();
-        for (final String line : message.split("\\n")) {
-          sb.append(StringEscapeUtils.escapeHtml4(line));
-          sb.append("\n");
-        }
-        // If the message is a stack trace, then obscure it
-        if (sb.toString().contains("Exception")) {
-          logger.error("path = " + body.get("path").toString());
-          logger.error("queryString = " + request.getQueryString());
-          logger.error("message = " + sb.toString());
-          body.put("message", "Unexpected error, see logs for more info");
-        } else {
-          // remove the trailing \n
-          body.put("message", sb.toString().replaceFirst("\\n$", ""));
-        }
-      } catch (Exception e) {
-        body.put("message", body.get("message").toString().replaceAll("<", "&lt;"));
-      }
-    }
+    // This is cleanup for various situations.
+    // This is likely no longer be needed (removed 202411)
+    //    if (body.containsKey("message")) {
+    //      try {
+    //        final String message = body.get("message").toString();
+    //        final StringBuilder sb = new StringBuilder();
+    //        for (final String line : message.split("\\n")) {
+    //          sb.append(StringEscapeUtils.escapeHtml4(line));
+    //          sb.append("\n");
+    //        }
+    //        // If the message is a stack trace, then obscure it
+    //        if (sb.toString().contains("Exception")) {
+    //          logger.error("path = " + body.get("path").toString());
+    //          logger.error("queryString = " + request.getQueryString());
+    //          logger.error("message = " + sb.toString());
+    //          body.put("message", "Unexpected error, see logs for more info");
+    //        } else {
+    //          // remove the trailing \n
+    //          body.put("message", sb.toString().replaceFirst("\\n$", ""));
+    //        }
+    //      } catch (Exception e) {
+    //        body.put("message", body.get("message").toString().replaceAll("<", "&lt;"));
+    //      }
+    //    }
+
+    // Remove the "trace" field from HTML
+    body.remove("trace");
     return body;
   }
 
