@@ -102,6 +102,25 @@ public class ConceptControllerTests {
     assertThat(concept.getCode()).isEqualTo("C3224");
     assertThat(concept.getName()).isEqualTo("Melanoma");
     assertThat(concept.getTerminology()).isEqualTo("ncit");
+
+    // Check hidden fields of concept (prove that WriteOnlyProperty) works
+    assertThat(concept.getNormName()).isNull();
+    assertThat(concept.getStemName()).isNull();
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getDefinitions().stream().filter(s -> s.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getAssociations().stream().filter(s -> s.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getInverseAssociations().stream().filter(s -> s.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getRoles().stream().filter(s -> s.getCode() != null).count()).isEqualTo(0);
+    assertThat(concept.getInverseRoles().stream().filter(s -> s.getCode() != null).count())
+        .isEqualTo(0);
   }
 
   /**

@@ -4,6 +4,7 @@ import gov.nih.nci.evs.api.model.Metric;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
 import org.opensearch.data.core.OpenSearchOperations;
 
 /**
@@ -31,6 +32,15 @@ public interface ElasticOperationsService {
    * @throws IOException the io exception
    */
   boolean createIndex(String indexName, boolean force) throws IOException;
+
+  /**
+   * Returns the mapping.
+   *
+   * @param clazz the clazz
+   * @return the mapping
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public Map<String, Object> getMapping(String name) throws IOException;
 
   /**
    * load objects.
@@ -94,6 +104,7 @@ public interface ElasticOperationsService {
    *
    * @param indexName the index name
    * @param id the id
+   * @return the string
    */
   String delete(String indexName, String id);
 
@@ -101,6 +112,7 @@ public interface ElasticOperationsService {
    * Delete the {@link IndexMetadata} object.
    *
    * @param id the id of the {@link IndexMetadata} object
+   * @return the string
    */
   String deleteIndexMetadata(String id);
 
