@@ -119,7 +119,7 @@ public class ConceptDetails
 	public void setIsDiseaseGrade(Boolean isDiseaseGrade) {
 		this.isDiseaseGrade = isDiseaseGrade;
 	}
-
+
 	public void setIsDisease(Boolean isDisease) {
 		this.isDisease = isDisease;
 	}
@@ -185,11 +185,11 @@ public class ConceptDetails
 	public Boolean getIsDiseaseStage() {
 		return this.isDiseaseStage;
 	}
-
+
 	public Boolean getIsDiseaseGrade() {
 		return this.isDiseaseGrade;
 	}
-
+
 	public Boolean getIsDisease() {
 		return this.isDisease;
 	}
@@ -224,7 +224,7 @@ public class ConceptDetails
 	public List getAdditionalProperties() {
 		return this.additionalProperties;
 	}
-
+
 	public ConceptDetails(
 		Vector label_vec,
 		Vector property_vec,
