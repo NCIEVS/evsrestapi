@@ -11,4 +11,5 @@
 *.gif binary
 *.bmp binary
 *.db binary
+*.gz binary
 
