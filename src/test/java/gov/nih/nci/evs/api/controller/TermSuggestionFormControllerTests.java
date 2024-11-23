@@ -48,40 +48,51 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 
-/** Test class for the Term Form Controller */
+/** Test class for the Term Form Controller. */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
 public class TermSuggestionFormControllerTests {
+
+  /** The Constant log. */
   // logger
   private static final Logger log =
       LoggerFactory.getLogger(TermSuggestionFormControllerTests.class);
 
+  /** The mvc. */
   // Mock the MVC automatically
   @Autowired private MockMvc mvc;
 
+  /** The term form service. */
   // Mock the email service and captcha service
   @Mock private TermSuggestionFormServiceImpl termFormService;
+
+  /** The captcha service. */
   @MockBean private CaptchaService captchaService;
 
+  /** The term suggestion form controller. */
   // create an instance of the controller and inject service
   private TermSuggestionFormController termSuggestionFormController;
 
+  /** The request. */
   // mock request servlet
   private MockHttpServletRequest request;
 
+  /** The base url. */
   // Base url for api calls
   String baseUrl;
 
+  /** The recaptcha token. */
   // Recaptcha Token
   final String recaptchaToken = "testTokenString";
 
+  /** The object mapper. */
   @Qualifier("objectMapper")
   @Autowired
   private ObjectMapper objectMapper;
 
-  /** Setup method to create a mock request for testing */
+  /** Setup method to create a mock request for testing. */
   @BeforeEach
   public void setUp() {
     baseUrl = "/api/v1/suggest/";
@@ -93,7 +104,7 @@ public class TermSuggestionFormControllerTests {
   }
 
   /**
-   * Test the getForm returns our expected response JsonObject when passing formType and test Json
+   * Test the getForm returns our expected response JsonObject when passing formType and test Json.
    *
    * @throws Exception exception
    */
@@ -118,7 +129,7 @@ public class TermSuggestionFormControllerTests {
   }
 
   /**
-   * Test the getForm throws an exception when the file can't be loaded
+   * Test the getForm throws an exception when the file can't be loaded.
    *
    * @throws Exception exception
    */
@@ -169,7 +180,7 @@ public class TermSuggestionFormControllerTests {
   }
 
   /**
-   * Test the sumbitForm throws an exception when the form details have null values
+   * Test the sumbitForm throws an exception when the form details have null values.
    *
    * @throws Exception exception
    */
@@ -194,7 +205,7 @@ public class TermSuggestionFormControllerTests {
   }
 
   /**
-   * Test the sumbitForm throws an exception when the form details have null values
+   * Test the sumbitForm throws an exception when the form details have null values.
    *
    * @throws Exception exception
    */
@@ -218,7 +229,7 @@ public class TermSuggestionFormControllerTests {
   }
 
   /**
-   * Test the submitForm throws an exception when the email fails to send
+   * Test the submitForm throws an exception when the email fails to send.
    *
    * @throws Exception exception
    */
@@ -247,6 +258,11 @@ public class TermSuggestionFormControllerTests {
     assertTrue(exception.getMessage().contains(expectedResponse));
   }
 
+  /**
+   * Test submit form recaptcha verification passes.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testSubmitFormRecaptchaVerificationPasses() throws Exception {
     // SET UP
@@ -265,6 +281,11 @@ public class TermSuggestionFormControllerTests {
     }
   }
 
+  /**
+   * Test submit form recaptcha verification fails.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testSubmitFormRecaptchaVerificationFails() throws Exception {
     // SET UP
@@ -281,13 +302,13 @@ public class TermSuggestionFormControllerTests {
       termSuggestionFormController.submitForm(formData, null, recaptchaToken);
       fail("Expected a ResponseStatusException to be thrown");
     } catch (ResponseStatusException e) {
-      assertEquals(HttpStatus.BAD_REQUEST, e.getStatus());
+      assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
     }
   }
 
   /**
    * Integration test to verify we can call the api path, path the formType, and return the JsonNode
-   * form
+   * form.
    *
    * @throws Exception exception
    */
@@ -332,6 +353,7 @@ public class TermSuggestionFormControllerTests {
 
     // ACT & ASSERT - Verify the email was sent to the receiver in the form
     log.info("Form data = {}", formData);
+    @SuppressWarnings("unused")
     final MvcResult result =
         this.mvc
             .perform(

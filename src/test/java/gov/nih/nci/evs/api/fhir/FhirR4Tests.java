@@ -393,7 +393,7 @@ public class FhirR4Tests {
   public void testValueSetSearch() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirVSPath;
+    String endpoint = localHost + port + fhirVSPath + "?_count=2000";
 
     // Act
     content = this.restTemplate.getForObject(endpoint, String.class);
@@ -403,13 +403,13 @@ public class FhirR4Tests {
 
     // Verify things about these
     // {"resourceType":"ValueSet","id":"ncit_21.06e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"21.06e","name":"NCI Thesaurus 21.06e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","description":"NCI Thesaurus, a controlled vocabulary in support of NCI administrative and scientific activities. Produced by the Enterprise Vocabulary System (EVS), a project by the NCI Center for Biomedical Informatics and Information Technology. National Cancer Institute, National Institutes of Health, Bethesda, MD 20892, U.S.A."}
-    // {"resourceType":"ValueSet","id":"ncit_c100110","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110","identifier":[{"value":"C100110"}],"version":"21.06e","name":"CDISC Questionnaire Terminology","title":"ncit","status":"active","experimental":false,"publisher":"NCI","description":"Value set representing the ncitsubsetC100110"}
-    final Set<String> ids = new HashSet<>(Set.of("ncit_21.06e", "ncit_c100110"));
+    // {"resourceType":"ValueSet","id":"ncit_c61410","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110","identifier":[{"value":"C61410"}]...
+    final Set<String> ids = new HashSet<>(Set.of("ncit_21.06e", "ncit_c61410"));
     final Set<String> urls =
         new HashSet<>(
             Set.of(
                 "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs",
-                "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110"));
+                "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C61410"));
 
     // Assert
     assertFalse(valueSets.isEmpty());
@@ -424,8 +424,8 @@ public class FhirR4Tests {
       ids.remove(vss.getIdPart());
       urls.remove(vss.getUrl());
     }
-    assertThat(ids).isEmpty();
-    assertThat(urls).isEmpty();
+    assertTrue(ids.isEmpty());
+    assertTrue(urls.isEmpty());
   }
 
   /**
@@ -812,6 +812,107 @@ public class FhirR4Tests {
     assertEquals(conceptMap.getUrl(), ((ConceptMap) conceptMaps.get(0)).getUrl());
     assertEquals(conceptMap.getName(), ((ConceptMap) conceptMaps.get(0)).getName());
     assertEquals(conceptMap.getVersion(), ((ConceptMap) conceptMaps.get(0)).getVersion());
+  }
+
+  /**
+   * Test concept map translate with instance system; id, code, and system provided.
+   *
+   * @throws Exception throws exception when error occurs
+   */
+  @Test
+  public void testConceptMapTranslateInstance() throws Exception {
+    // Arrange
+    String content;
+    String code = "GO:0016887";
+    String id = "go_to_ncit_mapping_february2020";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint =
+        localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + code + "&system=" + system;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+
+  /**
+   * Test concept map translate with instance system with reverse = true; id, code, system, and
+   * display provided.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMaptTranslateInstanceWithReverse() throws Exception {
+    // Arrange
+    String content;
+    String code = "C19939";
+    String id = "go_to_ncit_mapping_february2020";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String reverse = "true";
+    String endpoint =
+        localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + code + "&system=" + system + "&reverse=" + reverse;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+    log.info("  translate params =\n" + parser.encodeResourceToString(params));
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+
+  /**
+   * Test concept map translate with implicit system; code and system provided.
+   *
+   * @throws Exception throws exception when error occurs
+   */
+  @Test
+  public void testConceptMapTranslateImplicit() throws Exception {
+    // Arrange
+    String content;
+    String code = "GO:0016887";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + code + "&system=" + system;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+    log.info("  translate params =\n" + parser.encodeResourceToString(params));
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+
+  /**
+   * Test concept map translate with implicit system with reverse = true; code and system provided.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapTranslateImplicitWithReverse() throws Exception {
+    // Arrange
+    String content;
+    String code = "C19939";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String reverse = "true";
+    String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + code + "&system=" + system + "&reverse=" + reverse;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
   }
 
   /**

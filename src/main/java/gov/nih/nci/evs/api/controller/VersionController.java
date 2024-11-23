@@ -25,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class VersionController extends BaseController {
 
   /** The Constant log. */
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(VersionController.class);
 
   /**

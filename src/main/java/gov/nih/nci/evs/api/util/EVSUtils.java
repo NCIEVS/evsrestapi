@@ -2,8 +2,8 @@ package gov.nih.nci.evs.api.util;
 
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;
@@ -29,7 +29,6 @@ import org.slf4j.LoggerFactory;
 public class EVSUtils {
 
   /** The Constant log. */
-  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(EVSUtils.class);
 
   /**
@@ -240,13 +239,13 @@ public class EVSUtils {
    * @param axioms the axioms
    * @return the maps to
    */
-  public static List<ConceptMap> getMapsTo(Terminology terminology, List<Axiom> axioms) {
-    ArrayList<ConceptMap> results = new ArrayList<ConceptMap>();
+  public static List<Mapping> getMapsTo(Terminology terminology, List<Axiom> axioms) {
+    ArrayList<Mapping> results = new ArrayList<Mapping>();
     final String mapCode = terminology.getMetadata().getMap();
     for (Axiom axiom : axioms) {
       final String axiomCode = EVSUtils.getQualifiedCodeFromUri(axiom.getAnnotatedProperty());
       if (axiomCode.equals(mapCode)) {
-        ConceptMap mapsTo = new ConceptMap();
+        Mapping mapsTo = new Mapping();
         mapsTo.setTargetName(axiom.getAnnotatedTarget());
         mapsTo.setType(axiom.getRelationshipToTarget());
         mapsTo.setTargetTermType(axiom.getTargetTermType());
@@ -494,9 +493,11 @@ public class EVSUtils {
   }
 
   /**
-   * returns the read value from the given uri (local or repository file)
+   * returns the read value from the given uri (local or repository file).
    *
    * @param uri the uri to read from
+   * @param info the info
+   * @return the value from file
    * @info the info needing to be read (mostly for error message specificity)
    */
   public static List<String> getValueFromFile(String uri, String info) {

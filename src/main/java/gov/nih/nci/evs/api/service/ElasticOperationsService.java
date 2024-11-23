@@ -4,11 +4,11 @@ import gov.nih.nci.evs.api.model.Metric;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import java.io.IOException;
 import java.util.List;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import java.util.Map;
+import org.opensearch.data.core.OpenSearchOperations;
 
-// TODO: Auto-generated Javadoc
 /**
- * The service for performing index related operations on Elasticsearch.
+ * The service for performing index related operations on Elasticsearch/OpenSearch.
  *
  * @author Arun
  */
@@ -32,6 +32,15 @@ public interface ElasticOperationsService {
    * @throws IOException the io exception
    */
   boolean createIndex(String indexName, boolean force) throws IOException;
+
+  /**
+   * Returns the mapping.
+   *
+   * @param clazz the clazz
+   * @return the mapping
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  public Map<String, Object> getMapping(String name) throws IOException;
 
   /**
    * load objects.
@@ -76,11 +85,11 @@ public interface ElasticOperationsService {
   void loadMetric(Metric metric, String index) throws IOException;
 
   /**
-   * get the instance of {@code ElasticsearchOperations}.
+   * get the instance of {@code OpenSearchOperations}.
    *
-   * @return the instance of {@code ElasticsearchOperations}
+   * @return the instance of {@code OpenSearchOperations}
    */
-  ElasticsearchOperations getElasticsearchOperations();
+  OpenSearchOperations getOpenSearchOperations();
 
   /**
    * Delete index.
@@ -95,6 +104,7 @@ public interface ElasticOperationsService {
    *
    * @param indexName the index name
    * @param id the id
+   * @return the string
    */
   String delete(String indexName, String id);
 
@@ -102,6 +112,7 @@ public interface ElasticOperationsService {
    * Delete the {@link IndexMetadata} object.
    *
    * @param id the id of the {@link IndexMetadata} object
+   * @return the string
    */
   String deleteIndexMetadata(String id);
 

@@ -33,7 +33,6 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -43,7 +42,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
+// @ActiveProfiles("test")
 public class SearchControllerTests {
 
   /** The logger. */
@@ -3750,7 +3749,7 @@ public class SearchControllerTests {
           assertThat(contentException.contains("SPARQL query failed validation:")).isTrue();
         });
 
-    url = "/api/v1/concept/umlssemnet/search/";
+    url = "/api/v1/concept/umlssemnet/search";
     // check a valid query in another terminology (with malformed graph)
     query =
         "SELECT ?code\n"

@@ -6,12 +6,12 @@ import ca.uhn.fhir.rest.param.NumberParam;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
-import javax.servlet.http.HttpServletRequest;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
@@ -21,7 +21,6 @@ import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ConceptMap;
-import org.hl7.fhir.r4.model.ConceptMap.ConceptMapGroupComponent;
 import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.Identifier;
@@ -243,21 +242,7 @@ public final class FhirUtilityR4 {
                 .findFirst()
                 .orElse(null)
                 .getValue()));
-
-    final ConceptMapGroupComponent group = new ConceptMapGroupComponent();
-    group.setSourceVersion(
-        mapset.getProperties().stream()
-            .filter(m -> m.getType().equals("sourceTerminologyVersion"))
-            .findFirst()
-            .get()
-            .getValue());
-    group.setTargetVersion(
-        mapset.getProperties().stream()
-            .filter(m -> m.getType().equals("targetTerminologyVersion"))
-            .findFirst()
-            .get()
-            .getValue());
-    group.setSourceElement(
+    cm.setSource(
         new UriType(
             getUri(
                 mapset.getProperties().stream()
@@ -265,7 +250,7 @@ public final class FhirUtilityR4 {
                     .findFirst()
                     .get()
                     .getValue())));
-    group.setTargetElement(
+    cm.setTarget(
         new UriType(
             getUri(
                 mapset.getProperties().stream()
@@ -273,8 +258,15 @@ public final class FhirUtilityR4 {
                     .findFirst()
                     .get()
                     .getValue())));
-    cm.addGroup(group);
-    cm.setUrl(group.getSourceElement().asStringValue() + "?fhir_cm=" + mapset.getCode());
+    cm.setUrl(
+        getUri(
+                mapset.getProperties().stream()
+                    .filter(m -> m.getType().equals("sourceTerminology"))
+                    .findFirst()
+                    .get()
+                    .getValue())
+            + "?fhir_cm="
+            + mapset.getCode());
     return cm;
   }
 

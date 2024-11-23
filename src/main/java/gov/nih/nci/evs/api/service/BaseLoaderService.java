@@ -3,7 +3,7 @@ package gov.nih.nci.evs.api.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
@@ -22,9 +22,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
-import org.elasticsearch.action.delete.DeleteRequest;
-import org.elasticsearch.client.RequestOptions;
-import org.elasticsearch.client.RestHighLevelClient;
+import org.opensearch.action.delete.DeleteRequest;
+import org.opensearch.client.RequestOptions;
+import org.opensearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -122,7 +122,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
           operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
       if (createdIndex) {
         operationsService
-            .getElasticsearchOperations()
+            .getOpenSearchOperations()
             .indexOps(IndexCoordinates.of(ElasticOperationsService.METADATA_INDEX))
             .putMapping(IndexMetadata.class);
       }
@@ -133,13 +133,13 @@ public abstract class BaseLoaderService implements ElasticLoadService {
       operationsService.createIndex(ElasticOperationsService.MAPPINGS_INDEX, false);
       if (createdMapset) {
         operationsService
-            .getElasticsearchOperations()
+            .getOpenSearchOperations()
             .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPSET_INDEX))
             .putMapping(Concept.class);
         operationsService
-            .getElasticsearchOperations()
+            .getOpenSearchOperations()
             .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX))
-            .putMapping(ConceptMap.class);
+            .putMapping(Mapping.class);
       }
     } catch (IOException e) {
       logger.error(e.getMessage(), e);

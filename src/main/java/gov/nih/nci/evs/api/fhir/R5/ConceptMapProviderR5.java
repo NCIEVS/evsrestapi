@@ -1,5 +1,7 @@
 package gov.nih.nci.evs.api.fhir.R5;
 
+import static gov.nih.nci.evs.api.service.ElasticSearchServiceImpl.escape;
+
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.IdParam;
@@ -16,20 +18,21 @@ import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.ElasticSearchService;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.hl7.fhir.r5.model.BooleanType;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.CodeType;
-import org.hl7.fhir.r5.model.CodeableConcept;
 import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.ConceptMap;
 import org.hl7.fhir.r5.model.IdType;
@@ -52,8 +55,8 @@ public class ConceptMapProviderR5 implements IResourceProvider {
   /** the query service. */
   @Autowired ElasticQueryService esQueryService;
 
-  /** The code to translate. */
-  String codeToTranslate = "";
+  /** the elastic search service. */
+  @Autowired ElasticSearchService esSearchService;
 
   /**
    * Returns the type of resource for this provider.
@@ -148,26 +151,33 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    *    <a href="https://hl7.org/fhir/R5/conceptmap-operation-translate.html">Conceptmap operation ref </a>"
    * </pre>
    *
-   * @param request the request
-   * @param response the response
-   * @param details the details
-   * @param id the id
-   * @param url the url
-   * @param conceptMap the concept map
-   * @param conceptMapVersion the concept map version
-   * @param code the code
-   * @param system the system
-   * @param version the version
-   * @param source the source
-   * @param coding the coding
-   * @param codeableConcept the codeable concept
-   * @param target the target
-   * @param targetSystem the targetsystem
-   * @param dependencyElement the dependency element
-   * @param dependencyConcept the dependency concept
-   * @param reverse the reverse
+   * @param request the servlet request
+   * @param response the servlet response
+   * @param details the servlet request details
+   * @param id the lookup id
+   * @param url the canonical URL for a concept map
+   * @param conceptMap The concept map is provided directly as part of the request.
+   * @param conceptMapVersion The identifier that is used to identify a specific version of the
+   *     concept map to be used
+   * @param sourceCode The code that is to be translated. If a code is provided, a system must be
+   *     provided.
+   * @param system The system for the code that is to be translated.
+   * @param version The version of the system, if one was provided in the source data.
+   * @param sourceScope Limits the scope of the $translate operation to source codes that are
+   *     members of this value set.
+   * @param sourceCoding A coding to translate.
+   * @param sourceCodeableConcept A full codeableConcept to validate.
+   * @param targetCode The target code that is to be translated to. If a code is provided, a system
+   *     must be provided.
+   * @param targetCoding A target coding to translate to.
+   * @param targetCodeableConcept A full codeableConcept to validate.
+   * @param targetScope Limits the scope of the $translate operation to target codes that are
+   *     members of this value set.
+   * @param targetSystem Identifies a target code system in which a mapping is sought. This
+   *     parameter is an alternative to the targetScope parameter - only one is required.
+   * @param dependency The value for the dependency.
    * @return the parameters
-   * @throws Exception the exception
+   * @throws Exception throws exception if error occurs.
    *     <p>no support for dependency parameter
    */
   @Operation(name = JpaConstants.OPERATION_TRANSLATE, idempotent = true)
@@ -177,20 +187,23 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-      @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
+      //      @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
-      @OperationParam(name = "code") final CodeType code,
+      @OperationParam(name = "sourceCode") final CodeType sourceCode,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
-      @OperationParam(name = "source") final UriType source,
-      @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-      @OperationParam(name = "target") final UriType target,
-      @OperationParam(name = "targetsystem") final UriType targetSystem,
-      @OperationParam(name = "dependency.element") final UriType dependencyElement,
-      @OperationParam(name = "dependency.concept") final CodeableConcept dependencyConcept,
-      @OperationParam(name = "reverse", type = BooleanType.class) final BooleanType reverse)
-      throws Exception {
+      @OperationParam(name = "sourceScope") final UriType sourceScope,
+      //      @OperationParam(name = "sourceCoding") final Coding sourceCoding,
+      //      @OperationParam(name = "sourceCodeableConcept") final CodeableConcept
+      // sourceCodeableConcept,
+      @OperationParam(name = "targetCode") final UriType targetCode,
+      //      @OperationParam(name = "targetCoding") final UriType targetCoding,
+      //      @OperationParam(name = "targetCodeableConcept") final CodeableConcept
+      // targetCodeableConcept,
+      @OperationParam(name = "targetScope") final UriType targetScope,
+      @OperationParam(name = "targetSystem") final UriType targetSystem
+      //      @OperationParam(name = "dependency") final String dependency
+      ) throws Exception {
     // Check if request is POST, throw error as we don't support POST calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
@@ -200,72 +213,49 @@ public class ConceptMapProviderR5 implements IResourceProvider {
     }
 
     try {
-      FhirUtilityR5.required(code, "code");
-      FhirUtilityR5.notSupported(conceptMap, "conceptMap");
-      FhirUtilityR5.notSupported(conceptMapVersion, "conceptMapVersion");
-      FhirUtilityR5.notSupported(coding, "coding");
-      FhirUtilityR5.notSupported(codeableConcept, "codeableConcept");
-      FhirUtilityR5.notSupported(targetSystem, "targetsystem");
-      FhirUtilityR5.notSupported(dependencyElement, "dependency_element");
-      FhirUtilityR5.notSupported(dependencyConcept, "dependency_concept");
-      codeToTranslate = code.getCode().toLowerCase();
+      FhirUtilityR5.mutuallyRequired(sourceCode, "sourceCode", system, "system");
+      FhirUtilityR5.mutuallyRequired(targetCode, "targetCode", system, "system");
+      FhirUtilityR5.mutuallyExclusive(targetScope, "targetScope", targetSystem, "targetSystem");
+
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
-          findPossibleConceptMaps(id, null, system, url, version, source, target);
-      for (final ConceptMap mapping : cm) {
-        final List<gov.nih.nci.evs.api.model.ConceptMap> maps =
-            esQueryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
-        List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = new ArrayList<>();
-        if (reverse != null && reverse.getValue()) {
-          filteredMaps =
-              maps.stream()
-                  .filter(
-                      m ->
-                          m.getTargetCode().toLowerCase().contains(codeToTranslate)
-                              || m.getTargetName()
-                                  .toLowerCase()
-                                  .matches("^" + Pattern.quote(codeToTranslate) + ".*")
-                              || m.getTargetName()
-                                  .toLowerCase()
-                                  .matches(".*\\b" + Pattern.quote(codeToTranslate) + ".*"))
-                  .collect(Collectors.toList());
-        } else {
-          filteredMaps =
-              maps.stream()
-                  .filter(
-                      m ->
-                          m.getSourceCode().toLowerCase().contains(codeToTranslate)
-                              || m.getSourceName()
-                                  .toLowerCase()
-                                  .matches("^" + Pattern.quote(codeToTranslate) + ".*")
-                              || m.getSourceName()
-                                  .toLowerCase()
-                                  .matches(".*\\b" + Pattern.quote(codeToTranslate) + ".*"))
-                  .collect(Collectors.toList());
-        }
+          findPossibleConceptMaps(null, null, system, url, version, targetSystem);
+      // Extract the mapsetcode from cm build the query
+      final List<String> mapsetCodes = cm.stream().map(m -> m.getTitle()).toList();
 
-        if (!filteredMaps.isEmpty()) {
-          final gov.nih.nci.evs.api.model.ConceptMap map = filteredMaps.get(0);
-          params.addParameter("result", true);
-          final Parameters.ParametersParameterComponent property =
-              new Parameters.ParametersParameterComponent().setName("match");
-          property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
-          if (reverse != null && reverse.getValue()) {
-            property
-                .addPart()
-                .setName("concept")
-                .setValue(
-                    new Coding(
-                        map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
-          } else {
-            property
-                .addPart()
-                .setName("concept")
-                .setValue(
-                    new Coding(
-                        map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
-          }
-          params.addParameter(property);
+      // Build a string query to search for the source code and target code
+      String query = buildFhirQueryString(sourceCode, targetCode, mapsetCodes, "AND");
+      logger.debug("   Fhir query string = " + query);
+
+      MappingResultList maps;
+
+      SearchCriteria criteria = new SearchCriteria();
+      // Set as high as we can, should not be more than 10000 in reality. (Unlimited support?)
+      criteria.setPageSize(10000);
+      criteria.setFromRecord(0);
+
+      maps = esSearchService.findConceptMappings(query, criteria);
+      final List<Mapping> conceptMaps = maps.getMaps();
+
+      if (!conceptMaps.isEmpty()) {
+        final Mapping map = conceptMaps.get(0);
+        params.addParameter("result", true);
+        final Parameters.ParametersParameterComponent property =
+            new Parameters.ParametersParameterComponent().setName("match");
+        property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
+        params.addParameter(property);
+        if (sourceCode != null) {
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
+        } else {
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
         }
       }
       if (!params.hasParameter()) {
@@ -289,25 +279,33 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    *  <a href="https://hl7.org/fhir/R5/conceptmap-operation-translate.html">Conceptmap operation ref</a>
    * </pre>
    *
-   * @param request the request
-   * @param response the response
-   * @param details the details
-   * @param url the url
-   * @param conceptMap the concept map
-   * @param conceptMapVersion the concept map version
-   * @param code the code
-   * @param system the system
-   * @param version the version
-   * @param source the source
-   * @param coding the coding
-   * @param codeableConcept the codeable concept
-   * @param target the target
-   * @param targetsystem the targetsystem
-   * @param dependency_element the dependency element
-   * @param dependency_concept the dependency concept
-   * @param reverse the reverse
+   * @param request the servlet request.
+   * @param response the servlet response.
+   * @param details the servlet request details.
+   * @param url A canonical URL for a concept map. The server must know the concept map.
+   * @param conceptMap The concept map is provided directly as part of the request.
+   * @param conceptMapVersion The identifier that is used to identify a specific version of the
+   *     concept map to be used for the translation. This is an arbitrary value managed by the
+   *     concept map author and is not expected to be globally unique.
+   * @param sourceCode The code that is to be translated. If a code is provided, a system must be
+   *     provided.
+   * @param system The system for the code that is to be translated.
+   * @param version The version of the system, if one was provided in the source data.
+   * @param sourceScope Limits the scope of the $translate operation to source codes that are
+   *     members of this value set.
+   * @param sourceCoding A coding to translate.
+   * @param sourceCodeableConcept A full codeableConcept to validate.
+   * @param targetCode The target code that is to be translated to. If a code is provided, a system
+   *     must be provided.
+   * @param targetCoding A target coding to translate to.
+   * @param targetCodeableConcept A full codeableConcept to validate.
+   * @param targetScope Limits the scope of the $translate operation to target codes that are
+   *     members of this value set.
+   * @param targetSystem Identifies a target code system in which a mapping is sought. This
+   *     parameter is an alternative to the targetScope parameter - only one is required.
+   * @param dependency The value for this dependency.
    * @return the parameters
-   * @throws Exception the exception
+   * @throws Exception throws exception if error occurs.
    *     <p>no support for dependency parameter
    */
   @Operation(name = JpaConstants.OPERATION_TRANSLATE, idempotent = true)
@@ -316,20 +314,22 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       final HttpServletResponse response,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-      @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
+      // @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
-      @OperationParam(name = "code") final CodeType code,
+      @OperationParam(name = "sourceCode") final CodeType sourceCode,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
-      @OperationParam(name = "source") final UriType source,
-      @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-      @OperationParam(name = "target") final UriType target,
-      @OperationParam(name = "targetsystem") final UriType targetsystem,
-      @OperationParam(name = "dependency.element") final UriType dependency_element,
-      @OperationParam(name = "dependency.concept") final CodeableConcept dependency_concept,
-      @OperationParam(name = "reverse", type = BooleanType.class) final BooleanType reverse)
-      throws Exception {
+      @OperationParam(name = "sourceScope") final UriType sourceScope,
+      //      @OperationParam(name = "sourceCoding") final Coding sourceCoding,
+      //      @OperationParam(name = "codeableConcept") final CodeableConcept sourceCodeableConcept,
+      @OperationParam(name = "targetCode") final UriType targetCode,
+      //      @OperationParam(name = "targetCoding") final UriType targetCoding,
+      //      @OperationParam(name = "targetCodeableConcept") final CodeableConcept
+      // targetCodeableConcept,
+      @OperationParam(name = "targetScope") final UriType targetScope,
+      @OperationParam(name = "targetSystem") final UriType targetSystem
+      //      @OperationParam(name = "dependency") final UriType dependency
+      ) throws Exception {
     // Check if request is post, throw error as we don't support POST calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
@@ -337,75 +337,50 @@ public class ConceptMapProviderR5 implements IResourceProvider {
           IssueType.NOTSUPPORTED,
           405);
     }
-    // TODO: fix issue with reverser,
     try {
-      FhirUtilityR5.required(code, "code");
-      FhirUtilityR5.notSupported(conceptMap, "conceptMap");
-      FhirUtilityR5.notSupported(conceptMapVersion, "conceptMapVersion");
-      FhirUtilityR5.notSupported(coding, "coding");
-      FhirUtilityR5.notSupported(codeableConcept, "codeableConcept");
-      FhirUtilityR5.notSupported(targetsystem, "targetsystem");
-      FhirUtilityR5.notSupported(dependency_element, "dependency_element");
-      FhirUtilityR5.notSupported(dependency_concept, "dependency_concept");
-      codeToTranslate = code.getCode().toLowerCase();
+      FhirUtilityR5.mutuallyRequired(sourceCode, "sourceCode", system, "system");
+      FhirUtilityR5.mutuallyRequired(targetCode, "targetCode", system, "system");
+      FhirUtilityR5.mutuallyExclusive(targetScope, "targetScope", targetSystem, "targetSystem");
+
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
-          findPossibleConceptMaps(null, null, system, url, version, source, target);
-      for (final ConceptMap mapping : cm) {
-        final List<gov.nih.nci.evs.api.model.ConceptMap> maps =
-            esQueryService.getMapset(mapping.getTitle(), new IncludeParam("maps")).get(0).getMaps();
-        List<gov.nih.nci.evs.api.model.ConceptMap> filteredMaps = new ArrayList<>();
-        if (reverse != null && reverse.getValue()) {
-          filteredMaps =
-              maps.stream()
-                  .filter(
-                      m ->
-                          m.getTargetCode().toLowerCase().contains(codeToTranslate)
-                              || m.getTargetName()
-                                  .toLowerCase()
-                                  .matches("^" + Pattern.quote(codeToTranslate) + ".*")
-                              || m.getTargetName()
-                                  .toLowerCase()
-                                  .matches(".*\\b" + Pattern.quote(codeToTranslate) + ".*"))
-                  .collect(Collectors.toList());
+          findPossibleConceptMaps(null, null, system, url, version, targetSystem);
+      // Extract the mapsetcode from cm build the query
+      final List<String> mapsetCodes = cm.stream().map(m -> m.getTitle()).toList();
+
+      // Build a string query to search for the source code and target code
+      String query = buildFhirQueryString(sourceCode, targetCode, mapsetCodes, "AND");
+      logger.debug("   Fhir query string = " + query);
+
+      MappingResultList maps;
+
+      SearchCriteria criteria = new SearchCriteria();
+      // Set as high as we can, should not be more than 10000 in reality. (Unlimited support?)
+      criteria.setPageSize(10000);
+      criteria.setFromRecord(0);
+
+      maps = esSearchService.findConceptMappings(query, criteria);
+      final List<Mapping> conceptMaps = maps.getMaps();
+
+      if (!conceptMaps.isEmpty()) {
+        final Mapping map = conceptMaps.get(0);
+        params.addParameter("result", true);
+        final Parameters.ParametersParameterComponent property =
+            new Parameters.ParametersParameterComponent().setName("match");
+        property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
+        params.addParameter(property);
+        if (sourceCode != null) {
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
         } else {
-          filteredMaps =
-              maps.stream()
-                  .filter(
-                      m ->
-                          m.getSourceCode().toLowerCase().contains(codeToTranslate)
-                              || m.getSourceName()
-                                  .toLowerCase()
-                                  .matches("^" + Pattern.quote(codeToTranslate) + ".*")
-                              || m.getSourceName()
-                                  .toLowerCase()
-                                  .matches(".*\\b" + Pattern.quote(codeToTranslate) + ".*"))
-                  .collect(Collectors.toList());
-        }
-
-        if (!filteredMaps.isEmpty()) {
-          final gov.nih.nci.evs.api.model.ConceptMap map = filteredMaps.get(0);
-          params.addParameter("result", true);
-          final Parameters.ParametersParameterComponent property =
-              new Parameters.ParametersParameterComponent().setName("match");
-          property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
-          if (reverse != null && reverse.getValue()) {
-            property
-                .addPart()
-                .setName("concept")
-                .setValue(
-                    new Coding(
-                        map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
-          } else {
-            property
-                .addPart()
-                .setName("concept")
-                .setValue(
-                    new Coding(
-                        map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
-          }
-
-          params.addParameter(property);
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
         }
       }
       if (!params.hasParameter()) {
@@ -435,8 +410,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       throws Exception {
     try {
 
-      final List<ConceptMap> candidates =
-          findPossibleConceptMaps(id, null, null, null, null, null, null);
+      final List<ConceptMap> candidates = findPossibleConceptMaps(id, null, null, null, null, null);
       for (final ConceptMap set : candidates) {
         if (id.getIdPart().equals(set.getId())) {
           return set;
@@ -464,27 +438,19 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * @param system the system
    * @param url the url
    * @param version the version
-   * @param source the source
-   * @param target the target
+   * @param targetSystem the target
    * @return the list
    * @throws Exception the exception
    */
   private List<ConceptMap> findPossibleConceptMaps(
-      @OptionalParam(name = "_id") final IdType id,
-      @OptionalParam(name = "date") final DateRangeParam date,
-      @OptionalParam(name = "system") final UriType system,
-      @OptionalParam(name = "url") final UriType url,
-      @OptionalParam(name = "version") final StringType version,
-      @OptionalParam(name = "version") final UriType source,
-      @OptionalParam(name = "version") final UriType target)
+      final IdType id,
+      final DateRangeParam date,
+      final UriType system,
+      final UriType url,
+      final StringType version,
+      final UriType targetSystem)
       throws Exception {
     try {
-
-      // If no ID and no url are specified, no code systems match
-      if (id == null && url == null && system == null) {
-        return new ArrayList<>(0);
-      }
-
       final List<Concept> mapsets = esQueryService.getMapsets(new IncludeParam("properties"));
       final List<ConceptMap> list = new ArrayList<>();
       // Find the matching mapsets
@@ -504,8 +470,8 @@ public class ConceptMapProviderR5 implements IResourceProvider {
           logger.info("  SKIP id mismatch = " + cm.getName());
           continue;
         }
-        if (system != null && !system.getValue().equals(cm.getName())) {
-          logger.info("  SKIP system mismatch = " + cm.getName());
+        if (system != null && !system.getValue().equals(cm.getUrl())) {
+          logger.info("  SKIP system mismatch = " + cm.getUrl());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
@@ -516,14 +482,11 @@ public class ConceptMapProviderR5 implements IResourceProvider {
           logger.info("  SKIP version mismatch = " + cm.getVersion());
           continue;
         }
-        if (source != null
-            && !source.getValue().equals(cm.getGroup().get(0).getSourceElement().getValue())) {
-          logger.info("  SKIP source mismatch = " + cm.getVersion());
-          continue;
-        }
-        if (target != null
-            && !target.getValue().equals(cm.getGroup().get(0).getTargetElement().getValue())) {
-          logger.info("  SKIP target mismatch = " + cm.getVersion());
+        if (targetSystem != null
+            && !targetSystem
+                .getValue()
+                .equals(cm.getTargetScopeUriType().getValue().replaceFirst("\\?fhir_vs$", ""))) {
+          logger.info("  SKIP target mismatch = " + cm.getTargetScopeUriType().getValue());
           continue;
         }
 
@@ -535,6 +498,44 @@ public class ConceptMapProviderR5 implements IResourceProvider {
     } catch (final Exception e) {
       logger.error("Unexpected error", e);
       throw FhirUtilityR5.exception("Failed to find concept maps", IssueType.EXCEPTION, 500);
+    }
+  }
+
+  /**
+   * Helper method for building a query string for the source or target code for FHIR
+   *
+   * @param sourceCode the code being translated
+   * @param targetCode the target value set to be used for translation. Extracted from the system
+   *     uri
+   * @param mapsetCodes the system for the code that is being translated, if provided
+   * @param operator the operator to use for the query
+   * @return the query string
+   */
+  private String buildFhirQueryString(
+      CodeType sourceCode, UriType targetCode, List<String> mapsetCodes, String operator)
+      throws Exception {
+    // Check our required parameters are provided
+    if (sourceCode == null && targetCode == null) {
+      throw FhirUtilityR5.exception(
+          "Either sourceCode or targetCode must be provided", IssueType.INVALID, 400);
+    }
+
+    List<String> clauses = new ArrayList<>();
+    if (!mapsetCodes.isEmpty()) {
+      // compose query string for source code and system uri
+      clauses.add(
+          "mapsetCode:("
+              + String.join(" ", mapsetCodes.stream().map(c -> escape(c)).toList())
+              + ")");
+    }
+    if (sourceCode != null) {
+      // compose query string for source code and system uri
+      clauses.add("sourceCode:\"" + escape(sourceCode.getValue()) + "\"");
+      return ConceptUtils.composeQuery(operator, clauses);
+    } else {
+      // compose query for target code
+      clauses.add("targetCode:\"" + escape(targetCode.getValue()) + "\"");
+      return ConceptUtils.composeQuery(operator, clauses);
     }
   }
 }

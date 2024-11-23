@@ -1,23 +1,24 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.model.ConceptMap;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Metric;
-import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import org.elasticsearch.action.support.WriteRequest.RefreshPolicy;
-import org.elasticsearch.index.query.QueryBuilders;
+import java.util.Map;
+import org.opensearch.data.client.orhlc.NativeSearchQuery;
+import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
+import org.opensearch.data.core.OpenSearchOperations;
+import org.opensearch.index.query.QueryBuilders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.RefreshPolicy;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.BulkOptions;
+import org.springframework.data.elasticsearch.core.query.DeleteQuery;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -33,7 +34,7 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
   private static final Logger logger = LoggerFactory.getLogger(ElasticOperationsServiceImpl.class);
 
   /** Elasticsearch operations *. */
-  @Autowired ElasticsearchOperations operations;
+  @Autowired OpenSearchOperations operations;
 
   /* see superclass */
   @Override
@@ -51,6 +52,19 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
     // create index
     operations.indexOps(IndexCoordinates.of(index)).create();
     return true;
+  }
+
+  /**
+   * Returns the mapping.
+   *
+   * @param name the name
+   * @return the mapping
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  /* see superclass */
+  @Override
+  public Map<String, Object> getMapping(String name) throws IOException {
+    return operations.indexOps(IndexCoordinates.of(name)).getMapping();
   }
 
   /* see superclass */
@@ -125,32 +139,31 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
 
   /* see superclass */
   @Override
-  public ElasticsearchOperations getElasticsearchOperations() {
+  public OpenSearchOperations getOpenSearchOperations() {
     return operations;
   }
 
+  /* see superclass */
   @Override
   public String delete(String indexName, String id) {
     return operations.delete(id, IndexCoordinates.of(indexName));
   }
 
-  /**
-   * see superclass *.
-   *
-   * @param id the id of the {@link IndexMetadata} object
-   */
+  /* see superclass */
   @Override
   public String deleteIndexMetadata(String id) {
     return operations.delete(id, IndexCoordinates.of(METADATA_INDEX));
   }
 
-  /** */
+  /* see superclass */
   @Override
   public Boolean deleteQuery(String query, String indexName) {
     try {
-      NativeSearchQuery deleteQuery =
+      final NativeSearchQuery deleteQuery =
           new NativeSearchQueryBuilder().withQuery(QueryBuilders.queryStringQuery(query)).build();
-      operations.delete(deleteQuery, ConceptMap.class, IndexCoordinates.of(indexName));
+
+      operations.delete(
+          DeleteQuery.builder(deleteQuery).build(), Mapping.class, IndexCoordinates.of(indexName));
       return true;
     } catch (Exception e) {
       logger.error("query delete failed: " + e.getMessage());

@@ -11,16 +11,17 @@ import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.History;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -49,6 +50,9 @@ public class ConceptControllerTests {
 
   /** The logger. */
   private static final Logger log = LoggerFactory.getLogger(ConceptControllerTests.class);
+
+  /** The sparql query manager service. */
+  @Autowired SparqlQueryManagerService sparqlQueryManagerService;
 
   /** The mvc. */
   @Autowired private MockMvc mvc;
@@ -98,6 +102,25 @@ public class ConceptControllerTests {
     assertThat(concept.getCode()).isEqualTo("C3224");
     assertThat(concept.getName()).isEqualTo("Melanoma");
     assertThat(concept.getTerminology()).isEqualTo("ncit");
+
+    // Check hidden fields of concept (prove that WriteOnlyProperty) works
+    assertThat(concept.getNormName()).isNull();
+    assertThat(concept.getStemName()).isNull();
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getDefinitions().stream().filter(s -> s.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getAssociations().stream().filter(s -> s.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getInverseAssociations().stream().filter(s -> s.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getRoles().stream().filter(s -> s.getCode() != null).count()).isEqualTo(0);
+    assertThat(concept.getInverseRoles().stream().filter(s -> s.getCode() != null).count())
+        .isEqualTo(0);
   }
 
   /**
@@ -789,7 +812,7 @@ public class ConceptControllerTests {
     String url = null;
     MvcResult result = null;
     String content = null;
-    List<ConceptMap> list = null;
+    List<Mapping> list = null;
 
     // NOTE, this includes a middle concept code that is bougs
     url = baseUrl + "/ncit/C3224/maps";
@@ -802,7 +825,7 @@ public class ConceptControllerTests {
         new ObjectMapper()
             .readValue(
                 content,
-                new TypeReference<List<ConceptMap>>() {
+                new TypeReference<List<Mapping>>() {
                   // n/a
                 });
     log.info("  list = " + list.size());
@@ -818,7 +841,7 @@ public class ConceptControllerTests {
         new ObjectMapper()
             .readValue(
                 content,
-                new TypeReference<List<ConceptMap>>() {
+                new TypeReference<List<Mapping>>() {
                   // n/a
                 });
     assertThat(list).isEmpty();
@@ -887,7 +910,7 @@ public class ConceptControllerTests {
         new ObjectMapper()
             .readValue(
                 content,
-                new TypeReference<List<ConceptMap>>() {
+                new TypeReference<List<Mapping>>() {
                   // n/a
                 });
     assertThat(list).isEmpty();

@@ -35,19 +35,19 @@ public class DynamicMappingTest {
   /** The Elasticsearch operations service instance *. */
   @Autowired ElasticOperationsService operationsService;
 
-  /** The elastic query service */
+  /** The elastic query service. */
   @Autowired ElasticQueryService elasticQueryService;
 
-  /** The terminology utils */
+  /** The terminology utils. */
   @Autowired TerminologyUtils termUtils;
 
-  /** index name constant */
+  /** index name constant. */
   String indexName = "testindex";
 
-  /** test code */
+  /** test code. */
   String code = "C3224";
 
-  /** terminology name */
+  /** terminology name. */
   String terminology = "ncit";
 
   /**
@@ -55,7 +55,7 @@ public class DynamicMappingTest {
    * that are set in the Concept model. Using concept C3224, map the object to the Concept model and
    * index the concept, to make sure we still have descendants and paths.
    *
-   * @throws Exception
+   * @throws Exception the exception
    */
   @Test
   public void testConceptDynamicMapping() throws Exception {
@@ -78,12 +78,14 @@ public class DynamicMappingTest {
 
     if (result) {
       operationsService
-          .getElasticsearchOperations()
+          .getOpenSearchOperations()
           .indexOps(IndexCoordinates.of(indexName))
           .putMapping(Concept.class);
     }
     operationsService.index(concept, indexName, Concept.class);
     assertNotNull(concept);
+
+    logger.info("      mapping = " + operationsService.getMapping(indexName));
 
     // get a concept
     try {

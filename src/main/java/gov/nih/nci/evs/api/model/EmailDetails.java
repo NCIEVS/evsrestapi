@@ -14,6 +14,7 @@ import org.slf4j.LoggerFactory;
 public class EmailDetails extends BaseModel {
   /** The Constant logger. */
   // Logger
+  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(EmailDetails.class);
 
   /** The source. */

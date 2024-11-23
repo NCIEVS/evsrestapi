@@ -48,7 +48,8 @@ public class SparqlQueryCacheService {
    */
   @Cacheable(
       value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion()}")
+      key = "{#root.methodName,#terminology.getTerminologyVersion()}",
+      condition = "#terminology != null")
   public List<String> getHierarchy(
       final Terminology terminology,
       final RESTUtils restUtils,
@@ -169,7 +170,8 @@ public class SparqlQueryCacheService {
    */
   @Cacheable(
       value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion(),#ip.toString()}")
+      key = "{#root.methodName,#terminology.getTerminologyVersion(),#ip.toString()}",
+      condition = "#terminology != null")
   public List<Concept> getAllQualifiers(
       final Terminology terminology,
       final IncludeParam ip,
@@ -242,7 +244,8 @@ public class SparqlQueryCacheService {
    */
   @Cacheable(
       value = "terminology",
-      key = "{#root.methodName, #terminology.getTerminologyVersion()}")
+      key = "{#root.methodName,#terminology.getTerminologyVersion()}",
+      condition = "#terminology != null")
   public HierarchyUtils getHierarchyUtils(
       final Terminology terminology,
       final RESTUtils restUtils,
