@@ -55,7 +55,7 @@ public class MetaTreeNode
 	public void setCui(String cui) {
 		this._cui = cui;
 	}
-
+
 	public void setCode(String code) {
 		this._code = code;
 	}
@@ -92,7 +92,7 @@ public class MetaTreeNode
 	public String getCui() {
 		return this._cui;
 	}
-
+
 	public String getCode() {
 		return this._code;
 	}
