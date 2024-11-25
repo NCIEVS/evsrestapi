@@ -3588,7 +3588,7 @@ public class SearchControllerTests {
             + "    ?x a owl:Class .\n"
             + "    ?x :NHC0 ?code .\n"
             + "    ?x :P108 ?label .\n"
-            + "    FILTER(CONTAINS(?label, \"Melanoma\"))\n"
+            + "    FILTER(STRSTARTS(?label, \"Melanoma\"))\n"
             + "  }\n"
             + "}";
     log.info("Testing url - " + url + "?type=contains&include=minimal&term=Theraccine");
