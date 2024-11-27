@@ -11,8 +11,8 @@ Information on downloading and using stardog with EVSRESTAPI.
       docker pull stardog/stardog:latest
       docker volume create --name stardog-home2 -d local
 
-* Using an existing stardog license (in $dir). Make sure your license file is called `stardog-license-key.bin` and
-  is in the $dir directory on your local machine.
+* Using an existing stardog license (in `$dir`). Make sure your license file is called `stardog-license-key.bin` and
+  is in the `$dir` directory on your local machine.
 
       docker run -it --entrypoint "/bin/bash" -v "$dir":/data -v stardog-home2:/var/opt/stardog stardog/stardog
       [stardog@0b9fbb0b90ba bin]# cp /data/stardog-license-key.bin /var/opt/stardog

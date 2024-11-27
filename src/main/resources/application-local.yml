@@ -80,8 +80,8 @@ nci:
     bulkload:
       conceptsDir: ${NCI_EVS_BULK_LOAD_CONCEPTS_DIR:/tmp/}
       lockFile: ${NCI_EVS_BULK_LOAD_LOCK_FILE_NAME:DownloadSuccessfull.lck}
-      downloadBatchSize: ${NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE:1000}
-      indexBatchSize: ${NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE:1000}
+      downloadBatchSize: ${NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE:250}
+      indexBatchSize: ${NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE:250}
       stardogDbs: ${STARDOG_DBS:CTRP,NCIT2}
     stardog:
       host: ${STARDOG_HOST:localhost}
@@ -91,7 +91,7 @@ nci:
       username: admin
       password: admin
       readTimeout: 500000
-      connectTimeout: 500000
+      connectTimeout: 30000
     elasticsearch:
       server:
         host: ${ES_HOST:localhost}
