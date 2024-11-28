@@ -4200,6 +4200,41 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test sparql with prefixes. We are just looking here that there are no errors.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSparqlWithPrefixes() throws Exception {
+
+    // Concept sparql
+    final String sparql =
+        """
+            PREFIX xyz:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>
+              PREFIX owl:<http://www.w3.org/2002/07/owl#>
+              SELECT ?code WHERE { ?x a owl:Class . ?x xyz:NHC0 ?code .?x xyz:P108 "Melanoma" }
+        """;
+    mvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/concept/ncit/search")
+                .content(sparql)
+                .contentType("text/plain")
+                .param("include", "minimal")
+                .param("prefixes", "true"))
+        .andExpect(status().isOk())
+        .andReturn();
+
+    // General sparql
+    log.info("Testing url - /api/v1/concept/ncit/search?prefixes=true&include=minimal");
+    mvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/sparql/ncit")
+                .content(sparql)
+                .contentType("text/plain")
+                .param("prefixes", "true"))
+        .andExpect(status().isOk())
+        .andReturn();
+  }
+
+  /**
    * Removes the time taken.
    *
    * @param response the response
