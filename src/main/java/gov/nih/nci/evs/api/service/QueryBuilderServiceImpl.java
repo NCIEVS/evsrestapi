@@ -1,11 +1,9 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.properties.StardogProperties;
-import gov.nih.nci.evs.api.util.ConceptUtils;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.slf4j.Logger;
@@ -14,6 +12,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 
 /**
  * Reference implementation of {@link QueryBuilderService}. Includes hibernate tags for MEME
@@ -78,15 +80,23 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     return prefix;
   }
 
-  /* see superclass */
   @Override
   public String prepSparql(final Terminology terminology, final String query) {
+    return prepSparql(terminology, query, false);
+  }
+
+  /* see superclass */
+  @Override
+  public String prepSparql(
+      final Terminology terminology, final String query, final Boolean keepPrefixes) {
 
     // Replace non space whitespace
     String sparqlQuery = query.replaceAll("[\t\r\n]", "::newline::");
 
     // Replace prefixes
-    sparqlQuery = sparqlQuery.replaceFirst("(?i:.*?SELECT )", "SELECT ");
+    if (keepPrefixes == null || !keepPrefixes) {
+      sparqlQuery = sparqlQuery.replaceFirst("(?i:.*?SELECT )", "SELECT ");
+    }
 
     // Replace graph
     sparqlQuery =
@@ -105,7 +115,10 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     }
     sparqlQuery = sparqlQuery.replaceAll("::newline::", "\n");
 
-    return constructPrefix(terminology) + "\n" + sparqlQuery;
+    return ((keepPrefixes == null || !keepPrefixes)
+            ? (constructPrefix(terminology) + "\n")
+            : "")
+        + sparqlQuery;
   }
 
   /**

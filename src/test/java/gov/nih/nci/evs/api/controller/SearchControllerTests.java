@@ -4159,6 +4159,7 @@ public class SearchControllerTests {
     log.info("  hgnc prefixes = " + content);
     assertThat(content).startsWith("\"PREFIX ");
     assertThat(content).doesNotContain("Thesaurus.owl");
+    assertThat(content).doesNotContain("\r");
     assertThat(content).contains(":<http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#>");
   }
 

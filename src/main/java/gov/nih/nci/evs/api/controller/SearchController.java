@@ -727,6 +727,12 @@ public class SearchController extends BaseController {
         schema = @Schema(implementation = String.class),
         example = "minimal"),
     @Parameter(
+        name = "prefixes",
+        description = "Use 'true' to use queries with declared prefixes",
+        required = false,
+        schema = @Schema(implementation = Boolean.class),
+        example = "true"),
+    @Parameter(
         name = "fromRecord",
         description = "Start index of the search results",
         required = false,
@@ -865,6 +871,7 @@ public class SearchController extends BaseController {
   public @ResponseBody ConceptResultList searchSingleTerminologySparql(
       @PathVariable(value = "terminology") final String terminology,
       @RequestParam(required = false, name = "include") final Optional<String> include,
+      @RequestParam(required = false, name = "prefixes") final Boolean prefixes,
       @org.springframework.web.bind.annotation.RequestBody final String query,
       @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
       BindingResult bindingResult,
@@ -888,7 +895,7 @@ public class SearchController extends BaseController {
     final ObjectMapper mapper = new ObjectMapper();
     try {
 
-      final String sparqlQuery = queryBuilderService.prepSparql(term, query);
+      final String sparqlQuery = queryBuilderService.prepSparql(term, query, prefixes);
       // The following messages up "total" - so we need to either find it another way from
       // the sparql response OR we need to not limit this but do so with paging.
       //      sparqlQuery += " LIMIT 1000";
@@ -1030,6 +1037,12 @@ public class SearchController extends BaseController {
         schema = @Schema(implementation = Integer.class),
         example = "10"),
     @Parameter(
+        name = "prefixes",
+        description = "Use 'true' to use queries with declared prefixes",
+        required = false,
+        schema = @Schema(implementation = Boolean.class),
+        example = "true"),
+    @Parameter(
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
@@ -1048,6 +1061,7 @@ public class SearchController extends BaseController {
       @PathVariable(value = "terminology") final String terminology,
       @RequestParam(required = false, name = "fromRecord") final Integer fromRecord,
       @RequestParam(required = false, name = "pageSize") final Integer pageSize,
+      @RequestParam(required = false, name = "prefixes") final Boolean prefixes,
       @org.springframework.web.bind.annotation.RequestBody final String query,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
@@ -1077,7 +1091,7 @@ public class SearchController extends BaseController {
       }
 
       final ObjectMapper mapper = new ObjectMapper();
-      String sparqlQuery = queryBuilderService.prepSparql(term, query);
+      String sparqlQuery = queryBuilderService.prepSparql(term, query, prefixes);
 
       // The following messages up "total" - so we need to either find it another way from
       // the sparql response OR we need to not limit this but do so with paging.
@@ -1166,7 +1180,7 @@ public class SearchController extends BaseController {
             HttpStatus.EXPECTATION_FAILED,
             "Terminology is not RDF-based and cannot be queried for sparql");
       }
-      final String prefixes = queryBuilderService.constructPrefix(term);
+      final String prefixes = queryBuilderService.constructPrefix(term).replaceAll("\\r", "");
       return new ResponseEntity<>(
           new ObjectMapper().writeValueAsString(prefixes), new HttpHeaders(), HttpStatus.OK);
 
