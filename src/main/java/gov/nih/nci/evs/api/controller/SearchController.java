@@ -42,7 +42,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -876,6 +878,12 @@ public class SearchController extends BaseController {
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Missing SPARQL query");
     }
 
+    if (term.getSource() == null) {
+      throw new ResponseStatusException(
+          HttpStatus.EXPECTATION_FAILED,
+          "Terminology is not RDF-based and cannot be queried for sparql");
+    }
+
     termUtils.checkLicense(term, license);
     final ObjectMapper mapper = new ObjectMapper();
     try {
@@ -1041,10 +1049,16 @@ public class SearchController extends BaseController {
       @RequestParam(required = false, name = "fromRecord") final Integer fromRecord,
       @RequestParam(required = false, name = "pageSize") final Integer pageSize,
       @org.springframework.web.bind.annotation.RequestBody final String query,
-      @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license) {
+      @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
+      throws Exception {
 
     try {
       final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
+      if (term.getSource() == null) {
+        throw new ResponseStatusException(
+            HttpStatus.EXPECTATION_FAILED,
+            "Terminology is not RDF-based and cannot be queried for sparql");
+      }
       String res = null;
       termUtils.checkLicense(term, license);
 
@@ -1093,10 +1107,72 @@ public class SearchController extends BaseController {
       throw new QueryException(
           "SPARQL query failed validation. Please review your query for syntax mistakes.\n"
               + errorMessage);
+    } catch (final ResponseStatusException re) {
+      handleException(re);
+      return null;
     } catch (final Exception e) {
       String errorMessage = extractErrorMessage(e.getMessage());
 
       throw new ResponseStatusException(HttpStatus.BAD_REQUEST, errorMessage);
+    }
+  }
+
+  @Operation(summary = "Get default prefixes used by SPARQL queries")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Successfully retrieved the requested information",
+        content = {
+          @Content(mediaType = "application/json", schema = @Schema(implementation = String.class))
+        }),
+    @ApiResponse(
+        responseCode = "400",
+        description = "Bad request",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = RestException.class))),
+    @ApiResponse(
+        responseCode = "417",
+        description = "Expectation failed",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+    @Parameter(
+        name = "terminology",
+        description =
+            "Single terminology to find prefixes for, e.g. 'ncit' or 'hgnc' (<a"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " here for complete list</a>)",
+        required = true,
+        schema = @Schema(implementation = String.class),
+        example = "ncit")
+  })
+  @RecordMetric
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = "/sparql/{terminology}/prefixes",
+      produces = "application/json")
+  public @ResponseBody ResponseEntity<String> getSparqlPrefixes(
+      @PathVariable(value = "terminology") final String terminology) throws Exception {
+
+    try {
+      final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
+      if (term.getSource() == null) {
+        throw new ResponseStatusException(
+            HttpStatus.EXPECTATION_FAILED,
+            "Terminology is not RDF-based and cannot be queried for sparql");
+      }
+      final String prefixes = queryBuilderService.constructPrefix(term);
+      return new ResponseEntity<>(
+          new ObjectMapper().writeValueAsString(prefixes), new HttpHeaders(), HttpStatus.OK);
+
+    } catch (final Exception e) {
+      handleException(e);
+      return null;
     }
   }
 

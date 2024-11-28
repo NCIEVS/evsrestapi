@@ -4023,7 +4023,7 @@ public class SearchControllerTests {
    * @throws Exception the exception
    */
   @Test
-  public void testSearctAllNcit() throws Exception {
+  public void testSearchAllNcit() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
@@ -4072,13 +4072,13 @@ public class SearchControllerTests {
   }
 
   /**
-   * Test searct all ncit with sort. This is separate from the prior test because we want to verify
+   * Test search all ncit with sort. This is separate from the prior test because we want to verify
    * that both "rank" sort and a fielded sort behave the same way with respect to this paging stuff.
    *
    * @throws Exception the exception
    */
   @Test
-  public void testSearctAllNcitWithSort() throws Exception {
+  public void testSearchAllNcitWithSort() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
@@ -4125,6 +4125,77 @@ public class SearchControllerTests {
     assertThat(codeSet.size()).isEqualTo(codes.size());
     assertThat(total).isEqualTo(codeSet.size());
     assertThat((long) fromRecord).isGreaterThan(total);
+  }
+
+  /**
+   * Test sparql prefixes.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSparqlPrefixes() throws Exception {
+    MvcResult result = null;
+    String content = null;
+
+    String nciturl = "/api/v1/sparql/ncit/prefixes";
+
+    log.info("Testing url - " + nciturl);
+    // Test a basic term search
+    result = this.mvc.perform(get(nciturl)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    assertThat(content).isNotNull();
+    log.info("  ncit prefixes = " + content);
+    assertThat(content).startsWith("\"PREFIX ");
+    assertThat(content).contains(" :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>");
+    assertThat(content).doesNotContain("HGNC.owl");
+
+    String hgncurl = "/api/v1/sparql/hgnc/prefixes";
+
+    log.info("Testing url - " + hgncurl);
+    // Test a basic term search
+    result = this.mvc.perform(get(hgncurl)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    assertThat(content).isNotNull();
+    log.info("  hgnc prefixes = " + content);
+    assertThat(content).startsWith("\"PREFIX ");
+    assertThat(content).doesNotContain("Thesaurus.owl");
+    assertThat(content).contains(":<http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#>");
+  }
+
+  /**
+   * Test non rdf with sparql.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testNonRdfWithSparql() throws Exception {
+
+    log.info("Testing url - " + "/api/v1/sparql/ncim");
+    // Test a basic term search
+    this.mvc
+        .perform(
+            MockMvcRequestBuilders.post("/api/v1/sparql/ncim")
+                .content("query not important")
+                .contentType("text/plain"))
+        .andExpect(status().isExpectationFailed())
+        .andReturn();
+
+    log.info("Testing url - " + "/api/v1/sparql/ncim/prefixes");
+    // Test a basic term search
+    this.mvc
+        .perform(get("/api/v1/sparql/ncim/prefixes"))
+        .andExpect(status().isExpectationFailed())
+        .andReturn();
+
+    log.info("Testing url - /api/v1/concept/ncim/search?type=contains&include=minimal");
+    mvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/concept/ncim/search")
+                .content("query not important")
+                .contentType("text/plain")
+                .param("include", "minimal")
+                .param("type", "contains"))
+        .andExpect(status().isExpectationFailed())
+        .andReturn();
   }
 
   /**
