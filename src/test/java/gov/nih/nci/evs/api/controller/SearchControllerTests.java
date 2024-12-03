@@ -2889,6 +2889,30 @@ public class SearchControllerTests {
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
   }
 
+  @Test
+  public void testSearchCdiscSubsets() throws Exception {
+    String url = baseUrlNoTerm;
+    MvcResult result = null;
+    ConceptResultList list = null;
+    log.info(
+        "Testing url - "
+            + url
+            + "/ncit/search"
+            + "?include=associations&subset=C81224&terminology=ncit");
+    result =
+        mvc.perform(
+                get(url + "/ncit/search")
+                    .param("subset", "C167405")
+                    .param("include", "associations"))
+            .andExpect(status().isOk())
+            .andReturn();
+    list =
+        new ObjectMapper()
+            .readValue(result.getResponse().getContentAsString(), ConceptResultList.class);
+    assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
+    assertThat(list.getTotal()).isEqualTo(27);
+  }
+
   /**
    * Test that search deboosts retired concepts.
    *

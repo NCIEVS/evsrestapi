@@ -7,6 +7,7 @@ import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -297,22 +298,7 @@ public class SubsetController extends BaseController {
       final List<Association> associations = concept.get().getInverseAssociations();
 
       // This is really hacky, but it's very hard to get at the logic for this in a different way
-      final boolean cdiscGrouper =
-          // this code
-          concept.get().getCode().equals("C61410")
-              // Or CDISC... without a CDISC/SY
-              || (concept.get().getName().startsWith("CDISC ")
-                  && concept.get().getSynonyms().stream()
-                          .filter(
-                              s -> "CDISC".equals(s.getSource()) && "SY".equals(s.getTermType()))
-                          .count()
-                      == 0);
-
-      // If cdisc grouper, remove all associations that have a related concept name that doesn't
-      // start with CDISC
-      if (cdiscGrouper) {
-        associations.removeIf(a -> !a.getRelatedName().startsWith("CDISC "));
-      }
+      ConceptUtils.cleanCdiscGrouperAssociations(concept.get(), associations);
 
       final List<Concept> subsets = new ArrayList<>();
       final int associationListSize = associations.size();

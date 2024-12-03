@@ -1,5 +1,25 @@
 package gov.nih.nci.evs.api.util;
 
+import java.net.URLEncoder;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.apache.lucene.queryparser.classic.QueryParserBase;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.util.CollectionUtils;
+import org.tartarus.snowball.SnowballStemmer;
+import org.tartarus.snowball.ext.EnglishStemmer;
+
+import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
@@ -12,23 +32,6 @@ import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.apache.lucene.queryparser.classic.QueryParserBase;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.util.CollectionUtils;
-import org.tartarus.snowball.SnowballStemmer;
-import org.tartarus.snowball.ext.EnglishStemmer;
 
 /** Utilities for handling the "include" flag, and converting EVSConcept to Concept. */
 public final class ConceptUtils {
@@ -769,5 +772,34 @@ public final class ConceptUtils {
    */
   public static boolean isEmpty(final String str) {
     return str == null || str.isEmpty();
+  }
+
+  /**
+   * Indicates whether or not the concept is a CDISC grouper.
+   *
+   * @param concept the concept
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public static boolean isCdiscGrouper(final Concept concept) {
+    // this code
+    return concept.getCode().equals("C61410")
+        // Or CDISC... without a CDISC/SY
+        || (concept.getName().startsWith("CDISC ")
+            && concept.getSynonyms().stream()
+                    .filter(s -> "CDISC".equals(s.getSource()) && "SY".equals(s.getTermType()))
+                    .count()
+                == 0);
+  }
+
+  /**
+   * Clean CDISC grouper associations.
+   *
+   * @param associations the associations
+   */
+  public static void cleanCdiscGrouperAssociations(
+      final Concept concept, final List<Association> associations) {
+    if (isCdiscGrouper(concept)) {
+      associations.removeIf(a -> !a.getRelatedName().startsWith("CDISC "));
+    }
   }
 }
