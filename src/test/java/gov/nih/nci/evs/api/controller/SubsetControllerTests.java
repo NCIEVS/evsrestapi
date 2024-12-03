@@ -363,7 +363,6 @@ public class SubsetControllerTests {
                 new TypeReference<List<Concept>>() {
                   // n/a
                 });
-    log.info("XXX list  = " + list.size());
     assertThat(list.size()).isGreaterThan(0);
   }
 }
