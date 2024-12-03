@@ -286,22 +286,42 @@ public class SubsetController extends BaseController {
       final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
 
       final Optional<Concept> concept =
-          elasticQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
+          elasticQueryService.getConcept(
+              code, term, new IncludeParam("synonyms,inverseAssociations"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(
             HttpStatus.NOT_FOUND, "Subset not found for code = " + code);
       }
 
+      final List<Association> associations = concept.get().getInverseAssociations();
+
+      // This is really hacky, but it's very hard to get at the logic for this in a different way
+      final boolean cdiscGrouper =
+          // this code
+          concept.get().getCode().equals("C61410")
+              // Or CDISC... without a CDISC/SY
+              || (concept.get().getName().startsWith("CDISC ")
+                  && concept.get().getSynonyms().stream()
+                          .filter(
+                              s -> "CDISC".equals(s.getSource()) && "SY".equals(s.getTermType()))
+                          .count()
+                      == 0);
+
+      // If cdisc grouper, remove all associations that have a related concept name that doesn't
+      // start with CDISC
+      if (cdiscGrouper) {
+        associations.removeIf(a -> !a.getRelatedName().startsWith("CDISC "));
+      }
+
       final List<Concept> subsets = new ArrayList<>();
-      final int associationListSize = concept.get().getInverseAssociations().size();
+      final int associationListSize = associations.size();
 
       if (associationListSize > 0) {
         final int fromIndex = fromRecord.orElse(0);
         final int toIndex =
             Math.min(pageSize.orElse(associationListSize) + fromIndex, associationListSize);
-        for (final Association assn :
-            concept.get().getInverseAssociations().subList(fromIndex, toIndex)) {
+        for (final Association assn : associations.subList(fromIndex, toIndex)) {
           final Concept member =
               elasticQueryService.getConcept(assn.getRelatedCode(), term, ip).orElse(null);
           if (member != null) {

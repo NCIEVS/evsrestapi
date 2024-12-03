@@ -260,4 +260,110 @@ public class SubsetControllerTests {
       }
     }
   }
+
+  /**
+   * Test subset members.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSubsetMembers() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> list = null;
+
+    // C81224 - 27 members, no properties
+    url = baseUrl + "subset/ncit/C81224/members";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotNull();
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(list.size()).isEqualTo(27);
+    assertThat(list.stream().flatMap(c -> c.getProperties().stream()).count()).isEqualTo(0);
+
+    // C81224 - 29 members, no properties
+    url = baseUrl + "subset/ncit/C81224/members";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotNull();
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(list.size()).isEqualTo(27);
+    assertThat(list.stream().flatMap(c -> c.getProperties().stream()).count()).isEqualTo(0);
+
+    // C81222 - CDISC ADaM terminology
+    // contains C81226
+    // does not contain C82867
+    url = baseUrl + "subset/ncit/C81222/members";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotNull();
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(list.size()).isEqualTo(12);
+    assertThat(list.stream().flatMap(c -> c.getProperties().stream()).count()).isEqualTo(0);
+    assertThat(list.stream().filter(c -> c.getCode().equals("C81226")).count()).isGreaterThan(0);
+    assertThat(list.stream().filter(c -> c.getCode().equals("C82867")).count()).isEqualTo(0);
+    // All ADAM members start with "CDISC ..."
+    assertThat(list.stream().filter(c -> !c.getName().startsWith("CDISC")).count()).isEqualTo(0);
+
+    url = baseUrl + "subset/ncit/C81222/members?fromRecord=0&pageSize=5";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotNull();
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(list.size()).isEqualTo(5);
+    // All ADAM members start with "CDISC ..."
+    assertThat(list.stream().filter(c -> !c.getName().startsWith("CDISC")).count()).isEqualTo(0);
+
+    //    C61410 - Clinical Data Interchange Standards Consortium Terminology
+    // Has many fewer entries than 30k (which is what is in prod as of 202412)
+    url = baseUrl + "subset/ncit/C61410/members";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotNull();
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    log.info("XXX list  = " + list.size());
+    assertThat(list.size()).isGreaterThan(0);
+  }
 }
