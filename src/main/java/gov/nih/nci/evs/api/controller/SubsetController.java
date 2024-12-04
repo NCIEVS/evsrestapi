@@ -7,6 +7,7 @@ import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -286,22 +287,27 @@ public class SubsetController extends BaseController {
       final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
 
       final Optional<Concept> concept =
-          elasticQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
+          elasticQueryService.getConcept(
+              code, term, new IncludeParam("synonyms,inverseAssociations"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(
             HttpStatus.NOT_FOUND, "Subset not found for code = " + code);
       }
 
+      final List<Association> associations = concept.get().getInverseAssociations();
+
+      // This is really hacky, but it's very hard to get at the logic for this in a different way
+      ConceptUtils.cleanCdiscGrouperAssociations(concept.get(), associations);
+
       final List<Concept> subsets = new ArrayList<>();
-      final int associationListSize = concept.get().getInverseAssociations().size();
+      final int associationListSize = associations.size();
 
       if (associationListSize > 0) {
         final int fromIndex = fromRecord.orElse(0);
         final int toIndex =
             Math.min(pageSize.orElse(associationListSize) + fromIndex, associationListSize);
-        for (final Association assn :
-            concept.get().getInverseAssociations().subList(fromIndex, toIndex)) {
+        for (final Association assn : associations.subList(fromIndex, toIndex)) {
           final Concept member =
               elasticQueryService.getConcept(assn.getRelatedCode(), term, ip).orElse(null);
           if (member != null) {

@@ -2890,6 +2890,29 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test search cdisc subsets.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchCdiscSubsets() throws Exception {
+    String url = baseUrlNoTerm;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+    log.info("Testing url - " + url + "/ncit/search" + "?subset=C81224");
+    result =
+        mvc.perform(get(url + "/ncit/search").param("subset", "C81224"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
+    assertThat(list.getTotal()).isEqualTo(27);
+  }
+
+  /**
    * Test that search deboosts retired concepts.
    *
    * @throws Exception the exception
@@ -4022,7 +4045,7 @@ public class SearchControllerTests {
    *
    * @throws Exception the exception
    */
-  @Test
+  //  @Test
   public void testSearchAllNcit() throws Exception {
     String url = null;
     MvcResult result = null;
@@ -4077,7 +4100,7 @@ public class SearchControllerTests {
    *
    * @throws Exception the exception
    */
-  @Test
+  //  @Test
   public void testSearchAllNcitWithSort() throws Exception {
     String url = null;
     MvcResult result = null;

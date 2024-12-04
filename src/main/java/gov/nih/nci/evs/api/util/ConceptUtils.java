@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.util;
 
+import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
@@ -769,5 +770,39 @@ public final class ConceptUtils {
    */
   public static boolean isEmpty(final String str) {
     return str == null || str.isEmpty();
+  }
+
+  /**
+   * Indicates whether or not the concept is a CDISC grouper.
+   *
+   * @param concept the concept
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public static boolean isCdiscGrouper(final Concept concept) {
+    // this code
+    return concept.getCode().equals("C61410")
+        // Or CDISC... without a CDISC/SY
+        // NOTE MRCT-Ctr case is not a grouper so it can be excluded here
+        || (concept.getName().startsWith("CDISC ")
+            && concept.getSynonyms().stream()
+                    .filter(
+                        s ->
+                            s.getSource() != null
+                                && s.getSource().startsWith("CDISC")
+                                && "SY".equals(s.getTermType()))
+                    .count()
+                == 0);
+  }
+
+  /**
+   * Clean CDISC grouper associations to only keep the other groupers or codelist codes.
+   *
+   * @param associations the associations
+   */
+  public static void cleanCdiscGrouperAssociations(
+      final Concept concept, final List<Association> associations) {
+    if (isCdiscGrouper(concept)) {
+      associations.removeIf(a -> !a.getRelatedName().startsWith("CDISC "));
+    }
   }
 }
