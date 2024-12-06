@@ -782,7 +782,6 @@ public final class ConceptUtils {
     // this code
     return concept.getCode().equals("C61410")
         // Or CDISC... without a CDISC/SY
-        // NOTE MRCT-Ctr case is not a grouper so it can be excluded here
         || (concept.getName().startsWith("CDISC ")
             && concept.getSynonyms().stream()
                     .filter(
