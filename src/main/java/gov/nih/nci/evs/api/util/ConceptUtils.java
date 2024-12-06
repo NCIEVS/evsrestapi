@@ -788,7 +788,8 @@ public final class ConceptUtils {
                     .filter(
                         s ->
                             s.getSource() != null
-                                && s.getSource().startsWith("CDISC")
+                                && (s.getSource().startsWith("CDISC")
+                                    || s.getSource().startsWith("MRCT"))
                                 && "SY".equals(s.getTermType()))
                     .count()
                 == 0);
