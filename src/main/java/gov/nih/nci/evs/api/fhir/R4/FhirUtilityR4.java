@@ -10,7 +10,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
@@ -131,7 +133,7 @@ public final class FhirUtilityR4 {
     uri.put("obi", "https://obi-ontology.org/");
     uri.put("obib", "https://obofoundry.org/ontology/obib.html");
     uri.put("ndfrt", "https://bioportal.bioontology.org/ontologies/NDF-RT");
-    uri.put("snomedct_us", "http://terminology.hl7.org/CodeSystem/snomedct_us");
+    uri.put("snomedct_us", "http://snomed.info/sct");
     uri.put("ctcae5", "http://hl7.org/fhir/us/ctcae");
     uri.put("lnc", "http://loinc.org");
     uri.put("ncit", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
@@ -149,6 +151,9 @@ public final class FhirUtilityR4 {
     uri.put("npo", "http://purl.bioontology.org/ontology/npo");
     uri.put("ma", "http://purl.obolibrary.org/obo/emap.owl");
     uri.put("zfa", "http://purl.obolibrary.org/obo/zfa.owl");
+    for (final Map.Entry<String, String> entry : new HashSet<>(uris.entrySet())) {
+      uris.put(entry.getValue(), entry.getKey());
+    }
     return uri;
   }
 
