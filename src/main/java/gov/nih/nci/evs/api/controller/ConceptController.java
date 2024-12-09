@@ -1715,7 +1715,7 @@ public class ConceptController extends BaseController {
 
       // Limit to 10 paths if a limit of >10 is used.
       final int pathLimit =
-          (limit.orElse(0) > 10) ? 10 : (limit.isPresent() ? limit.get().intValue() : -1);
+          (limit.orElse(0) > 100) ? 100 : (limit.isPresent() ? limit.get().intValue() : -1);
       final List<Path> ps = paths.getPaths();
       int ct = 0;
       for (final Path path : ps) {
