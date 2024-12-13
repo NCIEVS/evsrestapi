@@ -96,7 +96,7 @@ public class FhirUtilityR5 {
     uris.put("obi", "https://obi-ontology.org/");
     uris.put("obib", "https://obofoundry.org/ontology/obib.html");
     uris.put("ndfrt", "https://bioportal.bioontology.org/ontologies/NDF-RT");
-    uris.put("snomedct_us", "http://terminology.hl7.org/CodeSystem/snomedct_us");
+    uris.put("snomedct_us", "http://snomed.info/sct");
     uris.put("ctcae5", "http://hl7.org/fhir/us/ctcae");
     uris.put("lnc", "http://loinc.org");
     uris.put("ncit", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");

@@ -131,7 +131,7 @@ public final class FhirUtilityR4 {
     uri.put("obi", "https://obi-ontology.org/");
     uri.put("obib", "https://obofoundry.org/ontology/obib.html");
     uri.put("ndfrt", "https://bioportal.bioontology.org/ontologies/NDF-RT");
-    uri.put("snomedct_us", "http://terminology.hl7.org/CodeSystem/snomedct_us");
+    uri.put("snomedct_us", "http://snomed.info/sct");
     uri.put("ctcae5", "http://hl7.org/fhir/us/ctcae");
     uri.put("lnc", "http://loinc.org");
     uri.put("ncit", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
