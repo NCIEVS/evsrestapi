@@ -11,7 +11,7 @@ import java.util.stream.Collectors;
  * Utility class for subset operations. Used for validating and determining if a CDISC subset
  * concepts are codelist or grouper subsets.
  */
-public class SubsetUtility {
+public final class SubsetUtility {
 
   /**
    * Checks if the concept is ncit and a subset.
@@ -20,7 +20,7 @@ public class SubsetUtility {
    * @return true if the concept is a subset, false otherwise
    * @throws Exception exception
    */
-  public boolean isSubset(Concept concept) throws Exception {
+  public static boolean isSubset(Concept concept) throws Exception {
     if (concept == null || concept.getProperties() == null) {
       throw new Exception("Concept is null");
     }
@@ -45,7 +45,7 @@ public class SubsetUtility {
    * @return true if the concept is a codelist subset, false otherwise
    * @throws Exception exception
    */
-  public boolean isCdisc(Concept concept) throws Exception {
+  public static boolean isCdisc(Concept concept) throws Exception {
     if (concept == null || concept.getProperties() == null) {
       throw new Exception("Concept is null");
     }
@@ -68,7 +68,7 @@ public class SubsetUtility {
    * @return true if the concept is a CDISC subset, false otherwise
    * @throws Exception exception
    */
-  public boolean isCdiscSubset(Concept concept) throws Exception {
+  public static boolean isCdiscSubset(Concept concept) throws Exception {
     if (concept == null || concept.getProperties() == null) {
       throw new Exception("Concept is null");
     }
@@ -82,7 +82,7 @@ public class SubsetUtility {
    * @return true if the concept has a CDISC synonym, false otherwise
    * @throws Exception exception
    */
-  public boolean hasCdiscSynonym(Concept concept) throws Exception {
+  public static boolean hasCdiscSynonym(Concept concept) throws Exception {
     if (concept == null || concept.getProperties() == null) {
       throw new Exception("Concept is null");
     }
@@ -107,7 +107,7 @@ public class SubsetUtility {
    * @return true if the concept is a CDISC grouper subset, false otherwise
    * @throws Exception exception
    */
-  public boolean isCdiscGrouper(Concept concept) throws Exception {
+  public static boolean isCdiscGrouper(Concept concept) throws Exception {
     if (concept == null || concept.getProperties() == null) {
       throw new Exception("Concept is null");
     }
@@ -121,7 +121,7 @@ public class SubsetUtility {
    * @return true if the concept is a CDISC codelist subset, false otherwise
    * @throws Exception exception
    */
-  public boolean isCdiscCodeList(Concept concept) throws Exception {
+  public static boolean isCdiscCodeList(Concept concept) throws Exception {
     if (concept == null || concept.getProperties() == null) {
       throw new Exception("Concept is null");
     }
@@ -135,7 +135,7 @@ public class SubsetUtility {
    * @return true if the concept is a CDISC member, false otherwise
    * @throws Exception exception
    */
-  public boolean isCdiscMember(Concept concept) throws Exception {
+  public static boolean isCdiscMember(Concept concept) throws Exception {
     if (concept == null || concept.getProperties() == null) {
       throw new Exception("Concept is null");
     }
@@ -171,7 +171,6 @@ public class SubsetUtility {
         throw new Exception("Unable to find submission value for " + subsetContributingSource + "/PT");
     }
     // Check if there is exactly one unique synonym
-    String nci_ab;
     if (cdiscSynonyms.size() == 1) {
       return cdiscSynonyms.get(0).getName();
     }
@@ -185,7 +184,7 @@ public class SubsetUtility {
      * @return the subset contributing source
      * @throws Exception exception
      */
-  private String getSubsetContributingSource(Concept subset) throws Exception {
+  private static String getSubsetContributingSource(Concept subset) throws Exception {
     if (subset == null || subset.getProperties() == null) {
       throw new Exception("Subset is null");
     }
@@ -204,7 +203,7 @@ public class SubsetUtility {
    * @return the CDISC synonyms that match the subset contributing source
    * @throws Exception exception
    */
-  private List<Synonym> getCdiscSynonyms(Concept concept, String subsetContSource) throws Exception {
+  private static List<Synonym> getCdiscSynonyms(Concept concept, String subsetContSource) throws Exception {
     if (concept == null || concept.getSynonyms() == null) {
       throw new Exception("Concept is null");
     }
@@ -219,7 +218,7 @@ public class SubsetUtility {
    * @return the NCI/AB PT name
    * @throws Exception exception
    */
-  private String getNciAbName(Concept subset, List<Synonym> cdiscSynonyms) throws Exception {
+  private static String getNciAbName(Concept subset, List<Synonym> cdiscSynonyms) throws Exception {
     if (subset == null || subset.getProperties() == null) {
       throw new Exception("Selected subset is null");
     }
