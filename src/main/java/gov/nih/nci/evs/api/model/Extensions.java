@@ -5,6 +5,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /** Represents a synonym of a concept. */
 @Schema(hidden = true)
@@ -35,6 +36,18 @@ public class Extensions extends BaseModel implements Comparable<Extensions> {
 
   /** The paths to root. */
   private List<Paths> mainMenuAncestors;
+
+  // grouper, codelist, concept type
+  private String cdiscType;
+
+  // only applies to codelist type or concept type (where only one CDISC/PT)
+  private String cdiscSubmissionValue;
+
+  // only applies to concept types
+  private Map<String, String> cdiscSubmissionValueMap;
+
+  // applies to codelist type (name of the NCI/AB code for a codelist)
+  private String cdiscSubmissionValueCode;
 
   /** Instantiates an empty {@link Extensions}. */
   public Extensions() {

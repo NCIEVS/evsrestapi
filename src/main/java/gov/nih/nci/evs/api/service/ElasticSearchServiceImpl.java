@@ -853,13 +853,13 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
   /**
    * builds nested query for subset criteria on value field for given types.
    *
-   * @param term the term
+   * @param terminologies the term
    * @param searchCriteria the search criteria
    * @return the nested query
    */
   private QueryBuilder getSubsetValueQueryBuilder(
       final List<Terminology> terminologies, SearchCriteria searchCriteria) {
-    if (searchCriteria.getSubset().size() == 0) return null;
+    if (searchCriteria.getSubset().isEmpty()) return null;
 
     List<String> subsets = searchCriteria.getSubset();
     BoolQueryBuilder subsetListQuery = QueryBuilders.boolQuery();

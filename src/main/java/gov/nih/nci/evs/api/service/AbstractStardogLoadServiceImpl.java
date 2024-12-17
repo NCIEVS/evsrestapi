@@ -118,8 +118,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
       throws Exception {
 
-    logger.debug(
-        "ElasticLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName());
+    logger.debug("ElasticLoadServiceImpl::load() - index = {}", terminology.getIndexName());
 
     boolean result =
         operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
@@ -176,7 +175,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
-   * load concepts directly from stardog in batches.
+   * load concepts directly from stardog in batches. TODO: update this method to set the cdiscType
    *
    * @param allConcepts all concepts to load
    * @param terminology the terminology
@@ -212,7 +211,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     Double taskSize = Math.ceil(total / INDEX_BATCH_SIZE);
 
     // build up a map of concept codes and names to use for history
-    if (historyMap.size() > 0) {
+    if (!historyMap.isEmpty()) {
 
       for (final Concept concept : allConcepts) {
         nameMap.put(concept.getCode(), concept.getName());
@@ -459,7 +458,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     // associationEntries
     for (Concept association : associations) {
       logger.info(association.getName());
-      entries = new ArrayList<>();
       if (association.getName().equals("Concept_In_Subset")) continue;
       for (String conceptCode : hierarchy.getAssociationMap().keySet()) {
         List<Association> conceptAssociations = hierarchy.getAssociationMap().get(conceptCode);
@@ -481,7 +479,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       operationsService.index(associationEntriesObject, indexName, ElasticObject.class);
     }
     logger.info("  Association Entries loaded");
-
     logger.info("Done loading Elastic Objects!");
   }
 
@@ -800,7 +797,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
         final String replacementCode = historyItem.get("replacementCode");
 
-        if (replacementCode != null && replacementCode != "") {
+        if (replacementCode != null && !replacementCode.isEmpty()) {
 
           history.setReplacementCode(replacementCode);
           history.setReplacementName(nameMap.get(replacementCode));
