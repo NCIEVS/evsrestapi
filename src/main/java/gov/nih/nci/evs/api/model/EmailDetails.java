@@ -204,7 +204,7 @@ public class EmailDetails extends BaseModel {
               String sectionName = section.getKey();
               JsonNode sectionNode = section.getValue();
               // Append section name as a header
-              htmlBody.append("<h2>").append(sectionName).append("</h2");
+              htmlBody.append("<h2>").append(sectionName).append("</h2>");
               // Create a list format of each subsection content with <ul>
               htmlBody.append("<ul>");
               sectionNode
