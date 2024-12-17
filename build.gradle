@@ -129,6 +129,7 @@ dependencies {
     exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
   }
   implementation 'ca.uhn.hapi.fhir:hapi-fhir-server-openapi:7.4.5'
+  implementation 'org.fhir:ucum:1.0.9'
 
   // For the moment, these require explicit 6.4.0 to resolve vulnerabilities (as 7.4.5 above is current)
   implementation 'ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.4.0'
