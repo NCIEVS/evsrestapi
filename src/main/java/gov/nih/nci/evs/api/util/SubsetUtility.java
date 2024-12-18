@@ -21,9 +21,7 @@ public final class SubsetUtility {
    * @throws Exception exception
    */
   public static boolean isSubset(Concept concept) throws Exception {
-    if (concept == null || concept.getProperties() == null) {
-      throw new Exception("Concept is null");
-    }
+    checkConceptIsNullOrEmpty(concept);
     String isSubset;
     List<Property> properties = concept.getProperties();
 
@@ -46,9 +44,7 @@ public final class SubsetUtility {
    * @throws Exception exception
    */
   public static boolean isCdisc(Concept concept) throws Exception {
-    if (concept == null || concept.getProperties() == null) {
-      throw new Exception("Concept is null");
-    }
+    checkConceptIsNullOrEmpty(concept);
     String isCodeList;
     List<Property> properties = concept.getProperties();
 
@@ -69,9 +65,7 @@ public final class SubsetUtility {
    * @throws Exception exception
    */
   public static boolean isCdiscSubset(Concept concept) throws Exception {
-    if (concept == null || concept.getProperties() == null) {
-      throw new Exception("Concept is null");
-    }
+    checkConceptIsNullOrEmpty(concept);
     return isSubset(concept) && isCdisc(concept);
   }
 
@@ -83,9 +77,7 @@ public final class SubsetUtility {
    * @throws Exception exception
    */
   public static boolean hasCdiscSynonym(Concept concept) throws Exception {
-    if (concept == null || concept.getProperties() == null) {
-      throw new Exception("Concept is null");
-    }
+    checkConceptIsNullOrEmpty(concept);
     List<Synonym> synonyms = concept.getSynonyms();
 
     for (Synonym synonym : synonyms) {
@@ -108,9 +100,7 @@ public final class SubsetUtility {
    * @throws Exception exception
    */
   public static boolean isCdiscGrouper(Concept concept) throws Exception {
-    if (concept == null || concept.getProperties() == null) {
-      throw new Exception("Concept is null");
-    }
+    checkConceptIsNullOrEmpty(concept);
     return isCdiscSubset(concept) && !hasCdiscSynonym(concept);
   }
 
@@ -122,9 +112,7 @@ public final class SubsetUtility {
    * @throws Exception exception
    */
   public static boolean isCdiscCodeList(Concept concept) throws Exception {
-    if (concept == null || concept.getProperties() == null) {
-      throw new Exception("Concept is null");
-    }
+    checkConceptIsNullOrEmpty(concept);
     return isCdiscSubset(concept) && hasCdiscSynonym(concept);
   }
 
@@ -136,16 +124,14 @@ public final class SubsetUtility {
    * @throws Exception exception
    */
   public static boolean isCdiscMember(Concept concept) throws Exception {
-    if (concept == null || concept.getProperties() == null) {
-      throw new Exception("Concept is null");
-    }
+    checkConceptIsNullOrEmpty(concept);
     return !isSubset(concept) && isCdisc(concept);
   }
 
   public String getCdiscSubmissionValue(Concept subset, Concept concept) throws Exception {
-    if (concept == null || concept.getProperties() == null) {
-      throw new Exception("Concept is null");
-    }
+    // Make sure our concepts are not null or empty
+    checkConceptIsNullOrEmpty(concept);
+    checkConceptIsNullOrEmpty(subset);
     // Groupers don't have submission values
     if (isCdiscGrouper(concept) || isCdiscCodeList(subset)) {
       return "";
@@ -162,32 +148,33 @@ public final class SubsetUtility {
     // source
     String subsetContributingSource = getSubsetContributingSource(subset);
     if (subsetContributingSource == null) {
-        throw new Exception("Unable to find submission value because codelist lacks contributing source");
+      throw new Exception(
+          "Unable to find submission value because codelist lacks contributing source");
     }
 
     // Find the matching contributing source PT
     List<Synonym> cdiscSynonyms = getCdiscSynonyms(concept, subsetContributingSource);
     if (cdiscSynonyms.isEmpty()) {
-        throw new Exception("Unable to find submission value for " + subsetContributingSource + "/PT");
+      throw new Exception(
+          "Unable to find submission value for " + subsetContributingSource + "/PT");
     }
     // Check if there is exactly one unique synonym
     if (cdiscSynonyms.size() == 1) {
       return cdiscSynonyms.get(0).getName();
     }
-    // Else, find the NCI/AB of the codelist concept and the CDISC/PT w/a code matching the NCI/AB name
+    // Else, find the NCI/AB of the codelist concept and the CDISC/PT w/a code matching the NCI/AB
+    // name
     return getNciAbName(subset, cdiscSynonyms);
   }
 
-    /**
-     * Get the subset contributing source helper method
-     * @param subset the subset concept
-     * @return the subset contributing source
-     * @throws Exception exception
-     */
+  /**
+   * Get the subset contributing source helper method
+   *
+   * @param subset the subset concept
+   * @return the subset contributing source
+   * @throws Exception exception
+   */
   private static String getSubsetContributingSource(Concept subset) throws Exception {
-    if (subset == null || subset.getProperties() == null) {
-      throw new Exception("Subset is null");
-    }
     List<Property> properties = subset.getProperties();
     Optional<Property> subsetContSource =
         properties.stream()
@@ -198,46 +185,57 @@ public final class SubsetUtility {
 
   /**
    * Get the CDISC synonyms that match the subset contributing source helper method
+   *
    * @param concept the concept
    * @param subsetContSource the subset contributing source
    * @return the CDISC synonyms that match the subset contributing source
    * @throws Exception exception
    */
-  private static List<Synonym> getCdiscSynonyms(Concept concept, String subsetContSource) throws Exception {
-    if (concept == null || concept.getSynonyms() == null) {
-      throw new Exception("Concept is null");
-    }
+  private static List<Synonym> getCdiscSynonyms(Concept concept, String subsetContSource)
+      throws Exception {
+    checkConceptIsNullOrEmpty(concept);
     return concept.getSynonyms().stream()
-            .filter(syn -> subsetContSource.equals(syn.getSource()) && "PT".equals(syn.getTermType()))
-            .collect(Collectors.toList());
+        .filter(syn -> subsetContSource.equals(syn.getSource()) && "PT".equals(syn.getTermType()))
+        .collect(Collectors.toList());
   }
 
   /**
    * Get the NCI/AB PT name helper method
+   *
    * @param subset the subset concept
    * @return the NCI/AB PT name
    * @throws Exception exception
    */
   private static String getNciAbName(Concept subset, List<Synonym> cdiscSynonyms) throws Exception {
-    if (subset == null || subset.getProperties() == null) {
-      throw new Exception("Selected subset is null");
-    }
-    Optional<Synonym> nciAbSynonym = subset.getSynonyms().stream()
-            .filter(synonym -> "NCI".equals(synonym.getSource()) && "AB".equals(synonym.getTermType()))
+    Optional<Synonym> nciAbSynonym =
+        subset.getSynonyms().stream()
+            .filter(
+                synonym -> "NCI".equals(synonym.getSource()) && "AB".equals(synonym.getTermType()))
             .findFirst();
 
     if (nciAbSynonym.isPresent()) {
       String nci_ab = nciAbSynonym.get().getName();
-      Optional<Synonym> finalSynonym = cdiscSynonyms.stream()
-              .filter(syn -> nci_ab.equals(syn.getCode()))
-              .findFirst();
+      Optional<Synonym> finalSynonym =
+          cdiscSynonyms.stream().filter(syn -> nci_ab.equals(syn.getCode())).findFirst();
       if (finalSynonym.isPresent()) {
         return finalSynonym.get().getName();
       } else {
-        throw new Exception("Unable to find submission value (synonym that matches NCI source and AB term type)");
+        throw new Exception(
+            "Unable to find submission value (synonym that matches NCI source and AB term type)");
       }
     }
     return null;
   }
 
+  /**
+   * Checks if the concept is null or empty. Helper method
+   *
+   * @param concept the concept
+   * @throws Exception exception
+   */
+  private static void checkConceptIsNullOrEmpty(Concept concept) throws Exception {
+    if (concept == null || concept.getProperties() == null || concept.getProperties().isEmpty()) {
+      throw new Exception("Concept is null");
+    }
+  }
 }
