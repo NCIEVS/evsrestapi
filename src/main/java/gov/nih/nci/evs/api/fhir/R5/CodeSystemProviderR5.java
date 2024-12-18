@@ -118,31 +118,31 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         // Skip non-matching
         if ((id != null && !id.getValue().equals(cs.getIdPart()))
             || (url != null && !url.getValue().equals(cs.getUrl()))) {
-          logger.info("  SKIP url mismatch = " + cs.getUrl());
+          logger.debug("  SKIP url mismatch = " + cs.getUrl());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cs.getDate())) {
-          logger.info("  SKIP date mismatch = " + cs.getDate());
+          logger.debug("  SKIP date mismatch = " + cs.getDate());
           continue;
         }
         if (description != null && !FhirUtility.compareString(description, cs.getDescription())) {
-          logger.info("  SKIP description mismatch = " + cs.getDescription());
+          logger.debug("  SKIP description mismatch = " + cs.getDescription());
           continue;
         }
         if (name != null && !FhirUtility.compareString(name, cs.getName())) {
-          logger.info("  SKIP name mismatch = " + cs.getName());
+          logger.debug("  SKIP name mismatch = " + cs.getName());
           continue;
         }
         if (publisher != null && !FhirUtility.compareString(publisher, cs.getPublisher())) {
-          logger.info("  SKIP publisher mismatch = " + cs.getPublisher());
+          logger.debug("  SKIP publisher mismatch = " + cs.getPublisher());
           continue;
         }
         if (title != null && !FhirUtility.compareString(title, cs.getTitle())) {
-          logger.info("  SKIP title mismatch = " + cs.getTitle());
+          logger.debug("  SKIP title mismatch = " + cs.getTitle());
           continue;
         }
         if (version != null && !FhirUtility.compareString(version, cs.getVersion())) {
-          logger.info("  SKIP version mismatch = " + cs.getVersion());
+          logger.debug("  SKIP version mismatch = " + cs.getVersion());
           continue;
         }
 
@@ -785,15 +785,15 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         // Skip non-matching
         if ((id != null && !id.getIdPart().equals(cs.getIdPart()))
             || (url != null && !url.getValue().equals(cs.getUrl()))) {
-          logger.info("  SKIP url mismatch = " + cs.getUrl());
+          logger.debug("  SKIP url mismatch = " + cs.getUrl());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cs.getDate())) {
-          logger.info("  SKIP date mismatch = " + cs.getDate());
+          logger.debug("  SKIP date mismatch = " + cs.getDate());
           continue;
         }
         if (version != null && !version.getValue().equals(cs.getVersion())) {
-          logger.info("  SKIP version mismatch = " + cs.getVersion());
+          logger.debug("  SKIP version mismatch = " + cs.getVersion());
           continue;
         }
         list.add(cs);
