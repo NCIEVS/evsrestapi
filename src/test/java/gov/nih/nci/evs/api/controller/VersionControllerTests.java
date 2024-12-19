@@ -693,5 +693,13 @@ public class VersionControllerTests {
           "src/main/resources/META-INF/maven/org.webjars/swagger-ui/pom.properties"
               + " does not contain the expected swagger version");
     }
+    if (FileUtils.readLines(new File("src/main/resources/META-INF/MANIFEST.MF"), "UTF-8").stream()
+            .filter(s -> s.contains(v))
+            .count()
+        == 0) {
+      fail(
+          "src/main/resources/META-INF/MANIFEST.MF"
+              + " does not contain the expected swagger version");
+    }
   }
 }
