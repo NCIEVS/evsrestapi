@@ -667,5 +667,31 @@ public class VersionControllerTests {
                 + " path %s",
             swaggerUiVersion, path)
         .isTrue();
+
+    // Verify that "pom.properties" and "pom.xml" reference this same version
+    final String v = swaggerUiVersion;
+    if (FileUtils.readLines(
+                new File("src/main/resources/META-INF/maven/org.webjars/swagger-ui/pom.properties"),
+                "UTF-8")
+            .stream()
+            .filter(s -> s.contains(v))
+            .count()
+        == 0) {
+      fail(
+          "src/main/resources/META-INF/maven/org.webjars/swagger-ui/pom.properties"
+              + " does not contain the expected swagger version");
+    }
+
+    if (FileUtils.readLines(
+                new File("src/main/resources/META-INF/maven/org.webjars/swagger-ui/pom.xml"),
+                "UTF-8")
+            .stream()
+            .filter(s -> s.contains(v))
+            .count()
+        == 0) {
+      fail(
+          "src/main/resources/META-INF/maven/org.webjars/swagger-ui/pom.properties"
+              + " does not contain the expected swagger version");
+    }
   }
 }
