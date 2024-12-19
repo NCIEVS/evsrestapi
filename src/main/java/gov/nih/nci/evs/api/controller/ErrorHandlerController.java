@@ -60,7 +60,6 @@ public class ErrorHandlerController implements ErrorController {
     String ppBody = null;
     try {
       ppBody = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(body);
-      ppBody = body.toString().replaceAll("<", "&lt;");
     } catch (Exception e) {
       ppBody = body.toString().replaceAll("<", "&lt;");
     }
