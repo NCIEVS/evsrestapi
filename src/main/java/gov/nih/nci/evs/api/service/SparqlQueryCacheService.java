@@ -154,7 +154,7 @@ public class SparqlQueryCacheService {
       parentchild.add(str.toString());
     }
 
-    logger.info("  role hierarchy entries = " + parentchild.size());
+    logger.debug("  role hierarchy entries = " + parentchild.size());
     return parentchild;
   }
 
