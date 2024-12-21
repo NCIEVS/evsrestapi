@@ -51,7 +51,8 @@ public final class SubsetUtility {
     for (Property property : properties) {
       if (property.getType().equals("Contributing_Source")) {
         isCodeList = property.getValue();
-        return isCodeList.equals("CDISC") || isCodeList.equals("MRCT-Ctr");
+        boolean isCdisc = isCodeList.startsWith("CDISC") || isCodeList.startsWith("MRCT-Ctr");
+        return isCdisc;
       }
     }
     return false;
@@ -66,7 +67,8 @@ public final class SubsetUtility {
    */
   public static boolean isCdiscSubset(Concept concept) throws Exception {
     checkConceptIsNullOrEmpty(concept);
-    return isSubset(concept) && isCdisc(concept);
+    boolean isCdiscSubset = (isSubset(concept) && isCdisc(concept));
+    return isCdiscSubset;
   }
 
   /**
@@ -81,7 +83,9 @@ public final class SubsetUtility {
     List<Synonym> synonyms = concept.getSynonyms();
 
     for (Synonym synonym : synonyms) {
-      if (!synonym.getSource().isEmpty() || !synonym.getSource().isBlank()) {
+      if (synonym.getSource() == null
+          || synonym.getSource().isEmpty()
+          || synonym.getSource().isBlank()) {
         throw new Exception("Concept property source is null");
       }
       if ((synonym.getSource().startsWith("CDISC") || synonym.getSource().startsWith("MRCT-Ctr"))
@@ -101,7 +105,8 @@ public final class SubsetUtility {
    */
   public static boolean isCdiscGrouper(Concept concept) throws Exception {
     checkConceptIsNullOrEmpty(concept);
-    return isCdiscSubset(concept) && !hasCdiscSynonym(concept);
+    boolean isCdiscGrouper = (isCdiscSubset(concept) && !hasCdiscSynonym(concept));
+    return isCdiscGrouper;
   }
 
   /**
@@ -113,7 +118,8 @@ public final class SubsetUtility {
    */
   public static boolean isCdiscCodeList(Concept concept) throws Exception {
     checkConceptIsNullOrEmpty(concept);
-    return isCdiscSubset(concept) && hasCdiscSynonym(concept);
+    boolean isCdiscCodeList = (isCdiscSubset(concept) && hasCdiscSynonym(concept));
+    return isCdiscCodeList;
   }
 
   /**
@@ -125,15 +131,27 @@ public final class SubsetUtility {
    */
   public static boolean isCdiscMember(Concept concept) throws Exception {
     checkConceptIsNullOrEmpty(concept);
-    return !isSubset(concept) && isCdisc(concept);
+    boolean isCdiscMember = (!isSubset(concept) && isCdisc(concept));
+    return isCdiscMember;
   }
 
-  public String getCdiscSubmissionValue(Concept subset, Concept concept) throws Exception {
+  /**
+   * Get the CDISC submission value for a concept.
+   *
+   * @param subset The subset concept
+   * @param concept The concept
+   * @return The CDISC submission value
+   * @throws Exception exception
+   */
+  public static String getCdiscSubmissionValue(Concept subset, Concept concept) throws Exception {
     // Make sure our concepts are not null or empty
     checkConceptIsNullOrEmpty(concept);
     checkConceptIsNullOrEmpty(subset);
     // Groupers don't have submission values
-    if (isCdiscGrouper(concept) || isCdiscCodeList(subset)) {
+    if (isCdiscGrouper(concept)) {
+      return "";
+    }
+    if (isCdiscGrouper(subset)) {
       return "";
     }
     List<Synonym> synonyms = concept.getSynonyms();
@@ -164,7 +182,8 @@ public final class SubsetUtility {
     }
     // Else, find the NCI/AB of the codelist concept and the CDISC/PT w/a code matching the NCI/AB
     // name
-    return getNciAbName(subset, cdiscSynonyms);
+    String submissionValue = getNciAbName(subset, cdiscSynonyms);
+    return submissionValue;
   }
 
   /**
@@ -195,7 +214,7 @@ public final class SubsetUtility {
       throws Exception {
     checkConceptIsNullOrEmpty(concept);
     return concept.getSynonyms().stream()
-        .filter(syn -> subsetContSource.equals(syn.getSource()) && "PT".equals(syn.getTermType()))
+        .filter(syn -> syn.getSource().equals(subsetContSource) && syn.getTermType().equals("PT"))
         .collect(Collectors.toList());
   }
 
