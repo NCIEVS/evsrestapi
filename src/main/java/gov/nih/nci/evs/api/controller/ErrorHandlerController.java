@@ -57,11 +57,19 @@ public class ErrorHandlerController implements ErrorController {
     final Map<String, Object> body = getErrorAttributes(request, options);
     final String statusCode = body.get("status") == null ? null : body.get("status").toString();
 
+    // Identify the "message" field of the body and escape < to &lt;
+    // This is to handle netsparker injection test
+    // e.g.  /api/v1/concept/ncit/%22%3e%3ciMg%20src%3dN%20onerror%3dnetsparker(0x000009)%3
+    if (body.containsKey("message")) {
+      body.put(
+          "message",
+          body.get("message").toString().replaceAll("<", "&lt;").replaceAll(">", "&gt;"));
+    }
     String ppBody = null;
     try {
       ppBody = new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(body);
     } catch (Exception e) {
-      ppBody = body.toString().replaceAll("<", "&lt;");
+      ppBody = body.toString();
     }
 
     return String.format(

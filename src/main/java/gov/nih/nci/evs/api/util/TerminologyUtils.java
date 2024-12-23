@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.text.StringEscapeUtils;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -158,7 +157,7 @@ public final class TerminologyUtils {
   }
 
   /**
-   * Helper method to search for the target terminology in the list of terminologies
+   * Helper method to search for the target terminology in the list of terminologies.
    *
    * @param terminology target terminology
    * @param terminologies list of terminologies to search through
@@ -218,8 +217,7 @@ public final class TerminologyUtils {
     // IF we get this far, something is weird, show all terminologies
     terminologies.stream().forEach(t -> logger.info("  " + t.getTerminologyVersion() + " = " + t));
     throw new ResponseStatusException(
-        HttpStatus.NOT_FOUND,
-        "Terminology not found = " + StringEscapeUtils.escapeHtml4(terminology));
+        HttpStatus.NOT_FOUND, "Terminology not found = " + terminology);
   }
 
   /**
