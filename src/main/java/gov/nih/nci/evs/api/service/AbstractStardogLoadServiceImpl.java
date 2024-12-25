@@ -10,6 +10,7 @@ import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.StardogProperties;
@@ -30,6 +31,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -40,6 +42,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -451,6 +457,11 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
     // subsets
     List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
+    subsets =
+        this.addExternalDataSets(
+            subsets,
+            this.getExternalDataSetFormat("extraSubsets"),
+            sparqlQueryManagerServiceImpl.getAllConceptsWithCode(terminology));
     ElasticObject subsetsObject = new ElasticObject("subsets");
     subsetsObject.setConcepts(subsets);
     operationsService.index(subsetsObject, indexName, ElasticObject.class);
@@ -483,6 +494,124 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     logger.info("  Association Entries loaded");
 
     logger.info("Done loading Elastic Objects!");
+  }
+
+  private List<Concept> addExternalDataSets(
+      List<Concept> internalDataSet, Map<String, String> externalDataSet, List<Concept> concepts) {
+
+    String filePath = "/PediatricNeoplasmSubsets.xls";
+
+    // List to hold the sheet references
+    List<Sheet> sheets = new ArrayList<>();
+
+    try (FileInputStream fis = new FileInputStream(filePath);
+        Workbook workbook = new HSSFWorkbook(fis)) {
+
+      // Put all sheets into a list
+      for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+        Sheet sheet = workbook.getSheetAt(i);
+        sheets.add(sheet);
+      }
+
+      for (Sheet sheet : sheets) {
+        String subsetCode = sheet.getRow(1).getCell(1).getStringCellValue();
+        // find the concept to add to the subsets list
+        Concept subsetToAddTo =
+            concepts.stream()
+                .filter(subset -> subsetCode.equals(subset.getCode()))
+                .findFirst()
+                .orElse(null);
+        if (subsetToAddTo == null) {
+          logger.error("Concept " + subsetCode + " not found.");
+          continue;
+        }
+        // add new subset to subset object if it's not already there
+        if (!internalDataSet.contains(subsetToAddTo)) {
+          internalDataSet.add(subsetToAddTo);
+        }
+
+        // get the subset that the new subset is a part of i.e. pediatric subset part of ncit subset
+        Concept higherLevelSubset =
+            internalDataSet.stream()
+                .filter(subset -> subsetCode.equals(externalDataSet.get(subsetCode)))
+                .findFirst()
+                .orElse(null);
+        if (higherLevelSubset == null) {
+          logger.error("Subset " + externalDataSet.get(subsetCode) + " not found.");
+          continue;
+        }
+
+        // make new computed association for the subset itself
+        Association assoc = new Association();
+        assoc.setType("Concept_In_Subset");
+        assoc.setRelatedCode(higherLevelSubset.getCode());
+        assoc.setRelatedName(higherLevelSubset.getName());
+        Qualifier computed = new Qualifier();
+        computed.setValue("This is computed by the existing subset relationship");
+        computed.setType("computed");
+        assoc.getQualifiers().add(computed);
+        subsetToAddTo.getAssociations().add(assoc);
+
+        boolean isFirstRow = true;
+        for (Row row : sheet) {
+          // skip labels row
+          if (isFirstRow) {
+            isFirstRow = false;
+            continue;
+          }
+          Concept conceptToAdd =
+              concepts.stream()
+                  .filter(subset -> row.getCell(2).getStringCellValue().equals(subset.getCode()))
+                  .findFirst()
+                  .orElse(null);
+
+          // make new computed association for the subset members
+          assoc = new Association();
+          assoc.setType("Concept_In_Subset");
+          assoc.setRelatedCode(subsetCode);
+          assoc.setRelatedName(subsetToAddTo.getName());
+          computed = new Qualifier();
+          computed.setValue("This is computed by the existing subset relationship");
+          computed.setType("computed");
+          assoc.getQualifiers().add(computed);
+          conceptToAdd.getAssociations().add(assoc);
+        }
+      }
+
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return internalDataSet;
+  }
+
+  private Map<String, String> getExternalDataSetFormat(String jsonKey) {
+    Map<String, String> newDataToAdd = new HashMap<>();
+
+    try {
+      // Read the JSON file
+      ObjectMapper mapper = new ObjectMapper();
+      JsonNode rootNode =
+          mapper.readTree(new File(applicationProperties.getConfigBaseUri() + "ncit.json"));
+
+      JsonNode newData = rootNode.get(jsonKey);
+
+      if (newData != null && newData.isArray()) {
+        // Iterate over the array and extract key-value pairs
+        for (JsonNode subset : newData) {
+          Iterator<Map.Entry<String, JsonNode>> fields = subset.fields();
+          while (fields.hasNext()) {
+            Map.Entry<String, JsonNode> field = fields.next();
+            newDataToAdd.put(field.getKey(), field.getValue().asText());
+          }
+        }
+      }
+
+      System.out.println("child-parent relationships to add: " + newDataToAdd);
+
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+    return newDataToAdd;
   }
 
   private AssociationEntry convert(
