@@ -24,7 +24,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -457,11 +459,11 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
     // subsets
     List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
-    subsets =
-        this.addExternalDataSets(
-            subsets,
-            this.getExternalDataSetFormat("extraSubsets"),
-            sparqlQueryManagerServiceImpl.getAllConceptsWithCode(terminology));
+    /* subsets =
+    this.addExternalDataSets(
+        subsets,
+        this.getExternalDataSetFormat("extraSubsets"),
+        sparqlQueryManagerServiceImpl.getAllConceptsWithCode(terminology));*/
     ElasticObject subsetsObject = new ElasticObject("subsets");
     subsetsObject.setConcepts(subsets);
     operationsService.index(subsetsObject, indexName, ElasticObject.class);
@@ -496,102 +498,97 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     logger.info("Done loading Elastic Objects!");
   }
 
-  private List<Concept> addExternalDataSets(
+  public List<Concept> addExternalDataSets(
       List<Concept> internalDataSet, Map<String, String> externalDataSet, List<Concept> concepts) {
 
-    String filePath = "/PediatricNeoplasmSubsets.xls";
+    String filePath =
+        this.applicationProperties.getUnitTestData()
+            + this.applicationProperties.getPediatricSubsetsXls();
+
+    String url =
+        this.applicationProperties.getFtpNeoplasmUrl()
+            + this.applicationProperties.getPediatricSubsetsXls();
 
     // List to hold the sheet references
-    List<Sheet> sheets = new ArrayList<>();
+    List<Sheet> sheets = loadExcelSheets(url, filePath);
 
-    try (FileInputStream fis = new FileInputStream(filePath);
-        Workbook workbook = new HSSFWorkbook(fis)) {
-
-      // Put all sheets into a list
-      for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
-        Sheet sheet = workbook.getSheetAt(i);
-        sheets.add(sheet);
+    for (Sheet sheet : sheets) {
+      String subsetCode = sheet.getRow(1).getCell(1).getStringCellValue();
+      // find the concept to add to the subsets list
+      Concept subsetToAddTo =
+          concepts.stream()
+              .filter(subset -> subsetCode.equals(subset.getCode()))
+              .findFirst()
+              .orElse(null);
+      if (subsetToAddTo == null) {
+        logger.error("Concept " + subsetCode + " not found.");
+        continue;
       }
 
-      for (Sheet sheet : sheets) {
-        String subsetCode = sheet.getRow(1).getCell(1).getStringCellValue();
-        // find the concept to add to the subsets list
-        Concept subsetToAddTo =
+      // get the subset that the new subset is a part of i.e. pediatric subset part of ncit subset
+      Concept higherLevelSubset =
+          internalDataSet.stream()
+              .flatMap(Concept::streamSelfAndChildren)
+              .filter(subset -> subset.getCode().equals(externalDataSet.get(subsetCode)))
+              .findFirst()
+              .orElse(null);
+      if (higherLevelSubset == null) {
+        logger.error("Subset " + externalDataSet.get(subsetCode) + " not found.");
+        continue;
+      }
+
+      // make new computed association for the subset itself
+      Association assoc = new Association();
+      assoc.setType("Concept_In_Subset");
+      assoc.setRelatedCode(higherLevelSubset.getCode());
+      assoc.setRelatedName(higherLevelSubset.getName());
+      Qualifier computed = new Qualifier();
+      computed.setValue("This is computed by the existing subset relationship");
+      computed.setType("computed");
+      assoc.getQualifiers().add(computed);
+      subsetToAddTo.getAssociations().add(assoc);
+      higherLevelSubset.getChildren().add(subsetToAddTo);
+
+      boolean isFirstRow = true;
+      for (Row row : sheet) {
+        // skip labels row
+        if (isFirstRow) {
+          isFirstRow = false;
+          continue;
+        }
+        Concept conceptToAdd =
             concepts.stream()
-                .filter(subset -> subsetCode.equals(subset.getCode()))
+                .filter(concept -> row.getCell(2).getStringCellValue().equals(concept.getCode()))
                 .findFirst()
                 .orElse(null);
-        if (subsetToAddTo == null) {
-          logger.error("Concept " + subsetCode + " not found.");
-          continue;
-        }
-        // add new subset to subset object if it's not already there
-        if (!internalDataSet.contains(subsetToAddTo)) {
-          internalDataSet.add(subsetToAddTo);
-        }
-
-        // get the subset that the new subset is a part of i.e. pediatric subset part of ncit subset
-        Concept higherLevelSubset =
-            internalDataSet.stream()
-                .filter(subset -> subsetCode.equals(externalDataSet.get(subsetCode)))
-                .findFirst()
-                .orElse(null);
-        if (higherLevelSubset == null) {
-          logger.error("Subset " + externalDataSet.get(subsetCode) + " not found.");
+        if (null == conceptToAdd) {
+          logger.error("Concept " + row.getCell(2).getStringCellValue() + " not found.");
           continue;
         }
 
-        // make new computed association for the subset itself
-        Association assoc = new Association();
+        // make new computed association for the subset members
+        assoc = new Association();
         assoc.setType("Concept_In_Subset");
-        assoc.setRelatedCode(higherLevelSubset.getCode());
-        assoc.setRelatedName(higherLevelSubset.getName());
-        Qualifier computed = new Qualifier();
+        assoc.setRelatedCode(subsetCode);
+        assoc.setRelatedName(subsetToAddTo.getName());
+        computed = new Qualifier();
         computed.setValue("This is computed by the existing subset relationship");
         computed.setType("computed");
         assoc.getQualifiers().add(computed);
-        subsetToAddTo.getAssociations().add(assoc);
-
-        boolean isFirstRow = true;
-        for (Row row : sheet) {
-          // skip labels row
-          if (isFirstRow) {
-            isFirstRow = false;
-            continue;
-          }
-          Concept conceptToAdd =
-              concepts.stream()
-                  .filter(subset -> row.getCell(2).getStringCellValue().equals(subset.getCode()))
-                  .findFirst()
-                  .orElse(null);
-
-          // make new computed association for the subset members
-          assoc = new Association();
-          assoc.setType("Concept_In_Subset");
-          assoc.setRelatedCode(subsetCode);
-          assoc.setRelatedName(subsetToAddTo.getName());
-          computed = new Qualifier();
-          computed.setValue("This is computed by the existing subset relationship");
-          computed.setType("computed");
-          assoc.getQualifiers().add(computed);
-          conceptToAdd.getAssociations().add(assoc);
-        }
+        conceptToAdd.getAssociations().add(assoc);
       }
-
-    } catch (IOException e) {
-      e.printStackTrace();
     }
     return internalDataSet;
   }
 
-  private Map<String, String> getExternalDataSetFormat(String jsonKey) {
+  public Map<String, String> getExternalDataSetFormat(String jsonKey) {
     Map<String, String> newDataToAdd = new HashMap<>();
 
     try {
       // Read the JSON file
       ObjectMapper mapper = new ObjectMapper();
       JsonNode rootNode =
-          mapper.readTree(new File(applicationProperties.getConfigBaseUri() + "ncit.json"));
+          mapper.readTree(new URL(applicationProperties.getConfigBaseUri() + "/ncit.json"));
 
       JsonNode newData = rootNode.get(jsonKey);
 
@@ -612,6 +609,44 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       e.printStackTrace();
     }
     return newDataToAdd;
+  }
+
+  public static List<Sheet> loadExcelSheets(String url, String filepath) {
+    List<Sheet> sheets = new ArrayList<>();
+    Workbook workbook = null;
+
+    try {
+      // Try downloading the file from the provided URL
+      InputStream inputStream = new URL(url).openStream();
+      workbook = new HSSFWorkbook(inputStream);
+      System.out.println("Excel file successfully loaded from URL.");
+    } catch (Exception e) {
+      System.err.println("Failed to download Excel file from URL. Error: " + e.getMessage());
+      try {
+        // If download fails, fall back to the local backup file
+        FileInputStream fileInputStream = new FileInputStream(filepath);
+        workbook = new HSSFWorkbook(fileInputStream);
+        System.out.println("Excel file successfully loaded from backup file.");
+      } catch (Exception fileException) {
+        System.err.println(
+            "Failed to load Excel file from backup file. Error: " + fileException.getMessage());
+        return sheets; // Return an empty list if all attempts fail
+      }
+    }
+
+    // Extract sheets from the workbook
+    if (workbook != null) {
+      for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+        sheets.add(workbook.getSheetAt(i));
+      }
+      try {
+        workbook.close(); // Close the workbook to release resources
+      } catch (IOException e) {
+        System.err.println("Failed to close the workbook. Error: " + e.getMessage());
+      }
+    }
+
+    return sheets;
   }
 
   private AssociationEntry convert(
