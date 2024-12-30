@@ -459,11 +459,11 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
     // subsets
     List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
-    /* subsets =
-    this.addExternalDataSets(
-        subsets,
-        this.getExternalDataSetFormat("extraSubsets"),
-        sparqlQueryManagerServiceImpl.getAllConceptsWithCode(terminology));*/
+    subsets =
+        this.addExternalDataSets(
+            subsets,
+            this.getExternalDataSetFormat("extraSubsets"),
+            sparqlQueryManagerServiceImpl.getAllConceptsWithCode(terminology));
     ElasticObject subsetsObject = new ElasticObject("subsets");
     subsetsObject.setConcepts(subsets);
     operationsService.index(subsetsObject, indexName, ElasticObject.class);
