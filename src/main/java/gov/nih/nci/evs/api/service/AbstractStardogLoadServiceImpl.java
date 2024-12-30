@@ -587,10 +587,21 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     try {
       // Read the JSON file
       ObjectMapper mapper = new ObjectMapper();
+      System.out.println(
+          "metadata file to pull: " + applicationProperties.getConfigBaseUri() + "/ncit.json");
+
       JsonNode rootNode =
           mapper.readTree(new URL(applicationProperties.getConfigBaseUri() + "/ncit.json"));
 
+      ObjectMapper map = new ObjectMapper();
+      Object json = map.readValue(rootNode.toString(), Object.class);
+
+      System.out.println("full json: " + json);
+
       JsonNode newData = rootNode.get(jsonKey);
+
+      json = map.readValue(jsonKey.toString(), Object.class);
+      System.out.println("extraSubsets json: " + json);
 
       if (newData != null && newData.isArray()) {
         // Iterate over the array and extract key-value pairs
