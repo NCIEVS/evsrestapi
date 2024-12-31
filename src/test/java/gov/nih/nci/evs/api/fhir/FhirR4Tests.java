@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.fhir;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -14,6 +15,8 @@ import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Collectors;
+
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
@@ -265,7 +268,7 @@ public class FhirR4Tests {
     String messageNotFound = "Unable to find matching code system";
     String endpoint =
         localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
-    String parameters = "?url=" + url + "&code=" + codeNotFound + "$display" + displayString;
+    String parameters = "?url=" + url + "&code=" + codeNotFound + "&display" + displayString;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -457,6 +460,7 @@ public class FhirR4Tests {
     assertEquals(valueSet.getPublisher(), ((ValueSet) valueSets.get(0)).getPublisher());
   }
 
+
   /**
    * Test value set read value set from code.
    *
@@ -537,6 +541,30 @@ public class FhirR4Tests {
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
   }
 
+  @Test
+  public void testValueSetValidateActiveIdAndActiveCodeAndIncorrectDisplayString() throws Exception {
+    // Arrange
+    String content;
+    String activeCode = "T100";
+    String activeID = "umlssemnet_2023aa";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String displayString = "INCORRECT";
+    String endpoint =
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + activeCode + "&display=" + displayString;
+    String message = "The code '" + activeCode + "' was found in this value set, however the display '" + displayString + "' did not match any designations.";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertNotEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+    assertEquals(message, ((StringType) params.getParameter("message").getValue()).getValue());
+  }
+  
   /**
    * Test value set validate for active code and display string.
    *
@@ -561,6 +589,7 @@ public class FhirR4Tests {
     assertEquals(
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
   }
+  
 
   /**
    * Test value set validate code not found.
@@ -916,7 +945,7 @@ public class FhirR4Tests {
   }
 
   /**
-   * Test the ValueSet rejects a post call when attempted.
+   * Test the ConceptMap rejects a post call when attempted.
    *
    * @throws Exception exception
    */

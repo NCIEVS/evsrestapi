@@ -119,17 +119,19 @@ public class FhirR4CodeSystemSubsumesTests {
     String content;
     String activeCodeA = "271860004";
     String url = "http://snomed.info/sct";
-    String outcome = "subsumed-by";
     String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
     String parameters = "?system=" + url + "&codeA=" + activeCodeA;
+    String errorCode = "exception";
+    String messageNotFound = "No codeB parameter provided in request";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
-
-    // Assert
-    assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
     
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
   @Test

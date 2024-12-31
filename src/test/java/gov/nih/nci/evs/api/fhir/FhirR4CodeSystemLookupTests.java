@@ -255,8 +255,8 @@ public class FhirR4CodeSystemLookupTests {
     String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     String retiredId = "ncit_21.06e";
     String retiredName = "ABCB1 1 Allele";
-    String sourceName = "NCI Thesaurus 21.07a";
-    String sourceVersion = "21.07a";
+    String sourceName = "NCI Thesaurus 21.06e";
+    String sourceVersion = "21.06e";
     String endpoint =
         localHost
             + port
