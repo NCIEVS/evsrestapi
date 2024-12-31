@@ -316,10 +316,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         if (check.isPresent()) {
           final Concept conc =
               esQueryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
-          params.addParameter("result", true);
           if (display == null || conc.getName().equals(display.getValue())) {
+            params.addParameter("result", true);
             params.addParameter("code", conc.getCode());
           } else {
+            params.addParameter("result", false);
             params.addParameter(
                 "message",
                 "The code "
@@ -417,10 +418,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         if (check.isPresent()) {
           final Concept conc =
               esQueryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
-          params.addParameter("result", true);
           if (display == null || conc.getName().equals(display.getValue())) {
             params.addParameter("code", conc.getCode());
+            params.addParameter("result", true);
           } else {
+            params.addParameter("result", false);
             params.addParameter(
                 "message",
                 "The code "
