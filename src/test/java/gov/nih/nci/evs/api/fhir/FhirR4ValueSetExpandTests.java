@@ -1,40 +1,21 @@
 package gov.nih.nci.evs.api.fhir;
 
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.jpa.model.util.JpaConstants;
-import ca.uhn.fhir.parser.IParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.hl7.fhir.r4.model.BooleanType;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
-import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
-import org.hl7.fhir.r4.model.CodeSystem;
-import org.hl7.fhir.r4.model.ConceptMap;
 import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.Resource;
-import org.hl7.fhir.r4.model.ResourceType;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.UriType;
+import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,6 +27,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
+import ca.uhn.fhir.parser.IParser;
+import gov.nih.nci.evs.api.properties.TestProperties;
+
+// TODO: Auto-generated Javadoc
 /**
  * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
  * ValueSet, and ConceptMap. All passed ids MUST be lowercase, so they match our internally set id's
@@ -54,9 +43,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class FhirR4ValueSetExpandTests {
-
-  /** The logger. */
-  private static final Logger log = LoggerFactory.getLogger(FhirR4ValueSetExpandTests.class);
 
   /** The port. */
   @LocalServerPort private int port;
@@ -97,6 +83,11 @@ public class FhirR4ValueSetExpandTests {
   }
 
 
+  /**
+   * Test value set expand instance.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetExpandInstance() throws Exception {
     // Arrange
@@ -119,6 +110,11 @@ public class FhirR4ValueSetExpandTests {
  }
 
 
+  /**
+   * Test value set expand implicit.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetExpandImplicit() throws Exception {
     // Arrange
@@ -164,7 +160,7 @@ public class FhirR4ValueSetExpandTests {
   }
 
   /**
-   * Test value set not found
+   * Test value set not found.
    *
    * @throws Exception exception
    */
@@ -217,6 +213,11 @@ public class FhirR4ValueSetExpandTests {
     assertTrue(content.getBody().contains("not supported"));
   }
 
+  /**
+   * Test value set expand implicit offset size.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetExpandImplicitOffsetSize() throws Exception {
     // Arrange
@@ -236,6 +237,11 @@ public class FhirR4ValueSetExpandTests {
     assertFalse(valueSet.getExpansion().getContains().stream().filter(comp -> comp.getCode().equals(activeCode)).collect(Collectors.toList()).size() > 0);
   }
   
+  /**
+   * Test value set expand implicit filter size.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetExpandImplicitFilterSize() throws Exception {
     // Arrange

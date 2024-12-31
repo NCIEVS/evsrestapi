@@ -1,31 +1,17 @@
 package gov.nih.nci.evs.api.fhir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.jpa.model.util.JpaConstants;
-import ca.uhn.fhir.parser.IParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.properties.TestProperties;
-
-import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
 import org.hl7.fhir.r4.model.StringType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -37,6 +23,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
+import ca.uhn.fhir.parser.IParser;
+import gov.nih.nci.evs.api.properties.TestProperties;
+
+// TODO: Auto-generated Javadoc
 /**
  * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
  * ValueSet, and ConceptMap. All passed ids MUST be lowercase, so they match our internally set id's
@@ -45,9 +39,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class FhirR4CodeSystemSubsumesTests {
-
-  /** The logger. */
-  private static final Logger log = LoggerFactory.getLogger(FhirR4CodeSystemSubsumesTests.class);
 
   /** The port. */
   @LocalServerPort private int port;
@@ -113,6 +104,11 @@ public class FhirR4CodeSystemSubsumesTests {
     
   }
   
+  /**
+   * Test code system missing input.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemMissingInput() throws Exception {
     // Arrange
@@ -134,6 +130,11 @@ public class FhirR4CodeSystemSubsumesTests {
     assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
+  /**
+   * Test code system subsumes implicit.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemSubsumesImplicit() throws Exception {
     // Arrange
@@ -235,12 +236,12 @@ public class FhirR4CodeSystemSubsumesTests {
 
 
   /**
-   * Test code system bad.
+   * Test code system bad implicit.
    *
    * @throws Exception exception
    */
   @Test
-  public void testCodeSystemBad() throws Exception {
+  public void testCodeSystemBadImplicit() throws Exception {
     // Arrange
     String content;
     String codeA = "2222222222222222222";
@@ -260,6 +261,35 @@ public class FhirR4CodeSystemSubsumesTests {
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFound, (component.getDiagnostics()));
   }
+  
+  /**
+   * Test code system bad instance.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemBadInstance() throws Exception {
+    // Arrange
+    String content;
+    String codeA = "2222222222222222222";
+    String codeB = "3333333333333333333";
+    String activeId = "snomedct_us_2020_09_01";
+    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/TheBadTest.owl";
+    String messageNotFound = "Unable to find matching code system";
+    String endpoint =
+            localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES;
+    String parameters = "?codeA=" + codeA + "&codeB=" + codeB + "&system=" + url;
+    String errorCode = "not-found";
+
+    // Act
+    content = restTemplate.getForObject(endpoint + parameters, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
+  }
 
   /**
    * Test the CodeSystem rejects a post call when attempted.
@@ -267,7 +297,7 @@ public class FhirR4CodeSystemSubsumesTests {
    * @throws Exception exception
    */
   @Test
-  public void testCodeSystemPostRejects() throws Exception {
+  public void testCodeSystemPostRejectsImplicit() throws Exception {
     // Arrange
     ResponseEntity<String> content;
     String message = "POST method not supported for " + JpaConstants.OPERATION_SUBSUMES;
@@ -284,5 +314,28 @@ public class FhirR4CodeSystemSubsumesTests {
     assertTrue(content.getBody().contains("not supported"));
   }
 
+  /**
+   * Test the CodeSystem rejects a post call when attempted.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemPostRejectsInstance() throws Exception {
+    // Arrange
+    ResponseEntity<String> content;
+    String message = "POST method not supported for " + JpaConstants.OPERATION_SUBSUMES;
+    String activeId = "snomedct_us_2020_09_01";
+    String endpoint =
+            localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES;
+    String parameters = "?codeA=" + null + "&codeB=" + null + "&system=" + null;
 
+    // Act
+    content = this.restTemplate.postForEntity(endpoint + parameters, null, String.class);
+
+    // Assert
+    assertEquals(HttpStatus.METHOD_NOT_ALLOWED, content.getStatusCode());
+    assertNotNull(content.getBody());
+    assertTrue(content.getBody().contains(message));
+    assertTrue(content.getBody().contains("not supported"));
+  }
 }
