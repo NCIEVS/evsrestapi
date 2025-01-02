@@ -538,27 +538,27 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       }
 
       // make new computed association for the subset itself
-      Association assoc = new Association();
+      final Association assoc = new Association();
       assoc.setType("Concept_In_Subset");
       assoc.setRelatedCode(higherLevelSubset.getCode());
       assoc.setRelatedName(higherLevelSubset.getName());
-      Qualifier computed = new Qualifier();
+
+      final Qualifier computed = new Qualifier();
       computed.setValue("This is computed by the existing subset relationship");
       computed.setType("computed");
       assoc.getQualifiers().add(computed);
-      boolean exists = false;
-      for (Association a : subsetToAddTo.getAssociations()) {
-        if (a.getRelatedCode().equals(assoc.getRelatedCode())
-            && a.getType().equals(assoc.getType())) {
-          exists = true;
-          break;
-        }
-      }
+
+      boolean exists =
+          subsetToAddTo.getAssociations().stream()
+              .anyMatch(
+                  a ->
+                      a.getRelatedCode().equals(assoc.getRelatedCode())
+                          && a.getType().equals(assoc.getType()));
 
       if (!exists) {
         subsetToAddTo.getAssociations().add(assoc);
-        higherLevelSubset.getChildren().add(subsetToAddTo);
       }
+      higherLevelSubset.getChildren().add(subsetToAddTo);
 
       boolean isFirstRow = true;
       for (Row row : sheet) {
@@ -578,22 +578,22 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         }
 
         // make new computed association for the subset members
-        assoc = new Association();
-        assoc.setType("Concept_In_Subset");
-        assoc.setRelatedCode(subsetCode);
-        assoc.setRelatedName(subsetToAddTo.getName());
-        computed = new Qualifier();
-        computed.setValue("This is computed by the existing subset relationship");
-        computed.setType("computed");
-        assoc.getQualifiers().add(computed);
-        exists = false;
-        for (Association a : conceptToAdd.getAssociations()) {
-          if (a.getRelatedCode().equals(assoc.getRelatedCode())
-              && a.getType().equals(assoc.getType())) {
-            exists = true;
-            break;
-          }
-        }
+        final Association conceptAssoc = new Association();
+        conceptAssoc.setType("Concept_In_Subset");
+        conceptAssoc.setRelatedCode(higherLevelSubset.getCode());
+        conceptAssoc.setRelatedName(higherLevelSubset.getName());
+
+        final Qualifier conceptComputed = new Qualifier();
+        conceptComputed.setValue("This is computed by the existing subset relationship");
+        conceptComputed.setType("computed");
+        conceptAssoc.getQualifiers().add(conceptComputed);
+
+        exists =
+            subsetToAddTo.getAssociations().stream()
+                .anyMatch(
+                    a ->
+                        a.getRelatedCode().equals(assoc.getRelatedCode())
+                            && a.getType().equals(assoc.getType()));
 
         if (!exists) {
           conceptToAdd.getAssociations().add(assoc);
