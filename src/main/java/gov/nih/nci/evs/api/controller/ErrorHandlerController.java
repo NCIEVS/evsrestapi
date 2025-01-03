@@ -1,9 +1,8 @@
 package gov.nih.nci.evs.api.controller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import io.swagger.v3.oas.annotations.Hidden;
-import jakarta.servlet.http.HttpServletRequest;
+import java.util.Collections;
 import java.util.Map;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
@@ -18,6 +17,11 @@ import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import io.swagger.v3.oas.annotations.Hidden;
+import jakarta.servlet.http.HttpServletRequest;
 
 /** Handler for errors when accessing API thru browser. */
 @Controller
@@ -96,7 +100,7 @@ public class ErrorHandlerController implements ErrorController {
    * @return the status
    */
   protected HttpStatus getStatus(HttpServletRequest request) {
-    Integer statusCode = (Integer) request.getAttribute("javax.servlet.error.status_code");
+    Integer statusCode = (Integer) request.getAttribute("jakarta.servlet.error.status_code");
     if (statusCode == null) {
       return HttpStatus.INTERNAL_SERVER_ERROR;
     }

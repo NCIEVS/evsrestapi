@@ -1,11 +1,12 @@
 package gov.nih.nci.evs.api.util;
 
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.model.Synonym;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.Synonym;
 
 /**
  * Utility class for subset operations. Used for validating and determining if a CDISC subset
@@ -22,14 +23,13 @@ public final class SubsetUtility {
    */
   public static boolean isSubset(Concept concept) throws Exception {
     checkConceptIsNullOrEmpty(concept);
-    String isSubset;
     List<Property> properties = concept.getProperties();
 
+    // A concept is a subset if it has Publish_Value_Set=Yes (code=P372)
     if (concept.getTerminology().equals("ncit")) {
       for (Property property : properties) {
         if (property.getType().equals("Publish_Value_Set")) {
-          isSubset = property.getValue();
-          return isSubset.equals("yes");
+          return property.getValue().equals("Yes");
         }
       }
     }
@@ -48,6 +48,7 @@ public final class SubsetUtility {
     String isCodeList;
     List<Property> properties = concept.getProperties();
 
+    // A subset is CDISC if it has a contributing source starting with CDISC or MRCT-Ctr
     for (Property property : properties) {
       if (property.getType().equals("Contributing_Source")) {
         isCodeList = property.getValue();
@@ -67,7 +68,8 @@ public final class SubsetUtility {
    */
   public static boolean isCdiscSubset(Concept concept) throws Exception {
     checkConceptIsNullOrEmpty(concept);
-    boolean isCdiscSubset = (isSubset(concept) && isCdisc(concept));
+    // A concept is a cdisc subset if it is a subset and is cdisc
+    boolean isCdiscSubset = isSubset(concept) && isCdisc(concept);
     return isCdiscSubset;
   }
 
@@ -83,11 +85,12 @@ public final class SubsetUtility {
     List<Synonym> synonyms = concept.getSynonyms();
 
     for (Synonym synonym : synonyms) {
-      if (synonym.getSource() == null
-          || synonym.getSource().isEmpty()
-          || synonym.getSource().isBlank()) {
-        throw new Exception("Concept property source is null");
+      // Skip entries where source is blank
+      if (synonym.getSource() == null) {
+        continue;
       }
+      // A concept has a cdisc synonym if the source starts with CDISC or MRCT-Ctr and has a term
+      // type of SY
       if ((synonym.getSource().startsWith("CDISC") || synonym.getSource().startsWith("MRCT-Ctr"))
           && synonym.getTermType().equals("SY")) {
         return true;
@@ -105,7 +108,9 @@ public final class SubsetUtility {
    */
   public static boolean isCdiscGrouper(Concept concept) throws Exception {
     checkConceptIsNullOrEmpty(concept);
-    boolean isCdiscGrouper = (isCdiscSubset(concept) && !hasCdiscSynonym(concept));
+    // A concept is a CDISC grouper if it's a CDISC subset and does not have an SY synonym
+    // (all codelist concepts have a CDISC/SY)
+    boolean isCdiscGrouper = isCdiscSubset(concept) && !hasCdiscSynonym(concept);
     return isCdiscGrouper;
   }
 
@@ -118,6 +123,7 @@ public final class SubsetUtility {
    */
   public static boolean isCdiscCodeList(Concept concept) throws Exception {
     checkConceptIsNullOrEmpty(concept);
+    // A concept is a CDISC codelist if it is a CDISC subset and has an CDISC/SY synonym
     boolean isCdiscCodeList = (isCdiscSubset(concept) && hasCdiscSynonym(concept));
     return isCdiscCodeList;
   }
@@ -131,6 +137,7 @@ public final class SubsetUtility {
    */
   public static boolean isCdiscMember(Concept concept) throws Exception {
     checkConceptIsNullOrEmpty(concept);
+    // A concept is a CDISC member if it has a CDISC contributing source but is not itself a subset.
     boolean isCdiscMember = (!isSubset(concept) && isCdisc(concept));
     return isCdiscMember;
   }
@@ -147,34 +154,34 @@ public final class SubsetUtility {
     // Make sure our concepts are not null or empty
     checkConceptIsNullOrEmpty(concept);
     checkConceptIsNullOrEmpty(subset);
-    // Groupers don't have submission values
-    if (isCdiscGrouper(concept)) {
-      return "";
-    }
-    if (isCdiscGrouper(subset)) {
-      return "";
-    }
-    List<Synonym> synonyms = concept.getSynonyms();
+    final String source = getCdiscContributingSource(subset);
 
-    // Codelist have a submission value matching CDISC or MRCT-Ctr
-    for (Synonym synonym : synonyms) {
-      if (isCdiscCodeList(concept) && synonym.getTermType().equals("PT")) {
-        return synonym.getName();
-      }
-    }
     // Otherwise concept is just a regular value. ASSUMPTION: codelist only has one contributing
     // source
-    String subsetContributingSource = getSubsetContributingSource(subset);
-    if (subsetContributingSource == null) {
-      throw new Exception(
-          "Unable to find submission value because codelist lacks contributing source");
+    if (source == null) {
+      throw new Exception("Unable to find CDISC contributing source =" + subset.getCode());
+    }
+
+    // Groupers don't have submission values
+    if (isCdiscGrouper(concept)) {
+      return null;
+    }
+
+    // Code lists will have exactly one CDISC/PT
+    if (isCdiscCodeList(concept)) {
+      return getCdiscPt(concept, null).getName();
+    }
+
+    // Do this after the test of concept beign a codelist
+    // This is an escape hatch for a "member" concept that gets connected to a grouper accidentally
+    if (isCdiscGrouper(subset)) {
+      return null;
     }
 
     // Find the matching contributing source PT
-    List<Synonym> cdiscSynonyms = getCdiscSynonyms(concept, subsetContributingSource);
+    List<Synonym> cdiscSynonyms = getCdiscPts(concept, source);
     if (cdiscSynonyms.isEmpty()) {
-      throw new Exception(
-          "Unable to find submission value for " + subsetContributingSource + "/PT");
+      throw new Exception("Unable to find submission value for " + source + "/PT");
     }
     // Check if there is exactly one unique synonym
     if (cdiscSynonyms.size() == 1) {
@@ -193,29 +200,69 @@ public final class SubsetUtility {
    * @return the subset contributing source
    * @throws Exception exception
    */
-  private static String getSubsetContributingSource(Concept subset) throws Exception {
-    List<Property> properties = subset.getProperties();
-    Optional<Property> subsetContSource =
-        properties.stream()
-            .filter(item -> "Contributing_Source".equals(item.getType()))
-            .findFirst();
-    return subsetContSource.map(Property::getValue).orElse(null);
+  private static String getCdiscContributingSource(Concept subset) throws Exception {
+
+    // A true subset concept here will have only a single contributing source
+    for (final Property property : subset.getProperties()) {
+      if (property.getType().equals("Contributing_Source")
+          && (property.getValue().startsWith("CDISC")
+              || property.getValue().startsWith("MRCT-Ctr"))) {
+        return property.getValue();
+      }
+    }
+    return null;
   }
 
   /**
    * Get the CDISC synonyms that match the subset contributing source helper method
    *
    * @param concept the concept
-   * @param subsetContSource the subset contributing source
+   * @param source the subset contributing source
    * @return the CDISC synonyms that match the subset contributing source
    * @throws Exception exception
    */
-  private static List<Synonym> getCdiscSynonyms(Concept concept, String subsetContSource)
-      throws Exception {
+  private static Synonym getCdiscPt(Concept concept, String source) throws Exception {
     checkConceptIsNullOrEmpty(concept);
-    return concept.getSynonyms().stream()
-        .filter(syn -> syn.getSource().equals(subsetContSource) && syn.getTermType().equals("PT"))
-        .collect(Collectors.toList());
+    // Find exactly one PT name for this concept whose source matches
+    final List<Synonym> list =
+        concept.getSynonyms().stream()
+            .filter(
+                syn ->
+                    (source == null || syn.getSource().equals(source))
+                        && syn.getTermType().equals("PT"))
+            .collect(Collectors.toList());
+    if (list.size() != 1) {
+      throw new Exception(
+          "Expecting exactly one synonym = "
+              + list.size()
+              + ", "
+              + concept.getCode()
+              + ", "
+              + source
+              + "/PT");
+    }
+    return list.get(0);
+  }
+
+  /**
+   * Returns the cdisc pts.
+   *
+   * @param concept the concept
+   * @param source the source
+   * @return the cdisc pts
+   * @throws Exception the exception
+   */
+  private static List<Synonym> getCdiscPts(Concept concept, String source) throws Exception {
+    checkConceptIsNullOrEmpty(concept);
+    // Find exactly one PT name for this concept whose source matches
+    final List<Synonym> list =
+        concept.getSynonyms().stream()
+            .filter(
+                syn ->
+                    (source == null || syn.getSource().equals(source))
+                        && syn.getTermType().equals("PT"))
+            .collect(Collectors.toList());
+    return list;
   }
 
   /**
@@ -253,7 +300,7 @@ public final class SubsetUtility {
    * @throws Exception exception
    */
   private static void checkConceptIsNullOrEmpty(Concept concept) throws Exception {
-    if (concept == null || concept.getProperties() == null || concept.getProperties().isEmpty()) {
+    if (concept == null) {
       throw new Exception("Concept is null");
     }
   }
