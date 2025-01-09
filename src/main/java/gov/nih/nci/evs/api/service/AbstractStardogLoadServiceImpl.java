@@ -460,7 +460,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     // subsets
     List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
     subsets =
-        this.addExternalDataSets(
+        this.addExtraSubsets(
             subsets,
             this.getExternalDataSetFormat("extraSubsets"),
             sparqlQueryManagerServiceImpl.getAllConceptsWithCode(terminology));
@@ -498,8 +498,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     logger.info("Done loading Elastic Objects!");
   }
 
-  public List<Concept> addExternalDataSets(
-      List<Concept> internalDataSet, Map<String, String> externalDataSet, List<Concept> concepts) {
+  public List<Concept> addExtraSubsets(
+      List<Concept> existingSubsets, Map<String, String> newSubsets, List<Concept> concepts) {
 
     String filePath =
         this.applicationProperties.getUnitTestData()
@@ -515,50 +515,30 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     for (Sheet sheet : sheets) {
       String subsetCode = sheet.getRow(1).getCell(1).getStringCellValue();
       // find the concept to add to the subsets list
-      Concept subsetToAddTo =
+      Concept newSubset =
           concepts.stream()
               .filter(subset -> subsetCode.equals(subset.getCode()))
               .findFirst()
               .orElse(null);
-      if (subsetToAddTo == null) {
+      if (newSubset == null) {
         logger.error("Concept " + subsetCode + " not found.");
         continue;
       }
 
-      // get the subset that the new subset is a part of i.e. pediatric subset part of ncit subset
-      Concept higherLevelSubset =
-          internalDataSet.stream()
+      // get the subset and concept that the new subset is a part of i.e. pediatric subset part of
+      // ncit subset
+      Concept parentSubset =
+          existingSubsets.stream()
               .flatMap(Concept::streamSelfAndChildren)
-              .filter(subset -> subset.getCode().equals(externalDataSet.get(subsetCode)))
+              .filter(subset -> subset.getCode().equals(newSubsets.get(subsetCode)))
               .findFirst()
               .orElse(null);
-      if (higherLevelSubset == null) {
-        logger.error("Subset " + externalDataSet.get(subsetCode) + " not found.");
+      if (parentSubset == null) {
+        logger.error("Parent Subset " + newSubsets.get(subsetCode) + " not found.");
         continue;
       }
 
-      // make new computed association for the subset itself
-      final Association assoc = new Association();
-      assoc.setType("Concept_In_Subset");
-      assoc.setRelatedCode(higherLevelSubset.getCode());
-      assoc.setRelatedName(higherLevelSubset.getName());
-
-      final Qualifier computed = new Qualifier();
-      computed.setValue("This is computed by the existing subset relationship");
-      computed.setType("computed");
-      assoc.getQualifiers().add(computed);
-
-      boolean exists =
-          subsetToAddTo.getAssociations().stream()
-              .anyMatch(
-                  a ->
-                      a.getRelatedCode().equals(assoc.getRelatedCode())
-                          && a.getType().equals(assoc.getType()));
-
-      if (!exists) {
-        subsetToAddTo.getAssociations().add(assoc);
-      }
-      higherLevelSubset.getChildren().add(subsetToAddTo);
+      parentSubset.getChildren().add(newSubset);
 
       boolean isFirstRow = true;
       for (Row row : sheet) {
@@ -567,12 +547,12 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           isFirstRow = false;
           continue;
         }
-        Concept conceptToAdd =
+        Concept subsetConcept =
             concepts.stream()
                 .filter(concept -> row.getCell(2).getStringCellValue().equals(concept.getCode()))
                 .findFirst()
                 .orElse(null);
-        if (null == conceptToAdd) {
+        if (null == subsetConcept) {
           logger.error("Concept " + row.getCell(2).getStringCellValue() + " not found.");
           continue;
         }
@@ -580,27 +560,32 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         // make new computed association for the subset members
         final Association conceptAssoc = new Association();
         conceptAssoc.setType("Concept_In_Subset");
-        conceptAssoc.setRelatedCode(higherLevelSubset.getCode());
-        conceptAssoc.setRelatedName(higherLevelSubset.getName());
+        conceptAssoc.setRelatedCode(newSubset.getCode());
+        conceptAssoc.setRelatedName(newSubset.getName());
 
         final Qualifier conceptComputed = new Qualifier();
         conceptComputed.setValue("This is computed by the existing subset relationship");
         conceptComputed.setType("computed");
         conceptAssoc.getQualifiers().add(conceptComputed);
 
-        exists =
-            subsetToAddTo.getAssociations().stream()
+        Boolean exists =
+            newSubset.getAssociations().stream()
                 .anyMatch(
                     a ->
-                        a.getRelatedCode().equals(assoc.getRelatedCode())
-                            && a.getType().equals(assoc.getType()));
+                        a.getRelatedCode().equals(conceptAssoc.getRelatedCode())
+                            && a.getType().equals(conceptAssoc.getType()));
 
         if (!exists) {
-          conceptToAdd.getAssociations().add(assoc);
+          subsetConcept.getAssociations().add(conceptAssoc);
+          // edit codes for inverseAssociation
+          Association inverseAssoc = new Association(conceptAssoc);
+          inverseAssoc.setRelatedCode(subsetConcept.getCode());
+          inverseAssoc.setRelatedName(subsetConcept.getName());
+          newSubset.getInverseAssociations().add(inverseAssoc);
         }
       }
     }
-    return internalDataSet;
+    return existingSubsets;
   }
 
   public Map<String, String> getExternalDataSetFormat(String jsonKey) {
