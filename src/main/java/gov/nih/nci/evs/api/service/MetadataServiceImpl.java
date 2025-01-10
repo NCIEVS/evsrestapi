@@ -437,10 +437,6 @@ public class MetadataServiceImpl implements MetadataService {
     // No list of codes supplied
     if (!list.isPresent()) {
 
-      if (include.orElse("minimal").equals("minimal")) {
-        return subsets;
-      }
-
       final Set<String> codes =
           subsets.stream()
               .flatMap(Concept::streamSelfAndChildren)
@@ -470,12 +466,12 @@ public class MetadataServiceImpl implements MetadataService {
     // List of codes supplied - first apply the filter.
     subsets =
         ConceptUtils.applyListWithChildren(subsets, ip, list.orElse(null)).stream()
+            // unique the list first
             .collect(Collectors.toSet())
             .stream()
             .collect(Collectors.toList());
     subsets.stream()
         .peek(c -> c.populateFrom(esQueryService.getConcept(c.getCode(), term, ip).get(), true))
-        .peek(c -> ConceptUtils.applyInclude(c, ip))
         .collect(Collectors.toList());
 
     return subsets;

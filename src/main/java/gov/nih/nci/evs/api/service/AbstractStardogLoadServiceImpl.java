@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -89,6 +88,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
   /** The Elasticsearch operations service instance *. */
   @Autowired ElasticOperationsService operationsService;
+
+  /** The Elasticsearch query service instance *. */
+  @Autowired ElasticQueryService esQueryService;
 
   /** The sparql query manager service. */
   @Autowired private SparqlQueryManagerService sparqlQueryManagerService;
@@ -459,11 +461,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
     // subsets
     List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
-    subsets =
-        this.addExtraSubsets(
-            subsets,
-            this.getExternalDataSetFormat("extraSubsets"),
-            sparqlQueryManagerServiceImpl.getAllConceptsWithCode(terminology));
+    this.addExtraSubsets(subsets, terminology);
     ElasticObject subsetsObject = new ElasticObject("subsets");
     subsetsObject.setConcepts(subsets);
     operationsService.index(subsetsObject, indexName, ElasticObject.class);
@@ -498,8 +496,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     logger.info("Done loading Elastic Objects!");
   }
 
-  public List<Concept> addExtraSubsets(
-      List<Concept> existingSubsets, Map<String, String> newSubsets, List<Concept> concepts) {
+  public void addExtraSubsets(List<Concept> existingSubsets, Terminology terminology)
+      throws IOException {
 
     String filePath =
         this.applicationProperties.getUnitTestData()
@@ -515,30 +513,28 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     for (Sheet sheet : sheets) {
       String subsetCode = sheet.getRow(1).getCell(1).getStringCellValue();
       // find the concept to add to the subsets list
-      Concept newSubset =
-          concepts.stream()
-              .filter(subset -> subsetCode.equals(subset.getCode()))
-              .findFirst()
-              .orElse(null);
-      if (newSubset == null) {
+      Concept newSubsetEntry = new Concept();
+      try {
+        newSubsetEntry =
+            esQueryService.getConcept(subsetCode, terminology, new IncludeParam("full")).get();
+      } catch (Exception e) {
         logger.error("Concept " + subsetCode + " not found.");
-        continue;
       }
 
       // get the subset and concept that the new subset is a part of i.e. pediatric subset part of
       // ncit subset
-      Concept parentSubset =
-          existingSubsets.stream()
-              .flatMap(Concept::streamSelfAndChildren)
-              .filter(subset -> subset.getCode().equals(newSubsets.get(subsetCode)))
-              .findFirst()
-              .orElse(null);
-      if (parentSubset == null) {
-        logger.error("Parent Subset " + newSubsets.get(subsetCode) + " not found.");
-        continue;
+      Map<String, String> newSubsets = terminology.getMetadata().getExtraSubsets();
+      Concept parentSubset = new Concept();
+      try {
+        parentSubset =
+            esQueryService
+                .getConcept(newSubsets.get(subsetCode), terminology, new IncludeParam("full"))
+                .get();
+      } catch (Exception e) {
+        logger.error("Concept " + subsetCode + " not found.");
       }
 
-      parentSubset.getChildren().add(newSubset);
+      parentSubset.getChildren().add(newSubsetEntry);
 
       boolean isFirstRow = true;
       for (Row row : sheet) {
@@ -547,77 +543,67 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           isFirstRow = false;
           continue;
         }
-        Concept subsetConcept =
-            concepts.stream()
-                .filter(concept -> row.getCell(2).getStringCellValue().equals(concept.getCode()))
-                .findFirst()
-                .orElse(null);
-        if (null == subsetConcept) {
-          logger.error("Concept " + row.getCell(2).getStringCellValue() + " not found.");
-          continue;
+        Concept subsetConcept = new Concept();
+        try {
+          subsetConcept =
+              esQueryService
+                  .getConcept(
+                      row.getCell(2).getStringCellValue(), terminology, new IncludeParam("full"))
+                  .get();
+        } catch (Exception e) {
+          logger.error("Concept " + subsetCode + " not found.");
         }
 
         // make new computed association for the subset members
         final Association conceptAssoc = new Association();
         conceptAssoc.setType("Concept_In_Subset");
-        conceptAssoc.setRelatedCode(newSubset.getCode());
-        conceptAssoc.setRelatedName(newSubset.getName());
+        conceptAssoc.setRelatedCode(newSubsetEntry.getCode());
+        conceptAssoc.setRelatedName(newSubsetEntry.getName());
 
         final Qualifier conceptComputed = new Qualifier();
         conceptComputed.setValue("This is computed by the existing subset relationship");
         conceptComputed.setType("computed");
         conceptAssoc.getQualifiers().add(conceptComputed);
 
-        Boolean exists =
-            newSubset.getAssociations().stream()
-                .anyMatch(
-                    a ->
-                        a.getRelatedCode().equals(conceptAssoc.getRelatedCode())
-                            && a.getType().equals(conceptAssoc.getType()));
-
-        if (!exists) {
-          subsetConcept.getAssociations().add(conceptAssoc);
-          // edit codes for inverseAssociation
-          Association inverseAssoc = new Association(conceptAssoc);
-          inverseAssoc.setRelatedCode(subsetConcept.getCode());
-          inverseAssoc.setRelatedName(subsetConcept.getName());
-          newSubset.getInverseAssociations().add(inverseAssoc);
-        }
+        subsetConcept.getAssociations().add(conceptAssoc);
+        // edit codes for inverseAssociation
+        Association inverseAssoc = new Association(conceptAssoc);
+        inverseAssoc.setRelatedCode(subsetConcept.getCode());
+        inverseAssoc.setRelatedName(subsetConcept.getName());
+        newSubsetEntry.getInverseAssociations().add(inverseAssoc);
+        // index subsetConcept
+        operationsService.index(
+            subsetConcept, terminology.getObjectIndexName(), ElasticObject.class);
+        // add subsetConcept relationship
+        Concept subsetConceptRelationship = new Concept(subsetConcept);
+        ConceptUtils.applyInclude(
+            subsetConceptRelationship, new IncludeParam("minimal,children,properties"));
+        existingSubsets.stream()
+            .flatMap(Concept::streamSelfAndChildren)
+            .filter(subset -> subset.getCode().equals(subsetCode))
+            .findFirst()
+            .orElse(null)
+            .getChildren()
+            .add(subsetConceptRelationship);
       }
+      // index parentSubset
+      parentSubset.getChildren().add(newSubsetEntry);
+      operationsService.index(parentSubset, terminology.getObjectIndexName(), ElasticObject.class);
+      // index newSubsetEntry
+      operationsService.index(
+          newSubsetEntry, terminology.getObjectIndexName(), ElasticObject.class);
+      // add parentSubset relationship
+      Concept parentSubsetRelationship = new Concept(parentSubset);
+      ConceptUtils.applyInclude(
+          parentSubsetRelationship, new IncludeParam("minimal,children,properties"));
+      existingSubsets.stream()
+          .flatMap(Concept::streamSelfAndChildren)
+          .filter(subset -> subset.getCode().equals(newSubsets.get(subsetCode)))
+          .findFirst()
+          .orElse(null)
+          .getChildren()
+          .add(parentSubsetRelationship);
     }
-    return existingSubsets;
-  }
-
-  public Map<String, String> getExternalDataSetFormat(String jsonKey) {
-    Map<String, String> newDataToAdd = new HashMap<>();
-
-    try {
-      // Read the JSON file
-      ObjectMapper mapper = new ObjectMapper();
-      System.out.println(
-          "metadata file to pull: " + applicationProperties.getConfigBaseUri() + "/ncit.json");
-
-      JsonNode rootNode =
-          mapper.readTree(new URL(applicationProperties.getConfigBaseUri() + "/ncit.json"));
-      JsonNode newData = rootNode.path(jsonKey);
-
-      if (newData != null && newData.isArray()) {
-        // Iterate over the array and extract key-value pairs
-        for (JsonNode subset : newData) {
-          Iterator<Map.Entry<String, JsonNode>> fields = subset.fields();
-          while (fields.hasNext()) {
-            Map.Entry<String, JsonNode> field = fields.next();
-            newDataToAdd.put(field.getKey(), field.getValue().asText());
-          }
-        }
-      }
-
-      System.out.println("child-parent relationships to add: " + newDataToAdd);
-
-    } catch (IOException e) {
-      e.printStackTrace();
-    }
-    return newDataToAdd;
   }
 
   public static List<Sheet> loadExcelSheets(String url, String filepath) {
