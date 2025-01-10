@@ -276,7 +276,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
       FhirUtilityR5.notSupported(force_system_version, "force-system-version");
       final List<ValueSet> vsList = findPossibleValueSets(null, null, url, version);
       if (vsList.isEmpty()) {
-        throw FhirUtilityR5.exception("Value set " + url.asStringValue() + " not found", IssueType.EXCEPTION, 500);
+        throw FhirUtilityR5.exception(
+            "Value set " + url.asStringValue() + " not found", IssueType.EXCEPTION, 500);
       }
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
@@ -437,7 +438,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
       FhirUtilityR5.notSupported(force_system_version, "force-system-version");
       final List<ValueSet> vsList = findPossibleValueSets(id, null, url, version);
       if (vsList.isEmpty()) {
-        throw FhirUtilityR5.exception("Value set " + url.asStringValue() + " not found", IssueType.EXCEPTION, 500);
+        throw FhirUtilityR5.exception(
+            "Value set " + url.asStringValue() + " not found", IssueType.EXCEPTION, 500);
       }
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
@@ -604,7 +606,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
                     + display
                     + "' did not match any designations.");
           } else {
-              params.addParameter("result", true);
+            params.addParameter("result", true);
           }
         } else {
           params.addParameter("result", false);
@@ -726,7 +728,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
                     + display
                     + "' did not match any designations.");
           } else {
-              params.addParameter("result", true);
+            params.addParameter("result", true);
           }
         } else {
           params.addParameter("result", false);

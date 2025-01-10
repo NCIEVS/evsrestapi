@@ -174,7 +174,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final List<ValueSet> vsList = findPossibleValueSets(null, null, url, version);
       if (vsList.size() == 0) {
         throw FhirUtilityR4.exception(
-            "Value set " + url.getValueAsString() + " not found", OperationOutcome.IssueType.EXCEPTION, 500);
+            "Value set " + url.getValueAsString() + " not found",
+            OperationOutcome.IssueType.EXCEPTION,
+            500);
       }
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
@@ -226,7 +228,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
           vsContains.setCode(subset.getCode());
           vsContains.setDisplay(subset.getName());
           vsExpansion.addContains(vsContains);
-          ValueSetExpansionParameterComponent vsParameter = new ValueSetExpansionParameterComponent();
+          ValueSetExpansionParameterComponent vsParameter =
+              new ValueSetExpansionParameterComponent();
           vsParameter.setName("url");
           vsParameter.setValue(url);
           vsExpansion.addParameter(vsParameter);
@@ -346,7 +349,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final List<ValueSet> vsList = findPossibleValueSets(id, null, url, version);
       if (vsList.size() == 0) {
         throw FhirUtilityR4.exception(
-            "Value set " + url.getValueAsString() + " not found", OperationOutcome.IssueType.EXCEPTION, 500);
+            "Value set " + url.getValueAsString() + " not found",
+            OperationOutcome.IssueType.EXCEPTION,
+            500);
       }
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
@@ -398,7 +403,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
           vsContains.setCode(subset.getCode());
           vsContains.setDisplay(subset.getName());
           vsExpansion.addContains(vsContains);
-          ValueSetExpansionParameterComponent vsParameter = new ValueSetExpansionParameterComponent();
+          ValueSetExpansionParameterComponent vsParameter =
+              new ValueSetExpansionParameterComponent();
           vsParameter.setName("url");
           vsParameter.setValue(url);
           vsExpansion.addParameter(vsParameter);
@@ -520,7 +526,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
                     + display
                     + "' did not match any designations.");
           } else {
-        	params.addParameter("result", true);
+            params.addParameter("result", true);
           }
         } else {
           params.addParameter("result", false);
@@ -642,7 +648,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
                     + display
                     + "' did not match any designations.");
           } else {
-              params.addParameter("result", true);
+            params.addParameter("result", true);
           }
         } else {
           params.addParameter("result", false);

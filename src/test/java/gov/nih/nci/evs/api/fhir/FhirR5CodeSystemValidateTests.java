@@ -5,6 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
+import ca.uhn.fhir.parser.IParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import org.hl7.fhir.r5.model.BooleanType;
 import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
@@ -25,13 +30,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.jpa.model.util.JpaConstants;
-import ca.uhn.fhir.parser.IParser;
-import gov.nih.nci.evs.api.properties.TestProperties;
-
 /**
  * Class tests for FhirR5Tests. Tests the functionality of the FHIR R5 endpoints, CodeSystem,
  * ValueSet, and ConceptMap. All passed ids MUST be lowercase, so they match our internally set id's
@@ -40,7 +38,6 @@ import gov.nih.nci.evs.api.properties.TestProperties;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class FhirR5CodeSystemValidateTests {
-
 
   /** The port. */
   @LocalServerPort private int port;
@@ -60,7 +57,6 @@ public class FhirR5CodeSystemValidateTests {
   /** Fhir url paths. */
   private final String fhirCSPath = "/fhir/r5/CodeSystem";
 
-
   /** The parser. */
   private static IParser parser;
 
@@ -78,7 +74,6 @@ public class FhirR5CodeSystemValidateTests {
     objectMapper = new ObjectMapper();
     JacksonTester.initFields(this, objectMapper);
   }
-
 
   /**
    * Test code system validate active code.
@@ -175,7 +170,8 @@ public class FhirR5CodeSystemValidateTests {
     String codeNotFound = "T10";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
-    String messageNotFound = "The code does not exist for the supplied code system url and/or version";
+    String messageNotFound =
+        "The code does not exist for the supplied code system url and/or version";
     String endpoint =
         localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?url=" + url + "&code=" + codeNotFound + "&display" + displayString;
@@ -268,7 +264,7 @@ public class FhirR5CodeSystemValidateTests {
     content = restTemplate.getForObject(endpoint + parameters, String.class);
     OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
     OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-    
+
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFound, (component.getDiagnostics()));
@@ -287,7 +283,7 @@ public class FhirR5CodeSystemValidateTests {
     String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/TheBadTest.owl";
     String activeId = "umlssemnet_2023aa";
     String endpoint =
-            localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?code=" + code + "&url=" + url;
     String messageNotFound = "Unable to find matching code system";
     String errorCode = "not-found";
@@ -296,11 +292,12 @@ public class FhirR5CodeSystemValidateTests {
     content = restTemplate.getForObject(endpoint + parameters, String.class);
     OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
     OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-    
+
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFound, (component.getDiagnostics()));
   }
+
   /**
    * Test the CodeSystem rejects a post call when attempted.
    *
@@ -336,7 +333,7 @@ public class FhirR5CodeSystemValidateTests {
     String message = "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE;
     String activeId = "umlssemnet_2023aa";
     String endpoint =
-            localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?code=" + null + "&system=" + null;
 
     // Act

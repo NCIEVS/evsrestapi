@@ -6,10 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.CodeSystem;
@@ -31,12 +34,6 @@ import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
-import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
  * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
@@ -163,7 +160,6 @@ public class FhirR4Tests {
     assertEquals(((CodeSystem) codeSystems.get(0)).getPublisher(), codeSystem.getPublisher());
   }
 
-
   /**
    * Test value set search.
    *
@@ -237,7 +233,6 @@ public class FhirR4Tests {
     assertEquals(valueSet.getPublisher(), ((ValueSet) valueSets.get(0)).getPublisher());
   }
 
-
   /**
    * Test value set read value set from code.
    *
@@ -265,10 +260,6 @@ public class FhirR4Tests {
     assertEquals(publisher, valueSet.getPublisher());
     assertEquals(url, valueSet.getUrl());
   }
-
-
-
-
 
   /**
    * Test concept map search.
@@ -338,6 +329,4 @@ public class FhirR4Tests {
     assertEquals(conceptMap.getName(), ((ConceptMap) conceptMaps.get(0)).getName());
     assertEquals(conceptMap.getVersion(), ((ConceptMap) conceptMaps.get(0)).getVersion());
   }
-
-
 }

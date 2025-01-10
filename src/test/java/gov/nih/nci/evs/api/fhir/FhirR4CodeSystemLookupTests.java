@@ -5,15 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
-
+import java.util.List;
+import java.util.stream.Collectors;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
@@ -44,7 +42,6 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @AutoConfigureMockMvc
 public class FhirR4CodeSystemLookupTests {
 
-
   /** The port. */
   @LocalServerPort private int port;
 
@@ -63,7 +60,6 @@ public class FhirR4CodeSystemLookupTests {
   /** Fhir url paths. */
   private final String fhirCSPath = "/fhir/r4/CodeSystem";
 
-
   /** The parser. */
   private static IParser parser;
 
@@ -81,7 +77,6 @@ public class FhirR4CodeSystemLookupTests {
     objectMapper = new ObjectMapper();
     JacksonTester.initFields(this, objectMapper);
   }
-
 
   /**
    * Test code system lookup code.
@@ -109,7 +104,6 @@ public class FhirR4CodeSystemLookupTests {
     assertEquals(
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
     assertEquals(version, ((StringType) params.getParameter("version").getValue()).getValue());
-    
   }
 
   /**
@@ -139,7 +133,8 @@ public class FhirR4CodeSystemLookupTests {
     assertEquals(
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
     // confirm code is active
-    assertTrue(((BooleanType)params.getParameter("property").getPart().get(1).getValue()).getValue());
+    assertTrue(
+        ((BooleanType) params.getParameter("property").getPart().get(1).getValue()).getValue());
     assertEquals(name, ((StringType) params.getParameter("name").getValue()).getValue());
     assertEquals(version, ((StringType) params.getParameter("version").getValue()).getValue());
   }
@@ -155,8 +150,7 @@ public class FhirR4CodeSystemLookupTests {
     String content;
     String codeNotFound = "T10";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
-    String messageNotFound =
-        "Failed to lookup code";
+    String messageNotFound = "Failed to lookup code";
     String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_LOOKUP;
     String parameters = "?system=" + url + "&code=" + codeNotFound;
     String errorCode = "exception";
@@ -165,7 +159,7 @@ public class FhirR4CodeSystemLookupTests {
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
     OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-    
+
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFound, (component.getDiagnostics()));
@@ -194,7 +188,7 @@ public class FhirR4CodeSystemLookupTests {
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
     OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-    
+
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFound, (component.getDiagnostics()));
@@ -223,13 +217,20 @@ public class FhirR4CodeSystemLookupTests {
 
     // Assert
     assertEquals(retiredName, ((StringType) params.getParameter("display").getValue()).getValue());
-    assertEquals(sourceVersion, ((StringType) params.getParameter("version").getValue()).getValue());
+    assertEquals(
+        sourceVersion, ((StringType) params.getParameter("version").getValue()).getValue());
     assertEquals(sourceName, ((StringType) params.getParameter("name").getValue()).getValue());
-    
+
     // get returned properties
-    List<ParametersParameterComponent> properties = params.getParameter().stream().filter(prop -> prop.getName().equals("property")).collect(Collectors.toList());
+    List<ParametersParameterComponent> properties =
+        params.getParameter().stream()
+            .filter(prop -> prop.getName().equals("property"))
+            .collect(Collectors.toList());
     // for first (and only) property, get the Part that contains the value
-    List<ParametersParameterComponent> parts = properties.get(0).getPart().stream().filter(part -> part.getName().equals("value")).collect(Collectors.toList());
+    List<ParametersParameterComponent> parts =
+        properties.get(0).getPart().stream()
+            .filter(part -> part.getName().equals("value"))
+            .collect(Collectors.toList());
     assertFalse(((BooleanType) parts.get(0).getValue()).getValue());
   }
 
@@ -249,14 +250,9 @@ public class FhirR4CodeSystemLookupTests {
     String sourceName = "NCI Thesaurus 21.06e";
     String sourceVersion = "21.06e";
     String endpoint =
-        localHost
-            + port
-            + fhirCSPath
-            + "/"
-            + retiredId
-            + "/"
-            + JpaConstants.OPERATION_LOOKUP;
-    String parameters = "?system=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
+        localHost + port + fhirCSPath + "/" + retiredId + "/" + JpaConstants.OPERATION_LOOKUP;
+    String parameters =
+        "?system=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -264,12 +260,19 @@ public class FhirR4CodeSystemLookupTests {
 
     // Assert
     assertEquals(retiredName, ((StringType) params.getParameter("display").getValue()).getValue());
-    assertEquals(sourceVersion, ((StringType) params.getParameter("version").getValue()).getValue());
+    assertEquals(
+        sourceVersion, ((StringType) params.getParameter("version").getValue()).getValue());
     assertEquals(sourceName, ((StringType) params.getParameter("name").getValue()).getValue());
     // get returned properties
-    List<ParametersParameterComponent> properties = params.getParameter().stream().filter(prop -> prop.getName().equals("property")).collect(Collectors.toList());
+    List<ParametersParameterComponent> properties =
+        params.getParameter().stream()
+            .filter(prop -> prop.getName().equals("property"))
+            .collect(Collectors.toList());
     // for first (and only) property, get the Part that contains the value
-    List<ParametersParameterComponent> parts = properties.get(0).getPart().stream().filter(part -> part.getName().equals("value")).collect(Collectors.toList());
+    List<ParametersParameterComponent> parts =
+        properties.get(0).getPart().stream()
+            .filter(part -> part.getName().equals("value"))
+            .collect(Collectors.toList());
     assertFalse(((BooleanType) parts.get(0).getValue()).getValue());
   }
 
@@ -293,12 +296,12 @@ public class FhirR4CodeSystemLookupTests {
     content = restTemplate.getForObject(endpoint + parameters, String.class);
     OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
     OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-    
+
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFound, (component.getDiagnostics()));
   }
-  
+
   /**
    * Test code system bad.
    *
@@ -313,7 +316,7 @@ public class FhirR4CodeSystemLookupTests {
     String messageNotFound = "Unable to find matching code system";
     String activeId = "umlssemnet_2023aa";
     String endpoint =
-            localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_LOOKUP;
+        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_LOOKUP;
     String parameters = "?code=" + code + "&system=" + url;
     String errorCode = "not-found";
 
@@ -321,7 +324,7 @@ public class FhirR4CodeSystemLookupTests {
     content = restTemplate.getForObject(endpoint + parameters, String.class);
     OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
     OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-    
+
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFound, (component.getDiagnostics()));
@@ -362,7 +365,7 @@ public class FhirR4CodeSystemLookupTests {
     String message = "POST method not supported for " + JpaConstants.OPERATION_LOOKUP;
     String activeId = "umlssemnet_2023aa";
     String endpoint =
-            localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_LOOKUP;
+        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_LOOKUP;
     String parameters = "?code=" + null + "&system=" + null;
 
     // Act

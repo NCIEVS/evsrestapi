@@ -145,7 +145,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
       } else {
         throw FhirUtilityR4.exception(
-                "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
+            "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
       }
       return params;
 
@@ -225,7 +225,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         params.addParameter("display", conc.getName());
         // optional in the specification
         params.addParameter("version", codeSys.getVersion());
-        params.addParameter(FhirUtilityR4.createProperty("active", conc.getActive(), false)); 
+        params.addParameter(FhirUtilityR4.createProperty("active", conc.getActive(), false));
         for (final Concept parent : conc.getParents()) {
           params.addParameter(FhirUtilityR4.createProperty("parent", parent.getCode(), true));
         }
@@ -233,8 +233,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           params.addParameter(FhirUtilityR4.createProperty("child", child.getCode(), true));
         }
       } else {
-          throw FhirUtilityR4.exception(
-                  "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
+        throw FhirUtilityR4.exception(
+            "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
       }
       return params;
 
@@ -339,8 +339,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           params.addParameter("version", codeSys.getVersion());
         }
       } else {
-    	  throw FhirUtilityR4.exception(
-                  "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
+        throw FhirUtilityR4.exception(
+            "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
       }
       return params;
 
@@ -441,8 +441,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           params.addParameter("version", codeSys.getVersion());
         }
       } else {
-    	  throw FhirUtilityR4.exception(
-                  "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
+        throw FhirUtilityR4.exception(
+            "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
       }
       return params;
 
@@ -511,10 +511,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           code2 = codingB.getCode();
         } else if (codeA == null) {
           throw FhirUtilityR4.exception(
-                    "No codeA parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
+              "No codeA parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
         } else if (codeB == null) {
           throw FhirUtilityR4.exception(
-                    "No codeB parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
+              "No codeB parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
@@ -535,8 +535,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           }
         }
       } else {
-    	  throw FhirUtilityR4.exception(
-                  "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
+        throw FhirUtilityR4.exception(
+            "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
       }
       return params;
 
@@ -607,10 +607,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           code2 = codingB.getCode();
         } else if (codeA == null) {
           throw FhirUtilityR4.exception(
-                    "No codeA parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
+              "No codeA parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
         } else if (codeB == null) {
           throw FhirUtilityR4.exception(
-                    "No codeB parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
+              "No codeB parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
@@ -631,8 +631,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           }
         }
       } else {
-    	  throw FhirUtilityR4.exception(
-                  "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
+        throw FhirUtilityR4.exception(
+            "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
       }
       return params;
 

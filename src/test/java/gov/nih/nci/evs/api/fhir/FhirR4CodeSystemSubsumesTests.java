@@ -4,6 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
+import ca.uhn.fhir.parser.IParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r4.model.Parameters;
@@ -22,13 +27,6 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.jpa.model.util.JpaConstants;
-import ca.uhn.fhir.parser.IParser;
-import gov.nih.nci.evs.api.properties.TestProperties;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -58,7 +56,6 @@ public class FhirR4CodeSystemSubsumesTests {
   /** Fhir url paths. */
   private final String fhirCSPath = "/fhir/r4/CodeSystem";
 
-
   /** The parser. */
   private static IParser parser;
 
@@ -77,7 +74,7 @@ public class FhirR4CodeSystemSubsumesTests {
     JacksonTester.initFields(this, objectMapper);
   }
 
-// TODO: test invalid parameter such as url instead of system
+  // TODO: test invalid parameter such as url instead of system
 
   /**
    * Test code system lookup code.
@@ -101,9 +98,8 @@ public class FhirR4CodeSystemSubsumesTests {
 
     // Assert
     assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
-    
   }
-  
+
   /**
    * Test code system missing input.
    *
@@ -124,7 +120,7 @@ public class FhirR4CodeSystemSubsumesTests {
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
     OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-    
+
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFound, (component.getDiagnostics()));
@@ -152,7 +148,6 @@ public class FhirR4CodeSystemSubsumesTests {
 
     // Assert
     assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
-    
   }
 
   /**
@@ -201,13 +196,11 @@ public class FhirR4CodeSystemSubsumesTests {
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
     OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-    
+
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFound, (component.getDiagnostics()));
   }
-
-
 
   /**
    * Test code system retired code.
@@ -231,9 +224,7 @@ public class FhirR4CodeSystemSubsumesTests {
 
     // Assert
     assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
-    
   }
-
 
   /**
    * Test code system bad implicit.
@@ -256,12 +247,12 @@ public class FhirR4CodeSystemSubsumesTests {
     content = restTemplate.getForObject(endpoint + parameters, String.class);
     OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
     OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-    
+
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFound, (component.getDiagnostics()));
   }
-  
+
   /**
    * Test code system bad instance.
    *
@@ -277,7 +268,7 @@ public class FhirR4CodeSystemSubsumesTests {
     String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/TheBadTest.owl";
     String messageNotFound = "Unable to find matching code system";
     String endpoint =
-            localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES;
+        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES;
     String parameters = "?codeA=" + codeA + "&codeB=" + codeB + "&system=" + url;
     String errorCode = "not-found";
 
@@ -285,7 +276,7 @@ public class FhirR4CodeSystemSubsumesTests {
     content = restTemplate.getForObject(endpoint + parameters, String.class);
     OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
     OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-    
+
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFound, (component.getDiagnostics()));
@@ -326,7 +317,7 @@ public class FhirR4CodeSystemSubsumesTests {
     String message = "POST method not supported for " + JpaConstants.OPERATION_SUBSUMES;
     String activeId = "snomedct_us_2020_09_01";
     String endpoint =
-            localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES;
+        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES;
     String parameters = "?codeA=" + null + "&codeB=" + null + "&system=" + null;
 
     // Act

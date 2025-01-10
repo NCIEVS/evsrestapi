@@ -4,6 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
+import ca.uhn.fhir.parser.IParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Parameters;
 import org.junit.jupiter.api.BeforeAll;
@@ -22,13 +27,6 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.jpa.model.util.JpaConstants;
-import ca.uhn.fhir.parser.IParser;
-import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
  * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
@@ -78,9 +76,6 @@ public class FhirR4ConceptMapTranslateTests {
     JacksonTester.initFields(this, objectMapper);
   }
 
-
-
- 
   /**
    * Test concept map translate with instance system; id, code, and system provided.
    *
@@ -205,7 +200,7 @@ public class FhirR4ConceptMapTranslateTests {
     assertTrue(content.getBody().contains(message));
     assertTrue(content.getBody().contains("not supported"));
   }
-  
+
   /**
    * Test the ConceptMap rejects a post call when attempted.
    *
@@ -218,7 +213,7 @@ public class FhirR4ConceptMapTranslateTests {
     String message = "POST method not supported for " + JpaConstants.OPERATION_TRANSLATE;
     String activeID = "umlssemnet_2023aa";
     String endpoint =
-            localHost + port + fhirCMPath + "/" + activeID + "/" + JpaConstants.OPERATION_TRANSLATE;
+        localHost + port + fhirCMPath + "/" + activeID + "/" + JpaConstants.OPERATION_TRANSLATE;
     String parameters = "?code=" + null + "&system=" + null;
 
     // Act

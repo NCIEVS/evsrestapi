@@ -6,6 +6,11 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
+import ca.uhn.fhir.parser.IParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import org.hl7.fhir.r5.model.BooleanType;
 import org.hl7.fhir.r5.model.Parameters;
 import org.hl7.fhir.r5.model.StringType;
@@ -23,13 +28,6 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.jpa.model.util.JpaConstants;
-import ca.uhn.fhir.parser.IParser;
-import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
  * Class tests for FhirR5Tests. Tests the functionality of the FHIR R5 endpoints, CodeSystem,
@@ -58,7 +56,6 @@ public class FhirR5ValueSetValidateTests {
   /** The fhir VS path. */
   private final String fhirVSPath = "/fhir/r5/ValueSet";
 
-
   /** The parser. */
   private static IParser parser;
 
@@ -76,7 +73,6 @@ public class FhirR5ValueSetValidateTests {
     objectMapper = new ObjectMapper();
     JacksonTester.initFields(this, objectMapper);
   }
-
 
   /**
    * Test value set validate active code.
@@ -136,7 +132,8 @@ public class FhirR5ValueSetValidateTests {
    * @throws Exception the exception
    */
   @Test
-  public void testValueSetValidateActiveIdAndActiveCodeAndIncorrectDisplayString() throws Exception {
+  public void testValueSetValidateActiveIdAndActiveCodeAndIncorrectDisplayString()
+      throws Exception {
     // Arrange
     String content;
     String activeCode = "T100";
@@ -146,7 +143,12 @@ public class FhirR5ValueSetValidateTests {
     String endpoint =
         localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?url=" + url + "&code=" + activeCode + "&display=" + displayString;
-    String message = "The code '" + activeCode + "' was found in this value set, however the display '" + displayString + "' did not match any designations.";
+    String message =
+        "The code '"
+            + activeCode
+            + "' was found in this value set, however the display '"
+            + displayString
+            + "' did not match any designations.";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -158,7 +160,7 @@ public class FhirR5ValueSetValidateTests {
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
     assertEquals(message, ((StringType) params.getParameter("message").getValue()).getValue());
   }
-  
+
   /**
    * Test value set validate for active code and display string.
    *
@@ -183,7 +185,6 @@ public class FhirR5ValueSetValidateTests {
     assertEquals(
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
   }
-  
 
   /**
    * Test value set validate code not found.
@@ -367,6 +368,4 @@ public class FhirR5ValueSetValidateTests {
     assertTrue(content.getBody().contains(message));
     assertTrue(content.getBody().contains("not supported"));
   }
-
-
 }
