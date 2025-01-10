@@ -11,6 +11,7 @@ public interface QueryBuilderService {
    * Construct graph query.
    *
    * @param queryProp the query prop
+   * @param ignoreSources the ignore sources
    * @return the string
    */
   public String constructGraphQuery(String queryProp, List<String> ignoreSources);
@@ -19,7 +20,7 @@ public interface QueryBuilderService {
    * Construct query.
    *
    * @param queryProp the query prop
-   * @param namedGraph the named graph
+   * @param terminology the terminology
    * @return the string
    */
   public String constructQuery(String queryProp, Terminology terminology);
@@ -28,8 +29,8 @@ public interface QueryBuilderService {
    * Construct query.
    *
    * @param queryProp the query prop
+   * @param terminology the terminology
    * @param conceptCode the concept code
-   * @param namedGraph the named graph
    * @return the string
    */
   public String constructQuery(String queryProp, Terminology terminology, String conceptCode);
@@ -59,7 +60,7 @@ public interface QueryBuilderService {
   /**
    * Contruct prefix.
    *
-   * @param source the graph source
+   * @param terminology the terminology
    * @return the string
    */
   public String constructPrefix(Terminology terminology);
@@ -72,4 +73,15 @@ public interface QueryBuilderService {
    * @return the string
    */
   public String prepSparql(final Terminology terminology, final String query);
+
+  /**
+   * Prep sparql.
+   *
+   * @param terminology the terminology
+   * @param query the query
+   * @param keepPrefixes the prefixes
+   * @return the string
+   */
+  public String prepSparql(
+      final Terminology terminology, final String query, final Boolean keepPrefixes);
 }

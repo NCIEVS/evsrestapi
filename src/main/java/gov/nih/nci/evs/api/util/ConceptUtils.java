@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.util;
 
+import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
@@ -223,7 +224,8 @@ public final class ConceptUtils {
       if (ip.isMapsetLink()) {
         newConcept.setMapsetLink(concept.getMapsetLink());
       }
-      newConcept.clearHidden();
+      // Using @WriteOnlyProperty instead
+      //      newConcept.clearHidden();
       result.add(newConcept);
     }
 
@@ -370,7 +372,8 @@ public final class ConceptUtils {
 
     return concepts.stream()
         .filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
-        .peek(c -> c.clearHidden())
+        // Handled by @WriteOnlyProperty
+        //        .peek(c -> c.clearHidden())
         .collect(Collectors.toList());
   }
 
@@ -393,7 +396,8 @@ public final class ConceptUtils {
     return concepts.stream()
         .flatMap(Concept::streamSelfAndChildren)
         .filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
-        .peek(c -> c.clearHidden())
+        // Handled by @WriteOnlyProperty
+        //        .peek(c -> c.clearHidden())
         .collect(Collectors.toList());
   }
 
@@ -766,5 +770,39 @@ public final class ConceptUtils {
    */
   public static boolean isEmpty(final String str) {
     return str == null || str.isEmpty();
+  }
+
+  /**
+   * Indicates whether or not the concept is a CDISC grouper.
+   *
+   * @param concept the concept
+   * @return <code>true</code> if so, <code>false</code> otherwise
+   */
+  public static boolean isCdiscGrouper(final Concept concept) {
+    // this code
+    return concept.getCode().equals("C61410")
+        // Or CDISC... without a CDISC/SY
+        || (concept.getName().startsWith("CDISC ")
+            && concept.getSynonyms().stream()
+                    .filter(
+                        s ->
+                            s.getSource() != null
+                                && (s.getSource().startsWith("CDISC")
+                                    || s.getSource().startsWith("MRCT"))
+                                && "SY".equals(s.getTermType()))
+                    .count()
+                == 0);
+  }
+
+  /**
+   * Clean CDISC grouper associations to only keep the other groupers or codelist codes.
+   *
+   * @param associations the associations
+   */
+  public static void cleanCdiscGrouperAssociations(
+      final Concept concept, final List<Association> associations) {
+    if (isCdiscGrouper(concept)) {
+      associations.removeIf(a -> !a.getRelatedName().startsWith("CDISC "));
+    }
   }
 }

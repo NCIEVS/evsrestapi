@@ -126,7 +126,7 @@ public class GoAnnotation2
 	public String getSourceDate() {
 		return this.sourceDate;
 	}
-
+
 	public String toXML() {
 		XStream xstream_xml = new XStream(new DomDriver());
 		String xml = xstream_xml.toXML(this);
@@ -143,7 +143,7 @@ public class GoAnnotation2
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
         return gson.toJson(this);
 	}
-
+
 	public String escapeDoubleQuotes(String inputStr) {
 		char doubleQ = '"';
 		StringBuffer buf = new StringBuffer();

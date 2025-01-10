@@ -347,23 +347,23 @@ public class ConceptMapProviderR4 implements IResourceProvider {
         final ConceptMap cm = FhirUtilityR4.toR4(mapset);
         // Skip non-matching
         if (url != null && !url.getValue().equals(cm.getUrl())) {
-          logger.info("  SKIP url mismatch = " + cm.getUrl());
+          logger.debug("  SKIP url mismatch = " + cm.getUrl());
           continue;
         }
         if (id != null && !id.getValue().equals(cm.getId())) {
-          logger.info("  SKIP id mismatch = " + cm.getName());
+          logger.debug("  SKIP id mismatch = " + cm.getName());
           continue;
         }
         if (system != null && !system.getValue().equals(cm.getName())) {
-          logger.info("  SKIP system mismatch = " + cm.getName());
+          logger.debug("  SKIP system mismatch = " + cm.getName());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
-          logger.info("  SKIP date mismatch = " + cm.getDate());
+          logger.debug("  SKIP date mismatch = " + cm.getDate());
           continue;
         }
         if (version != null && !FhirUtility.compareString(version, cm.getVersion())) {
-          logger.info("  SKIP version mismatch = " + cm.getVersion());
+          logger.debug("  SKIP version mismatch = " + cm.getVersion());
           continue;
         }
 
@@ -424,38 +424,38 @@ public class ConceptMapProviderR4 implements IResourceProvider {
         final ConceptMap cm = FhirUtilityR4.toR4(mapset);
         // Skip non-matching
         if (url != null && !url.getValue().equals(cm.getUrl())) {
-          logger.info("  SKIP url mismatch = " + cm.getUrl());
+          logger.debug("  SKIP url mismatch = " + cm.getUrl());
           continue;
         }
         if (id != null && !id.getIdPart().equals(cm.getId())) {
-          logger.info("  SKIP id mismatch = " + cm.getName());
+          logger.debug("  SKIP id mismatch = " + cm.getName());
           continue;
         }
         if (system != null && !system.getValue().equals(cm.getSourceUriType().getValue())) {
-          logger.info("  SKIP system mismatch = " + cm.getName());
+          logger.debug("  SKIP system mismatch = " + cm.getName());
           continue;
         }
         if (targetSystem != null
             && !targetSystem.getValue().equals(cm.getTargetUriType().getValue())) {
-          logger.info("  SKIP targetSystem mismatch = " + cm.getName());
+          logger.debug("  SKIP targetSystem mismatch = " + cm.getName());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
-          logger.info("  SKIP date mismatch = " + cm.getDate());
+          logger.debug("  SKIP date mismatch = " + cm.getDate());
           continue;
         }
         if (version != null && !version.getValue().equals(cm.getVersion())) {
-          logger.info("  SKIP version mismatch = " + cm.getVersion());
+          logger.debug("  SKIP version mismatch = " + cm.getVersion());
           continue;
         }
         if (source != null
             && !source.getValue().equals(cm.getSourceUriType().getValue() + "?fhir_vs")) {
-          logger.info("  SKIP source mismatch = " + cm.getVersion());
+          logger.debug("  SKIP source mismatch = " + cm.getVersion());
           continue;
         }
         if (target != null
             && !target.getValue().equals(cm.getTargetUriType().getValue() + "?fhir_vs")) {
-          logger.info("  SKIP target mismatch = " + cm.getVersion());
+          logger.debug("  SKIP target mismatch = " + cm.getVersion());
           continue;
         }
 

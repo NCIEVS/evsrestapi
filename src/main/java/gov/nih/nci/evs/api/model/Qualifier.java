@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.WriteOnlyProperty;
 
 /**
  * Represents a qualifier on a synonym, definition, property, or role that isn't explicitly modeled
@@ -19,6 +20,7 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
   /** The code. */
   // In the future we can use @WriteOnlyProperty
   // this does not work: @JsonProperty(access = Access.READ_ONLY)
+  @WriteOnlyProperty
   @Field(type = FieldType.Object, enabled = false)
   private String code;
 

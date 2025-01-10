@@ -840,7 +840,9 @@ public class OpenApiInterceptorR4 {
 
       parametersItem.setName(nextSearchParam.getName());
       parametersItem.setIn("query");
-      parametersItem.setDescription(nextSearchParam.getDocumentation());
+      parametersItem.setDescription("the " + resourceType + " " + nextSearchParam.getName());
+      // parametersItem.setDescription(nextSearchParam.getDocumentation());
+
       parametersItem.setStyle(Parameter.StyleEnum.SIMPLE);
     }
   }
@@ -1019,68 +1021,73 @@ public class OpenApiInterceptorR4 {
         }
       }
 
-      // POST form for all operations
-      if (theResourceType != null) {
-        if (operationDefinition.getType()) {
-          final Operation operation =
-              getPathItem(
-                  thePaths,
-                  "/" + theResourceType + "/$" + operationDefinition.getCode(),
-                  PathItem.HttpMethod.POST);
-          populateOperation(
-              theFhirContext, theOpenApi, theResourceType, operationDefinition, operation, false);
-          operation.setSummary(operationDefinition.getCode());
-          operation.setSummary(
-              unCamelCase(theResourceType)
-                  + " operation to perform "
-                  + operationDefinition.getCode()
-                  + ". For more information on this operation, see the R4 spec at"
-                  + " https://hl7.org/fhir/R4/"
-                  + theResourceType
-                  + "-operation-"
-                  + operationDefinition.getCode()
-                  + ".html");
-        }
-        if (operationDefinition.getInstance()) {
-          final Operation operation =
-              getPathItem(
-                  thePaths,
-                  "/" + theResourceType + "/{id}/$" + operationDefinition.getCode(),
-                  PathItem.HttpMethod.POST);
-          addResourceIdParameter(operation);
-          populateOperation(
-              theFhirContext, theOpenApi, theResourceType, operationDefinition, operation, false);
-          operation.setSummary(operationDefinition.getCode());
-          operation.setSummary(
-              unCamelCase(theResourceType)
-                  + " operation to perform "
-                  + operationDefinition.getCode()
-                  + ". For more information on this operation, see the R4 spec at"
-                  + " https://hl7.org/fhir/R4/"
-                  + theResourceType
-                  + "-operation-"
-                  + operationDefinition.getCode()
-                  + ".html");
-        }
-      } else {
-        if (operationDefinition.getSystem()) {
-          final Operation operation =
-              getPathItem(thePaths, "/$" + operationDefinition.getCode(), PathItem.HttpMethod.POST);
-          populateOperation(
-              theFhirContext, theOpenApi, null, operationDefinition, operation, false);
-          operation.setSummary(operationDefinition.getCode());
-          operation.setSummary(
-              unCamelCase(theResourceType)
-                  + " operation to perform "
-                  + operationDefinition.getCode()
-                  + ". For more information on this operation, see the R4 spec at"
-                  + " https://hl7.org/fhir/R4/"
-                  + theResourceType
-                  + "-operation-"
-                  + operationDefinition.getCode()
-                  + ".html");
-        }
-      }
+      // HIDE POST FORMS of operations
+      //
+      //      // POST form for all operations
+      //      if (theResourceType != null) {
+      //        if (operationDefinition.getType()) {
+      //          final Operation operation =
+      //              getPathItem(
+      //                  thePaths,
+      //                  "/" + theResourceType + "/$" + operationDefinition.getCode(),
+      //                  PathItem.HttpMethod.POST);
+      //          populateOperation(
+      //              theFhirContext, theOpenApi, theResourceType, operationDefinition, operation,
+      // false);
+      //          operation.setSummary(operationDefinition.getCode());
+      //          operation.setSummary(
+      //              unCamelCase(theResourceType)
+      //                  + " operation to perform "
+      //                  + operationDefinition.getCode()
+      //                  + ". For more information on this operation, see the R4 spec at"
+      //                  + " https://hl7.org/fhir/R4/"
+      //                  + theResourceType
+      //                  + "-operation-"
+      //                  + operationDefinition.getCode()
+      //                  + ".html");
+      //        }
+      //        if (operationDefinition.getInstance()) {
+      //          final Operation operation =
+      //              getPathItem(
+      //                  thePaths,
+      //                  "/" + theResourceType + "/{id}/$" + operationDefinition.getCode(),
+      //                  PathItem.HttpMethod.POST);
+      //          addResourceIdParameter(operation);
+      //          populateOperation(
+      //              theFhirContext, theOpenApi, theResourceType, operationDefinition, operation,
+      // false);
+      //          operation.setSummary(operationDefinition.getCode());
+      //          operation.setSummary(
+      //              unCamelCase(theResourceType)
+      //                  + " operation to perform "
+      //                  + operationDefinition.getCode()
+      //                  + ". For more information on this operation, see the R4 spec at"
+      //                  + " https://hl7.org/fhir/R4/"
+      //                  + theResourceType
+      //                  + "-operation-"
+      //                  + operationDefinition.getCode()
+      //                  + ".html");
+      //        }
+      //      } else {
+      //        if (operationDefinition.getSystem()) {
+      //          final Operation operation =
+      //              getPathItem(thePaths, "/$" + operationDefinition.getCode(),
+      // PathItem.HttpMethod.POST);
+      //          populateOperation(
+      //              theFhirContext, theOpenApi, null, operationDefinition, operation, false);
+      //          operation.setSummary(operationDefinition.getCode());
+      //          operation.setSummary(
+      //              unCamelCase(theResourceType)
+      //                  + " operation to perform "
+      //                  + operationDefinition.getCode()
+      //                  + ". For more information on this operation, see the R4 spec at"
+      //                  + " https://hl7.org/fhir/R4/"
+      //                  + theResourceType
+      //                  + "-operation-"
+      //                  + operationDefinition.getCode()
+      //                  + ".html");
+      //        }
+      //      }
     }
   }
 

@@ -10,7 +10,9 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
@@ -149,6 +151,9 @@ public final class FhirUtilityR4 {
     uri.put("npo", "http://purl.bioontology.org/ontology/npo");
     uri.put("ma", "http://purl.obolibrary.org/obo/emap.owl");
     uri.put("zfa", "http://purl.obolibrary.org/obo/zfa.owl");
+    for (final Map.Entry<String, String> entry : new HashSet<>(uris.entrySet())) {
+      uris.put(entry.getValue(), entry.getKey());
+    }
     return uri;
   }
 

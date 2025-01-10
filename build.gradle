@@ -56,7 +56,7 @@ ext {
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
-version = "2.0.0.RELEASE"
+version = "2.1.0.RELEASE"
 
 sourceCompatibility = 17
 targetCompatibility = 17
@@ -76,98 +76,102 @@ java {
 
 dependencies {
 
-  implementation 'org.springframework.boot:spring-boot-starter-web'
+  implementation "org.springframework.boot:spring-boot-starter-web"
 
   // Use version 2 with spring boot 3
   // custom location => springdoc.swagger-ui.path=/swagger-ui/index.html
-  implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0'
+  implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:2.6.0"
 
-  implementation 'org.springframework.boot:spring-boot-devtools'
-  implementation 'org.springframework.boot:spring-boot-starter-actuator'
-  implementation 'org.springframework.boot:spring-boot-starter-cache'
-  implementation 'org.springframework.boot:spring-boot-properties-migrator'
-  implementation 'org.springframework:spring-aop'
+  implementation "org.springframework.boot:spring-boot-devtools"
+  implementation "org.springframework.boot:spring-boot-starter-actuator"
+  implementation "org.springframework.boot:spring-boot-starter-cache"
+  implementation "org.springframework.boot:spring-boot-properties-migrator"
+  implementation "org.springframework:spring-aop"
 
-  //implementation 'org.springframework.data:spring-data-elasticsearch:4.2.12'
-  implementation 'org.opensearch.client:spring-data-opensearch-starter:1.5.3'
+  // For vulnerabilities
+  implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.34"
+
+  //implementation "org.springframework.data:spring-data-elasticsearch:4.2.12"
+  implementation "org.opensearch.client:spring-data-opensearch-starter:1.5.3"
 
   //Java Mail Sender dependency
-  implementation 'org.springframework.boot:spring-boot-starter-mail'
+  implementation "org.springframework.boot:spring-boot-starter-mail"
 
-  implementation 'org.aspectj:aspectjweaver:1.9.2'
-  implementation 'org.apache.commons:commons-text:1.10.0'
-  //implementation 'org.apache.opennlp:opennlp-tools:2.2.0'
+  implementation "org.aspectj:aspectjweaver:1.9.2"
+  implementation "org.apache.commons:commons-text:1.10.0"
+  //implementation "org.apache.opennlp:opennlp-tools:2.2.0"
 
   // Upgrade ecache to use jakarta - https://groups.google.com/g/ehcache-users/c/sKfxWuTpY-U
   // See also: https://stackoverflow.com/questions/75813659/gradle-could-not-find-org-ehcacheehcache-after-upgrading-to-spring-boot-3-0-x
-  implementation 'org.ehcache:ehcache:3.10.8:jakarta'
+  implementation "org.ehcache:ehcache:3.10.8:jakarta"
   // {
   //  capabilities {
-  //    requireCapability('org.ehcache:ehcache-jakarta')
+  //    requireCapability("org.ehcache:ehcache-jakarta")
   //  }
   // }
 
-  //implementation 'commons-io:commons-io:2.14.0'
-  //implementation 'commons-cli:commons-cli:1.4'
-  implementation 'cglib:cglib:3.3.0'
-  implementation 'com.google.protobuf:protobuf-java:3.25.5'
+  //implementation "commons-io:commons-io:2.14.0"
+  //implementation "commons-cli:commons-cli:1.4"
+  implementation "cglib:cglib:3.3.0"
+  implementation "com.google.protobuf:protobuf-java:3.25.5"
 
   // fhir dependencies
-  implementation 'ca.uhn.hapi.fhir:hapi-fhir-base:7.4.5';
-  implementation 'ca.uhn.hapi.fhir:hapi-fhir-structures-r4:7.4.5'
-  implementation 'ca.uhn.hapi.fhir:hapi-fhir-structures-r5:7.4.5'
-  implementation 'ca.uhn.hapi.fhir:hapi-fhir-server:7.4.5'
-  implementation('ca.uhn.hapi.fhir:hapi-fhir-jpaserver-base:7.4.5') {
-    exclude group: 'ca.uhn.hapi.fhir', module: 'hapi-fhir-sql-migrate'
-    exclude group: 'org.elasticsearch.client', module: 'elasticsearch-rest-high-level-client'
-    exclude group: 'org.elasticsearch.client', module: 'elasticsearch-rest-client'
-    exclude group: 'org.hibernate.search'
-    exclude group: 'org.apache.lucene'
-    exclude group: 'com.github.jsonld-java', module: 'jsonld-java'
-    exclude group: 'com.graphql-java', module: 'graphql-java'
-    exclude group: 'org.glassfish', module: 'javax.el'
-    exclude group: 'org.apache.logging.log4j', module: 'log4j-to-slf4j'
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-base:7.4.5";
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:7.4.5"
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r5:7.4.5"
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-server:7.4.5"
+  implementation("ca.uhn.hapi.fhir:hapi-fhir-jpaserver-base:7.4.5") {
+    exclude group: "ca.uhn.hapi.fhir", module: "hapi-fhir-sql-migrate"
+    exclude group: "org.elasticsearch.client", module: "elasticsearch-rest-high-level-client"
+    exclude group: "org.elasticsearch.client", module: "elasticsearch-rest-client"
+    exclude group: "org.hibernate.search"
+    exclude group: "org.apache.lucene"
+    exclude group: "com.github.jsonld-java", module: "jsonld-java"
+    exclude group: "com.graphql-java", module: "graphql-java"
+    exclude group: "org.glassfish", module: "javax.el"
+    exclude group: "org.apache.logging.log4j", module: "log4j-to-slf4j"
   }
-  implementation 'ca.uhn.hapi.fhir:hapi-fhir-server-openapi:7.4.5'
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-server-openapi:7.4.5"
 
   // For the moment, these require explicit 6.4.0 to resolve vulnerabilities (as 7.4.5 above is current)
-  implementation 'ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.4.0'
-  implementation 'ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.4.0'
-  implementation 'ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.4.0'
-  implementation 'ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.4.0'
-  implementation 'ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.4.0'
-  implementation 'ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.4.0'
-  implementation 'ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.4.0'
-  implementation 'ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.4.0'
-  implementation 'ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.4.0'
+  implementation "org.fhir:ucum:1.0.9"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.4.0"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.4.0"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.4.0"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.4.0"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.4.0"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.4.0"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.4.0"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.4.0"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.4.0"
 
   // Lombok dependencies (avoid using lombok for now)
-  //implementation 'org.projectlombok:lombok:1.18.32'
-  //annotationProcessor 'org.projectlombok:lombok:1.18.32'
-  //compileOnly 'org.projectlombok:lombok:1.18.32'
-  //  compileOnly 'jakarta.servlet:jakarta.servlet-api:6.0.0'
-  //providedRuntime 'org.springframework.boot:spring-boot-starter-tomcat'
+  //implementation "org.projectlombok:lombok:1.18.32"
+  //annotationProcessor "org.projectlombok:lombok:1.18.32"
+  //compileOnly "org.projectlombok:lombok:1.18.32"
+  //  compileOnly "jakarta.servlet:jakarta.servlet-api:6.0.0"
+  //providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
 
   /*
    * Test Dependencies
   */
-  testImplementation 'org.springframework.boot:spring-boot-starter-test'
-  testImplementation 'org.opensearch.client:spring-data-opensearch-test-autoconfigure:1.5.3'
-  testImplementation 'org.junit.jupiter:junit-jupiter-params:5.9.3'
-  testImplementation 'org.junit.jupiter:junit-jupiter-api:5.9.3'
-  testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.9.3'
-  testRuntimeOnly 'org.junit.platform:junit-platform-commons:1.9.3'
-  testRuntimeOnly 'org.junit.platform:junit-platform-runner:1.9.3'
+  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation "org.opensearch.client:spring-data-opensearch-test-autoconfigure:1.5.3"
+  testImplementation "org.junit.jupiter:junit-jupiter-params:5.10.5"
+  testImplementation "org.junit.jupiter:junit-jupiter-api:5.10.5"
+  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.10.5"
+  testRuntimeOnly "org.junit.platform:junit-platform-commons:1.10.0"
+  testRuntimeOnly "org.junit.platform:junit-platform-runner:1.10.0"
   // (avoid using lombok for now)
-  //testCompileOnly 'org.projectlombok:lombok:1.18.32'
-  //testAnnotationProcessor 'org.projectlombok:lombok:1.18.32'
+  //testCompileOnly "org.projectlombok:lombok:1.18.32"
+  //testAnnotationProcessor "org.projectlombok:lombok:1.18.32"
 
 }
 
 test {
   useJUnitPlatform{}
   // Args to pass when running the tests to ensure the cglib can be accessed and avoid InaccessibleObjectException
-  jvmArgs('-Xmx8G', '--add-opens', 'java.base/java.lang=ALL-UNNAMED')
+  jvmArgs("-Xmx8G", "--add-opens", "java.base/java.lang=ALL-UNNAMED")
   // Set the active profile to use our application-test.yml file from test resources
   systemProperty("spring.profiles.active", "test")
   /*
