@@ -460,6 +460,23 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   }
 
   /**
+   * Returns the metadata as node from an explicitly local filepath.
+   *
+   * @param terminology the terminology
+   * @return the metadata as node
+   * @throws Exception the exception
+   */
+  public JsonNode getMetadataAsNodeLocal(final String terminology) throws Exception {
+    // Read from the configured URI where this data lives
+    // If terminology is {term}_{version} -> strip the version
+    final String uri =
+        "src/main/resources/metadata/" + termUtils.getTerminologyName(terminology) + ".json";
+    logger.info("  get config for " + terminology + " = " + uri);
+    return new ObjectMapper()
+        .readTree(StringUtils.join(EVSUtils.getValueFromFile(uri, "metadata info"), '\n'));
+  }
+
+  /**
    * Returns the welcome text.
    *
    * @param terminology the terminology

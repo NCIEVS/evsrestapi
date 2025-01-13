@@ -87,7 +87,7 @@ public class TerminologyUtilsTest {
     final TerminologyMetadata metadata =
         new ObjectMapper()
             .treeToValue(
-                stardogElasticLoadServiceImpl.getMetadataAsNode(terminology),
+                stardogElasticLoadServiceImpl.getMetadataAsNodeLocal(terminology),
                 TerminologyMetadata.class);
     assertThat(metadata.getExtraSubsets()).isNotEmpty();
   }
