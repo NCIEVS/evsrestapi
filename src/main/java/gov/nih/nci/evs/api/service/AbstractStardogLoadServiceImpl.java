@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -516,8 +517,10 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       Concept newSubsetEntry = new Concept();
       try {
         newSubsetEntry =
-            esQueryService.getConcept(subsetCode, terminology, new IncludeParam("full")).get();
-      } catch (Exception e) {
+            esQueryService
+                .getConcept(subsetCode, terminology, new IncludeParam("full"))
+                .orElseThrow();
+      } catch (NoSuchElementException e) {
         logger.error("Concept " + subsetCode + " not found.");
       }
 
@@ -529,8 +532,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         parentSubset =
             esQueryService
                 .getConcept(newSubsets.get(subsetCode), terminology, new IncludeParam("full"))
-                .get();
-      } catch (Exception e) {
+                .orElseThrow();
+      } catch (NoSuchElementException e) {
         logger.error("Concept " + subsetCode + " not found.");
       }
 
@@ -572,8 +575,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         inverseAssoc.setRelatedName(subsetConcept.getName());
         newSubsetEntry.getInverseAssociations().add(inverseAssoc);
         // index subsetConcept
-        operationsService.index(
-            subsetConcept, terminology.getObjectIndexName(), ElasticObject.class);
+        operationsService.index(subsetConcept, terminology.getObjectIndexName(), Concept.class);
         // add subsetConcept relationship
         Concept subsetConceptRelationship = new Concept(subsetConcept);
         ConceptUtils.applyInclude(
@@ -588,10 +590,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       }
       // index parentSubset
       parentSubset.getChildren().add(newSubsetEntry);
-      operationsService.index(parentSubset, terminology.getObjectIndexName(), ElasticObject.class);
+      operationsService.index(parentSubset, terminology.getObjectIndexName(), Concept.class);
       // index newSubsetEntry
-      operationsService.index(
-          newSubsetEntry, terminology.getObjectIndexName(), ElasticObject.class);
+      operationsService.index(newSubsetEntry, terminology.getObjectIndexName(), Concept.class);
       // add parentSubset relationship
       Concept parentSubsetRelationship = new Concept(parentSubset);
       ConceptUtils.applyInclude(

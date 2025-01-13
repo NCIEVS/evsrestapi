@@ -161,6 +161,7 @@ public class TerminologyMetadata extends BaseModel {
   /** The welcome text. */
   private String welcomeText;
 
+  /** The extra subsets. */
   private Map<String, String> extraSubsets;
 
   /** Instantiates an empty {@link TerminologyMetadata}. */
