@@ -498,7 +498,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   }
 
   public void addExtraSubsets(List<Concept> existingSubsets, Terminology terminology)
-      throws IOException {
+      throws Exception {
 
     String filePath =
         this.applicationProperties.getUnitTestData()
@@ -507,7 +507,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     String url =
         this.applicationProperties.getFtpNeoplasmUrl()
             + this.applicationProperties.getPediatricSubsetsXls();
-
     // List to hold the sheet references
     List<Sheet> sheets = loadExcelSheets(url, filePath);
 
@@ -554,7 +553,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                       row.getCell(2).getStringCellValue(), terminology, new IncludeParam("full"))
                   .get();
         } catch (Exception e) {
-          logger.error("Concept " + subsetCode + " not found.");
+          logger.error("Concept " + row.getCell(2).getStringCellValue() + " not found.");
         }
 
         // make new computed association for the subset members
@@ -576,17 +575,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         newSubsetEntry.getInverseAssociations().add(inverseAssoc);
         // index subsetConcept
         operationsService.index(subsetConcept, terminology.getObjectIndexName(), Concept.class);
-        // add subsetConcept relationship
-        Concept subsetConceptRelationship = new Concept(subsetConcept);
-        ConceptUtils.applyInclude(
-            subsetConceptRelationship, new IncludeParam("minimal,children,properties"));
-        existingSubsets.stream()
-            .flatMap(Concept::streamSelfAndChildren)
-            .filter(subset -> subset.getCode().equals(subsetCode))
-            .findFirst()
-            .orElse(null)
-            .getChildren()
-            .add(subsetConceptRelationship);
       }
       // index parentSubset
       parentSubset.getChildren().add(newSubsetEntry);
