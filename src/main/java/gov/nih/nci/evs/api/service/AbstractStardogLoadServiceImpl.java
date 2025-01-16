@@ -537,7 +537,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 .findFirst()
                 .orElseThrow();
       } catch (NoSuchElementException e) {
-        logger.error("Subset " + subsetCode + " not found.");
+        logger.error("Parent Subset " + subsetCode + " not found, skipping.");
+        continue;
       }
 
       boolean isFirstRow = true;
