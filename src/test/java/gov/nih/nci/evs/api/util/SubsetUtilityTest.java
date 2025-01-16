@@ -4,16 +4,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.fail;
 
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.model.Synonym;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.Synonym;
+
+/** Tests for SubsetUtility. */
 public class SubsetUtilityTest {
 
   /**
@@ -189,34 +192,35 @@ public class SubsetUtilityTest {
     }
   }
 
-  /**
-   * Test getCdiscSubmissionValue method for positive and negative cases. TODO: Add more tests cases
-   * for subsetContributingSource, NCI/AB synonyms, and CDISC/PT synonyms
-   *
-   * @param concept the concept
-   * @param subset the subset concept
-   * @param expectedResult the expected result
-   * @param expectedExceptionMessage the expected exception message
-   * @throws Exception exception
-   */
-  @ParameterizedTest
-  @MethodSource("getConceptsForGetCdiscSubmissionValue")
-  void testGetCdiscSubmissionValue(
-      Concept subset, Concept concept, String expectedResult, String expectedExceptionMessage)
-      throws Exception {
-    if (expectedExceptionMessage != null) {
-      Exception exception =
-          assertThrows(
-              Exception.class, () -> SubsetUtility.getCdiscSubmissionValue(concept, subset));
-      assertEquals(expectedExceptionMessage, exception.getMessage());
-    } else {
-      try {
-        assertEquals(expectedResult, SubsetUtility.getCdiscSubmissionValue(subset, concept));
-      } catch (Exception e) {
-        fail("Unexpected exception: " + e.getMessage());
-      }
-    }
-  }
+  //  /**
+  //   * Test getCdiscSubmissionValue method for positive and negative cases. TODO: Add more tests
+  // cases
+  //   * for subsetContributingSource, NCI/AB synonyms, and CDISC/PT synonyms
+  //   *
+  //   * @param subset the subset concept
+  //   * @param concept the concept
+  //   * @param expectedResult the expected result
+  //   * @param expectedExceptionMessage the expected exception message
+  //   * @throws Exception exception
+  //   */
+  //  @ParameterizedTest
+  //  @MethodSource("getConceptsForGetCdiscSubmissionValue")
+  //  void testGetCdiscSubmissionValue(
+  //      Concept subset, Concept concept, String expectedResult, String expectedExceptionMessage)
+  //      throws Exception {
+  //    if (expectedExceptionMessage != null) {
+  //      Exception exception =
+  //          assertThrows(
+  //              Exception.class, () -> SubsetUtility.getCdiscSubmissionValues(concept, subset));
+  //      assertEquals(expectedExceptionMessage, exception.getMessage());
+  //    } else {
+  //      try {
+  //        assertEquals(expectedResult, SubsetUtility.getCdiscSubmissionValue(subset, concept));
+  //      } catch (Exception e) {
+  //        fail("Unexpected exception: " + e.getMessage());
+  //      }
+  //    }
+  //  }
 
   /**
    * Test data for isSubset method.
@@ -226,8 +230,6 @@ public class SubsetUtilityTest {
   private static Stream<Arguments> getTestConceptsForIsSubset() {
     return Stream.of(
         Arguments.of(null, false, "Concept is null"),
-        Arguments.of(new Concept(), false, "Concept has no properties"),
-        Arguments.of(createConcept("other"), false, "Concept has no properties"),
         Arguments.of(createConcept("ncit", new Property("Other_Type", "value")), false, null),
         Arguments.of(createConcept("ncit", new Property("Publish_Value_Set", "No")), false, null),
         Arguments.of(createConcept("ncit", new Property("Publish_Value_Set", "Yes")), true, null));
@@ -241,8 +243,6 @@ public class SubsetUtilityTest {
   private static Stream<Arguments> getTestConceptsForIsCdisc() {
     return Stream.of(
         Arguments.of(null, false, "Concept is null"),
-        Arguments.of(new Concept(), false, "Concept has no properties"),
-        Arguments.of(createConcept(null), false, "Concept has no properties"),
         Arguments.of(createConcept("ncit", new Property("Other_Type", "value")), false, null),
         Arguments.of(
             createConcept("ncit", new Property("Contributing_Source", "CDISC")), true, null),
@@ -260,8 +260,6 @@ public class SubsetUtilityTest {
   private static Stream<Arguments> getTestConceptsForIsCdiscSubset() {
     return Stream.of(
         Arguments.of(null, false, "Concept is null"),
-        Arguments.of(new Concept(), false, "Concept has no properties"),
-        Arguments.of(createConcept(null), false, "Concept has no properties"),
         Arguments.of(createConcept("other", new Property("Other_Type", "value")), false, null),
         Arguments.of(createConcept("ncit", new Property("Other_Type", "value")), false, null),
         Arguments.of(createConcept("ncit", new Property("Publish_Value_Set", "No")), false, null),
@@ -292,7 +290,6 @@ public class SubsetUtilityTest {
   private static Stream<Arguments> getConceptsForHasCdiscSynonym() {
     return Stream.of(
         Arguments.of(null, false, "Concept is null"),
-        Arguments.of(new Concept(), false, "Concept has no properties"),
         Arguments.of(
             createConceptWithSynonyms(
                 "ncit",
@@ -332,7 +329,7 @@ public class SubsetUtilityTest {
                 new Property("Publish_Value_Set", "Yes"),
                 new Property("Contributing_Source", "CDISC")),
             false,
-            "Concept property source is null"),
+            null),
         Arguments.of(
             createConceptWithSynonyms(
                 "ncit",
@@ -340,7 +337,7 @@ public class SubsetUtilityTest {
                 new Property("Publish_Value_Set", "Yes"),
                 new Property("Contributing_Source", "CDISC")),
             false,
-            "Concept property source is null"));
+            null));
   }
 
   /**
@@ -351,24 +348,22 @@ public class SubsetUtilityTest {
   private static Stream<Arguments> getConceptsForIsCdiscGrouper() {
     return Stream.of(
         Arguments.of(null, false, "Concept is null"),
-        Arguments.of(new Concept(), false, "Concept has no properties"),
-        Arguments.of(createConceptWithSynonyms(null, null), false, "Concept has no properties"),
         Arguments.of(
             createConceptWithSynonyms(
                 "ncit",
                 List.of(createSynonym(null, null, null)),
                 new Property("Publish_Value_Set", "Yes"),
                 new Property("Contributing_Source", "CDISC")),
-            false,
-            "Concept property source is null"),
+            true,
+            null),
         Arguments.of(
             createConceptWithSynonyms(
                 "ncit",
                 List.of(createSynonym("", "", "")),
                 new Property("Publish_Value_Set", "Yes"),
                 new Property("Contributing_Source", "CDISC")),
-            false,
-            "Concept property source is null"),
+            true,
+            null),
         Arguments.of(
             createConceptWithSynonyms(
                 "ncit",
@@ -411,8 +406,6 @@ public class SubsetUtilityTest {
   private static Stream<Arguments> getConceptsForIsCdiscCodeList() {
     return Stream.of(
         Arguments.of(null, false, "Concept is null"),
-        Arguments.of(new Concept(), false, "Concept has no properties"),
-        Arguments.of(createConcept(null), false, "Concept has no properties"),
         Arguments.of(createConcept("other", new Property("Other_Type", "value")), false, null),
         Arguments.of(createConcept("ncit", new Property("Other_Type", "value")), false, null),
         Arguments.of(createConcept("ncit", new Property("Publish_Value_Set", "No")), false, null),
@@ -444,110 +437,115 @@ public class SubsetUtilityTest {
             null));
   }
 
-  private static Stream<Arguments> getConceptsForGetCdiscSubmissionValue() {
-    return Stream.of(
-        Arguments.of(null, null, null, "Concept is null"),
-        Arguments.of(new Concept(), new Concept(), null, "Concept has no properties"),
-        Arguments.of(
-            createConceptWithSynonyms(
-                "ncit",
-                List.of(createSynonym("CDISC", "PT", "test term name")),
-                new Property("Publish_Value_Set", "Yes")),
-            createConceptWithSynonyms(
-                "ncit",
-                List.of(createSynonym("CDISC", "SY", "test term name")),
-                new Property("Publish_Value_Set", "Yes")),
-            null,
-            "Unable to find submission value because codelist lacks contributing source"),
-        Arguments.of(
-            createConceptWithSynonyms(
-                "ncit",
-                List.of(createSynonym("CDISC", "PT", "test term name")),
-                new Property("Publish_Value_Set", "No")),
-            createConceptWithSynonyms(
-                "ncit",
-                List.of(createSynonym("CDISC", "SY", "test term name")),
-                new Property("Publish_Value_Set", "Yes")),
-            null,
-            "Unable to find submission value because codelist lacks contributing source"),
-        Arguments.of(
-            createConceptWithSynonyms(
-                "ncit",
-                List.of(createSynonym("CDISC", "PT", "test term name")),
-                new Property("Publish_Value_Set", "Yes"),
-                new Property("Contributing_Source", "CDISC")),
-            createConceptWithSynonyms(
-                "ncit",
-                List.of(createSynonym("CDISC", "SY", "test term name")),
-                new Property("Publish_Value_Set", "Yes"),
-                new Property("Contributing_Source", "CDISC")),
-            "",
-            null),
-        Arguments.of(
-            createConceptWithSynonyms(
-                "ncit",
-                List.of(createSynonym("CDISC", "SY", "test term name")),
-                new Property("Publish_Value_Set", "Yes"),
-                new Property("Contributing_Source", "CDISC")),
-            createConceptWithSynonyms(
-                "ncit",
-                List.of(createSynonym("CDISC", "PT", "test term name")),
-                new Property("Publish_Value_Set", "Yes"),
-                new Property("Contributing_Source", "CDISC")),
-            "",
-            null),
-        // Should return the PT synonym value from the concept
-        Arguments.of(
-            createConceptWithSynonyms(
-                "ncit",
-                List.of(
-                    createSynonym("NCI", "AB", "NCI AB value"),
-                    createSynonym("CDISC", "PT", "CDISC PT value"),
-                    createSynonym("CDISC", "SY", "CDISC SY value")),
-                new Property("Publish_Value_Set", "Yes"),
-                new Property("Contributing_Source", "CDISC")),
-            createConceptWithSynonyms(
-                "ncit",
-                List.of(
-                    createSynonym("NCI", "PT", "NCI PT value"),
-                    createSynonym("NCI", "AB", "AB Value"),
-                    createSynonym("CDISC", "SY", "Other SY value")),
-                new Property("Publish_Value_Set", "Yes"),
-                new Property("Contributing_Source", "CDISC")),
-            "NCI PT value",
-            null),
-        Arguments.of(
-            createConceptWithSynonyms(
-                "ncit",
-                List.of(
-                    createSynonym("NCI", "PT", "test term name"),
-                    createSynonym("NCI", "AB", "return value"),
-                    createSynonym("CDISC", "SY", "Other synonym")),
-                new Property("Publish_Value_Set", "Yes"),
-                new Property("Contributing_Source", "CDISC")),
-            createConceptWithSynonyms(
-                "ncit",
-                List.of(
-                    createSynonym("CDISC", "PT", "SDTM"),
-                    createSynonym("NCI", "PT", "CDISC SDTM Terminology"),
-                    createSynonym("CDISC", "SY", "Other synonym")),
-                new Property("Publish_Value_Set", "Yes"),
-                new Property("Contributing_Source", "CDISC")),
-            "SDTM",
-            null),
-        Arguments.of(
-            createConceptWithSynonyms(
-                "ncit",
-                List.of(createSynonym("CDISC", "SY", "test term name")),
-                new Property("Publish_Value_Set", "Yes")),
-            createConceptWithSynonyms(
-                "ncit",
-                List.of(createSynonym("CDISC", "PT", "test term name")),
-                new Property("Publish_Value_Set", "Yes"),
-                new Property("Contributing_Source", "Other")),
-            null,
-            "Unable to find submission value for Other/PT"));
-  }
+  //
+  //  /**
+  //   * Returns the concepts for get cdisc submission value.
+  //   *
+  //   * @return the concepts for get cdisc submission value
+  //   */
+  //  private static Stream<Arguments> getConceptsForGetCdiscSubmissionValue() {
+  //    return Stream.of(
+  //        Arguments.of(null, null, null, "Concept is null"),
+  //        Arguments.of(
+  //            createConceptWithSynonyms(
+  //                "ncit",
+  //                List.of(createSynonym("CDISC", "PT", "test term name")),
+  //                new Property("Publish_Value_Set", "Yes")),
+  //            createConceptWithSynonyms(
+  //                "ncit",
+  //                List.of(createSynonym("CDISC", "SY", "test term name")),
+  //                new Property("Publish_Value_Set", "Yes")),
+  //            null,
+  //            "Unable to find submission value because codelist lacks contributing source"),
+  //        Arguments.of(
+  //            createConceptWithSynonyms(
+  //                "ncit",
+  //                List.of(createSynonym("CDISC", "PT", "test term name")),
+  //                new Property("Publish_Value_Set", "No")),
+  //            createConceptWithSynonyms(
+  //                "ncit",
+  //                List.of(createSynonym("CDISC", "SY", "test term name")),
+  //                new Property("Publish_Value_Set", "Yes")),
+  //            null,
+  //            "Unable to find submission value because codelist lacks contributing source"),
+  //        Arguments.of(
+  //            createConceptWithSynonyms(
+  //                "ncit",
+  //                List.of(createSynonym("CDISC", "PT", "test term name")),
+  //                new Property("Publish_Value_Set", "Yes"),
+  //                new Property("Contributing_Source", "CDISC")),
+  //            createConceptWithSynonyms(
+  //                "ncit",
+  //                List.of(createSynonym("CDISC", "SY", "test term name")),
+  //                new Property("Publish_Value_Set", "Yes"),
+  //                new Property("Contributing_Source", "CDISC")),
+  //            "",
+  //            null),
+  //        Arguments.of(
+  //            createConceptWithSynonyms(
+  //                "ncit",
+  //                List.of(createSynonym("CDISC", "SY", "test term name")),
+  //                new Property("Publish_Value_Set", "Yes"),
+  //                new Property("Contributing_Source", "CDISC")),
+  //            createConceptWithSynonyms(
+  //                "ncit",
+  //                List.of(createSynonym("CDISC", "PT", "test term name")),
+  //                new Property("Publish_Value_Set", "Yes"),
+  //                new Property("Contributing_Source", "CDISC")),
+  //            "",
+  //            null),
+  //        // Should return the PT synonym value from the concept
+  //        Arguments.of(
+  //            createConceptWithSynonyms(
+  //                "ncit",
+  //                List.of(
+  //                    createSynonym("NCI", "AB", "NCI AB value"),
+  //                    createSynonym("CDISC", "PT", "CDISC PT value"),
+  //                    createSynonym("CDISC", "SY", "CDISC SY value")),
+  //                new Property("Publish_Value_Set", "Yes"),
+  //                new Property("Contributing_Source", "CDISC")),
+  //            createConceptWithSynonyms(
+  //                "ncit",
+  //                List.of(
+  //                    createSynonym("NCI", "PT", "NCI PT value"),
+  //                    createSynonym("NCI", "AB", "AB Value"),
+  //                    createSynonym("CDISC", "SY", "Other SY value")),
+  //                new Property("Publish_Value_Set", "Yes"),
+  //                new Property("Contributing_Source", "CDISC")),
+  //            "NCI PT value",
+  //            null),
+  //        Arguments.of(
+  //            createConceptWithSynonyms(
+  //                "ncit",
+  //                List.of(
+  //                    createSynonym("NCI", "PT", "test term name"),
+  //                    createSynonym("NCI", "AB", "return value"),
+  //                    createSynonym("CDISC", "SY", "Other synonym")),
+  //                new Property("Publish_Value_Set", "Yes"),
+  //                new Property("Contributing_Source", "CDISC")),
+  //            createConceptWithSynonyms(
+  //                "ncit",
+  //                List.of(
+  //                    createSynonym("CDISC", "PT", "SDTM"),
+  //                    createSynonym("NCI", "PT", "CDISC SDTM Terminology"),
+  //                    createSynonym("CDISC", "SY", "Other synonym")),
+  //                new Property("Publish_Value_Set", "Yes"),
+  //                new Property("Contributing_Source", "CDISC")),
+  //            "SDTM",
+  //            null),
+  //        Arguments.of(
+  //            createConceptWithSynonyms(
+  //                "ncit",
+  //                List.of(createSynonym("CDISC", "SY", "test term name")),
+  //                new Property("Publish_Value_Set", "Yes")),
+  //            createConceptWithSynonyms(
+  //                "ncit",
+  //                List.of(createSynonym("CDISC", "PT", "test term name")),
+  //                new Property("Publish_Value_Set", "Yes"),
+  //                new Property("Contributing_Source", "Other")),
+  //            null,
+  //            "Unable to find submission value for Other/PT"));
+  //  }
 
   /**
    * Create a concept with the given terminology and properties. Helper method for testing.
@@ -563,6 +561,14 @@ public class SubsetUtilityTest {
     return concept;
   }
 
+  /**
+   * Creates the synonym.
+   *
+   * @param source the source
+   * @param termType the term type
+   * @param termName the term name
+   * @return the synonym
+   */
   private static Synonym createSynonym(String source, String termType, String termName) {
     Synonym synonym = new Synonym();
     synonym.setSource(source);

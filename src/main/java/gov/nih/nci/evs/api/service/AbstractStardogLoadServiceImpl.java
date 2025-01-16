@@ -1,24 +1,5 @@
 package gov.nih.nci.evs.api.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.model.Association;
-import gov.nih.nci.evs.api.model.AssociationEntry;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMinimal;
-import gov.nih.nci.evs.api.model.History;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Mapping;
-import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.properties.StardogProperties;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
-import gov.nih.nci.evs.api.support.es.ElasticObject;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.MainTypeHierarchy;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -40,6 +21,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,6 +31,29 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.elasticsearch.NoSuchIndexException;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.util.CollectionUtils;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.AssociationEntry;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.Extensions;
+import gov.nih.nci.evs.api.model.History;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.MainTypeHierarchy;
+import gov.nih.nci.evs.api.util.SubsetUtility;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /** The implementation for {@link ElasticLoadService}. */
 // @Service
@@ -237,6 +242,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 c -> {
                   // logger.info(" concept = " + c.getCode() + " " + c.getName());
                   c.setExtensions(mainTypeHierarchy.getExtensions(c));
+                  handleCdisc(terminology, c);
                   handleHistory(terminology, c);
                   if (c.getMaps().size() > 0 && c.getActive()) {
                     for (final Mapping map : c.getMaps()) {
@@ -808,6 +814,45 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
     } catch (Exception e) {
       logger.error("Problem loading history for concept " + concept.getCode() + ".", e);
+    }
+  }
+
+  /**
+   * Handle cdisc.
+   *
+   * @param terminology the terminology
+   * @param concept the concept
+   */
+  private void handleCdisc(final Terminology terminology, final Concept concept) {
+
+    try {
+      if (SubsetUtility.isCdisc(concept)) {
+        // Initialize extensions if necessary
+        final Extensions extensions =
+            concept.getExtensions() == null ? new Extensions() : concept.getExtensions();
+        concept.setExtensions(extensions);
+
+        //      set cdisc type
+        if (SubsetUtility.isCdiscMember(concept)) {
+          extensions.setCdiscType("member");
+        } else if (SubsetUtility.isCdiscCodeList(concept)) {
+          extensions.setCdiscType("codelist");
+          // Get the CDISC/PT "code" that is key to the member cdisc submission value map
+          extensions.setCdiscSubmissionValueCode(SubsetUtility.getCodeListNciAbName(concept));
+        } else if (SubsetUtility.isCdiscGrouper(concept)) {
+          extensions.setCdiscType("grouper");
+        }
+
+        final Map<String, String> submissionValueMap =
+            SubsetUtility.getCdiscSubmissionValues(concept);
+        if (submissionValueMap != null && submissionValueMap.size() == 1) {
+          extensions.setCdiscSubmissionValue(CONCEPTS_OUT_DIR);
+        } else if (submissionValueMap != null) {
+          extensions.setCdiscSubmissionValueMap(submissionValueMap);
+        }
+      }
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
   }
 

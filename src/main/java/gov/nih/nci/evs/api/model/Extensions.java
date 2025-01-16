@@ -1,11 +1,18 @@
 package gov.nih.nci.evs.api.model;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import org.springframework.data.elasticsearch.annotations.Field;
+import org.springframework.data.elasticsearch.annotations.FieldType;
+import org.springframework.data.elasticsearch.annotations.Mapping;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Represents a synonym of a concept. */
 @Schema(hidden = true)
@@ -14,39 +21,55 @@ import java.util.Map;
 public class Extensions extends BaseModel implements Comparable<Extensions> {
 
   /** CTRP "is disease" flag. */
+  @Field(type = FieldType.Keyword)
   private Boolean isDisease;
 
   /** The is disease grade. */
+  @Field(type = FieldType.Keyword)
   private Boolean isDiseaseGrade;
 
   /** The is disease stage. */
+  @Field(type = FieldType.Keyword)
   private Boolean isDiseaseStage;
 
   /** The is main type. */
+  @Field(type = FieldType.Keyword)
   private Boolean isMainType;
 
   /** CTRP "is subtype" flag. */
+  @Field(type = FieldType.Keyword)
   private Boolean isSubtype;
 
   /** The is biomarker. */
+  @Field(type = FieldType.Keyword)
   private Boolean isBiomarker;
 
   /** The is reference gene. */
+  @Field(type = FieldType.Keyword)
   private Boolean isReferenceGene;
 
   /** The paths to root. */
+  @Field(type = FieldType.Object, enabled = false)
+  @Mapping(enabled = false)
   private List<Paths> mainMenuAncestors;
 
-  // grouper, codelist, concept type
+  /** The cdisc type. grouper, codelist, concept type. */
+  @Field(type = FieldType.Keyword)
   private String cdiscType;
 
-  // only applies to codelist type or concept type (where only one CDISC/PT)
+  /**
+   * The cdisc submission value. only applies to codelist type or concept type (where only one
+   * CDISC/PT)
+   */
   private String cdiscSubmissionValue;
 
-  // only applies to concept types
+  /** The cdisc submission value map. only applies to concept types */
   private Map<String, String> cdiscSubmissionValueMap;
 
-  // applies to codelist type (name of the NCI/AB code for a codelist)
+  /**
+   * The cdisc submission value code. applies to codelist type (name of the NCI/AB code for a
+   * codelist)
+   */
   private String cdiscSubmissionValueCode;
 
   /** Instantiates an empty {@link Extensions}. */
@@ -275,6 +298,81 @@ public class Extensions extends BaseModel implements Comparable<Extensions> {
    */
   public void setMainMenuAncestors(final List<Paths> mainMenuAncestors) {
     this.mainMenuAncestors = mainMenuAncestors;
+  }
+
+  /**
+   * Returns the cdisc type.
+   *
+   * @return the cdisc type
+   */
+  public String getCdiscType() {
+    return cdiscType;
+  }
+
+  /**
+   * Sets the cdisc type.
+   *
+   * @param cdiscType the cdisc type
+   */
+  public void setCdiscType(String cdiscType) {
+    this.cdiscType = cdiscType;
+  }
+
+  /**
+   * Returns the cdisc submission value.
+   *
+   * @return the cdisc submission value
+   */
+  public String getCdiscSubmissionValue() {
+    return cdiscSubmissionValue;
+  }
+
+  /**
+   * Sets the cdisc submission value.
+   *
+   * @param cdiscSubmissionValue the cdisc submission value
+   */
+  public void setCdiscSubmissionValue(String cdiscSubmissionValue) {
+    this.cdiscSubmissionValue = cdiscSubmissionValue;
+  }
+
+  /**
+   * Returns the cdisc submission value map.
+   *
+   * @return the cdisc submission value map
+   */
+  public Map<String, String> getCdiscSubmissionValueMap() {
+    if (cdiscSubmissionValueMap == null) {
+      cdiscSubmissionValueMap = new HashMap<>();
+    }
+    return cdiscSubmissionValueMap;
+  }
+
+  /**
+   * Sets the cdisc submission value map.
+   *
+   * @param cdiscSubmissionValueMap the cdisc submission value map
+   */
+  public void setCdiscSubmissionValueMap(Map<String, String> cdiscSubmissionValueMap) {
+    this.cdiscSubmissionValueMap = cdiscSubmissionValueMap;
+  }
+
+  /**
+   * Returns the cdisc submission value code.
+   *
+   * @return the cdisc submission value code
+   */
+  public String getCdiscSubmissionValueCode() {
+    return cdiscSubmissionValueCode;
+  }
+
+  /**
+   * Sets the cdisc submission value code.
+   *
+   * @param cdiscSubmissionValueCode the cdisc submission value code
+   */
+  public void setCdiscSubmissionValueCode(String cdiscSubmissionValueCode) {
+    this.cdiscSubmissionValueCode = cdiscSubmissionValueCode;
   }
 
   /* see superclass */
