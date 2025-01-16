@@ -533,11 +533,17 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       try {
         parentSubset =
             existingSubsets.stream()
+                .flatMap(Concept::streamSelfAndChildren)
                 .filter(subset -> subset.getCode().equals(newSubsets.get(subsetCode)))
                 .findFirst()
                 .orElseThrow();
       } catch (NoSuchElementException e) {
-        logger.error("Parent Subset " + subsetCode + " not found, skipping.");
+        logger.error(
+            "Parent Subset of "
+                + subsetCode
+                + ": "
+                + newSubsets.get(subsetCode)
+                + " not found, skipping.");
         continue;
       }
 
@@ -585,16 +591,16 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         // index subsetConcept
         operationsService.index(subsetConcept, terminology.getIndexName(), Concept.class);
       }
-
+      // index newSubsetEntry
+      operationsService.index(newSubsetEntry, terminology.getIndexName(), Concept.class);
       // create new subset for parentSubset to add as child of existing subset
       Concept parentSubsetChild = new Concept(newSubsetEntry);
       // strip out everything the subset tree doesn't need
       ConceptUtils.applyInclude(parentSubsetChild, new IncludeParam("minimal,properties"));
 
       parentSubset.getChildren().add(parentSubsetChild);
-      // index parentSubset and newSubsetEntry changes/additions
-      operationsService.index(parentSubset, terminology.getIndexName(), Concept.class);
-      operationsService.index(newSubsetEntry, terminology.getIndexName(), Concept.class);
+      // index parentSubset
+      operationsService.index(parentSubset, terminology.getObjectIndexName(), Concept.class);
     }
     logger.info("Extra subsets added");
   }
