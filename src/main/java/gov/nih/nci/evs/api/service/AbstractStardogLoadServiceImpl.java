@@ -591,6 +591,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         // index subsetConcept
         operationsService.index(subsetConcept, terminology.getIndexName(), Concept.class);
       }
+      // explicitly set leaf since it defaults to false
+      newSubsetEntry.setLeaf(!newSubsets.containsValue(newSubsetEntry.getCode()));
       // index newSubsetEntry
       operationsService.index(newSubsetEntry, terminology.getIndexName(), Concept.class);
       // create new subset for parentSubset to add as child of existing subset
