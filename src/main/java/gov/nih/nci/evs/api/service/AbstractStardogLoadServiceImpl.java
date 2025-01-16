@@ -36,7 +36,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -533,14 +532,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       Concept parentSubset = new Concept();
       try {
         parentSubset =
-            esQueryService
-                .getConcept(newSubsets.get(subsetCode), terminology, new IncludeParam("full"))
+            existingSubsets.stream()
+                .filter(subset -> subset.getCode().equals(newSubsets.get(subsetCode)))
+                .findFirst()
                 .orElseThrow();
       } catch (NoSuchElementException e) {
-        logger.error("Concept " + subsetCode + " not found.");
+        logger.error("Subset " + subsetCode + " not found.");
       }
-
-      parentSubset.getChildren().add(newSubsetEntry);
 
       boolean isFirstRow = true;
       for (Row row : sheet) {
@@ -586,38 +584,16 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         // index subsetConcept
         operationsService.index(subsetConcept, terminology.getIndexName(), Concept.class);
       }
-      // adding children relationship to concept tree and subset tree
-      // first, concept tree
-      // stop recursive children addition
-      if (!parentSubset.getCode().equals(newSubsetEntry.getCode())) {
-        // add new subset to parent subset children
-        parentSubset.getChildren().add(newSubsetEntry);
-      }
-      // index parentSubset and newSubsetEntry changes/additions
-      operationsService.index(parentSubset, terminology.getIndexName(), Concept.class);
-      operationsService.index(newSubsetEntry, terminology.getIndexName(), Concept.class);
 
-      // now, subset tree
       // create new subset for parentSubset to add as child of existing subset
       Concept parentSubsetChild = new Concept(newSubsetEntry);
       // strip out everything the subset tree doesn't need
       ConceptUtils.applyInclude(parentSubsetChild, new IncludeParam("minimal,properties"));
-      // add to subset tree as child, skip recursive children addition
-      Optional<Concept> matchingSubset =
-          existingSubsets.stream()
-              .flatMap(Concept::streamSelfAndChildren)
-              .filter(
-                  subset ->
-                      subset.getCode().equals(newSubsets.get(subsetCode))
-                          && !subset.getCode().equals(subsetCode))
-              .findFirst();
 
-      if (matchingSubset.isPresent()) {
-        matchingSubset.get().getChildren().add(parentSubsetChild);
-      } else {
-        throw new IllegalStateException(
-            "No matching subset found for subset code " + newSubsets.get(subsetCode));
-      }
+      parentSubset.getChildren().add(parentSubsetChild);
+      // index parentSubset and newSubsetEntry changes/additions
+      operationsService.index(parentSubset, terminology.getIndexName(), Concept.class);
+      operationsService.index(newSubsetEntry, terminology.getIndexName(), Concept.class);
     }
     logger.info("Extra subsets added");
   }
