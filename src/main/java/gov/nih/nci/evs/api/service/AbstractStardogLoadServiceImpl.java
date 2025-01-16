@@ -36,6 +36,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -522,7 +523,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 .getConcept(subsetCode, terminology, new IncludeParam("full"))
                 .orElseThrow();
       } catch (NoSuchElementException e) {
-        logger.error("Concept " + subsetCode + " not found.");
+        logger.error("Subset " + subsetCode + " not found as a concept, skipping.");
+        continue;
       }
 
       // get the subset and concept that the new subset is a part of i.e. pediatric subset part of
@@ -555,7 +557,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                       row.getCell(2).getStringCellValue(), terminology, new IncludeParam("full"))
                   .get();
         } catch (Exception e) {
-          logger.error("Concept " + row.getCell(2).getStringCellValue() + " not found.");
+          logger.error(
+              "Concept "
+                  + row.getCell(2).getStringCellValue()
+                  + " not found for new subset "
+                  + subsetCode
+                  + ", skipping.");
+          continue;
         }
 
         // make new computed association for the subset members
@@ -576,25 +584,42 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         inverseAssoc.setRelatedName(subsetConcept.getName());
         newSubsetEntry.getInverseAssociations().add(inverseAssoc);
         // index subsetConcept
-        operationsService.index(subsetConcept, terminology.getObjectIndexName(), Concept.class);
+        operationsService.index(subsetConcept, terminology.getIndexName(), Concept.class);
       }
-      // index parentSubset
-      parentSubset.getChildren().add(newSubsetEntry);
-      operationsService.index(parentSubset, terminology.getObjectIndexName(), Concept.class);
-      // index newSubsetEntry
-      operationsService.index(newSubsetEntry, terminology.getObjectIndexName(), Concept.class);
-      // add parentSubset relationship
-      Concept parentSubsetRelationship = new Concept(parentSubset);
-      ConceptUtils.applyInclude(
-          parentSubsetRelationship, new IncludeParam("minimal,children,properties"));
-      existingSubsets.stream()
-          .flatMap(Concept::streamSelfAndChildren)
-          .filter(subset -> subset.getCode().equals(newSubsets.get(subsetCode)))
-          .findFirst()
-          .orElse(null)
-          .getChildren()
-          .add(parentSubsetRelationship);
+      // adding children relationship to concept tree and subset tree
+      // first, concept tree
+      // stop recursive children addition
+      if (!parentSubset.getCode().equals(newSubsetEntry.getCode())) {
+        // add new subset to parent subset children
+        parentSubset.getChildren().add(newSubsetEntry);
+      }
+      // index parentSubset and newSubsetEntry changes/additions
+      operationsService.index(parentSubset, terminology.getIndexName(), Concept.class);
+      operationsService.index(newSubsetEntry, terminology.getIndexName(), Concept.class);
+
+      // now, subset tree
+      // create new subset for parentSubset to add as child of existing subset
+      Concept parentSubsetChild = new Concept(newSubsetEntry);
+      // strip out everything the subset tree doesn't need
+      ConceptUtils.applyInclude(parentSubsetChild, new IncludeParam("minimal,properties"));
+      // add to subset tree as child, skip recursive children addition
+      Optional<Concept> matchingSubset =
+          existingSubsets.stream()
+              .flatMap(Concept::streamSelfAndChildren)
+              .filter(
+                  subset ->
+                      subset.getCode().equals(newSubsets.get(subsetCode))
+                          && !subset.getCode().equals(subsetCode))
+              .findFirst();
+
+      if (matchingSubset.isPresent()) {
+        matchingSubset.get().getChildren().add(parentSubsetChild);
+      } else {
+        throw new IllegalStateException(
+            "No matching subset found for subset code " + newSubsets.get(subsetCode));
+      }
     }
+    logger.info("Extra subsets added");
   }
 
   public static List<Sheet> loadExcelSheets(String url, String filepath) {
