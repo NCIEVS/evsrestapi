@@ -593,6 +593,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       }
       // explicitly set leaf since it defaults to false
       newSubsetEntry.setLeaf(!newSubsets.containsValue(newSubsetEntry.getCode()));
+      // add extra relevant properties to new subset
+      newSubsetEntry.getProperties().add(new Property("Publish_Value_Set", "Yes"));
+      newSubsetEntry.getProperties().add(new Property("EVSRESTAPI_Subset_Format", "NCI"));
       // index newSubsetEntry
       operationsService.index(newSubsetEntry, terminology.getIndexName(), Concept.class);
       // create new subset for parentSubset to add as child of existing subset
