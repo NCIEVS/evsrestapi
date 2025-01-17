@@ -604,6 +604,11 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       ConceptUtils.applyInclude(parentSubsetChild, new IncludeParam("minimal,properties"));
 
       parentSubset.getChildren().add(parentSubsetChild);
+      if (parentSubset.getProperties().stream()
+          .noneMatch(property -> property.getType().equals("Publish_Value_Set"))) {
+        parentSubset.getProperties().add(new Property("Publish_Value_Set", "Yes"));
+      }
+      parentSubset.getProperties().add(new Property("EVSRESTAPI_Subset_Format", "NCI"));
       // index parentSubset
       operationsService.index(parentSubset, terminology.getObjectIndexName(), Concept.class);
     }
