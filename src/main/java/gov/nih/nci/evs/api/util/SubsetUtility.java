@@ -1,20 +1,24 @@
 package gov.nih.nci.evs.api.util;
 
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.Synonym;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.model.Synonym;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Utility class for subset operations. Used for validating and determining if a CDISC subset
  * concepts are codelist or grouper subsets.
  */
 public final class SubsetUtility {
+
+  /** The Constant logger. */
+  private static final Logger logger = LoggerFactory.getLogger(SubsetUtility.class);
 
   /**
    * Checks if the concept is ncit and a subset.
@@ -143,7 +147,6 @@ public final class SubsetUtility {
    * Get the CDISC submission value map for a concept. This all PT values with "code" as the key or
    * "default" if there is no code.
    *
-   * @param subset The subset concept
    * @param concept The concept
    * @return The CDISC submission value
    * @throws Exception exception
@@ -176,8 +179,11 @@ public final class SubsetUtility {
     final Map<String, String> map = new HashMap<>();
     for (final Synonym synonym : cdiscSynonyms) {
       if (synonym.getCode() == null || synonym.getCode().isEmpty()) {
+        logger.info("XXX = " + cdiscSynonyms);
         throw new Exception(
             "Unexpected empty code CDISC/PT on a concept with multiple CDISC/PTs = "
+                + cdiscSynonyms.size()
+                + ","
                 + concept.getCode());
       }
       map.put(synonym.getCode(), synonym.getName());
@@ -215,7 +221,6 @@ public final class SubsetUtility {
    * Returns the cdisc pts.
    *
    * @param concept the concept
-   * @param source the source
    * @return the cdisc pts
    * @throws Exception the exception
    */
@@ -224,16 +229,16 @@ public final class SubsetUtility {
     return concept.getSynonyms().stream()
         .filter(
             syn ->
-                (syn.getSource().startsWith("CDISC")
-                    || syn.getSource().equals("MRCT-Ctr") && syn.getTermType().equals("PT")))
+                syn.getSource() != null
+                    && (syn.getSource().startsWith("CDISC")
+                        || syn.getSource().equals("MRCT-Ctr") && syn.getTermType().equals("PT")))
         .collect(Collectors.toList());
   }
 
   /**
-   * Get the CDISC synonyms that match the subset contributing source helper method
+   * Get the CDISC synonyms that match the subset contributing source helper method.
    *
    * @param concept the concept
-   * @param source the subset contributing source
    * @return the CDISC synonyms that match the subset contributing source
    * @throws Exception exception
    */
