@@ -239,6 +239,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                   // logger.info(" concept = " + c.getCode() + " " + c.getName());
                   c.setExtensions(mainTypeHierarchy.getExtensions(c));
                   handleHistory(terminology, c);
+                  // Collect maps for NCIt mapsets
                   if (c.getMaps().size() > 0 && c.getActive()) {
                     for (final Mapping map : c.getMaps()) {
                       final String mapterm = map.getTargetTerminology().split(" ")[0];
@@ -254,6 +255,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                           copy.setTargetTerminologyVersion(
                               map.getTargetTerminology().split(" ")[1]);
                         }
+                        copy.setMapsetCode(mapsets.get(mapterm).getCode());
                         mapsets.get(mapterm).getMaps().add(copy);
                       }
                     }

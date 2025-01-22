@@ -252,7 +252,7 @@ public class MapsetController extends BaseController {
             "Missing required field = " + searchCriteria.computeMissingRequiredFields());
       }
 
-      searchCriteria.checkPagination();
+      searchCriteria.checkPagination(10000);
       // pre-process certain sorts
       if ("targetName".equals(searchCriteria.getSort())
           || "sourceName".equals(searchCriteria.getSort())) {
