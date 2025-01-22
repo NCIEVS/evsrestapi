@@ -1,17 +1,19 @@
 package gov.nih.nci.evs.api.model;
 
-import gov.nih.nci.evs.api.service.MetadataService;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.server.ResponseStatusException;
+
+import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Search criteria object for /concept/search implementation without a terminology field. */
 @Schema(description = "Criteria for a search or find operation (except for a terminology aspect)")
@@ -519,6 +521,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   }
 
   /**
+   * Returns the code list.
+   *
    * @return the list of codes to limit the search to
    */
   @Schema(
@@ -569,9 +573,20 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * @throws Exception the exception
    */
   public void checkPagination() throws Exception {
-    if (pageSize < 1 || pageSize > 1000) {
+    checkPagination(1000);
+  }
+
+  /**
+   * Check pagination.
+   *
+   * @param upperPageSize the upper page size
+   * @throws Exception the exception
+   */
+  public void checkPagination(final int upperPageSize) throws Exception {
+    if (pageSize < 1 || pageSize > upperPageSize) {
       throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
+          HttpStatus.BAD_REQUEST,
+          "Parameter 'pageSize' must be between 1 and " + upperPageSize + " = " + pageSize);
     }
 
     // This rule is no longer required, non-aligned fromRecord/pageSize
