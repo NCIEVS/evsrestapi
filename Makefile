@@ -28,6 +28,10 @@ build:
 test:
 	./gradlew spotlessCheck -x test 
 
+release-tag:
+	git tag -a "${VERSION}-RC-`/bin/date +%Y-%m-%d`" -m "Release ${VERSION}-RC-`/bin/date +%Y-%m-%d`"
+	git push origin "${VERSION}-RC-`/bin/date +%Y-%m-%d`"
+
 tag:
 	git tag -a "v`/bin/date +%Y-%m-%d`-${APP_VERSION}" -m "Release `/bin/date +%Y-%m-%d`"
 	git push origin "v`/bin/date +%Y-%m-%d`-${APP_VERSION}"
