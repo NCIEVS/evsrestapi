@@ -199,7 +199,7 @@ public class LoaderServiceImpl {
         }
         if (!cmd.hasOption("xm")) {
           // Give load objects a chance to update terminology metadata
-          totalConcepts = loadService.loadObjects(config, term, hierarchy);
+          loadService.loadObjects(config, term, hierarchy);
           loadService.loadIndexMetadata(totalConcepts, term);
         }
       }
@@ -210,7 +210,10 @@ public class LoaderServiceImpl {
       termAudit.setEndDate(endDate);
       termAudit.setElapsedTime(endDate.getTime() - startDate.getTime());
       logger.info("Audit: {}", termAudit.toString());
-      addAudit(termAudit);
+      // only add new audit if something major has actually happened
+      if (termAudit.getElapsedTime() > 10000) {
+        addAudit(termAudit);
+      }
 
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
