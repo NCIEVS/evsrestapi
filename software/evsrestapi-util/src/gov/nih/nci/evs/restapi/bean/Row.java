@@ -24,7 +24,7 @@ public class Row
 // Constructor
 	public Row(
 		List<String> row) {
-		this.row = row;
+		this.row = row;
 	}
 
 // Set methods

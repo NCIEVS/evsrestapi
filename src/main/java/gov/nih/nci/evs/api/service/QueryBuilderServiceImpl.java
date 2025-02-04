@@ -78,15 +78,23 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     return prefix;
   }
 
-  /* see superclass */
   @Override
   public String prepSparql(final Terminology terminology, final String query) {
+    return prepSparql(terminology, query, false);
+  }
+
+  /* see superclass */
+  @Override
+  public String prepSparql(
+      final Terminology terminology, final String query, final Boolean keepPrefixes) {
 
     // Replace non space whitespace
     String sparqlQuery = query.replaceAll("[\t\r\n]", "::newline::");
 
     // Replace prefixes
-    sparqlQuery = sparqlQuery.replaceFirst("(?i:.*?SELECT )", "SELECT ");
+    if (keepPrefixes == null || !keepPrefixes) {
+      sparqlQuery = sparqlQuery.replaceFirst("(?i:.*?SELECT )", "SELECT ");
+    }
 
     // Replace graph
     sparqlQuery =
@@ -105,7 +113,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
     }
     sparqlQuery = sparqlQuery.replaceAll("::newline::", "\n");
 
-    return constructPrefix(terminology) + "\n" + sparqlQuery;
+    return ((keepPrefixes == null || !keepPrefixes) ? (constructPrefix(terminology) + "\n") : "")
+        + sparqlQuery;
   }
 
   /**

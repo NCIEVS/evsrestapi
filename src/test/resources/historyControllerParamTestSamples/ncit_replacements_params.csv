@@ -1,0 +1,6 @@
+code, expectedAction, expectedReplacementCode
+C3224, active,
+C13320, merge, C12756
+C12756, active,
+C17610, active,
+C4631, retire,

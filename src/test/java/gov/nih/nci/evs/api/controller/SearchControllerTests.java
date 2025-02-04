@@ -1,9 +1,9 @@
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
-import static org.junit.Assert.fail;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -17,12 +17,15 @@ import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,17 +33,16 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /** Integration tests for SearchController. */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
-@ActiveProfiles("test")
+// @ActiveProfiles("test")
 public class SearchControllerTests {
 
   /** The logger. */
@@ -65,7 +67,7 @@ public class SearchControllerTests {
   private String baseUrlNoTerm = "";
 
   /** Sets the up. */
-  @Before
+  @BeforeEach
   public void setUp() {
     /*
      * Configure the JacksonTester object
@@ -2888,6 +2890,29 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test search cdisc subsets.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchCdiscSubsets() throws Exception {
+    String url = baseUrlNoTerm;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+    log.info("Testing url - " + url + "/ncit/search" + "?subset=C81224");
+    result =
+        mvc.perform(get(url + "/ncit/search").param("subset", "C81224"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
+    assertThat(list.getTotal()).isEqualTo(27);
+  }
+
+  /**
    * Test that search deboosts retired concepts.
    *
    * @throws Exception the exception
@@ -3586,7 +3611,7 @@ public class SearchControllerTests {
             + "    ?x a owl:Class .\n"
             + "    ?x :NHC0 ?code .\n"
             + "    ?x :P108 ?label .\n"
-            + "    FILTER(CONTAINS(?label, \"Melanoma\"))\n"
+            + "    FILTER(STRSTARTS(?label, \"Melanoma\"))\n"
             + "  }\n"
             + "}";
     log.info("Testing url - " + url + "?type=contains&include=minimal&term=Theraccine");
@@ -3747,7 +3772,7 @@ public class SearchControllerTests {
           assertThat(contentException.contains("SPARQL query failed validation:")).isTrue();
         });
 
-    url = "/api/v1/concept/umlssemnet/search/";
+    url = "/api/v1/concept/umlssemnet/search";
     // check a valid query in another terminology (with malformed graph)
     query =
         "SELECT ?code\n"
@@ -4013,6 +4038,223 @@ public class SearchControllerTests {
                     .param("pageSize", "1001"))
             .andExpect(status().isBadRequest())
             .andReturn();
+  }
+
+  /**
+   * Test search all ncit.
+   *
+   * @throws Exception the exception
+   */
+  //  @Test
+  public void testSearchAllNcit() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    url = baseUrl;
+    int fromRecord = 0;
+    int pageSize = 500;
+    long total = 0;
+    final List<String> codes = new ArrayList<>();
+    while (true) {
+      log.info(
+          "Testing url - "
+              + url
+              + "?terminology=ncit&fromRecord="
+              + fromRecord
+              + "&pageSize="
+              + pageSize);
+      // Test a basic term search
+      result =
+          this.mvc
+              .perform(
+                  get(url)
+                      .param("terminology", "ncit")
+                      .param("fromRecord", "" + fromRecord)
+                      .param("pageSize", "" + pageSize))
+              .andExpect(status().isOk())
+              .andReturn();
+      content = result.getResponse().getContentAsString();
+      assertThat(content).isNotNull();
+      list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      total = list.getTotal();
+      if (list.getConcepts() == null || list.getConcepts().isEmpty()) {
+        log.info("  done reading");
+        break;
+      }
+      codes.addAll(list.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
+      fromRecord += pageSize;
+    }
+
+    // Verify no duplicate codes
+    final Set<String> codeSet = new HashSet<>(codes);
+    assertThat(codeSet.size()).isEqualTo(codes.size());
+    assertThat(total).isEqualTo(codeSet.size());
+    assertThat((long) fromRecord).isGreaterThan(total);
+  }
+
+  /**
+   * Test search all ncit with sort. This is separate from the prior test because we want to verify
+   * that both "rank" sort and a fielded sort behave the same way with respect to this paging stuff.
+   *
+   * @throws Exception the exception
+   */
+  //  @Test
+  public void testSearchAllNcitWithSort() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    url = baseUrl;
+    int fromRecord = 0;
+    int pageSize = 500;
+    long total = 0;
+    final List<String> codes = new ArrayList<>();
+    while (true) {
+      log.info(
+          "Testing url - "
+              + url
+              + "?terminology=ncit&sort=code&fromRecord="
+              + fromRecord
+              + "&pageSize="
+              + pageSize);
+      // Test a basic term search
+      result =
+          this.mvc
+              .perform(
+                  get(url)
+                      .param("sort", "code")
+                      .param("terminology", "ncit")
+                      .param("fromRecord", "" + fromRecord)
+                      .param("pageSize", "" + pageSize))
+              .andExpect(status().isOk())
+              .andReturn();
+      content = result.getResponse().getContentAsString();
+      assertThat(content).isNotNull();
+      list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      total = list.getTotal();
+      if (list.getConcepts() == null || list.getConcepts().isEmpty()) {
+        log.info("  done reading");
+        break;
+      }
+      codes.addAll(list.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
+      fromRecord += pageSize;
+    }
+
+    // Verify no duplicate codes
+    final Set<String> codeSet = new HashSet<>(codes);
+    assertThat(codeSet.size()).isEqualTo(codes.size());
+    assertThat(total).isEqualTo(codeSet.size());
+    assertThat((long) fromRecord).isGreaterThan(total);
+  }
+
+  /**
+   * Test sparql prefixes.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSparqlPrefixes() throws Exception {
+    MvcResult result = null;
+    String content = null;
+
+    String nciturl = "/api/v1/sparql/ncit/prefixes";
+
+    log.info("Testing url - " + nciturl);
+    // Test a basic term search
+    result = this.mvc.perform(get(nciturl)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    assertThat(content).isNotNull();
+    log.info("  ncit prefixes = " + content);
+    assertThat(content).startsWith("\"PREFIX ");
+    assertThat(content).contains(" :<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>");
+    assertThat(content).doesNotContain("HGNC.owl");
+
+    String hgncurl = "/api/v1/sparql/hgnc/prefixes";
+
+    log.info("Testing url - " + hgncurl);
+    // Test a basic term search
+    result = this.mvc.perform(get(hgncurl)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    assertThat(content).isNotNull();
+    log.info("  hgnc prefixes = " + content);
+    assertThat(content).startsWith("\"PREFIX ");
+    assertThat(content).doesNotContain("Thesaurus.owl");
+    assertThat(content).doesNotContain("\r");
+    assertThat(content).contains(":<http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#>");
+  }
+
+  /**
+   * Test non rdf with sparql.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testNonRdfWithSparql() throws Exception {
+
+    log.info("Testing url - " + "/api/v1/sparql/ncim");
+    // Test a basic term search
+    this.mvc
+        .perform(
+            MockMvcRequestBuilders.post("/api/v1/sparql/ncim")
+                .content("query not important")
+                .contentType("text/plain"))
+        .andExpect(status().isExpectationFailed())
+        .andReturn();
+
+    log.info("Testing url - " + "/api/v1/sparql/ncim/prefixes");
+    // Test a basic term search
+    this.mvc
+        .perform(get("/api/v1/sparql/ncim/prefixes"))
+        .andExpect(status().isExpectationFailed())
+        .andReturn();
+
+    log.info("Testing url - /api/v1/concept/ncim/search?type=contains&include=minimal");
+    mvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/concept/ncim/search")
+                .content("query not important")
+                .contentType("text/plain")
+                .param("include", "minimal")
+                .param("type", "contains"))
+        .andExpect(status().isExpectationFailed())
+        .andReturn();
+  }
+
+  /**
+   * Test sparql with prefixes. We are just looking here that there are no errors.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSparqlWithPrefixes() throws Exception {
+
+    // Concept sparql
+    final String sparql =
+        """
+            PREFIX xyz:<http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#>
+              PREFIX owl:<http://www.w3.org/2002/07/owl#>
+              SELECT ?code WHERE { ?x a owl:Class . ?x xyz:NHC0 ?code .?x xyz:P108 "Melanoma" }
+        """;
+    mvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/concept/ncit/search")
+                .content(sparql)
+                .contentType("text/plain")
+                .param("include", "minimal")
+                .param("prefixes", "true"))
+        .andExpect(status().isOk())
+        .andReturn();
+
+    // General sparql
+    log.info("Testing url - /api/v1/concept/ncit/search?prefixes=true&include=minimal");
+    mvc.perform(
+            MockMvcRequestBuilders.post("/api/v1/sparql/ncit")
+                .content(sparql)
+                .contentType("text/plain")
+                .param("prefixes", "true"))
+        .andExpect(status().isOk())
+        .andReturn();
   }
 
   /**

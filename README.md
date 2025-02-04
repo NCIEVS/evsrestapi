@@ -8,23 +8,23 @@ Information on the build and deployment process for the EVSRESTAPI project
   * **NOTE**: For Macs, you may want to adjust the CPU & memory settings.
 * Before cloning the repo, make sure that the command `git config core.autocrlf` returns `false`. Change it to `false` using `git config --global core.autocrlf false` if necessary
 * Clone the project - [https://github.com/NCIEVS/evsrestapi](https://github.com/NCIEVS/evsrestapi)
-* Create a local data directory and set a $dir variable in your terminal. This $dir variable will be referenced multiple times in upcoming steps.
+* Create a local data directory and set a `$dir` variable in your terminal. This `$dir` variable will be referenced multiple times in upcoming steps.
   * `export set dir=C:/Users/carlsenbr/eclipse-workspace/data`
-* Execute `mkdir -p $dir/elasticsearch/data`
-* * Set a new variable $ES_DIR to the new directory just created. This $ES_DIR will be referenced in upcoming steps.
-* `export set ES_DIR=$dir/elasticsearch/data`
-* Download the "Unit Test Data" folder from <https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI>.  Unpack it to your $dir folder (so that $dir/UnitTestData exists)
+* Execute `mkdir -p $dir/opensearch/data`
+* * Set a new variable `$ES_DIR` to the new directory just created. This `$ES_DIR` will be referenced in upcoming steps.
+* `export set ES_DIR=$dir/opensearch/data`
+* Download the "Unit Test Data" folder from <https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI>.  Unpack it to your `$dir` folder (so that `$dir/UnitTestData` exists)
   * run `prep.sh`
 
 ## Steps for Loading NCI Thesaurus Data and Indexes Locally
 
 * Launch Stardog and load NCI Thesaurus data - (see [Stardog Resources](STARDOG.md))
-* Launch Elasticsearch docker container - (see [Elasticsearch Resources](ELASTICSEARCH.md))
+* Launch Opensearch docker container - (see [Opensearch Resources](OPENSEARCH.md))
 
 * Make sure to set at least the following environment variables
   * ES_SCHEME=http
   * ES_HOST=localhost
-  * ES_PORT=9301
+  * ES_PORT=9201
   * STARDOG_HOST=localhost
   * STARDOG_PORT=5820
   * STARDOG_DB=NCIT2
@@ -49,7 +49,7 @@ Information on the build and deployment process for the EVSRESTAPI project
 
 ## Steps for Building and Running EVSRESTAPI locally
 
-* Launch Stardog and Elasticsearch (as described above)
+* Launch Stardog and Opensearch (as described above)
   * If loaded properly, the loaded artifacts should be persistent and you can take down and restart the docker processes and the data will still be there.
   * NOTE: both services must be loaded and running for the application tests to run properly
 * Configure application

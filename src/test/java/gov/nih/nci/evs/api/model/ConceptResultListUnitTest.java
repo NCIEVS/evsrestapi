@@ -1,6 +1,6 @@
 package gov.nih.nci.evs.api.model;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import gov.nih.nci.evs.api.CopyConstructorTester;
 import gov.nih.nci.evs.api.EqualsHashcodeTester;
@@ -10,16 +10,16 @@ import gov.nih.nci.evs.api.SerializationTester;
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
 import java.util.ArrayList;
 import java.util.List;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.test.context.ContextConfiguration;
-import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /** Unit test for {@link ConceptResultList}. */
-@RunWith(SpringJUnit4ClassRunner.class)
+@ExtendWith(SpringExtension.class)
 @ContextConfiguration(classes = TestConfiguration.class)
 public class ConceptResultListUnitTest {
 
@@ -61,10 +61,10 @@ public class ConceptResultListUnitTest {
   private List<Role> r2;
 
   /** The m 1. */
-  private List<ConceptMap> m1;
+  private List<Mapping> m1;
 
   /** The m 2. */
-  private List<ConceptMap> m2;
+  private List<Mapping> m2;
 
   /** The c 1. */
   private List<Concept> c1;
@@ -83,7 +83,7 @@ public class ConceptResultListUnitTest {
    *
    * @throws Exception the exception
    */
-  @Before
+  @BeforeEach
   public void setup() throws Exception {
     object = new ConceptResultList();
 
@@ -117,11 +117,11 @@ public class ConceptResultListUnitTest {
     r2 = new ArrayList<>();
     r2.add((Role) tester5.createObject(2));
 
-    final ProxyTester tester6 = new ProxyTester(new ConceptMap());
+    final ProxyTester tester6 = new ProxyTester(new Mapping());
     m1 = new ArrayList<>();
-    m1.add((ConceptMap) tester6.createObject(1));
+    m1.add((Mapping) tester6.createObject(1));
     m2 = new ArrayList<>();
-    m2.add((ConceptMap) tester6.createObject(2));
+    m2.add((Mapping) tester6.createObject(2));
 
     final ProxyTester tester7 = new ProxyTester(new SearchCriteria());
     sc1 = (SearchCriteria) tester7.createObject(1);

@@ -9,6 +9,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.SearchCriteria;
@@ -33,19 +34,19 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.elasticsearch.index.query.QueryBuilders;
+import org.opensearch.data.client.orhlc.NativeSearchQuery;
+import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
+import org.opensearch.data.core.OpenSearchOperations;
+import org.opensearch.index.query.QueryBuilders;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
 import org.springframework.data.elasticsearch.core.SearchHit;
 import org.springframework.data.elasticsearch.core.SearchHits;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQuery;
-import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
 import org.springframework.data.elasticsearch.core.query.Query;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -62,7 +63,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   private static final Logger logger = LoggerFactory.getLogger(ElasticQueryServiceImpl.class);
 
   /** the elasticsearch operations *. */
-  @Autowired ElasticsearchOperations operations;
+  @Autowired OpenSearchOperations operations;
 
   /** the term utils. */
   @Autowired TerminologyUtils termUtils;
@@ -776,9 +777,9 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   private Optional<ElasticObject> getElasticObject(String id, Terminology terminology) {
 
-    //    if (logger.isDebugEnabled()) {
-    //      logger.debug("getElasticObject({}, {})", id, terminology.getTerminology());
-    //    }
+    // if (logger.isDebugEnabled()) {
+    // logger.debug("getElasticObject({}, {})", id, terminology.getTerminology());
+    // }
 
     NativeSearchQuery query =
         new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", id)).build();
@@ -810,7 +811,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
             .withPageable(PageRequest.of(0, 10000))
             .build();
 
-    return getResults(query, Concept.class, ElasticOperationsService.MAPPING_INDEX);
+    return getResults(query, Concept.class, ElasticOperationsService.MAPSET_INDEX);
   }
 
   @Override
@@ -822,7 +823,18 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
             .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), ip.getExcludedFields()))
             .build();
 
-    return getResults(query, Concept.class, ElasticOperationsService.MAPPING_INDEX);
+    return getResults(query, Concept.class, ElasticOperationsService.MAPSET_INDEX);
+  }
+
+  @Override
+  public List<Mapping> getMapsetMappings(String code) throws Exception {
+
+    NativeSearchQuery query =
+        new NativeSearchQueryBuilder()
+            .withFilter(QueryBuilders.termQuery("mapsetCode.keyword", code))
+            .build();
+
+    return getResults(query, Mapping.class, ElasticOperationsService.MAPPINGS_INDEX);
   }
 
   /**

@@ -7,6 +7,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
@@ -16,6 +17,7 @@ import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PushBackReader;
 import gov.nih.nci.evs.api.util.RrfReaders;
@@ -26,8 +28,6 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -39,8 +39,8 @@ import java.util.Optional;
 import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.tomcat.util.buf.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -88,11 +88,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   /** The rui qual sabs. */
   private Set<String> ruiQualSabs = new HashSet<>();
 
-  /** The mapset version map. */
-  private Map<String, String> mapsetVersionMap = new HashMap<>();
-
   /** The maps. */
-  private Map<String, Set<gov.nih.nci.evs.api.model.ConceptMap>> maps = new HashMap<>();
+  private Map<String, Set<Mapping>> maps = new HashMap<>();
 
   /** The rui inverse map. */
   private Map<String, String> ruiInverseMap = new HashMap<>();
@@ -183,8 +180,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         final PushBackReader mrcui = readers.getReader(RrfReaders.Keys.MRCUI); ) {
 
       String line = null;
-      final Map<String, String> mapsetNameMap = new HashMap<>();
-      final Map<String, String> mapsetToTerminologyMap = new HashMap<>();
+      final Map<String, String> codeNameMap = new HashMap<>();
+      final Map<String, Mapping> mapsetInfoMap = new HashMap<>();
 
       // Loop through concept lines until we reach "the end"
       while ((line = mrconso.readLine()) != null) {
@@ -202,19 +199,22 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
         // Cache ICD10CM PT names for mapping data
         // ICD10CM/ICD10 are always target fields as of now
-        if (fields[11].equals("ICD10CM") && fields[12].equals("PT")) {
-          mapsetNameMap.put(fields[11] + fields[13], fields[14]);
-        }
-
-        // Cache ICD10CM PT names for mapping data
-        if (fields[11].equals("ICD10") && fields[12].equals("PT")) {
-          mapsetNameMap.put(fields[11] + fields[13], fields[14]);
+        if ((fields[11].equals("ICD10CM") || fields[11].equals("ICD10") || fields[11].equals("PDQ"))
+            && fields[12].equals("PT")) {
+          // NEED for SAB in key
+          codeNameMap.put(fields[11] + fields[13], fields[14]);
+        } else if ((fields[11].equals("PDQ") || fields[11].equals("NCI"))
+            && fields[12].equals("PT")) {
+          // no need for SAB in key
+          codeNameMap.put(fields[13], fields[14]);
         }
 
         // Cache SNOMEDCT_US/PT SCUI -> CUI for maps
         // SNOMEDCT_US is always source field as of now
-        if (fields[11].equals("SNOMEDCT_US") && fields[12].equals("PT") && fields[16].equals("N")) {
-          mapsetNameMap.put(fields[13], fields[14]);
+        else if (fields[11].equals("SNOMEDCT_US")
+            && fields[12].equals("PT")
+            && fields[16].equals("N")) {
+          codeNameMap.put(fields[13], fields[14]);
           codeCuiMap.put(fields[13], fields[0]);
         }
 
@@ -224,11 +224,40 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
             && fields[14].contains("ICD10")) {
           // |SNOMEDCT_US_2020_09_01 to ICD10CM_2021 Mappings
           // |SNOMEDCT_US_2022_03_01 to ICD10_2016 Mappings
-          mapsetToTerminologyMap.put(fields[0], fields[14].replaceFirst(".* to ([^ ]+).*", "$1"));
-          mapsetNameMap.put(fields[0], fields[14]);
-          mapsetVersionMap.put(
-              fields[0],
+          final Mapping info = new Mapping();
+          mapsetInfoMap.put(fields[0], info);
+          info.setSource("snomedct_us"); // evsrestapi terminology
+          info.setSourceTerminology("SNOMEDCT_US"); // uiLabel
+          info.setSourceTerminologyVersion(
               fields[14].replaceFirst("(.*) to .*", "$1").replaceFirst("SNOMEDCT_US_", ""));
+          info.setTarget(fields[14].replaceFirst(".* to ([^ ]+)_.*", "$1").toLowerCase());
+          info.setTargetName(fields[14].replaceFirst(".* to ([^ ]+)_.*", "$1"));
+          info.setTargetTerminology(fields[14].replaceFirst(".* to ([^ ]+)_.*", "$1"));
+          info.setTargetTerminologyVersion(fields[14].replaceFirst(".* to [^ ]+_([^ ]+).*", "$1"));
+          info.setMapsetCode(fields[14].replaceAll(" ", "_"));
+          codeNameMap.put(fields[0], fields[14]);
+
+        } else if (fields[11].equals("PDQ")
+            && fields[12].equals("XM")
+            && fields[14].contains("NCI")) {
+          // PDQ_2016_07_31 to NCI_2024_06D Mappings
+          final Mapping info = new Mapping();
+          mapsetInfoMap.put(fields[0], info);
+          info.setSource("pdq");
+          info.setSourceTerminology("PDQ");
+          info.setSourceTerminologyVersion(
+              fields[14].replaceFirst("(.*) to .*", "$1").replaceFirst("PDQ_", ""));
+          info.setTarget("nci");
+          info.setTargetName("NCI");
+          info.setTargetTerminology("NCI Thesaurus");
+          // Compute EVSRESTAPI-style version for NCIt.
+          info.setTargetTerminologyVersion(
+              fields[14]
+                  .replaceFirst(".* to NCI_20([^ ]+).*", "$1")
+                  .replaceFirst("_", ".")
+                  .toLowerCase());
+          info.setMapsetCode(fields[14].replaceAll(" ", "_"));
+          codeNameMap.put(fields[0], fields[14]);
         }
       }
 
@@ -249,30 +278,44 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         // OK: IFA 445518008 &#x7C; Age at onset of clinical finding (observable entity) &#x7C;
         // OK: IFA 248152002 &#x7C; Female (finding) &#x7C;
         // OK: IFA 248153007 &#x7C; Male (finding) &#x7C;
-        if (fields[20].startsWith("IFA")
-            && !fields[20].startsWith("IFA 445518008")
-            && !fields[20].startsWith("IFA 248152002")
-            && !fields[20].startsWith("IFA 248153007")) {
-          continue;
-        }
 
-        final gov.nih.nci.evs.api.model.ConceptMap map = new gov.nih.nci.evs.api.model.ConceptMap();
-        map.setSource("SNOMEDCT_US");
+        // Change this to keep all rules
+        // if (fields[20].startsWith("IFA")
+        // && !fields[20].startsWith("IFA 445518008")
+        // && !fields[20].startsWith("IFA 248152002")
+        // && !fields[20].startsWith("IFA 248153007")) {
+        // continue;
+        // }
+
+        final Mapping info = mapsetInfoMap.get(fields[0]);
+        final Mapping map = new Mapping();
+        map.setSource(info.getSource());
         map.setSourceCode(fields[8]);
-        map.setSourceTerminology(fields[1]);
-        map.setSourceName(mapsetNameMap.get(fields[6]));
+        map.setSourceTerminology(info.getSourceTerminology());
+        map.setSourceName(
+            codeNameMap.containsKey(fields[6])
+                ? codeNameMap.get(fields[6])
+                : codeNameMap.get(fields[1] + fields[6]));
+        map.setSourceTerminologyVersion(info.getSourceTerminologyVersion());
         map.setTargetCode(fields[16].isEmpty() || fields[16].equals("100051") ? "" : fields[16]);
         map.setTargetTermType("PT");
-        map.setTargetTerminology(mapsetToTerminologyMap.get(fields[0]).split("_")[0]);
-        map.setTargetTerminologyVersion(mapsetToTerminologyMap.get(fields[0]).split("_")[1]);
+        if (!mapsetInfoMap.containsKey(fields[0])) {
+          throw new Exception("Encountered unsupported MRMAP CUI = " + fields[0]);
+        }
+        map.setTarget(info.getTarget());
+        map.setTargetTerminology(info.getTargetTerminology());
+        map.setTargetTerminologyVersion(info.getTargetTerminologyVersion());
         map.setTargetName(
             fields[16].isEmpty() || fields[16].equals("100051")
                 ? ""
-                : mapsetNameMap.get(map.getTargetTerminology() + fields[16]));
+                : (codeNameMap.containsKey(fields[16])
+                    ? codeNameMap.get(fields[16])
+                    : codeNameMap.get(info.getTargetName() + fields[16])));
         map.setType(fields[12]);
         map.setGroup(fields[2]);
         map.setRank(fields[3]);
         map.setRule(fields[20]);
+        map.setMapsetCode(info.getMapsetCode());
         mapCt++;
 
         // Fix source name if null
@@ -302,36 +345,22 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
                   .collect(Collectors.toList());
           final Concept mapset = new Concept();
           // populate the mapset details.
-          final String code = mapsetNameMap.get(fields[0]).replaceAll(" ", "_");
-          mapset.setCode(code);
-          mapset.setName(mapsetNameMap.get(fields[0]));
-          mapset.setTerminology("snomedct_us");
-          mapset.setVersion(mapsetVersionMap.get(fields[0]));
+          mapset.setCode(info.getMapsetCode());
+          mapset.setName(codeNameMap.get(fields[0]));
+          mapset.setTerminology(info.getSourceTerminology().toLowerCase());
+          mapset.setVersion(info.getSourceTerminologyVersion());
           // set other fields and properties as needed (to match other mapsets and needs of ui)
           mapset.getProperties().add(new Property("loader", "MetaElasticLoadServiceImpl"));
           final String mapsetUri =
               applicationProperties.getConfigBaseUri()
-                  + "/mapping-snomed-"
-                  + mapsetToTerminologyMap.get(fields[0]).split("_")[0].toLowerCase()
+                  + "/mapping-"
+                  + info.getSource().replaceFirst("snomedct_us", "snomed")
+                  + "-"
+                  + info.getTarget().replaceFirst("ncit", "nci")
                   + ".html";
-          try (final InputStream is = new URL(mapsetUri).openConnection().getInputStream()) {
-            final String welcomeText = IOUtils.toString(is, StandardCharsets.UTF_8);
-            mapset.getProperties().add(new Property("welcomeText", welcomeText));
-          } catch (Throwable t) { // read as file if no url
-            try {
-              final String welcomeText =
-                  FileUtils.readFileToString(new File(mapsetUri), StandardCharsets.UTF_8);
-              mapset.getProperties().add(new Property("welcomeText", welcomeText));
-            } catch (IOException ex) {
-              throw new IOException(
-                  "Could not find either file or uri for welcome text: " + mapsetUri); // only
-              // throw
-              // exception
-              // if
-              // both
-              // fail
-            }
-          }
+          final String welcomeText =
+              StringUtils.join(EVSUtils.getValueFromFile(mapsetUri, "welcome text"), '\n');
+          mapset.getProperties().add(new Property("welcomeText", welcomeText));
           mapset.getProperties().add(new Property("mapsetLink", null));
           mapset.getProperties().add(new Property("downloadOnly", "false"));
           mapset
@@ -339,29 +368,26 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
               .add(
                   new Property(
                       "sourceLoaded",
-                      Boolean.toString(terms.contains(map.getSourceTerminology().toLowerCase()))));
+                      Boolean.toString(terms.contains(info.getSourceTerminology().toLowerCase()))));
           mapset
               .getProperties()
               .add(
                   new Property(
                       "targetLoaded",
-                      Boolean.toString(terms.contains(map.getTargetTerminology().toLowerCase()))));
+                      Boolean.toString(terms.contains(info.getTargetTerminology().toLowerCase()))));
           mapset
               .getProperties()
               .add(
                   new Property(
                       "sourceTerminology",
-                      map.getSourceTerminology() != null
-                          ? map.getSourceTerminology().toLowerCase()
-                          : "not found"));
+                      info.getSourceTerminology() != null ? info.getSource() : "not found"));
           mapset
               .getProperties()
               .add(
                   new Property(
                       "targetTerminology",
-                      map.getTargetTerminology() != null
-                          ? map.getTargetTerminology().toLowerCase()
-                          : "not found"));
+                      info.getTargetTerminology() != null ? info.getTarget() : "not found"));
+
           mapset
               .getProperties()
               .add(
@@ -431,18 +457,19 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
               .filter(l -> !currentMapsetCodes.contains(l))
               .collect(Collectors.toList());
       logger.info("mapsetsToAdd = " + mapsetsToAdd);
+
       // remove old mappings by code
       for (String mapsetCode : mapsetsToRemove) {
-        operationsService.delete(ElasticOperationsService.MAPPING_INDEX, mapsetCode);
+        operationsService.delete(ElasticOperationsService.MAPSET_INDEX, mapsetCode);
+        operationsService.deleteQuery(
+            "mapsetCode:" + mapsetCode, ElasticOperationsService.MAPPINGS_INDEX);
       }
       for (final Concept mapset : mapsetMap.values()) {
         Collections.sort(
             mapset.getMaps(),
-            new Comparator<gov.nih.nci.evs.api.model.ConceptMap>() {
+            new Comparator<Mapping>() {
               @Override
-              public int compare(
-                  final gov.nih.nci.evs.api.model.ConceptMap o1,
-                  final gov.nih.nci.evs.api.model.ConceptMap o2) {
+              public int compare(final Mapping o1, final Mapping o2) {
                 // Assume maps are not null
                 return (o1.getSourceName()
                         + o1.getType()
@@ -458,11 +485,21 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
               }
             });
         logger.info("    Index map = " + mapset.getName());
-        operationsService.index(mapset, ElasticOperationsService.MAPPING_INDEX, Concept.class);
+        int i = 1;
+        for (final Mapping mapToSort : mapset.getMaps()) {
+          mapToSort.setSortKey(String.valueOf(1000000 + i++));
+        }
+        // Send 10k at at tim
+        for (final List<Mapping> batch : ListUtils.partition(mapset.getMaps(), 10000)) {
+          operationsService.bulkIndex(
+              batch, ElasticOperationsService.MAPPINGS_INDEX, Mapping.class);
+        }
+        mapset.setMaps(null);
+        operationsService.index(mapset, ElasticOperationsService.MAPSET_INDEX, Concept.class);
       }
       // free up memory
       mapsetMap.clear();
-      mapsetNameMap.clear();
+      mapsetInfoMap.clear();
 
       // read inverses from MRDOC
       while ((line = mrdoc.readLine()) != null) {
@@ -626,7 +663,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
     if (result) {
       operationsService
-          .getElasticsearchOperations()
+          .getOpenSearchOperations()
           .indexOps(IndexCoordinates.of(terminology.getIndexName()))
           .putMapping(Concept.class);
     }
@@ -1515,7 +1552,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
       return term;
     } catch (IOException ex) {
-      throw new Exception("Could not load terminology ncim");
+      throw new Exception("Could not load terminology ncim", ex);
     }
   }
 

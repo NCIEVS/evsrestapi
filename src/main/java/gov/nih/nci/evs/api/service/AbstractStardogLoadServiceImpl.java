@@ -8,6 +8,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
@@ -124,7 +125,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
     if (result) {
       operationsService
-          .getElasticsearchOperations()
+          .getOpenSearchOperations()
           .indexOps(IndexCoordinates.of(terminology.getIndexName()))
           .putMapping(Concept.class);
     }
@@ -238,20 +239,23 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                   // logger.info(" concept = " + c.getCode() + " " + c.getName());
                   c.setExtensions(mainTypeHierarchy.getExtensions(c));
                   handleHistory(terminology, c);
-                  if (c.getMaps().size() > 0) {
-                    for (final gov.nih.nci.evs.api.model.ConceptMap map : c.getMaps()) {
+                  // Collect maps for NCIt mapsets
+                  if (c.getMaps().size() > 0 && c.getActive()) {
+                    for (final Mapping map : c.getMaps()) {
                       final String mapterm = map.getTargetTerminology().split(" ")[0];
                       if (mapsets.containsKey(mapterm)) {
-                        final gov.nih.nci.evs.api.model.ConceptMap copy =
-                            new gov.nih.nci.evs.api.model.ConceptMap(map);
+                        final Mapping copy = new Mapping(map);
                         copy.setSourceCode(c.getCode());
                         copy.setSourceName(c.getName());
+                        copy.setSource(c.getTerminology());
                         copy.setSourceTerminology(c.getTerminology());
                         if (map.getTargetTerminology().split(" ").length > 1) {
                           copy.setTargetTerminology(mapterm);
+                          copy.setTarget(mapterm);
                           copy.setTargetTerminologyVersion(
                               map.getTargetTerminology().split(" ")[1]);
                         }
+                        copy.setMapsetCode(mapsets.get(mapterm).getCode());
                         mapsets.get(mapterm).getMaps().add(copy);
                       }
                     }
@@ -304,17 +308,18 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         // TEMP FIX FOR NOSUCHINDEXERROR THROWN BY DELETING A MAPPING INDEX
         try {
           operationsService.delete(
-              ElasticOperationsService.MAPPING_INDEX, NCIT_MAPS_TO + mapset.getKey());
+              ElasticOperationsService.MAPSET_INDEX, NCIT_MAPS_TO + mapset.getKey());
+          operationsService.deleteQuery(
+              "mapsetCode:" + NCIT_MAPS_TO + mapset.getKey(),
+              ElasticOperationsService.MAPPINGS_INDEX);
         } catch (NoSuchIndexException e) {
           logger.warn("UNABLE TO DELETE INDEX: " + NCIT_MAPS_TO + mapset.getKey() + " NOT FOUND!");
         }
         Collections.sort(
             mapset.getValue().getMaps(),
-            new Comparator<gov.nih.nci.evs.api.model.ConceptMap>() {
+            new Comparator<Mapping>() {
               @Override
-              public int compare(
-                  final gov.nih.nci.evs.api.model.ConceptMap o1,
-                  final gov.nih.nci.evs.api.model.ConceptMap o2) {
+              public int compare(final Mapping o1, final Mapping o2) {
                 // Assume maps are not null
                 return (o1.getSourceName()
                         + o1.getType()
@@ -334,8 +339,11 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 + mapset.getValue().getName()
                 + ", "
                 + mapset.getValue().getMaps().size());
+        operationsService.bulkIndex(
+            mapset.getValue().getMaps(), ElasticOperationsService.MAPPINGS_INDEX, Mapping.class);
+        mapset.getValue().setMaps(null);
         operationsService.index(
-            mapset.getValue(), ElasticOperationsService.MAPPING_INDEX, Concept.class);
+            mapset.getValue(), ElasticOperationsService.MAPSET_INDEX, Concept.class);
       }
 
     } catch (Exception e) {

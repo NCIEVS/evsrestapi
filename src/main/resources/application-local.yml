@@ -24,8 +24,8 @@ spring:
 
   # Term Form Mail Server Properties
     mail:
-      host: ${MAIL_HOST:mailfwd.nih.gov}
-      port: 25
+      host: ${MAIL_HOST:smtp.gmail.com}
+      port: ${MAIL_PORT:587}
       username: ${MAIL_USER:REPLACE_WITH_USERNAME}
       password: ${MAIL_PASSWORD:REPLACE_WITH_PASSWORD}
       properties:
@@ -54,7 +54,8 @@ logging:
         org.springframework: WARN
         gov.nih.nci.evs.api: DEBUG
         org.springframework.data.elasticsearch.core: DEBUG
-        gov.nih.nci.evs.api.configuration.EVSElasticsearchRestTemplate: DEBUG
+        org.springframework.data.opensearch.core: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
+        gov.nih.nci.evs.api.configuration.EVSOpenSearchRestTemplate: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
         org.apache.http: INFO # change to DEBUG when needed but INFO for now to avoid logspam
 
 #
@@ -79,8 +80,8 @@ nci:
     bulkload:
       conceptsDir: ${NCI_EVS_BULK_LOAD_CONCEPTS_DIR:/tmp/}
       lockFile: ${NCI_EVS_BULK_LOAD_LOCK_FILE_NAME:DownloadSuccessfull.lck}
-      downloadBatchSize: ${NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE:1000}
-      indexBatchSize: ${NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE:1000}
+      downloadBatchSize: ${NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE:250}
+      indexBatchSize: ${NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE:250}
       stardogDbs: ${STARDOG_DBS:CTRP,NCIT2}
     stardog:
       host: ${STARDOG_HOST:localhost}
@@ -89,12 +90,12 @@ nci:
       queryUrl: http://${nci.evs.stardog.host}:${nci.evs.stardog.port}/${nci.evs.stardog.db}/query
       username: admin
       password: admin
-      readTimeout: 30000
+      readTimeout: 500000
       connectTimeout: 30000
     elasticsearch:
       server:
         host: ${ES_HOST:localhost}
-        port: ${ES_PORT:9200}
+        port: ${ES_PORT:9201}
         scheme: ${ES_SCHEME:http}
       timeout: 200000
     sparql:

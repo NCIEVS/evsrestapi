@@ -11,8 +11,8 @@ Information on downloading and using stardog with EVSRESTAPI.
       docker pull stardog/stardog:latest
       docker volume create --name stardog-home2 -d local
 
-* Using an existing stardog license (in $dir). Make sure your license file is called `stardog-license-key.bin` and
-  is in the $dir directory on your local machine.
+* Using an existing stardog license (in `$dir`). Make sure your license file is called `stardog-license-key.bin` and
+  is in the `$dir` directory on your local machine.
 
       docker run -it --entrypoint "/bin/bash" -v "$dir":/data -v stardog-home2:/var/opt/stardog stardog/stardog
       [stardog@0b9fbb0b90ba bin]# cp /data/stardog-license-key.bin /var/opt/stardog
@@ -36,7 +36,7 @@ Information on downloading and using stardog with EVSRESTAPI.
       # If not, create it
       [stardog@0b9fbb0b90ba bin]# /opt/stardog/bin/stardog-admin db create -n NCIT2
       [stardog@0b9fbb0b90ba bin]# /opt/stardog/bin/stardog data add --named-graph http://NCI_T NCIT2 /data/ThesaurusInferred.owl
-      [stardog@0b9fbb0b90ba bin]# /opt/stardog/bin/stardog-admin db optimize -n NCIT2
+      [stardog@0b9fbb0b90ba bin]# /opt/stardog/bin/stardog-admin db optimize NCIT2
 
 ### Running Stardog Locally (after data is loaded)
 

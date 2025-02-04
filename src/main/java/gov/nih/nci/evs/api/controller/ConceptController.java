@@ -4,16 +4,19 @@ import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Role;
+import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
@@ -21,28 +24,32 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.util.CollectionUtils;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -62,6 +69,9 @@ public class ConceptController extends BaseController {
 
   /** The elastic query service. */
   @Autowired ElasticQueryService elasticQueryService;
+
+  /** The elastic search service. */
+  @Autowired ElasticSearchService elasticSearchService;
 
   /** The term utils. */
   /* The terminology utils */
@@ -150,10 +160,7 @@ public class ConceptController extends BaseController {
         required = false,
         schema = @Schema(implementation = String.class))
   })
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}",
-      produces = "application/json")
+  @GetMapping(value = "/concept/{terminology}", produces = "application/json")
   @RecordMetric
   public @ResponseBody List<Concept> getConcepts(
       @PathVariable(value = "terminology") final String terminology,
@@ -176,6 +183,46 @@ public class ConceptController extends BaseController {
 
       final List<Concept> concepts =
           elasticQueryService.getConcepts(Arrays.asList(codes), term, ip);
+
+      if (ip.isMaps() && concepts.size() > 0) {
+        List<Mapping> firstList = null;
+        List<String> conceptCodeList = Arrays.asList(list.split(","));
+        List<Mapping> secondList =
+            elasticSearchService.getConceptMappings(conceptCodeList, terminology);
+
+        // Pre-process secondList into a map
+        Map<String, List<Mapping>> secondMap =
+            secondList.stream().collect(Collectors.groupingBy(cm -> cm.getSourceCode()));
+
+        for (Concept concept : concepts) {
+          firstList = concept.getMaps();
+
+          // Create a map of existing keys in firstList to easily check for matches
+          Set<String> existingKeys =
+              firstList.stream()
+                  .map(map -> map.getTargetTerminology() + "_" + map.getTargetCode())
+                  .collect(Collectors.toSet());
+
+          // Look up the concept code in the preprocessed map and filter the maps
+          List<Mapping> relevantMaps =
+              secondMap.getOrDefault(concept.getCode(), Collections.emptyList());
+
+          List<Mapping> mapsToAdd =
+              relevantMaps.stream()
+                  .filter(
+                      cm ->
+                          !existingKeys.contains(
+                              cm.getTargetTerminology() + "_" + cm.getTargetCode()))
+                  .collect(Collectors.toList());
+
+          // Add the filtered list to firstList
+          firstList.addAll(mapsToAdd);
+
+          // Set the updated list back to the concept
+          concept.setMaps(firstList);
+        }
+      }
+
       return concepts;
     } catch (final Exception e) {
       handleException(e);
@@ -272,10 +319,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}/{code}",
-      produces = "application/json")
+  @GetMapping(value = "/concept/{terminology}/{code}", produces = "application/json")
   public @ResponseBody Concept getConcept(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
@@ -283,6 +327,7 @@ public class ConceptController extends BaseController {
       @RequestParam(required = false, name = "include") final Optional<String> include,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
+
     try {
       final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
       termUtils.checkLicense(term, license);
@@ -293,6 +338,35 @@ public class ConceptController extends BaseController {
       if (!concept.isPresent() || concept.get().getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
+
+      // Comment this out for 2.0 because it allows "old" NCIt mappings to show up.
+      //      if (ip.isMaps()) {
+      //        List<Mapping> firstList = concept.get().getMaps();
+      //        List<Mapping> secondList =
+      //            elasticSearchService.getConceptMappings(Arrays.asList(code), terminology);
+      //
+      //        // Create a set of existing keys in firstList to check for matches
+      //        Set<String> existingKeys =
+      //            firstList.stream()
+      //                .map(map -> map.getTargetTerminology() + "_" + map.getTargetCode())
+      //                .collect(Collectors.toSet());
+      //
+      //        // Filter and add only those ConceptMap objects that don't have a match in firstList
+      //        List<Mapping> mapsToAdd =
+      //            secondList.stream()
+      //                .filter(
+      //                    cm ->
+      //                        !existingKeys.contains(
+      //                            cm.getTargetTerminology() + "_" + cm.getTargetCode()))
+      //                .collect(Collectors.toList());
+      //
+      //        // Add the filtered list to firstList
+      //        firstList.addAll(mapsToAdd);
+      //
+      //        // Set the updated list back to the concept
+      //        concept.get().setMaps(firstList);
+      //      }
+
       if (limit.isPresent()) {
         if (limit.get().intValue() < 1 || limit.get().intValue() > 100) {
           throw new ResponseStatusException(
@@ -356,10 +430,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}/{code}/associations",
-      produces = "application/json")
+  @GetMapping(value = "/concept/{terminology}/{code}/associations", produces = "application/json")
   public @ResponseBody List<Association> getAssociations(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
@@ -455,8 +526,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
+  @GetMapping(
       value = "/concept/{terminology}/associations/{codeOrLabel}",
       produces = "application/json")
   public @ResponseBody AssociationEntryResultList getAssociationEntries(
@@ -546,8 +616,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
+  @GetMapping(
       value = "/concept/{terminology}/{code}/inverseAssociations",
       produces = "application/json")
   public @ResponseBody List<Association> getInverseAssociations(
@@ -656,10 +725,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}/subsetMembers/{code}",
-      produces = "application/json")
+  @GetMapping(value = "/concept/{terminology}/subsetMembers/{code}", produces = "application/json")
   public @ResponseBody List<Concept> getSubsetMembers(
       @PathVariable(value = "terminology") final String terminology,
       @RequestParam("fromRecord") final Optional<Integer> fromRecord,
@@ -674,21 +740,26 @@ public class ConceptController extends BaseController {
       final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
 
       final Optional<Concept> concept =
-          elasticQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
+          elasticQueryService.getConcept(
+              code, term, new IncludeParam("synonyms,inverseAssociations"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
+      final List<Association> associations = concept.get().getInverseAssociations();
+
+      // This is really hacky, but it's very hard to get at the logic for this in a different way
+      ConceptUtils.cleanCdiscGrouperAssociations(concept.get(), associations);
+
       final List<Concept> subsets = new ArrayList<>();
-      final int associationListSize = concept.get().getInverseAssociations().size();
+      final int associationListSize = associations.size();
 
       if (associationListSize > 0) {
         final int fromIndex = fromRecord.orElse(0);
         final int toIndex =
             Math.min(pageSize.orElse(associationListSize) + fromIndex, associationListSize);
-        for (final Association assn :
-            concept.get().getInverseAssociations().subList(fromIndex, toIndex)) {
+        for (final Association assn : associations.subList(fromIndex, toIndex)) {
           final Concept member =
               elasticQueryService.getConcept(assn.getRelatedCode(), term, ip).orElse(null);
           if (member != null) {
@@ -756,10 +827,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}/{code}/roles",
-      produces = "application/json")
+  @GetMapping(value = "/concept/{terminology}/{code}/roles", produces = "application/json")
   public @ResponseBody List<Role> getRoles(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
@@ -830,10 +898,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}/{code}/inverseRoles",
-      produces = "application/json")
+  @GetMapping(value = "/concept/{terminology}/{code}/inverseRoles", produces = "application/json")
   public @ResponseBody List<Role> getInverseRoles(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
@@ -907,10 +972,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}/{code}/parents",
-      produces = "application/json")
+  @GetMapping(value = "/concept/{terminology}/{code}/parents", produces = "application/json")
   public @ResponseBody List<Concept> getParents(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
@@ -984,10 +1046,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}/{code}/children",
-      produces = "application/json")
+  @GetMapping(value = "/concept/{terminology}/{code}/children", produces = "application/json")
   public @ResponseBody List<Concept> getChildren(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
@@ -1094,10 +1153,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}/{code}/descendants",
-      produces = "application/json")
+  @GetMapping(value = "/concept/{terminology}/{code}/descendants", produces = "application/json")
   public @ResponseBody List<Concept> getDescendants(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
@@ -1188,11 +1244,8 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}/{code}/maps",
-      produces = "application/json")
-  public @ResponseBody List<ConceptMap> getMaps(
+  @GetMapping(value = "/concept/{terminology}/{code}/maps", produces = "application/json")
+  public @ResponseBody List<Mapping> getMaps(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
@@ -1262,10 +1315,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}/{code}/history",
-      produces = "application/json")
+  @GetMapping(value = "/concept/{terminology}/{code}/history", produces = "application/json")
   public @ResponseBody Concept getHistory(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
@@ -1336,10 +1386,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}/{code}/disjointWith",
-      produces = "application/json")
+  @GetMapping(value = "/concept/{terminology}/{code}/disjointWith", produces = "application/json")
   public @ResponseBody List<DisjointWith> getDisjointWith(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
@@ -1421,10 +1468,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}/roots",
-      produces = "application/json")
+  @GetMapping(value = "/concept/{terminology}/roots", produces = "application/json")
   public @ResponseBody List<Concept> getRoots(
       @PathVariable(value = "terminology") final String terminology,
       @RequestParam(required = false, name = "include") final Optional<String> include,
@@ -1534,10 +1578,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}/{code}/pathsFromRoot",
-      produces = "application/json")
+  @GetMapping(value = "/concept/{terminology}/{code}/pathsFromRoot", produces = "application/json")
   public @ResponseBody List<List<Concept>> getPathsFromRoot(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
@@ -1641,10 +1682,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}/{code}/subtree",
-      produces = "application/json")
+  @GetMapping(value = "/concept/{terminology}/{code}/subtree", produces = "application/json")
   public @ResponseBody List<HierarchyNode> getSubtree(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
@@ -1678,7 +1716,7 @@ public class ConceptController extends BaseController {
 
       // Limit to 10 paths if a limit of >10 is used.
       final int pathLimit =
-          (limit.orElse(0) > 10) ? 10 : (limit.isPresent() ? limit.get().intValue() : -1);
+          (limit.orElse(0) > 100) ? 100 : (limit.isPresent() ? limit.get().intValue() : -1);
       final List<Path> ps = paths.getPaths();
       int ct = 0;
       for (final Path path : ps) {
@@ -1823,8 +1861,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
+  @GetMapping(
       value = "/concept/{terminology}/{code}/subtree/children",
       produces = "application/json")
   public @ResponseBody List<HierarchyNode> getSubtreeChildren(
@@ -1947,10 +1984,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}/{code}/pathsToRoot",
-      produces = "application/json")
+  @GetMapping(value = "/concept/{terminology}/{code}/pathsToRoot", produces = "application/json")
   public @ResponseBody List<List<Concept>> getPathsToRoot(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
@@ -2076,8 +2110,7 @@ public class ConceptController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
+  @GetMapping(
       value = "/concept/{terminology}/{code}/pathsToAncestor/{ancestorCode}",
       produces = "application/json")
   public @ResponseBody List<List<Concept>> getPathsToAncestor(
@@ -2115,6 +2148,128 @@ public class ConceptController extends BaseController {
       handleException(e);
       return null;
     }
+  }
+
+  /**
+   * Returns the codes for a given terminology.
+   *
+   * @param terminology the terminology
+   * @return the terminology codes
+   * @throws Exception the exception
+   */
+  @Operation(summary = "Get all codes for the specified terminology")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Successfully retrieved the requested information",
+        content = @Content(array = @ArraySchema(schema = @Schema(implementation = String.class)))),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Resource not found",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = RestException.class))),
+    @ApiResponse(
+        responseCode = "417",
+        description = "Expectation failed",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+    @Parameter(
+        name = "terminology",
+        description = "Terminology, e.g. 'ncit'",
+        required = true,
+        schema = @Schema(implementation = String.class),
+        example = "ncit"),
+    @Parameter(
+        name = "X-EVSRESTAPI-License-Key",
+        description =
+            "Required license information for restricted terminologies. <a"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " target='_blank'>See here for detailed information</a>.",
+        required = false,
+        schema = @Schema(implementation = String.class))
+  })
+  @RecordMetric
+  @GetMapping(value = "/concept/{terminology}/codes", produces = "application/json")
+  public @ResponseBody List<String> getAllCodesForTerminology(
+      @PathVariable(value = "terminology") final String terminology,
+      @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
+      throws Exception {
+    List<String> codes = new ArrayList<String>();
+    final List<Terminology> terminologies = new ArrayList<Terminology>();
+    final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+    // First get root concepts
+    final List<Concept> roots =
+        elasticQueryService.getRootNodes(term, new IncludeParam("children,descendants"));
+    if (roots != null && !roots.isEmpty()) {
+      codes.addAll(roots.stream().map(c -> c.getCode()).collect(Collectors.toList()));
+      // Handle case where root has no descendants (children will)
+      // this is like SNOMED root which has too many descendants to load
+      codes.addAll(
+          roots.stream()
+              .filter(c -> c.getDescendants().size() == 0 && c.getChildren().size() > 0)
+              .flatMap(c -> c.getChildren().stream())
+              .flatMap(
+                  c -> {
+                    try {
+                      return elasticQueryService
+                          .getConcept(c.getCode(), term, new IncludeParam("descendants"))
+                          .stream();
+                    } catch (Exception e) {
+                      throw new RuntimeException(e);
+                    }
+                  })
+              .map(c -> c.getCode())
+              .collect(Collectors.toList()));
+      // get any child codes
+      codes.addAll(
+          roots.stream()
+              .flatMap(c -> c.getChildren().stream())
+              .map(c -> c.getCode())
+              .collect(Collectors.toList()));
+      // Handle case where root has descendants
+      codes.addAll(
+          roots.stream()
+              .filter(c -> c.getDescendants().size() > 0)
+              .flatMap(c -> c.getDescendants().stream())
+              .map(c -> c.getCode())
+              .collect(Collectors.toList()));
+    } else {
+      try {
+        ConceptResultList list = null;
+        int fromRecord = 0;
+        int pageSize = 10000;
+
+        termUtils.checkLicense(term, license);
+        terminologies.add(term);
+        while (true) {
+          SearchCriteria sc = new SearchCriteria();
+          sc.setFromRecord(fromRecord);
+          sc.setPageSize(pageSize);
+          sc.setTerminology(Arrays.asList(terminology));
+          list = elasticSearchService.findConcepts(terminologies, sc);
+          if (list.getConcepts() == null || list.getConcepts().isEmpty()) {
+            logger.info(
+                "  read {} total concepts for {}",
+                Math.min(list.getTotal(), fromRecord + pageSize),
+                terminology);
+            break;
+          }
+          codes.addAll(
+              list.getConcepts().stream().map(c -> c.getCode()).collect(Collectors.toList()));
+          fromRecord += pageSize;
+        }
+      } catch (final Exception e) {
+        handleException(e);
+        return null;
+      }
+    }
+    return codes;
   }
 
   // Used for QA to expose a mechanism to calculate extension for a single case.

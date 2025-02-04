@@ -1,7 +1,7 @@
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -11,23 +11,25 @@ import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.History;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,19 +37,22 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.CollectionUtils;
 
 /** Integration tests for ConceptController. */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class ConceptControllerTests {
 
   /** The logger. */
   private static final Logger log = LoggerFactory.getLogger(ConceptControllerTests.class);
+
+  /** The sparql query manager service. */
+  @Autowired SparqlQueryManagerService sparqlQueryManagerService;
 
   /** The mvc. */
   @Autowired private MockMvc mvc;
@@ -65,7 +70,7 @@ public class ConceptControllerTests {
   private String baseUrl = "";
 
   /** Sets the up. */
-  @Before
+  @BeforeEach
   public void setUp() {
 
     objectMapper = new ObjectMapper();
@@ -97,6 +102,25 @@ public class ConceptControllerTests {
     assertThat(concept.getCode()).isEqualTo("C3224");
     assertThat(concept.getName()).isEqualTo("Melanoma");
     assertThat(concept.getTerminology()).isEqualTo("ncit");
+
+    // Check hidden fields of concept (prove that WriteOnlyProperty) works
+    assertThat(concept.getNormName()).isNull();
+    assertThat(concept.getStemName()).isNull();
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getDefinitions().stream().filter(s -> s.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getAssociations().stream().filter(s -> s.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getInverseAssociations().stream().filter(s -> s.getCode() != null).count())
+        .isEqualTo(0);
+    assertThat(concept.getRoles().stream().filter(s -> s.getCode() != null).count()).isEqualTo(0);
+    assertThat(concept.getInverseRoles().stream().filter(s -> s.getCode() != null).count())
+        .isEqualTo(0);
   }
 
   /**
@@ -143,6 +167,45 @@ public class ConceptControllerTests {
         .isEqualTo(0);
     assertThat(concept.getRoles().size()).isGreaterThan(0);
     assertThat(concept.getRoles().stream().filter(p -> p.getCode() != null).count()).isEqualTo(0);
+  }
+
+  /**
+   * Test get concept with extra mapping maps.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetConceptExtraMappings() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    Concept concept = null;
+
+    // TODO: if there was a case of a map that had a P375 in the owl (mapsTo) and ALSO
+    // was represented in an explicit viewable map - then we could test that concept
+    // details properly de-duplicates that.  But we don't have any such data at the moment.
+
+    //
+
+    // Verify this concept has a "maps to" to an HGNC code
+    // This comes from the independent NCI-HGNC map distributed by Liz
+    // and isn't in the owl file itself.
+    url = baseUrl + "/ncit/C143031?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getMaps().size()).isGreaterThan(0);
+    assertThat(
+            concept.getMaps().stream()
+                .filter(
+                    m ->
+                        m.getMapsetCode() != null
+                            && m.getMapsetCode().equals("NCIt_to_HGNC_Mapping")
+                            && m.getSourceCode().equals("C143031")
+                            && m.getTargetCode().equals("HGNC:24086"))
+                .count())
+        .isEqualTo(1);
   }
 
   /**
@@ -749,7 +812,7 @@ public class ConceptControllerTests {
     String url = null;
     MvcResult result = null;
     String content = null;
-    List<ConceptMap> list = null;
+    List<Mapping> list = null;
 
     // NOTE, this includes a middle concept code that is bougs
     url = baseUrl + "/ncit/C3224/maps";
@@ -762,7 +825,7 @@ public class ConceptControllerTests {
         new ObjectMapper()
             .readValue(
                 content,
-                new TypeReference<List<ConceptMap>>() {
+                new TypeReference<List<Mapping>>() {
                   // n/a
                 });
     log.info("  list = " + list.size());
@@ -778,7 +841,76 @@ public class ConceptControllerTests {
         new ObjectMapper()
             .readValue(
                 content,
-                new TypeReference<List<ConceptMap>>() {
+                new TypeReference<List<Mapping>>() {
+                  // n/a
+                });
+    assertThat(list).isEmpty();
+
+    // Test case with duplicate maps (should only have one)
+    url = baseUrl + "/ncit/C957?include=maps";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    Concept concept =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<Concept>() {
+                  // n/a
+                });
+    assertThat(concept).isNotNull();
+    assertThat(concept.getMaps().size()).isEqualTo(1);
+
+    // Test case with duplicate maps (should have two, one regular and one mapping map)
+    url = baseUrl + "/ncit?include=maps&list=C957,C49172";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    List<Concept> conceptList =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(conceptList).isNotNull();
+    assertThat(conceptList.size()).isEqualTo(2);
+    assertThat(conceptList.get(0).getMaps().get(0).getMapsetCode()).isNull();
+    assertThat(conceptList.get(1).getMaps().get(0).getMapsetCode()).isNull();
+    assertThat(conceptList.get(0).getMaps().get(0).getTargetName())
+        .isNotEqualTo(conceptList.get(1).getMaps().get(0).getTargetName());
+
+    // Test that map adding works with concept list
+    url = baseUrl + "/ncit/C49172?include=maps";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    concept =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<Concept>() {
+                  // n/a
+                });
+    assertThat(concept).isNotNull();
+    assertThat(concept.getMaps().size()).isEqualTo(1);
+    assertThat(concept.getMaps().get(0).getMapsetCode()).isNull();
+    assertThat(concept.getMaps().get(0).getTargetName()).isEqualTo("11C Topotecan");
+
+    // Test case without maps
+    url = baseUrl + "/ncit/C2291/maps";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Mapping>>() {
                   // n/a
                 });
     assertThat(list).isEmpty();
@@ -1919,5 +2051,72 @@ public class ConceptControllerTests {
                   // n/a
                 });
     assertThat(conceptResults.get(0).getVersion() == terminology.getVersion());
+  }
+
+  /**
+   * Test get terminology concepts.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetTerminologyConcepts() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    url = "/api/v1/concept/radlex/codes";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+
+    // very small terminology
+    ArrayList<String> terminologyCodes =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<ArrayList<String>>() {
+                  // n/a
+                });
+    assertThat(terminologyCodes.size()).isGreaterThan(50);
+
+    // small terminology
+    url = "/api/v1/concept/ctcae5/codes";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    terminologyCodes =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<ArrayList<String>>() {
+                  // n/a
+                });
+
+    assertThat(terminologyCodes.size()).isGreaterThan(4000);
+
+    // medium terminology
+    url = "/api/v1/concept/go/codes";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    terminologyCodes =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<ArrayList<String>>() {
+                  // n/a
+                });
+
+    assertThat(terminologyCodes.size()).isGreaterThan(40000);
+
+    // large terminology
+    url = "/api/v1/concept/ncit/codes";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    terminologyCodes =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<ArrayList<String>>() {
+                  // n/a
+                });
+
+    assertThat(terminologyCodes.size()).isGreaterThan(150000);
   }
 }

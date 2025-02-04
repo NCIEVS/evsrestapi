@@ -11,6 +11,7 @@ import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Path;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Property;
@@ -28,10 +29,8 @@ import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
-import java.io.File;
+import jakarta.annotation.PostConstruct;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -46,10 +45,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.annotation.PostConstruct;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -132,6 +128,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   // Here check the qualified form as well as the URI
 
+  /* see superclass */
+  /* see superclass */
   /* see superclass */
   /* see superclass */
   /* see superclass */
@@ -254,8 +252,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /* see superclass */
   @Override
-  public List<gov.nih.nci.evs.api.model.ConceptMap> getMapsTo(
-      final String conceptCode, final Terminology terminology) throws Exception {
+  public List<Mapping> getMapsTo(final String conceptCode, final Terminology terminology)
+      throws Exception {
     final List<Axiom> axioms = getAxioms(conceptCode, terminology, true);
     return EVSUtils.getMapsTo(terminology, axioms);
   }
@@ -2550,8 +2548,12 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           }
         }
       }
-      // for terminologies without 'Publish_Value_Set' properties, show them also (future looking)
+      // Skip "No" entries
       if (found && !valInSubset) {
+        continue;
+      }
+      // Skip "not found" entries
+      if (!found) {
         continue;
       }
       childFull.setProperties(null);
@@ -2627,20 +2629,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String uri = applicationProperties.getConfigBaseUri() + "/ignore-source.txt";
     if (StringUtils.isNotBlank(uri)) {
       log.info("Ignore source file URL:{}", uri);
-      try {
-        try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
-          return IOUtils.readLines(is, "UTF-8");
-        }
-      } catch (final Throwable t) {
-        try {
-          // Try to open URI as a file
-          final File file = new File(uri);
-          return FileUtils.readLines(file, "UTF-8");
-        } catch (final IOException e) {
-          // Log and move on if both URL and file reading fail
-          log.warn("Error occurred when getting ignore sources from uri", uri);
-        }
-      }
+      return EVSUtils.getValueFromFile(uri, "ignore sources from file");
     }
     return Collections.emptyList();
   }
