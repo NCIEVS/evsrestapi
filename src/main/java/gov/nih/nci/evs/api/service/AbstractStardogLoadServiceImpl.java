@@ -615,7 +615,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     logger.info("Extra subsets added");
   }
 
-  public static List<Sheet> loadExcelSheets(String url, String filepath) {
+  public static List<Sheet> loadExcelSheets(String url, String filepath) throws Exception {
     List<Sheet> sheets = new ArrayList<>();
     Workbook workbook = null;
 
@@ -632,9 +632,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         workbook = new HSSFWorkbook(fileInputStream);
         System.out.println("Excel file successfully loaded from backup file.");
       } catch (Exception fileException) {
-        System.err.println(
+        logger.error(
             "Failed to load Excel file from backup file. Error: " + fileException.getMessage());
-        return sheets; // Return an empty list if all attempts fail
+        throw new Exception(fileException); // throw an exception if all attempts fail
       }
     }
 
@@ -646,7 +646,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       try {
         workbook.close(); // Close the workbook to release resources
       } catch (IOException e) {
-        System.err.println("Failed to close the workbook. Error: " + e.getMessage());
+        logger.error("Failed to close the workbook. Error: " + e.getMessage());
+        throw new IOException(e); // throw an exception if failed to close
       }
     }
 
