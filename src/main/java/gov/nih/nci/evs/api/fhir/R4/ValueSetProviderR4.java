@@ -49,6 +49,7 @@ import org.hl7.fhir.r4.model.UriType;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionContainsComponent;
+import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionParameterComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -173,7 +174,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final List<ValueSet> vsList = findPossibleValueSets(null, null, url, version);
       if (vsList.size() == 0) {
         throw FhirUtilityR4.exception(
-            "Value set " + url + " not found", OperationOutcome.IssueType.EXCEPTION, 500);
+            "Value set " + url.getValueAsString() + " not found",
+            OperationOutcome.IssueType.EXCEPTION,
+            500);
       }
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
@@ -225,6 +228,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
           vsContains.setCode(subset.getCode());
           vsContains.setDisplay(subset.getName());
           vsExpansion.addContains(vsContains);
+          ValueSetExpansionParameterComponent vsParameter =
+              new ValueSetExpansionParameterComponent();
+          vsParameter.setName("url");
+          vsParameter.setValue(url);
+          vsExpansion.addParameter(vsParameter);
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("version");
+          vsParameter.setValue(version);
+          vsExpansion.addParameter(vsParameter);
         }
       }
       vs.setExpansion(vsExpansion);
@@ -294,8 +306,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "contextDirection") final CodeType contextDirection,
       @OperationParam(name = "filter") final StringType filter,
       @OperationParam(name = "date") final DateTimeType date,
-      @OperationParam(name = "offset") final IntegerType offset,
-      @OperationParam(name = "count") final IntegerType count,
+      @ca.uhn.fhir.rest.annotation.Offset final Integer offset,
+      @ca.uhn.fhir.rest.annotation.Count final Integer count,
       @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
       @OperationParam(name = "designation") final StringType designation,
       @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
@@ -319,7 +331,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
     try {
       // URL is not required because "id" is provided
       // FhirUtilityR4.required("url", url);
-      FhirUtilityR4.notSupported("valueSet", valueSet);
+      FhirUtilityR4.notSupported("valueSet", null);
       FhirUtilityR4.notSupported("context", context);
       FhirUtilityR4.notSupported("contextDirection", contextDirection);
       FhirUtilityR4.notSupported("date", date);
@@ -337,7 +349,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final List<ValueSet> vsList = findPossibleValueSets(id, null, url, version);
       if (vsList.size() == 0) {
         throw FhirUtilityR4.exception(
-            "Value set " + url + " not found", OperationOutcome.IssueType.EXCEPTION, 500);
+            "Value set " + url.getValueAsString() + " not found",
+            OperationOutcome.IssueType.EXCEPTION,
+            500);
       }
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
@@ -366,8 +380,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
         final List<Terminology> terminologies = new ArrayList<>();
         terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), esQueryService));
         final SearchCriteria sc = new SearchCriteria();
-        sc.setPageSize(count != null ? count.getValue() : 10);
-        sc.setFromRecord(offset != null ? offset.getValue() : 0);
+        sc.setPageSize(count != null ? count : 10);
+        sc.setFromRecord(offset != null ? offset : 0);
         sc.setTerm(filter != null ? filter.getValue() : null);
         sc.setType("contains");
         sc.setTerminology(
@@ -376,7 +390,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       }
       final ValueSetExpansionComponent vsExpansion = new ValueSetExpansionComponent();
       vsExpansion.setTimestamp(new Date());
-      vsExpansion.setOffset(offset != null ? offset.getValue() : 0);
+      vsExpansion.setOffset(offset != null ? offset : 0);
       vsExpansion.setTotal(subsetMembers.size());
       if (subsetMembers.size() > 0) {
         for (final Concept subset : subsetMembers) {
@@ -389,6 +403,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
           vsContains.setCode(subset.getCode());
           vsContains.setDisplay(subset.getName());
           vsExpansion.addContains(vsContains);
+          ValueSetExpansionParameterComponent vsParameter =
+              new ValueSetExpansionParameterComponent();
+          vsParameter.setName("url");
+          vsParameter.setValue(url);
+          vsExpansion.addParameter(vsParameter);
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("version");
+          vsParameter.setValue(version);
+          vsExpansion.addParameter(vsParameter);
         }
       }
       vs.setExpansion(vsExpansion);
@@ -492,9 +515,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
         final List<Terminology> terms = Arrays.asList(term);
         final List<Concept> conc = searchService.findConcepts(terms, sc).getConcepts();
         if (conc.size() > 0) {
-          params.addParameter("result", true);
           params.addParameter("display", conc.get(0).getName());
           if (display != null && !display.getValue().equals(conc.get(0).getName())) {
+            params.addParameter("result", false);
             params.addParameter(
                 "message",
                 "The code '"
@@ -502,6 +525,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
                     + "' was found in this value set, however the display '"
                     + display
                     + "' did not match any designations.");
+          } else {
+            params.addParameter("result", true);
           }
         } else {
           params.addParameter("result", false);
@@ -612,9 +637,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
         final List<Terminology> terms = Arrays.asList(term);
         final List<Concept> conc = searchService.findConcepts(terms, sc).getConcepts();
         if (conc.size() > 0) {
-          params.addParameter("result", true);
           params.addParameter("display", conc.get(0).getName());
           if (display != null && !display.getValue().equals(conc.get(0).getName())) {
+            params.addParameter("result", false);
             params.addParameter(
                 "message",
                 "The code '"
@@ -622,6 +647,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
                     + "' was found in this value set, however the display '"
                     + display
                     + "' did not match any designations.");
+          } else {
+            params.addParameter("result", true);
           }
         } else {
           params.addParameter("result", false);

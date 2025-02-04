@@ -151,8 +151,9 @@ public final class FhirUtilityR4 {
     uri.put("npo", "http://purl.bioontology.org/ontology/npo");
     uri.put("ma", "http://purl.obolibrary.org/obo/emap.owl");
     uri.put("zfa", "http://purl.obolibrary.org/obo/zfa.owl");
-    for (final Map.Entry<String, String> entry : new HashSet<>(uris.entrySet())) {
-      uris.put(entry.getValue(), entry.getKey());
+    // Put reverse entries isnomedn
+    for (final Map.Entry<String, String> entry : new HashSet<>(uri.entrySet())) {
+      uri.put(entry.getValue(), entry.getKey());
     }
     return uri;
   }

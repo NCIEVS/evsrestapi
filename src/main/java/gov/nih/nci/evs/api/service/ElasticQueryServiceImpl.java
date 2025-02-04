@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
+import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
@@ -38,6 +39,8 @@ import org.opensearch.data.client.orhlc.NativeSearchQuery;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
 import org.opensearch.data.core.OpenSearchOperations;
 import org.opensearch.index.query.QueryBuilders;
+import org.opensearch.search.sort.SortBuilders;
+import org.opensearch.search.sort.SortOrder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -849,5 +852,41 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     SearchHits<T> hits = operations.search(query, clazz, IndexCoordinates.of(index));
 
     return hits.stream().map(SearchHit::getContent).collect(Collectors.toList());
+  }
+
+  @Override
+  public List<Audit> getAuditsByTerminology(String terminology) throws Exception {
+    NativeSearchQuery query =
+        new NativeSearchQueryBuilder()
+            .withFilter(QueryBuilders.termQuery("terminology", terminology))
+            .build();
+
+    return getResults(query, Audit.class, ElasticOperationsService.AUDIT_INDEX);
+  }
+
+  @Override
+  public List<Audit> getAuditsByType(String type) throws Exception {
+    NativeSearchQuery query =
+        new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("type", type)).build();
+
+    return getResults(query, Audit.class, ElasticOperationsService.AUDIT_INDEX);
+  }
+
+  @Override
+  public List<Audit> getAllAudits(SearchCriteria searchCriteria) throws Exception {
+    final NativeSearchQueryBuilder searchQuery =
+        new NativeSearchQueryBuilder().withPageable(PageRequest.of(0, 10000));
+    if (searchCriteria.getSort() != null) {
+      // Default is ascending if not specified
+      if (searchCriteria.getAscending() == null || searchCriteria.getAscending()) {
+        searchQuery.withSorts(
+            SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.ASC));
+      } else {
+        searchQuery.withSorts(
+            SortBuilders.fieldSort(searchCriteria.getSort()).order(SortOrder.DESC));
+      }
+    }
+
+    return getResults(searchQuery.build(), Audit.class, ElasticOperationsService.AUDIT_INDEX);
   }
 }
