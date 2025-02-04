@@ -37,7 +37,7 @@ public class MetaRelationship
 		String str,
 		String sab,
 		String code,
-		String tty) {
+		String tty) {
 
 		this.rel = rel;
 		this.rela = rela;
@@ -77,7 +77,7 @@ public class MetaRelationship
 	public void setCode(String code) {
 		this.code = code;
 	}
-
+
 	public void setTty(String tty) {
 		this.tty = tty;
 	}
@@ -111,7 +111,7 @@ public class MetaRelationship
 	public String getCode() {
 		return this.code;
 	}
-
+
 	public String getTty() {
 		return this.tty;
 	}

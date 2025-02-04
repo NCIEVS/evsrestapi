@@ -137,7 +137,7 @@ public class Synonym2
 	public String getSubSourceCode() {
 		return this.subSourceCode;
 	}
-
+
 	public String toXML() {
 		XStream xstream_xml = new XStream(new DomDriver());
 		String xml = xstream_xml.toXML(this);
@@ -154,7 +154,7 @@ public class Synonym2
 		Gson gson = new GsonBuilder().setPrettyPrinting().create();
         return gson.toJson(this);
 	}
-
+
 	public String escapeDoubleQuotes(String inputStr) {
 		char doubleQ = '"';
 		StringBuffer buf = new StringBuffer();

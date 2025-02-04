@@ -398,7 +398,7 @@ public class SPARQLUtilsClient {
 		return owlSPARQLUtils.getNamedGraphs();
 	}
 
-	public Vector getTree(String named_graph, String code) {
+	public Vector getTree(String named_graph, String code) {
 		String key = (String) namedGraph2codingSchemeNameAndVersionMap.get(named_graph);
 		OWLSPARQLUtils owlSPARQLUtils = (OWLSPARQLUtils) OWLSPARQLUtilsMap.get(key);
 		return owlSPARQLUtils.getTree(named_graph, code);
