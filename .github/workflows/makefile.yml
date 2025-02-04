@@ -2,16 +2,21 @@ name: Makefile CI
 
 on:
   push:
-    branches: [ "master"]
+    branches: [ "master" ]
   pull_request:
-    branches: [ "master", "develop" ]
+    branches: [ "master", "develop", "develop-*" ]
 
 jobs:
   build:
 
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
 
       - name: Run Tests for PR
         run: make test

@@ -157,7 +157,7 @@ public final class TerminologyUtils {
   }
 
   /**
-   * Helper method to search for the target terminology in the list of terminologies
+   * Helper method to search for the target terminology in the list of terminologies.
    *
    * @param terminology target terminology
    * @param terminologies list of terminologies to search through

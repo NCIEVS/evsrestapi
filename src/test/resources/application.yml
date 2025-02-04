@@ -1,0 +1,7 @@
+#
+# Indicate that for tests the "test" active profile should be used.
+#
+spring:
+  profiles:
+    active: test
+

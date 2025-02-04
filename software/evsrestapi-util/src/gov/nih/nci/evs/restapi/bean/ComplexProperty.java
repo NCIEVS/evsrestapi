@@ -28,7 +28,7 @@ public class ComplexProperty extends Property
 		String name,
 		String value,
 		List<PropertyQualifier> qualifiers) {
-		this.name = name;
+		this.name = name;
 		this.value = value;
 		this.qualifiers = qualifiers;
 	}

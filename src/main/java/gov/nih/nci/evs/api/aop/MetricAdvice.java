@@ -4,11 +4,11 @@ import gov.nih.nci.evs.api.model.Metric;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
+import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
-import javax.annotation.PostConstruct;
-import javax.servlet.http.HttpServletRequest;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Aspect;
 import org.slf4j.Logger;
@@ -62,7 +62,7 @@ public class MetricAdvice {
      * + "-" + String.valueOf(Calendar.getInstance().get(Calendar.MONTH) + 1);
      *
      * <p>boolean result = operationsService.createIndex(indexName, false); if (result) {
-     * operationsService.getElasticsearchOperations().putMapping(indexName,
+     * operationsService.getOpenSearchOperations().putMapping(indexName,
      * ElasticOperationsService.METRIC_TYPE, Metric.class); }
      */
   }

@@ -7,6 +7,7 @@ import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -22,7 +23,6 @@ import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -107,14 +107,12 @@ public class SubsetController extends BaseController {
       method = RequestMethod.GET,
       value = "/subset/{terminology}",
       produces = "application/json")
-  @Cacheable(value = "subsets", key = "{#terminology}")
   public @ResponseBody List<Concept> getSubsets(
       @PathVariable(value = "terminology") final String terminology,
       @RequestParam(required = false, name = "include") final Optional<String> include,
       @RequestParam(required = false, name = "list") final Optional<String> list)
       throws Exception {
     try {
-      logger.debug("**** NOT CACHED - getSubsets");
       return metadataService.getSubsets(terminology, include, list);
     } catch (Exception e) {
       handleException(e);
@@ -289,22 +287,27 @@ public class SubsetController extends BaseController {
       final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
 
       final Optional<Concept> concept =
-          elasticQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
+          elasticQueryService.getConcept(
+              code, term, new IncludeParam("synonyms,inverseAssociations"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(
             HttpStatus.NOT_FOUND, "Subset not found for code = " + code);
       }
 
+      final List<Association> associations = concept.get().getInverseAssociations();
+
+      // This is really hacky, but it's very hard to get at the logic for this in a different way
+      ConceptUtils.cleanCdiscGrouperAssociations(concept.get(), associations);
+
       final List<Concept> subsets = new ArrayList<>();
-      final int associationListSize = concept.get().getInverseAssociations().size();
+      final int associationListSize = associations.size();
 
       if (associationListSize > 0) {
         final int fromIndex = fromRecord.orElse(0);
         final int toIndex =
             Math.min(pageSize.orElse(associationListSize) + fromIndex, associationListSize);
-        for (final Association assn :
-            concept.get().getInverseAssociations().subList(fromIndex, toIndex)) {
+        for (final Association assn : associations.subList(fromIndex, toIndex)) {
           final Concept member =
               elasticQueryService.getConcept(assn.getRelatedCode(), term, ip).orElse(null);
           if (member != null) {

@@ -1,12 +1,14 @@
 package gov.nih.nci.evs.api.controller;
 
+import static gov.nih.nci.evs.api.service.ElasticSearchServiceImpl.escape;
+
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMap;
-import gov.nih.nci.evs.api.model.ConceptMapResultList;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -19,19 +21,15 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -44,7 +42,6 @@ import org.springframework.web.server.ResponseStatusException;
 public class MapsetController extends BaseController {
 
   /** Logger. */
-  @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(MapsetController.class);
 
   /** The metadata service. */
@@ -52,6 +49,9 @@ public class MapsetController extends BaseController {
 
   /** The elasticquery service. */
   @Autowired ElasticQueryService esQueryService;
+
+  /** The elasticsearch service. */
+  @Autowired ElasticSearchService esSearchService;
 
   /** The term utils. */
   @Autowired TerminologyUtils termUtils;
@@ -87,7 +87,7 @@ public class MapsetController extends BaseController {
         example = "minimal")
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/mapset", produces = "application/json")
+  @GetMapping(value = "/mapset", produces = "application/json")
   public @ResponseBody List<Concept> getMapsets(
       @RequestParam(required = false, name = "include") final Optional<String> include)
       throws Exception {
@@ -151,10 +151,7 @@ public class MapsetController extends BaseController {
         example = "minimal")
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/mapset/{code}",
-      produces = "application/json")
+  @GetMapping(value = "/mapset/{code}", produces = "application/json")
   public @ResponseBody Concept getMapsetByCode(
       @PathVariable(value = "code") final String code,
       @RequestParam(required = false, name = "include") final Optional<String> include)
@@ -178,11 +175,7 @@ public class MapsetController extends BaseController {
    * Returns the mapset maps.
    *
    * @param code the code
-   * @param fromRecord the from record
-   * @param pageSize the page size
-   * @param term the term
-   * @param ascending the ascending
-   * @param sort the sort
+   * @param searchCriteria the search criteria
    * @return the mapsets
    * @throws Exception the exception
    */
@@ -210,10 +203,16 @@ public class MapsetController extends BaseController {
                 schema = @Schema(implementation = RestException.class)))
   })
   @Parameters({
+    @Parameter(name = "searchCriteria", hidden = true),
     @Parameter(
         name = "code",
         description = "Mapset code",
         required = true,
+        schema = @Schema(implementation = String.class)),
+    @Parameter(
+        name = "term",
+        description = "The term, phrase, or code to be searched, e.g. 'melanoma'",
+        required = false,
         schema = @Schema(implementation = String.class)),
     @Parameter(
         name = "fromRecord",
@@ -239,132 +238,57 @@ public class MapsetController extends BaseController {
         schema = @Schema(implementation = Boolean.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/mapset/{code}/maps",
-      produces = "application/json")
-  public @ResponseBody ConceptMapResultList getMapsetMappingsByCode(
-      @PathVariable(value = "code") final String code,
-      @RequestParam(required = false, name = "fromRecord") final Optional<Integer> fromRecord,
-      @RequestParam(required = false, name = "pageSize") final Optional<Integer> pageSize,
-      @RequestParam(required = false, name = "term") final Optional<String> term,
-      @RequestParam(required = false, name = "ascending") final Optional<Boolean> ascending,
-      @RequestParam(required = false, name = "sort") final Optional<String> sort)
+  @GetMapping(value = "/mapset/{code}/maps", produces = "application/json")
+  public @ResponseBody MappingResultList getMapsetMappingsByCode(
+      @PathVariable(value = "code") final String code, SearchCriteria searchCriteria)
       throws Exception {
     try {
       // default index 0 and page size 10
-      final Integer fromRecordParam = fromRecord.orElse(0);
-      final Integer pageSizeParam = pageSize.orElse(10);
-      final IncludeParam ip = new IncludeParam("maps");
-      List<ConceptMap> maps = new ArrayList<ConceptMap>();
-      List<Concept> results = esQueryService.getMapset(code, ip);
-      if (results.size() > 0) {
-        maps = results.get(0).getMaps();
-      } else {
+      // Check search criteria for required fields
+
+      if (!searchCriteria.checkRequiredFields()) {
         throw new ResponseStatusException(
-            HttpStatus.NOT_FOUND, "Mapset not found for code = " + code);
-      }
-      if (term.isPresent()) {
-        final String t = term.get().trim().toLowerCase();
-        final List<String> words = ConceptUtils.wordind(t);
-        // Check single words
-        if (words.size() == 1 || ConceptUtils.isCode(t)) {
-          maps =
-              maps.stream()
-                  .filter(
-                      m ->
-                          // Code match
-                          m.getSourceCode().toLowerCase().contains(t)
-                              || m.getTargetCode().toLowerCase().contains(t)
-                              ||
-                              // Lowercase word match (starting on a word boundary)
-                              m.getSourceName().toLowerCase().matches("^" + Pattern.quote(t) + ".*")
-                              || m.getSourceName()
-                                  .toLowerCase()
-                                  .matches(".*\\b" + Pattern.quote(t) + ".*")
-                              || m.getTargetName()
-                                  .toLowerCase()
-                                  .matches("^" + Pattern.quote(t) + ".*")
-                              || m.getTargetName()
-                                  .toLowerCase()
-                                  .matches(".*\\b" + Pattern.quote(t) + ".*"))
-                  .collect(Collectors.toList());
-        }
-        // Check multiple words (make sure both are in the source OR both are in the target)
-        else if (words.size() > 1) {
-          maps =
-              maps.stream()
-                  .filter(
-                      m -> {
-                        boolean sourceFlag = true;
-                        boolean targetFlag = true;
-                        for (final String word : words) {
-                          if (!(
-                          // Lowercase word match (starting on a word boundary)
-                          m.getSourceName().toLowerCase().matches("^" + Pattern.quote(word) + ".*")
-                              || m.getSourceName()
-                                  .toLowerCase()
-                                  .matches(".*\\b" + Pattern.quote(word) + ".*"))) {
-                            sourceFlag = false;
-                          }
-                          if (!(
-                          // Lowercase word match (starting on a word boundary)
-                          m.getTargetName().toLowerCase().matches("^" + Pattern.quote(word) + ".*")
-                              || m.getTargetName()
-                                  .toLowerCase()
-                                  .matches(".*\\b" + Pattern.quote(word) + ".*"))) {
-                            targetFlag = false;
-                          }
-                        }
-                        return sourceFlag || targetFlag;
-                      })
-                  .collect(Collectors.toList());
-        }
-      }
-      final Integer mapLength = maps.size();
-      final ConceptMapResultList list = new ConceptMapResultList();
-      list.setTotal(Long.valueOf(mapLength));
-      if (sort.isPresent()) {
-        if (sort.get().equals("sourceName")) {
-          maps.sort(Comparator.comparing(ConceptMap::getSourceName));
-
-        } else if (sort.get().equals("targetName")) {
-          maps.sort(Comparator.comparing(ConceptMap::getTargetName));
-        } else if (sort.get().equals("sourceCode")) {
-          maps.sort(Comparator.comparing(ConceptMap::getSourceCode));
-        } else if (sort.get().equals("targetCode")) {
-          maps.sort(Comparator.comparing(ConceptMap::getTargetCode));
-        }
-        if (ascending.isPresent() && !ascending.get()) {
-          Collections.reverse(maps);
-        }
-        list.setMaps(maps);
-      }
-      // Get this page if we haven't gone over the end
-      if (fromRecordParam < mapLength) {
-        // on subList "toIndex" don't go past the end
-        list.setMaps(
-            maps.subList(fromRecordParam, Math.min(mapLength, fromRecordParam + pageSizeParam)));
-      } else {
-        list.setTotal(0L);
-        list.setMaps(new ArrayList<ConceptMap>());
-      }
-      final SearchCriteria criteria = new SearchCriteria();
-      criteria.setInclude(null);
-      criteria.setType(null);
-      if (fromRecord.isPresent()) {
-        criteria.setFromRecord(fromRecord.get());
-        list.setParameters(criteria);
-      }
-      if (pageSize.isPresent()) {
-        criteria.setPageSize(pageSize.get());
-        list.setParameters(criteria);
+            HttpStatus.BAD_REQUEST,
+            "Missing required field = " + searchCriteria.computeMissingRequiredFields());
       }
 
-      return list;
+      searchCriteria.checkPagination(10000);
+      // pre-process certain sorts
+      if ("targetName".equals(searchCriteria.getSort())
+          || "sourceName".equals(searchCriteria.getSort())) {
+        searchCriteria.setSort(searchCriteria.getSort() + ".keyword");
+      }
+      logger.debug("  Search = " + searchCriteria);
+
+      // Build the query for finding concept mappings
+      String query = buildQueryString(code, searchCriteria.getTerm());
+
+      logger.debug("  Query = " + query);
+
+      return esSearchService.findConceptMappings(query, searchCriteria);
     } catch (Exception e) {
       handleException(e);
       return null;
     }
+  }
+
+  private String buildQueryString(String code, String term) throws Exception {
+    if (code == null) {
+      throw new Exception("Code is required");
+    }
+    List<String> termClauses = new ArrayList<>();
+    List<String> queryClauses = new ArrayList<>();
+    queryClauses.add("mapsetCode:\"" + escape(code) + "\"");
+
+    // Mapset searches on sourceName, sourceCode, targetName, targetCode, so we set the term to each
+    // of these values
+    if (term != null) {
+      termClauses.add("sourceName:(\"" + escape(term) + "\" OR " + escape(term) + "*)");
+      termClauses.add("sourceCode:(\"" + escape(term) + "\" OR " + escape(term) + "*)");
+      termClauses.add("targetName:(\"" + escape(term) + "\" OR " + escape(term) + "*)");
+      termClauses.add("targetCode:(\"" + escape(term) + "\" OR " + escape(term) + "*)");
+      queryClauses.add(ConceptUtils.composeQuery("OR", termClauses));
+    }
+    return ConceptUtils.composeQuery("AND", queryClauses);
   }
 }

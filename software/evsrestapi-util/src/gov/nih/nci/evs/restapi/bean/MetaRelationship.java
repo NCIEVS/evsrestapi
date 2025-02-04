@@ -37,7 +37,7 @@ public class MetaRelationship
 		String str,
 		String sab,
 		String code,
-		String tty) {
+		String tty) {
 
 		this.rel = rel;
 		this.rela = rela;

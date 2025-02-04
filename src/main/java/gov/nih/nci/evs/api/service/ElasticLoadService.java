@@ -8,9 +8,9 @@ import java.util.Set;
 import org.springframework.context.ApplicationContext;
 
 /**
- * The service to load concepts to Elasticsearch
+ * The service to load concepts to Elasticsearch/OpenSearch.
  *
- * <p>Retrieves concepts from stardog and creates necessary index on Elasticsearch
+ * <p>Retrieves concepts from stardog and creates necessary index on Elasticsearch/OpenSearch.
  *
  * @author Arun
  */

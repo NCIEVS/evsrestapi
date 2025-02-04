@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;
@@ -96,7 +97,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   private Map<String, String> mapsets = new HashMap<>();
 
   /** The maps. */
-  private Map<String, Set<gov.nih.nci.evs.api.model.ConceptMap>> maps = new HashMap<>();
+  private Map<String, Set<Mapping>> maps = new HashMap<>();
 
   /** The rui inverse map. */
   private Map<String, String> ruiInverseMap = new HashMap<>();
@@ -283,12 +284,13 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
           continue;
         }
 
-        final gov.nih.nci.evs.api.model.ConceptMap map = new gov.nih.nci.evs.api.model.ConceptMap();
+        final Mapping map = new Mapping();
         map.setSourceCode(fields[8]);
         map.setSourceTerminology(fields[1]);
         map.setTargetCode(fields[16]);
         // map.setTargetName(nameMap.get(fields[16]));
         map.setTargetTermType("PT");
+        map.setTarget(mapsets.get(fields[0]).split("_")[0]);
         map.setTargetTerminology(mapsets.get(fields[0]).split("_")[0]);
         map.setTargetTerminologyVersion(mapsets.get(fields[0]).split("_")[1]);
         map.setType(fields[12]);
@@ -443,7 +445,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
         operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
     if (result) {
       operationsService
-          .getElasticsearchOperations()
+          .getOpenSearchOperations()
           .indexOps(IndexCoordinates.of(terminology.getIndexName()))
           .putMapping(Concept.class);
     }

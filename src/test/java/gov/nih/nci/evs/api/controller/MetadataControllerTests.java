@@ -6,12 +6,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.google.common.collect.Sets;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.ConceptUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -19,9 +19,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.junit.Before;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,12 +29,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.test.context.junit4.SpringRunner;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
 /** Integration tests for MetadataController. */
-@RunWith(SpringRunner.class)
+@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class MetadataControllerTests {
@@ -55,7 +55,7 @@ public class MetadataControllerTests {
   private String baseUrl = "";
 
   /** Sets the up. */
-  @Before
+  @BeforeEach
   public void setUp() {
 
     objectMapper = new ObjectMapper();
@@ -1354,14 +1354,14 @@ public class MetadataControllerTests {
             .filter(c -> !terminology.getMetadata().isRemodeledQualifier(c))
             .collect(Collectors.toSet());
     // All sets are mutually exclusive with respect to each other.
-    assertThat(Sets.intersection(properties, qualifiers)).isEmpty();
+    assertThat(ConceptUtils.intersection(properties, qualifiers)).isEmpty();
     // Properties with "remodeled" flag are included now in "properties"
-    assertThat(Sets.intersection(properties, synonymTypes).size()).isEqualTo(3);
+    assertThat(ConceptUtils.intersection(properties, synonymTypes).size()).isEqualTo(3);
     // Properties with "remodeled" flag are included now in "properties"
-    assertThat(Sets.intersection(properties, definitionTypes).size()).isEqualTo(2);
-    assertThat(Sets.intersection(qualifiers, synonymTypes)).isEmpty();
-    assertThat(Sets.intersection(qualifiers, definitionTypes)).isEmpty();
-    assertThat(Sets.intersection(synonymTypes, definitionTypes)).isEmpty();
+    assertThat(ConceptUtils.intersection(properties, definitionTypes).size()).isEqualTo(2);
+    assertThat(ConceptUtils.intersection(qualifiers, synonymTypes)).isEmpty();
+    assertThat(ConceptUtils.intersection(qualifiers, definitionTypes)).isEmpty();
+    assertThat(ConceptUtils.intersection(synonymTypes, definitionTypes)).isEmpty();
   }
 
   /**

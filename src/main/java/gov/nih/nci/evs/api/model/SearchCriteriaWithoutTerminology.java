@@ -519,6 +519,8 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
   }
 
   /**
+   * Returns the code list.
+   *
    * @return the list of codes to limit the search to
    */
   @Schema(
@@ -569,9 +571,20 @@ public class SearchCriteriaWithoutTerminology extends BaseModel {
    * @throws Exception the exception
    */
   public void checkPagination() throws Exception {
-    if (pageSize < 1 || pageSize > 1000) {
+    checkPagination(1000);
+  }
+
+  /**
+   * Check pagination.
+   *
+   * @param upperPageSize the upper page size
+   * @throws Exception the exception
+   */
+  public void checkPagination(final int upperPageSize) throws Exception {
+    if (pageSize < 1 || pageSize > upperPageSize) {
       throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Parameter 'pageSize' must be between 1 and 1000 = " + pageSize);
+          HttpStatus.BAD_REQUEST,
+          "Parameter 'pageSize' must be between 1 and " + upperPageSize + " = " + pageSize);
     }
 
     // This rule is no longer required, non-aligned fromRecord/pageSize

@@ -8,6 +8,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -21,7 +22,7 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * The elasticsearch DB query service.
+ * The elasticsearch/OpenSearch DB query service.
  *
  * @author Arun
  */
@@ -459,4 +460,16 @@ public interface ElasticQueryService {
    */
   Map<String, List<StatisticsEntry>> getSourceStats(Terminology terminology, String source)
       throws JsonMappingException, JsonProcessingException;
+
+  /**
+   * Returns mappings by code filter.
+   *
+   * @param code the code to filter
+   * @return the list of mappings
+   * @throws JsonProcessingException
+   * @throws JsonMappingException
+   * @throws ClassNotFoundException the class not found exception
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  List<Mapping> getMapsetMappings(String code) throws Exception;
 }
