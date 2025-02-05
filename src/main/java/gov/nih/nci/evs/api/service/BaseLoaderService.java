@@ -480,8 +480,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   public JsonNode getMetadataAsNodeLocal(final String terminology) throws Exception {
     // Read from the configured URI where this data lives
     // If terminology is {term}_{version} -> strip the version
-    final String uri =
-        "src/main/resources/metadata/" + termUtils.getTerminologyName(terminology) + ".json";
+    final String uri = "src/test/resources/" + termUtils.getTerminologyName(terminology) + ".json";
     logger.info("  get config for " + terminology + " = " + uri);
     return new ObjectMapper()
         .readTree(StringUtils.join(EVSUtils.getValueFromFile(uri, "metadata info"), '\n'));
