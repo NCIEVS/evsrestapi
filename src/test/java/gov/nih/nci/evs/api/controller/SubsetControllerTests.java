@@ -470,4 +470,114 @@ public class SubsetControllerTests {
                 });
     assertThat(list.size()).isGreaterThan(0);
   }
+
+  /**
+   * Test Pediatric Subsets.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPediatricSubsets() throws Exception {
+
+    // C143048 - NCIt subset, ancestor of pediatric subsets
+    String url = baseUrl + "subset/ncit/C143048";
+    MvcResult result = null;
+    Concept subsetConcept = null;
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
+    subsetConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(subsetConcept).isNotNull();
+    assertThat(subsetConcept.getCode()).isEqualTo("C143048");
+    assertThat(subsetConcept.getChildren()).isNotEmpty();
+
+    Concept childhoodNeoplasmSubset =
+        subsetConcept.getChildren().stream()
+            .filter(c -> c.getCode().equals("C6283"))
+            .findFirst()
+            .orElse(null);
+    assertThat(childhoodNeoplasmSubset).isNotNull();
+    assertThat(childhoodNeoplasmSubset.getName()).isEqualTo("Childhood Neoplasm");
+    assertThat(childhoodNeoplasmSubset.getChildren()).isNotEmpty();
+
+    url = baseUrl + "concept/ncit/C6283?include=inverseAssociations";
+    subsetConcept = null;
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    subsetConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(subsetConcept).isNotNull();
+    assertThat(subsetConcept.getCode()).isEqualTo("C6283");
+    assertThat(subsetConcept.getName()).isEqualTo("Childhood Neoplasm");
+    assertThat(subsetConcept.getInverseAssociations()).isNotEmpty();
+    assertThat(
+            subsetConcept.getInverseAssociations().stream()
+                .allMatch(assoc -> assoc.getQualifiers().size() > 0))
+        .isTrue();
+
+    url = baseUrl + "subset/ncit/C6283?include=properties";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    subsetConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(subsetConcept).isNotNull();
+    assertThat(subsetConcept.getProperties()).isNotEmpty();
+    assertThat(
+            subsetConcept.getProperties().stream()
+                .filter(p -> p.getType().equals("Publish_Value_Set") && p.getValue().equals("Yes"))
+                .count())
+        .isGreaterThan(0);
+    assertThat(
+            subsetConcept.getProperties().stream()
+                .filter(
+                    p ->
+                        p.getType().equals("EVSRESTAPI_Subset_Format")
+                            && p.getValue().equals("NCI"))
+                .count())
+        .isGreaterThan(0);
+
+    Concept childhoodMalignantNeoplasmSubset =
+        childhoodNeoplasmSubset.getChildren().stream()
+            .filter(c -> c.getCode().equals("C4005"))
+            .findFirst()
+            .orElse(null);
+    assertThat(childhoodMalignantNeoplasmSubset).isNotNull();
+    assertThat(childhoodMalignantNeoplasmSubset.getName())
+        .isEqualTo("Childhood Malignant Neoplasm");
+
+    url = baseUrl + "concept/ncit/C4005?include=inverseAssociations";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    subsetConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(subsetConcept).isNotNull();
+    assertThat(subsetConcept.getCode()).isEqualTo("C4005");
+    assertThat(subsetConcept.getName()).isEqualTo("Childhood Malignant Neoplasm");
+    assertThat(subsetConcept.getInverseAssociations()).isNotEmpty();
+    assertThat(
+            subsetConcept.getInverseAssociations().stream()
+                .allMatch(assoc -> assoc.getQualifiers().size() > 0))
+        .isTrue();
+
+    url = baseUrl + "subset/ncit/C4005?include=properties";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    subsetConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(subsetConcept).isNotNull();
+    assertThat(subsetConcept.getProperties()).isNotEmpty();
+    assertThat(
+            subsetConcept.getProperties().stream()
+                .filter(p -> p.getType().equals("Publish_Value_Set") && p.getValue().equals("Yes"))
+                .count())
+        .isGreaterThan(0);
+    assertThat(
+            subsetConcept.getProperties().stream()
+                .filter(
+                    p ->
+                        p.getType().equals("EVSRESTAPI_Subset_Format")
+                            && p.getValue().equals("NCI"))
+                .count())
+        .isGreaterThan(0);
+  }
 }

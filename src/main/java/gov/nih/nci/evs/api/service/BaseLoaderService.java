@@ -2,6 +2,7 @@ package gov.nih.nci.evs.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -140,6 +141,16 @@ public abstract class BaseLoaderService implements ElasticLoadService {
             .getOpenSearchOperations()
             .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX))
             .putMapping(Mapping.class);
+      }
+
+      // create the audit index if it doesn't exist
+      boolean createdAudit =
+          operationsService.createIndex(ElasticOperationsService.AUDIT_INDEX, false);
+      if (createdAudit) {
+        operationsService
+            .getOpenSearchOperations()
+            .indexOps(IndexCoordinates.of(ElasticOperationsService.AUDIT_INDEX))
+            .putMapping(Audit.class);
       }
     } catch (IOException e) {
       logger.error(e.getMessage(), e);
@@ -454,6 +465,22 @@ public abstract class BaseLoaderService implements ElasticLoadService {
             + "/"
             + termUtils.getTerminologyName(terminology)
             + ".json";
+    logger.info("  get config for " + terminology + " = " + uri);
+    return new ObjectMapper()
+        .readTree(StringUtils.join(EVSUtils.getValueFromFile(uri, "metadata info"), '\n'));
+  }
+
+  /**
+   * Returns the metadata as node from an explicitly local filepath.
+   *
+   * @param terminology the terminology
+   * @return the metadata as node
+   * @throws Exception the exception
+   */
+  public JsonNode getMetadataAsNodeLocal(final String terminology) throws Exception {
+    // Read from the configured URI where this data lives
+    // If terminology is {term}_{version} -> strip the version
+    final String uri = "src/test/resources/" + termUtils.getTerminologyName(terminology) + ".json";
     logger.info("  get config for " + terminology + " = " + uri);
     return new ObjectMapper()
         .readTree(StringUtils.join(EVSUtils.getValueFromFile(uri, "metadata info"), '\n'));

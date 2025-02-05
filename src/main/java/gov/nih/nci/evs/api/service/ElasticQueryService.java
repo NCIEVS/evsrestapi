@@ -4,12 +4,14 @@ import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
+import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Paths;
+import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
@@ -472,4 +474,31 @@ public interface ElasticQueryService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   List<Mapping> getMapsetMappings(String code) throws Exception;
+
+  /**
+   * Returns audits by terminology filter
+   *
+   * @param terminology the terminology to filter by
+   * @return the list of audit records matching the terminology
+   * @throws Exception if retrieval fails
+   */
+  List<Audit> getAuditsByTerminology(String terminology) throws Exception;
+
+  /**
+   * Returns audit records filtered by type
+   *
+   * @param type the type to filter by
+   * @return the list of audit records matching the type
+   * @throws Exception if retrieval fails
+   */
+  List<Audit> getAuditsByType(String type) throws Exception;
+
+  /**
+   * Returns all audit records.
+   *
+   * @param searchCriteria the search criteria
+   * @return the list of audit records
+   * @throws Exception if retrieval fails
+   */
+  List<Audit> getAllAudits(SearchCriteria searchCriteria) throws Exception;
 }

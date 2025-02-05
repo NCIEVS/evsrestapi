@@ -10,6 +10,7 @@ import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.StardogProperties;
@@ -23,7 +24,9 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,6 +35,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
@@ -40,6 +44,10 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+import org.apache.poi.hssf.usermodel.HSSFWorkbook;
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -81,6 +89,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
   /** The Elasticsearch operations service instance *. */
   @Autowired ElasticOperationsService operationsService;
+
+  /** The Elasticsearch query service instance *. */
+  @Autowired ElasticQueryService esQueryService;
 
   /** The sparql query manager service. */
   @Autowired private SparqlQueryManagerService sparqlQueryManagerService;
@@ -453,6 +464,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
     // subsets
     List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
+    if (terminology.getTerminology().equals("ncit")) {
+      this.addExtraSubsets(subsets, terminology);
+    }
     ElasticObject subsetsObject = new ElasticObject("subsets");
     subsetsObject.setConcepts(subsets);
     operationsService.index(subsetsObject, indexName, ElasticObject.class);
@@ -485,6 +499,161 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     logger.info("  Association Entries loaded");
 
     logger.info("Done loading Elastic Objects!");
+  }
+
+  public void addExtraSubsets(List<Concept> existingSubsets, Terminology terminology)
+      throws Exception {
+
+    String filePath =
+        this.applicationProperties.getUnitTestData()
+            + this.applicationProperties.getPediatricSubsetsXls();
+
+    String url =
+        this.applicationProperties.getFtpNeoplasmUrl()
+            + this.applicationProperties.getPediatricSubsetsXls();
+    // List to hold the sheet references
+    List<Sheet> sheets = loadExcelSheets(url, filePath);
+
+    for (Sheet sheet : sheets) {
+      String subsetCode = sheet.getRow(1).getCell(1).getStringCellValue();
+      // find the concept to add to the subsets list
+      Concept newSubsetEntry = new Concept();
+      try {
+        newSubsetEntry =
+            esQueryService
+                .getConcept(subsetCode, terminology, new IncludeParam("full"))
+                .orElseThrow();
+      } catch (NoSuchElementException e) {
+        logger.error("Subset " + subsetCode + " not found as a concept, skipping.");
+        continue;
+      }
+
+      // get the subset and concept that the new subset is a part of i.e. pediatric subset part of
+      // ncit subset
+      Map<String, String> newSubsets = terminology.getMetadata().getExtraSubsets();
+      Concept parentSubset = new Concept();
+      try {
+        parentSubset =
+            existingSubsets.stream()
+                .flatMap(Concept::streamSelfAndChildren)
+                .filter(subset -> subset.getCode().equals(newSubsets.get(subsetCode)))
+                .findFirst()
+                .orElseThrow();
+      } catch (NoSuchElementException e) {
+        logger.error(
+            "Parent Subset of "
+                + subsetCode
+                + ": "
+                + newSubsets.get(subsetCode)
+                + " not found, skipping.");
+        continue;
+      }
+
+      boolean isFirstRow = true;
+      for (Row row : sheet) {
+        // skip labels row
+        if (isFirstRow) {
+          isFirstRow = false;
+          continue;
+        }
+        Concept subsetConcept = new Concept();
+        try {
+          subsetConcept =
+              esQueryService
+                  .getConcept(
+                      row.getCell(2).getStringCellValue(), terminology, new IncludeParam("full"))
+                  .get();
+        } catch (Exception e) {
+          logger.error(
+              "Concept "
+                  + row.getCell(2).getStringCellValue()
+                  + " not found for new subset "
+                  + subsetCode
+                  + ", skipping.");
+          continue;
+        }
+
+        // make new computed association for the subset members
+        final Association conceptAssoc = new Association();
+        conceptAssoc.setType("Concept_In_Subset");
+        conceptAssoc.setRelatedCode(newSubsetEntry.getCode());
+        conceptAssoc.setRelatedName(newSubsetEntry.getName());
+
+        final Qualifier conceptComputed = new Qualifier();
+        conceptComputed.setValue("This is computed by the existing subset relationship");
+        conceptComputed.setType("computed");
+        conceptAssoc.getQualifiers().add(conceptComputed);
+
+        subsetConcept.getAssociations().add(conceptAssoc);
+        // edit codes for inverseAssociation
+        Association inverseAssoc = new Association(conceptAssoc);
+        inverseAssoc.setRelatedCode(subsetConcept.getCode());
+        inverseAssoc.setRelatedName(subsetConcept.getName());
+        newSubsetEntry.getInverseAssociations().add(inverseAssoc);
+        // index subsetConcept
+        operationsService.index(subsetConcept, terminology.getIndexName(), Concept.class);
+      }
+      // explicitly set leaf since it defaults to false
+      newSubsetEntry.setLeaf(!newSubsets.containsValue(newSubsetEntry.getCode()));
+      // add extra relevant properties to new subset
+      newSubsetEntry.getProperties().add(new Property("Publish_Value_Set", "Yes"));
+      newSubsetEntry.getProperties().add(new Property("EVSRESTAPI_Subset_Format", "NCI"));
+      // index newSubsetEntry
+      operationsService.index(newSubsetEntry, terminology.getIndexName(), Concept.class);
+      // create new subset for parentSubset to add as child of existing subset
+      Concept parentSubsetChild = new Concept(newSubsetEntry);
+      // strip out everything the subset tree doesn't need
+      ConceptUtils.applyInclude(parentSubsetChild, new IncludeParam("minimal,properties"));
+
+      parentSubset.getChildren().add(parentSubsetChild);
+      if (parentSubset.getProperties().stream()
+          .noneMatch(property -> property.getType().equals("Publish_Value_Set"))) {
+        parentSubset.getProperties().add(new Property("Publish_Value_Set", "Yes"));
+      }
+      parentSubset.getProperties().add(new Property("EVSRESTAPI_Subset_Format", "NCI"));
+      // index parentSubset
+      operationsService.index(parentSubset, terminology.getObjectIndexName(), Concept.class);
+    }
+    logger.info("Extra subsets added");
+  }
+
+  public static List<Sheet> loadExcelSheets(String url, String filepath) throws Exception {
+    List<Sheet> sheets = new ArrayList<>();
+    Workbook workbook = null;
+
+    try {
+      // Try downloading the file from the provided URL
+      InputStream inputStream = new URL(url).openStream();
+      workbook = new HSSFWorkbook(inputStream);
+      System.out.println("Excel file successfully loaded from URL.");
+    } catch (Exception e) {
+      System.err.println("Failed to download Excel file from URL. Error: " + e.getMessage());
+      try {
+        // If download fails, fall back to the local backup file
+        FileInputStream fileInputStream = new FileInputStream(filepath);
+        workbook = new HSSFWorkbook(fileInputStream);
+        System.out.println("Excel file successfully loaded from backup file.");
+      } catch (Exception fileException) {
+        logger.error(
+            "Failed to load Excel file from backup file. Error: " + fileException.getMessage());
+        throw new Exception(fileException); // throw an exception if all attempts fail
+      }
+    }
+
+    // Extract sheets from the workbook
+    if (workbook != null) {
+      for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+        sheets.add(workbook.getSheetAt(i));
+      }
+      try {
+        workbook.close(); // Close the workbook to release resources
+      } catch (IOException e) {
+        logger.error("Failed to close the workbook. Error: " + e.getMessage());
+        throw new IOException(e); // throw an exception if failed to close
+      }
+    }
+
+    return sheets;
   }
 
   private AssociationEntry convert(

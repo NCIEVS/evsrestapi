@@ -276,7 +276,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
       FhirUtilityR5.notSupported(force_system_version, "force-system-version");
       final List<ValueSet> vsList = findPossibleValueSets(null, null, url, version);
       if (vsList.isEmpty()) {
-        throw FhirUtilityR5.exception("Value set " + url + " not found", IssueType.EXCEPTION, 500);
+        throw FhirUtilityR5.exception(
+            "Value set " + url.asStringValue() + " not found", IssueType.EXCEPTION, 500);
       }
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
@@ -437,7 +438,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
       FhirUtilityR5.notSupported(force_system_version, "force-system-version");
       final List<ValueSet> vsList = findPossibleValueSets(id, null, url, version);
       if (vsList.isEmpty()) {
-        throw FhirUtilityR5.exception("Value set " + url + " not found", IssueType.EXCEPTION, 500);
+        throw FhirUtilityR5.exception(
+            "Value set " + url.asStringValue() + " not found", IssueType.EXCEPTION, 500);
       }
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
@@ -593,9 +595,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
         final List<Terminology> terms = Arrays.asList(term);
         final List<Concept> conc = searchService.findConcepts(terms, sc).getConcepts();
         if (!conc.isEmpty()) {
-          params.addParameter("result", true);
           params.addParameter("display", conc.get(0).getName());
           if (display != null && !display.getValue().equals(conc.get(0).getName())) {
+            params.addParameter("result", false);
             params.addParameter(
                 "message",
                 "The code '"
@@ -603,6 +605,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
                     + "' was found in this value set, however the display '"
                     + display
                     + "' did not match any designations.");
+          } else {
+            params.addParameter("result", true);
           }
         } else {
           params.addParameter("result", false);
@@ -713,9 +717,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
         final List<Concept> conc = searchService.findConcepts(terms, sc).getConcepts();
 
         if (!conc.isEmpty()) {
-          params.addParameter("result", true);
           params.addParameter("display", conc.get(0).getName());
           if (display != null && !display.getValue().equals(conc.get(0).getName())) {
+            params.addParameter("result", false);
             params.addParameter(
                 "message",
                 "The code '"
@@ -723,6 +727,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
                     + "' was found in this value set, however the display '"
                     + display
                     + "' did not match any designations.");
+          } else {
+            params.addParameter("result", true);
           }
         } else {
           params.addParameter("result", false);

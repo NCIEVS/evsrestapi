@@ -395,9 +395,9 @@ public final class ConceptUtils {
 
     return concepts.stream()
         .flatMap(Concept::streamSelfAndChildren)
+        // apply include parameter
+        .peek(c -> ConceptUtils.applyInclude(c, ip))
         .filter(c -> codes == null || codes.contains(c.getCode()) || codes.contains(c.getName()))
-        // Handled by @WriteOnlyProperty
-        //        .peek(c -> c.clearHidden())
         .collect(Collectors.toList());
   }
 

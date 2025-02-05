@@ -110,10 +110,14 @@ dependencies {
   //  }
   // }
 
-  //implementation "commons-io:commons-io:2.14.0"
-  //implementation "commons-cli:commons-cli:1.4"
-  implementation "cglib:cglib:3.3.0"
-  implementation "com.google.protobuf:protobuf-java:3.25.5"
+  // Apache POI for reading .xls and .xlsx files
+  implementation 'org.apache.poi:poi:5.2.3'
+  implementation 'org.apache.poi:poi-ooxml:5.2.3'
+
+  //implementation 'commons-io:commons-io:2.14.0'
+  //implementation 'commons-cli:commons-cli:1.4'
+  implementation 'cglib:cglib:3.3.0'
+  implementation 'com.google.protobuf:protobuf-java:3.25.5'
 
   // fhir dependencies
   implementation "ca.uhn.hapi.fhir:hapi-fhir-base:7.4.5";

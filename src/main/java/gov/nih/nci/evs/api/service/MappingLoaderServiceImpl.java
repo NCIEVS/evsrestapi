@@ -303,9 +303,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       // remove and skip
       if (mapsetsToRemove.contains(metadata[0])) {
         logger.info("  deleting " + metadata[0] + " " + metadata[2]);
+        operationsService.delete(metadata[0], ElasticOperationsService.MAPSET_INDEX);
         operationsService.deleteQuery(
-            ElasticOperationsService.MAPSET_INDEX, "mapsetCode:" + metadata[0]);
-        operationsService.delete(metadata[0], ElasticOperationsService.MAPPINGS_INDEX);
+            ElasticOperationsService.MAPPINGS_INDEX, "mapsetCode:" + metadata[0]);
         continue;
       }
 
