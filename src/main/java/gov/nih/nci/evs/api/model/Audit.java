@@ -66,6 +66,24 @@ public class Audit {
     // Default constructor
   }
 
+  public Audit(
+      String type,
+      String terminology,
+      String version,
+      Date date,
+      String process,
+      String details,
+      String logLevel) {
+    // smaller contructor for basic error checking/logging
+    this.type = type;
+    this.terminology = terminology;
+    this.version = version;
+    this.date = date;
+    this.process = process;
+    this.details = details;
+    this.logLevel = logLevel;
+  }
+
   public Audit(final Audit audit) {
     this.populateFrom(audit);
   }
