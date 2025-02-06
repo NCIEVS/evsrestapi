@@ -621,6 +621,27 @@ public class MapsetControllerTests {
     assertEquals(sortedNames, unsortedNames);
   }
 
+  @Test
+  public void testNciMapsetDownload() throws Exception {
+
+    // Verify we can get the mapset
+    String path = "NCIt_Maps_To_GDC";
+    String params = "?include=properties";
+    MvcResult result =
+        mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
+    assertNotNull(content);
+
+    // Verify we can get the mappings and there are 10
+    path = "NCIt_Maps_To_GDC/maps";
+    params = "?pageSize=10&fromRecord=0";
+    result = mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    assertNotNull(content);
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    assertEquals(10, mapList.getMaps().size());
+  }
+
   /**
    * Test mapsets with retired concepts
    *

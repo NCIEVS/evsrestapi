@@ -71,6 +71,6 @@ public class HapiR5RestfulServlet extends RestfulServer {
     // Register interceptors
     registerInterceptor(new OpenApiInterceptorR5());
 
-    logger.info("FHIR Resource providers and interceptors registered");
+    logger.debug("FHIR Resource providers and interceptors registered");
   }
 }

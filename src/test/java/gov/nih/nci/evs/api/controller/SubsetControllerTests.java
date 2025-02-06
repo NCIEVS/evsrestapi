@@ -260,4 +260,324 @@ public class SubsetControllerTests {
       }
     }
   }
+
+  /**
+   * Test subset members.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSubsetMembers() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> list = null;
+
+    // C81224 - 27 members, no properties
+    url = baseUrl + "subset/ncit/C81224/members";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotNull();
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(list.size()).isEqualTo(27);
+    assertThat(list.stream().flatMap(c -> c.getProperties().stream()).count()).isEqualTo(0);
+
+    // C81224 - 29 members, no properties
+    url = baseUrl + "subset/ncit/C81224/members";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotNull();
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(list.size()).isEqualTo(27);
+    assertThat(list.stream().flatMap(c -> c.getProperties().stream()).count()).isEqualTo(0);
+
+    // C81222 - CDISC ADaM terminology
+    // contains C81226
+    // does not contain C82867
+    url = baseUrl + "subset/ncit/C81222/members";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotNull();
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(list.size()).isEqualTo(12);
+    assertThat(list.stream().flatMap(c -> c.getProperties().stream()).count()).isEqualTo(0);
+    assertThat(list.stream().filter(c -> c.getCode().equals("C81226")).count()).isGreaterThan(0);
+    assertThat(list.stream().filter(c -> c.getCode().equals("C82867")).count()).isEqualTo(0);
+    // All ADAM members start with "CDISC ..."
+    assertThat(list.stream().filter(c -> !c.getName().startsWith("CDISC")).count()).isEqualTo(0);
+
+    url = baseUrl + "subset/ncit/C81222/members?fromRecord=0&pageSize=5";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotNull();
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(list.size()).isEqualTo(5);
+    // All ADAM members start with "CDISC ..."
+    assertThat(list.stream().filter(c -> !c.getName().startsWith("CDISC")).count()).isEqualTo(0);
+
+    //    C61410 - Clinical Data Interchange Standards Consortium Terminology
+    // Has many fewer entries than 30k (which is what is in prod as of 202412)
+    url = baseUrl + "subset/ncit/C61410/members";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotNull();
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(list.size()).isGreaterThan(0);
+  }
+
+  /**
+   * Test subset via concept controller.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSubsetMembersViaConceptController() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> list = null;
+
+    // C81224 - 27 members, no properties
+    url = baseUrl + "concept/ncit/subsetMembers/C81224";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotNull();
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(list.size()).isEqualTo(27);
+    assertThat(list.stream().flatMap(c -> c.getProperties().stream()).count()).isEqualTo(0);
+
+    // C81224 - 29 members, no properties
+    url = baseUrl + "concept/ncit/subsetMembers/C81224";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotNull();
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(list.size()).isEqualTo(27);
+    assertThat(list.stream().flatMap(c -> c.getProperties().stream()).count()).isEqualTo(0);
+
+    // C81222 - CDISC ADaM terminology
+    // contains C81226
+    // does not contain C82867
+    url = baseUrl + "concept/ncit/subsetMembers/C81222";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotNull();
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(list.size()).isEqualTo(12);
+    assertThat(list.stream().flatMap(c -> c.getProperties().stream()).count()).isEqualTo(0);
+    assertThat(list.stream().filter(c -> c.getCode().equals("C81226")).count()).isGreaterThan(0);
+    assertThat(list.stream().filter(c -> c.getCode().equals("C82867")).count()).isEqualTo(0);
+    // All ADAM members start with "CDISC ..."
+    assertThat(list.stream().filter(c -> !c.getName().startsWith("CDISC")).count()).isEqualTo(0);
+
+    url = baseUrl + "concept/ncit/subsetMembers/C81222?fromRecord=0&pageSize=5";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotNull();
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(list.size()).isEqualTo(5);
+    // All ADAM members start with "CDISC ..."
+    assertThat(list.stream().filter(c -> !c.getName().startsWith("CDISC")).count()).isEqualTo(0);
+
+    //    C61410 - Clinical Data Interchange Standards Consortium Terminology
+    // Has many fewer entries than 30k (which is what is in prod as of 202412)
+    url = baseUrl + "concept/ncit/subsetMembers/C61410";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    assertThat(content).isNotNull();
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+    assertThat(list.size()).isGreaterThan(0);
+  }
+
+  /**
+   * Test Pediatric Subsets.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPediatricSubsets() throws Exception {
+
+    // C143048 - NCIt subset, ancestor of pediatric subsets
+    String url = baseUrl + "subset/ncit/C143048";
+    MvcResult result = null;
+    Concept subsetConcept = null;
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
+    subsetConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(subsetConcept).isNotNull();
+    assertThat(subsetConcept.getCode()).isEqualTo("C143048");
+    assertThat(subsetConcept.getChildren()).isNotEmpty();
+
+    Concept childhoodNeoplasmSubset =
+        subsetConcept.getChildren().stream()
+            .filter(c -> c.getCode().equals("C6283"))
+            .findFirst()
+            .orElse(null);
+    assertThat(childhoodNeoplasmSubset).isNotNull();
+    assertThat(childhoodNeoplasmSubset.getName()).isEqualTo("Childhood Neoplasm");
+    assertThat(childhoodNeoplasmSubset.getChildren()).isNotEmpty();
+
+    url = baseUrl + "concept/ncit/C6283?include=inverseAssociations";
+    subsetConcept = null;
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    subsetConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(subsetConcept).isNotNull();
+    assertThat(subsetConcept.getCode()).isEqualTo("C6283");
+    assertThat(subsetConcept.getName()).isEqualTo("Childhood Neoplasm");
+    assertThat(subsetConcept.getInverseAssociations()).isNotEmpty();
+    assertThat(
+            subsetConcept.getInverseAssociations().stream()
+                .allMatch(assoc -> assoc.getQualifiers().size() > 0))
+        .isTrue();
+
+    url = baseUrl + "subset/ncit/C6283?include=properties";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    subsetConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(subsetConcept).isNotNull();
+    assertThat(subsetConcept.getProperties()).isNotEmpty();
+    assertThat(
+            subsetConcept.getProperties().stream()
+                .filter(p -> p.getType().equals("Publish_Value_Set") && p.getValue().equals("Yes"))
+                .count())
+        .isGreaterThan(0);
+    assertThat(
+            subsetConcept.getProperties().stream()
+                .filter(
+                    p ->
+                        p.getType().equals("EVSRESTAPI_Subset_Format")
+                            && p.getValue().equals("NCI"))
+                .count())
+        .isGreaterThan(0);
+
+    Concept childhoodMalignantNeoplasmSubset =
+        childhoodNeoplasmSubset.getChildren().stream()
+            .filter(c -> c.getCode().equals("C4005"))
+            .findFirst()
+            .orElse(null);
+    assertThat(childhoodMalignantNeoplasmSubset).isNotNull();
+    assertThat(childhoodMalignantNeoplasmSubset.getName())
+        .isEqualTo("Childhood Malignant Neoplasm");
+
+    url = baseUrl + "concept/ncit/C4005?include=inverseAssociations";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    subsetConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(subsetConcept).isNotNull();
+    assertThat(subsetConcept.getCode()).isEqualTo("C4005");
+    assertThat(subsetConcept.getName()).isEqualTo("Childhood Malignant Neoplasm");
+    assertThat(subsetConcept.getInverseAssociations()).isNotEmpty();
+    assertThat(
+            subsetConcept.getInverseAssociations().stream()
+                .allMatch(assoc -> assoc.getQualifiers().size() > 0))
+        .isTrue();
+
+    url = baseUrl + "subset/ncit/C4005?include=properties";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    subsetConcept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(subsetConcept).isNotNull();
+    assertThat(subsetConcept.getProperties()).isNotEmpty();
+    assertThat(
+            subsetConcept.getProperties().stream()
+                .filter(p -> p.getType().equals("Publish_Value_Set") && p.getValue().equals("Yes"))
+                .count())
+        .isGreaterThan(0);
+    assertThat(
+            subsetConcept.getProperties().stream()
+                .filter(
+                    p ->
+                        p.getType().equals("EVSRESTAPI_Subset_Format")
+                            && p.getValue().equals("NCI"))
+                .count())
+        .isGreaterThan(0);
+  }
 }

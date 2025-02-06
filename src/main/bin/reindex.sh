@@ -508,6 +508,18 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
+# Verify that max_result_window on evs_mappings is set to 2500000
+if [[ `curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_mappings/_settings" | grep -c max_result_window` -eq 0 ]]; then
+    # Set the indexes to have a larger max_result_window
+    echo "  Set max result window to 250000 for evs_mappings"
+    curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_mappings/_settings" \
+         -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 250000 } }' >> /dev/null
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: unexpected error setting max_result_window for evs_mappings"
+        exit 1
+    fi
+fi
+
 # Cleanup
 /bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt /tmp/x.$$
 

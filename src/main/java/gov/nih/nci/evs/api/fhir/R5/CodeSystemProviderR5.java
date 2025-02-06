@@ -35,6 +35,7 @@ import org.hl7.fhir.r5.model.CodeableConcept;
 import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.DateTimeType;
 import org.hl7.fhir.r5.model.IdType;
+import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r5.model.Parameters;
 import org.hl7.fhir.r5.model.StringType;
@@ -118,31 +119,31 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         // Skip non-matching
         if ((id != null && !id.getValue().equals(cs.getIdPart()))
             || (url != null && !url.getValue().equals(cs.getUrl()))) {
-          logger.info("  SKIP url mismatch = " + cs.getUrl());
+          logger.debug("  SKIP url mismatch = " + cs.getUrl());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cs.getDate())) {
-          logger.info("  SKIP date mismatch = " + cs.getDate());
+          logger.debug("  SKIP date mismatch = " + cs.getDate());
           continue;
         }
         if (description != null && !FhirUtility.compareString(description, cs.getDescription())) {
-          logger.info("  SKIP description mismatch = " + cs.getDescription());
+          logger.debug("  SKIP description mismatch = " + cs.getDescription());
           continue;
         }
         if (name != null && !FhirUtility.compareString(name, cs.getName())) {
-          logger.info("  SKIP name mismatch = " + cs.getName());
+          logger.debug("  SKIP name mismatch = " + cs.getName());
           continue;
         }
         if (publisher != null && !FhirUtility.compareString(publisher, cs.getPublisher())) {
-          logger.info("  SKIP publisher mismatch = " + cs.getPublisher());
+          logger.debug("  SKIP publisher mismatch = " + cs.getPublisher());
           continue;
         }
         if (title != null && !FhirUtility.compareString(title, cs.getTitle())) {
-          logger.info("  SKIP title mismatch = " + cs.getTitle());
+          logger.debug("  SKIP title mismatch = " + cs.getTitle());
           continue;
         }
         if (version != null && !FhirUtility.compareString(version, cs.getVersion())) {
-          logger.info("  SKIP version mismatch = " + cs.getVersion());
+          logger.debug("  SKIP version mismatch = " + cs.getVersion());
           continue;
         }
 
@@ -218,13 +219,13 @@ public class CodeSystemProviderR5 implements IResourceProvider {
             termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
         final Concept concept =
             esQueryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
-        // populate our Parameters
-        params.addParameter("code", "code");
-        params.addParameter("system", codeSys.getUrl());
-        params.addParameter("code", codeSys.getName());
-        params.addParameter("version", codeSys.getVersion());
+        // required in the specification
+        params.addParameter("name", codeSys.getName());
         params.addParameter("display", concept.getName());
-        params.addParameter("active", true);
+        // optional in the specification
+        params.addParameter("version", codeSys.getVersion());
+        // properties
+        params.addParameter(FhirUtilityR5.createProperty(concept.getActive(), "active", false));
         for (final Concept parent : concept.getParents()) {
           params.addParameter(FhirUtilityR5.createProperty("parent", parent.getCode(), true));
         }
@@ -232,10 +233,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           params.addParameter(FhirUtilityR5.createProperty("child", child.getCode(), true));
         }
       } else {
-        params.addParameter("result", false);
-        params.addParameter("message", "Unable to find the matching code system");
-        params.addParameter("system", (system == null ? new UriType("<null>") : system));
-        params.addParameter("version", version);
+        throw FhirUtilityR5.exception(
+            "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
       }
       return params;
     } catch (final FHIRServerResponseException e) {
@@ -308,13 +307,15 @@ public class CodeSystemProviderR5 implements IResourceProvider {
             termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
         final Concept concept =
             esQueryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
-        // Populate our Parameters
-        params.addParameter("code", "code");
-        params.addParameter("system", codeSys.getUrl());
-        params.addParameter("code", codeSys.getName());
-        params.addParameter("version", codeSys.getVersion());
+        // required in the specification
+        params.addParameter("name", codeSys.getName());
         params.addParameter("display", concept.getName());
-        params.addParameter("active", true);
+        // optional in the specification
+        params.addParameter("version", codeSys.getVersion());
+        params.addParameter(FhirUtilityR5.createProperty(concept.getActive(), "active", false));
+        for (final Concept parent : concept.getParents()) {
+          params.addParameter(FhirUtilityR5.createProperty(parent.getCode(), "parent", true));
+        }
         for (final Concept parent : concept.getParents()) {
           params.addParameter(FhirUtilityR5.createProperty(parent.getCode(), "parent", true));
         }
@@ -322,10 +323,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           params.addParameter(FhirUtilityR5.createProperty(child.getCode(), "child", true));
         }
       } else {
-        params.addParameter("result", false);
-        params.addParameter("message", "Unable to find matching code system");
-        params.addParameter("system", (system == null ? new UriType("<null>") : system));
-        params.addParameter("version", version);
+        throw FhirUtilityR5.exception(
+            "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
       }
       return params;
     } catch (final FHIRServerResponseException e) {
@@ -427,10 +426,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           params.addParameter("version", codeSys.getVersion());
         }
       } else {
-        params.addParameter("results", false);
-        params.addParameter("message", "Unable to find matching code system");
-        params.addParameter("url", (url == null ? new UriType("<null>") : url));
-        params.addParameter("version", version);
+        throw FhirUtilityR5.exception(
+            "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
       }
       return params;
     } catch (final FHIRServerResponseException e) {
@@ -534,10 +531,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           params.addParameter("version", codeSys.getVersion());
         }
       } else {
-        params.addParameter("result", false);
-        params.addParameter("message", "Unable to find matching code syste");
-        params.addParameter("url", (url == null ? new UriType("<null>") : url));
-        params.addParameter("version", version);
+        throw FhirUtilityR5.exception(
+            "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
       }
       return params;
     } catch (final FHIRServerResponseException e) {
@@ -602,6 +597,12 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         } else if (codingA != null && codingB != null) {
           code1 = codingA.getCode();
           code2 = codingB.getCode();
+        } else if (codeA == null) {
+          throw FhirUtilityR5.exception(
+              "No codeA parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
+        } else if (codeB == null) {
+          throw FhirUtilityR5.exception(
+              "No codeB parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
@@ -616,16 +617,14 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           if (esQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumes");
           } else if (esQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
-            params.addParameter("outcome", "subsumbed-by");
+            params.addParameter("outcome", "subsumed-by");
           } else {
             params.addParameter("outcome", "no-subsumption-relationship");
           }
         }
       } else {
-        params.addParameter("result", false);
-        params.addParameter("message", "Unable to find matching code system");
-        params.addParameter("system", (system == null ? new UriType("<null>") : system));
-        params.addParameter("version", version);
+        throw FhirUtilityR5.exception(
+            "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
       }
       return params;
     } catch (final FHIRServerResponseException e) {
@@ -692,6 +691,12 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         } else if (codingA != null && codingB != null) {
           code1 = codingA.getCode();
           code2 = codingB.getCode();
+        } else if (codeA == null) {
+          throw FhirUtilityR5.exception(
+              "No codeA parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
+        } else if (codeB == null) {
+          throw FhirUtilityR5.exception(
+              "No codeB parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
@@ -712,10 +717,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           }
         }
       } else {
-        params.addParameter("result", false);
-        params.addParameter("message", "Unable to find matching code system");
-        params.addParameter("system", (system == null ? new UriType("<null>") : system));
-        params.addParameter("version", version);
+        throw FhirUtilityR5.exception(
+            "Unable to find matching code system", OperationOutcome.IssueType.NOTFOUND, 400);
       }
       return params;
     } catch (final FHIRServerResponseException e) {
@@ -785,15 +788,15 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         // Skip non-matching
         if ((id != null && !id.getIdPart().equals(cs.getIdPart()))
             || (url != null && !url.getValue().equals(cs.getUrl()))) {
-          logger.info("  SKIP url mismatch = " + cs.getUrl());
+          logger.debug("  SKIP url mismatch = " + cs.getUrl());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cs.getDate())) {
-          logger.info("  SKIP date mismatch = " + cs.getDate());
+          logger.debug("  SKIP date mismatch = " + cs.getDate());
           continue;
         }
         if (version != null && !version.getValue().equals(cs.getVersion())) {
-          logger.info("  SKIP version mismatch = " + cs.getVersion());
+          logger.debug("  SKIP version mismatch = " + cs.getVersion());
           continue;
         }
         list.add(cs);

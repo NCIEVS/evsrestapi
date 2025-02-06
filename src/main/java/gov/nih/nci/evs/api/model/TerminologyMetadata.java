@@ -161,6 +161,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The welcome text. */
   private String welcomeText;
 
+  /** The extra subsets. */
+  private Map<String, String> extraSubsets;
+
   /** Instantiates an empty {@link TerminologyMetadata}. */
   public TerminologyMetadata() {
     // n/a
@@ -229,6 +232,7 @@ public class TerminologyMetadata extends BaseModel {
     subset = new HashSet<>(other.getSubset());
     codeLabel = other.getCodeLabel();
     welcomeText = other.getWelcomeText();
+    extraSubsets = other.getExtraSubsets();
   }
 
   /* see superclass */
@@ -1123,6 +1127,28 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setWelcomeText(final String welcomeText) {
     this.welcomeText = welcomeText;
+  }
+
+  /**
+   * Returns the extra subsets.
+   *
+   * @return the extra subsets
+   */
+  @Schema(hidden = true)
+  public Map<String, String> getExtraSubsets() {
+    if (extraSubsets == null) {
+      extraSubsets = new HashMap<>();
+    }
+    return extraSubsets;
+  }
+
+  /**
+   * Sets the extra subsets.
+   *
+   * @param extraSubsets the extra subsets
+   */
+  public void setExtraSubsets(final Map<String, String> extraSubsets) {
+    this.extraSubsets = extraSubsets;
   }
 
   /**

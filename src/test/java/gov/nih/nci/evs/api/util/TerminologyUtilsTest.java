@@ -2,23 +2,23 @@ package gov.nih.nci.evs.api.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.StardogElasticLoadServiceImpl;
 import java.util.List;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 /** Unit test for TerminologyUtils. */
-@ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class TerminologyUtilsTest {
@@ -28,6 +28,9 @@ public class TerminologyUtilsTest {
 
   /** The elastic query service *. */
   @Autowired private ElasticQueryService esQueryService;
+
+  /** The stardog loader service. */
+  @Autowired private StardogElasticLoadServiceImpl stardogElasticLoadServiceImpl;
 
   /** The logger. */
   @SuppressWarnings("unused")
@@ -71,5 +74,21 @@ public class TerminologyUtilsTest {
     // Verify more than one default page of data comes back
     final List<Terminology> list = termUtils.getIndexedTerminologies(esQueryService);
     assertThat(list.size()).isGreaterThan(10);
+  }
+
+  /**
+   * Test terminology metadata reading.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testMetadataReading() throws Exception {
+    final String terminology = "ncit";
+    final TerminologyMetadata metadata =
+        new ObjectMapper()
+            .treeToValue(
+                stardogElasticLoadServiceImpl.getMetadataAsNodeLocal(terminology),
+                TerminologyMetadata.class);
+    assertThat(metadata.getExtraSubsets()).isNotEmpty();
   }
 }

@@ -14,6 +14,9 @@ import org.opensearch.data.core.OpenSearchOperations;
  */
 public interface ElasticOperationsService {
 
+  /** The index in ES for audit events *. */
+  public static final String AUDIT_INDEX = "evs_audit";
+
   /** The index in ES for index metadata *. */
   public static final String METADATA_INDEX = "evs_metadata";
 

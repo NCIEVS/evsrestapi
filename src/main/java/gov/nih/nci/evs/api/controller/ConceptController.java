@@ -339,32 +339,33 @@ public class ConceptController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      if (ip.isMaps()) {
-        List<Mapping> firstList = concept.get().getMaps();
-        List<Mapping> secondList =
-            elasticSearchService.getConceptMappings(Arrays.asList(code), terminology);
-
-        // Create a set of existing keys in firstList to check for matches
-        Set<String> existingKeys =
-            firstList.stream()
-                .map(map -> map.getTargetTerminology() + "_" + map.getTargetCode())
-                .collect(Collectors.toSet());
-
-        // Filter and add only those ConceptMap objects that don't have a match in firstList
-        List<Mapping> mapsToAdd =
-            secondList.stream()
-                .filter(
-                    cm ->
-                        !existingKeys.contains(
-                            cm.getTargetTerminology() + "_" + cm.getTargetCode()))
-                .collect(Collectors.toList());
-
-        // Add the filtered list to firstList
-        firstList.addAll(mapsToAdd);
-
-        // Set the updated list back to the concept
-        concept.get().setMaps(firstList);
-      }
+      // Comment this out for 2.0 because it allows "old" NCIt mappings to show up.
+      //      if (ip.isMaps()) {
+      //        List<Mapping> firstList = concept.get().getMaps();
+      //        List<Mapping> secondList =
+      //            elasticSearchService.getConceptMappings(Arrays.asList(code), terminology);
+      //
+      //        // Create a set of existing keys in firstList to check for matches
+      //        Set<String> existingKeys =
+      //            firstList.stream()
+      //                .map(map -> map.getTargetTerminology() + "_" + map.getTargetCode())
+      //                .collect(Collectors.toSet());
+      //
+      //        // Filter and add only those ConceptMap objects that don't have a match in firstList
+      //        List<Mapping> mapsToAdd =
+      //            secondList.stream()
+      //                .filter(
+      //                    cm ->
+      //                        !existingKeys.contains(
+      //                            cm.getTargetTerminology() + "_" + cm.getTargetCode()))
+      //                .collect(Collectors.toList());
+      //
+      //        // Add the filtered list to firstList
+      //        firstList.addAll(mapsToAdd);
+      //
+      //        // Set the updated list back to the concept
+      //        concept.get().setMaps(firstList);
+      //      }
 
       if (limit.isPresent()) {
         if (limit.get().intValue() < 1 || limit.get().intValue() > 100) {
@@ -739,21 +740,26 @@ public class ConceptController extends BaseController {
       final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
 
       final Optional<Concept> concept =
-          elasticQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
+          elasticQueryService.getConcept(
+              code, term, new IncludeParam("synonyms,inverseAssociations"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
+      final List<Association> associations = concept.get().getInverseAssociations();
+
+      // This is really hacky, but it's very hard to get at the logic for this in a different way
+      ConceptUtils.cleanCdiscGrouperAssociations(concept.get(), associations);
+
       final List<Concept> subsets = new ArrayList<>();
-      final int associationListSize = concept.get().getInverseAssociations().size();
+      final int associationListSize = associations.size();
 
       if (associationListSize > 0) {
         final int fromIndex = fromRecord.orElse(0);
         final int toIndex =
             Math.min(pageSize.orElse(associationListSize) + fromIndex, associationListSize);
-        for (final Association assn :
-            concept.get().getInverseAssociations().subList(fromIndex, toIndex)) {
+        for (final Association assn : associations.subList(fromIndex, toIndex)) {
           final Concept member =
               elasticQueryService.getConcept(assn.getRelatedCode(), term, ip).orElse(null);
           if (member != null) {
@@ -1710,7 +1716,7 @@ public class ConceptController extends BaseController {
 
       // Limit to 10 paths if a limit of >10 is used.
       final int pathLimit =
-          (limit.orElse(0) > 10) ? 10 : (limit.isPresent() ? limit.get().intValue() : -1);
+          (limit.orElse(0) > 100) ? 100 : (limit.isPresent() ? limit.get().intValue() : -1);
       final List<Path> ps = paths.getPaths();
       int ct = 0;
       for (final Path path : ps) {

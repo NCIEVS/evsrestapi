@@ -111,23 +111,23 @@ public class ConceptMapProviderR5 implements IResourceProvider {
         final ConceptMap cm = FhirUtilityR5.toR5(mapset);
         // Skip non-matching
         if (url != null && !url.getValue().equals(cm.getUrl())) {
-          logger.info("  SKIP url mismatch = " + cm.getUrl());
+          logger.debug("  SKIP url mismatch = " + cm.getUrl());
           continue;
         }
         if (id != null && !id.getValue().equals(cm.getId())) {
-          logger.info("  SKIP id mismatch = " + cm.getName());
+          logger.debug("  SKIP id mismatch = " + cm.getName());
           continue;
         }
         if (system != null && !system.getValue().equals(cm.getName())) {
-          logger.info("  SKIP system mismatch = " + cm.getName());
+          logger.debug("  SKIP system mismatch = " + cm.getName());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
-          logger.info("  SKIP date mismatch = " + cm.getDate());
+          logger.debug("  SKIP date mismatch = " + cm.getDate());
           continue;
         }
         if (version != null && !FhirUtility.compareString(version, cm.getVersion())) {
-          logger.info("  SKIP version mismatch = " + cm.getVersion());
+          logger.debug("  SKIP version mismatch = " + cm.getVersion());
           continue;
         }
 
@@ -207,7 +207,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
     // Check if request is POST, throw error as we don't support POST calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
-          "POST method nor supported for " + JpaConstants.OPERATION_TRANSLATE,
+          "POST method not supported for " + JpaConstants.OPERATION_TRANSLATE,
           IssueType.NOTSUPPORTED,
           405);
     }
@@ -463,30 +463,30 @@ public class ConceptMapProviderR5 implements IResourceProvider {
         final ConceptMap cm = FhirUtilityR5.toR5(mapset);
         // Skip non-matching
         if (url != null && !url.getValue().equals(cm.getUrl())) {
-          logger.info("  SKIP url mismatch = " + cm.getUrl());
+          logger.debug("  SKIP url mismatch = " + cm.getUrl());
           continue;
         }
         if (id != null && !id.getIdPart().equals(cm.getId())) {
-          logger.info("  SKIP id mismatch = " + cm.getName());
+          logger.debug("  SKIP id mismatch = " + cm.getName());
           continue;
         }
         if (system != null && !system.getValue().equals(cm.getUrl())) {
-          logger.info("  SKIP system mismatch = " + cm.getUrl());
+          logger.debug("  SKIP system mismatch = " + cm.getUrl());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
-          logger.info("  SKIP date mismatch = " + cm.getDate());
+          logger.debug("  SKIP date mismatch = " + cm.getDate());
           continue;
         }
         if (version != null && !version.getValue().equals(cm.getVersion())) {
-          logger.info("  SKIP version mismatch = " + cm.getVersion());
+          logger.debug("  SKIP version mismatch = " + cm.getVersion());
           continue;
         }
         if (targetSystem != null
             && !targetSystem
                 .getValue()
                 .equals(cm.getTargetScopeUriType().getValue().replaceFirst("\\?fhir_vs$", ""))) {
-          logger.info("  SKIP target mismatch = " + cm.getTargetScopeUriType().getValue());
+          logger.debug("  SKIP target mismatch = " + cm.getTargetScopeUriType().getValue());
           continue;
         }
 
