@@ -260,7 +260,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     searchCriteria.setTerm(conceptCode);
     searchCriteria.setInclude(include);
     ConceptResultList result =
-        elasticSearchService.search(Collections.singletonList(terminology), searchCriteria);
+        elasticSearchService.findConcepts(Collections.singletonList(terminology), searchCriteria);
     return !result.getConcepts().isEmpty() ? result.getConcepts().get(0) : null;
   }
 
