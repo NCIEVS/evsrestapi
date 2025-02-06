@@ -53,6 +53,10 @@ public class Audit {
   @Field(type = FieldType.Long)
   private long count;
 
+  @Schema(description = "Logging level of the audit event")
+  @Field(type = FieldType.Keyword)
+  private String logLevel;
+
   /** Default constructor. */
   public Audit() {
     // Default constructor
@@ -84,7 +88,8 @@ public class Audit {
       final Date endDate,
       final long elapsedTime,
       final String process,
-      final long count) {
+      final long count,
+      final String logLevel) {
     this.type = type;
     this.terminology = terminology;
     this.version = version;
@@ -94,6 +99,7 @@ public class Audit {
     this.elapsedTime = elapsedTime;
     this.process = process;
     this.count = count;
+    this.logLevel = logLevel;
   }
 
   /**
@@ -258,6 +264,24 @@ public class Audit {
     this.count = count;
   }
 
+  /**
+   * Returns the log level of the audit event.
+   *
+   * @return the log level
+   */
+  public String getLogLevel() {
+    return logLevel;
+  }
+
+  /**
+   * Sets the log level of the audit event.
+   *
+   * @param logLevel the log level to set
+   */
+  public void setLogLevel(final String logLevel) {
+    this.logLevel = logLevel;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) return true;
@@ -271,13 +295,23 @@ public class Audit {
         && Objects.equals(date, audit.date)
         && Objects.equals(startDate, audit.startDate)
         && Objects.equals(endDate, audit.endDate)
-        && Objects.equals(process, audit.process);
+        && Objects.equals(process, audit.process)
+        && Objects.equals(logLevel, audit.logLevel);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(
-        type, terminology, version, date, startDate, endDate, elapsedTime, process, count);
+        type,
+        terminology,
+        version,
+        date,
+        startDate,
+        endDate,
+        elapsedTime,
+        process,
+        count,
+        logLevel);
   }
 
   @Override
@@ -305,6 +339,9 @@ public class Audit {
         + '\''
         + ", count="
         + count
+        + '}'
+        + ", logLevel="
+        + logLevel
         + '}';
   }
 
@@ -322,5 +359,7 @@ public class Audit {
     this.endDate = other.getEndDate();
     this.elapsedTime = other.getElapsedTime();
     this.process = other.getProcess();
+    this.count = other.getCount();
+    this.logLevel = other.getLogLevel();
   }
 }

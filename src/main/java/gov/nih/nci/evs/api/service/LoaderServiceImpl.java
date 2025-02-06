@@ -154,7 +154,8 @@ public class LoaderServiceImpl {
 
     try {
       // create Audit object
-      final Audit termAudit = new Audit("reindex", null, null, null, null, null, 0, null, 0);
+      final Audit termAudit = new Audit();
+      termAudit.setType("reindex");
       Date startDate = new Date();
       termAudit.setStartDate(startDate);
       // which indexing object do we need to use
