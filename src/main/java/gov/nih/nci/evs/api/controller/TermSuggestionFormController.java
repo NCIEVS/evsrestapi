@@ -122,7 +122,7 @@ public class TermSuggestionFormController extends BaseController {
       return ResponseEntity.ok().body(formTemplate);
     } catch (Exception e) {
       logger.error("Error reading form template: {}", formType, e);
-      handleException(e);
+      handleException(e, null);
       return null;
     }
   }
@@ -200,7 +200,7 @@ public class TermSuggestionFormController extends BaseController {
       formService.sendEmail(emailDetails);
     } catch (Exception e) {
       logger.error("Error creating email details or sending email", e);
-      handleException(e);
+      handleException(e, null);
     }
   }
 }
