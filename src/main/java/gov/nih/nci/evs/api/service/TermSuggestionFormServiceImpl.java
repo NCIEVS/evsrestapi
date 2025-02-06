@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import jakarta.mail.Message.RecipientType;
@@ -11,6 +12,7 @@ import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.net.URL;
+import java.util.Date;
 import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,7 +69,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    */
   @Override
   public JsonNode getFormTemplate(final String formType)
-      throws IllegalArgumentException, IOException {
+      throws IllegalArgumentException, IOException, Exception {
     // Set the form file path based on the formType passed. If we receive an invalid path, throw
     // exception
     if (formType == null || formType.isEmpty() || formType.isBlank()) {
@@ -85,6 +87,16 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       ((ObjectNode) termForm).put("recaptchaSiteKey", recaptchaSiteKey);
     } else {
       logger.error("Cannot add recaptcha site key. Form template is not a JSON object.");
+      Audit audit =
+          new Audit(
+              "IllegalArgumentException",
+              null,
+              null,
+              new Date(),
+              "getFormTemplate",
+              "Cannot add recaptcha site key. Form template is not a JSON object.",
+              "error");
+      LoaderServiceImpl.addAudit(audit);
       throw new IllegalArgumentException("Invalid form template.");
     }
 
@@ -98,7 +110,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @throws MessagingException the messaging exception
    */
   @Override
-  public void sendEmail(final EmailDetails emailDetails) throws MessagingException {
+  public void sendEmail(final EmailDetails emailDetails) throws MessagingException, Exception {
     // Check if starttls.enable is false
     if (mailSender instanceof JavaMailSenderImpl) {
       final Properties mailProperties = ((JavaMailSenderImpl) mailSender).getJavaMailProperties();
@@ -128,6 +140,16 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       mailSender.send(message);
     } catch (MessagingException e) {
       logger.error(e.getMessage());
+      Audit audit =
+          new Audit(
+              "MessagingException",
+              null,
+              null,
+              new Date(),
+              "sendEmail",
+              "Failed to send email, " + e,
+              "error");
+      LoaderServiceImpl.addAudit(audit);
       throw new MessagingException("Failed to send email, {}", e);
     }
   }

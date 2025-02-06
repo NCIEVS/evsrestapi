@@ -21,7 +21,7 @@ public interface ElasticLoadService {
    *
    * @throws Exception
    */
-  public void initialize() throws IOException;
+  public void initialize() throws IOException, Exception;
 
   /**
    * Load cached objects to elasticsearch.
@@ -92,7 +92,7 @@ public interface ElasticLoadService {
    * @param term the terminology object
    * @throws IOException
    */
-  void checkLoadStatus(int totalConcepts, Terminology term) throws IOException;
+  void checkLoadStatus(int totalConcepts, Terminology term) throws IOException, Exception;
 
   /**
    * load index metadata
@@ -101,7 +101,7 @@ public interface ElasticLoadService {
    * @param term the terminology object
    * @throws IOException
    */
-  void loadIndexMetadata(int totalConcepts, Terminology term) throws IOException;
+  void loadIndexMetadata(int totalConcepts, Terminology term) throws IOException, Exception;
 
   /**
    * get hierarchy utils.

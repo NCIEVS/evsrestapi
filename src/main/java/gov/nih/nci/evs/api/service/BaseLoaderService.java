@@ -17,6 +17,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -116,7 +117,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws Exception
    */
   @Override
-  public void initialize() throws IOException {
+  public void initialize() throws IOException, Exception {
     try {
       // Create the metadata index if it doesn't exist
       boolean createdIndex =
@@ -154,6 +155,9 @@ public abstract class BaseLoaderService implements ElasticLoadService {
       }
     } catch (IOException e) {
       logger.error(e.getMessage(), e);
+      Audit audit =
+          new Audit("IOException", null, null, new Date(), "initialize", e.getMessage(), "error");
+      LoaderServiceImpl.addAudit(audit);
       throw new IOException(e);
     }
   }
@@ -329,7 +333,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public void checkLoadStatus(int total, Terminology term) throws IOException {
+  public void checkLoadStatus(int total, Terminology term) throws IOException, Exception {
 
     Long count = esQueryService.getCount(term);
     logger.info("Concepts count for index {} = {}", term.getIndexName(), count);
@@ -346,6 +350,16 @@ public abstract class BaseLoaderService implements ElasticLoadService {
         Thread.sleep(2000);
       } catch (InterruptedException e) {
         logger.error("Error while checking load status: sleep interrupted - " + e.getMessage(), e);
+        Audit audit =
+            new Audit(
+                "InterruptedException",
+                null,
+                null,
+                new Date(),
+                "checkLoadStatus",
+                "Error while checking load status: sleep interrupted - " + e.getMessage(),
+                "error");
+        LoaderServiceImpl.addAudit(audit);
         throw new IOException(e);
       }
 
@@ -367,7 +381,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public void loadIndexMetadata(int total, Terminology term) throws IOException {
+  public void loadIndexMetadata(int total, Terminology term) throws IOException, Exception {
     IndexMetadata iMeta = new IndexMetadata();
     iMeta.setIndexName(term.getIndexName());
     iMeta.setTotalConcepts(total);
