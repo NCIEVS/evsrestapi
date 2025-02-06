@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
+import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
@@ -35,6 +36,7 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -520,6 +522,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             log.info("      finish main");
           } catch (final Exception e) {
             log.error("Unexpected error on main", e);
+            auditError(e, "getConcepts");
             exceptions.add(e);
           }
         });
@@ -533,6 +536,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             log.info("      finish roles");
           } catch (final Exception e) {
             log.error("Unexpected error on roles", e);
+            auditError(e, "getConcepts");
             exceptions.add(e);
           }
         });
@@ -546,6 +550,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             log.info("      finish inverse roles");
           } catch (final Exception e) {
             log.error("Unexpected error on inverse roles", e);
+            auditError(e, "getConcepts");
             exceptions.add(e);
           }
         });
@@ -559,6 +564,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             log.info("      finish axioms");
           } catch (final Exception e) {
             log.error("Unexpected error on axioms", e);
+            auditError(e, "getConcepts");
             exceptions.add(e);
           }
         });
@@ -569,6 +575,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     try {
       executor.awaitTermination(10, TimeUnit.MINUTES);
     } catch (final InterruptedException e) {
+      auditError(e, "getConcepts");
       throw new RuntimeException(e);
     }
 
@@ -2442,6 +2449,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     try {
       res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
     } catch (final Exception e) {
+      auditError(e, "getAllConceptsWithCode");
       e.printStackTrace();
     }
 
@@ -2482,6 +2490,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     try {
       res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
     } catch (final Exception e) {
+      auditError(e, "getAllConceptsWithoutCode");
       e.printStackTrace();
     }
 
@@ -2575,6 +2584,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     try {
       res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
     } catch (final Exception e1) {
+      auditError(e1, "getAssociationEntries");
       e1.printStackTrace();
     }
     final ObjectMapper mapper = new ObjectMapper();
@@ -2585,6 +2595,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       sparqlResult = mapper.readValue(res, Sparql.class);
     } catch (final Exception e) {
       log.error("Mapper could not read value in Association Entries");
+      auditError(e, "getAssociationEntries");
       e.printStackTrace();
     }
     if (sparqlResult != null) {
@@ -2632,5 +2643,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       return EVSUtils.getValueFromFile(uri, "ignore sources from file");
     }
     return Collections.emptyList();
+  }
+
+  private void auditError(Exception e, String function) {
+    Audit audit = new Audit("Exception", null, null, new Date(), function, e.getMessage(), "error");
+    try {
+      LoaderServiceImpl.addAudit(audit);
+    } catch (Exception e1) {
+      log.error("Error adding audit", e1);
+    }
   }
 }

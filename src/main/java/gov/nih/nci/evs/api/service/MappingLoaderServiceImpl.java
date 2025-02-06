@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Mapping;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -343,6 +345,10 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                     new File(uri + "/" + metadata[3]), StandardCharsets.UTF_8);
             map.getProperties().add(new Property("welcomeText", welcomeText));
           } catch (final IOException ex) {
+            Audit audit =
+                new Audit(
+                    "IOException", null, null, new Date(), "loadObjects", ex.getMessage(), "error");
+            LoaderServiceImpl.addAudit(audit);
             throw new IOException(
                 "Could not find either file or uri for config base uri: "
                     + uri

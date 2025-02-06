@@ -201,6 +201,16 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
       if (!result) {
         logger.warn("Deleting objects index {} failed!", objectIndexName);
+        Audit audit =
+            new Audit(
+                "DeleteIndexFailed",
+                null,
+                null,
+                new Date(),
+                "cleanStaleIndexes",
+                "Deleting objects index " + objectIndexName + " failed!",
+                "error");
+        LoaderServiceImpl.addAudit(audit);
         continue;
       }
 
@@ -210,6 +220,16 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
       if (!result) {
         logger.warn("Deleting concepts index {} failed!", indexName);
+        Audit audit =
+            new Audit(
+                "DeleteIndexFailed",
+                null,
+                null,
+                new Date(),
+                "cleanStaleIndexes",
+                "Deleting concepts index " + indexName + " failed!",
+                "error");
+        LoaderServiceImpl.addAudit(audit);
         continue;
       }
 

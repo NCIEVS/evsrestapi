@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.History;
@@ -31,6 +32,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -976,6 +978,16 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         } catch (IOException e) {
           // Handle the file not found exception and log a warning
           logger.warn(source + " source overlap stats file not found for ncim");
+          Audit audit =
+              new Audit(
+                  "IOException",
+                  null,
+                  null,
+                  new Date(),
+                  "handleStatistics",
+                  e.getMessage(),
+                  "warn");
+          LoaderServiceImpl.addAudit(audit);
         }
 
         // any future stats additions go here
@@ -1544,6 +1556,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         term.setMetadata(metadata);
 
       } catch (Exception e) {
+        Audit audit =
+            new Audit(
+                "Exception", null, null, new Date(), "getTerminology", e.getMessage(), "error");
+        LoaderServiceImpl.addAudit(audit);
         throw new Exception(
             "Unexpected error trying to load metadata = "
                 + applicationProperties.getConfigBaseUri(),
@@ -1552,6 +1568,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
       return term;
     } catch (IOException ex) {
+      Audit audit =
+          new Audit(
+              "IOException", null, null, new Date(), "getTerminology", ex.getMessage(), "error");
+      LoaderServiceImpl.addAudit(audit);
       throw new Exception("Could not load terminology ncim", ex);
     }
   }

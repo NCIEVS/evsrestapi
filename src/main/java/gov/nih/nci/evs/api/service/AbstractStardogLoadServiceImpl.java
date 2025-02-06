@@ -158,6 +158,17 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       hierarchy.setInverseAssociationMap(
           sparqlQueryManagerService.getAssociationsForAllCodes(terminology, true));
     } catch (Exception e1) {
+      logger.error(e1.getMessage(), e1);
+      Audit audit =
+          new Audit(
+              "Exception",
+              terminology.getTerminology(),
+              terminology.getVersion(),
+              new Date(),
+              "loadConcepts",
+              e1.getMessage(),
+              "error");
+      LoaderServiceImpl.addAudit(audit);
       throw new IOException(e1);
     }
 
@@ -229,6 +240,16 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
     if (CollectionUtils.isEmpty(allConcepts)) {
       logger.warn("Unable to load. No concepts found!");
+      Audit audit =
+          new Audit(
+              "Warning",
+              terminology.getTerminology(),
+              terminology.getVersion(),
+              new Date(),
+              "loadConceptsRealTime",
+              "No concepts found!",
+              "warning");
+      LoaderServiceImpl.addAudit(audit);
       return;
     }
 
@@ -275,6 +296,20 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                     handleHistory(terminology, c);
                   } catch (Exception e) {
                     logger.error("Error handling history for concept " + c.getCode(), e);
+                    Audit audit =
+                        new Audit(
+                            "Exception",
+                            terminology.getTerminology(),
+                            terminology.getVersion(),
+                            new Date(),
+                            "loadConceptsRealTime",
+                            "Error handling history for concept " + c.getCode(),
+                            "error");
+                    try {
+                      LoaderServiceImpl.addAudit(audit);
+                    } catch (Exception e1) {
+                      logger.error(e1.getMessage(), e1);
+                    }
                   }
                   // Collect maps for NCIt mapsets
                   if (c.getMaps().size() > 0 && c.getActive()) {
@@ -351,6 +386,16 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
               ElasticOperationsService.MAPPINGS_INDEX);
         } catch (NoSuchIndexException e) {
           logger.warn("UNABLE TO DELETE INDEX: " + NCIT_MAPS_TO + mapset.getKey() + " NOT FOUND!");
+          Audit audit =
+              new Audit(
+                  "NoSuchIndexException",
+                  terminology.getTerminology(),
+                  terminology.getVersion(),
+                  new Date(),
+                  "loadConceptsRealTime",
+                  "UNABLE TO DELETE INDEX: " + NCIT_MAPS_TO + mapset.getKey() + " NOT FOUND!",
+                  "warning");
+          LoaderServiceImpl.addAudit(audit);
         }
         Collections.sort(
             mapset.getValue().getMaps(),
@@ -388,6 +433,16 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       executor.shutdownNow();
       logger.info("  await termination");
       executor.awaitTermination(30, TimeUnit.SECONDS);
+      Audit audit =
+          new Audit(
+              "Exception",
+              terminology.getTerminology(),
+              terminology.getVersion(),
+              new Date(),
+              "loadConceptsRealTime",
+              e.getMessage(),
+              "error");
+      LoaderServiceImpl.addAudit(audit);
       throw e;
     }
     logger.info("Done loading concepts!");
@@ -551,6 +606,16 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 .orElseThrow();
       } catch (NoSuchElementException e) {
         logger.warn("Subset " + subsetCode + " not found as a concept, skipping.");
+        Audit audit =
+            new Audit(
+                "NoSuchElementException",
+                terminology.getTerminology(),
+                terminology.getVersion(),
+                new Date(),
+                "addExtraSubsets",
+                "Subset " + subsetCode + " not found as a concept, skipping.",
+                "warning");
+        LoaderServiceImpl.addAudit(audit);
         continue;
       }
 
@@ -572,10 +637,25 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 + ": "
                 + newSubsets.get(subsetCode)
                 + " not found, skipping.");
+        Audit audit =
+            new Audit(
+                "NoSuchElementException",
+                terminology.getTerminology(),
+                terminology.getVersion(),
+                new Date(),
+                "addExtraSubsets",
+                "Parent Subset of "
+                    + subsetCode
+                    + ": "
+                    + newSubsets.get(subsetCode)
+                    + " not found, skipping.",
+                "warning");
+        LoaderServiceImpl.addAudit(audit);
         continue;
       }
 
       boolean isFirstRow = true;
+      List<String> missingConcepts = new ArrayList<>();
       for (Row row : sheet) {
         // skip labels row
         if (isFirstRow) {
@@ -596,6 +676,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                   + " not found for new subset "
                   + subsetCode
                   + ", skipping.");
+          missingConcepts.add(row.getCell(2).getStringCellValue());
           continue;
         }
 
@@ -619,6 +700,15 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         // index subsetConcept
         operationsService.index(subsetConcept, terminology.getIndexName(), Concept.class);
       }
+      Audit audit =
+          new Audit(
+              "MissingConcepts",
+              terminology.getTerminology(),
+              terminology.getVersion(),
+              new Date(),
+              "addExtraSubsets",
+              "Concepts " + missingConcepts + " not found for new subset " + subsetCode + ".",
+              "warning");
       // explicitly set leaf since it defaults to false
       newSubsetEntry.setLeaf(!newSubsets.containsValue(newSubsetEntry.getCode()));
       // add extra relevant properties to new subset
@@ -651,9 +741,19 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       // Try downloading the file from the provided URL
       InputStream inputStream = new URL(url).openStream();
       workbook = new HSSFWorkbook(inputStream);
-      System.out.println("Excel file successfully loaded from URL.");
+      logger.info("Excel file successfully loaded from URL.");
     } catch (Exception e) {
-      System.err.println("Failed to download Excel file from URL. Error: " + e.getMessage());
+      logger.error("Failed to download Excel file from URL. Error: " + e.getMessage());
+      Audit audit =
+          new Audit(
+              "Exception",
+              null,
+              null,
+              new Date(),
+              "loadExcelSheets",
+              "Failed to download Excel file from URL. Error: " + e.getMessage(),
+              "error");
+      LoaderServiceImpl.addAudit(audit);
       try {
         // If download fails, fall back to the local backup file
         FileInputStream fileInputStream = new FileInputStream(filepath);
@@ -662,7 +762,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       } catch (Exception fileException) {
         logger.error(
             "Failed to load Excel file from backup file. Error: " + fileException.getMessage());
-        Audit audit =
+        audit =
             new Audit(
                 "Exception",
                 null,
@@ -671,6 +771,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 "loadExcelSheets",
                 "Failed to load Excel file from backup file. Error: " + fileException.getMessage(),
                 "error");
+        LoaderServiceImpl.addAudit(audit);
         throw new Exception(fileException); // throw an exception if all attempts fail
       }
     }
@@ -686,7 +787,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         logger.error("Failed to close the workbook. Error: " + e.getMessage());
         Audit audit =
             new Audit(
-                "Exception",
+                "IOException",
                 null,
                 null,
                 new Date(),
@@ -780,6 +881,17 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
             "    finish loading concepts: {} to {} ({}% complete)",
             startIndex + 1, endIndex, progress);
       } catch (Throwable e) {
+        taskLogger.error("Unexpected error loading concepts", e);
+        Audit audit =
+            new Audit(
+                "Exception",
+                null,
+                null,
+                new Date(),
+                "ConceptLoadTask",
+                "Unexpected error loading concepts",
+                "error");
+        LoaderServiceImpl.addAudit(audit);
         throw new Exception(e);
       } finally {
         concepts = null;
@@ -873,6 +985,16 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       }
 
     } catch (Exception e) {
+      Audit audit =
+          new Audit(
+              "Exception",
+              terminology,
+              null,
+              new Date(),
+              "getTerminology",
+              "Unexpected error trying to load metadata = " + terminology,
+              "error");
+      LoaderServiceImpl.addAudit(audit);
       throw new Exception(
           "Unexpected error trying to load metadata = " + applicationProperties.getConfigBaseUri(),
           e);
@@ -976,6 +1098,16 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       }
       logger.info("    count = " + historyMap.size());
     } catch (Exception e) {
+      Audit audit =
+          new Audit(
+              "Exception",
+              terminology.getTerminology(),
+              terminology.getVersion(),
+              new Date(),
+              "loadHistory",
+              "Problem loading history file for " + terminology.getName() + ": " + filepath,
+              "error");
+      LoaderServiceImpl.addAudit(audit);
       throw new Exception(
           "Unable to load history file for " + terminology.getName() + ": " + filepath, e);
     }
