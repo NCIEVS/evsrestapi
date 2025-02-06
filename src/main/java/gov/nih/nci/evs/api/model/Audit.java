@@ -57,6 +57,10 @@ public class Audit {
   @Field(type = FieldType.Keyword)
   private String logLevel;
 
+  @Schema(description = "Details of the audit event")
+  @Field(type = FieldType.Text)
+  private String details;
+
   /** Default constructor. */
   public Audit() {
     // Default constructor
@@ -89,7 +93,8 @@ public class Audit {
       final long elapsedTime,
       final String process,
       final long count,
-      final String logLevel) {
+      final String logLevel,
+      final String details) {
     this.type = type;
     this.terminology = terminology;
     this.version = version;
@@ -100,6 +105,7 @@ public class Audit {
     this.process = process;
     this.count = count;
     this.logLevel = logLevel;
+    this.details = details;
   }
 
   /**
@@ -282,6 +288,24 @@ public class Audit {
     this.logLevel = logLevel;
   }
 
+  /**
+   * Returns the details of the audit event.
+   *
+   * @return the details
+   */
+  public String getDetails() {
+    return details;
+  }
+
+  /**
+   * Sets the details of the audit event.
+   *
+   * @param details the details to set
+   */
+  public void setDetails(final String details) {
+    this.details = details;
+  }
+
   @Override
   public boolean equals(final Object o) {
     if (this == o) return true;
@@ -296,7 +320,8 @@ public class Audit {
         && Objects.equals(startDate, audit.startDate)
         && Objects.equals(endDate, audit.endDate)
         && Objects.equals(process, audit.process)
-        && Objects.equals(logLevel, audit.logLevel);
+        && Objects.equals(logLevel, audit.logLevel)
+        && Objects.equals(details, audit.details);
   }
 
   @Override
@@ -311,7 +336,8 @@ public class Audit {
         elapsedTime,
         process,
         count,
-        logLevel);
+        logLevel,
+        details);
   }
 
   @Override
@@ -342,6 +368,9 @@ public class Audit {
         + '}'
         + ", logLevel="
         + logLevel
+        + '}'
+        + ", details="
+        + details
         + '}';
   }
 
@@ -361,5 +390,6 @@ public class Audit {
     this.process = other.getProcess();
     this.count = other.getCount();
     this.logLevel = other.getLogLevel();
+    this.details = other.getDetails();
   }
 }
