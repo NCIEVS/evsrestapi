@@ -48,7 +48,7 @@ public class CaptchaServiceTest {
   /** Test verifyRecaptcha method returns a success with a valid token (mocked) */
   @SuppressWarnings("unchecked")
   @Test
-  public void testVerifyRecaptchaSuccess() {
+  public void testVerifyRecaptchaSuccess() throws Exception {
     // SETUP
     RecaptchaResponse mockResponse = new RecaptchaResponse();
     mockResponse.setSuccess(true);
@@ -80,7 +80,7 @@ public class CaptchaServiceTest {
 
   /** Test verifyRecaptcha method return a failure when the token isn't verifiable */
   @Test
-  public void testVerifyRecaptchaVerificationFails() {
+  public void testVerifyRecaptchaVerificationFails() throws Exception {
     // Arrange
     RecaptchaResponse mockResponse = new RecaptchaResponse();
     mockResponse.setSuccess(false);

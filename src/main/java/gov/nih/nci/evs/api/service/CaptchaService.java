@@ -48,7 +48,7 @@ public class CaptchaService {
    * @param captchaToken recaptcha secret key from the submitted form
    * @return verification response True or False
    */
-  public Boolean verifyRecaptcha(String captchaToken) throws NullPointerException, Exception {
+  public Boolean verifyRecaptcha(String captchaToken) throws Exception {
     // check if the recaptcha server url is set
     if (recaptchaServerUrl == null || recaptchaServerUrl.isBlank()) {
       logger.error("Recaptcha server URL is not specified");
@@ -62,7 +62,7 @@ public class CaptchaService {
               "Recaptcha server URL is not specified",
               "error");
       LoaderServiceImpl.addAudit(audit);
-      throw new NullPointerException("Recaptcha server url is not set");
+      throw new Exception("Recaptcha server url is not set");
     }
     // create the request headers
     HttpHeaders headers = new HttpHeaders();
