@@ -1,11 +1,9 @@
 package gov.nih.nci.evs.api.controller;
 
 import gov.nih.nci.evs.api.model.Audit;
-import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.ElasticOperationsService;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.LoaderServiceImpl;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
-import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +26,9 @@ public class BaseController {
   /** The elastic query service. */
   @Autowired ElasticQueryService elasticQueryService;
 
+  /** The elastic operations service. */
+  @Autowired ElasticOperationsService elasticOperationsService;
+
   /**
    * Handle exception.
    *
@@ -40,21 +41,13 @@ public class BaseController {
     }
 
     logger.error("Unexpected error", e);
-    String functionName =
-        StackWalker.getInstance().walk(s -> s.skip(1).findFirst()).get().getMethodName();
-    final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
-    String terminologyName = term != null ? term.getTerminology() : null;
-    String terminologyVersion = term != null ? term.getVersion() : null;
-    Audit audit =
-        new Audit(
-            "Exception",
-            terminologyName,
-            terminologyVersion,
-            new Date(),
-            functionName,
-            e.getMessage(),
-            "ERROR");
-    LoaderServiceImpl.addAudit(audit);
+    Audit.addAudit(
+        elasticOperationsService,
+        "Exception",
+        e.getStackTrace()[0].getClassName(),
+        terminology,
+        e.getMessage(),
+        "ERROR");
     final String errorMessage =
         "An error occurred in the system. Please contact the NCI help desk.";
     throw new ResponseStatusException(HttpStatus.INTERNAL_SERVER_ERROR, errorMessage);
