@@ -1,8 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.RecaptchaResponse;
-import java.util.Date;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,16 +50,6 @@ public class CaptchaService {
     // check if the recaptcha server url is set
     if (recaptchaServerUrl == null || recaptchaServerUrl.isBlank()) {
       logger.error("Recaptcha server URL is not specified");
-      Audit audit =
-          new Audit(
-              "Exception",
-              null,
-              null,
-              new Date(),
-              "verifyRecaptcha",
-              "Recaptcha server URL is not set",
-              "error");
-      LoaderServiceImpl.addAudit(audit);
       throw new Exception("Recaptcha server url is not set");
     }
     // create the request headers

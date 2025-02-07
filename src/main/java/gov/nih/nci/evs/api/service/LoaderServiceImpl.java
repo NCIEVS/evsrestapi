@@ -220,7 +220,7 @@ public class LoaderServiceImpl {
       logger.error(e.getMessage(), e);
       Audit.addAudit(
           staticOperationsService,
-          "Exception",
+          e.getClass().getName(),
           e.getStackTrace()[0].getClassName(),
           cmd.getOptionValue("t"),
           e.getMessage(),

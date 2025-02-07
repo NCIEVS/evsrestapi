@@ -32,7 +32,6 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -978,16 +977,13 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         } catch (Exception e) {
           // Handle the file not found exception and log a warning
           logger.warn(source + " source overlap stats file not found for ncim");
-          Audit audit =
-              new Audit(
-                  "IOException",
-                  null,
-                  null,
-                  new Date(),
-                  "handleStatistics",
-                  e.getMessage(),
-                  "warn");
-          LoaderServiceImpl.addAudit(audit);
+          Audit.addAudit(
+              operationsService,
+              "Exception",
+              terminology.getTerminology(),
+              "handleStatistics",
+              source + " source overlap stats file not found for ncim",
+              "warn");
         }
 
         // any future stats additions go here

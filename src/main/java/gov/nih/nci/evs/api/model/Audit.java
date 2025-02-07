@@ -429,13 +429,7 @@ public class Audit {
     operationsService.deleteQuery(
         "terminology:" + terminology + " AND logLevel:" + logLevel + " AND details:" + details,
         ElasticOperationsService.AUDIT_INDEX);
-    Audit audit = new Audit();
-    audit.setType(type);
-    audit.setProcess(process);
-    audit.setTerminology(terminology);
-    audit.setDate(new Date());
-    audit.setDetails(details);
-    audit.setLogLevel(logLevel);
+    Audit audit = new Audit(type, terminology, null, new Date(), process, details, logLevel);
     operationsService.index(audit, ElasticOperationsService.AUDIT_INDEX, Audit.class);
   }
 }

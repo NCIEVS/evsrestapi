@@ -36,7 +36,6 @@ import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -81,6 +80,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /** The elastic search service. */
   @Autowired ElasticQueryService elasticQueryService;
+
+  /** The operations service. */
+  @Autowired ElasticOperationsService operationsService;
 
   /** The sparql query cache service. */
   @Autowired SparqlQueryCacheService sparqlQueryCacheService;
@@ -2646,9 +2648,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   }
 
   private void auditError(Exception e, String function) {
-    Audit audit = new Audit("Exception", null, null, new Date(), function, e.getMessage(), "error");
     try {
-      LoaderServiceImpl.addAudit(audit);
+      Audit.addAudit(operationsService, "Exception", function, null, e.getMessage(), "error");
     } catch (Exception e1) {
       log.error("Error adding audit", e1);
     }

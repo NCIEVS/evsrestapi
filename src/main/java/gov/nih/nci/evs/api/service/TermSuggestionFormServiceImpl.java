@@ -3,7 +3,6 @@ package gov.nih.nci.evs.api.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import jakarta.mail.Message.RecipientType;
@@ -11,8 +10,8 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Date;
 import java.util.Properties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -69,7 +68,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    */
   @Override
   public JsonNode getFormTemplate(final String formType)
-      throws IllegalArgumentException, IOException, Exception {
+      throws IllegalArgumentException, IOException, MalformedURLException {
     // Set the form file path based on the formType passed. If we receive an invalid path, throw
     // exception
     if (formType == null || formType.isEmpty() || formType.isBlank()) {
@@ -87,16 +86,6 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       ((ObjectNode) termForm).put("recaptchaSiteKey", recaptchaSiteKey);
     } else {
       logger.error("Cannot add recaptcha site key. Form template is not a JSON object.");
-      Audit audit =
-          new Audit(
-              "IllegalArgumentException",
-              null,
-              null,
-              new Date(),
-              "getFormTemplate",
-              "Cannot add recaptcha site key. Form template is not a JSON object.",
-              "error");
-      LoaderServiceImpl.addAudit(audit);
       throw new IllegalArgumentException("Invalid form template.");
     }
 

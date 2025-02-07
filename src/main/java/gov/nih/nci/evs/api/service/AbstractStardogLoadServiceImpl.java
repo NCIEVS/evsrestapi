@@ -386,16 +386,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       executor.shutdownNow();
       logger.info("  await termination");
       executor.awaitTermination(30, TimeUnit.SECONDS);
-      Audit audit =
-          new Audit(
-              "Exception",
-              terminology.getTerminology(),
-              terminology.getVersion(),
-              new Date(),
-              "loadConceptsRealTime",
-              e.getMessage(),
-              "error");
-      LoaderServiceImpl.addAudit(audit);
       throw e;
     }
     logger.info("Done loading concepts!");
@@ -800,16 +790,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
             startIndex + 1, endIndex, progress);
       } catch (Throwable e) {
         taskLogger.error("Unexpected error loading concepts", e);
-        Audit audit =
-            new Audit(
-                "Exception",
-                null,
-                null,
-                new Date(),
-                "ConceptLoadTask",
-                "Unexpected error loading concepts",
-                "error");
-        LoaderServiceImpl.addAudit(audit);
         throw new Exception(e);
       } finally {
         concepts = null;
@@ -903,16 +883,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       }
 
     } catch (Exception e) {
-      Audit audit =
-          new Audit(
-              "Exception",
-              terminology,
-              null,
-              new Date(),
-              "getTerminology",
-              "Unexpected error trying to load metadata = " + terminology,
-              "error");
-      LoaderServiceImpl.addAudit(audit);
       throw new Exception(
           "Unexpected error trying to load metadata = " + applicationProperties.getConfigBaseUri(),
           e);
@@ -1016,16 +986,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       }
       logger.info("    count = " + historyMap.size());
     } catch (Exception e) {
-      Audit audit =
-          new Audit(
-              "Exception",
-              terminology.getTerminology(),
-              terminology.getVersion(),
-              new Date(),
-              "loadHistory",
-              "Problem loading history file for " + terminology.getName() + ": " + filepath,
-              "error");
-      LoaderServiceImpl.addAudit(audit);
       throw new Exception(
           "Unable to load history file for " + terminology.getName() + ": " + filepath, e);
     }
