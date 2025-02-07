@@ -54,12 +54,12 @@ public class CaptchaService {
       logger.error("Recaptcha server URL is not specified");
       Audit audit =
           new Audit(
-              "NullPointerException",
+              "Exception",
               null,
               null,
               new Date(),
               "verifyRecaptcha",
-              "Recaptcha server URL is not specified",
+              "Recaptcha server URL is not set",
               "error");
       LoaderServiceImpl.addAudit(audit);
       throw new Exception("Recaptcha server url is not set");

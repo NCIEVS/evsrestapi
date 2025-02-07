@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -193,16 +192,13 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
       if (!result) {
         logger.warn("Deleting objects index {} failed!", objectIndexName);
-        Audit audit =
-            new Audit(
-                "DeleteIndexFailed",
-                null,
-                null,
-                new Date(),
-                "cleanStaleIndexes",
-                "Deleting objects index " + objectIndexName + " failed!",
-                "error");
-        LoaderServiceImpl.addAudit(audit);
+        Audit.addAudit(
+            operationsService,
+            "DeleteIndexFailed",
+            "cleanStaleIndexes",
+            terminology.getTerminology(),
+            "Deleting objects index " + objectIndexName + " failed!",
+            "warn");
         continue;
       }
 
@@ -212,16 +208,13 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
       if (!result) {
         logger.warn("Deleting concepts index {} failed!", indexName);
-        Audit audit =
-            new Audit(
-                "DeleteIndexFailed",
-                null,
-                null,
-                new Date(),
-                "cleanStaleIndexes",
-                "Deleting concepts index " + indexName + " failed!",
-                "error");
-        LoaderServiceImpl.addAudit(audit);
+        Audit.addAudit(
+            operationsService,
+            "warning",
+            "cleanStaleIndexes",
+            terminology.getTerminology(),
+            "Deleting concepts index " + objectIndexName + " failed!",
+            "warn");
         continue;
       }
 
