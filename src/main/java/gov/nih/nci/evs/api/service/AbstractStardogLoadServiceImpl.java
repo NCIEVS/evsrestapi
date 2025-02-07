@@ -24,7 +24,6 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -144,77 +143,31 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     }
 
     // Get complex roles and inverse roles
-    try {
-      logger.info("Load complex roles");
-      hierarchy.setRoleMap(
-          sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, false));
-      logger.info("Load complex inverse roles");
-      hierarchy.setInverseRoleMap(
-          sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, true));
-      logger.info("Load all associations");
-      hierarchy.setAssociationMap(
-          sparqlQueryManagerService.getAssociationsForAllCodes(terminology, false));
-      logger.info("Load all inverse roles");
-      hierarchy.setInverseAssociationMap(
-          sparqlQueryManagerService.getAssociationsForAllCodes(terminology, true));
-    } catch (Exception e1) {
-      logger.error(e1.getMessage(), e1);
-      Audit audit =
-          new Audit(
-              "Exception",
-              terminology.getTerminology(),
-              terminology.getVersion(),
-              new Date(),
-              "loadConcepts",
-              e1.getMessage(),
-              "error");
-      LoaderServiceImpl.addAudit(audit);
-      throw new IOException(e1);
-    }
+    logger.info("Load complex roles");
+    hierarchy.setRoleMap(sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, false));
+    logger.info("Load complex inverse roles");
+    hierarchy.setInverseRoleMap(
+        sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, true));
+    logger.info("Load all associations");
+    hierarchy.setAssociationMap(
+        sparqlQueryManagerService.getAssociationsForAllCodes(terminology, false));
+    logger.info("Load all inverse roles");
+    hierarchy.setInverseAssociationMap(
+        sparqlQueryManagerService.getAssociationsForAllCodes(terminology, true));
 
     logger.info("Getting all concepts without codes");
     List<Concept> concepts = sparqlQueryManagerService.getAllConceptsWithoutCode(terminology);
     int ct = concepts.size();
 
-    try {
-      logger.info("Loading concepts without codes");
-      loadConceptsRealTime(concepts, terminology, hierarchy);
-    } catch (Exception e) {
-      logger.error(e.getMessage(), e);
-      Audit audit =
-          new Audit(
-              "Exception",
-              terminology.getTerminology(),
-              terminology.getVersion(),
-              new Date(),
-              "loadConcepts",
-              e.getMessage(),
-              "error");
-      LoaderServiceImpl.addAudit(audit);
-      throw new IOException(e);
-    }
+    logger.info("Loading concepts without codes");
+    loadConceptsRealTime(concepts, terminology, hierarchy);
 
     concepts = sparqlQueryManagerService.getAllConceptsWithCode(terminology);
     ct += concepts.size();
 
-    try {
-      // download concepts and upload to es in real time
-      logger.info("Loading concepts with codes");
-      loadConceptsRealTime(concepts, terminology, hierarchy);
-    } catch (Exception e) {
-      logger.error(e.getMessage(), e);
-      Audit audit =
-          new Audit(
-              "Exception",
-              terminology.getTerminology(),
-              terminology.getVersion(),
-              new Date(),
-              "loadConcepts",
-              e.getMessage(),
-              "error");
-      LoaderServiceImpl.addAudit(audit);
-      throw new IOException(e);
-    }
+    // download concepts and upload to es in real time
+    logger.info("Loading concepts with codes");
+    loadConceptsRealTime(concepts, terminology, hierarchy);
 
     return ct;
   }
@@ -744,16 +697,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       logger.info("Excel file successfully loaded from URL.");
     } catch (Exception e) {
       logger.error("Failed to download Excel file from URL. Error: " + e.getMessage());
-      Audit audit =
-          new Audit(
-              "Exception",
-              null,
-              null,
-              new Date(),
-              "loadExcelSheets",
-              "Failed to download Excel file from URL. Error: " + e.getMessage(),
-              "error");
-      LoaderServiceImpl.addAudit(audit);
       try {
         // If download fails, fall back to the local backup file
         FileInputStream fileInputStream = new FileInputStream(filepath);
@@ -762,16 +705,6 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       } catch (Exception fileException) {
         logger.error(
             "Failed to load Excel file from backup file. Error: " + fileException.getMessage());
-        audit =
-            new Audit(
-                "Exception",
-                null,
-                null,
-                new Date(),
-                "loadExcelSheets",
-                "Failed to load Excel file from backup file. Error: " + fileException.getMessage(),
-                "error");
-        LoaderServiceImpl.addAudit(audit);
         throw new Exception(fileException); // throw an exception if all attempts fail
       }
     }
@@ -781,22 +714,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
         sheets.add(workbook.getSheetAt(i));
       }
-      try {
-        workbook.close(); // Close the workbook to release resources
-      } catch (IOException e) {
-        logger.error("Failed to close the workbook. Error: " + e.getMessage());
-        Audit audit =
-            new Audit(
-                "IOException",
-                null,
-                null,
-                new Date(),
-                "loadExcelSheets",
-                "Failed to close the workbook. Error: " + e.getMessage(),
-                "error");
-        LoaderServiceImpl.addAudit(audit);
-        throw new IOException(e); // throw an exception if failed to close
-      }
+      workbook.close(); // Close the workbook to release resources
     }
 
     return sheets;
@@ -1123,53 +1041,37 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   private void handleHistory(final Terminology terminology, final Concept concept)
       throws Exception {
 
-    try {
+    List<Map<String, String>> conceptHistory = historyMap.get(concept.getCode());
 
-      List<Map<String, String>> conceptHistory = historyMap.get(concept.getCode());
+    if (conceptHistory == null) {
+      return;
+    }
 
-      if (conceptHistory == null) {
-        return;
+    for (final Map<String, String> historyItem : conceptHistory) {
+
+      final History history = new History();
+
+      // replacement concept history items will contain a key for code
+      if (historyItem.containsKey("code")) {
+        history.setCode(historyItem.get("code"));
+      } else {
+        history.setCode(concept.getCode());
       }
 
-      for (final Map<String, String> historyItem : conceptHistory) {
+      history.setAction(historyItem.get("action"));
 
-        final History history = new History();
+      final String date = outputDateFormat.format(inputDateFormat.parse(historyItem.get("date")));
+      history.setDate(date);
 
-        // replacement concept history items will contain a key for code
-        if (historyItem.containsKey("code")) {
-          history.setCode(historyItem.get("code"));
-        } else {
-          history.setCode(concept.getCode());
-        }
+      final String replacementCode = historyItem.get("replacementCode");
 
-        history.setAction(historyItem.get("action"));
+      if (replacementCode != null && replacementCode != "") {
 
-        final String date = outputDateFormat.format(inputDateFormat.parse(historyItem.get("date")));
-        history.setDate(date);
-
-        final String replacementCode = historyItem.get("replacementCode");
-
-        if (replacementCode != null && replacementCode != "") {
-
-          history.setReplacementCode(replacementCode);
-          history.setReplacementName(nameMap.get(replacementCode));
-        }
-
-        concept.getHistory().add(history);
+        history.setReplacementCode(replacementCode);
+        history.setReplacementName(nameMap.get(replacementCode));
       }
 
-    } catch (Exception e) {
-      logger.error("Problem loading history for concept " + concept.getCode() + ".", e);
-      Audit audit =
-          new Audit(
-              "Exception",
-              terminology.getTerminology(),
-              terminology.getVersion(),
-              new Date(),
-              "handleHistory",
-              "Problem loading history for concept " + concept.getCode() + ". " + e.getMessage(),
-              "error");
-      LoaderServiceImpl.addAudit(audit);
+      concept.getHistory().add(history);
     }
   }
 

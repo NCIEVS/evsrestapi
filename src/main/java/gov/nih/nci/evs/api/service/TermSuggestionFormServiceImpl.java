@@ -139,17 +139,6 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       }
       mailSender.send(message);
     } catch (MessagingException e) {
-      logger.error(e.getMessage());
-      Audit audit =
-          new Audit(
-              "MessagingException",
-              null,
-              null,
-              new Date(),
-              "sendEmail",
-              "Failed to send email, " + e,
-              "error");
-      LoaderServiceImpl.addAudit(audit);
       throw new MessagingException("Failed to send email, {}", e);
     }
   }

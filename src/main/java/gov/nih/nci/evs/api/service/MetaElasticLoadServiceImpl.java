@@ -975,7 +975,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           newStatsEntry.setStatisticsMap(sourceStatsEntry);
           operationsService.index(
               newStatsEntry, terminology.getObjectIndexName(), ElasticObject.class);
-        } catch (IOException e) {
+        } catch (Exception e) {
           // Handle the file not found exception and log a warning
           logger.warn(source + " source overlap stats file not found for ncim");
           Audit audit =
@@ -1556,10 +1556,6 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         term.setMetadata(metadata);
 
       } catch (Exception e) {
-        Audit audit =
-            new Audit(
-                "Exception", null, null, new Date(), "getTerminology", e.getMessage(), "error");
-        LoaderServiceImpl.addAudit(audit);
         throw new Exception(
             "Unexpected error trying to load metadata = "
                 + applicationProperties.getConfigBaseUri(),
@@ -1567,11 +1563,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       }
 
       return term;
-    } catch (IOException ex) {
-      Audit audit =
-          new Audit(
-              "IOException", null, null, new Date(), "getTerminology", ex.getMessage(), "error");
-      LoaderServiceImpl.addAudit(audit);
+    } catch (Exception ex) {
       throw new Exception("Could not load terminology ncim", ex);
     }
   }

@@ -117,48 +117,40 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws Exception
    */
   @Override
-  public void initialize() throws IOException, Exception {
-    try {
-      // Create the metadata index if it doesn't exist
-      boolean createdIndex =
-          operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
-      if (createdIndex) {
-        operationsService
-            .getOpenSearchOperations()
-            .indexOps(IndexCoordinates.of(ElasticOperationsService.METADATA_INDEX))
-            .putMapping(IndexMetadata.class);
-      }
+  public void initialize() throws Exception {
+    // Create the metadata index if it doesn't exist
+    boolean createdIndex =
+        operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
+    if (createdIndex) {
+      operationsService
+          .getOpenSearchOperations()
+          .indexOps(IndexCoordinates.of(ElasticOperationsService.METADATA_INDEX))
+          .putMapping(IndexMetadata.class);
+    }
 
-      // Create the mapping indexes if they don't exist
-      boolean createdMapset =
-          operationsService.createIndex(ElasticOperationsService.MAPSET_INDEX, false);
-      operationsService.createIndex(ElasticOperationsService.MAPPINGS_INDEX, false);
-      if (createdMapset) {
-        operationsService
-            .getOpenSearchOperations()
-            .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPSET_INDEX))
-            .putMapping(Concept.class);
-        operationsService
-            .getOpenSearchOperations()
-            .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX))
-            .putMapping(Mapping.class);
-      }
+    // Create the mapping indexes if they don't exist
+    boolean createdMapset =
+        operationsService.createIndex(ElasticOperationsService.MAPSET_INDEX, false);
+    operationsService.createIndex(ElasticOperationsService.MAPPINGS_INDEX, false);
+    if (createdMapset) {
+      operationsService
+          .getOpenSearchOperations()
+          .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPSET_INDEX))
+          .putMapping(Concept.class);
+      operationsService
+          .getOpenSearchOperations()
+          .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX))
+          .putMapping(Mapping.class);
+    }
 
-      // create the audit index if it doesn't exist
-      boolean createdAudit =
-          operationsService.createIndex(ElasticOperationsService.AUDIT_INDEX, false);
-      if (createdAudit) {
-        operationsService
-            .getOpenSearchOperations()
-            .indexOps(IndexCoordinates.of(ElasticOperationsService.AUDIT_INDEX))
-            .putMapping(Audit.class);
-      }
-    } catch (IOException e) {
-      logger.error(e.getMessage(), e);
-      Audit audit =
-          new Audit("IOException", null, null, new Date(), "initialize", e.getMessage(), "error");
-      LoaderServiceImpl.addAudit(audit);
-      throw new IOException(e);
+    // create the audit index if it doesn't exist
+    boolean createdAudit =
+        operationsService.createIndex(ElasticOperationsService.AUDIT_INDEX, false);
+    if (createdAudit) {
+      operationsService
+          .getOpenSearchOperations()
+          .indexOps(IndexCoordinates.of(ElasticOperationsService.AUDIT_INDEX))
+          .putMapping(Audit.class);
     }
   }
 
@@ -353,7 +345,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public void checkLoadStatus(int total, Terminology term) throws IOException, Exception {
+  public void checkLoadStatus(int total, Terminology term) throws Exception {
 
     Long count = esQueryService.getCount(term);
     logger.info("Concepts count for index {} = {}", term.getIndexName(), count);
@@ -370,17 +362,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
         Thread.sleep(2000);
       } catch (InterruptedException e) {
         logger.error("Error while checking load status: sleep interrupted - " + e.getMessage(), e);
-        Audit audit =
-            new Audit(
-                "InterruptedException",
-                null,
-                null,
-                new Date(),
-                "checkLoadStatus",
-                "Error while checking load status: sleep interrupted - " + e.getMessage(),
-                "error");
-        LoaderServiceImpl.addAudit(audit);
-        throw new IOException(e);
+        throw new Exception(e);
       }
 
       if (attempts == 15) {
