@@ -31,7 +31,6 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -193,16 +192,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
     if (CollectionUtils.isEmpty(allConcepts)) {
       logger.warn("Unable to load. No concepts found!");
-      Audit audit =
-          new Audit(
-              "Warning",
-              terminology.getTerminology(),
-              terminology.getVersion(),
-              new Date(),
-              "loadConceptsRealTime",
-              "No concepts found!",
-              "warning");
-      LoaderServiceImpl.addAudit(audit);
+      Audit.addAudit(
+          operationsService,
+          "No concepts found",
+          "loadConceptsRealTime",
+          terminology.getTerminology(),
+          "No concepts found!",
+          "warning");
       return;
     }
 
@@ -249,17 +245,14 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                     handleHistory(terminology, c);
                   } catch (Exception e) {
                     logger.error("Error handling history for concept " + c.getCode(), e);
-                    Audit audit =
-                        new Audit(
-                            "Exception",
-                            terminology.getTerminology(),
-                            terminology.getVersion(),
-                            new Date(),
-                            "loadConceptsRealTime",
-                            "Error handling history for concept " + c.getCode(),
-                            "error");
                     try {
-                      LoaderServiceImpl.addAudit(audit);
+                      Audit.addAudit(
+                          operationsService,
+                          "Exception",
+                          "loadConceptsRealTime",
+                          terminology.getTerminology(),
+                          "Error handling history for concept " + c.getCode(),
+                          "error");
                     } catch (Exception e1) {
                       logger.error(e1.getMessage(), e1);
                     }
@@ -339,16 +332,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
               ElasticOperationsService.MAPPINGS_INDEX);
         } catch (NoSuchIndexException e) {
           logger.warn("UNABLE TO DELETE INDEX: " + NCIT_MAPS_TO + mapset.getKey() + " NOT FOUND!");
-          Audit audit =
-              new Audit(
-                  "NoSuchIndexException",
-                  terminology.getTerminology(),
-                  terminology.getVersion(),
-                  new Date(),
-                  "loadConceptsRealTime",
-                  "UNABLE TO DELETE INDEX: " + NCIT_MAPS_TO + mapset.getKey() + " NOT FOUND!",
-                  "warning");
-          LoaderServiceImpl.addAudit(audit);
+          Audit.addAudit(
+              operationsService,
+              "NoSuchIndexException",
+              "loadConceptsRealTime",
+              terminology.getTerminology(),
+              "UNABLE TO DELETE INDEX: " + NCIT_MAPS_TO + mapset.getKey() + " NOT FOUND!",
+              "warning");
         }
         Collections.sort(
             mapset.getValue().getMaps(),
@@ -549,16 +539,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 .orElseThrow();
       } catch (NoSuchElementException e) {
         logger.warn("Subset " + subsetCode + " not found as a concept, skipping.");
-        Audit audit =
-            new Audit(
-                "NoSuchElementException",
-                terminology.getTerminology(),
-                terminology.getVersion(),
-                new Date(),
-                "addExtraSubsets",
-                "Subset " + subsetCode + " not found as a concept, skipping.",
-                "warning");
-        LoaderServiceImpl.addAudit(audit);
+        Audit.addAudit(
+            operationsService,
+            "NoSuchElementException",
+            "addExtraSubsets",
+            terminology.getTerminology(),
+            "Subset " + subsetCode + " not found as a concept, skipping.",
+            "warning");
         continue;
       }
 
@@ -580,20 +567,17 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 + ": "
                 + newSubsets.get(subsetCode)
                 + " not found, skipping.");
-        Audit audit =
-            new Audit(
-                "NoSuchElementException",
-                terminology.getTerminology(),
-                terminology.getVersion(),
-                new Date(),
-                "addExtraSubsets",
-                "Parent Subset of "
-                    + subsetCode
-                    + ": "
-                    + newSubsets.get(subsetCode)
-                    + " not found, skipping.",
-                "warning");
-        LoaderServiceImpl.addAudit(audit);
+        Audit.addAudit(
+            operationsService,
+            "NoSuchElementException",
+            "addExtraSubsets",
+            terminology.getTerminology(),
+            "Parent Subset of "
+                + subsetCode
+                + ": "
+                + newSubsets.get(subsetCode)
+                + " not found, skipping.",
+            "warning");
         continue;
       }
 
@@ -643,15 +627,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         // index subsetConcept
         operationsService.index(subsetConcept, terminology.getIndexName(), Concept.class);
       }
-      Audit audit =
-          new Audit(
-              "MissingConcepts",
-              terminology.getTerminology(),
-              terminology.getVersion(),
-              new Date(),
-              "addExtraSubsets",
-              "Concepts " + missingConcepts + " not found for new subset " + subsetCode + ".",
-              "warning");
+      Audit.addAudit(
+          operationsService,
+          "Missing Subset Concepts",
+          "addExtraSubsets",
+          terminology.getTerminology(),
+          "Concepts " + missingConcepts + " not found for new subset " + subsetCode + ".",
+          "warning");
       // explicitly set leaf since it defaults to false
       newSubsetEntry.setLeaf(!newSubsets.containsValue(newSubsetEntry.getCode()));
       // add extra relevant properties to new subset
