@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import gov.nih.nci.evs.api.service.ElasticOperationsService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.Objects;
@@ -409,5 +410,32 @@ public class Audit {
     this.count = other.getCount();
     this.logLevel = other.getLogLevel();
     this.details = other.getDetails();
+  }
+
+  /**
+   * Add audit to index.
+   *
+   * @param operationsService the operations service
+   * @param
+   */
+  public static void addAudit(
+      final ElasticOperationsService operationsService,
+      String type,
+      String process,
+      String terminology,
+      String details,
+      String logLevel)
+      throws Exception {
+    operationsService.deleteQuery(
+        "terminology:" + terminology + " AND logLevel:" + logLevel + " AND details:" + details,
+        ElasticOperationsService.AUDIT_INDEX);
+    Audit audit = new Audit();
+    audit.setType(type);
+    audit.setProcess(process);
+    audit.setTerminology(terminology);
+    audit.setDate(new Date());
+    audit.setDetails(details);
+    audit.setLogLevel(logLevel);
+    operationsService.index(audit, ElasticOperationsService.AUDIT_INDEX, Audit.class);
   }
 }

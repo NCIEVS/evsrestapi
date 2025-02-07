@@ -43,7 +43,7 @@ public class LoaderServiceImpl {
   @Autowired Environment env;
 
   /** The Elasticsearch operations service instance *. */
-  @Autowired ElasticOperationsService operationsService;
+  @Autowired private ElasticOperationsService operationsService;
 
   private static ElasticOperationsService staticOperationsService;
 
@@ -218,6 +218,13 @@ public class LoaderServiceImpl {
 
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
+      Audit.addAudit(
+          staticOperationsService,
+          "Exception",
+          e.getStackTrace()[0].getClassName(),
+          cmd.getOptionValue("t"),
+          e.getMessage(),
+          "error");
       int exitCode =
           SpringApplication.exit(
               app,
