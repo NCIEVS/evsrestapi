@@ -351,12 +351,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     int attempts = 0;
 
     while (!completed && attempts < 30) {
-      try {
-        Thread.sleep(2000);
-      } catch (InterruptedException e) {
-        logger.error("Error while checking load status: sleep interrupted - " + e.getMessage(), e);
-        throw e;
-      }
+      Thread.sleep(2000);
 
       if (attempts == 15) {
         logger.info("Index completion is taking longer than expected..");
