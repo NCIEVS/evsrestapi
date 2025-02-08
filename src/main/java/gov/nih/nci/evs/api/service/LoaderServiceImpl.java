@@ -210,6 +210,7 @@ public class LoaderServiceImpl {
       Date endDate = new Date();
       termAudit.setEndDate(endDate);
       termAudit.setElapsedTime(endDate.getTime() - startDate.getTime());
+      termAudit.setLogLevel("INFO");
       logger.info("Audit: {}", termAudit.toString());
       // only add new audit if something major has actually happened
       if (termAudit.getElapsedTime() > 10000) {
@@ -224,7 +225,7 @@ public class LoaderServiceImpl {
           e.getStackTrace()[0].getClassName(),
           cmd.getOptionValue("t"),
           e.getMessage(),
-          "error");
+          "ERROR");
       int exitCode =
           SpringApplication.exit(
               app,

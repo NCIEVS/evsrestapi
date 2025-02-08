@@ -524,7 +524,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             log.info("      finish main");
           } catch (final Exception e) {
             log.error("Unexpected error on main", e);
-            auditError(e, "getConcepts");
             exceptions.add(e);
           }
         });
@@ -538,7 +537,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             log.info("      finish roles");
           } catch (final Exception e) {
             log.error("Unexpected error on roles", e);
-            auditError(e, "getConcepts");
             exceptions.add(e);
           }
         });
@@ -552,7 +550,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             log.info("      finish inverse roles");
           } catch (final Exception e) {
             log.error("Unexpected error on inverse roles", e);
-            auditError(e, "getConcepts");
             exceptions.add(e);
           }
         });
@@ -566,7 +563,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             log.info("      finish axioms");
           } catch (final Exception e) {
             log.error("Unexpected error on axioms", e);
-            auditError(e, "getConcepts");
             exceptions.add(e);
           }
         });
@@ -574,12 +570,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     executor.shutdown();
 
     // Wait up to 10 min for processes to stop
-    try {
-      executor.awaitTermination(10, TimeUnit.MINUTES);
-    } catch (final InterruptedException e) {
-      auditError(e, "getConcepts");
-      throw new RuntimeException(e);
-    }
+    executor.awaitTermination(10, TimeUnit.MINUTES);
 
     if (axiomMap.isEmpty()) {
       // This likely occurs if the 10 minute awaitTermination isn't long enough
@@ -2448,12 +2439,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("all.concepts.with.code", terminology);
     String res = null;
-    try {
-      res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-    } catch (final Exception e) {
-      auditError(e, "getAllConceptsWithCode");
-      e.printStackTrace();
-    }
+    res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -2489,12 +2475,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query =
         queryBuilderService.constructQuery("all.concepts.without.code", terminology);
     String res = null;
-    try {
-      res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-    } catch (final Exception e) {
-      auditError(e, "getAllConceptsWithoutCode");
-      e.printStackTrace();
-    }
+    res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -2577,29 +2558,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<AssociationEntry> getAssociationEntries(
-      final Terminology terminology, final Concept association) {
+      final Terminology terminology, final Concept association) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructQuery(
             "association.entries", terminology, association.getCode());
     String res = null;
-    try {
-      res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-    } catch (final Exception e1) {
-      auditError(e1, "getAssociationEntries");
-      e1.printStackTrace();
-    }
+    res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<AssociationEntry> entries = new ArrayList<>();
     Sparql sparqlResult = null;
-    try {
-      sparqlResult = mapper.readValue(res, Sparql.class);
-    } catch (final Exception e) {
-      log.error("Mapper could not read value in Association Entries");
-      auditError(e, "getAssociationEntries");
-      e.printStackTrace();
-    }
+    sparqlResult = mapper.readValue(res, Sparql.class);
+
     if (sparqlResult != null) {
       final Bindings[] bindings = sparqlResult.getResults().getBindings();
       for (final Bindings b : bindings) {
@@ -2647,11 +2619,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return Collections.emptyList();
   }
 
-  private void auditError(Exception e, String function) {
-    try {
-      Audit.addAudit(operationsService, "Exception", function, null, e.getMessage(), "error");
-    } catch (Exception e1) {
-      log.error("Error adding audit", e1);
-    }
+  private void auditError(Exception e, String function) throws Exception {
+    Audit.addAudit(operationsService, "Exception", function, null, e.getMessage(), "ERROR");
   }
 }

@@ -210,7 +210,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
         logger.warn("Deleting concepts index {} failed!", indexName);
         Audit.addAudit(
             operationsService,
-            "warning",
+            "WARN",
             "cleanStaleIndexes",
             terminology.getTerminology(),
             "Deleting concepts index " + objectIndexName + " failed!",
@@ -355,7 +355,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
         Thread.sleep(2000);
       } catch (InterruptedException e) {
         logger.error("Error while checking load status: sleep interrupted - " + e.getMessage(), e);
-        throw new Exception(e);
+        throw e;
       }
 
       if (attempts == 15) {

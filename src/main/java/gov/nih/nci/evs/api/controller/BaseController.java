@@ -2,7 +2,6 @@ package gov.nih.nci.evs.api.controller;
 
 import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.service.ElasticOperationsService;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,9 +21,6 @@ public class BaseController {
 
   /* The terminology utils */
   @Autowired TerminologyUtils termUtils;
-
-  /** The elastic query service. */
-  @Autowired ElasticQueryService elasticQueryService;
 
   /** The elastic operations service. */
   @Autowired ElasticOperationsService elasticOperationsService;

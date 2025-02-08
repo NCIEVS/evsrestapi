@@ -426,9 +426,6 @@ public class Audit {
       String details,
       String logLevel)
       throws Exception {
-    operationsService.deleteQuery(
-        "terminology:" + terminology + " AND logLevel:" + logLevel + " AND details:" + details,
-        ElasticOperationsService.AUDIT_INDEX);
     Audit audit = new Audit(type, terminology, null, new Date(), process, details, logLevel);
     operationsService.index(audit, ElasticOperationsService.AUDIT_INDEX, Audit.class);
   }

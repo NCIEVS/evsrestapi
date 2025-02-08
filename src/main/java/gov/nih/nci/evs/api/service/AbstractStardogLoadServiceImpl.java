@@ -198,7 +198,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
           "loadConceptsRealTime",
           terminology.getTerminology(),
           "No concepts found!",
-          "warning");
+          "WARN");
       return;
     }
 
@@ -252,7 +252,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                           "loadConceptsRealTime",
                           terminology.getTerminology(),
                           "Error handling history for concept " + c.getCode(),
-                          "error");
+                          "ERROR");
                     } catch (Exception e1) {
                       logger.error(e1.getMessage(), e1);
                     }
@@ -338,7 +338,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
               "loadConceptsRealTime",
               terminology.getTerminology(),
               "UNABLE TO DELETE INDEX: " + NCIT_MAPS_TO + mapset.getKey() + " NOT FOUND!",
-              "warning");
+              "WARN");
         }
         Collections.sort(
             mapset.getValue().getMaps(),
@@ -545,7 +545,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
             "addExtraSubsets",
             terminology.getTerminology(),
             "Subset " + subsetCode + " not found as a concept, skipping.",
-            "warning");
+            "WARN");
         continue;
       }
 
@@ -577,7 +577,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 + ": "
                 + newSubsets.get(subsetCode)
                 + " not found, skipping.",
-            "warning");
+            "WARN");
         continue;
       }
 
@@ -627,13 +627,15 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         // index subsetConcept
         operationsService.index(subsetConcept, terminology.getIndexName(), Concept.class);
       }
-      Audit.addAudit(
-          operationsService,
-          "Missing Subset Concepts",
-          "addExtraSubsets",
-          terminology.getTerminology(),
-          "Concepts " + missingConcepts + " not found for new subset " + subsetCode + ".",
-          "warning");
+      if (missingConcepts.size() > 0) {
+        Audit.addAudit(
+            operationsService,
+            "Missing Subset Concepts",
+            "addExtraSubsets",
+            terminology.getTerminology(),
+            "Concepts " + missingConcepts + " not found for new subset " + subsetCode + ".",
+            "WARN");
+      }
       // explicitly set leaf since it defaults to false
       newSubsetEntry.setLeaf(!newSubsets.containsValue(newSubsetEntry.getCode()));
       // add extra relevant properties to new subset
