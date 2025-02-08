@@ -245,6 +245,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                     handleHistory(terminology, c);
                   } catch (Exception e) {
                     logger.error("Error handling history for concept " + c.getCode(), e);
+                    // needs an extra try-catching because we're in a forEach
                     try {
                       Audit.addAudit(
                           operationsService,
