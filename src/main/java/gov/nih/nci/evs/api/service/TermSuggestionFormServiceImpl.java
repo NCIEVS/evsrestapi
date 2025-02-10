@@ -10,6 +10,7 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Properties;
 import org.slf4j.Logger;
@@ -67,7 +68,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    */
   @Override
   public JsonNode getFormTemplate(final String formType)
-      throws IllegalArgumentException, IOException {
+      throws IllegalArgumentException, IOException, MalformedURLException {
     // Set the form file path based on the formType passed. If we receive an invalid path, throw
     // exception
     if (formType == null || formType.isEmpty() || formType.isBlank()) {
@@ -98,7 +99,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @throws MessagingException the messaging exception
    */
   @Override
-  public void sendEmail(final EmailDetails emailDetails) throws MessagingException {
+  public void sendEmail(final EmailDetails emailDetails) throws MessagingException, Exception {
     // Check if starttls.enable is false
     if (mailSender instanceof JavaMailSenderImpl) {
       final Properties mailProperties = ((JavaMailSenderImpl) mailSender).getJavaMailProperties();
@@ -127,8 +128,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       }
       mailSender.send(message);
     } catch (MessagingException e) {
-      logger.error(e.getMessage());
-      throw new MessagingException("Failed to send email, {}", e);
+      throw new MessagingException("Failed to send email", e);
     }
   }
 }

@@ -3,6 +3,7 @@ package gov.nih.nci.evs.api.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.History;
@@ -973,9 +974,16 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           newStatsEntry.setStatisticsMap(sourceStatsEntry);
           operationsService.index(
               newStatsEntry, terminology.getObjectIndexName(), ElasticObject.class);
-        } catch (IOException e) {
+        } catch (Exception e) {
           // Handle the file not found exception and log a warning
           logger.warn(source + " source overlap stats file not found for ncim");
+          Audit.addAudit(
+              operationsService,
+              "Exception",
+              terminology.getTerminology(),
+              "handleStatistics",
+              source + " source overlap stats file not found for ncim",
+              "WARN");
         }
 
         // any future stats additions go here
@@ -1551,7 +1559,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       }
 
       return term;
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       throw new Exception("Could not load terminology ncim", ex);
     }
   }

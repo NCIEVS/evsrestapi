@@ -43,7 +43,7 @@ public class LoaderServiceImpl {
   @Autowired Environment env;
 
   /** The Elasticsearch operations service instance *. */
-  @Autowired ElasticOperationsService operationsService;
+  @Autowired private ElasticOperationsService operationsService;
 
   private static ElasticOperationsService staticOperationsService;
 
@@ -154,7 +154,8 @@ public class LoaderServiceImpl {
 
     try {
       // create Audit object
-      final Audit termAudit = new Audit("reindex", null, null, null, null, null, 0, null, 0);
+      final Audit termAudit = new Audit();
+      termAudit.setType("reindex");
       Date startDate = new Date();
       termAudit.setStartDate(startDate);
       // which indexing object do we need to use
@@ -209,6 +210,7 @@ public class LoaderServiceImpl {
       Date endDate = new Date();
       termAudit.setEndDate(endDate);
       termAudit.setElapsedTime(endDate.getTime() - startDate.getTime());
+      termAudit.setLogLevel("INFO");
       logger.info("Audit: {}", termAudit.toString());
       // only add new audit if something major has actually happened
       if (termAudit.getElapsedTime() > 10000) {
@@ -217,6 +219,13 @@ public class LoaderServiceImpl {
 
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
+      Audit.addAudit(
+          staticOperationsService,
+          e.getClass().getName(),
+          e.getStackTrace()[0].getClassName(),
+          cmd.getOptionValue("t"),
+          e.getMessage(),
+          "ERROR");
       int exitCode =
           SpringApplication.exit(
               app,

@@ -231,7 +231,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   @Override
   public void loadObjects(
       final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
-      throws IOException, Exception {
+      throws Exception {
     final String uri = applicationProperties.getConfigBaseUri();
     final String mappingUri = uri.replaceFirst("config/metadata", "data/mappings/");
     final String mapsetMetadataUri = uri + "/mapsetMetadata.txt";
@@ -336,18 +336,20 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           // text
           final String welcomeText = IOUtils.toString(is, StandardCharsets.UTF_8);
           map.getProperties().add(new Property("welcomeText", welcomeText));
-        } catch (final Throwable t) { // read as file if no url
+        } catch (final Throwable t) {
+          // read as file if no url
           try {
             final String welcomeText =
                 FileUtils.readFileToString(
                     new File(uri + "/" + metadata[3]), StandardCharsets.UTF_8);
             map.getProperties().add(new Property("welcomeText", welcomeText));
-          } catch (final IOException ex) {
+          } catch (final Exception ex) {
+            // only throw exception if both fail
             throw new IOException(
                 "Could not find either file or uri for config base uri: "
                     + uri
                     + "/"
-                    + metadata[3]); // only throw exception if both fail
+                    + metadata[3]);
           }
         }
         map.getProperties().add(new Property("sourceTerminology", metadata[5]));
@@ -364,8 +366,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             mappingUri
                 + map.getName()
                 + (map.getVersion() != null ? ("_" + map.getVersion()) : "")
-                + ".txt"; // build
-        // map
+                + ".txt";
+
         final String mappingData =
             StringUtils.join(EVSUtils.getValueFromFile(mappingDataUri, "mappingDataUri"), '\n');
         map.setMaps(buildMaps(mappingData, metadata));
@@ -431,7 +433,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   public int loadConcepts(
       final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
       throws IOException, Exception {
-    // TODO Auto-generated method stub
+    // n/a
     return 0;
   }
 
@@ -444,14 +446,14 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       final String termName,
       final boolean forceDelete)
       throws Exception {
-    // TODO Auto-generated method stub
+    // n/a
     return null;
   }
 
   /* see superclass */
   @Override
   public HierarchyUtils getHierarchyUtils(final Terminology term) throws Exception {
-    // TODO Auto-generated method stub
+    // n/a
     return null;
   }
 }

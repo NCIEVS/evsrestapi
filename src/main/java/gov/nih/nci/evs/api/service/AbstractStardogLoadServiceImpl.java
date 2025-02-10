@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
+import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.History;
@@ -23,7 +24,6 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -142,46 +142,31 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     }
 
     // Get complex roles and inverse roles
-    try {
-      logger.info("Load complex roles");
-      hierarchy.setRoleMap(
-          sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, false));
-      logger.info("Load complex inverse roles");
-      hierarchy.setInverseRoleMap(
-          sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, true));
-      logger.info("Load all associations");
-      hierarchy.setAssociationMap(
-          sparqlQueryManagerService.getAssociationsForAllCodes(terminology, false));
-      logger.info("Load all inverse roles");
-      hierarchy.setInverseAssociationMap(
-          sparqlQueryManagerService.getAssociationsForAllCodes(terminology, true));
-    } catch (Exception e1) {
-      throw new IOException(e1);
-    }
+    logger.info("Load complex roles");
+    hierarchy.setRoleMap(sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, false));
+    logger.info("Load complex inverse roles");
+    hierarchy.setInverseRoleMap(
+        sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, true));
+    logger.info("Load all associations");
+    hierarchy.setAssociationMap(
+        sparqlQueryManagerService.getAssociationsForAllCodes(terminology, false));
+    logger.info("Load all inverse roles");
+    hierarchy.setInverseAssociationMap(
+        sparqlQueryManagerService.getAssociationsForAllCodes(terminology, true));
 
     logger.info("Getting all concepts without codes");
     List<Concept> concepts = sparqlQueryManagerService.getAllConceptsWithoutCode(terminology);
     int ct = concepts.size();
 
-    try {
-      logger.info("Loading concepts without codes");
-      loadConceptsRealTime(concepts, terminology, hierarchy);
-    } catch (Exception e) {
-      logger.error(e.getMessage(), e);
-      throw new IOException(e);
-    }
+    logger.info("Loading concepts without codes");
+    loadConceptsRealTime(concepts, terminology, hierarchy);
 
     concepts = sparqlQueryManagerService.getAllConceptsWithCode(terminology);
     ct += concepts.size();
 
-    try {
-      // download concepts and upload to es in real time
-      logger.info("Loading concepts with codes");
-      loadConceptsRealTime(concepts, terminology, hierarchy);
-    } catch (Exception e) {
-      logger.error(e.getMessage(), e);
-      throw new IOException(e);
-    }
+    // download concepts and upload to es in real time
+    logger.info("Loading concepts with codes");
+    loadConceptsRealTime(concepts, terminology, hierarchy);
 
     return ct;
   }
@@ -207,6 +192,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
     if (CollectionUtils.isEmpty(allConcepts)) {
       logger.warn("Unable to load. No concepts found!");
+      Audit.addAudit(
+          operationsService,
+          "No concepts found",
+          "loadConceptsRealTime",
+          terminology.getTerminology(),
+          "No concepts found!",
+          "WARN");
       return;
     }
 
@@ -249,7 +241,23 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 c -> {
                   // logger.info(" concept = " + c.getCode() + " " + c.getName());
                   c.setExtensions(mainTypeHierarchy.getExtensions(c));
-                  handleHistory(terminology, c);
+                  try {
+                    handleHistory(terminology, c);
+                  } catch (Exception e) {
+                    logger.error("Error handling history for concept " + c.getCode(), e);
+                    // needs an extra try-catching because we're in a forEach
+                    try {
+                      Audit.addAudit(
+                          operationsService,
+                          "Exception",
+                          "loadConceptsRealTime",
+                          terminology.getTerminology(),
+                          "Error handling history for concept " + c.getCode(),
+                          "ERROR");
+                    } catch (Exception e1) {
+                      logger.error(e1.getMessage(), e1);
+                    }
+                  }
                   // Collect maps for NCIt mapsets
                   if (c.getMaps().size() > 0 && c.getActive()) {
                     for (final Mapping map : c.getMaps()) {
@@ -325,6 +333,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
               ElasticOperationsService.MAPPINGS_INDEX);
         } catch (NoSuchIndexException e) {
           logger.warn("UNABLE TO DELETE INDEX: " + NCIT_MAPS_TO + mapset.getKey() + " NOT FOUND!");
+          Audit.addAudit(
+              operationsService,
+              "NoSuchIndexException",
+              "loadConceptsRealTime",
+              terminology.getTerminology(),
+              "UNABLE TO DELETE INDEX: " + NCIT_MAPS_TO + mapset.getKey() + " NOT FOUND!",
+              "WARN");
         }
         Collections.sort(
             mapset.getValue().getMaps(),
@@ -524,7 +539,14 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 .getConcept(subsetCode, terminology, new IncludeParam("full"))
                 .orElseThrow();
       } catch (NoSuchElementException e) {
-        logger.error("Subset " + subsetCode + " not found as a concept, skipping.");
+        logger.warn("Subset " + subsetCode + " not found as a concept, skipping.");
+        Audit.addAudit(
+            operationsService,
+            "NoSuchElementException",
+            "addExtraSubsets",
+            terminology.getTerminology(),
+            "Subset " + subsetCode + " not found as a concept, skipping.",
+            "WARN");
         continue;
       }
 
@@ -540,16 +562,28 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                 .findFirst()
                 .orElseThrow();
       } catch (NoSuchElementException e) {
-        logger.error(
+        logger.warn(
             "Parent Subset of "
                 + subsetCode
                 + ": "
                 + newSubsets.get(subsetCode)
                 + " not found, skipping.");
+        Audit.addAudit(
+            operationsService,
+            "NoSuchElementException",
+            "addExtraSubsets",
+            terminology.getTerminology(),
+            "Parent Subset of "
+                + subsetCode
+                + ": "
+                + newSubsets.get(subsetCode)
+                + " not found, skipping.",
+            "WARN");
         continue;
       }
 
       boolean isFirstRow = true;
+      List<String> missingConcepts = new ArrayList<>();
       for (Row row : sheet) {
         // skip labels row
         if (isFirstRow) {
@@ -564,12 +598,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
                       row.getCell(2).getStringCellValue(), terminology, new IncludeParam("full"))
                   .get();
         } catch (Exception e) {
-          logger.error(
+          logger.warn(
               "Concept "
                   + row.getCell(2).getStringCellValue()
                   + " not found for new subset "
                   + subsetCode
                   + ", skipping.");
+          missingConcepts.add(row.getCell(2).getStringCellValue());
           continue;
         }
 
@@ -592,6 +627,15 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         newSubsetEntry.getInverseAssociations().add(inverseAssoc);
         // index subsetConcept
         operationsService.index(subsetConcept, terminology.getIndexName(), Concept.class);
+      }
+      if (missingConcepts.size() > 0) {
+        Audit.addAudit(
+            operationsService,
+            "Missing Subset Concepts",
+            "addExtraSubsets",
+            terminology.getTerminology(),
+            "Concepts " + missingConcepts + " not found for new subset " + subsetCode + ".",
+            "WARN");
       }
       // explicitly set leaf since it defaults to false
       newSubsetEntry.setLeaf(!newSubsets.containsValue(newSubsetEntry.getCode()));
@@ -617,41 +661,43 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     logger.info("Extra subsets added");
   }
 
+  /**
+   * Load excel sheets.
+   *
+   * @param url the url
+   * @param filepath the filepath
+   * @return the list
+   * @throws Exception the exception
+   */
+  @SuppressWarnings("resource")
   public static List<Sheet> loadExcelSheets(String url, String filepath) throws Exception {
     List<Sheet> sheets = new ArrayList<>();
     Workbook workbook = null;
 
-    try {
+    try (InputStream inputStream = new URL(url).openStream(); ) {
       // Try downloading the file from the provided URL
-      InputStream inputStream = new URL(url).openStream();
       workbook = new HSSFWorkbook(inputStream);
-      System.out.println("Excel file successfully loaded from URL.");
+      logger.info("Excel file successfully loaded from URL.");
     } catch (Exception e) {
-      System.err.println("Failed to download Excel file from URL. Error: " + e.getMessage());
-      try {
+      logger.error("Failed to download Excel file from URL. Error: " + e.getMessage());
+      try (final FileInputStream fileInputStream = new FileInputStream(filepath)) {
         // If download fails, fall back to the local backup file
-        FileInputStream fileInputStream = new FileInputStream(filepath);
         workbook = new HSSFWorkbook(fileInputStream);
-        System.out.println("Excel file successfully loaded from backup file.");
+        logger.info("Excel file successfully loaded from backup file.");
       } catch (Exception fileException) {
         logger.error(
             "Failed to load Excel file from backup file. Error: " + fileException.getMessage());
-        throw new Exception(fileException); // throw an exception if all attempts fail
+        // throw an exception if all attempts fail
+        throw fileException;
       }
     }
 
     // Extract sheets from the workbook
-    if (workbook != null) {
-      for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
-        sheets.add(workbook.getSheetAt(i));
-      }
-      try {
-        workbook.close(); // Close the workbook to release resources
-      } catch (IOException e) {
-        logger.error("Failed to close the workbook. Error: " + e.getMessage());
-        throw new IOException(e); // throw an exception if failed to close
-      }
+    for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+      sheets.add(workbook.getSheetAt(i));
     }
+    // Close the workbook to release resources
+    workbook.close();
 
     return sheets;
   }
@@ -735,6 +781,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
             "    finish loading concepts: {} to {} ({}% complete)",
             startIndex + 1, endIndex, progress);
       } catch (Throwable e) {
+        taskLogger.error("Unexpected error loading concepts", e);
         throw new Exception(e);
       } finally {
         concepts = null;
@@ -943,45 +990,40 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
    * @param concept the concept
    * @throws Exception the exception
    */
-  private void handleHistory(final Terminology terminology, final Concept concept) {
+  private void handleHistory(final Terminology terminology, final Concept concept)
+      throws Exception {
 
-    try {
+    List<Map<String, String>> conceptHistory = historyMap.get(concept.getCode());
 
-      List<Map<String, String>> conceptHistory = historyMap.get(concept.getCode());
+    if (conceptHistory == null) {
+      return;
+    }
 
-      if (conceptHistory == null) {
-        return;
+    for (final Map<String, String> historyItem : conceptHistory) {
+
+      final History history = new History();
+
+      // replacement concept history items will contain a key for code
+      if (historyItem.containsKey("code")) {
+        history.setCode(historyItem.get("code"));
+      } else {
+        history.setCode(concept.getCode());
       }
 
-      for (final Map<String, String> historyItem : conceptHistory) {
+      history.setAction(historyItem.get("action"));
 
-        final History history = new History();
+      final String date = outputDateFormat.format(inputDateFormat.parse(historyItem.get("date")));
+      history.setDate(date);
 
-        // replacement concept history items will contain a key for code
-        if (historyItem.containsKey("code")) {
-          history.setCode(historyItem.get("code"));
-        } else {
-          history.setCode(concept.getCode());
-        }
+      final String replacementCode = historyItem.get("replacementCode");
 
-        history.setAction(historyItem.get("action"));
+      if (replacementCode != null && replacementCode != "") {
 
-        final String date = outputDateFormat.format(inputDateFormat.parse(historyItem.get("date")));
-        history.setDate(date);
-
-        final String replacementCode = historyItem.get("replacementCode");
-
-        if (replacementCode != null && replacementCode != "") {
-
-          history.setReplacementCode(replacementCode);
-          history.setReplacementName(nameMap.get(replacementCode));
-        }
-
-        concept.getHistory().add(history);
+        history.setReplacementCode(replacementCode);
+        history.setReplacementName(nameMap.get(replacementCode));
       }
 
-    } catch (Exception e) {
-      logger.error("Problem loading history for concept " + concept.getCode() + ".", e);
+      concept.getHistory().add(history);
     }
   }
 

@@ -115,7 +115,7 @@ public class SubsetController extends BaseController {
     try {
       return metadataService.getSubsets(terminology, include, list);
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -192,7 +192,7 @@ public class SubsetController extends BaseController {
       }
       return concept.get();
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -324,7 +324,7 @@ public class SubsetController extends BaseController {
 
       return subsets;
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }

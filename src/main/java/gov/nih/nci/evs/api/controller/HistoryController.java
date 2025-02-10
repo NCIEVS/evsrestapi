@@ -108,7 +108,7 @@ public class HistoryController extends BaseController {
       return HistoryUtils.getReplacements(term, elasticQueryService, code);
 
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -181,7 +181,7 @@ public class HistoryController extends BaseController {
           term, elasticQueryService, Arrays.asList(list.split(",")));
 
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }

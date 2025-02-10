@@ -627,7 +627,7 @@ public class SearchController extends BaseController {
     } catch (ResponseStatusException rse) {
       throw rse;
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, null);
       return null;
     }
   }
@@ -967,7 +967,7 @@ public class SearchController extends BaseController {
       return list;
 
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1122,7 +1122,7 @@ public class SearchController extends BaseController {
           "SPARQL query failed validation. Please review your query for syntax mistakes.\n"
               + errorMessage);
     } catch (final ResponseStatusException re) {
-      handleException(re);
+      handleException(re, terminology);
       return null;
     } catch (final Exception e) {
       String errorMessage = extractErrorMessage(e.getMessage());
@@ -1185,7 +1185,7 @@ public class SearchController extends BaseController {
           new ObjectMapper().writeValueAsString(prefixes), new HttpHeaders(), HttpStatus.OK);
 
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }

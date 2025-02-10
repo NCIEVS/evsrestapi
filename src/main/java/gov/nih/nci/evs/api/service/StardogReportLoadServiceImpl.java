@@ -83,41 +83,32 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
     // Get all concepts
     List<Concept> concepts = sparqlQueryManagerService.getAllConceptsWithoutCode(terminology);
 
-    try {
-      logReport("  ", "concepts without codes = " + concepts.size());
-      int ct = 0;
-      for (final Concept concept : concepts) {
-        if (++ct < 3 || samples.contains(concept.getCode())) {
-          final Concept concept2 =
-              sparqlQueryManagerService.getConcept(
-                  concept.getUri(), terminology, new IncludeParam("full"));
-          concept2.setUri(concept.getUri());
-          logReport("    ", "concept", concept2);
-        }
+    logReport("  ", "concepts without codes = " + concepts.size());
+    int ct = 0;
+    for (final Concept concept : concepts) {
+      if (++ct < 3 || samples.contains(concept.getCode())) {
+        final Concept concept2 =
+            sparqlQueryManagerService.getConcept(
+                concept.getUri(), terminology, new IncludeParam("full"));
+        concept2.setUri(concept.getUri());
+        logReport("    ", "concept", concept2);
       }
-    } catch (final Exception e) {
-      throw new IOException(e);
     }
 
     // Get all concepts
     concepts = sparqlQueryManagerService.getAllConceptsWithCode(terminology);
-    try {
-      logReport("  ", "concepts with codes = " + concepts.size());
-      int ct = 0;
-      for (final Concept concept : concepts) {
-        if (++ct < (6 - samples.size()) || samples.contains(concept.getCode())) {
-          logReport(
-              "    ",
-              "concept",
-              sparqlQueryManagerService.getConcept(
-                  concept.getCode(), terminology, new IncludeParam("full")));
-          // logReport(" ", " paths", hierarchy.getPaths(terminology,
-          // concept.getCode()));
-        }
+    logReport("  ", "concepts with codes = " + concepts.size());
+    ct = 0;
+    for (final Concept concept : concepts) {
+      if (++ct < (6 - samples.size()) || samples.contains(concept.getCode())) {
+        logReport(
+            "    ",
+            "concept",
+            sparqlQueryManagerService.getConcept(
+                concept.getCode(), terminology, new IncludeParam("full")));
+        // logReport(" ", " paths", hierarchy.getPaths(terminology,
+        // concept.getCode()));
       }
-
-    } catch (final Exception e) {
-      throw new IOException(e);
     }
 
     return -1;

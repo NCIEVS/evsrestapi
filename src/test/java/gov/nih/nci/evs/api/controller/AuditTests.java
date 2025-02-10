@@ -14,7 +14,6 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.service.ElasticQueryServiceImpl;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,14 +41,10 @@ public class AuditTests {
   /** The elastic query service. */
   @Autowired private ElasticQueryServiceImpl elasticQueryService;
 
-  /** Sets the up. */
-  @BeforeEach
-  public void setUp() {}
-
   /**
    * Test get all audits and check against terminologies.
    *
-   * @throws Exception
+   * @throws Exception the exception
    */
   @Test
   public void testGetAllAudits() throws Exception {
@@ -88,7 +83,7 @@ public class AuditTests {
   /**
    * Test get audits by terminology.
    *
-   * @throws Exception
+   * @throws Exception the exception
    */
   @Test
   public void testGetAuditsByTerminology() throws Exception {
@@ -107,7 +102,7 @@ public class AuditTests {
   /**
    * Test get audits by type.
    *
-   * @throws Exception
+   * @throws Exception the exception
    */
   @Test
   public void testGetAuditsByType() throws Exception {

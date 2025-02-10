@@ -82,6 +82,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /** The elastic search service. */
   @Autowired ElasticQueryService elasticQueryService;
 
+  /** The operations service. */
+  @Autowired ElasticOperationsService operationsService;
+
   /** The sparql query cache service. */
   @Autowired SparqlQueryCacheService sparqlQueryCacheService;
 
@@ -130,6 +133,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   // Here check the qualified form as well as the URI
 
+  /* see superclass */
   /* see superclass */
   /* see superclass */
   /* see superclass */
@@ -580,11 +584,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     executor.shutdown();
 
     // Wait up to 10 min for processes to stop
-    try {
-      executor.awaitTermination(10, TimeUnit.MINUTES);
-    } catch (final InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    executor.awaitTermination(10, TimeUnit.MINUTES);
 
     if (axiomMap.isEmpty()) {
       // This likely occurs if the 10 minute awaitTermination isn't long enough
@@ -2453,11 +2453,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("all.concepts.with.code", terminology);
     String res = null;
-    try {
-      res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-    } catch (final Exception e) {
-      e.printStackTrace();
-    }
+    res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -2493,11 +2489,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query =
         queryBuilderService.constructQuery("all.concepts.without.code", terminology);
     String res = null;
-    try {
-      res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-    } catch (final Exception e) {
-      e.printStackTrace();
-    }
+    res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -2580,27 +2572,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<AssociationEntry> getAssociationEntries(
-      final Terminology terminology, final Concept association) {
+      final Terminology terminology, final Concept association) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructQuery(
             "association.entries", terminology, association.getCode());
     String res = null;
-    try {
-      res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-    } catch (final Exception e1) {
-      e1.printStackTrace();
-    }
+    res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<AssociationEntry> entries = new ArrayList<>();
     Sparql sparqlResult = null;
-    try {
-      sparqlResult = mapper.readValue(res, Sparql.class);
-    } catch (final Exception e) {
-      log.error("Mapper could not read value in Association Entries");
-      e.printStackTrace();
-    }
+    sparqlResult = mapper.readValue(res, Sparql.class);
+
     if (sparqlResult != null) {
       final Bindings[] bindings = sparqlResult.getResults().getBindings();
       for (final Bindings b : bindings) {

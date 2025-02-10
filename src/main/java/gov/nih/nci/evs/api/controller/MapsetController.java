@@ -95,7 +95,7 @@ public class MapsetController extends BaseController {
       final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
       return esQueryService.getMapsets(ip);
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, "ncit");
       return null;
     }
   }
@@ -166,7 +166,7 @@ public class MapsetController extends BaseController {
             HttpStatus.NOT_FOUND, "Mapset not found for code = " + code);
       }
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, "ncit");
       return null;
     }
   }
@@ -267,7 +267,7 @@ public class MapsetController extends BaseController {
 
       return esSearchService.findConceptMappings(query, searchCriteria);
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, "ncit");
       return null;
     }
   }
