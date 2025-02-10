@@ -198,7 +198,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
             "cleanStaleIndexes",
             terminology.getTerminology(),
             "Deleting objects index " + objectIndexName + " failed!",
-            "warn");
+            "WARN");
         continue;
       }
 
@@ -214,7 +214,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
             "cleanStaleIndexes",
             terminology.getTerminology(),
             "Deleting concepts index " + objectIndexName + " failed!",
-            "warn");
+            "WARN");
         continue;
       }
 

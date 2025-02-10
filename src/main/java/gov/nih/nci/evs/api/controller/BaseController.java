@@ -1,8 +1,5 @@
 package gov.nih.nci.evs.api.controller;
 
-import gov.nih.nci.evs.api.model.Audit;
-import gov.nih.nci.evs.api.service.ElasticOperationsService;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,6 +8,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
+import gov.nih.nci.evs.api.model.Audit;
+import gov.nih.nci.evs.api.service.ElasticOperationsService;
+
 /** Controller for /metadata endpoints. */
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
@@ -18,9 +18,6 @@ public class BaseController {
 
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(BaseController.class);
-
-  /* The terminology utils */
-  @Autowired TerminologyUtils termUtils;
 
   /** The elastic operations service. */
   @Autowired ElasticOperationsService elasticOperationsService;

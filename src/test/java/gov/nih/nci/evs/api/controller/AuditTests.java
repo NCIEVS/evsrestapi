@@ -6,15 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.model.Audit;
-import gov.nih.nci.evs.api.model.SearchCriteria;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.properties.TestProperties;
-import gov.nih.nci.evs.api.service.ElasticQueryServiceImpl;
 import java.util.List;
-import org.junit.jupiter.api.BeforeEach;
+
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +17,15 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.model.Audit;
+import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.service.ElasticQueryServiceImpl;
 
 /** audit tests. */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -42,14 +44,10 @@ public class AuditTests {
   /** The elastic query service. */
   @Autowired private ElasticQueryServiceImpl elasticQueryService;
 
-  /** Sets the up. */
-  @BeforeEach
-  public void setUp() {}
-
   /**
    * Test get all audits and check against terminologies.
    *
-   * @throws Exception
+   * @throws Exception the exception
    */
   @Test
   public void testGetAllAudits() throws Exception {
@@ -88,7 +86,7 @@ public class AuditTests {
   /**
    * Test get audits by terminology.
    *
-   * @throws Exception
+   * @throws Exception the exception
    */
   @Test
   public void testGetAuditsByTerminology() throws Exception {
@@ -107,7 +105,7 @@ public class AuditTests {
   /**
    * Test get audits by type.
    *
-   * @throws Exception
+   * @throws Exception the exception
    */
   @Test
   public void testGetAuditsByType() throws Exception {

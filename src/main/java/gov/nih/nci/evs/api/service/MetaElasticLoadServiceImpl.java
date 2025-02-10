@@ -983,7 +983,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
               terminology.getTerminology(),
               "handleStatistics",
               source + " source overlap stats file not found for ncim",
-              "warn");
+              "WARN");
         }
 
         // any future stats additions go here

@@ -128,7 +128,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       }
       mailSender.send(message);
     } catch (MessagingException e) {
-      throw new MessagingException("Failed to send email, {}", e);
+      throw new MessagingException("Failed to send email", e);
     }
   }
 }

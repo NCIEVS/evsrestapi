@@ -1,15 +1,5 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Mapping;
-import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
-import gov.nih.nci.evs.api.util.EVSUtils;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -24,6 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.tomcat.util.buf.StringUtils;
@@ -33,6 +24,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.util.EVSUtils;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * The implementation for {@link BaseLoaderService}.
@@ -336,18 +338,20 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           // text
           final String welcomeText = IOUtils.toString(is, StandardCharsets.UTF_8);
           map.getProperties().add(new Property("welcomeText", welcomeText));
-        } catch (final Throwable t) { // read as file if no url
+        } catch (final Throwable t) {
+          // read as file if no url
           try {
             final String welcomeText =
                 FileUtils.readFileToString(
                     new File(uri + "/" + metadata[3]), StandardCharsets.UTF_8);
             map.getProperties().add(new Property("welcomeText", welcomeText));
           } catch (final Exception ex) {
+            // only throw exception if both fail
             throw new IOException(
                 "Could not find either file or uri for config base uri: "
                     + uri
                     + "/"
-                    + metadata[3]); // only throw exception if both fail
+                    + metadata[3]);
           }
         }
         map.getProperties().add(new Property("sourceTerminology", metadata[5]));
@@ -364,8 +368,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             mappingUri
                 + map.getName()
                 + (map.getVersion() != null ? ("_" + map.getVersion()) : "")
-                + ".txt"; // build
-        // map
+                + ".txt";
+
         final String mappingData =
             StringUtils.join(EVSUtils.getValueFromFile(mappingDataUri, "mappingDataUri"), '\n');
         map.setMaps(buildMaps(mappingData, metadata));
@@ -431,7 +435,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   public int loadConcepts(
       final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
       throws IOException, Exception {
-    // TODO Auto-generated method stub
+    // n/a
     return 0;
   }
 
@@ -444,14 +448,14 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       final String termName,
       final boolean forceDelete)
       throws Exception {
-    // TODO Auto-generated method stub
+    // n/a
     return null;
   }
 
   /* see superclass */
   @Override
   public HierarchyUtils getHierarchyUtils(final Terminology term) throws Exception {
-    // TODO Auto-generated method stub
+    // n/a
     return null;
   }
 }

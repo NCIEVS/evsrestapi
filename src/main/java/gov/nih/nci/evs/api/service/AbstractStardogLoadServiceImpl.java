@@ -1,26 +1,5 @@
 package gov.nih.nci.evs.api.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.model.Association;
-import gov.nih.nci.evs.api.model.AssociationEntry;
-import gov.nih.nci.evs.api.model.Audit;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMinimal;
-import gov.nih.nci.evs.api.model.History;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Mapping;
-import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.model.Qualifier;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.properties.StardogProperties;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
-import gov.nih.nci.evs.api.support.es.ElasticObject;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.MainTypeHierarchy;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -44,6 +23,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -57,6 +37,29 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.elasticsearch.NoSuchIndexException;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.util.CollectionUtils;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.AssociationEntry;
+import gov.nih.nci.evs.api.model.Audit;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.History;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.Qualifier;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.MainTypeHierarchy;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /** The implementation for {@link ElasticLoadService}. */
 // @Service
@@ -661,36 +664,43 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     logger.info("Extra subsets added");
   }
 
+  /**
+   * Load excel sheets.
+   *
+   * @param url the url
+   * @param filepath the filepath
+   * @return the list
+   * @throws Exception the exception
+   */
+  @SuppressWarnings("resource")
   public static List<Sheet> loadExcelSheets(String url, String filepath) throws Exception {
     List<Sheet> sheets = new ArrayList<>();
     Workbook workbook = null;
 
-    try {
+    try (InputStream inputStream = new URL(url).openStream(); ) {
       // Try downloading the file from the provided URL
-      InputStream inputStream = new URL(url).openStream();
       workbook = new HSSFWorkbook(inputStream);
       logger.info("Excel file successfully loaded from URL.");
     } catch (Exception e) {
       logger.error("Failed to download Excel file from URL. Error: " + e.getMessage());
-      try {
+      try (final FileInputStream fileInputStream = new FileInputStream(filepath)) {
         // If download fails, fall back to the local backup file
-        FileInputStream fileInputStream = new FileInputStream(filepath);
         workbook = new HSSFWorkbook(fileInputStream);
-        System.out.println("Excel file successfully loaded from backup file.");
+        logger.info("Excel file successfully loaded from backup file.");
       } catch (Exception fileException) {
         logger.error(
             "Failed to load Excel file from backup file. Error: " + fileException.getMessage());
-        throw new Exception(fileException); // throw an exception if all attempts fail
+        // throw an exception if all attempts fail
+        throw fileException;
       }
     }
 
     // Extract sheets from the workbook
-    if (workbook != null) {
-      for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
-        sheets.add(workbook.getSheetAt(i));
-      }
-      workbook.close(); // Close the workbook to release resources
+    for (int i = 0; i < workbook.getNumberOfSheets(); i++) {
+      sheets.add(workbook.getSheetAt(i));
     }
+    // Close the workbook to release resources
+    workbook.close();
 
     return sheets;
   }

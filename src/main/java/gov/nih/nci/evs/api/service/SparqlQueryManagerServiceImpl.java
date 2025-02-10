@@ -1,11 +1,35 @@
 package gov.nih.nci.evs.api.service;
 
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
+
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
-import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
@@ -31,28 +55,6 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.annotation.PostConstruct;
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 /**
  * Reference implementation of {@link SparqlQueryManagerService}. Includes hibernate tags for MEME
@@ -132,6 +134,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   // Here check the qualified form as well as the URI
 
+  /* see superclass */
   /* see superclass */
   /* see superclass */
   /* see superclass */
@@ -2617,9 +2620,5 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       return EVSUtils.getValueFromFile(uri, "ignore sources from file");
     }
     return Collections.emptyList();
-  }
-
-  private void auditError(Exception e, String function) throws Exception {
-    Audit.addAudit(operationsService, "Exception", function, null, e.getMessage(), "ERROR");
   }
 }
