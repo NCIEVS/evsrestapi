@@ -230,11 +230,20 @@ get_graph_query
 get_graphs(){
   /bin/rm -f /tmp/y.$$.txt
   touch /tmp/y.$$.txt
+  # this was put back to perl because we don't have python3 on the evsrestapi machines
   for db in `cat /tmp/db.$$.txt`; do
       curl -s -g -u "${l_graph_db_username}:$l_graph_db_password" \
           http://${l_graph_db_host}:${l_graph_db_port}/$db/query \
           --data-urlencode "$query" -H "Accept: application/sparql-results+json" |\
-          $jq | python3 "$DIR/get_graphs.py" "$db" >> /tmp/y.$$.txt
+          $jq | perl -ne '
+            chop; $x="version" if /"version"/; 
+            $x="source" if /"source"/; 
+            $x=0 if /\}/; 
+            if ($x && /"value"/) { 
+                s/.* "//; s/".*//;
+                ${$x} = $_;                
+                print "$version|'$db'|$source\n" if $x eq "version"; 
+            } ' >> /tmp/y.$$.txt
       if [[ $? -ne 0 ]]; then
           echo "ERROR: unexpected problem obtaining $db versions from stardog"
           exit 1
