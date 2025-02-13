@@ -127,7 +127,7 @@ get_databases(){
         python3 "$DIR/get_databases.py" "$GRAPH_DB_TYPE" > /tmp/db.$$.txt
   elif [[ $l_graph_db_type == "jena" ]]; then
     curl -s -g "http://${l_graph_db_host}:${l_graph_db_port}/$/server" |\
-        python3 "$DIR/get_databases.py" "$GRAPH_DB_TYPE" > /tmp/db.$$.txt
+        grep ds.name | perl -pe 's/.*ds.name": "\///; s/",.*//> /tmp/db.$$.txt
   fi
   if [[ $? -ne 0 ]]; then
       echo "ERROR: unexpected problem listing databases"
