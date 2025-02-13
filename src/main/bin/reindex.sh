@@ -452,6 +452,9 @@ for x in `cat /tmp/y.$$.txt`; do
             echo "ERROR: unexpected error setting max_result_window"
             exit 1
         fi
+        cd src/main/bin
+        ./postman.sh ${term}
+        cd ../../..
 
     fi
 	
