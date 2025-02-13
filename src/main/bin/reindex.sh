@@ -122,9 +122,12 @@ metadata_config_url=${CONFIG_BASE_URI:-"https://raw.githubusercontent.com/NCIEVS
 
 get_databases(){
   if [[ $l_graph_db_type == "stardog" ]]; then
+    # this was put back to perl because we don't have python3 on the evsrestapi machines
     curl -s -g -u "${l_graph_db_username}:$l_graph_db_password" \
         "http://${l_graph_db_host}:${l_graph_db_port}/admin/databases" |\
-        python3 "$DIR/get_databases.py" "$GRAPH_DB_TYPE" > /tmp/db.$$.txt
+        perl -ne 's/\r//; $x=0 if /\]/; 
+            if ($x) { s/.* "//; s/",?$//; print "$_"; }; 
+            $x=1 if/\[/;'  > /tmp/db.$$.txt
   elif [[ $l_graph_db_type == "jena" ]]; then
     curl -s -g "http://${l_graph_db_host}:${l_graph_db_port}/$/server" |\
         grep ds.name | perl -pe 's/.*ds.name": "\///; s/",.*//> /tmp/db.$$.txt
