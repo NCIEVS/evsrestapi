@@ -15,11 +15,21 @@ if [ -z "$API_URL" ]; then
     exit 1
 fi
 
+if [ $# -lt 1 ]; then
+    echo "No terminology specified. Using default terminology name 'ncit'."
+fi
+
 # Default value for the collection name placeholder
 COLLECTION_NAME="${1:-ncit}"
 
 # Construct the collection file name with the specified or default collection name
 COLLECTION_FILE="EVSRESTAPI_Postman_${COLLECTION_NAME}_Demo.postman_collection.json"
+
+# Check if the collection file exists
+if [ ! -f "$COLLECTION_FILE" ]; then
+  echo "Warning: Collection file '$COLLECTION_FILE' for terminology '$COLLECTION_NAME' does not exist."
+  exit 1
+fi
 
 # Verify if newman is installed
 if ! command -v newman &> /dev/null; then
@@ -43,10 +53,6 @@ fi
 
 # Run the Postman collection using newman and track the exit status
 echo "Running the Postman collection with API_URL=$API_URL..."
-if [ ! -f "$COLLECTION_FILE" ]; then
-  echo "Warning: Collection file '$COLLECTION_FILE' for terminology '$COLLECTION_NAME' does not exist."
-  exit 1
-fi
 
 newman run "$COLLECTION_FILE" --global-var "API_URL=$API_URL"
 newman_status=$?
