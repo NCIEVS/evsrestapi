@@ -296,7 +296,7 @@ get_graphs
 #        echo "ERROR: unexpected error creating evs_metadata index"
 #        exit 1
 #    fi
-fi
+#fi
 
 # set the max number of fields higher
 # we can probably remove this when we figure a better answer
