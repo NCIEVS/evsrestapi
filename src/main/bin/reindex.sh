@@ -487,15 +487,11 @@ for x in `cat /tmp/y.$$.txt`; do
             echo "ERROR: unexpected error setting max_result_window"
             exit 1
         fi
-        # Store the current directory
-        ORIGINAL_DIR=$(pwd)
-        # Navigate to the script's directory
-        if cd "$(dirname "$0")/src/main/bin"; then
-            ./postman.sh "${term}"
-        else
-            echo "Warning: Failed to change directory to src/main/bin. Postman script was not executed for ${term}." >&2
-        fi
-        cd "$ORIGINAL_DIR"
+        # postman has to run from the root directory
+        cd src/main/bin
+        mkdir -p postman_content_qa
+        ./postman.sh "${term}" > "postman_content_qa/${term}_postman_content_qa.txt"
+        cd ../../..
  
     fi
 	
