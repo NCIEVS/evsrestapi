@@ -6,6 +6,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -264,6 +266,61 @@ public class FhirR4Tests {
     assertEquals(((CodeSystem) codeSystems.get(0)).getUrl(), codeSystem.getUrl());
     assertEquals(((CodeSystem) codeSystems.get(0)).getName(), codeSystem.getName());
     assertEquals(((CodeSystem) codeSystems.get(0)).getPublisher(), codeSystem.getPublisher());
+  }
+
+  @Test
+  public void testCodeSystemReadWithParameters() throws Exception {
+    // TODO: implement for date when the CodeSystem data has dates
+    // implement for url when the custom parameter is registered to the HAPI
+    // FHIR server
+
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirCSPath;
+
+    // Test 1: Get list of CodeSystems first
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
+    String firstCodeSystemId = codeSystems.get(0).getIdPart();
+    CodeSystem firstCodeSystem = (CodeSystem) codeSystems.get(0);
+
+    // Test 2: Basic read by ID
+    content = this.restTemplate.getForObject(endpoint + "/" + firstCodeSystemId, String.class);
+    CodeSystem codeSystem = parser.parseResource(CodeSystem.class, content);
+
+    // Basic assertions
+    assertNotNull(codeSystem);
+    assertEquals(ResourceType.CodeSystem, codeSystem.getResourceType());
+    assertEquals(firstCodeSystemId, codeSystem.getIdPart());
+    assertEquals(firstCodeSystem.getUrl(), codeSystem.getUrl());
+    assertEquals(firstCodeSystem.getName(), codeSystem.getName());
+    assertEquals(firstCodeSystem.getPublisher(), codeSystem.getPublisher());
+
+    // Test 3: Search using version only
+    String version = firstCodeSystem.getVersion();
+    String versionSearchEndpoint = endpoint + "?_id=" + firstCodeSystemId + "&version="
+        + URLEncoder.encode(version, StandardCharsets.UTF_8);
+
+    content = this.restTemplate.getForObject(versionSearchEndpoint, String.class);
+    Bundle versionSearchResult = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(versionSearchResult);
+    assertFalse(versionSearchResult.getEntry().isEmpty());
+    CodeSystem versionCodeSystem =
+        (CodeSystem) versionSearchResult.getEntryFirstRep().getResource();
+    assertEquals(firstCodeSystemId, versionCodeSystem.getIdPart());
+    assertEquals(version, versionCodeSystem.getVersion());
+
+    // Test 4: Search with non-existent version
+    String nonExistentVersionEndpoint =
+        endpoint + "?_id=" + firstCodeSystemId + "&version=nonexistent";
+    content = this.restTemplate.getForObject(nonExistentVersionEndpoint, String.class);
+    Bundle emptyVersionResult = parser.parseResource(Bundle.class, content);
+    assertNotNull(emptyVersionResult);
+    assertTrue(emptyVersionResult.getEntry().isEmpty());
+
   }
 
   /**
