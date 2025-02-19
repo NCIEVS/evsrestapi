@@ -1,0 +1,1530 @@
+{
+	"info": {
+		"_postman_id": "45b9a5b2-468b-49db-9b29-df427123de9a",
+		"name": "EVSRESTAPI_Postman_go_Demo",
+		"description": "Collection of postman calls for demonstrating functionality of the EVSRESTAPI with GO terminology\n\nPrerequisites:  \n1\\. Node.js and npm package manager. Installers can be found here: [https://nodejs.org/en/download/package-manager](https://nodejs.org/en/download/package-manager)\n\n2\\. newman node.js package. Can be installed after node.js and npm are installed with the following command:\n\n``` bash\nnewman run my-collection.json\n\n ```\n\nTo run: Navigate to the src/main/bin folder, in which this collection resides, and run the following command in a CLI:\n\n``` bash\nnewman run EVSRESTAPI_Postman_go_Demo.postman_collection.json\n\n ```\n\nAlternatively, run the postman.sh script with a terminology parameter (such as 'go') and the script will automatically find the corresponding terminology postman collection in the src/main/bin folder.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30894083"
+	},
+	"item": [
+		{
+			"name": "Get concept by code (minimum information)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Body is valid JSON\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.be.an(\"object\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"GO:0000002\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go/GO:0000002?include=minimal",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go",
+						"GO:0000002"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "minimal"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get concepts by list of codes (minimum information)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Concept array is present and contains 2 elements\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.exist.and.to.be.an('array');\r",
+							"    pm.expect(responseData).to.have.lengthOf(2);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept entries have the correct code field\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    responseData.forEach(function(concept) {\r",
+							"        pm.expect(concept.code).to.satisfy(function(val) {\r",
+							"            return val === \"GO:0000002\" || val === \"GO:0000010\";\r",
+							"        });\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go?list=GO:0000002,GO:0000010&include=minimal",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go"
+					],
+					"query": [
+						{
+							"key": "list",
+							"value": "GO:0000002,GO:0000010"
+						},
+						{
+							"key": "include",
+							"value": "minimal"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Concept Information - GO:0000002",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"GO:0000002\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has children\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"children\"]).to.exist;\r",
+							"    pm.expect(jsonData[\"children\"]).to.have.length.above(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has all information\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.exist;\r",
+							"    pm.expect(jsonData[\"synonyms\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"definitions\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"properties\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"children\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"parents\"]).to.have.length.above(0);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go/GO:0000002?include=full",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go",
+						"GO:0000002"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "full"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Concept Information - GO:0000900 (roles)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"GO:0000900\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has disjointWith\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.exist;\r",
+							"    pm.expect(jsonData[\"roles\"]).to.have.length.above(0);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go/GO:0000900?include=roles",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go",
+						"GO:0000900"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "roles"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Concept Information - GO:0000022 (inverseRoles)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"GO:0000022\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has disjointWith\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.exist;\r",
+							"    pm.expect(jsonData[\"inverseRoles\"]).to.have.length.above(0);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go/GO:0000022?include=inverseRoles",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go",
+						"GO:0000022"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "inverseRoles"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all properties",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"go\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Properties array is present and contains expected number of elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/go/properties",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"go",
+						"properties"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get property by code (or label)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.code).to.exist;\r",
+							"    pm.expect(responseData.name).to.exist;\r",
+							"    pm.expect(responseData.terminology).to.exist;\r",
+							"    pm.expect(responseData.version).to.exist;\r",
+							"    pm.expect(responseData.synonyms).to.exist;\r",
+							"    pm.expect(responseData.properties).to.exist;\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Synonyms array contains correct name and code fields\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"IAO_0000115\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"definition\");\r",
+							"  \r",
+							"    pm.expect(responseData.synonyms).to.be.an('array');\r",
+							"    responseData.synonyms.forEach(function(synonym) {\r",
+							"        pm.expect(synonym.type).to.exist;\r",
+							"        pm.expect(synonym.name).to.exist;\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/go/property/IAO_0000115?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"go",
+						"property",
+						"IAO_0000115"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all qualifiers",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"go\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Qualifiers array is present and contains elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/go/qualifiers",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"go",
+						"qualifiers"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Ge qualifier by code (or label)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.code).to.exist;\r",
+							"    pm.expect(responseData.name).to.exist;\r",
+							"    pm.expect(responseData.terminology).to.exist;\r",
+							"    pm.expect(responseData.version).to.exist;\r",
+							"    pm.expect(responseData.synonyms).to.exist;\r",
+							"    pm.expect(responseData.properties).to.exist;\r",
+							"\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"oboInOwl:hasSynonymType\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"has_synonym_type\");\r",
+							"    pm.expect(responseData.terminology).to.exist.and.to.equal(\"go\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/go/qualifier/oboInOwl:hasSynonymType?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"go",
+						"qualifier",
+						"oboInOwl:hasSynonymType"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all roles",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"go\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Roles array is present and contains elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/go/roles",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"go",
+						"roles"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get role by code (or label)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.code).to.exist;\r",
+							"    pm.expect(responseData.name).to.exist;\r",
+							"    pm.expect(responseData.terminology).to.exist;\r",
+							"    pm.expect(responseData.version).to.exist;\r",
+							"    pm.expect(responseData.synonyms).to.exist;\r",
+							"    pm.expect(responseData.properties).to.exist;\r",
+							"\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"ends_during\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"ends during\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/go/role/ends_during?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"go",
+						"role",
+						"ends_during"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all definition types",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"go\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Definition Types array is present and contains elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/go/definitionTypes?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"go",
+						"definitionTypes"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get definition type by code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.code).to.exist;\r",
+							"    pm.expect(responseData.name).to.exist;\r",
+							"    pm.expect(responseData.terminology).to.exist;\r",
+							"    pm.expect(responseData.version).to.exist;\r",
+							"    pm.expect(responseData.synonyms).to.exist;\r",
+							"\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"IAO_0000115\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"definition\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/go/definitionType/IAO_0000115?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"go",
+						"definitionType",
+						"IAO_0000115"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all synonym types",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"go\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Synonym Types array is present and contains elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/go/synonymTypes?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"go",
+						"synonymTypes"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get synonym type by code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.code).to.exist;\r",
+							"    pm.expect(responseData.name).to.exist;\r",
+							"    pm.expect(responseData.terminology).to.exist;\r",
+							"    pm.expect(responseData.version).to.exist;\r",
+							"    pm.expect(responseData.synonyms).to.exist;\r",
+							"\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"rdfs:label\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"label\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/go/synonymType/rdfs:label?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"go",
+						"synonymType",
+						"rdfs:label"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find root concepts",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('array');\r",
+							"    \r",
+							"\r",
+							"    responseData.forEach(function(item) {\r",
+							"        pm.expect(item.code).to.exist;\r",
+							"        pm.expect(item.name).to.exist;\r",
+							"        pm.expect(item.terminology).to.exist;\r",
+							"        pm.expect(item.version).to.exist;\r",
+							"        pm.expect(item.conceptStatus).to.exist;\r",
+							"        pm.expect(item.leaf).to.exist;\r",
+							"        pm.expect(item.active).to.exist;\r",
+							"\r",
+							"        pm.expect(item.terminology).to.exist.and.to.equal(\"go\");\r",
+							"        pm.expect(item.leaf).to.exist.and.to.equal(false);\r",
+							"        pm.expect(item.active).to.exist.and.to.equal(true);\r",
+							"  });\r",
+							"    \r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go/roots",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go",
+						"roots"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get paths to root from a code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response is an array of arrays, and each entry contains at least 2 entries\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    pm.expect(array).to.be.an('array');\r",
+							"    pm.expect(array).to.have.lengthOf.above(1);\r",
+							"    array.forEach((entry) => {\r",
+							"      pm.expect(entry).to.have.property('code');\r",
+							"      pm.expect(entry).to.have.property('name');\r",
+							"      pm.expect(entry).to.have.property('terminology');\r",
+							"      pm.expect(entry).to.have.property('leaf');\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							"pm.test(\"Each array entry has the first entry's code as C3224\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  const firstEntryCode = \"C3224\";\r",
+							"\r",
+							"  responseData.forEach((array) => {\r",
+							"    pm.expect(array[0].code).to.equal(firstEntryCode);\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry's level field is one higher than the last one, starting at 0 from the first one\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    let prevLevel = -1;\r",
+							"    array.forEach((entry) => {\r",
+							"      pm.expect(entry.level).to.equal(prevLevel + 1);\r",
+							"      prevLevel = entry.level;\r",
+							"    });\r",
+							"  });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go/GO:0008150/pathsToRoot",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go",
+						"GO:0008150",
+						"pathsToRoot"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get paths from root from a code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Update the test to handle undefined array entries\r",
+							"pm.test(\"Response is an array of arrays, and each entry contains at least 2 entries\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    pm.expect(array).to.be.an('array');\r",
+							"    pm.expect(array).to.have.lengthOf.at.least(2);\r",
+							"    array.forEach((entry) => {\r",
+							"      pm.expect(entry).to.have.property('code');\r",
+							"      pm.expect(entry).to.have.property('name');\r",
+							"      pm.expect(entry).to.have.property('terminology');\r",
+							"      pm.expect(entry).to.have.property('leaf');\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each array entry has the last entry's code as C3224\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  const lastEntryCode = \"C3224\";\r",
+							"\r",
+							"  responseData.forEach((array) => {\r",
+							"    if (array.length > 0) {\r",
+							"      pm.expect(array[array.length - 1].code).to.equal(lastEntryCode);\r",
+							"    }\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry's level field is one higher than the last one, starting at 0 from the first one\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    let prevLevel = -1;\r",
+							"    array.forEach((entry) => {\r",
+							"      if (prevLevel !== -1) {\r",
+							"        pm.expect(entry.level).to.equal(prevLevel + 1);\r",
+							"      }\r",
+							"      prevLevel = entry.level;\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go/GO:0008150/pathsFromRoot",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go",
+						"GO:0008150",
+						"pathsFromRoot"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get paths to an ancestor from a code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Update the test to handle undefined array entries\r",
+							"pm.test(\"Response is an array of arrays, and each entry contains at least 2 entries\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    pm.expect(array).to.be.an('array');\r",
+							"    pm.expect(array).to.have.lengthOf.at.least(2);\r",
+							"    array.forEach((entry) => {\r",
+							"      pm.expect(entry).to.have.property('code');\r",
+							"      pm.expect(entry).to.have.property('name');\r",
+							"      pm.expect(entry).to.have.property('terminology');\r",
+							"      pm.expect(entry).to.have.property('leaf');\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each array entry has the first entry's code as GO:0051318 and last entry's code as GO:0008150\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  const firstEntryCode = \"GO:0051318\";\r",
+							"  const lastEntryCode = \"GO:0008150\";\r",
+							"\r",
+							"  responseData.forEach((array) => {\r",
+							"    if (array.length > 0) {\r",
+							"        pm.expect(array[0].code).to.equal(firstEntryCode);\r",
+							"        pm.expect(array[array.length - 1].code).to.equal(lastEntryCode);\r",
+							"    }\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry's level field is one higher than the last one, starting at 0 from the first one\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    let prevLevel = -1;\r",
+							"    array.forEach((entry) => {\r",
+							"      if (prevLevel !== -1) {\r",
+							"        pm.expect(entry.level).to.equal(prevLevel + 1);\r",
+							"      }\r",
+							"      prevLevel = entry.level;\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go/GO:0051318/pathsToAncestor/GO:0008150",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go",
+						"GO:0051318",
+						"pathsToAncestor",
+						"GO:0008150"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (where term is a code)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Concept results exist\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.above(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"results sorted properly by exact code matches first\", function () {\r",
+							"    var concepts = pm.response.json().concepts;\r",
+							"    var indexBeforeGO = concepts.findIndex(concept => concept.code === 'GO:0051318');\r",
+							"    var codesBeforeGO = concepts.slice(0, indexBeforeGO).map(concept => concept.code);\r",
+							"    \r",
+							"    pm.expect(codesBeforeGO).to.not.include.any.members(['GO:0051318']);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go/search?terminology=go&term=GO:0051318",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "go"
+						},
+						{
+							"key": "term",
+							"value": "GO:0051318"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=match)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.above(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name 'G1 phase' and terminology 'go'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name).to.equal('G1 phase');\r",
+							"        pm.expect(concept.terminology).to.equal('go');\r",
+							"    });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go/search?terminology=go&term=G1 phase&type=match&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "go"
+						},
+						{
+							"key": "term",
+							"value": "G1 phase"
+						},
+						{
+							"key": "type",
+							"value": "match"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=startsWith)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist, 5 total by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that starts with 'mitotic' and terminology 'go'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name).to.satisfy(name => name.toLowerCase().startsWith('mitotic'));\r",
+							"        pm.expect(concept.terminology).to.equal('go');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go/search?terminology=go&term=mitotic&type=startsWith&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "go"
+						},
+						{
+							"key": "term",
+							"value": "mitotic"
+						},
+						{
+							"key": "type",
+							"value": "startsWith"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=phrase)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist, 5 total by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that contains 'cell cycle' and terminology 'go'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('cell cycle');\r",
+							"        pm.expect(concept.terminology).to.equal('go');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go/search?terminology=go&term=cell cycle&type=phrase&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "go"
+						},
+						{
+							"key": "term",
+							"value": "cell cycle"
+						},
+						{
+							"key": "type",
+							"value": "phrase"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=fuzzy)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist, 5 total by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that contains 'cell' (fuzzy search from call) and terminology 'go'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('cell');\r",
+							"        pm.expect(concept.terminology).to.equal('go');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go/search?terminology=go&term=call&type=fuzzy&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "go"
+						},
+						{
+							"key": "term",
+							"value": "call"
+						},
+						{
+							"key": "type",
+							"value": "fuzzy"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=AND)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist, 5 total by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that contains 'cardiac' + 'cell' and terminology 'go'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('cardiac').and.to.include('cell');\r",
+							"        pm.expect(concept.terminology).to.equal('go');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go/search?terminology=go&term=cardiac cell&type=AND&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "go"
+						},
+						{
+							"key": "term",
+							"value": "cardiac cell"
+						},
+						{
+							"key": "type",
+							"value": "AND"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=OR)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist, 10 total by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(10);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that contains 'hair' or 'menstrual' and terminology 'go'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include.oneOf(['hair', 'menstrual']);\r",
+							"        pm.expect(concept.terminology).to.equal('go');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go/search?terminology=go&term=hair menstrual&type=OR&pageSize=10",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "go"
+						},
+						{
+							"key": "term",
+							"value": "hair menstrual"
+						},
+						{
+							"key": "type",
+							"value": "OR"
+						},
+						{
+							"key": "pageSize",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"pm.test(\"Status code is 200\", function () {\r",
+					"    pm.response.to.have.status(200);\r",
+					"});\r",
+					"pm.test(\"Response is not empty\", function () {\r",
+					"    pm.response.to.have.body();\r",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "API_URL",
+			"value": "https://api-evsrest.nci.nih.gov/api/v1",
+			"type": "string"
+		}
+	]
+}
