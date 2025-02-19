@@ -3,7 +3,7 @@ package gov.nih.nci.evs.api.configuration;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.ElasticQueryProperties;
 import gov.nih.nci.evs.api.properties.ElasticServerProperties;
-import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.properties.GraphProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -38,14 +38,14 @@ public class PropertiesConfiguration {
   }
 
   /**
-   * Stardog properties.
+   * Graph db properties.
    *
-   * @return the stardog properties
+   * @return the graph db properties
    */
   @Bean
-  @ConfigurationProperties(prefix = "nci.evs.stardog", ignoreUnknownFields = false)
-  StardogProperties stardogProperties() {
-    return new StardogProperties();
+  @ConfigurationProperties(prefix = "nci.evs.graph", ignoreUnknownFields = false)
+  GraphProperties graphProperties() {
+    return new GraphProperties();
   }
 
   /**

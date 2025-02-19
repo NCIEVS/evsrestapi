@@ -10,7 +10,7 @@ import org.springframework.context.ApplicationContext;
 /**
  * The service to load concepts to Elasticsearch/OpenSearch.
  *
- * <p>Retrieves concepts from stardog and creates necessary index on Elasticsearch/OpenSearch.
+ * <p>Retrieves concepts from graph db and creates necessary index on Elasticsearch/OpenSearch.
  *
  * @author Arun
  */

@@ -169,14 +169,14 @@ public class LoaderServiceImpl {
         if (cmd.getOptionValue("t").equals("ncim")) {
           loadService = app.getBean(MetaElasticLoadServiceImpl.class);
         } else if (cmd.getOptionValue("t").startsWith("ncit")) {
-          loadService = app.getBean(StardogElasticLoadServiceImpl.class);
+          loadService = app.getBean(GraphElasticLoadServiceImpl.class);
         } else {
           loadService = app.getBean(MetaSourceElasticLoadServiceImpl.class);
         }
       } else if (cmd.hasOption("xr")) {
-        loadService = app.getBean(StardogReportLoadServiceImpl.class);
+        loadService = app.getBean(GraphReportLoadServiceImpl.class);
       } else {
-        loadService = app.getBean(StardogElasticLoadServiceImpl.class);
+        loadService = app.getBean(GraphElasticLoadServiceImpl.class);
       }
       termAudit.setProcess(loadService.getClass().getSimpleName());
 

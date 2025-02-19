@@ -14,7 +14,7 @@ import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.util.ConceptUtils;
@@ -60,10 +60,9 @@ import org.springframework.util.CollectionUtils;
 
 /** The implementation for {@link ElasticLoadService}. */
 // @Service
-public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
+public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /** the logger *. */
-  private static final Logger logger =
-      LoggerFactory.getLogger(AbstractStardogLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(AbstractGraphLoadServiceImpl.class);
 
   /** constant value for mapping string */
   public static final String NCIT_MAPS_TO = "NCIt_Maps_To_";
@@ -96,8 +95,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   /** The sparql query manager service. */
   @Autowired private SparqlQueryManagerService sparqlQueryManagerService;
 
-  /** The stardog properties. */
-  @Autowired StardogProperties stardogProperties;
+  /** The graph db properties. */
+  @Autowired GraphProperties graphProperties;
 
   /** The main type hierarchy. */
   @Autowired MainTypeHierarchy mainTypeHierarchy;
@@ -172,7 +171,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
-   * load concepts directly from stardog in batches.
+   * load concepts directly from graph db in batches.
    *
    * @param allConcepts all concepts to load
    * @param terminology the terminology
@@ -854,9 +853,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       }
 
       // Setup maps if this is a "monthly" version
-      // Determine by checking against the stardog db we are loading from
+      // Determine by checking against the graph db we are loading from
       if (term.getTerminology() == "ncit"
-          && stardogProperties.getDb().equals(term.getMetadata().getMonthlyDb())) {
+          && graphProperties.getDb().equals(term.getMetadata().getMonthlyDb())) {
 
         // setup mappings
         Concept ncitMapsToGdc = setupMap("GDC", term.getVersion());
@@ -883,7 +882,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     // Compute tags because this is the new terminology
     // Do this AFTER setting terminology metadata, which is needed
     if (term.getMetadata().getMonthlyDb() != null) {
-      termUtils.setTags(term, stardogProperties.getDb());
+      termUtils.setTags(term, graphProperties.getDb());
     }
 
     return term;
@@ -904,7 +903,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     map.setActive(true);
     map.getProperties().add(new Property("downloadOnly", "true"));
     map.getProperties().add(new Property("mapsetLink", null));
-    map.getProperties().add(new Property("loader", "AbstractStardogLoadServiceImpl"));
+    map.getProperties().add(new Property("loader", "AbstractGraphLoadServiceImpl"));
     return map;
   }
 

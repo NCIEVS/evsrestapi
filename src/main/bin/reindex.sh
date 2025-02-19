@@ -1,7 +1,7 @@
 #!/bin/bash -f
 #
 # This script reconciles the elasticsearch indexes against what is loded
-# into stardog.  The --noconfig flag is for running in the dev environment
+# into graph db.  The --noconfig flag is for running in the dev environment
 # where the setenv.sh file does not exist.  The --force flag is used
 # to recompute indexes that already exist rather than skipping them.
 #
@@ -85,39 +85,30 @@ setup_configuration() {
 }
 
 setup_configuration
-l_graph_db_type=${GRAPH_DB_TYPE:-"stardog"}
 l_graph_db_port=${GRAPH_DB_PORT:-"5820"}
 validate_setup() {
   if [[ -n "$GRAPH_DB_USERNAME" ]]; then
     l_graph_db_username="$GRAPH_DB_USERNAME"
-  elif [[ -n "$STARDOG_USERNAME" ]]; then
-    l_graph_db_username="$STARDOG_USERNAME"
   else
-    echo "Error: Both GRAPH_DB_USERNAME and STARDOG_USERNAME are not set."
+    echo "Error: GRAPH_DB_USERNAME is not set."
     exit 1
   fi
-      if [[ -n "$GRAPH_DB_PASSWORD" ]]; then
+  if [[ -n "$GRAPH_DB_PASSWORD" ]]; then
     l_graph_db_password="$GRAPH_DB_PASSWORD"
-  elif [[ -n "$STARDOG_PASSWORD" ]]; then
-    l_graph_db_password="$STARDOG_PASSWORD"
   else
-    echo "Error: Both GRAPH_DB_PASSWORD and STARDOG_PASSWORD are not set."
+    echo "Error: GRAPH_DB_PASSWORD is not set."
     exit 1
   fi
   if [[ -n "$GRAPH_DB_HOST" ]]; then
     l_graph_db_host="$GRAPH_DB_HOST"
-  elif [[ -n "$STARDOG_HOST" ]]; then
-    l_graph_db_host="$STARDOG_HOST"
   else
-    echo "Error: Both GRAPH_DB_HOST and STARDOG_HOST are not set."
+    echo "Error: GRAPH_DB_HOST is not set."
     exit 1
   fi
   if [[ -n "$GRAPH_DB_PORT" ]]; then
     l_graph_db_port="$GRAPH_DB_PORT"
-  elif [[ -n "$STARDOG_PORT" ]]; then
-    l_graph_db_port="$STARDOG_PORT"
   else
-    echo "Error: Both GRAPH_DB_PORT and STARDOG_PORT are not set."
+    echo "Error: GRAPH_DB_PORT is not set."
     exit 1
   fi
   if [[ -z $ES_SCHEME ]]; then
@@ -132,7 +123,6 @@ validate_setup() {
   fi
 }
 validate_setup
-echo "    GRAPH_DB_TYPE = $l_graph_db_type"
 echo "    GRAPH_DB_PORT = $l_graph_db_port"
 if [[ $force -eq 1 ]]; then
     echo "  force = 1"
@@ -144,23 +134,15 @@ fi
 metadata_config_url=${CONFIG_BASE_URI:-"https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata"}
 
 get_databases(){
-  if [[ $l_graph_db_type == "stardog" ]]; then
-    # this was put back to perl because we don't have python3 on the evsrestapi machines
-    curl -w "\n%{http_code}" -s -g -u "${l_graph_db_username}:$l_graph_db_password" \
-        "http://${l_graph_db_host}:${l_graph_db_port}/admin/databases" 2> /dev/null > /tmp/x.$$
-    check_status $? "GET /admin/databases failed to list databases"
-    check_http_status 200 "GET /admin/databases expecting 200"
-    head -n -1 /tmp/x.$$ | $jq | grep -v catalog |\
-        perl -ne 's/\r//; $x=0 if /\]/; 
-            if ($x) { s/.* "//; s/",?$//; print "$_"; }; 
-            $x=1 if/\[/;' > /tmp/db.$$.txt
-            
-  elif [[ $l_graph_db_type == "jena" ]]; then
-    curl -w "\n%{http_code}" -s -g "http://${l_graph_db_host}:${l_graph_db_port}/$/server" 2> /dev/null > /tmp/x.$$
-    check_status $? "GET /\$/server failed to list databases"
-    check_http_status 200 "GET /\$/server expecting 200"
-    head -n -1 /tmp/x.$$ | $jq | grep ds.name | perl -pe 's/.*ds.name": "\///; s/",.*//;' > /tmp/db.$$.txt
-  fi
+  # this was put back to perl because we don't have python3 on the evsrestapi machines
+  curl -w "\n%{http_code}" -s -g -u "${l_graph_db_username}:$l_graph_db_password" \
+      "http://${l_graph_db_host}:${l_graph_db_port}/admin/databases" 2> /dev/null > /tmp/x.$$
+  check_status $? "GET /admin/databases failed to list databases"
+  check_http_status 200 "GET /admin/databases expecting 200"
+  head -n -1 /tmp/x.$$ | $jq | grep -v catalog |\
+      perl -ne 's/\r//; $x=0 if /\]/; 
+          if ($x) { s/.* "//; s/",?$//; print "$_"; }; 
+          $x=1 if/\[/;' > /tmp/db.$$.txt
 
   echo "  databases = " `cat /tmp/db.$$.txt`
 
@@ -422,7 +404,7 @@ for x in `cat /tmp/y.$$.txt`; do
     done
 
     # Set up environment
-    export STARDOG_DB=$db
+    export GRAPH_DB=$db
     export EVS_SERVER_PORT="8083"
     
     if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
@@ -434,7 +416,7 @@ for x in `cat /tmp/y.$$.txt`; do
         fi
         
         # Stale indexes are automatically cleaned up by the indexing process
-        # It checks against stardog and reconciles everything and updates latest flags
+        # It checks against graph db and reconciles everything and updates latest flags
         # regardless of whether there was new data
         echo "    RECONCILE $term stale indexes and update flags"
         export EVS_SERVER_PORT="8083"
@@ -462,7 +444,7 @@ for x in `cat /tmp/y.$$.txt`; do
         fi
 
         # Run reindexing process (choose a port other than the one that it runs on)
-        echo "    Generate indexes for $STARDOG_DB ${term} $version"
+        echo "    Generate indexes for $GRAPH_DB ${term} $version"
         
         # Set the history clause for "ncit"
         historyClause=""

@@ -18,18 +18,18 @@ Information on the build and deployment process for the EVSRESTAPI project
 
 ## Steps for Loading NCI Thesaurus Data and Indexes Locally
 
-* Launch Stardog and load NCI Thesaurus data - (see [Stardog Resources](STARDOG.md))
+* Launch Graph DB and load NCI Thesaurus data - (see [Jena/Fuseki Resources](JENA.md))
 * Launch Opensearch docker container - (see [Opensearch Resources](OPENSEARCH.md))
 
 * Make sure to set at least the following environment variables
   * ES_SCHEME=http
   * ES_HOST=localhost
   * ES_PORT=9201
-  * STARDOG_HOST=localhost
-  * STARDOG_PORT=5820
-  * STARDOG_DB=NCIT2
-  * STARDOG_USERNAME=admin
-  * STARDOG_PASSWORD=admin
+  * GRAPH_DB_HOST=localhost
+  * GRAPH_DB_PORT=5820
+  * GRAPH_DB_DB=NCIT2
+  * GRAPH_DB_USERNAME=admin
+  * GRAPH_DB_PASSWORD=admin
   * CONFIG_BASE_URI=https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata
   * MAIL_USERNAME=<YOUR_WORK_EMAIL>
   * MAIL_PASSWORD=<YOUR_GMAIL_APP_PASSWORD>
@@ -49,7 +49,7 @@ Information on the build and deployment process for the EVSRESTAPI project
 
 ## Steps for Building and Running EVSRESTAPI locally
 
-* Launch Stardog and Opensearch (as described above)
+* Launch Jena/fuseki and Opensearch (as described above)
   * If loaded properly, the loaded artifacts should be persistent and you can take down and restart the docker processes and the data will still be there.
   * NOTE: both services must be loaded and running for the application tests to run properly
 * Configure application

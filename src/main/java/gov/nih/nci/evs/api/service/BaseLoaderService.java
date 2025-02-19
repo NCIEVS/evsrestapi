@@ -36,7 +36,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * The service to load concepts to Elasticsearch
  *
- * <p>Retrieves concepts from stardog and creates necessary index on Elasticsearch.
+ * <p>Retrieves concepts from graph db and creates necessary index on Elasticsearch.
  *
  * @author Arun
  */
@@ -65,7 +65,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   @Autowired private RestHighLevelClient client;
 
   /** The dbs. */
-  @Value("${nci.evs.bulkload.stardogDbs}")
+  @Value("${nci.evs.bulkload.graphDbs}")
   private String dbs;
 
   /**
@@ -164,7 +164,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   public Set<String> cleanStaleIndexes(final Terminology terminology) throws Exception {
 
     List<IndexMetadata> iMetas =
-        termUtils.getStaleStardogTerminologies(
+        termUtils.getStaleGraphTerminologies(
             Arrays.asList(dbs.split(",")), terminology, sparqlQueryManagerService, esQueryService);
     if (CollectionUtils.isEmpty(iMetas)) {
       logger.info("NO stale terminologies to remove");

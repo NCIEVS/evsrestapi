@@ -90,16 +90,16 @@ nci:
       lockFile: ${NCI_EVS_BULK_LOAD_LOCK_FILE_NAME:DownloadSuccessfull.lck}
       downloadBatchSize: ${NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE:1000}
       indexBatchSize: ${NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE:1000}
-      stardogDbs: ${STARDOG_DBS:CTRP,NCIT2}
-    stardog:
-      host: ${STARDOG_HOST:localhost}
-      port: ${STARDOG_PORT:5820}
-      db: ${STARDOG_DB:NCIT2}
-      queryUrl: ${STARDOG_MONTHLY_QUERY_URL:http://${nci.evs.stardog.host}:${nci.evs.stardog.port}/${nci.evs.stardog.db}/query}
-      username: ${STARDOG_USERNAME:REPLACE_WITH_USERNAME}
-      password: ${STARDOG_PASSWORD:REPLACE_WITH_PASSWORD}
-      readTimeout: ${STARDOG_READ_TIMEOUT:60}
-      connectTimeout: ${STARDOG_CONNECT_TIMEOUT:60}
+      graphDbs: CTRP,NCIT2
+    graph:
+      host: ${GRAPH_DB_HOST:localhost}
+      port: ${GRAPH_DB_PORT:5820}
+      db: ${GRAPH_DB_DB:NCIT2}
+      queryUrl: ${GRAPH_DB_MONTHLY_QUERY_URL:http://${nci.evs.graph.host}:${nci.evs.graph.port}/${nci.evs.graph.db}/query}
+      username: ${GRAPH_DB_USERNAME:REPLACE_WITH_USERNAME}
+      password: ${GRAPH_DB_PASSWORD:REPLACE_WITH_PASSWORD}
+      readTimeout: ${GRAPH_DB_READ_TIMEOUT:60}
+      connectTimeout: ${GRAPH_DB_CONNECT_TIMEOUT:60}
     elasticsearch:
       server:
         host: ${ES_HOST:localhost}

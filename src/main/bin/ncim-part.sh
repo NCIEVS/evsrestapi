@@ -69,17 +69,17 @@ if [[ $config -eq 1 ]]; then
         echo "ERROR: $CONFIG_ENV_FILE does not exist or has a problem"
         exit 1
     fi
-elif [[ -z $STARDOG_HOST ]]; then
-    echo "ERROR: STARDOG_HOST is not set"
+elif [[ -z $GRAPH_DB_HOST ]]; then
+    echo "ERROR: GRAPH_DB_HOST is not set"
     exit 1
-elif [[ -z $STARDOG_PORT ]]; then
-    echo "ERROR: STARDOG_PORT is not set"
+elif [[ -z $GRAPH_DB_PORT ]]; then
+    echo "ERROR: GRAPH_DB_PORT is not set"
     exit 1
-elif [[ -z $STARDOG_USERNAME ]]; then
-    echo "ERROR: STARDOG_USERNAME is not set"
+elif [[ -z $GRAPH_DB_USERNAME ]]; then
+    echo "ERROR: GRAPH_DB_USERNAME is not set"
     exit 1
-elif [[ -z $STARDOG_PASSWORD ]]; then
-    echo "ERROR: STARDOG_PASSWORD is not set"
+elif [[ -z $GRAPH_DB_PASSWORD ]]; then
+    echo "ERROR: GRAPH_DB_PASSWORD is not set"
     exit 1
 elif [[ -z $ES_SCHEME ]]; then
     echo "ERROR: ES_SCHEME is not set"
