@@ -23,8 +23,7 @@ import org.springframework.stereotype.Service;
 public class MainTypeHierarchy {
 
   /** The Constant logger. */
-  private static final Logger logger =
-      LoggerFactory.getLogger(AbstractGraphLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(AbstractGraphLoadServiceImpl.class);
 
   /** The sparql query manager service. */
   @Autowired private SparqlQueryManagerService service;
