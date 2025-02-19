@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "0776cfe4-b1f2-4f95-96ae-dec10a8ba93f",
-		"name": "EVSRESTAPI_Postman_chebi_Demo",
-		"description": "Collection of postman calls for demonstrating functionality of the EVSRESTAPI with CHEBI terminology\n\nPrerequisites:  \n1\\. Node.js and npm package manager. Installers can be found here: [https://nodejs.org/en/download/package-manager](https://nodejs.org/en/download/package-manager)\n\n2\\. newman node.js package. Can be installed after node.js and npm are installed with the following command:\n\n``` bash\nnewman run my-collection.json\n\n ```\n\nTo run: Navigate to the src/main/bin folder, in which this collection resides, and run the following command in a CLI:\n\n``` bash\nnewman run EVSRESTAPI_Postman_chebi_Demo.postman_collection.json\n\n ```\n\nAlternatively, run the postman.sh script with a terminology parameter (such as 'chebi') and the script will automatically find the corresponding terminology postman collection in the src/main/bin folder.",
+		"_postman_id": "89b11194-7e1d-421c-8f44-0cb286abcf1e",
+		"name": "EVSRESTAPI_Postman_medrt_Demo",
+		"description": "Collection of postman calls for demonstrating functionality of the EVSRESTAPI with MED-RT terminology\n\nPrerequisites:  \n1\\. Node.js and npm package manager. Installers can be found here: [https://nodejs.org/en/download/package-manager](https://nodejs.org/en/download/package-manager)\n\n2\\. newman node.js package. Can be installed after node.js and npm are installed with the following command:\n\n``` bash\nnewman run my-collection.json\n\n ```\n\nTo run: Navigate to the src/main/bin folder, in which this collection resides, and run the following command in a CLI:\n\n``` bash\nnewman run EVSRESTAPI_Postman_medrt_Demo.postman_collection.json\n\n ```\n\nAlternatively, run the postman.sh script with a terminology parameter (such as 'medrt') and the script will automatically find the corresponding terminology postman collection in the src/main/bin folder.",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
 		"_exporter_id": "30894083"
 	},
@@ -21,7 +21,7 @@
 							"\r",
 							"pm.test(\"Correct code\", function () {\r",
 							"    var jsonData = pm.response.json();\r",
-							"    pm.expect(jsonData[\"code\"]).to.equal(\"CHEBI:10\");\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"N0000000001\");\r",
 							"});\r",
 							""
 						],
@@ -34,14 +34,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/chebi/CHEBI:10?include=minimal",
+					"raw": "{{API_URL}}/concept/medrt/N0000000001?include=minimal",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
-						"chebi",
-						"CHEBI:10"
+						"medrt",
+						"N0000000001"
 					],
 					"query": [
 						{
@@ -72,7 +72,7 @@
 							"    \r",
 							"    responseData.forEach(function(concept) {\r",
 							"        pm.expect(concept.code).to.satisfy(function(val) {\r",
-							"            return val === \"CHEBI:10\" || val === \"CHEBI:100\";\r",
+							"            return val === \"N0000000001\" || val === \"N0000000021\";\r",
 							"        });\r",
 							"    });\r",
 							"});\r",
@@ -87,18 +87,18 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/chebi?list=CHEBI:10,CHEBI:100&include=minimal",
+					"raw": "{{API_URL}}/concept/medrt?list=N0000000001,N0000000021&include=minimal",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
-						"chebi"
+						"medrt"
 					],
 					"query": [
 						{
 							"key": "list",
-							"value": "CHEBI:10,CHEBI:100"
+							"value": "N0000000001,N0000000021"
 						},
 						{
 							"key": "include",
@@ -110,7 +110,7 @@
 			"response": []
 		},
 		{
-			"name": "Check Concept Information - CHEBI:102167",
+			"name": "Check Concept Information - N0000178295",
 			"event": [
 				{
 					"listen": "test",
@@ -118,7 +118,7 @@
 						"exec": [
 							"pm.test(\"Correct code\", function () {\r",
 							"    var jsonData = pm.response.json();\r",
-							"    pm.expect(jsonData[\"code\"]).to.equal(\"CHEBI:102167\");\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"N0000000001\");\r",
 							"});\r",
 							"\r",
 							"pm.test(\"Concept has children\", function () {\r",
@@ -147,14 +147,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/chebi/CHEBI:102167?include=full",
+					"raw": "{{API_URL}}/concept/medrt/N0000000001?include=full",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
-						"chebi",
-						"CHEBI:102167"
+						"medrt",
+						"N0000000001"
 					],
 					"query": [
 						{
@@ -167,7 +167,7 @@
 			"response": []
 		},
 		{
-			"name": "Check Concept Information - CHEBI:100 (roles, inverseRoles)",
+			"name": "Check Concept Information - N0000175428 (roles)",
 			"event": [
 				{
 					"listen": "test",
@@ -175,13 +175,12 @@
 						"exec": [
 							"pm.test(\"Correct code\", function () {\r",
 							"    var jsonData = pm.response.json();\r",
-							"    pm.expect(jsonData[\"code\"]).to.equal(\"CHEBI:100\");\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"N0000175428\");\r",
 							"});\r",
 							"\r",
-							"pm.test(\"Concept has roles, inverseRoles\", function () {\r",
+							"pm.test(\"Concept has roles\", function () {\r",
 							"    var jsonData = pm.response.json();\r",
 							"    pm.expect(jsonData).to.exist;\r",
-							"    pm.expect(jsonData[\"inverseRoles\"]).to.have.length.above(0);\r",
 							"    pm.expect(jsonData[\"roles\"]).to.have.length.above(0);\r",
 							"});\r",
 							""
@@ -195,14 +194,61 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/chebi/CHEBI:100?include=roles,inverseRoles",
+					"raw": "{{API_URL}}/concept/medrt/N0000175428?include=roles,inverseRoles",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
-						"chebi",
-						"CHEBI:100"
+						"medrt",
+						"N0000175428"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "roles,inverseRoles"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Concept Information - N0000000080 (inverseRoles)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"N0000000080\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has inverseRoles\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.exist;\r",
+							"    pm.expect(jsonData[\"inverseRoles\"]).to.have.length.above(0);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt/N0000175428?include=roles,inverseRoles",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt",
+						"N0000175428"
 					],
 					"query": [
 						{
@@ -230,7 +276,7 @@
 							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
 							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
 							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
-							"      pm.expect(item.terminology).to.equal(\"chebi\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item.terminology).to.equal(\"medrt\"); // Fixed the syntax for equality check\r",
 							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
 							"  });\r",
 							"});\r",
@@ -252,13 +298,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/metadata/chebi/properties",
+					"raw": "{{API_URL}}/metadata/medrt/properties",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"metadata",
-						"chebi",
+						"medrt",
 						"properties"
 					]
 				}
@@ -313,123 +359,15 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/metadata/chebi/property/IAO_0000115?include=summary",
+					"raw": "{{API_URL}}/metadata/medrt/property/IAO_0000115?include=summary",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"metadata",
-						"chebi",
+						"medrt",
 						"property",
 						"IAO_0000115"
-					],
-					"query": [
-						{
-							"key": "include",
-							"value": "summary"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get all qualifiers",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Validate the schema for the response\", function () {\r",
-							"  const responseData = pm.response.json();\r",
-							"  \r",
-							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
-							"\r",
-							"  responseData.forEach(function(item) {\r",
-							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
-							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
-							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
-							"      pm.expect(item.terminology).to.equal(\"chebi\"); // Fixed the syntax for equality check\r",
-							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
-							"  });\r",
-							"});\r",
-							"\r",
-							"pm.test(\"Qualifiers array is present and contains elements\", function () {\r",
-							"  const responseData = pm.response.json();\r",
-							"  \r",
-							"  pm.expect(responseData).to.be.an('array');\r",
-							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{API_URL}}/metadata/chebi/qualifiers",
-					"host": [
-						"{{API_URL}}"
-					],
-					"path": [
-						"metadata",
-						"chebi",
-						"qualifiers"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Ge qualifier by code (or label)",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Response status code is 200\", function () {\r",
-							"    pm.response.to.have.status(200);\r",
-							"});\r",
-							"\r",
-							"\r",
-							"pm.test(\"Response has the required fields\", function () {\r",
-							"    const responseData = pm.response.json();\r",
-							"    \r",
-							"    pm.expect(responseData).to.be.an('object');\r",
-							"    pm.expect(responseData.code).to.exist;\r",
-							"    pm.expect(responseData.name).to.exist;\r",
-							"    pm.expect(responseData.terminology).to.exist;\r",
-							"    pm.expect(responseData.version).to.exist;\r",
-							"    pm.expect(responseData.synonyms).to.exist;\r",
-							"    pm.expect(responseData.properties).to.exist;\r",
-							"\r",
-							"    pm.expect(responseData.code).to.exist.and.to.equal(\"oboInOwl:hasSynonymType\");\r",
-							"    pm.expect(responseData.name).to.exist.and.to.equal(\"has_synonym_type\");\r",
-							"    pm.expect(responseData.terminology).to.exist.and.to.equal(\"chebi\");\r",
-							"});\r",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{API_URL}}/metadata/chebi/qualifier/oboInOwl:hasSynonymType?include=summary",
-					"host": [
-						"{{API_URL}}"
-					],
-					"path": [
-						"metadata",
-						"chebi",
-						"qualifier",
-						"oboInOwl:hasSynonymType"
 					],
 					"query": [
 						{
@@ -457,7 +395,7 @@
 							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
 							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
 							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
-							"      pm.expect(item.terminology).to.equal(\"chebi\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item.terminology).to.equal(\"medrt\"); // Fixed the syntax for equality check\r",
 							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
 							"  });\r",
 							"});\r",
@@ -478,13 +416,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/metadata/chebi/roles",
+					"raw": "{{API_URL}}/metadata/medrt/roles",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"metadata",
-						"chebi",
+						"medrt",
 						"roles"
 					]
 				}
@@ -528,127 +466,15 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/metadata/chebi/role/ends_during?include=summary",
+					"raw": "{{API_URL}}/metadata/medrt/role/ends_during?include=summary",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"metadata",
-						"chebi",
+						"medrt",
 						"role",
 						"ends_during"
-					],
-					"query": [
-						{
-							"key": "include",
-							"value": "summary"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get all definition types",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Validate the schema for the response\", function () {\r",
-							"  const responseData = pm.response.json();\r",
-							"  \r",
-							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
-							"\r",
-							"  responseData.forEach(function(item) {\r",
-							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
-							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
-							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
-							"      pm.expect(item.terminology).to.equal(\"chebi\"); // Fixed the syntax for equality check\r",
-							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
-							"  });\r",
-							"});\r",
-							"\r",
-							"pm.test(\"Definition Types array is present and contains elements\", function () {\r",
-							"  const responseData = pm.response.json();\r",
-							"  \r",
-							"  pm.expect(responseData).to.be.an('array');\r",
-							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
-							"});"
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{API_URL}}/metadata/chebi/definitionTypes?include=summary",
-					"host": [
-						"{{API_URL}}"
-					],
-					"path": [
-						"metadata",
-						"chebi",
-						"definitionTypes"
-					],
-					"query": [
-						{
-							"key": "include",
-							"value": "summary"
-						}
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "Get definition type by code",
-			"event": [
-				{
-					"listen": "test",
-					"script": {
-						"exec": [
-							"pm.test(\"Response status code is 200\", function () {\r",
-							"    pm.response.to.have.status(200);\r",
-							"});\r",
-							"\r",
-							"\r",
-							"pm.test(\"Response has the required fields\", function () {\r",
-							"    const responseData = pm.response.json();\r",
-							"    \r",
-							"    pm.expect(responseData).to.be.an('object');\r",
-							"    pm.expect(responseData.code).to.exist;\r",
-							"    pm.expect(responseData.name).to.exist;\r",
-							"    pm.expect(responseData.terminology).to.exist;\r",
-							"    pm.expect(responseData.version).to.exist;\r",
-							"    pm.expect(responseData.synonyms).to.exist;\r",
-							"\r",
-							"    pm.expect(responseData.code).to.exist.and.to.equal(\"IAO_0000115\");\r",
-							"    pm.expect(responseData.name).to.exist.and.to.equal(\"definition\");\r",
-							"});\r",
-							""
-						],
-						"type": "text/javascript",
-						"packages": {}
-					}
-				}
-			],
-			"request": {
-				"method": "GET",
-				"header": [],
-				"url": {
-					"raw": "{{API_URL}}/metadata/chebi/definitionType/IAO_0000115?include=summary",
-					"host": [
-						"{{API_URL}}"
-					],
-					"path": [
-						"metadata",
-						"chebi",
-						"definitionType",
-						"IAO_0000115"
 					],
 					"query": [
 						{
@@ -676,7 +502,7 @@
 							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
 							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
 							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
-							"      pm.expect(item.terminology).to.equal(\"chebi\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item.terminology).to.equal(\"medrt\"); // Fixed the syntax for equality check\r",
 							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
 							"  });\r",
 							"});\r",
@@ -697,13 +523,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/metadata/chebi/synonymTypes?include=summary",
+					"raw": "{{API_URL}}/metadata/medrt/synonymTypes?include=summary",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"metadata",
-						"chebi",
+						"medrt",
 						"synonymTypes"
 					],
 					"query": [
@@ -752,13 +578,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/metadata/chebi/synonymType/rdfs:label?include=summary",
+					"raw": "{{API_URL}}/metadata/medrt/synonymType/rdfs:label?include=summary",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"metadata",
-						"chebi",
+						"medrt",
 						"synonymType",
 						"rdfs:label"
 					],
@@ -799,7 +625,7 @@
 							"        pm.expect(item.leaf).to.exist;\r",
 							"        pm.expect(item.active).to.exist;\r",
 							"\r",
-							"        pm.expect(item.terminology).to.exist.and.to.equal(\"chebi\");\r",
+							"        pm.expect(item.terminology).to.exist.and.to.equal(\"medrt\");\r",
 							"        pm.expect(item.leaf).to.exist.and.to.equal(false);\r",
 							"        pm.expect(item.active).to.exist.and.to.equal(true);\r",
 							"  });\r",
@@ -816,13 +642,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/chebi/roots",
+					"raw": "{{API_URL}}/concept/medrt/roots",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
-						"chebi",
+						"medrt",
 						"roots"
 					]
 				}
@@ -851,9 +677,9 @@
 							"    });\r",
 							"  });\r",
 							"});\r",
-							"pm.test(\"Each array entry has the first entry's code as CHEBI:33250\", function () {\r",
+							"pm.test(\"Each array entry has the first entry's code as N0000178295\", function () {\r",
 							"  const responseData = pm.response.json();\r",
-							"  const firstEntryCode = \"CHEBI:33250\";\r",
+							"  const firstEntryCode = \"N0000178295\";\r",
 							"\r",
 							"  responseData.forEach((array) => {\r",
 							"    pm.expect(array[0].code).to.equal(firstEntryCode);\r",
@@ -881,14 +707,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/chebi/CHEBI:33250/pathsToRoot",
+					"raw": "{{API_URL}}/concept/medrt/N0000178295/pathsToRoot",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
-						"chebi",
-						"CHEBI:33250",
+						"medrt",
+						"N0000178295",
 						"pathsToRoot"
 					]
 				}
@@ -919,9 +745,9 @@
 							"  });\r",
 							"});\r",
 							"\r",
-							"pm.test(\"Each array entry has the last entry's code as CHEBI:33250\", function () {\r",
+							"pm.test(\"Each array entry has the last entry's code as N0000178295\", function () {\r",
 							"  const responseData = pm.response.json();\r",
-							"  const lastEntryCode = \"CHEBI:33250\";\r",
+							"  const lastEntryCode = \"N0000178295\";\r",
 							"\r",
 							"  responseData.forEach((array) => {\r",
 							"    if (array.length > 0) {\r",
@@ -954,14 +780,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/chebi/CHEBI:33250/pathsFromRoot",
+					"raw": "{{API_URL}}/concept/medrt/N0000178295/pathsFromRoot",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
-						"chebi",
-						"CHEBI:33250",
+						"medrt",
+						"N0000178295",
 						"pathsFromRoot"
 					]
 				}
@@ -992,10 +818,10 @@
 							"  });\r",
 							"});\r",
 							"\r",
-							"pm.test(\"Each array entry has the first entry's code as CHEBI:33318 and last entry's code as CHEBI:33250\", function () {\r",
+							"pm.test(\"Each array entry has the first entry's code as N0000178295 and last entry's code as N0000178293\", function () {\r",
 							"  const responseData = pm.response.json();\r",
-							"  const firstEntryCode = \"CHEBI:33318\";\r",
-							"  const lastEntryCode = \"CHEBI:33250\";\r",
+							"  const firstEntryCode = \"N0000178295\";\r",
+							"  const lastEntryCode = \"N0000178293\";\r",
 							"\r",
 							"  responseData.forEach((array) => {\r",
 							"    if (array.length > 0) {\r",
@@ -1029,16 +855,16 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/chebi/CHEBI:33318/pathsToAncestor/CHEBI:33250",
+					"raw": "{{API_URL}}/concept/medrt/N0000178295/pathsToAncestor/N0000178293",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
-						"chebi",
-						"CHEBI:33318",
+						"medrt",
+						"N0000178295",
 						"pathsToAncestor",
-						"CHEBI:33250"
+						"N0000178293"
 					]
 				}
 			},
@@ -1057,10 +883,10 @@
 							"\r",
 							"pm.test(\"results sorted properly by exact code matches first\", function () {\r",
 							"    var concepts = pm.response.json().concepts;\r",
-							"    var indexBeforeCHEBI = concepts.findIndex(concept => concept.code === 'CHEBI:33318');\r",
-							"    var codesBeforeCHEBI = concepts.slice(0, indexBeforeCHEBI).map(concept => concept.code);\r",
+							"    var indexBeforeMEDRT = concepts.findIndex(concept => concept.code === 'N0000178295');\r",
+							"    var codesBeforeMEDRT = concepts.slice(0, indexBeforeMEDRT).map(concept => concept.code);\r",
 							"    \r",
-							"    pm.expect(codesBeforeCHEBI).to.not.include.any.members(['CHEBI:33318']);\r",
+							"    pm.expect(codesBeforeMEDRT).to.not.include.any.members(['N0000178295']);\r",
 							"});"
 						],
 						"type": "text/javascript",
@@ -1072,23 +898,23 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/chebi/search?terminology=chebi&term=CHEBI:33318",
+					"raw": "{{API_URL}}/concept/medrt/search?terminology=medrt&term=N0000178295",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
-						"chebi",
+						"medrt",
 						"search"
 					],
 					"query": [
 						{
 							"key": "terminology",
-							"value": "chebi"
+							"value": "medrt"
 						},
 						{
 							"key": "term",
-							"value": "CHEBI:33318"
+							"value": "N0000178295"
 						}
 					]
 				}
@@ -1106,10 +932,10 @@
 							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.above(0);\r",
 							"});\r",
 							"\r",
-							"pm.test(\"Each concept has name 'main group element atom' and terminology 'chebi'\", function () {\r",
+							"pm.test(\"Each concept has name 'Therapeutic Categories' and terminology 'medrt'\", function () {\r",
 							"    pm.response.json().concepts.forEach(function(concept) {\r",
-							"        pm.expect(concept.name).to.equal('main group element atom');\r",
-							"        pm.expect(concept.terminology).to.equal('chebi');\r",
+							"        pm.expect(concept.name).to.equal('Therapeutic Categories');\r",
+							"        pm.expect(concept.terminology).to.equal('medrt');\r",
 							"    });\r",
 							"});"
 						],
@@ -1122,23 +948,23 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/chebi/search?terminology=chebi&term=main group element atom&type=match&pageSize=5",
+					"raw": "{{API_URL}}/concept/medrt/search?terminology=medrt&term=Therapeutic Categories&type=match&pageSize=5",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
-						"chebi",
+						"medrt",
 						"search"
 					],
 					"query": [
 						{
 							"key": "terminology",
-							"value": "chebi"
+							"value": "medrt"
 						},
 						{
 							"key": "term",
-							"value": "main group element atom"
+							"value": "Therapeutic Categories"
 						},
 						{
 							"key": "type",
@@ -1164,10 +990,10 @@
 							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.at.most(5);\r",
 							"});\r",
 							"\r",
-							"pm.test(\"Each concept has name that starts with 'main' and terminology 'chebi'\", function () {\r",
+							"pm.test(\"Each concept has name that starts with 'Therapeutic' and terminology 'medrt'\", function () {\r",
 							"    pm.response.json().concepts.forEach(function(concept) {\r",
-							"        pm.expect(concept.name).to.satisfy(name => name.toLowerCase().startsWith('main'));\r",
-							"        pm.expect(concept.terminology).to.equal('chebi');\r",
+							"        pm.expect(concept.name).to.satisfy(name => name.toLowerCase().startsWith('therapeutic'));\r",
+							"        pm.expect(concept.terminology).to.equal('medrt');\r",
 							"    });\r",
 							"});\r",
 							""
@@ -1181,23 +1007,23 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/chebi/search?terminology=chebi&term=main&type=startsWith&pageSize=5",
+					"raw": "{{API_URL}}/concept/medrt/search?terminology=medrt&term=Therapeutic&type=startsWith&pageSize=5",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
-						"chebi",
+						"medrt",
 						"search"
 					],
 					"query": [
 						{
 							"key": "terminology",
-							"value": "chebi"
+							"value": "medrt"
 						},
 						{
 							"key": "term",
-							"value": "main"
+							"value": "Therapeutic"
 						},
 						{
 							"key": "type",
@@ -1223,10 +1049,10 @@
 							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.at.most(5);\r",
 							"});\r",
 							"\r",
-							"pm.test(\"Each concept has name that contains 'group' and terminology 'chebi'\", function () {\r",
+							"pm.test(\"Each concept has name that contains 'Cells, Cultured' and terminology 'medrt'\", function () {\r",
 							"    pm.response.json().concepts.forEach(function(concept) {\r",
-							"        pm.expect(concept.name.toLowerCase()).to.include('group');\r",
-							"        pm.expect(concept.terminology).to.equal('chebi');\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('cells, cultured');\r",
+							"        pm.expect(concept.terminology).to.equal('medrt');\r",
 							"    });\r",
 							"});\r",
 							""
@@ -1240,23 +1066,23 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/chebi/search?terminology=chebi&term=group&type=phrase&pageSize=5",
+					"raw": "{{API_URL}}/concept/medrt/search?terminology=medrt&term=Cells, Cultured&type=phrase&pageSize=5",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
-						"chebi",
+						"medrt",
 						"search"
 					],
 					"query": [
 						{
 							"key": "terminology",
-							"value": "chebi"
+							"value": "medrt"
 						},
 						{
 							"key": "term",
-							"value": "group"
+							"value": "Cells, Cultured"
 						},
 						{
 							"key": "type",
@@ -1282,10 +1108,10 @@
 							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(5);\r",
 							"});\r",
 							"\r",
-							"pm.test(\"Each concept has name that contains 'group' (fuzzy search from groop) and terminology 'chebi'\", function () {\r",
+							"pm.test(\"Each concept has name that contains 'cells' (fuzzy search from calls) and terminology 'medrt'\", function () {\r",
 							"    pm.response.json().concepts.forEach(function(concept) {\r",
-							"        pm.expect(concept.name.toLowerCase()).to.include('group');\r",
-							"        pm.expect(concept.terminology).to.equal('chebi');\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('cells');\r",
+							"        pm.expect(concept.terminology).to.equal('medrt');\r",
 							"    });\r",
 							"});\r",
 							""
@@ -1299,23 +1125,23 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/chebi/search?terminology=chebi&term=groop&type=fuzzy&pageSize=5",
+					"raw": "{{API_URL}}/concept/medrt/search?terminology=medrt&term=calls&type=fuzzy&pageSize=5",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
-						"chebi",
+						"medrt",
 						"search"
 					],
 					"query": [
 						{
 							"key": "terminology",
-							"value": "chebi"
+							"value": "medrt"
 						},
 						{
 							"key": "term",
-							"value": "groop"
+							"value": "calls"
 						},
 						{
 							"key": "type",
@@ -1337,14 +1163,14 @@
 					"listen": "test",
 					"script": {
 						"exec": [
-							"pm.test(\"Valid results exist, 5 total by pagesize\", function () {\r",
-							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(5);\r",
+							"pm.test(\"Valid results exist, 5 at most by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.at.most(5);\r",
 							"});\r",
 							"\r",
-							"pm.test(\"Each concept has name that contains 'group' + 'atom' and terminology 'chebi'\", function () {\r",
+							"pm.test(\"Each concept has name that contains 'cell' + 'autologous' and terminology 'medrt'\", function () {\r",
 							"    pm.response.json().concepts.forEach(function(concept) {\r",
-							"        pm.expect(concept.name.toLowerCase()).to.include('group').and.to.include('atom');\r",
-							"        pm.expect(concept.terminology).to.equal('chebi');\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('cell').and.to.include('autologous');\r",
+							"        pm.expect(concept.terminology).to.equal('medrt');\r",
 							"    });\r",
 							"});\r",
 							""
@@ -1358,23 +1184,23 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/chebi/search?terminology=chebi&term=group atom&type=AND&pageSize=5",
+					"raw": "{{API_URL}}/concept/medrt/search?terminology=medrt&term=Cell Autologous&type=AND&pageSize=5",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
-						"chebi",
+						"medrt",
 						"search"
 					],
 					"query": [
 						{
 							"key": "terminology",
-							"value": "chebi"
+							"value": "medrt"
 						},
 						{
 							"key": "term",
-							"value": "group atom"
+							"value": "Cell Autologous"
 						},
 						{
 							"key": "type",
@@ -1397,13 +1223,13 @@
 					"script": {
 						"exec": [
 							"pm.test(\"Valid results exist, 10 total by pagesize\", function () {\r",
-							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(10);\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.at.most(5);\r",
 							"});\r",
 							"\r",
-							"pm.test(\"Each concept has name that contains 'main' or 'metal' and terminology 'chebi'\", function () {\r",
+							"pm.test(\"Each concept has name that contains 'fish' or 'meat' and terminology 'medrt'\", function () {\r",
 							"    pm.response.json().concepts.forEach(function(concept) {\r",
-							"        pm.expect(concept.name.toLowerCase()).to.include.oneOf(['main', 'metal']);\r",
-							"        pm.expect(concept.terminology).to.equal('chebi');\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include.oneOf(['fish', 'meat']);\r",
+							"        pm.expect(concept.terminology).to.equal('medrt');\r",
 							"    });\r",
 							"});\r",
 							""
@@ -1417,23 +1243,23 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/chebi/search?terminology=chebi&term=main metal&type=OR&pageSize=10",
+					"raw": "{{API_URL}}/concept/medrt/search?terminology=medrt&term=fish meat&type=OR&pageSize=10",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
-						"chebi",
+						"medrt",
 						"search"
 					],
 					"query": [
 						{
 							"key": "terminology",
-							"value": "chebi"
+							"value": "medrt"
 						},
 						{
 							"key": "term",
-							"value": "main metal"
+							"value": "fish meat"
 						},
 						{
 							"key": "type",
