@@ -16,8 +16,8 @@ while [[ "$#" -gt 0 ]]; do case $1 in
 esac; shift; done
 
 if [ $help == 1 ] || [ ${#arr[@]} -ne 2 ]; then
-  echo "Usage: src/main/bin/devreset.sh \"c:/data/UnitTestData\" stardog"
-  echo "  e.g. src/main/bin/devreset.sh ../data/UnitTestData stardog"
+  echo "Usage: src/main/bin/load.sh \"c:/data/UnitTestData\" stardog"
+  echo "  e.g. src/main/bin/load.sh ../data/UnitTestData stardog"
   exit 1
 fi
 dir=${arr[0]}
@@ -63,33 +63,11 @@ elif [[ -z $STARDOG_USERNAME ]]; then
 elif [[ -z $STARDOG_PASSWORD ]]; then
     echo "ERROR: STARDOG_PASSWORD is not set"
     exit 1
-elif [[ -z $ES_SCHEME ]]; then
-    echo "ERROR: ES_SCHEME is not set"
-    exit 1
-elif [[ -z $ES_HOST ]]; then
-    echo "ERROR: ES_HOST is not set"
-    exit 1
-elif [[ -z $ES_PORT ]]; then
-    echo "ERROR: ES_PORT is not set"
-    exit 1
 fi
 
 # Prerequisites - check the UnitTest
 echo "  Check prerequisites"
 
-# Check that reindex.sh is at src/main/bin
-if [[ ! -e "src/main/bin/reindex.sh" ]]; then
-    echo "ERROR: src/main/bin/reindex.sh does not exist, run from top-level evsrestapi directory"
-    exit 1
-fi
-
-# Check NCIM
-echo "    check NCIM"
-ct=`ls $dir/NCIM | grep RRF | wc -l`
-if [[ $ct -le 20 ]]; then
-    echo "ERROR: unexpectedly small number of NCIM/*RRF files = $ct"
-    exit 1
-fi
 # Check NCIt weekly
 echo "    check NCIt weekly"
 if [[ ! -e "$dir/ThesaurusInferred_+1weekly.owl" ]]; then
@@ -156,6 +134,7 @@ echo "    verify $db_type database is running"
 if [[ $db_type = "stardog" ]]; then
   $curl_cmd "http://${STARDOG_HOST}:${STARDOG_PORT}/admin/healthcheck" > /dev/null
 elif [[ $db_type = "jena" ]]; then
+echo  $curl_cmd -s -f "http://${STARDOG_HOST}:${STARDOG_PORT}/$/ping" 
   $curl_cmd -s -f "http://${STARDOG_HOST}:${STARDOG_PORT}/$/ping" > /dev/null
 fi
 if [[ $? -ne 0 ]]; then
@@ -163,53 +142,6 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-
-# Verify elasticsearch can be reached
-echo "    verify elasticsearch can be reached"
-curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices" >> /dev/null
-if [[ $? -ne 0 ]]; then
-    echo "ERROR: problem connecting to elasticsearch"
-    exit 1
-fi
-
-# Remove elasticsearch indexes
-remove_elasticsearch_indexes(){
-  echo "  Remove elasticsearch indexes"
-  curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices" | cut -d\  -f 3 | egrep "metrics|concept|evs" | grep -v "snomed" | cat > /tmp/x.$$.txt
-  if [[ $? -ne 0 ]]; then
-      echo "ERROR: problem connecting to docker elasticsearch"
-      exit 1
-  fi
-  for i in `cat /tmp/x.$$.txt`; do
-      echo "    remove $i"
-      curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$i" >> /dev/null
-      if [[ $? -ne 0 ]]; then
-          echo "ERROR: problem removing elasticsearch index $i"
-          exit 1
-      fi
-  done
-}
-# Reindex ncim - individual terminologies
-reindex_ncim(){
-  for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V3.0; do
-      # Keep the NCIM folder around while we run
-      echo "Load $t (from downloaded data)"
-      src/main/bin/ncim-part.sh --noconfig $dir/NCIM --keep --terminology $t > /tmp/x.$$.txt 2>&1
-      if [[ $? -ne 0 ]]; then
-          cat /tmp/x.$$.txt | sed 's/^/    /'
-          echo "ERROR: loading $t"
-          exit 1
-      fi
-  done
-  # Reindex ncim - must run after the prior section so that maps can connect to loaded terminologies
-  echo "  Reindex ncim"
-  src/main/bin/ncim-part.sh --noconfig $dir/NCIM > /tmp/x.$$.txt 2>&1
-  if [[ $? -ne 0 ]]; then
-      cat /tmp/x.$$.txt | sed 's/^/    /'
-      echo "ERROR: problem running ncim-part.sh"
-      exit 1
-  fi
-}
 
 drop_databases(){
   for db in "${databases[@]}"
@@ -308,26 +240,11 @@ load_data(){
 }
 
 
-reindex(){
-# Reindex stardog terminologies
-echo "  Reindex stardog terminologies"
-# After this point, the log is stored in the tmp folder unless an error is hit
-src/main/bin/reindex.sh --noconfig --history "$historyFile" > /tmp/x.$$.txt 2>&1
-if [[ $? -ne 0 ]]; then
-    cat /tmp/x.$$.txt | sed 's/^/    /'
-    echo "ERROR: problem running reindex.sh script"
-    exit 1
-fi
-}
-
 # Clean and load stardog
 echo "  Remove stardog databases and load monthly/weekly"
 drop_databases
 create_databases
-remove_elasticsearch_indexes
-reindex_ncim
 load_data
-reindex
 
 # Cleanup
 /bin/rm -f /tmp/x.$$.txt $dir/x.{sh,txt}

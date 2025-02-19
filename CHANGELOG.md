@@ -4,7 +4,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [1.10.0.RELEASE] - 2024-06-18
+## [2.0.0.RELEASE] - 2025-01-28
+### Added
+- FHIR R5 terminology endpoints for CodeSystem, ValueSet, and ConceptMap
+- Added vulnerability scanning
+- Added endpoint for URL mapping from terms browser to evs explore
+- Add sending email to term form handling
+### Changed
+- Upgrade backend to Spring Boot 3 (and J17), Upgrade tests to Junit 5
+- FHIR R4 improvements and alignment with spec
+- More consistent error handling
+- Fixes to swagger
+- Improvements to SPARQL query handling
+- Improvements to backend handling of "mappings" to use a separate index for mappings
+
+## [1.10.0.RELEASE] - 2024-07-22
 ### Added
 - FHIR R4 terminology endpoints for CodeSystem, ValueSet, and ConceptMap
 - Additional search endpoints to support Sparql querying (of rdf-loaded terminologies)

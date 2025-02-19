@@ -42,6 +42,30 @@ if [[ $historyFileOverride ]]; then
 fi
 echo ""
 
+# check status
+check_status() {
+    local retval=$1
+    local message=$2
+    if [ $retval -ne 0 ]; then
+      cat /tmp/x.$$
+      echo ""
+      echo "$message"
+      exit 1
+    fi
+}
+# check status
+check_http_status() {
+    retval=$1
+    message=$2
+    status=`tail -1 /tmp/x.$$`
+    if [ $status -ne $retval ]; then
+      echo ""
+      perl -pe 's/'$status'$//' /tmp/x.$$ | sed 's/^/    /'
+      echo "$message (returned $status)"
+      exit 1
+    fi
+}
+
 # Setup configuration
 setup_configuration() {
   echo "  Setup configuration"
@@ -51,7 +75,6 @@ setup_configuration() {
       CONFIG_ENV_FILE=${CONFIG_DIR}/setenv.sh
       echo "    config = $CONFIG_ENV_FILE"
     if [[ -e $CONFIG_ENV_FILE ]]; then
-      echo "    config = $CONFIG_ENV_FILE"
       . $CONFIG_ENV_FILE
     else
           echo "ERROR: $CONFIG_ENV_FILE does not exist or has a problem"
@@ -113,25 +136,30 @@ echo "    GRAPH_DB_TYPE = $l_graph_db_type"
 echo "    GRAPH_DB_PORT = $l_graph_db_port"
 if [[ $force -eq 1 ]]; then
     echo "  force = 1"
-elif [[ $ES_CLEAN == "true" ]]; then
-    echo "  force = 1 (ES_CLEAN=true)"
-    force=1
+#elif [[ $ES_CLEAN == "true" ]]; then
+#    echo "  force = 1 (ES_CLEAN=true)"
+#    force=1
 fi
 
 metadata_config_url=${CONFIG_BASE_URI:-"https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata"}
 
 get_databases(){
   if [[ $l_graph_db_type == "stardog" ]]; then
-    curl -s -g -u "${l_graph_db_username}:$l_graph_db_password" \
-        "http://${l_graph_db_host}:${l_graph_db_port}/admin/databases" |\
-        python3 "$DIR/get_databases.py" "$GRAPH_DB_TYPE" > /tmp/db.$$.txt
+    # this was put back to perl because we don't have python3 on the evsrestapi machines
+    curl -w "\n%{http_code}" -s -g -u "${l_graph_db_username}:$l_graph_db_password" \
+        "http://${l_graph_db_host}:${l_graph_db_port}/admin/databases" 2> /dev/null > /tmp/x.$$
+    check_status $? "GET /admin/databases failed to list databases"
+    check_http_status 200 "GET /admin/databases expecting 200"
+    head -n -1 /tmp/x.$$ | $jq | grep -v catalog |\
+        perl -ne 's/\r//; $x=0 if /\]/; 
+            if ($x) { s/.* "//; s/",?$//; print "$_"; }; 
+            $x=1 if/\[/;' > /tmp/db.$$.txt
+            
   elif [[ $l_graph_db_type == "jena" ]]; then
-    curl -s -g "http://${l_graph_db_host}:${l_graph_db_port}/$/server" |\
-        python3 "$DIR/get_databases.py" "$GRAPH_DB_TYPE" > /tmp/db.$$.txt
-  fi
-  if [[ $? -ne 0 ]]; then
-      echo "ERROR: unexpected problem listing databases"
-      exit 1
+    curl -w "\n%{http_code}" -s -g "http://${l_graph_db_host}:${l_graph_db_port}/$/server" 2> /dev/null > /tmp/x.$$
+    check_status $? "GET /\$/server failed to list databases"
+    check_http_status 200 "GET /\$/server expecting 200"
+    head -n -1 /tmp/x.$$ | $jq | grep ds.name | perl -pe 's/.*ds.name": "\///; s/",.*//;' > /tmp/db.$$.txt
   fi
 
   echo "  databases = " `cat /tmp/db.$$.txt`
@@ -152,7 +180,7 @@ get_ignored_sources(){
     echo ""
   else
     curl -s -g -f "$metadata_config_url/ignore-source.txt" -o /tmp/is.$$.txt
-  if [[ $? -ne 0 ]]; then
+    if [[ $? -ne 0 ]]; then
       echo "Failed to download ignore-source.txt using curl, trying as a local file..." 1>&3
       cp "$metadata_config_url/ignore-source.txt" /tmp/is.$$.txt
       if [[ $? -ne 0 ]]; then
@@ -230,15 +258,22 @@ get_graph_query
 get_graphs(){
   /bin/rm -f /tmp/y.$$.txt
   touch /tmp/y.$$.txt
+  # this was put back to perl because we don't have python3 on the evsrestapi machines
   for db in `cat /tmp/db.$$.txt`; do
-      curl -s -g -u "${l_graph_db_username}:$l_graph_db_password" \
+      curl -w "\n%{http_code}"  -s -g -u "${l_graph_db_username}:$l_graph_db_password" \
           http://${l_graph_db_host}:${l_graph_db_port}/$db/query \
-          --data-urlencode "$query" -H "Accept: application/sparql-results+json" |\
-          $jq | python3 "$DIR/get_graphs.py" "$db" >> /tmp/y.$$.txt
-      if [[ $? -ne 0 ]]; then
-          echo "ERROR: unexpected problem obtaining $db versions from stardog"
-          exit 1
-      fi
+          --data-urlencode "$query" -H "Accept: application/sparql-results+json" 2> /dev/null > /tmp/x.$$
+      check_status $? "GET /$db/query failed to get graphs"
+      check_http_status 200 "GET /$db/query expecting 200"
+      head -n -1 /tmp/x.$$ | $jq | perl -ne '
+            chop; $x="version" if /"version"/; 
+            $x="source" if /"source"/; 
+            $x=0 if /\}/; 
+            if ($x && /"value"/) { 
+                s/.* "//; s/".*//;
+                ${$x} = $_;                
+                print "$version|'$db'|$source\n" if $x eq "version"; 
+            } ' >> /tmp/y.$$.txt
   done
   # Sort by version then reverse by DB (NCIT2 goes before CTRP)
   # this is because we need "monthly" to be indexed from the "monthlyDb"
@@ -249,19 +284,19 @@ get_graphs(){
 }
 get_graphs
 
-if [[ $ES_CLEAN == "true" ]]; then
-    echo "  Remove and recreate evs_metadata index"
-    curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata" >> /dev/null
-    if [[ $? -ne 0 ]]; then
-        echo "ERROR: unexpected error deleting evs_metadata index"
-        exit 1
-    fi
-    curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata" >> /dev/null
-    if [[ $? -ne 0 ]]; then
-        echo "ERROR: unexpected error creating evs_metadata index"
-        exit 1
-    fi
-fi
+#if [[ $ES_CLEAN == "true" ]]; then
+#    echo "  Remove and recreate evs_metadata index"
+#    curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata" >> /dev/null
+#    if [[ $? -ne 0 ]]; then
+#        echo "ERROR: unexpected error deleting evs_metadata index"
+#        exit 1
+#    fi
+#    curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata" >> /dev/null
+#    if [[ $? -ne 0 ]]; then
+#        echo "ERROR: unexpected error creating evs_metadata index"
+#        exit 1
+#    fi
+#fi
 
 # set the max number of fields higher
 # we can probably remove this when we figure a better answer
