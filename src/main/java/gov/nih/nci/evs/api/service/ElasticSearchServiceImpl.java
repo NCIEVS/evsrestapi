@@ -694,8 +694,6 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         break;
     }
 
-    logger.debug("updated term: {}", result);
-
     return result;
   }
 
