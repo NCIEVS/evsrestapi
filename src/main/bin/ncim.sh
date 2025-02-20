@@ -39,6 +39,13 @@ for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V3.0; do
         echo "ERROR: loading $t"
         exit 1
     fi
+    # no ncim terminologies have content qa yet
+    # cd src/main/bin
+    # mkdir -p postman_content_qa
+    # mac doesn't support bash 4 >:(
+    # lowercase_t=$(echo "$t" | tr '[:upper:]' '[:lower:]')
+    # ./postman.sh "${t_tolower}" > "postman_content_qa/${t_tolower}_postman_content_qa.txt"
+    # cd ../../..
 done
 
 echo "Cleanup"
