@@ -5,9 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.History;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.Arrays;
 import java.util.List;
-
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,12 +26,6 @@ import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.History;
-import gov.nih.nci.evs.api.properties.TestProperties;
 
 /** subset tests. */
 @ExtendWith(SpringExtension.class)
@@ -60,10 +57,11 @@ public class HistoryControllerTests {
 
     baseUrl = "/api/v1";
   }
-  
+
   @Test
   /**
    * test get trailing slash 404
+   *
    * @throws Exception
    */
   public void testGetTrailingSlashHistory() throws Exception {
