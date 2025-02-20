@@ -87,7 +87,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       final HttpServletRequest request,
       @OptionalParam(name = "_id") final TokenParam id,
       @OptionalParam(name = "date") final DateRangeParam date,
-      @OptionalParam(name = "system") final StringParam system,
+      @OptionalParam(name = "name") final StringParam name,
       @OptionalParam(name = "url") final StringParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
@@ -118,8 +118,8 @@ public class ConceptMapProviderR5 implements IResourceProvider {
           logger.debug("  SKIP id mismatch = " + cm.getName());
           continue;
         }
-        if (system != null && !system.getValue().equals(cm.getName())) {
-          logger.debug("  SKIP system mismatch = " + cm.getName());
+        if (name != null && !FhirUtility.compareString(name, cm.getName())) {
+          logger.debug("  SKIP name mismatch = " + cm.getName());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
@@ -148,7 +148,8 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * Perform the lookup in the instance map.
    *
    * <pre>
-   *    <a href="https://hl7.org/fhir/R5/conceptmap-operation-translate.html">Conceptmap operation ref </a>"
+   *    <a href=
+   * "https://hl7.org/fhir/R5/conceptmap-operation-translate.html">Conceptmap operation ref </a>"
    * </pre>
    *
    * @param request the servlet request
@@ -187,22 +188,22 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-      //      @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
+      // @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
       @OperationParam(name = "sourceCode") final CodeType sourceCode,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "sourceScope") final UriType sourceScope,
-      //      @OperationParam(name = "sourceCoding") final Coding sourceCoding,
-      //      @OperationParam(name = "sourceCodeableConcept") final CodeableConcept
+      // @OperationParam(name = "sourceCoding") final Coding sourceCoding,
+      // @OperationParam(name = "sourceCodeableConcept") final CodeableConcept
       // sourceCodeableConcept,
       @OperationParam(name = "targetCode") final UriType targetCode,
-      //      @OperationParam(name = "targetCoding") final UriType targetCoding,
-      //      @OperationParam(name = "targetCodeableConcept") final CodeableConcept
+      // @OperationParam(name = "targetCoding") final UriType targetCoding,
+      // @OperationParam(name = "targetCodeableConcept") final CodeableConcept
       // targetCodeableConcept,
       @OperationParam(name = "targetScope") final UriType targetScope,
       @OperationParam(name = "targetSystem") final UriType targetSystem
-      //      @OperationParam(name = "dependency") final String dependency
+      // @OperationParam(name = "dependency") final String dependency
       ) throws Exception {
     // Check if request is POST, throw error as we don't support POST calls
     if (request.getMethod().equals("POST")) {
@@ -230,7 +231,8 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       MappingResultList maps;
 
       SearchCriteria criteria = new SearchCriteria();
-      // Set as high as we can, should not be more than 10000 in reality. (Unlimited support?)
+      // Set as high as we can, should not be more than 10000 in reality.
+      // (Unlimited support?)
       criteria.setPageSize(10000);
       criteria.setFromRecord(0);
 
@@ -276,7 +278,8 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * Perform the lookup in the implicit map.
    *
    * <pre>
-   *  <a href="https://hl7.org/fhir/R5/conceptmap-operation-translate.html">Conceptmap operation ref</a>
+   *  <a href=
+   * "https://hl7.org/fhir/R5/conceptmap-operation-translate.html">Conceptmap operation ref</a>
    * </pre>
    *
    * @param request the servlet request.
@@ -320,15 +323,16 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "sourceScope") final UriType sourceScope,
-      //      @OperationParam(name = "sourceCoding") final Coding sourceCoding,
-      //      @OperationParam(name = "codeableConcept") final CodeableConcept sourceCodeableConcept,
+      // @OperationParam(name = "sourceCoding") final Coding sourceCoding,
+      // @OperationParam(name = "codeableConcept") final CodeableConcept
+      // sourceCodeableConcept,
       @OperationParam(name = "targetCode") final UriType targetCode,
-      //      @OperationParam(name = "targetCoding") final UriType targetCoding,
-      //      @OperationParam(name = "targetCodeableConcept") final CodeableConcept
+      // @OperationParam(name = "targetCoding") final UriType targetCoding,
+      // @OperationParam(name = "targetCodeableConcept") final CodeableConcept
       // targetCodeableConcept,
       @OperationParam(name = "targetScope") final UriType targetScope,
       @OperationParam(name = "targetSystem") final UriType targetSystem
-      //      @OperationParam(name = "dependency") final UriType dependency
+      // @OperationParam(name = "dependency") final UriType dependency
       ) throws Exception {
     // Check if request is post, throw error as we don't support POST calls
     if (request.getMethod().equals("POST")) {
@@ -355,7 +359,8 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       MappingResultList maps;
 
       SearchCriteria criteria = new SearchCriteria();
-      // Set as high as we can, should not be more than 10000 in reality. (Unlimited support?)
+      // Set as high as we can, should not be more than 10000 in reality.
+      // (Unlimited support?)
       criteria.setPageSize(10000);
       criteria.setFromRecord(0);
 
