@@ -182,7 +182,7 @@ remove_elasticsearch_indexes(){
 reindex_ncim(){
   for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V3.0; do
       # Keep the NCIM folder around while we run
-      echo "Load $t (from downloaded data)"
+      echo "  Load $t (from downloaded data)"
       src/main/bin/ncim-part.sh --noconfig $dir/NCIM --keep --terminology $t > /tmp/x.$$.txt 2>&1
       if [[ $? -ne 0 ]]; then
           cat /tmp/x.$$.txt | sed 's/^/    /'
@@ -205,10 +205,11 @@ drop_databases(){
   do
     echo "    Dropping $db"
     $curl_cmd -X DELETE "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$/datasets/${db}" > /dev/null
-    if [[ $? -ne 0 ]]; then
-        echo "Error occurred when dropping database ${db}. Response:$_"
-        exit 1
-    fi
+    # ok to skip errors, this fails if dbs do not exist yet
+    #if [[ $? -ne 0 ]]; then
+    #    echo "Error occurred when dropping database ${db}. Response:$_"
+    #    exit 1
+    #fi
   done
 }
 
@@ -271,6 +272,7 @@ reindex(){
 # Reindex terminologies
 echo "  Reindex terminologies"
 # After this point, the log is stored in the tmp folder unless an error is hit
+echo "    see /tmp/x.$$.txt"
 src/main/bin/reindex.sh --noconfig --history "$historyFile" > /tmp/x.$$.txt 2>&1
 if [[ $? -ne 0 ]]; then
     cat /tmp/x.$$.txt | sed 's/^/    /'

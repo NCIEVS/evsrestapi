@@ -35,6 +35,7 @@ public class EvsOpenSearchRestTemplate extends OpenSearchRestTemplate {
   @Override
   public <T> SearchHits<T> search(
       final Query query, final Class<T> clazz, final IndexCoordinates index) {
+
     if (logger.isDebugEnabled() && ((NativeSearchQuery) query).getQuery() != null) {
       logger.debug("  opensearch query = \n" + ((NativeSearchQuery) query).getQuery());
     }
