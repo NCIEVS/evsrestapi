@@ -79,6 +79,18 @@ public class ConceptControllerTests {
     baseUrl = "/api/v1/concept";
   }
 
+  @Test
+  /**
+   * test get trailing slash 404
+   *
+   * @throws Exception
+   */
+  public void testGetTrailingSlashNcit() throws Exception {
+    String url = baseUrl + "/ncit/C3224/";
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+  }
+
   /**
    * Test get concept.
    *

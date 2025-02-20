@@ -12,6 +12,7 @@ import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
@@ -55,6 +56,18 @@ public class HistoryControllerTests {
     JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1";
+  }
+
+  @Test
+  /**
+   * test get trailing slash 404
+   *
+   * @throws Exception
+   */
+  public void testGetTrailingSlashHistory() throws Exception {
+    String url = baseUrl + "/history/ncit/C4654/replacements/";
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
   }
 
   /**

@@ -79,6 +79,18 @@ public class SearchControllerTests {
     baseUrlNoTerm = "/api/v1/concept";
   }
 
+  @Test
+  /**
+   * test get trailing slash 404
+   *
+   * @throws Exception
+   */
+  public void testGetTrailingSlashSearch() throws Exception {
+    String url = baseUrl + "/?terminology=ncit&term=melanoma";
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+  }
+
   /**
    * Returns the search simple.
    *

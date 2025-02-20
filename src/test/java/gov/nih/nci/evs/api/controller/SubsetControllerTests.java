@@ -55,6 +55,18 @@ public class SubsetControllerTests {
     baseUrl = "/api/v1/";
   }
 
+  @Test
+  /**
+   * test get trailing slash 404
+   *
+   * @throws Exception
+   */
+  public void testGetTrailingSlashSubset() throws Exception {
+    String url = baseUrl + "/subset/ncit/C116978/?include=minimal";
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+  }
+
   /**
    * Test include subsets.
    *

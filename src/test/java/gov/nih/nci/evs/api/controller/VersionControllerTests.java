@@ -64,6 +64,18 @@ public class VersionControllerTests {
     JacksonTester.initFields(this, objectMapper);
   }
 
+  @Test
+  /**
+   * test get trailing slash 404
+   *
+   * @throws Exception
+   */
+  public void testGetTrailingSlashVersion() throws Exception {
+    String url = baseUrl + "/version/";
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+  }
+
   /**
    * Test version.
    *

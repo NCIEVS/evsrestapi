@@ -64,6 +64,18 @@ public class MetadataControllerTests {
     baseUrl = "/api/v1/metadata";
   }
 
+  @Test
+  /**
+   * test get trailing slash 404
+   *
+   * @throws Exception
+   */
+  public void testGetTrailingSlashMetadata() throws Exception {
+    String url = baseUrl + "/terminologies/";
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+  }
+
   /**
    * Returns the associations.
    *
