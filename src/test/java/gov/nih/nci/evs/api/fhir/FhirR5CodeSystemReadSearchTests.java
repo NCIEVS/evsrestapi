@@ -6,11 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r5.model.CodeSystem;
@@ -33,15 +35,9 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
-
 /**
- * Unit FhirR5Tests. Tests the functionality of the FHIR R5 endpoints,
- * CodeSystem, ValueSet, and ConceptMap. All passed ids MUST be lowercase, so
- * they match our internally set id's
+ * Unit FhirR5Tests. Tests the functionality of the FHIR R5 endpoints, CodeSystem, ValueSet, and
+ * ConceptMap. All passed ids MUST be lowercase, so they match our internally set id's
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -51,12 +47,10 @@ class FhirR5CodeSystemReadSearchTests {
   private static final Logger log = LoggerFactory.getLogger(FhirR5CodeSystemReadSearchTests.class);
 
   /** The port. */
-  @LocalServerPort
-  private int port;
+  @LocalServerPort private int port;
 
   /** The rest template. */
-  @Autowired
-  private TestRestTemplate restTemplate;
+  @Autowired private TestRestTemplate restTemplate;
 
   /** local host prefix. */
   private final String localHost = "http://localhost:";
@@ -176,11 +170,14 @@ class FhirR5CodeSystemReadSearchTests {
     String endpoint = localHost + port + fhirCSPath;
 
     // Test 1: All valid parameters
-    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
-        // "ge2021-06")
-        .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-        .queryParam("version", "21.06e").queryParam("title", "ncit").queryParam("publisher", "NCI")
-        .queryParam("name", "NCI Thesaurus 21.06e");
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+            // "ge2021-06")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("version", "21.06e")
+            .queryParam("title", "ncit")
+            .queryParam("publisher", "NCI")
+            .queryParam("name", "NCI Thesaurus 21.06e");
 
     // Test successful case with all parameters
     String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -188,68 +185,87 @@ class FhirR5CodeSystemReadSearchTests {
     validateCodeSystemResults(data, true); // Expecting results
 
     // Test 2: Invalid date, all other parameters valid
-    builder = UriComponentsBuilder.fromUriString(endpoint).queryParam("date", "ge2033-01") // Future
-        // date
-        // -
-        // invalid
-        .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-        .queryParam("version", "21.06e").queryParam("title", "ncit").queryParam("publisher", "NCI")
-        .queryParam("name", "NCI Thesaurus");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2033-01") // Future
+            // date
+            // -
+            // invalid
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("version", "21.06e")
+            .queryParam("title", "ncit")
+            .queryParam("publisher", "NCI")
+            .queryParam("name", "NCI Thesaurus");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateCodeSystemResults(data, false);
 
     // Test 3: Invalid url, all other parameters valid
-    builder = UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
-        // "ge2021-06")
-        .queryParam("url", "http://invalid.system.url").queryParam("version", "21.06e")
-        .queryParam("title", "ncit").queryParam("publisher", "NCI")
-        .queryParam("name", "NCI Thesaurus");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+            // "ge2021-06")
+            .queryParam("url", "http://invalid.system.url")
+            .queryParam("version", "21.06e")
+            .queryParam("title", "ncit")
+            .queryParam("publisher", "NCI")
+            .queryParam("name", "NCI Thesaurus");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateCodeSystemResults(data, false);
 
     // Test 4: Invalid version, all other parameters valid
-    builder = UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
-        // "ge2021-06")
-        .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-        .queryParam("version", "invalid_version").queryParam("title", "ncit")
-        .queryParam("publisher", "NCI").queryParam("name", "NCI Thesaurus");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+            // "ge2021-06")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("version", "invalid_version")
+            .queryParam("title", "ncit")
+            .queryParam("publisher", "NCI")
+            .queryParam("name", "NCI Thesaurus");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateCodeSystemResults(data, false);
 
     // Test 5: Invalid title, all other parameters valid
-    builder = UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
-        // "ge2021-06")
-        .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-        .queryParam("version", "21.06e").queryParam("title", "invalid_title")
-        .queryParam("publisher", "NCI").queryParam("name", "NCI Thesaurus");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+            // "ge2021-06")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("version", "21.06e")
+            .queryParam("title", "invalid_title")
+            .queryParam("publisher", "NCI")
+            .queryParam("name", "NCI Thesaurus");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateCodeSystemResults(data, false);
 
     // Test 6: Invalid publisher, all other parameters valid
-    builder = UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
-        // "ge2021-06")
-        .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-        .queryParam("version", "21.06e").queryParam("title", "ncit")
-        .queryParam("publisher", "InvalidPublisher").queryParam("name", "NCI Thesaurus");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+            // "ge2021-06")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("version", "21.06e")
+            .queryParam("title", "ncit")
+            .queryParam("publisher", "InvalidPublisher")
+            .queryParam("name", "NCI Thesaurus");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateCodeSystemResults(data, false);
 
     // Test 7: Invalid name, all other parameters valid
-    builder = UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
-        // "ge2021-06")
-        .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-        .queryParam("version", "21.06e").queryParam("title", "ncit").queryParam("publisher", "NCI")
-        .queryParam("name", "InvalidName");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+            // "ge2021-06")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("version", "21.06e")
+            .queryParam("title", "ncit")
+            .queryParam("publisher", "NCI")
+            .queryParam("name", "InvalidName");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -402,8 +418,10 @@ class FhirR5CodeSystemReadSearchTests {
         firstPageData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Test 3: Get second page (count=2, offset=2)
-    UriComponentsBuilder secondPageBuilder = UriComponentsBuilder.fromUriString(endpoint)
-        .queryParam("_count", "2").queryParam("_offset", "2");
+    UriComponentsBuilder secondPageBuilder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2")
+            .queryParam("_offset", "2");
 
     content =
         this.restTemplate.getForObject(secondPageBuilder.build().encode().toUri(), String.class);
@@ -428,11 +446,17 @@ class FhirR5CodeSystemReadSearchTests {
     assertTrue(defaultCodeSystems.size() <= maxPageSystems.size());
 
     // Verify that concatenated pages equal first 4 of full results
-    List<String> fourIds = defaultCodeSystems.subList(0, 4).stream()
-        .map(resource -> ((CodeSystem) resource).getIdPart()).sorted().toList();
+    List<String> fourIds =
+        defaultCodeSystems.subList(0, 4).stream()
+            .map(resource -> ((CodeSystem) resource).getIdPart())
+            .sorted()
+            .toList();
 
-    List<String> paginatedIds = Stream.concat(firstPageSystems.stream(), secondPageSystems.stream())
-        .map(resource -> ((CodeSystem) resource).getIdPart()).sorted().toList();
+    List<String> paginatedIds =
+        Stream.concat(firstPageSystems.stream(), secondPageSystems.stream())
+            .map(resource -> ((CodeSystem) resource).getIdPart())
+            .sorted()
+            .toList();
 
     assertEquals(fourIds, paginatedIds);
 

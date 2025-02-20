@@ -5,11 +5,14 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r4.model.OperationOutcome;
@@ -33,16 +36,9 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
-import gov.nih.nci.evs.api.properties.TestProperties;
-
 /**
- * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4
- * endpoints, CodeSystem, ValueSet, and ConceptMap. All passed ids MUST be
- * lowercase, so they match our internally set id's
+ * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
+ * ValueSet, and ConceptMap. All passed ids MUST be lowercase, so they match our internally set id's
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -53,16 +49,13 @@ public class FhirR4ValueSetReadSearchTests {
   private static final Logger log = LoggerFactory.getLogger(FhirR4ValueSetReadSearchTests.class);
 
   /** The port. */
-  @LocalServerPort
-  private int port;
+  @LocalServerPort private int port;
 
   /** The rest template. */
-  @Autowired
-  private TestRestTemplate restTemplate;
+  @Autowired private TestRestTemplate restTemplate;
 
   /** The test properties. */
-  @Autowired
-  TestProperties testProperties;
+  @Autowired TestProperties testProperties;
 
   /** The object mapper. */
   private ObjectMapper objectMapper;
@@ -110,8 +103,10 @@ public class FhirR4ValueSetReadSearchTests {
 
     final Set<String> ids = new HashSet<>(Set.of("ncit_21.06e", "ncit_c61410"));
     final Set<String> urls =
-        new HashSet<>(Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs",
-            "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C61410"));
+        new HashSet<>(
+            Set.of(
+                "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs",
+                "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C61410"));
 
     // Assert
     assertFalse(valueSets.isEmpty());
@@ -251,9 +246,12 @@ public class FhirR4ValueSetReadSearchTests {
 
     // Test 1: All valid parameters
     UriComponentsBuilder builder =
-        UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2000")
-            .queryParam("_id", "ncit_c100110").queryParam("code", "C100110")
-            .queryParam("name", "CDISC Questionnaire Terminology").queryParam("system", "ncit")
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2000")
+            .queryParam("_id", "ncit_c100110")
+            .queryParam("code", "C100110")
+            .queryParam("name", "CDISC Questionnaire Terminology")
+            .queryParam("system", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
             .queryParam("version", "21.06e");
 
@@ -263,66 +261,89 @@ public class FhirR4ValueSetReadSearchTests {
     validateValueSetSubsetResults(data, true); // Expecting results
 
     // Test 2: Invalid ID
-    builder = UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2000")
-        .queryParam("_id", "invalid_id").queryParam("code", "C100110")
-        .queryParam("name", "CDISC Questionnaire Terminology").queryParam("system", "ncit")
-        .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
-        .queryParam("version", "21.06e");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2000")
+            .queryParam("_id", "invalid_id")
+            .queryParam("code", "C100110")
+            .queryParam("name", "CDISC Questionnaire Terminology")
+            .queryParam("system", "ncit")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
+            .queryParam("version", "21.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateValueSetSubsetResults(data, false);
 
     // Test 3: Invalid code
-    builder = UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2000")
-        .queryParam("_id", "ncit_21.06e").queryParam("code", "INVALID_CODE")
-        .queryParam("name", "CDISC Questionnaire Terminology").queryParam("system", "ncit")
-        .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
-        .queryParam("version", "21.06e");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2000")
+            .queryParam("_id", "ncit_21.06e")
+            .queryParam("code", "INVALID_CODE")
+            .queryParam("name", "CDISC Questionnaire Terminology")
+            .queryParam("system", "ncit")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
+            .queryParam("version", "21.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateValueSetSubsetResults(data, false);
 
     // Test 4: Invalid name
-    builder = UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2000")
-        .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
-        .queryParam("name", "Invalid Name").queryParam("system", "ncit")
-        .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
-        .queryParam("version", "21.06e");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2000")
+            .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
+            .queryParam("name", "Invalid Name")
+            .queryParam("system", "ncit")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
+            .queryParam("version", "21.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateValueSetSubsetResults(data, false);
 
     // Test 5: Invalid system
-    builder = UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2000")
-        .queryParam("_id", "ncit_21.06e").queryParam("code", "C100110")
-        .queryParam("name", "CDISC Questionnaire Terminology")
-        .queryParam("system", "invalid_system")
-        .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
-        .queryParam("version", "21.06e");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2000")
+            .queryParam("_id", "ncit_21.06e")
+            .queryParam("code", "C100110")
+            .queryParam("name", "CDISC Questionnaire Terminology")
+            .queryParam("system", "invalid_system")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
+            .queryParam("version", "21.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateValueSetSubsetResults(data, false);
 
     // Test 6: Invalid URL
-    builder = UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2000")
-        .queryParam("_id", "ncit_21.06e").queryParam("code", "C100110")
-        .queryParam("name", "CDISC Questionnaire Terminology").queryParam("system", "ncit")
-        .queryParam("url", "http://invalid.url").queryParam("version", "21.06e");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2000")
+            .queryParam("_id", "ncit_21.06e")
+            .queryParam("code", "C100110")
+            .queryParam("name", "CDISC Questionnaire Terminology")
+            .queryParam("system", "ncit")
+            .queryParam("url", "http://invalid.url")
+            .queryParam("version", "21.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateValueSetSubsetResults(data, false);
 
     // Test 7: Invalid version
-    builder = UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2000")
-        .queryParam("_id", "ncit_21.06e").queryParam("code", "C100110")
-        .queryParam("name", "CDISC Questionnaire Terminology").queryParam("system", "ncit")
-        .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
-        .queryParam("version", "invalid_version");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2000")
+            .queryParam("_id", "ncit_21.06e")
+            .queryParam("code", "C100110")
+            .queryParam("name", "CDISC Questionnaire Terminology")
+            .queryParam("system", "ncit")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
+            .queryParam("version", "invalid_version");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -340,12 +361,15 @@ public class FhirR4ValueSetReadSearchTests {
     String endpoint = localHost + port + fhirVSPath;
 
     // Test 1: All valid parameters
-    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint)
-        .queryParam("_count", "2000").queryParam("_id", "ncit_21.06e") // .queryParam("code",
-        // "C61410")
-        .queryParam("name", "NCI Thesaurus 21.06e").queryParam("system", "ncit")
-        .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs")
-        .queryParam("version", "21.06e");
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2000")
+            .queryParam("_id", "ncit_21.06e") // .queryParam("code",
+            // "C61410")
+            .queryParam("name", "NCI Thesaurus 21.06e")
+            .queryParam("system", "ncit")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs")
+            .queryParam("version", "21.06e");
 
     // Test successful case with all parameters
     String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -353,11 +377,14 @@ public class FhirR4ValueSetReadSearchTests {
     validateValueSetResults(data, true); // Expecting results
 
     // Test 2: Invalid ID
-    builder = UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2000")
-        .queryParam("_id", "invalid_id") // .queryParam("code", "C61410")
-        .queryParam("name", "NCI Thesaurus 21.06e").queryParam("system", "ncit")
-        .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-        .queryParam("version", "21.06e");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2000")
+            .queryParam("_id", "invalid_id") // .queryParam("code", "C61410")
+            .queryParam("name", "NCI Thesaurus 21.06e")
+            .queryParam("system", "ncit")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("version", "21.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -378,43 +405,56 @@ public class FhirR4ValueSetReadSearchTests {
     // validateValueSetResults(data, false);
 
     // Test 4: Invalid name
-    builder = UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2000")
-        .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
-        .queryParam("name", "Invalid Name").queryParam("system", "ncit")
-        .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-        .queryParam("version", "21.06e");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2000")
+            .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
+            .queryParam("name", "Invalid Name")
+            .queryParam("system", "ncit")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("version", "21.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateValueSetResults(data, false);
 
     // Test 5: Invalid system
-    builder = UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2000")
-        .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
-        .queryParam("name", "NCI Thesaurus 21.06e").queryParam("system", "invalid_system")
-        .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-        .queryParam("version", "21.06e");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2000")
+            .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
+            .queryParam("name", "NCI Thesaurus 21.06e")
+            .queryParam("system", "invalid_system")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("version", "21.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateValueSetResults(data, false);
 
     // Test 6: Invalid URL
-    builder = UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2000")
-        .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
-        .queryParam("name", "NCI Thesaurus 21.06e").queryParam("system", "ncit")
-        .queryParam("url", "http://invalid.url").queryParam("version", "21.06e");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2000")
+            .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
+            .queryParam("name", "NCI Thesaurus 21.06e")
+            .queryParam("system", "ncit")
+            .queryParam("url", "http://invalid.url")
+            .queryParam("version", "21.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateValueSetResults(data, false);
 
     // Test 7: Invalid version
-    builder = UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2000")
-        .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
-        .queryParam("name", "NCI Thesaurus 21.06e").queryParam("system", "ncit")
-        .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-        .queryParam("version", "invalid_version");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2000")
+            .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
+            .queryParam("name", "NCI Thesaurus 21.06e")
+            .queryParam("system", "ncit")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("version", "invalid_version");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -469,8 +509,9 @@ public class FhirR4ValueSetReadSearchTests {
     if (expectResults) {
       assertFalse(valueSets.isEmpty());
       final Set<String> ids = new HashSet<>(Set.of("ncit_c100110"));
-      final Set<String> urls = new HashSet<>(
-          Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110"));
+      final Set<String> urls =
+          new HashSet<>(
+              Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110"));
 
       for (Resource vs : valueSets) {
         log.info(" value set = " + parser.encodeResourceToString(vs));
@@ -517,8 +558,10 @@ public class FhirR4ValueSetReadSearchTests {
         firstPageData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Test 3: Get second page (count=2, offset=2)
-    UriComponentsBuilder secondPageBuilder = UriComponentsBuilder.fromUriString(endpoint)
-        .queryParam("_count", "2").queryParam("_offset", "2");
+    UriComponentsBuilder secondPageBuilder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2")
+            .queryParam("_offset", "2");
 
     content =
         this.restTemplate.getForObject(secondPageBuilder.build().encode().toUri(), String.class);
@@ -543,11 +586,17 @@ public class FhirR4ValueSetReadSearchTests {
     assertTrue(defaultValueSets.size() <= maxPageSets.size());
 
     // Verify that concatenated pages equal first 4 of full results
-    List<String> fourIds = defaultValueSets.subList(0, 4).stream()
-        .map(resource -> ((ValueSet) resource).getIdPart()).sorted().toList();
+    List<String> fourIds =
+        defaultValueSets.subList(0, 4).stream()
+            .map(resource -> ((ValueSet) resource).getIdPart())
+            .sorted()
+            .toList();
 
-    List<String> paginatedIds = Stream.concat(firstPageSets.stream(), secondPageSets.stream())
-        .map(resource -> ((ValueSet) resource).getIdPart()).sorted().toList();
+    List<String> paginatedIds =
+        Stream.concat(firstPageSets.stream(), secondPageSets.stream())
+            .map(resource -> ((ValueSet) resource).getIdPart())
+            .sorted()
+            .toList();
 
     assertEquals(fourIds, paginatedIds);
 

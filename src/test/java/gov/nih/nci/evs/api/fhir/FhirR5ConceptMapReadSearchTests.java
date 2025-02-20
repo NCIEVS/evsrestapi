@@ -6,11 +6,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Stream;
-
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r5.model.ConceptMap;
@@ -33,15 +35,9 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.util.UriComponentsBuilder;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
-
 /**
- * Unit FhirR5Tests. Tests the functionality of the FHIR R5 endpoints,
- * CodeSystem, ValueSet, and ConceptMap. All passed ids MUST be lowercase, so
- * they match our internally set id's
+ * Unit FhirR5Tests. Tests the functionality of the FHIR R5 endpoints, CodeSystem, ValueSet, and
+ * ConceptMap. All passed ids MUST be lowercase, so they match our internally set id's
  */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
@@ -51,12 +47,10 @@ class FhirR5ConceptMapReadSearchTests {
   private static final Logger log = LoggerFactory.getLogger(FhirR5ConceptMapReadSearchTests.class);
 
   /** The port. */
-  @LocalServerPort
-  private int port;
+  @LocalServerPort private int port;
 
   /** The rest template. */
-  @Autowired
-  private TestRestTemplate restTemplate;
+  @Autowired private TestRestTemplate restTemplate;
 
   /** local host prefix. */
   private final String localHost = "http://localhost:";
@@ -155,8 +149,8 @@ class FhirR5ConceptMapReadSearchTests {
     assertEquals(conceptMap.getName(), ((ConceptMap) conceptMaps.get(0)).getName());
     assertEquals(conceptMap.getVersion(), ((ConceptMap) conceptMaps.get(0)).getVersion());
     assertEquals(conceptMap.getPublisher(), ((ConceptMap) conceptMaps.get(0)).getPublisher());
-    assertEquals(conceptMap.getStatus().toCode(),
-        ((ConceptMap) conceptMaps.get(0)).getStatus().toCode());
+    assertEquals(
+        conceptMap.getStatus().toCode(), ((ConceptMap) conceptMaps.get(0)).getStatus().toCode());
     assertEquals(conceptMap.getExperimental(), ((ConceptMap) conceptMaps.get(0)).getExperimental());
     assertEquals(conceptMap.getTitle(), ((ConceptMap) conceptMaps.get(0)).getTitle());
     assertEquals(conceptMap.getName(), ((ConceptMap) conceptMaps.get(0)).getName());
@@ -182,17 +176,18 @@ class FhirR5ConceptMapReadSearchTests {
     assertNotNull(conceptMap);
     assertEquals(ResourceType.ConceptMap, conceptMap.getResourceType());
     assertEquals(conceptMapId, conceptMap.getIdPart());
-    assertEquals(conceptMap.getUrl(),
-        "http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping");
+    assertEquals(
+        conceptMap.getUrl(), "http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping");
     assertEquals(conceptMap.getName(), "ICD10_to_MedDRA_Mapping");
     assertEquals(conceptMap.getVersion(), "July2023");
     assertEquals(conceptMap.getPublisher(), "World Health Organization");
     assertEquals(conceptMap.getStatus().toCode(), "active");
     assertEquals(conceptMap.getExperimental(), false);
-    assertEquals(conceptMap.getSourceScopeUriType().asStringValue(),
+    assertEquals(
+        conceptMap.getSourceScopeUriType().asStringValue(),
         "http://hl7.org/fhir/sid/icd-10?fhir_vs");
-    assertEquals(conceptMap.getTargetScopeUriType().asStringValue(),
-        "https://www.meddra.org?fhir_vs");
+    assertEquals(
+        conceptMap.getTargetScopeUriType().asStringValue(), "https://www.meddra.org?fhir_vs");
     assertEquals(conceptMap.getTitle(), "ICD10_to_MedDRA_Mapping");
   }
 
@@ -230,12 +225,13 @@ class FhirR5ConceptMapReadSearchTests {
     String endpoint = localHost + port + fhirCMPath;
 
     // Test 1: All valid parameters
-    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint)
-        .queryParam("_id", "ma_to_ncit_mapping_november2011") // .queryParam("date",
-        // "2024-08")
-        .queryParam("system", "MA_to_NCIt_Mapping")
-        .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-        .queryParam("version", "November2011");
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_id", "ma_to_ncit_mapping_november2011") // .queryParam("date",
+            // "2024-08")
+            .queryParam("system", "MA_to_NCIt_Mapping")
+            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
+            .queryParam("version", "November2011");
 
     // Test successful case with all parameters
     String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -243,57 +239,65 @@ class FhirR5ConceptMapReadSearchTests {
     validateConceptMapResults(data, true); // Expecting results
 
     // Test 2: Invalid ID
-    builder = UriComponentsBuilder.fromUriString(endpoint).queryParam("_id", "invalid_id")
-        // .queryParam("date", "2024-08")
-        .queryParam("system", "MA_to_NCIt_Mapping")
-        .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-        .queryParam("version", "November2011");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_id", "invalid_id")
+            // .queryParam("date", "2024-08")
+            .queryParam("system", "MA_to_NCIt_Mapping")
+            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
+            .queryParam("version", "November2011");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateConceptMapResults(data, false);
 
     // Test 3: Invalid date
-    builder = UriComponentsBuilder.fromUriString(endpoint)
-        .queryParam("_id", "ma_to_ncit_mapping_november2011").queryParam("date", "2028-08")
-        .queryParam("system", "MA_to_NCIt_Mapping")
-        .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-        .queryParam("version", "November2011");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_id", "ma_to_ncit_mapping_november2011")
+            .queryParam("date", "2028-08")
+            .queryParam("system", "MA_to_NCIt_Mapping")
+            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
+            .queryParam("version", "November2011");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateConceptMapResults(data, false);
 
     // Test 4: Invalid system
-    builder = UriComponentsBuilder.fromUriString(endpoint)
-        .queryParam("_id", "ma_to_ncit_mapping_november2011")
-        // .queryParam("date", "2024-08")
-        .queryParam("system", "Invalid_System")
-        .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-        .queryParam("version", "November2011");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_id", "ma_to_ncit_mapping_november2011")
+            // .queryParam("date", "2024-08")
+            .queryParam("system", "Invalid_System")
+            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
+            .queryParam("version", "November2011");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateConceptMapResults(data, false);
 
     // Test 5: Invalid URL
-    builder = UriComponentsBuilder.fromUriString(endpoint)
-        .queryParam("_id", "ma_to_ncit_mapping_november2011")
-        // .queryParam("date", "2024-08")
-        .queryParam("system", "MA_to_NCIt_Mapping").queryParam("url", "http://invalid.url")
-        .queryParam("version", "November2011");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_id", "ma_to_ncit_mapping_november2011")
+            // .queryParam("date", "2024-08")
+            .queryParam("system", "MA_to_NCIt_Mapping")
+            .queryParam("url", "http://invalid.url")
+            .queryParam("version", "November2011");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateConceptMapResults(data, false);
 
     // Test 6: Invalid version
-    builder = UriComponentsBuilder.fromUriString(endpoint)
-        .queryParam("_id", "ma_to_ncit_mapping_november2011")
-        // .queryParam("date", "2024-08")
-        .queryParam("system", "MA_to_NCIt_Mapping")
-        .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-        .queryParam("version", "invalid_version");
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_id", "ma_to_ncit_mapping_november2011")
+            // .queryParam("date", "2024-08")
+            .queryParam("system", "MA_to_NCIt_Mapping")
+            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
+            .queryParam("version", "invalid_version");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -314,8 +318,9 @@ class FhirR5ConceptMapReadSearchTests {
     if (expectResults) {
       assertFalse(conceptMaps.isEmpty());
       final Set<String> ids = new HashSet<>(Set.of("ma_to_ncit_mapping_november2011"));
-      final Set<String> urls = new HashSet<>(
-          Set.of("http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping"));
+      final Set<String> urls =
+          new HashSet<>(
+              Set.of("http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping"));
 
       for (Resource cm : conceptMaps) {
         log.info(" concept map = " + parser.encodeResourceToString(cm));
@@ -363,8 +368,10 @@ class FhirR5ConceptMapReadSearchTests {
         firstPageData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Test 3: Get second page (count=2, offset=2)
-    UriComponentsBuilder secondPageBuilder = UriComponentsBuilder.fromUriString(endpoint)
-        .queryParam("_count", "2").queryParam("_offset", "2");
+    UriComponentsBuilder secondPageBuilder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2")
+            .queryParam("_offset", "2");
 
     content =
         this.restTemplate.getForObject(secondPageBuilder.build().encode().toUri(), String.class);
@@ -389,11 +396,17 @@ class FhirR5ConceptMapReadSearchTests {
     assertTrue(defaultConceptMaps.size() <= maxPageMaps.size());
 
     // Verify that concatenated pages equal first 4 of full results
-    List<String> fourIds = defaultConceptMaps.subList(0, 4).stream()
-        .map(resource -> ((ConceptMap) resource).getIdPart()).sorted().toList();
+    List<String> fourIds =
+        defaultConceptMaps.subList(0, 4).stream()
+            .map(resource -> ((ConceptMap) resource).getIdPart())
+            .sorted()
+            .toList();
 
-    List<String> paginatedIds = Stream.concat(firstPageMaps.stream(), secondPageMaps.stream())
-        .map(resource -> ((ConceptMap) resource).getIdPart()).sorted().toList();
+    List<String> paginatedIds =
+        Stream.concat(firstPageMaps.stream(), secondPageMaps.stream())
+            .map(resource -> ((ConceptMap) resource).getIdPart())
+            .sorted()
+            .toList();
 
     assertEquals(fourIds, paginatedIds);
 
