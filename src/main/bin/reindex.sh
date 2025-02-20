@@ -488,8 +488,8 @@ for x in `cat /tmp/y.$$.txt`; do
             exit 1
         fi
         # get directory of reindex.sh
-        REINDEX_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
         ORIG_DIR=$(pwd)
+        REINDEX_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
         cd "$REINDEX_DIR"
         mkdir -p "$REINDEX_DIR/postman_content_qa"
         "$REINDEX_DIR/postman.sh" "${term}" > "$REINDEX_DIR/postman_content_qa/${term}_postman_content_qa.txt"
