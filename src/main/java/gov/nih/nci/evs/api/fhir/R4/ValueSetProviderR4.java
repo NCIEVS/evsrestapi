@@ -147,7 +147,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "check-system-version") final StringType check_system_version,
       @OperationParam(name = "force-system-version") final StringType force_system_version)
       throws Exception {
-    // check if request is a post, throw exception as we don't support post calls
+    // check if request is a post, throw exception as we don't support post
+    // calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
           "POST method not supported for " + JpaConstants.OPERATION_EXPAND,
@@ -321,7 +322,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "check-system-version") final StringType check_system_version,
       @OperationParam(name = "force-system-version") final StringType force_system_version)
       throws Exception {
-    // check if request is a post, throw exception as we don't support post calls
+    // check if request is a post, throw exception as we don't support post
+    // calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
           "POST method not supported for " + JpaConstants.OPERATION_EXPAND,
@@ -475,7 +477,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "abstract") final BooleanType abstractt,
       @OperationParam(name = "displayLanguage") final StringType displayLanguage)
       throws Exception {
-    // check if request is a post, throw exception as we don't support post calls
+    // check if request is a post, throw exception as we don't support post
+    // calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
           "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
@@ -602,7 +605,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "abstract") final BooleanType abstractt,
       @OperationParam(name = "displayLanguage") final StringType displayLanguage)
       throws Exception {
-    // check if request is a post, throw exception as we don't support post calls
+    // check if request is a post, throw exception as we don't support post
+    // calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
           "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
@@ -678,7 +682,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param id the id
    * @param code the code
    * @param name the name
-   * @param system the system
+   * @param title the title
    * @param url the url
    * @param version the version
    * @param count the count
@@ -692,7 +696,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OptionalParam(name = "_id") final TokenParam id,
       @OptionalParam(name = "code") final StringParam code,
       @OptionalParam(name = "name") final StringParam name,
-      @OptionalParam(name = "system") final UriType system,
+      @OptionalParam(name = "title") final StringParam title,
       @OptionalParam(name = "url") final StringParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
@@ -717,11 +721,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
           logger.debug("  SKIP url mismatch = " + vs.getUrl());
           continue;
         }
-        if (system != null && !system.getValue().equals(vs.getTitle())) {
-          logger.debug("  SKIP system mismatch = " + vs.getTitle());
+        if (title != null && !FhirUtility.compareString(title, vs.getTitle())) {
+          logger.debug("  SKIP title mismatch = " + vs.getTitle());
           continue;
         }
-        if (name != null && !name.getValue().equals(vs.getName())) {
+        if (name != null && !FhirUtility.compareString(name, vs.getName())) {
           logger.debug("  SKIP name mismatch = " + vs.getName());
           continue;
         }
@@ -756,11 +760,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
         logger.debug("  SKIP url mismatch = " + vs.getUrl());
         continue;
       }
-      if (system != null && !system.getValue().equals(vs.getTitle())) {
-        logger.debug("  SKIP system mismatch = " + vs.getTitle());
+      if (title != null && !FhirUtility.compareString(title, vs.getTitle())) {
+        logger.debug("  SKIP title mismatch = " + vs.getTitle());
         continue;
       }
-      if (name != null && !name.getValue().equals(vs.getName())) {
+      if (name != null && !FhirUtility.compareString(name, vs.getName())) {
         logger.debug("  SKIP name mismatch = " + vs.getName());
         continue;
       }

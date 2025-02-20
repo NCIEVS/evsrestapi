@@ -10,9 +10,12 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
@@ -223,7 +226,7 @@ public class FhirR4ConceptMapReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_id", "ma_to_ncit_mapping_november2011") // .queryParam("date",
             // "2024-08")
-            .queryParam("system", "MA_to_NCIt_Mapping")
+            .queryParam("name", "MA_to_NCIt_Mapping")
             .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
             .queryParam("version", "November2011");
 
@@ -237,7 +240,7 @@ public class FhirR4ConceptMapReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_id", "invalid_id")
             // .queryParam("date", "2024-08")
-            .queryParam("system", "MA_to_NCIt_Mapping")
+            .queryParam("name", "MA_to_NCIt_Mapping")
             .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
             .queryParam("version", "November2011");
 
@@ -250,7 +253,7 @@ public class FhirR4ConceptMapReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_id", "ma_to_ncit_mapping_november2011")
             .queryParam("date", "2028-08")
-            .queryParam("system", "MA_to_NCIt_Mapping")
+            .queryParam("name", "MA_to_NCIt_Mapping")
             .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
             .queryParam("version", "November2011");
 
@@ -258,12 +261,12 @@ public class FhirR4ConceptMapReadSearchTests {
     data = parser.parseResource(Bundle.class, content);
     validateConceptMapResults(data, false);
 
-    // Test 4: Invalid system
+    // Test 4: Invalid name
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_id", "ma_to_ncit_mapping_november2011")
             // .queryParam("date", "2024-08")
-            .queryParam("system", "Invalid_System")
+            .queryParam("name", "Invalid_Name")
             .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
             .queryParam("version", "November2011");
 
@@ -276,7 +279,7 @@ public class FhirR4ConceptMapReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_id", "ma_to_ncit_mapping_november2011")
             // .queryParam("date", "2024-08")
-            .queryParam("system", "MA_to_NCIt_Mapping")
+            .queryParam("name", "MA_to_NCIt_Mapping")
             .queryParam("url", "http://invalid.url")
             .queryParam("version", "November2011");
 
@@ -289,7 +292,7 @@ public class FhirR4ConceptMapReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_id", "ma_to_ncit_mapping_november2011")
             // .queryParam("date", "2024-08")
-            .queryParam("system", "MA_to_NCIt_Mapping")
+            .queryParam("name", "MA_to_NCIt_Mapping")
             .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
             .queryParam("version", "invalid_version");
 
@@ -428,6 +431,126 @@ public class FhirR4ConceptMapReadSearchTests {
     // Verify specific IDs and URLs if needed
     if (cm.getIdPart().equals("icd10_to_meddra_mapping_july2023")) {
       assertEquals("http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping", cm.getUrl());
+    }
+  }
+
+  @Test
+  public void testConceptMapSearchVariantsWithParameters() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCMPath;
+
+    // Test 1: Get initial list of ConceptMaps
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> conceptMaps =
+        data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
+
+    ConceptMap firstConceptMap = (ConceptMap) conceptMaps.get(0);
+    String firstConceptMapName = firstConceptMap.getName();
+
+    // Test 2: Basic name search (without modifier)
+    String basicNameUrl =
+        endpoint + "?name=" + URLEncoder.encode(firstConceptMapName, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(basicNameUrl, String.class);
+    Bundle basicNameBundle = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(basicNameBundle.getEntry());
+    assertFalse(basicNameBundle.getEntry().isEmpty());
+    ConceptMap basicMatchMap = (ConceptMap) basicNameBundle.getEntry().get(0).getResource();
+    assertEquals(firstConceptMapName, basicMatchMap.getName());
+
+    // Test 3: Exact match (case insensitive)
+    String upperCaseName = firstConceptMapName.toUpperCase();
+    String exactMatchUrl =
+        endpoint + "?name:exact=" + URLEncoder.encode(upperCaseName, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(exactMatchUrl, String.class);
+    Bundle exactMatchBundle = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(exactMatchBundle.getEntry());
+    assertFalse(exactMatchBundle.getEntry().isEmpty());
+    ConceptMap exactMatchMap = (ConceptMap) exactMatchBundle.getEntry().get(0).getResource();
+    assertTrue(exactMatchMap.getName().equalsIgnoreCase(upperCaseName));
+
+    // Test 4: Contains search
+    String partialName = firstConceptMapName.substring(1, firstConceptMapName.length() - 1);
+    String containsUrl =
+        endpoint + "?name:contains=" + URLEncoder.encode(partialName, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(containsUrl, String.class);
+    Bundle containsBundle = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(containsBundle.getEntry());
+    assertFalse(containsBundle.getEntry().isEmpty());
+    boolean foundContainsMatch =
+        containsBundle.getEntry().stream()
+            .map(entry -> ((ConceptMap) entry.getResource()).getName())
+            .anyMatch(name -> name.toLowerCase().contains(partialName.toLowerCase()));
+    assertTrue(foundContainsMatch);
+
+    // Test 5: Starts with search
+    String namePrefix = firstConceptMapName.substring(0, 3);
+    String startsWithUrl =
+        endpoint + "?name:startsWith=" + URLEncoder.encode(namePrefix, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(startsWithUrl, String.class);
+    Bundle startsWithBundle = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(startsWithBundle.getEntry());
+    assertFalse(startsWithBundle.getEntry().isEmpty());
+    boolean foundStartsWithMatch =
+        startsWithBundle.getEntry().stream()
+            .map(entry -> ((ConceptMap) entry.getResource()).getName())
+            .anyMatch(name -> name.toLowerCase().startsWith(namePrefix.toLowerCase()));
+    assertTrue(foundStartsWithMatch);
+
+    // Test 6: Negative test - non-existent name
+    String nonExistentName = "NonExistentConceptMap" + UUID.randomUUID();
+    String negativeTestUrl =
+        endpoint + "?name:exact=" + URLEncoder.encode(nonExistentName, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(negativeTestUrl, String.class);
+    Bundle emptyBundle = parser.parseResource(Bundle.class, content);
+
+    assertTrue(emptyBundle.getEntry() == null || emptyBundle.getEntry().isEmpty());
+
+    // Test 7: Mixed case search (to verify case insensitivity)
+    String mixedCaseName =
+        firstConceptMapName.substring(0, firstConceptMapName.length() / 2).toLowerCase()
+            + firstConceptMapName.substring(firstConceptMapName.length() / 2).toUpperCase();
+    String mixedCaseUrl =
+        endpoint + "?name:exact=" + URLEncoder.encode(mixedCaseName, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(mixedCaseUrl, String.class);
+    Bundle mixedCaseBundle = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(mixedCaseBundle.getEntry());
+    assertFalse(mixedCaseBundle.getEntry().isEmpty());
+    ConceptMap mixedCaseMatch = (ConceptMap) mixedCaseBundle.getEntry().get(0).getResource();
+    assertTrue(mixedCaseMatch.getName().equalsIgnoreCase(mixedCaseName));
+
+    // Test 8: All parameters test (original test case)
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_id", "ma_to_ncit_mapping_november2011")
+            .queryParam("name", "MA_to_NCIt_Mapping")
+            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
+            .queryParam("version", "November2011");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    Bundle allParamsData = parser.parseResource(Bundle.class, content);
+    validateVariantConceptMapResults(allParamsData, true);
+  }
+
+  private void validateVariantConceptMapResults(Bundle bundle, boolean expectResults) {
+    assertNotNull(bundle);
+    if (expectResults) {
+      assertFalse(bundle.getEntry() == null || bundle.getEntry().isEmpty());
+      bundle
+          .getEntry()
+          .forEach(
+              entry -> {
+                ConceptMap cm = (ConceptMap) entry.getResource();
+                assertNotNull(cm);
+                assertEquals(ResourceType.ConceptMap, cm.getResourceType());
+              });
+    } else {
+      assertTrue(bundle.getEntry() == null || bundle.getEntry().isEmpty());
     }
   }
 }

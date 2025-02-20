@@ -9,9 +9,12 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
@@ -251,7 +254,7 @@ public class FhirR4ValueSetReadSearchTests {
             .queryParam("_id", "ncit_c100110")
             .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
-            .queryParam("system", "ncit")
+            .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
             .queryParam("version", "21.06e");
 
@@ -267,7 +270,7 @@ public class FhirR4ValueSetReadSearchTests {
             .queryParam("_id", "invalid_id")
             .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
-            .queryParam("system", "ncit")
+            .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
             .queryParam("version", "21.06e");
 
@@ -282,7 +285,7 @@ public class FhirR4ValueSetReadSearchTests {
             .queryParam("_id", "ncit_21.06e")
             .queryParam("code", "INVALID_CODE")
             .queryParam("name", "CDISC Questionnaire Terminology")
-            .queryParam("system", "ncit")
+            .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
             .queryParam("version", "21.06e");
 
@@ -296,7 +299,7 @@ public class FhirR4ValueSetReadSearchTests {
             .queryParam("_count", "2000")
             .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
             .queryParam("name", "Invalid Name")
-            .queryParam("system", "ncit")
+            .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
             .queryParam("version", "21.06e");
 
@@ -304,14 +307,14 @@ public class FhirR4ValueSetReadSearchTests {
     data = parser.parseResource(Bundle.class, content);
     validateValueSetSubsetResults(data, false);
 
-    // Test 5: Invalid system
+    // Test 5: Invalid title
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
             .queryParam("_id", "ncit_21.06e")
             .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
-            .queryParam("system", "invalid_system")
+            .queryParam("title", "invalid_title")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
             .queryParam("version", "21.06e");
 
@@ -326,7 +329,7 @@ public class FhirR4ValueSetReadSearchTests {
             .queryParam("_id", "ncit_21.06e")
             .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
-            .queryParam("system", "ncit")
+            .queryParam("title", "ncit")
             .queryParam("url", "http://invalid.url")
             .queryParam("version", "21.06e");
 
@@ -341,7 +344,7 @@ public class FhirR4ValueSetReadSearchTests {
             .queryParam("_id", "ncit_21.06e")
             .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
-            .queryParam("system", "ncit")
+            .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
             .queryParam("version", "invalid_version");
 
@@ -367,7 +370,7 @@ public class FhirR4ValueSetReadSearchTests {
             .queryParam("_id", "ncit_21.06e") // .queryParam("code",
             // "C61410")
             .queryParam("name", "NCI Thesaurus 21.06e")
-            .queryParam("system", "ncit")
+            .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs")
             .queryParam("version", "21.06e");
 
@@ -382,7 +385,7 @@ public class FhirR4ValueSetReadSearchTests {
             .queryParam("_count", "2000")
             .queryParam("_id", "invalid_id") // .queryParam("code", "C61410")
             .queryParam("name", "NCI Thesaurus 21.06e")
-            .queryParam("system", "ncit")
+            .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
             .queryParam("version", "21.06e");
 
@@ -394,7 +397,7 @@ public class FhirR4ValueSetReadSearchTests {
     // builder =
     // UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2000")
     // .queryParam("_id", "ncit_21.06e").queryParam("code", "INVALID_CODE")
-    // .queryParam("name", "NCI Thesaurus 21.06e").queryParam("system", "ncit")
+    // .queryParam("name", "NCI Thesaurus 21.06e").queryParam("title", "ncit")
     // .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
     // .queryParam("version", "21.06e");
     //
@@ -410,7 +413,7 @@ public class FhirR4ValueSetReadSearchTests {
             .queryParam("_count", "2000")
             .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
             .queryParam("name", "Invalid Name")
-            .queryParam("system", "ncit")
+            .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
             .queryParam("version", "21.06e");
 
@@ -418,13 +421,13 @@ public class FhirR4ValueSetReadSearchTests {
     data = parser.parseResource(Bundle.class, content);
     validateValueSetResults(data, false);
 
-    // Test 5: Invalid system
+    // Test 5: Invalid title
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
             .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
             .queryParam("name", "NCI Thesaurus 21.06e")
-            .queryParam("system", "invalid_system")
+            .queryParam("title", "invalid_title")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
             .queryParam("version", "21.06e");
 
@@ -438,7 +441,7 @@ public class FhirR4ValueSetReadSearchTests {
             .queryParam("_count", "2000")
             .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
             .queryParam("name", "NCI Thesaurus 21.06e")
-            .queryParam("system", "ncit")
+            .queryParam("title", "ncit")
             .queryParam("url", "http://invalid.url")
             .queryParam("version", "21.06e");
 
@@ -452,7 +455,7 @@ public class FhirR4ValueSetReadSearchTests {
             .queryParam("_count", "2000")
             .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
             .queryParam("name", "NCI Thesaurus 21.06e")
-            .queryParam("system", "ncit")
+            .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
             .queryParam("version", "invalid_version");
 
@@ -624,6 +627,157 @@ public class FhirR4ValueSetReadSearchTests {
     // Verify specific IDs and URLs if needed
     if (vs.getIdPart().equals("ncit_21.06e")) {
       assertEquals("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs", vs.getUrl());
+    }
+  }
+
+  @Test
+  public void testValueSetSearchVariantsWithParameters() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath;
+
+    // Test 1: Get initial list of ValueSets
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> valueSets =
+        data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
+
+    ValueSet firstValueSet = (ValueSet) valueSets.get(0);
+    String firstValueSetName = firstValueSet.getName();
+    String firstValueSetTitle = firstValueSet.getTitle();
+
+    // Test 2: Basic name search (without modifier)
+    String basicNameUrl =
+        endpoint + "?name=" + URLEncoder.encode(firstValueSetName, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(basicNameUrl, String.class);
+    Bundle basicNameBundle = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(basicNameBundle.getEntry());
+    assertFalse(basicNameBundle.getEntry().isEmpty());
+    ValueSet basicMatchValueSet = (ValueSet) basicNameBundle.getEntry().get(0).getResource();
+    assertEquals(firstValueSetName, basicMatchValueSet.getName());
+
+    // Test 3: Exact match (case insensitive)
+    String upperCaseName = firstValueSetName.toUpperCase();
+    String exactMatchUrl =
+        endpoint + "?name:exact=" + URLEncoder.encode(upperCaseName, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(exactMatchUrl, String.class);
+    Bundle exactMatchBundle = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(exactMatchBundle.getEntry());
+    assertFalse(exactMatchBundle.getEntry().isEmpty());
+    ValueSet exactMatchValueSet = (ValueSet) exactMatchBundle.getEntry().get(0).getResource();
+    assertTrue(exactMatchValueSet.getName().equalsIgnoreCase(upperCaseName));
+
+    // Test 4: Contains search
+    String partialName = firstValueSetName.substring(1, firstValueSetName.length() - 1);
+    String containsUrl =
+        endpoint + "?name:contains=" + URLEncoder.encode(partialName, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(containsUrl, String.class);
+    Bundle containsBundle = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(containsBundle.getEntry());
+    assertFalse(containsBundle.getEntry().isEmpty());
+    boolean foundContainsMatch =
+        containsBundle.getEntry().stream()
+            .map(entry -> ((ValueSet) entry.getResource()).getName())
+            .anyMatch(name -> name.toLowerCase().contains(partialName.toLowerCase()));
+    assertTrue(foundContainsMatch);
+
+    // Test 5: Starts with search
+    String namePrefix = firstValueSetName.substring(0, 3);
+    String startsWithUrl =
+        endpoint + "?name:startsWith=" + URLEncoder.encode(namePrefix, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(startsWithUrl, String.class);
+    Bundle startsWithBundle = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(startsWithBundle.getEntry());
+    assertFalse(startsWithBundle.getEntry().isEmpty());
+    boolean foundStartsWithMatch =
+        startsWithBundle.getEntry().stream()
+            .map(entry -> ((ValueSet) entry.getResource()).getName())
+            .anyMatch(name -> name.toLowerCase().startsWith(namePrefix.toLowerCase()));
+    assertTrue(foundStartsWithMatch);
+
+    // Test 6: Negative test - non-existent name
+    String nonExistentName = "NonExistentValueSet" + UUID.randomUUID();
+    String negativeTestUrl =
+        endpoint + "?name:exact=" + URLEncoder.encode(nonExistentName, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(negativeTestUrl, String.class);
+    Bundle emptyBundle = parser.parseResource(Bundle.class, content);
+
+    assertTrue(emptyBundle.getEntry() == null || emptyBundle.getEntry().isEmpty());
+
+    // Test 7: Title exact match (case insensitive)
+    String upperCaseTitle = firstValueSetTitle.toUpperCase();
+    String titleExactUrl =
+        endpoint + "?title:exact=" + URLEncoder.encode(upperCaseTitle, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(titleExactUrl, String.class);
+    Bundle titleExactBundle = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(titleExactBundle.getEntry());
+    assertFalse(titleExactBundle.getEntry().isEmpty());
+    ValueSet titleExactMatch = (ValueSet) titleExactBundle.getEntry().get(0).getResource();
+    assertTrue(titleExactMatch.getTitle().equalsIgnoreCase(upperCaseTitle));
+
+    // Test 8: Title starts with search
+    String titlePrefix = firstValueSetTitle.substring(0, 3);
+    String titleStartsWithUrl =
+        endpoint + "?title:startsWith=" + URLEncoder.encode(titlePrefix, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(titleStartsWithUrl, String.class);
+    Bundle titleStartsWithBundle = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(titleStartsWithBundle.getEntry());
+    assertFalse(titleStartsWithBundle.getEntry().isEmpty());
+    boolean foundTitleStartsWithMatch =
+        titleStartsWithBundle.getEntry().stream()
+            .map(entry -> ((ValueSet) entry.getResource()).getTitle())
+            .anyMatch(title -> title.toLowerCase().startsWith(titlePrefix.toLowerCase()));
+    assertTrue(foundTitleStartsWithMatch);
+
+    // Test 9: Title contains search
+    String partialTitle = firstValueSetTitle.substring(1, firstValueSetTitle.length() - 1);
+    String titleContainsUrl =
+        endpoint + "?title:contains=" + URLEncoder.encode(partialTitle, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(titleContainsUrl, String.class);
+    Bundle titleContainsBundle = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(titleContainsBundle.getEntry());
+    assertFalse(titleContainsBundle.getEntry().isEmpty());
+    boolean foundTitleContainsMatch =
+        titleContainsBundle.getEntry().stream()
+            .map(entry -> ((ValueSet) entry.getResource()).getTitle())
+            .anyMatch(title -> title.toLowerCase().contains(partialTitle.toLowerCase()));
+    assertTrue(foundTitleContainsMatch);
+
+    // Test 10: All parameters test (original test case)
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("_count", "2000")
+            .queryParam("_id", "ncit_21.06e")
+            .queryParam("name", "NCI Thesaurus 21.06e")
+            .queryParam("title", "ncit")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs")
+            .queryParam("version", "21.06e");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    Bundle allParamsData = parser.parseResource(Bundle.class, content);
+    validateVariantValueSetResults(allParamsData, true);
+  }
+
+  private void validateVariantValueSetResults(Bundle bundle, boolean expectResults) {
+    assertNotNull(bundle);
+    if (expectResults) {
+      assertFalse(bundle.getEntry() == null || bundle.getEntry().isEmpty());
+      bundle
+          .getEntry()
+          .forEach(
+              entry -> {
+                ValueSet vs = (ValueSet) entry.getResource();
+                assertNotNull(vs);
+                assertEquals(ResourceType.ValueSet, vs.getResourceType());
+              });
+    } else {
+      assertTrue(bundle.getEntry() == null || bundle.getEntry().isEmpty());
     }
   }
 }

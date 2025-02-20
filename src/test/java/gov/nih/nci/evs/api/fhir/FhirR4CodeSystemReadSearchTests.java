@@ -15,6 +15,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Stream;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
@@ -474,5 +475,87 @@ public class FhirR4CodeSystemReadSearchTests {
     if (css.getIdPart().equals("ncit_21.06e")) {
       assertEquals("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl", css.getUrl());
     }
+  }
+
+  @Test
+  public void testCodeSystemSearchVariantsWithParameters() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirCSPath;
+
+    // Test 1: Get list of CodeSystems first
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
+
+    CodeSystem firstCodeSystem = (CodeSystem) codeSystems.get(0);
+    String firstCodeSystemTitle = firstCodeSystem.getTitle();
+
+    // Test 3: Search by title (exact match)
+    String titleExactUrl =
+        endpoint
+            + "?title:exact="
+            + URLEncoder.encode(firstCodeSystemTitle, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(titleExactUrl, String.class);
+    Bundle exactMatchBundle = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(exactMatchBundle.getEntry());
+    assertFalse(exactMatchBundle.getEntry().isEmpty());
+    CodeSystem exactMatchSystem = (CodeSystem) exactMatchBundle.getEntry().get(0).getResource();
+    assertEquals(firstCodeSystemTitle, exactMatchSystem.getTitle());
+
+    // Test 4: Search by title (contains)
+    String partialTitle = firstCodeSystemTitle.substring(1, firstCodeSystemTitle.length() - 1);
+    String titleContainsUrl =
+        endpoint + "?title:contains=" + URLEncoder.encode(partialTitle, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(titleContainsUrl, String.class);
+    Bundle containsMatchBundle = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(containsMatchBundle.getEntry());
+    assertFalse(containsMatchBundle.getEntry().isEmpty());
+    boolean foundMatch =
+        containsMatchBundle.getEntry().stream()
+            .map(entry -> ((CodeSystem) entry.getResource()).getTitle())
+            .anyMatch(title -> title.contains(partialTitle));
+    assertTrue(foundMatch);
+
+    // Test 5: Search by title (startsWith)
+    String titlePrefix = firstCodeSystemTitle.substring(0, 3);
+    String titleStartsWithUrl =
+        endpoint + "?title:startsWith=" + URLEncoder.encode(titlePrefix, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(titleStartsWithUrl, String.class);
+    Bundle startsWithMatchBundle = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(startsWithMatchBundle.getEntry());
+    assertFalse(startsWithMatchBundle.getEntry().isEmpty());
+    boolean foundStartsWithMatch =
+        startsWithMatchBundle.getEntry().stream()
+            .map(entry -> ((CodeSystem) entry.getResource()).getTitle())
+            .anyMatch(title -> title.startsWith(titlePrefix));
+    assertTrue(foundStartsWithMatch);
+
+    // Test 6: Negative test - non-existent title
+    String nonExistentTitle = "NonExistentCodeSystemTitle" + UUID.randomUUID();
+    String negativeTestUrl =
+        endpoint + "?title:exact=" + URLEncoder.encode(nonExistentTitle, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(negativeTestUrl, String.class);
+    Bundle emptyBundle = parser.parseResource(Bundle.class, content);
+
+    assertTrue(emptyBundle.getEntry() == null || emptyBundle.getEntry().isEmpty());
+
+    // Test 7: Case sensitivity test; exact ignores case
+    String upperCaseTitle = firstCodeSystemTitle.toUpperCase();
+    String caseSensitiveUrl =
+        endpoint + "?title:exact=" + URLEncoder.encode(upperCaseTitle, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(caseSensitiveUrl, String.class);
+    Bundle caseSensitiveBundle = parser.parseResource(Bundle.class, content);
+
+    // Case-sensitive search returns otherwise exact match
+    assertNotNull(caseSensitiveBundle.getEntry());
+    assertFalse(caseSensitiveBundle.getEntry().isEmpty());
+    CodeSystem caseSensitiveMatchSystem =
+        (CodeSystem) caseSensitiveBundle.getEntry().get(0).getResource();
+    assertEquals(firstCodeSystemTitle, caseSensitiveMatchSystem.getTitle());
   }
 }
