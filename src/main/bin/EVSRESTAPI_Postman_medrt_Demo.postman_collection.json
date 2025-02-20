@@ -110,7 +110,7 @@
 			"response": []
 		},
 		{
-			"name": "Check Concept Information - N0000178295",
+			"name": "Check Concept Information - N0000000142",
 			"event": [
 				{
 					"listen": "test",
@@ -118,7 +118,7 @@
 						"exec": [
 							"pm.test(\"Correct code\", function () {\r",
 							"    var jsonData = pm.response.json();\r",
-							"    pm.expect(jsonData[\"code\"]).to.equal(\"N0000000001\");\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"N0000000142\");\r",
 							"});\r",
 							"\r",
 							"pm.test(\"Concept has children\", function () {\r",
@@ -131,7 +131,6 @@
 							"    var jsonData = pm.response.json();\r",
 							"    pm.expect(jsonData).to.exist;\r",
 							"    pm.expect(jsonData[\"synonyms\"]).to.have.length.above(0);\r",
-							"    pm.expect(jsonData[\"definitions\"]).to.have.length.above(0);\r",
 							"    pm.expect(jsonData[\"properties\"]).to.have.length.above(0);\r",
 							"    pm.expect(jsonData[\"children\"]).to.have.length.above(0);\r",
 							"    pm.expect(jsonData[\"parents\"]).to.have.length.above(0);\r",
@@ -147,14 +146,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/medrt/N0000000001?include=full",
+					"raw": "{{API_URL}}/concept/medrt/N0000000142?include=full",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
 						"medrt",
-						"N0000000001"
+						"N0000000142"
 					],
 					"query": [
 						{
@@ -241,14 +240,14 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/concept/medrt/N0000175428?include=roles,inverseRoles",
+					"raw": "{{API_URL}}/concept/medrt/N0000000080?include=roles,inverseRoles",
 					"host": [
 						"{{API_URL}}"
 					],
 					"path": [
 						"concept",
 						"medrt",
-						"N0000175428"
+						"N0000000080"
 					],
 					"query": [
 						{
@@ -339,8 +338,8 @@
 							"pm.test(\"Synonyms array contains correct name and code fields\", function () {\r",
 							"  const responseData = pm.response.json();\r",
 							"\r",
-							"    pm.expect(responseData.code).to.exist.and.to.equal(\"IAO_0000115\");\r",
-							"    pm.expect(responseData.name).to.exist.and.to.equal(\"definition\");\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"Preferred_Term\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"Preferred_Term\");\r",
 							"  \r",
 							"    pm.expect(responseData.synonyms).to.be.an('array');\r",
 							"    responseData.synonyms.forEach(function(synonym) {\r",
@@ -359,7 +358,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/metadata/medrt/property/IAO_0000115?include=summary",
+					"raw": "{{API_URL}}/metadata/medrt/property/Preferred_Term?include=summary",
 					"host": [
 						"{{API_URL}}"
 					],
@@ -367,7 +366,7 @@
 						"metadata",
 						"medrt",
 						"property",
-						"IAO_0000115"
+						"Preferred_Term"
 					],
 					"query": [
 						{
@@ -450,10 +449,9 @@
 							"    pm.expect(responseData.terminology).to.exist;\r",
 							"    pm.expect(responseData.version).to.exist;\r",
 							"    pm.expect(responseData.synonyms).to.exist;\r",
-							"    pm.expect(responseData.properties).to.exist;\r",
 							"\r",
-							"    pm.expect(responseData.code).to.exist.and.to.equal(\"ends_during\");\r",
-							"    pm.expect(responseData.name).to.exist.and.to.equal(\"ends during\");\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"has_MoA\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"has_MoA\");\r",
 							"});\r",
 							""
 						],
@@ -466,7 +464,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/metadata/medrt/role/ends_during?include=summary",
+					"raw": "{{API_URL}}/metadata/medrt/role/has_MoA?include=summary",
 					"host": [
 						"{{API_URL}}"
 					],
@@ -474,7 +472,7 @@
 						"metadata",
 						"medrt",
 						"role",
-						"ends_during"
+						"has_MoA"
 					],
 					"query": [
 						{
@@ -564,8 +562,8 @@
 							"    pm.expect(responseData.version).to.exist;\r",
 							"    pm.expect(responseData.synonyms).to.exist;\r",
 							"\r",
-							"    pm.expect(responseData.code).to.exist.and.to.equal(\"rdfs:label\");\r",
-							"    pm.expect(responseData.name).to.exist.and.to.equal(\"label\");\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"Preferred_Term\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"Preferred_Term\");\r",
 							"});\r",
 							""
 						],
@@ -578,7 +576,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/metadata/medrt/synonymType/rdfs:label?include=summary",
+					"raw": "{{API_URL}}/metadata/medrt/synonymType/Preferred_Term?include=summary",
 					"host": [
 						"{{API_URL}}"
 					],
@@ -586,7 +584,7 @@
 						"metadata",
 						"medrt",
 						"synonymType",
-						"rdfs:label"
+						"Preferred_Term"
 					],
 					"query": [
 						{

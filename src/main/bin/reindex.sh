@@ -487,11 +487,18 @@ for x in `cat /tmp/y.$$.txt`; do
             echo "ERROR: unexpected error setting max_result_window"
             exit 1
         fi
-        # postman has to run from the root directory
-        cd src/main/bin
-        mkdir -p postman_content_qa
-        ./postman.sh "${term}" > "postman_content_qa/${term}_postman_content_qa.txt"
-        cd ../../..
+        # get directory of reindex.sh
+        REINDEX_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+        ORIG_DIR=$(pwd)
+        cd "$REINDEX_DIR"
+        mkdir -p "$REINDEX_DIR/postman_content_qa"
+        "$REINDEX_DIR/postman.sh" "${term}" > "$REINDEX_DIR/postman_content_qa/${term}_postman_content_qa.txt"
+        POSTMAN_EXIT=$?
+        if [ $POSTMAN_EXIT -ne 0 ]; then
+            echo "Error: postman.sh failed with exit code $POSTMAN_EXIT"
+            exit $POSTMAN_EXIT
+        fi
+        cd "$ORIG_DIR"
  
     fi
 	

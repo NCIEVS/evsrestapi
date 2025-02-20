@@ -514,8 +514,8 @@
 							"    pm.expect(responseData.synonyms).to.exist;\r",
 							"    pm.expect(responseData.properties).to.exist;\r",
 							"\r",
-							"    pm.expect(responseData.code).to.exist.and.to.equal(\"ends_during\");\r",
-							"    pm.expect(responseData.name).to.exist.and.to.equal(\"ends during\");\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"has_role\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"has role\");\r",
 							"});\r",
 							""
 						],
@@ -528,7 +528,7 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "{{API_URL}}/metadata/chebi/role/ends_during?include=summary",
+					"raw": "{{API_URL}}/metadata/chebi/role/has_role?include=summary",
 					"host": [
 						"{{API_URL}}"
 					],
@@ -536,7 +536,7 @@
 						"metadata",
 						"chebi",
 						"role",
-						"ends_during"
+						"has_role"
 					],
 					"query": [
 						{
