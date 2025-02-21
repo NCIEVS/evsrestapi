@@ -26,7 +26,7 @@ historyFile=$dir/cumulative_history_21.06e.txt
 
 
 databases=("NCIT2" "CTRP")
-curl_cmd='curl -s -w "\n%{http_code}" -u '"${GRAPH_DB_USERNAME}:${GRAPH_DB_PASSWORD}"
+curl_cmd='curl -s -w \n%{http_code} -u '"${GRAPH_DB_USERNAME}:${GRAPH_DB_PASSWORD}"
 
 # Set up ability to format json
 jq --help >> /dev/null 2>&1
@@ -160,8 +160,6 @@ check_http_status() {
     retval=$1
     message=$2
     status=`tail -1 /tmp/x.$$`
-    echo "XXX status = $status"
-    echo "XXX retval = $retval"
     if [ $status -ne $retval ]; then
       echo ""
       perl -pe 's/'$status'$//' /tmp/x.$$ | sed 's/^/    /'
@@ -172,13 +170,13 @@ check_http_status() {
 
 # Verify docker is running
 echo "    verify jena/fuseki is running"
-$curl_cmd -s -f "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$/ping" 2> /dev/null > /tmp/x.$$
+$curl_cmd "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$/ping" 2> /dev/null > /tmp/x.$$
 check_status $? "GET /$/ping failed - jena is not running"
 check_http_status 200 "GET /$/ping expecting 200"
 
 # Verify elasticsearch can be reached
 echo "    verify elasticsearch can be reached"
-curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices" 2> /dev/null > /tmp/x.$$
+curl -s -w "\n%{http_code}" "$ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices" 2> /dev/null > /tmp/x.$$
 check_status $? "GET /_cat/indices failed - problem connecting to elasticsearch"
 check_http_status 200 "GET /_cat/indices expecting 200"
 
@@ -192,7 +190,7 @@ remove_elasticsearch_indexes(){
   fi
   for i in `cat /tmp/x.$$.txt`; do
       echo "    remove $i ...`/bin/date`"
-      curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$i" 2> /dev/null > /tmp/x.$$
+      curl -s -w "\n%{http_code}" -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$i" 2> /dev/null > /tmp/x.$$
       check_status $? "DELETE /$i failed - problem removing index $i"
       check_http_status 200 "DELETE /$i expecting 200"
   done
@@ -238,7 +236,7 @@ create_databases(){
     echo "    Creating $db ...`/bin/date`"
     $curl_cmd -X POST -d "dbName=${db}&dbType=tdb2" "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$/datasets" 2> /dev/null > /tmp/x.$$
     check_status $? "POST /$/datasets failed - error creating database ${db}"
-    check_http_status 201 "POST /$/datasets expecting 201"
+    check_http_status 200 "POST /$/datasets expecting 200"
   done
 }
 
@@ -256,6 +254,7 @@ load_terminology_data_in_transaction(){
 
 load_terminology_data(){
   echo "    Loading $3 into $1 ...`/bin/date`"
+  echo "      curl -X POST -H 'Content-Type: application/rdf+xml' -T '$dir/$3' http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$1/data?graph=$2"
   $curl_cmd -X POST -H "Content-Type: application/rdf+xml" -T "$dir/$3" "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$1/data?graph=$2" 2> /dev/null > /tmp/x.$$
   check_status $? "POST /$1/data failed - error loading data $dir/$3"
   check_http_status 201 "POST /$1/data expecting 201"
