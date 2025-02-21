@@ -85,7 +85,7 @@ setup_configuration() {
 }
 
 setup_configuration
-l_graph_db_port=${GRAPH_DB_PORT:-"5820"}
+l_graph_db_port=${GRAPH_DB_PORT:-"3030"}
 validate_setup() {
   if [[ -n "$GRAPH_DB_USERNAME" ]]; then
     l_graph_db_username="$GRAPH_DB_USERNAME"
@@ -136,20 +136,11 @@ metadata_config_url=${CONFIG_BASE_URI:-"https://raw.githubusercontent.com/NCIEVS
 get_databases(){
   # this was put back to perl because we don't have python3 on the evsrestapi machines
   curl -w "\n%{http_code}" -s -g -u "${l_graph_db_username}:$l_graph_db_password" \
-      "http://${l_graph_db_host}:${l_graph_db_port}/admin/databases" 2> /dev/null > /tmp/x.$$
-
-TODO: use jena command for this...
-    curl -s -g -u "${l_graph_db_username}:$l_graph_db_password" "http://${l_graph_db_host}:${l_graph_db_port}/$/server" |\
-
+      "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/\$/datasets" 2> /dev/null > /tmp/x.$$
   check_status $? "GET /admin/databases failed to list databases"
   check_http_status 200 "GET /admin/databases expecting 200"
-  head -n -1 /tmp/x.$$ | $jq | grep -v catalog |\
-      perl -ne 's/\r//; $x=0 if /\]/; 
-          if ($x) { s/.* "//; s/",?$//; print "$_"; }; 
-          $x=1 if/\[/;' > /tmp/db.$$.txt
-
+  head -n -1 /tmp/x.$$ | $jq | grep 'ds.name' | perl -pe 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
   echo "  databases = " `cat /tmp/db.$$.txt`
-
   ct=`cat /tmp/db.$$.txt | wc -l`
   if [[ $ct -eq 0 ]]; then
       echo "ERROR: no graph databases, this is unexpected"

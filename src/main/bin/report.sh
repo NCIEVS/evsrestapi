@@ -83,7 +83,7 @@ echo ""
 
 curl -s -g -u "${GRAPH_DB_USERNAME}:$GRAPH_DB_PASSWORD" \
     "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/\$/datasets" |\
-    $jq | grep 'ds.name' | perl -ne 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
+    $jq | grep 'ds.name' | perl -pe 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
 if [[ $? -ne 0 ]]; then
     echo "ERROR: unexpected problem listing databases"
     exit 1
