@@ -160,6 +160,8 @@ check_http_status() {
     retval=$1
     message=$2
     status=`tail -1 /tmp/x.$$`
+    echo "XXX status = $status"
+    echo "XXX retval = $retval"
     if [ $status -ne $retval ]; then
       echo ""
       perl -pe 's/'$status'$//' /tmp/x.$$ | sed 's/^/    /'
@@ -240,6 +242,7 @@ create_databases(){
   done
 }
 
+# NOT USED
 load_terminology_data_in_transaction(){
   echo "    Loading $3 into $1 ...`/bin/date`"
   tx=$(curl -s -u "${GRAPH_DB_USERNAME}":"${GRAPH_DB_PASSWORD}" -X POST "http://localhost:5820/$1/transaction/begin")
@@ -255,7 +258,7 @@ load_terminology_data(){
   echo "    Loading $3 into $1 ...`/bin/date`"
   $curl_cmd -X POST -H "Content-Type: application/rdf+xml" -T "$dir/$3" "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$1/data?graph=$2" 2> /dev/null > /tmp/x.$$
   check_status $? "POST /$1/data failed - error loading data $dir/$3"
-  check_http_status 200 "POST /$1/data expecting 200"
+  check_http_status 201 "POST /$1/data expecting 201"
 }
 
 load_data(){

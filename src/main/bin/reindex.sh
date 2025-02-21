@@ -137,6 +137,10 @@ get_databases(){
   # this was put back to perl because we don't have python3 on the evsrestapi machines
   curl -w "\n%{http_code}" -s -g -u "${l_graph_db_username}:$l_graph_db_password" \
       "http://${l_graph_db_host}:${l_graph_db_port}/admin/databases" 2> /dev/null > /tmp/x.$$
+
+TODO: use jena command for this...
+    curl -s -g -u "${l_graph_db_username}:$l_graph_db_password" "http://${l_graph_db_host}:${l_graph_db_port}/$/server" |\
+
   check_status $? "GET /admin/databases failed to list databases"
   check_http_status 200 "GET /admin/databases expecting 200"
   head -n -1 /tmp/x.$$ | $jq | grep -v catalog |\
