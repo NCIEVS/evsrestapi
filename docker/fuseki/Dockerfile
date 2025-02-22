@@ -18,8 +18,8 @@ RUN curl -L -o /tmp/apache-jena-fuseki-${FUSEKI_VERSION}.zip \
     mv /tmp/apache-jena-fuseki-${FUSEKI_VERSION}/* ${FUSEKI_HOME} && \
     rm /tmp/apache-jena-fuseki-${FUSEKI_VERSION}.zip
 
-# Expose the default Fuseki port
-EXPOSE 3030
+## Expose the default Fuseki port
+#EXPOSE 3030
 
 # Set the working directory
 WORKDIR ${FUSEKI_HOME}
