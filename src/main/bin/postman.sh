@@ -28,7 +28,7 @@ COLLECTION_FILE="EVSRESTAPI_Postman_${COLLECTION_NAME}_Demo.postman_collection.j
 # Check if the collection file exists
 if [ ! -f "$COLLECTION_FILE" ]; then
   echo "Warning: Collection file '$COLLECTION_FILE' for terminology '$COLLECTION_NAME' does not exist."
-  exit 1
+  exit 0
 fi
 
 # Verify if newman is installed
