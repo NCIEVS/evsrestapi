@@ -257,7 +257,10 @@ load_terminology_data(){
   echo "      curl -X POST -H 'Content-Type: application/rdf+xml' -T '$dir/$3' http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$1/data?graph=$2"
   $curl_cmd -X POST -H "Content-Type: application/rdf+xml" -T "$dir/$3" "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$1/data?graph=$2" 2> /dev/null > /tmp/x.$$
   check_status $? "POST /$1/data failed - error loading data $dir/$3"
-  check_http_status 201 "POST /$1/data expecting 201"
+  # duo is in 2 parts, the first part returns 201, the second part returns 200, skip this check
+  if [ $3 != "DUO"]; then
+    check_http_status 201 "POST /$1/data expecting 201"
+  fi
 }
 
 load_data(){
@@ -265,7 +268,7 @@ load_data(){
     load_terminology_data CTRP http://NCI_T_monthly ThesaurusInferred_monthly.owl
     load_terminology_data NCIT2 http://NCI_T_monthly ThesaurusInferred_monthly.owl
     load_terminology_data NCIT2 http://GO_monthly GO/go.2022-07-01.owl
-    load_terminology_data NCIT2 http://HGNC_monthly HGNC/HGNC_202209.owl
+    #load_terminology_data NCIT2 http://HGNC_monthly HGNC/HGNC_202209.owl
     load_terminology_data NCIT2 http://ChEBI_monthly ChEBI/chebi_213.owl
     load_terminology_data NCIT2 http://UmlsSemNet UmlsSemNet/umlssemnet.owl
     load_terminology_data NCIT2 http://MEDRT MED-RT/medrt.owl
