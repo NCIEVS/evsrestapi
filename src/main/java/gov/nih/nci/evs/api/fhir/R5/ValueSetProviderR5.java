@@ -100,7 +100,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OptionalParam(name = "_id") final TokenParam id,
       @OptionalParam(name = "code") final StringParam code,
       @OptionalParam(name = "name") final StringParam name,
-      @OptionalParam(name = "system") final UriType system,
+      @OptionalParam(name = "title") final StringParam title,
       @OptionalParam(name = "url") final StringParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
@@ -125,11 +125,11 @@ public class ValueSetProviderR5 implements IResourceProvider {
           logger.debug("  SKIP url mismatch = " + vs.getUrl());
           continue;
         }
-        if (system != null && !system.getValue().equals(vs.getTitle())) {
-          logger.debug("  SKIP system mismatch = " + vs.getTitle());
+        if (title != null && !FhirUtility.compareString(title, vs.getTitle())) {
+          logger.debug("  SKIP title mismatch = " + vs.getTitle());
           continue;
         }
-        if (name != null && !name.getValue().equals(vs.getName())) {
+        if (name != null && !FhirUtility.compareString(name, vs.getName())) {
           logger.debug("  SKIP name mismatch = " + vs.getName());
           continue;
         }
@@ -165,8 +165,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
         logger.debug("  SKIP url mismatch = " + vs.getUrl());
         continue;
       }
-      if (system != null && !system.getValue().equals(vs.getTitle())) {
-        logger.debug("  SKIP system mismatch = " + vs.getTitle());
+      if (title != null && !FhirUtility.compareString(title, vs.getTitle())) {
+        logger.debug("  SKIP title mismatch = " + vs.getTitle());
         continue;
       }
       if (name != null && !name.getValue().equals(vs.getName())) {
@@ -187,7 +187,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * Expand implicit.
    *
    * <pre>
-   * <a href="https://hl7.org/fhir/R5/valueset-operation-expand.html">valueset operation expand</a>
+   * <a href=
+   * "https://hl7.org/fhir/R5/valueset-operation-expand.html">valueset operation expand</a>
    * </pre>
    *
    * @param request the request
@@ -250,7 +251,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OperationParam(name = "check-system-version") final StringType check_system_version,
       @OperationParam(name = "force-system-version") final StringType force_system_version)
       throws Exception {
-    // check if request is a post, throw exception as we don't support post calls
+    // check if request is a post, throw exception as we don't support post
+    // calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
           "POST method not supported for " + JpaConstants.OPERATION_EXPAND,
@@ -346,7 +348,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * Expand instance.
    *
    * <pre>
-   * <a href="https://hl7.org/fhir/R5/valueset-operation-expand.html">valueset operation expand</a>
+   * <a href=
+   * "https://hl7.org/fhir/R5/valueset-operation-expand.html">valueset operation expand</a>
    * </pre>
    *
    * @param request the request
@@ -411,7 +414,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OperationParam(name = "check-system-version") final StringType check_system_version,
       @OperationParam(name = "force-system-version") final StringType force_system_version)
       throws Exception {
-    // check if request is a post, throw exception as we don't support post calls
+    // check if request is a post, throw exception as we don't support post
+    // calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
           "POST method not supported for " + JpaConstants.OPERATION_EXPAND,
@@ -420,7 +424,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
     try {
       // URL is not required because "id" is provided
-      //      FhirUtilityR5.required(url, "url");
+      // FhirUtilityR5.required(url, "url");
       FhirUtilityR5.notSupported(valueSet, "valueSet");
       FhirUtilityR5.notSupported(context, "context");
       FhirUtilityR5.notSupported(contextDirection, "contextDirection");
@@ -508,7 +512,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * Validate code implicit.
    *
    * <pre>
-   * <a href="https://hl7.org/fhir/R5/valueset-operation-validate-code.html">valueset operation validate code</a>
+   * <a href=
+   * "https://hl7.org/fhir/R5/valueset-operation-validate-code.html">valueset operation validate code</a>
    * </pre>
    *
    * @param request the request
@@ -554,7 +559,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OperationParam(name = "abstract") final BooleanType abstractt,
       @OperationParam(name = "displayLanguage") final StringType displayLanguage)
       throws Exception {
-    // check if request is a post, throw exception as we don't support post calls
+    // check if request is a post, throw exception as we don't support post
+    // calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
           "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
@@ -631,7 +637,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * Validate code instance.
    *
    * <pre>
-   * <a href="https://hl7.org/fhir/R5/valueset-operation-validate-code.html">valueset operation validate code</a>
+   * <a href=
+   * "https://hl7.org/fhir/R5/valueset-operation-validate-code.html">valueset operation validate code</a>
    * </pre>
    *
    * @param request the request
@@ -679,7 +686,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OperationParam(name = "abstract") final BooleanType abstractt,
       @OperationParam(name = "displayLanguage") final StringType displayLanguage)
       throws Exception {
-    // check if request is a post, throw exception as we don't support post calls
+    // check if request is a post, throw exception as we don't support post
+    // calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
           "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
