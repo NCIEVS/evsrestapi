@@ -258,7 +258,7 @@ load_terminology_data(){
   $curl_cmd -X POST -H "Content-Type: application/rdf+xml" -T "$dir/$3" "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$1/data?graph=$2" 2> /dev/null > /tmp/x.$$
   check_status $? "POST /$1/data failed - error loading data $dir/$3"
   # duo is in 2 parts, the first part returns 201, the second part returns 200, skip this check
-  if [[ "$3" != "DUO"]]; then
+  if [[ "$3" != "DUO" ]]; then
     check_http_status 201 "POST /$1/data expecting 201"
   fi
 }

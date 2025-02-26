@@ -1,4 +1,4 @@
-#!/bin/sh -f
+#!/bin/bash -f
 #
 # This is the wrapper script for deployment that uses NCIM to load
 # various terminologies.  This may be called with parameters due to

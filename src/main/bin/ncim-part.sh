@@ -1,4 +1,4 @@
-#!/bin/sh -f
+#!/bin/bash -f
 
 config=1
 download=0
