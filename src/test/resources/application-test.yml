@@ -100,7 +100,7 @@ nci:
     graph:
       host: ${GRAPH_DB_HOST:localhost}
       port: ${GRAPH_DB_PORT:5820}
-      db: ${GRAPH_DB_DB:NCIT2}
+      db: ${GRAPH_DB:NCIT2}
       queryUrl: http://${nci.evs.graph.host}:${nci.evs.graph.port}/${nci.evs.graph.db}/query
       username: admin
       password: admin

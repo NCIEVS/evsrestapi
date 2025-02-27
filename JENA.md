@@ -31,7 +31,7 @@ GRAPH_DB_PORT=3030
 GRAPH_DB_USERNAME=admin
 GRAPH_DB_PASSWORD=admin
 GRAPH_DB_URL=http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}
-GRAPH_DB_DB=NCIT2
+GRAPH_DB=NCIT2
 ```
 
 Next, put your query into a file.  Make sure to include prefixes and the correct graph name.

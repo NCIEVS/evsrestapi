@@ -11,7 +11,7 @@
   </appender>
   <!-- change below to "debug" to see queries -->
   <logger
-    name="org.springframework.data.elasticsearch.core.ElasticsearchRestTemplate"
+    name="gov.nih.nci.evs.api.configuration.EvsOpenSearchRestTemplate"
     level="info" />
   <root level="INFO">
     <appender-ref ref="STDOUT" />

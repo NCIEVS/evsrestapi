@@ -27,7 +27,7 @@ Information on the build and deployment process for the EVSRESTAPI project
   * ES_PORT=9201
   * GRAPH_DB_HOST=localhost
   * GRAPH_DB_PORT=5820
-  * GRAPH_DB_DB=NCIT2
+  * GRAPH_DB=NCIT2
   * GRAPH_DB_USERNAME=admin
   * GRAPH_DB_PASSWORD=admin
   * CONFIG_BASE_URI=https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata
