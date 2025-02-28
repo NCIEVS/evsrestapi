@@ -8,7 +8,7 @@ import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.StardogElasticLoadServiceImpl;
+import gov.nih.nci.evs.api.service.GraphElasticLoadServiceImpl;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -29,8 +29,8 @@ public class TerminologyUtilsTest {
   /** The elastic query service *. */
   @Autowired private ElasticQueryService esQueryService;
 
-  /** The stardog loader service. */
-  @Autowired private StardogElasticLoadServiceImpl stardogElasticLoadServiceImpl;
+  /** The graph loader service. */
+  @Autowired private GraphElasticLoadServiceImpl graphElasticLoadServiceImpl;
 
   /** The logger. */
   @SuppressWarnings("unused")
@@ -87,7 +87,7 @@ public class TerminologyUtilsTest {
     final TerminologyMetadata metadata =
         new ObjectMapper()
             .treeToValue(
-                stardogElasticLoadServiceImpl.getMetadataAsNodeLocal(terminology),
+                graphElasticLoadServiceImpl.getMetadataAsNodeLocal(terminology),
                 TerminologyMetadata.class);
     assertThat(metadata.getExtraSubsets()).isNotEmpty();
   }

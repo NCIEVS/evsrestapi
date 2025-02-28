@@ -1,7 +1,7 @@
 package gov.nih.nci.evs.api.properties;
 
-/** Stardog properties. */
-public class StardogProperties {
+/** Graph db properties. */
+public class GraphProperties {
 
   /** The username. */
   private String username;

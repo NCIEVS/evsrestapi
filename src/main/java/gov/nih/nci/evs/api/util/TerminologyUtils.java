@@ -2,7 +2,7 @@ package gov.nih.nci.evs.api.util;
 
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
@@ -43,8 +43,8 @@ public final class TerminologyUtils {
   /** The Constant logger. */
   private static final Logger logger = LoggerFactory.getLogger(TerminologyUtils.class);
 
-  /** The stardog properties. */
-  @Autowired StardogProperties stardogProperties;
+  /** The graph db properties. */
+  @Autowired GraphProperties graphProperties;
 
   /** The application properties. */
   @Autowired ApplicationProperties applicationProperties;
@@ -67,7 +67,7 @@ public final class TerminologyUtils {
    */
   public List<Terminology> getTerminologies(SparqlQueryManagerService sparqlQueryManagerService)
       throws Exception {
-    return sparqlQueryManagerService.getTerminologies(stardogProperties.getDb());
+    return sparqlQueryManagerService.getTerminologies(graphProperties.getDb());
   }
 
   /**
@@ -94,7 +94,7 @@ public final class TerminologyUtils {
    * @return the stale terminologies
    * @throws Exception the exception
    */
-  public List<IndexMetadata> getStaleStardogTerminologies(
+  public List<IndexMetadata> getStaleGraphTerminologies(
       final List<String> dbs,
       final Terminology terminology,
       SparqlQueryManagerService sparqlQueryManagerService,
@@ -106,22 +106,22 @@ public final class TerminologyUtils {
       return Collections.emptyList();
     }
 
-    final Map<String, Terminology> stardogMap = new HashMap<>();
+    final Map<String, Terminology> graphMap = new HashMap<>();
 
-    // Collect terminologies that are in stardog
+    // Collect terminologies that are in graph db
     for (final String db : dbs) {
       List<Terminology> terminologies = sparqlQueryManagerService.getTerminologies(db);
-      terminologies.stream().forEach(t -> stardogMap.putIfAbsent(t.getTerminologyVersion(), t));
+      terminologies.stream().forEach(t -> graphMap.putIfAbsent(t.getTerminologyVersion(), t));
     }
 
     // Stale means matching current terminology, not loaded via RRF, and in NOT
-    // in stardog
+    // in graph db
     return iMetas.stream()
         .filter(
             m ->
                 m.getTerminology().getTerminology().equals(terminology.getTerminology())
                     && !m.getTerminology().getMetadata().getLoader().equals("rrf")
-                    && !stardogMap.containsKey(m.getTerminologyVersion()))
+                    && !graphMap.containsKey(m.getTerminologyVersion()))
         .collect(Collectors.toList());
   }
 
@@ -272,13 +272,13 @@ public final class TerminologyUtils {
     final DateFormat fmt = new SimpleDateFormat("MMMM dd, yyyy");
     boolean monthly = false;
 
-    // If the stardogProperties "db" matches the terminology metadata
+    // If the graphProperties "db" matches the terminology metadata
     // "monthlyDb"
     // then continue, we're good.
     if (terminology.getMetadata() != null
         && db != null
         && db.equals(terminology.getMetadata().getMonthlyDb())) {
-      logger.info("  stardog monthly db found = " + db);
+      logger.info("  graph monthly db found = " + db);
       monthly = true;
     }
 

@@ -6,7 +6,7 @@ import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.MainTypeHierarchy;
@@ -33,10 +33,10 @@ import org.springframework.stereotype.Service;
 
 /** The implementation for {@link ElasticLoadService} that just generates a report. */
 @Service
-public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl {
+public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
 
   /** the logger *. */
-  private static final Logger logger = LoggerFactory.getLogger(StardogReportLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(GraphReportLoadServiceImpl.class);
 
   /** The mapper. */
   private ObjectMapper mapper = new ObjectMapper();
@@ -53,8 +53,8 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
   /** The sparql query manager service. */
   @Autowired private SparqlQueryManagerService sparqlQueryManagerService;
 
-  /** The stardog properties. */
-  @Autowired StardogProperties stardogProperties;
+  /** The graph properties. */
+  @Autowired GraphProperties graphProperties;
 
   /** The main type hierarchy. */
   @Autowired MainTypeHierarchy mainTypeHierarchy;
