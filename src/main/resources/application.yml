@@ -93,7 +93,7 @@ nci:
       graphDbs: CTRP,NCIT2
     graph:
       host: ${GRAPH_DB_HOST:localhost}
-      port: ${GRAPH_DB_PORT:5820}
+      port: ${GRAPH_DB_PORT:3030}
       db: ${GRAPH_DB:NCIT2}
       queryUrl: ${GRAPH_DB_MONTHLY_QUERY_URL:http://${nci.evs.graph.host}:${nci.evs.graph.port}/${nci.evs.graph.db}/query}
       username: ${GRAPH_DB_USERNAME:REPLACE_WITH_USERNAME}
