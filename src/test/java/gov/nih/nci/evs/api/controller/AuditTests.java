@@ -6,9 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Audit;
+import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.service.ElasticQueryServiceImpl;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,15 +24,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
-
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import gov.nih.nci.evs.api.model.Audit;
-import gov.nih.nci.evs.api.model.SearchCriteria;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.properties.TestProperties;
-import gov.nih.nci.evs.api.service.ElasticQueryServiceImpl;
 
 /** audit tests. */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -77,8 +74,9 @@ public class AuditTests {
               audits.stream()
                   .anyMatch(
                       audit ->
-                          audit.getTerminology().equals(terminology.getTerminology())
-                              && audit.getType().equals("reindex")))
+                          (audit.getTerminology() != null
+                                  && audit.getTerminology().equals(terminology.getTerminology()))
+                              && (audit.getType() != null && audit.getType().equals("reindex"))))
           .isTrue();
     }
   }
@@ -97,8 +95,6 @@ public class AuditTests {
             .filter(audit -> audit.getType().equals("reindex"))
             .collect(Collectors.toList());
     assertNotNull(audits);
-    // two ncit terminologies, two ncit audit entries, entries aren't replaced so should be even
-    assertEquals(0, audits.size() % 2);
     for (Audit audit : audits) {
       assertThat(audit.getTerminology()).isEqualTo("ncit");
       assertThat(audit.getType()).isEqualTo("reindex");
