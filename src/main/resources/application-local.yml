@@ -102,7 +102,7 @@ nci:
         scheme: ${ES_SCHEME:http}
       timeout: 200000
     sparql:
-      timeoutSeconds: 30
+      timeoutSeconds: 60
 
 # Springdoc
 springdoc:
