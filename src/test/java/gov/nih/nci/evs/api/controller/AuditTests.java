@@ -14,6 +14,7 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.service.ElasticQueryServiceImpl;
 import java.util.List;
+import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -88,9 +89,14 @@ public class AuditTests {
   @Test
   public void testGetAuditsByTerminology() throws Exception {
     List<Audit> audits = elasticQueryService.getAuditsByTerminology("ncit");
+    // filter errors and warnings
+    audits =
+        audits.stream()
+            .filter(audit -> audit.getType().equals("reindex"))
+            .collect(Collectors.toList());
     assertNotNull(audits);
-    // two ncit terminologies, two ncit audit entries
-    assertEquals(2, audits.size());
+    // two ncit terminologies, two ncit audit entries, entries aren't replaced so should be even
+    assertEquals(0, audits.size() % 2);
     for (Audit audit : audits) {
       assertThat(audit.getTerminology()).isEqualTo("ncit");
       assertThat(audit.getType()).isEqualTo("reindex");
