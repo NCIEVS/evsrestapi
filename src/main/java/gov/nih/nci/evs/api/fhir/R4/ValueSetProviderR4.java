@@ -181,6 +181,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       }
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
+      // TODO test and confirm extraneous $
       if (url.getValue().contains("?fhir_vs=$")) {
         final List<Association> invAssoc =
             esQueryService
@@ -357,6 +358,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       }
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
+
+      // TODO test and confirm extraneous $
       if (url.getValue().contains("?fhir_vs=$")) {
         final List<Association> invAssoc =
             esQueryService
