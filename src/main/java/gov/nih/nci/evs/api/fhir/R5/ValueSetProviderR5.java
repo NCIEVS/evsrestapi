@@ -45,6 +45,9 @@ import org.hl7.fhir.r5.model.Parameters;
 import org.hl7.fhir.r5.model.StringType;
 import org.hl7.fhir.r5.model.UriType;
 import org.hl7.fhir.r5.model.ValueSet;
+import org.hl7.fhir.r5.model.ValueSet.ConceptPropertyComponent;
+import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionContainsComponent;
+import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionParameterComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -249,7 +252,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OperationParam(name = "exclude-system") final StringType exclude_system,
       @OperationParam(name = "system-version") final StringType system_version,
       @OperationParam(name = "check-system-version") final StringType check_system_version,
-      @OperationParam(name = "force-system-version") final StringType force_system_version)
+      @OperationParam(name = "force-system-version") final StringType force_system_version,
+      @OperationParam(name = "property") final List<StringType> properties)
       throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls
@@ -281,9 +285,23 @@ public class ValueSetProviderR5 implements IResourceProvider {
         throw FhirUtilityR5.exception(
             "Value set " + url.asStringValue() + " not found", IssueType.EXCEPTION, 500);
       }
+
+      // Convert list of StringType properties to list of String property names
+      // if provided
+      List<String> propertyNames = null;
+      if (properties != null && !properties.isEmpty()) {
+        propertyNames = properties.stream().map(StringType::getValue).collect(Collectors.toList());
+      }
+      // If properties are indicated, retrieve the concept with all potentially
+      // needed info
+      IncludeParam includeParam = new IncludeParam("minimal");
+      if (propertyNames != null && !propertyNames.isEmpty()) {
+        includeParam = new IncludeParam("parents,children,properties");
+      }
+
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
-      if (url.getValue().contains("?fhir_vs=$")) {
+      if (url.getValue().contains("?fhir_vs=")) {
         final List<Association> invAssoc =
             esQueryService
                 .getConcept(
@@ -298,7 +316,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
                   .getConcept(
                       assn.getRelatedCode(),
                       termUtils.getIndexedTerminology(vs.getTitle(), esQueryService),
-                      new IncludeParam("minimal"))
+                      includeParam)
                   .orElse(null);
           if (member != null) {
             subsetMembers.add(member);
@@ -314,6 +332,10 @@ public class ValueSetProviderR5 implements IResourceProvider {
         sc.setType("contains");
         sc.setTerminology(
             terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
+        // Add property names to search criteria if indicated
+        if (propertyNames != null && !propertyNames.isEmpty()) {
+          sc.setInclude("parents,children,properties");
+        }
         subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();
       }
       final ValueSet.ValueSetExpansionComponent vsExpansion =
@@ -331,6 +353,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
           vsContains.setSystem(url.getValue());
           vsContains.setCode(subset.getCode());
           vsContains.setDisplay(subset.getName());
+
+          // Add properties to the contains component if they were requested
+          if (propertyNames != null && !propertyNames.isEmpty()) {
+            for (String propertyName : propertyNames) {
+              addConceptProperty(vsContains, subset, propertyName);
+            }
+          }
           vsExpansion.addContains(vsContains);
         }
       }
@@ -412,7 +441,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OperationParam(name = "exclude-system") final StringType exclude_system,
       @OperationParam(name = "system-version") final StringType system_version,
       @OperationParam(name = "check-system-version") final StringType check_system_version,
-      @OperationParam(name = "force-system-version") final StringType force_system_version)
+      @OperationParam(name = "force-system-version") final StringType force_system_version,
+      @OperationParam(name = "property") final List<StringType> properties)
       throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls
@@ -445,9 +475,23 @@ public class ValueSetProviderR5 implements IResourceProvider {
         throw FhirUtilityR5.exception(
             "Value set " + url.asStringValue() + " not found", IssueType.EXCEPTION, 500);
       }
+
+      // Convert list of StringType properties to list of String property names
+      // if provided
+      List<String> propertyNames = null;
+      if (properties != null && !properties.isEmpty()) {
+        propertyNames = properties.stream().map(StringType::getValue).collect(Collectors.toList());
+      }
+      // If properties are indicated, retrieve the concept with all potentially
+      // needed info
+      IncludeParam includeParam = new IncludeParam("minimal");
+      if (propertyNames != null && !propertyNames.isEmpty()) {
+        includeParam = new IncludeParam("parents,children,properties");
+      }
+
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
-      if (url.getValue().contains("?fhir_vs=$")) {
+      if (url.getValue().contains("?fhir_vs=")) {
         final List<Association> invAssoc =
             esQueryService
                 .getConcept(
@@ -462,7 +506,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
                   .getConcept(
                       assn.getRelatedCode(),
                       termUtils.getIndexedTerminology(vs.getTitle(), esQueryService),
-                      new IncludeParam("minimal"))
+                      includeParam)
                   .orElse(null);
           if (member != null) {
             subsetMembers.add(member);
@@ -478,6 +522,10 @@ public class ValueSetProviderR5 implements IResourceProvider {
         sc.setType("contains");
         sc.setTerminology(
             terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
+        // Add property names to search criteria if indicated
+        if (propertyNames != null && !propertyNames.isEmpty()) {
+          sc.setInclude("parents,children,properties");
+        }
         subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();
       }
       final ValueSet.ValueSetExpansionComponent vsExpansion =
@@ -495,9 +543,37 @@ public class ValueSetProviderR5 implements IResourceProvider {
           vsContains.setSystem(url.getValue());
           vsContains.setCode(subset.getCode());
           vsContains.setDisplay(subset.getName());
+
+          // Add properties to the contains component if they were requested
+          if (propertyNames != null && !propertyNames.isEmpty()) {
+            for (String propertyName : propertyNames) {
+              addConceptProperty(vsContains, subset, propertyName);
+            }
+          }
           vsExpansion.addContains(vsContains);
         }
       }
+      // Add expansion parameters
+      ValueSetExpansionParameterComponent vsParameter = new ValueSetExpansionParameterComponent();
+      vsParameter.setName("url");
+      vsParameter.setValue(url);
+      vsExpansion.addParameter(vsParameter);
+
+      vsParameter = new ValueSetExpansionParameterComponent();
+      vsParameter.setName("version");
+      vsParameter.setValue(version);
+      vsExpansion.addParameter(vsParameter);
+
+      // Add property parameter if properties were specified
+      if (properties != null && !properties.isEmpty()) {
+        for (StringType property : properties) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("property");
+          vsParameter.setValue(property);
+          vsExpansion.addParameter(vsParameter);
+        }
+      }
+
       vs.setExpansion(vsExpansion);
       return vs;
     } catch (final FHIRServerResponseException e) {
@@ -864,5 +940,52 @@ public class ValueSetProviderR5 implements IResourceProvider {
       list.add(vs);
     }
     return list;
+  }
+
+  /**
+   * Helper method to extract a property value from a concept
+   *
+   * @param concept The concept
+   * @param propertyName The name of the property to retrieve
+   * @return The property value, or null if not found
+   */
+  private void addConceptProperty(
+      ValueSetExpansionContainsComponent vsContains, Concept concept, String propertyName) {
+
+    if (propertyName.equals("active")) {
+      vsContains.addProperty(
+          new ConceptPropertyComponent()
+              .setCode("active")
+              .setValue(new BooleanType(concept.getActive())));
+    } else if (propertyName.contains("parent")) {
+      for (final Concept parent : concept.getParents()) {
+        vsContains.addProperty(
+            new ConceptPropertyComponent()
+                .setCode("parent")
+                .setValue(new Coding().setCode(parent.getCode())));
+      }
+    } else if (propertyName.contains("child")) {
+      for (final Concept child : concept.getChildren()) {
+        vsContains.addProperty(
+            new ConceptPropertyComponent()
+                .setCode("child")
+                .setValue(new Coding().setCode(child.getCode())));
+      }
+    } else if (concept.getProperties().stream().anyMatch(p -> p.getType().equals(propertyName))) {
+      concept.getProperties().stream()
+          .filter(p -> p.getType().equals(propertyName))
+          .forEach(
+              p -> {
+                vsContains.addProperty(
+                    new ConceptPropertyComponent()
+                        .setCode(propertyName)
+                        .setValue(new StringType(p.getValue().toString())));
+              });
+    } else {
+      // if (!notFoundSeen.contains(property)) {
+      logger.warn("Requested property not found = " + propertyName);
+      // notFoundSeen.add(property);
+      // }
+    }
   }
 }
