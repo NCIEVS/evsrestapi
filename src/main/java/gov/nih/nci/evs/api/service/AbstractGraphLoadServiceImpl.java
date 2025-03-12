@@ -533,10 +533,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       // find the concept to add to the subsets list
       Concept newSubsetEntry = new Concept();
       try {
+        // We can't use "full" here or we wind up losing "extensions" and "paths"
+        // So we use the "everything" mode
         newSubsetEntry =
-            esQueryService
-                .getConcept(subsetCode, terminology, new IncludeParam("full"))
-                .orElseThrow();
+            esQueryService.getConcept(subsetCode, terminology, new IncludeParam("*")).orElseThrow();
       } catch (NoSuchElementException e) {
         logger.warn("Subset " + subsetCode + " not found as a concept, skipping.");
         Audit.addAudit(
