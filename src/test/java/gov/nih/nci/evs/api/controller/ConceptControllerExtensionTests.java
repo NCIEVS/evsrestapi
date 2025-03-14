@@ -98,7 +98,7 @@ public class ConceptControllerExtensionTests {
    *
    * @throws Exception the exception
    */
-  // @Test
+  @Test
   public void testFullSet() throws Exception {
     testHelper("extensions-test-full-set.txt", "extensions-test-full-result.txt");
   }
