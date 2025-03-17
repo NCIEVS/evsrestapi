@@ -607,6 +607,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         }
         Concept subsetConcept = new Concept();
         try {
+          // We can't use "full" here or we wind up losing "extensions" and "paths"
+          // So we use the "everything" mode
           subsetConcept =
               esQueryService
                   .getConcept(
