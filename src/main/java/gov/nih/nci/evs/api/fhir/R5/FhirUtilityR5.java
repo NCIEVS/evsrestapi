@@ -40,7 +40,7 @@ import org.hl7.fhir.r5.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Utility for FHIR R4. */
+/** Utility for FHIR R5. */
 public class FhirUtilityR5 {
   /** The logger. */
   @SuppressWarnings("unused")

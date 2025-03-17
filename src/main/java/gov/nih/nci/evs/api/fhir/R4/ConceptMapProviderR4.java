@@ -16,6 +16,7 @@ import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
+import gov.nih.nci.evs.api.fhir.R5.FhirUtilityR5;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Mapping;
@@ -30,6 +31,7 @@ import gov.nih.nci.evs.api.util.FhirUtility;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
@@ -126,7 +128,15 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("target", target, "targetSystem", targetSystem);
-
+      for (final String param : new String[] {
+              "conceptMap", "coding", "codableConcept", "dependency"
+      }) {
+          FhirUtilityR4.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
+              .count() > 0) {
+          FhirUtilityR4.notSupported(request, "_has");
+      }
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
           findPossibleConceptMaps(null, null, system, url, version, source, target, targetSystem);
@@ -243,7 +253,15 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("target", target, "targetSystem", targetSystem);
-
+      for (final String param : new String[] {
+              "conceptMap", "coding", "codableConcept", "dependency"
+      }) {
+          FhirUtilityR4.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
+              .count() > 0) {
+          FhirUtilityR4.notSupported(request, "_has");
+      }
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
           findPossibleConceptMaps(null, null, system, url, version, source, target, targetSystem);

@@ -30,6 +30,7 @@ import gov.nih.nci.evs.api.util.FhirUtility;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.CodeType;
@@ -217,7 +218,16 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyRequired(sourceCode, "sourceCode", system, "system");
       FhirUtilityR5.mutuallyRequired(targetCode, "targetCode", system, "system");
       FhirUtilityR5.mutuallyExclusive(targetScope, "targetScope", targetSystem, "targetSystem");
-
+      for (final String param : new String[] {
+              "conceptMap", "sourceCoding", "sourceCodableConcept", "targetCodableConcept", "dependency"
+      }) {
+          FhirUtilityR5.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
+              .count() > 0) {
+          FhirUtilityR5.notSupported(request, "_has");
+      }
+      
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
           findPossibleConceptMaps(null, null, system, url, version, targetSystem);
@@ -345,7 +355,16 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyRequired(sourceCode, "sourceCode", system, "system");
       FhirUtilityR5.mutuallyRequired(targetCode, "targetCode", system, "system");
       FhirUtilityR5.mutuallyExclusive(targetScope, "targetScope", targetSystem, "targetSystem");
-
+      for (final String param : new String[] {
+              "conceptMap", "sourceCoding", "sourceCodableConcept", "targetCodableConcept", "dependency"
+      }) {
+          FhirUtilityR5.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
+              .count() > 0) {
+          FhirUtilityR5.notSupported(request, "_has");
+      }
+      
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
           findPossibleConceptMaps(null, null, system, url, version, targetSystem);
