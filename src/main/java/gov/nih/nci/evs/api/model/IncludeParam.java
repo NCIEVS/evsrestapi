@@ -200,8 +200,10 @@ public class IncludeParam extends BaseModel {
     mapsetLink = true;
 
     // Full doesn't include descendants and paths
-    // descendants = true;
-    // paths = true;
+    // descendants = false;
+    // paths = false;
+    // extensions = false;
+
   }
 
   /** Populate everything. */

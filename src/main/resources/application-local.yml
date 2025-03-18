@@ -88,7 +88,7 @@ nci:
       graphDbs: CTRP,NCIT2
     graph:
       host: ${GRAPH_DB_HOST:localhost}
-      port: ${GRAPH_DB_PORT:5820}
+      port: ${GRAPH_DB_PORT:3030}
       db: ${GRAPH_DB:NCIT2}
       queryUrl: http://${nci.evs.graph.host}:${nci.evs.graph.port}/${nci.evs.graph.db}/query
       username: admin
@@ -102,7 +102,7 @@ nci:
         scheme: ${ES_SCHEME:http}
       timeout: 200000
     sparql:
-      timeoutSeconds: 30
+      timeoutSeconds: 60
 
 # Springdoc
 springdoc:

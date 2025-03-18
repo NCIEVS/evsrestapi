@@ -49,6 +49,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -863,8 +864,7 @@ public class SearchController extends BaseController {
     // String.class)
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.POST,
+  @PostMapping(
       value = "/concept/{terminology}/search",
       consumes = "text/plain",
       produces = "application/json")

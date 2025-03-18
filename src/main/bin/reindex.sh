@@ -134,19 +134,32 @@ fi
 metadata_config_url=${CONFIG_BASE_URI:-"https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata"}
 
 get_databases(){
-  # this was put back to perl because we don't have python3 on the evsrestapi machines
-  curl -w "\n%{http_code}" -s -g -u "${l_graph_db_username}:$l_graph_db_password" \
-      "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/\$/datasets" 2> /dev/null > /tmp/x.$$
-  check_status $? "GET /admin/databases failed to list databases"
-  check_http_status 200 "GET /admin/databases expecting 200"
-  head -n -1 /tmp/x.$$ | $jq | grep 'ds.name' | perl -pe 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
-  echo "  databases = " `cat /tmp/db.$$.txt`
-  ct=`cat /tmp/db.$$.txt | wc -l`
-  if [[ $ct -eq 0 ]]; then
-      echo "ERROR: no graph databases, this is unexpected"
-      exit 1
-  fi
+
+  # Hardcode database names for now
+  cat > /tmp/db.$$.txt << EOF
+CTRP
+NCIT2
+EOF
+
+  # The following code requires "admin" call to Jena which is only allowed
+  # in deployment environments from "localhost".  Thus the evsrestapi server
+  # is not allowed to make this call.
+  #
+  ## this was put back to perl because we don't have python3 on the evsrestapi machines
+  #curl -w "\n%{http_code}" -s -g -u "${l_graph_db_username}:$l_graph_db_password" \
+  #    "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/\$/datasets" 2> /dev/null > /tmp/x.$$
+  #check_status $? "GET /admin/databases failed to list databases"
+  #check_http_status 200 "GET /admin/databases expecting 200"
+  #head -n -1 /tmp/x.$$ | $jq | grep 'ds.name' | perl -pe 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
+  #echo "  databases = " `cat /tmp/db.$$.txt`
+  #ct=`cat /tmp/db.$$.txt | wc -l`
+  #if [[ $ct -eq 0 ]]; then
+  #    echo "ERROR: no graph databases, this is unexpected"
+  #    exit 1
+  #fi
 }
+
+
 get_databases
 # Open a new file descriptor that redirects to stdout:
 exec 3>&1

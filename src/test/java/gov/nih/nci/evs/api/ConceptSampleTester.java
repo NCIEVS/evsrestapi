@@ -714,7 +714,11 @@ public class ConceptSampleTester {
     if (terminology.getMetadata().getSubsetLink().isBlank()
         || terminology.getMetadata().getSubsetLink().equals(sample.getKey())) {
       String url =
-          "/api/v1/subset/" + terminology.getTerminology() + "/" + conceptCode + "?include=summary";
+          "/api/v1/subset/"
+              + terminology.getTerminology()
+              + "/"
+              + conceptCode
+              + "?include=subsetLink";
       MvcResult result =
           testMvc
               .perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))

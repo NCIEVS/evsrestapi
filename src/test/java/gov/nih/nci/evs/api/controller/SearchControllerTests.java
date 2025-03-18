@@ -3620,12 +3620,11 @@ public class SearchControllerTests {
     query =
         "SELECT ?code {\n"
             + "  GRAPH <http://NCI_T_monthly> {\n"
-            + "    ?x a owl:Class .\n"
             + "    ?x :NHC0 ?code .\n"
             + "    ?x :P108 ?label .\n"
             + "    FILTER(STRSTARTS(?label, \"Melanoma\"))\n"
             + "  }\n"
-            + "}";
+            + "} LIMIT 100";
     log.info("Testing url - " + url + "?type=contains&include=minimal&term=Theraccine");
     result =
         mvc.perform(
@@ -3950,7 +3949,8 @@ public class SearchControllerTests {
     String content = null;
 
     String query =
-        "SELECT ?code ?x { GRAPH <http://NCI_T_monthly> { ?x a owl:Class . ?x :NHC0 ?code . } }";
+        "SELECT ?code ?x { GRAPH <http://NCI_T_monthly> { ?x a owl:Class . ?x :NHC0 ?code . } }"
+            + " LIMIT 100";
     log.info("Testing url - " + url + "?terminology=ncit&fromRecord=0&pageSize=10");
     result =
         mvc.perform(
@@ -3971,7 +3971,8 @@ public class SearchControllerTests {
 
     // verify fromRecord and pageSize
     query =
-        "SELECT ?code ?x { GRAPH <http://NCI_T_monthly> { ?x a owl:Class . ?x :NHC0 ?code . } }";
+        "SELECT ?code ?x { GRAPH <http://NCI_T_monthly> { ?x a owl:Class . ?x :NHC0 ?code . } }"
+            + " LIMIT 100";
     log.info("Testing url - " + url + "?terminology=ncit&fromRecord=1&pageSize=5");
     result =
         mvc.perform(

@@ -64,7 +64,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /** the logger *. */
   private static final Logger logger = LoggerFactory.getLogger(AbstractGraphLoadServiceImpl.class);
 
-  /** constant value for mapping string */
+  /** constant value for mapping string. */
   public static final String NCIT_MAPS_TO = "NCIt_Maps_To_";
 
   /** the concepts download location *. */
@@ -104,7 +104,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /** the sparql query service impl. */
   @Autowired private SparqlQueryManagerServiceImpl sparqlQueryManagerServiceImpl;
 
-  /** The sparql query cache service */
+  /** The sparql query cache service. */
   @Autowired SparqlQueryCacheService sparqlQueryCacheService;
 
   /** The name map. */
@@ -478,6 +478,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
 
     // subsets
     List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
+    // Handle the pediatric neoplasm "extra" subset data for NCIt
     if (terminology.getTerminology().equals("ncit")) {
       this.addExtraSubsets(subsets, terminology);
     }
@@ -515,6 +516,13 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     logger.info("Done loading Elastic Objects!");
   }
 
+  /**
+   * Adds the extra subsets.
+   *
+   * @param existingSubsets the existing subsets
+   * @param terminology the terminology
+   * @throws Exception the exception
+   */
   public void addExtraSubsets(List<Concept> existingSubsets, Terminology terminology)
       throws Exception {
 
@@ -533,10 +541,17 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       // find the concept to add to the subsets list
       Concept newSubsetEntry = new Concept();
       try {
+        // We can't use "full" here or we wind up losing "extensions" and "paths"
+        // So we use the "everything" mode
         newSubsetEntry =
-            esQueryService
-                .getConcept(subsetCode, terminology, new IncludeParam("full"))
-                .orElseThrow();
+            esQueryService.getConcept(subsetCode, terminology, new IncludeParam("*")).orElseThrow();
+        if (newSubsetEntry.equals("C6772")) {
+          logger.info(
+              "XXX1 = "
+                  + new ObjectMapper()
+                      .writerWithDefaultPrettyPrinter()
+                      .writeValueAsString(newSubsetEntry));
+        }
       } catch (NoSuchElementException e) {
         logger.warn("Subset " + subsetCode + " not found as a concept, skipping.");
         Audit.addAudit(
@@ -546,6 +561,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
             terminology.getTerminology(),
             "Subset " + subsetCode + " not found as a concept, skipping.",
             "WARN");
+        // We don't want to fail here but keep going
         continue;
       }
 
@@ -591,11 +607,20 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         }
         Concept subsetConcept = new Concept();
         try {
+          // We can't use "full" here or we wind up losing "extensions" and "paths"
+          // So we use the "everything" mode
           subsetConcept =
               esQueryService
                   .getConcept(
-                      row.getCell(2).getStringCellValue(), terminology, new IncludeParam("full"))
+                      row.getCell(2).getStringCellValue(), terminology, new IncludeParam("*"))
                   .get();
+          if (subsetCode.equals("C6772")) {
+            logger.info(
+                "XXX2 = "
+                    + new ObjectMapper()
+                        .writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(subsetConcept));
+          }
         } catch (Exception e) {
           logger.warn(
               "Concept "
@@ -701,6 +726,15 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     return sheets;
   }
 
+  /**
+   * Convert.
+   *
+   * @param terminology the terminology
+   * @param conceptCode the concept code
+   * @param conceptName the concept name
+   * @param conceptAssociation the concept association
+   * @return the association entry
+   */
   private AssociationEntry convert(
       Terminology terminology,
       String conceptCode,

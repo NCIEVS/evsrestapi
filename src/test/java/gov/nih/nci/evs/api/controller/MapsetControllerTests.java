@@ -10,6 +10,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.dnault.xmlpatch.internal.Log;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.MappingResultList;
@@ -643,7 +644,7 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets with retired concepts
+   * Test mapsets with retired concepts.
    *
    * @throws Exception the exception
    */
@@ -656,6 +657,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
+    Log.info("  content = " + content);
     MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
 
     // Assert
