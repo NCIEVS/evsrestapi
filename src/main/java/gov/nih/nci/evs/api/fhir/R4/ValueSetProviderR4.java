@@ -1,33 +1,5 @@
 package gov.nih.nci.evs.api.fhir.R4;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import org.hl7.fhir.r4.model.BooleanType;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.IntegerType;
-import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.UriType;
-import org.hl7.fhir.r4.model.ValueSet;
-import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionComponent;
-import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionContainsComponent;
-import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionParameterComponent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.IdParam;
@@ -54,6 +26,32 @@ import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.CodeType;
+import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.IntegerType;
+import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.UriType;
+import org.hl7.fhir.r4.model.ValueSet;
+import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionComponent;
+import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionContainsComponent;
+import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionParameterComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /** FHIR R4 ValueSet provider. */
 @Component
@@ -126,28 +124,28 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final HttpServletRequest request,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-//      @OperationParam(name = "valueSet") final ValueSet valueSet,
+      //      @OperationParam(name = "valueSet") final ValueSet valueSet,
       @OperationParam(name = "valueSetVersion") final StringType version,
-//      @OperationParam(name = "context") final UriType context,
-//      @OperationParam(name = "contextDirection") final CodeType contextDirection,
+      //      @OperationParam(name = "context") final UriType context,
+      //      @OperationParam(name = "contextDirection") final CodeType contextDirection,
       @OperationParam(name = "filter") final StringType filter,
-//      @OperationParam(name = "date") final DateTimeType date,
+      //      @OperationParam(name = "date") final DateTimeType date,
       @OperationParam(name = "offset") final IntegerType offset,
       @OperationParam(name = "count") final IntegerType count,
-//      @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
-//      @OperationParam(name = "designation") final StringType designation,
-//      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
+      //      @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
+      //      @OperationParam(name = "designation") final StringType designation,
+      //      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
       @OperationParam(name = "activeOnly") final BooleanType activeOnly
-//      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
-//      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
-//      @OperationParam(name = "excludePostCoordinated") final BooleanType excludePostCoordinated,
-//      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-//      @OperationParam(name = "exclude-system") final StringType exclude_system,
-//      @OperationParam(name = "system-version") final StringType system_version,
-//      @OperationParam(name = "check-system-version") final StringType check_system_version,
-//      @OperationParam(name = "force-system-version") final StringType force_system_version
-      )
-      throws Exception {
+      //      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
+      //      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
+      //      @OperationParam(name = "excludePostCoordinated") final BooleanType
+      // excludePostCoordinated,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      //      @OperationParam(name = "exclude-system") final StringType exclude_system,
+      //      @OperationParam(name = "system-version") final StringType system_version,
+      //      @OperationParam(name = "check-system-version") final StringType check_system_version,
+      //      @OperationParam(name = "force-system-version") final StringType force_system_version
+      ) throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls
     if (request.getMethod().equals("POST")) {
@@ -158,19 +156,34 @@ public class ValueSetProviderR4 implements IResourceProvider {
     }
     try {
       FhirUtilityR4.required("url", url);
-      
-      for (final String param : new String[] {
-              "valueSet", "context", "contextDirection", "date", "includeDesignations", "designation", "includeDefinition", "excludeNested",
-              "excludeNotForUI", "excludePostCoordinated", "displayLanguage", "exclude_system", "system_version", "check_system_version",
-              "force_system_version"
-      }) {
-          FhirUtilityR4.notSupported(request, param);
+
+      for (final String param :
+          new String[] {
+            "valueSet",
+            "context",
+            "contextDirection",
+            "date",
+            "includeDesignations",
+            "designation",
+            "includeDefinition",
+            "excludeNested",
+            "excludeNotForUI",
+            "excludePostCoordinated",
+            "displayLanguage",
+            "exclude_system",
+            "system_version",
+            "check_system_version",
+            "force_system_version"
+          }) {
+        FhirUtilityR4.notSupported(request, param);
       }
-      if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
-              .count() > 0) {
-          FhirUtilityR4.notSupported(request, "_has");
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
       }
-      
+
       final List<ValueSet> vsList = findPossibleValueSets(null, null, url, version);
       if (vsList.size() == 0) {
         throw FhirUtilityR4.exception(
@@ -300,28 +313,28 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-//      @OperationParam(name = "valueSet") final ValueSet valueSet,
+      //      @OperationParam(name = "valueSet") final ValueSet valueSet,
       @OperationParam(name = "valueSetVersion") final StringType version,
-//      @OperationParam(name = "context") final UriType context,
-//      @OperationParam(name = "contextDirection") final CodeType contextDirection,
+      //      @OperationParam(name = "context") final UriType context,
+      //      @OperationParam(name = "contextDirection") final CodeType contextDirection,
       @OperationParam(name = "filter") final StringType filter,
-//      @OperationParam(name = "date") final DateTimeType date,
+      //      @OperationParam(name = "date") final DateTimeType date,
       @ca.uhn.fhir.rest.annotation.Offset final Integer offset,
       @ca.uhn.fhir.rest.annotation.Count final Integer count,
-//      @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
-//      @OperationParam(name = "designation") final StringType designation,
-//      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
+      //      @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
+      //      @OperationParam(name = "designation") final StringType designation,
+      //      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
       @OperationParam(name = "activeOnly") final BooleanType activeOnly
-//      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
-//      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
-//      @OperationParam(name = "excludePostCoordinated") final BooleanType excludePostCoordinated,
-//      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-//      @OperationParam(name = "exclude-system") final StringType exclude_system,
-//      @OperationParam(name = "system-version") final StringType system_version,
-//      @OperationParam(name = "check-system-version") final StringType check_system_version,
-//      @OperationParam(name = "force-system-version") final StringType force_system_version
-      )
-      throws Exception {
+      //      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
+      //      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
+      //      @OperationParam(name = "excludePostCoordinated") final BooleanType
+      // excludePostCoordinated,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      //      @OperationParam(name = "exclude-system") final StringType exclude_system,
+      //      @OperationParam(name = "system-version") final StringType system_version,
+      //      @OperationParam(name = "check-system-version") final StringType check_system_version,
+      //      @OperationParam(name = "force-system-version") final StringType force_system_version
+      ) throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls
     if (request.getMethod().equals("POST")) {
@@ -331,17 +344,32 @@ public class ValueSetProviderR4 implements IResourceProvider {
           405);
     }
     try {
-    	for (final String param : new String[] {
-                "valueSet", "context", "contextDirection", "date", "includeDesignations", "designation", "includeDefinition", "excludeNested",
-                "excludeNotForUI", "excludePostCoordinated", "displayLanguage", "exclude_system", "system_version", "check_system_version",
-                "force_system_version"
-        }) {
-            FhirUtilityR4.notSupported(request, param);
-        }
-        if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
-                .count() > 0) {
-            FhirUtilityR4.notSupported(request, "_has");
-        }
+      for (final String param :
+          new String[] {
+            "valueSet",
+            "context",
+            "contextDirection",
+            "date",
+            "includeDesignations",
+            "designation",
+            "includeDefinition",
+            "excludeNested",
+            "excludeNotForUI",
+            "excludePostCoordinated",
+            "displayLanguage",
+            "exclude_system",
+            "system_version",
+            "check_system_version",
+            "force_system_version"
+          }) {
+        FhirUtilityR4.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
+      }
       final List<ValueSet> vsList = findPossibleValueSets(id, null, url, version);
       if (vsList.size() == 0) {
         throw FhirUtilityR4.exception(
@@ -458,21 +486,20 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final HttpServletRequest request,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-//      @OperationParam(name = "context") final UriType context,
-//      @OperationParam(name = "valueSet") final ValueSet valueSet,
-//      @OperationParam(name = "valueSetVersion") final StringType valueSetVersion,
+      //      @OperationParam(name = "context") final UriType context,
+      //      @OperationParam(name = "valueSet") final ValueSet valueSet,
+      //      @OperationParam(name = "valueSetVersion") final StringType valueSetVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "systemVersion") final StringType systemVersion,
-//      @OperationParam(name = "version") final StringType version,
+      //      @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display
-//      @OperationParam(name = "coding") final Coding coding,
-//      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-//      @OperationParam(name = "date") final DateTimeType date,
-//      @OperationParam(name = "abstract") final BooleanType abstractt,
-//      @OperationParam(name = "displayLanguage") final StringType displayLanguage
-      )
-      throws Exception {
+      //      @OperationParam(name = "coding") final Coding coding,
+      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      //      @OperationParam(name = "date") final DateTimeType date,
+      //      @OperationParam(name = "abstract") final BooleanType abstractt,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      ) throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls
     if (request.getMethod().equals("POST")) {
@@ -485,18 +512,28 @@ public class ValueSetProviderR4 implements IResourceProvider {
       FhirUtilityR4.required("code", code);
       FhirUtilityR4.mutuallyRequired("code", code, "system", system, "url", url);
       FhirUtilityR4.mutuallyRequired("system", system, "systemVersion", systemVersion);
-      
-      for (final String param : new String[] {
-              "codeableConcept", "coding", "context", "date", "abstractt", "displayLanguage", "version", "valueSet",
-              "valueSetVersion"
-      }) {
-          FhirUtilityR4.notSupported(request, param);
+
+      for (final String param :
+          new String[] {
+            "codeableConcept",
+            "coding",
+            "context",
+            "date",
+            "abstractt",
+            "displayLanguage",
+            "version",
+            "valueSet",
+            "valueSetVersion"
+          }) {
+        FhirUtilityR4.notSupported(request, param);
       }
-      if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
-              .count() > 0) {
-          FhirUtilityR4.notSupported(request, "_has");
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
       }
-      
+
       final List<ValueSet> list = findPossibleValueSets(null, system, url, systemVersion);
       final Parameters params = new Parameters();
 
@@ -539,7 +576,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         params.addParameter("result", false);
         params.addParameter("message", "Unable to find matching value set");
         params.addParameter("url", (url == null ? new UriType("<null>") : url));
-//        params.addParameter("version", version);
+        //        params.addParameter("version", version);
       }
       return params;
 
@@ -590,21 +627,20 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-//      @OperationParam(name = "context") final UriType context,
-//      @OperationParam(name = "valueSet") final ValueSet valueSet,
-//      @OperationParam(name = "valueSetVersion") final StringType valueSetVersion,
+      //      @OperationParam(name = "context") final UriType context,
+      //      @OperationParam(name = "valueSet") final ValueSet valueSet,
+      //      @OperationParam(name = "valueSetVersion") final StringType valueSetVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "systemVersion") final StringType systemVersion,
-//      @OperationParam(name = "version") final StringType version,
+      //      @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display
-//      @OperationParam(name = "coding") final Coding coding,
-//      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-//      @OperationParam(name = "date") final DateTimeType date,
-//      @OperationParam(name = "abstract") final BooleanType abstractt,
-//      @OperationParam(name = "displayLanguage") final StringType displayLanguage
-      )
-      throws Exception {
+      //      @OperationParam(name = "coding") final Coding coding,
+      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      //      @OperationParam(name = "date") final DateTimeType date,
+      //      @OperationParam(name = "abstract") final BooleanType abstractt,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      ) throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls
     if (request.getMethod().equals("POST")) {
@@ -616,27 +652,37 @@ public class ValueSetProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.requireAtLeastOneOf(
           "code", code, "system", system, "systemVersion", systemVersion, "url", url);
-//      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
-//      FhirUtilityR4.notSupported("coding", coding);
-//      FhirUtilityR4.notSupported("context", context);
-//      FhirUtilityR4.notSupported("date", date);
-//      FhirUtilityR4.notSupported("abstract", abstractt);
-//      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
-//      FhirUtilityR4.notSupported("version", version);
-//      FhirUtilityR4.notSupported("valueSet", valueSet);
-//      FhirUtilityR4.notSupported("valueSetVersion", valueSetVersion);
-            
-      for (final String param : new String[] {
-              "codeableConcept", "coding", "context", "date", "abstractt", "displayLanguage", "version", "valueSet",
-              "valueSetVersion"
-      }) {
-          FhirUtilityR4.notSupported(request, param);
+      //      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
+      //      FhirUtilityR4.notSupported("coding", coding);
+      //      FhirUtilityR4.notSupported("context", context);
+      //      FhirUtilityR4.notSupported("date", date);
+      //      FhirUtilityR4.notSupported("abstract", abstractt);
+      //      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
+      //      FhirUtilityR4.notSupported("version", version);
+      //      FhirUtilityR4.notSupported("valueSet", valueSet);
+      //      FhirUtilityR4.notSupported("valueSetVersion", valueSetVersion);
+
+      for (final String param :
+          new String[] {
+            "codeableConcept",
+            "coding",
+            "context",
+            "date",
+            "abstractt",
+            "displayLanguage",
+            "version",
+            "valueSet",
+            "valueSetVersion"
+          }) {
+        FhirUtilityR4.notSupported(request, param);
       }
-      if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
-              .count() > 0) {
-          FhirUtilityR4.notSupported(request, "_has");
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
       }
-      
+
       final List<ValueSet> list = findPossibleValueSets(id, system, url, systemVersion);
       final Parameters params = new Parameters();
       if (list.size() > 0) {
@@ -675,7 +721,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         params.addParameter("result", false);
         params.addParameter("message", "Unable to find matching value set");
         params.addParameter("url", (url == null ? new UriType("<null>") : url));
-        //params.addParameter("version", version);
+        // params.addParameter("version", version);
       }
       return params;
 

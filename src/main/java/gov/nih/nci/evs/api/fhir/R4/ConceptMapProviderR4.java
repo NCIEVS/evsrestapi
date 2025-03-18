@@ -16,7 +16,6 @@ import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
-import gov.nih.nci.evs.api.fhir.R5.FhirUtilityR5;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Mapping;
@@ -128,14 +127,15 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("target", target, "targetSystem", targetSystem);
-      for (final String param : new String[] {
-              "conceptMap", "coding", "codableConcept", "dependency"
-      }) {
-          FhirUtilityR4.notSupported(request, param);
+      for (final String param :
+          new String[] {"conceptMap", "coding", "codableConcept", "dependency"}) {
+        FhirUtilityR4.notSupported(request, param);
       }
-      if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
-              .count() > 0) {
-          FhirUtilityR4.notSupported(request, "_has");
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
       }
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
@@ -253,14 +253,15 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("target", target, "targetSystem", targetSystem);
-      for (final String param : new String[] {
-              "conceptMap", "coding", "codableConcept", "dependency"
-      }) {
-          FhirUtilityR4.notSupported(request, param);
+      for (final String param :
+          new String[] {"conceptMap", "coding", "codableConcept", "dependency"}) {
+        FhirUtilityR4.notSupported(request, param);
       }
-      if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
-              .count() > 0) {
-          FhirUtilityR4.notSupported(request, "_has");
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
       }
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =

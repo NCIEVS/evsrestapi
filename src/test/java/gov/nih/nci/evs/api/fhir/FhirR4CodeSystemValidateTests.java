@@ -101,7 +101,7 @@ public class FhirR4CodeSystemValidateTests {
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
     assertTrue(((BooleanType) params.getParameter("active").getValue()).getValue());
   }
-  
+
   /**
    * Test code system validate active code implicit parameter not supported.
    *
@@ -128,7 +128,7 @@ public class FhirR4CodeSystemValidateTests {
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotSupported, (component.getDiagnostics()));
   }
-  
+
   /**
    * Test code system validate active code instance parameter not supported.
    *
@@ -141,7 +141,8 @@ public class FhirR4CodeSystemValidateTests {
     String activeCode = "T100";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String activeId = "umlssemnet_2023aa";
-    String endpoint = localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String endpoint =
+        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?url=" + url + "&code=" + activeCode + "&displayLanguage=notfound";
 
     String messageNotSupported = "Input parameter 'displayLanguage' is not supported";

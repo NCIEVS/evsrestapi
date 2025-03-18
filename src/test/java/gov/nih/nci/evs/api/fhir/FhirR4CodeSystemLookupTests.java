@@ -105,7 +105,7 @@ public class FhirR4CodeSystemLookupTests {
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
     assertEquals(version, ((StringType) params.getParameter("version").getValue()).getValue());
   }
-  
+
   /**
    * Test code system lookup implicit parameter not supported.
    *
@@ -118,7 +118,7 @@ public class FhirR4CodeSystemLookupTests {
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_LOOKUP;
     String parameters = "?url=" + url + "&displayLanguage=notfound";
-    
+
     String messageNotSupported = "Input parameter 'displayLanguage' is not supported";
     String errorCode = "not-supported";
 
@@ -149,7 +149,7 @@ public class FhirR4CodeSystemLookupTests {
 
     String messageNotSupported = "Input parameter 'displayLanguage' is not supported";
     String errorCode = "not-supported";
-   
+
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
@@ -159,7 +159,6 @@ public class FhirR4CodeSystemLookupTests {
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotSupported, (component.getDiagnostics()));
   }
-  
 
   /**
    * Test code system lookup code and display string.

@@ -13,9 +13,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -101,7 +101,7 @@ public class FhirR4ValueSetValidateTests {
     assertEquals(
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
   }
-  
+
   /**
    * Test value set validate active code parameter not supported.
    *
@@ -115,7 +115,7 @@ public class FhirR4ValueSetValidateTests {
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?url=" + url + "&code=" + activeCode + "&displayLanguage=not_supported";
-    
+
     String errorCode = "not-supported";
     String messageNotSupported = "Input parameter 'displayLanguage' is not supported";
 
@@ -139,12 +139,13 @@ public class FhirR4ValueSetValidateTests {
     // Arrange
     String content;
     String activeCode = "T100";
-    //String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    // String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?code=" + activeCode + "&displayLanguage=not_supported";
-    
+
     String errorCode = "invariant";
-    String messageInvariant = "Use of input parameter 'code' only allowed if 'system' or 'url' is also present.";
+    String messageInvariant =
+        "Use of input parameter 'code' only allowed if 'system' or 'url' is also present.";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -155,7 +156,7 @@ public class FhirR4ValueSetValidateTests {
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageInvariant, (component.getDiagnostics()));
   }
-  
+
   /**
    * Test value set validate active id, active code and display string.
    *

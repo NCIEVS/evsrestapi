@@ -1,25 +1,5 @@
 package gov.nih.nci.evs.api.fhir.R5;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-
-import org.hl7.fhir.r5.model.Bundle;
-import org.hl7.fhir.r5.model.CodeSystem;
-import org.hl7.fhir.r5.model.CodeType;
-import org.hl7.fhir.r5.model.Coding;
-import org.hl7.fhir.r5.model.IdType;
-import org.hl7.fhir.r5.model.OperationOutcome;
-import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r5.model.Parameters;
-import org.hl7.fhir.r5.model.StringType;
-import org.hl7.fhir.r5.model.UriType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.IdParam;
@@ -44,6 +24,24 @@ import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import org.hl7.fhir.r5.model.Bundle;
+import org.hl7.fhir.r5.model.CodeSystem;
+import org.hl7.fhir.r5.model.CodeType;
+import org.hl7.fhir.r5.model.Coding;
+import org.hl7.fhir.r5.model.IdType;
+import org.hl7.fhir.r5.model.OperationOutcome;
+import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r5.model.Parameters;
+import org.hl7.fhir.r5.model.StringType;
+import org.hl7.fhir.r5.model.UriType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /** FHIR R5 CodeSystem provider. */
 @Component
@@ -189,10 +187,9 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "coding") final Coding coding,
       @OperationParam(name = "date") final DateRangeParam date
-//      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-//      @OperationParam(name = "property") final CodeType property
-      )
-      throws Exception {
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      //      @OperationParam(name = "property") final CodeType property
+      ) throws Exception {
     // Check if the request is a POST, throw exception as we don't support post calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
@@ -203,16 +200,16 @@ public class CodeSystemProviderR5 implements IResourceProvider {
     try {
       FhirUtilityR5.mutuallyRequired(code, "code", system, "system");
       FhirUtilityR5.mutuallyExclusive(code, "code", coding, "coding");
-//      FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
-//      FhirUtilityR5.notSupported(property, "property");
-      for (final String param : new String[] {
-              "displayLanguage", "property"
-      }) {
-          FhirUtilityR5.notSupported(request, param);
+      //      FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
+      //      FhirUtilityR5.notSupported(property, "property");
+      for (final String param : new String[] {"displayLanguage", "property"}) {
+        FhirUtilityR5.notSupported(request, param);
       }
-      if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
-              .count() > 0) {
-          FhirUtilityR5.notSupported(request, "_has");
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR5.notSupported(request, "_has");
       }
 
       final List<CodeSystem> cs = findPossibleCodeSystems(null, date, system, version);
@@ -288,10 +285,9 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "coding") final Coding coding,
       @OperationParam(name = "date") final DateRangeParam date
-//      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-//      @OperationParam(name = "property") final CodeType property
-      )
-      throws Exception {
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      //      @OperationParam(name = "property") final CodeType property
+      ) throws Exception {
     // check if the request is a post, throw exception as we don't support post calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
@@ -302,16 +298,16 @@ public class CodeSystemProviderR5 implements IResourceProvider {
     try {
       FhirUtilityR5.mutuallyRequired(code, "code", system, "system");
       FhirUtilityR5.mutuallyExclusive(code, "code", coding, "coding");
-//      FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
-//      FhirUtilityR5.notSupported(property, "property");
-      for (final String param : new String[] {
-              "displayLanguage", "property"
-      }) {
-          FhirUtilityR5.notSupported(request, param);
+      //      FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
+      //      FhirUtilityR5.notSupported(property, "property");
+      for (final String param : new String[] {"displayLanguage", "property"}) {
+        FhirUtilityR5.notSupported(request, param);
       }
-      if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
-              .count() > 0) {
-          FhirUtilityR5.notSupported(request, "_has");
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR5.notSupported(request, "_has");
       }
       final List<CodeSystem> cs = findPossibleCodeSystems(id, date, system, version);
       final Parameters params = new Parameters();
@@ -386,17 +382,16 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       final HttpServletResponse response,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-//      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
+      //      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display
-//      @OperationParam(name = "coding") final Coding coding,
-//      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-//      @OperationParam(name = "date") final DateRangeParam date,
-//      @OperationParam(name = "abstract") final BooleanType abstractt,
-//      @OperationParam(name = "displayLanguage") final StringType displayLanguage
-      )
-      throws Exception {
+      //      @OperationParam(name = "coding") final Coding coding,
+      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      //      @OperationParam(name = "date") final DateRangeParam date,
+      //      @OperationParam(name = "abstract") final BooleanType abstractt,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      ) throws Exception {
     // Check if the request is a POST, throw exception as we don't support post calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
@@ -406,20 +401,23 @@ public class CodeSystemProviderR5 implements IResourceProvider {
     }
     try {
       FhirUtilityR5.mutuallyRequired(display, "display", code, "code");
-//      FhirUtilityR5.notSupported(codeableConcept, "codeableConcept");
-//      FhirUtilityR5.notSupported(codeSystem, "codeSystem");
-//      FhirUtilityR5.notSupported(coding, "coding");
-//      FhirUtilityR5.notSupported(date, "date");
-//      FhirUtilityR5.notSupported(abstractt, "abstract");
-//      FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
-      for (final String param : new String[] {
-              "codeableConcept", "codeSystem", "coding", "date", "abstract", "displayLanguage"
-      }) {
-          FhirUtilityR5.notSupported(request, param);
+      //      FhirUtilityR5.notSupported(codeableConcept, "codeableConcept");
+      //      FhirUtilityR5.notSupported(codeSystem, "codeSystem");
+      //      FhirUtilityR5.notSupported(coding, "coding");
+      //      FhirUtilityR5.notSupported(date, "date");
+      //      FhirUtilityR5.notSupported(abstractt, "abstract");
+      //      FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
+      for (final String param :
+          new String[] {
+            "codeableConcept", "codeSystem", "coding", "date", "abstract", "displayLanguage"
+          }) {
+        FhirUtilityR5.notSupported(request, param);
       }
-      if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
-              .count() > 0) {
-          FhirUtilityR5.notSupported(request, "_has");
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR5.notSupported(request, "_has");
       }
       final List<CodeSystem> cs = findPossibleCodeSystems(null, null, url, version);
       final Parameters params = new Parameters();
@@ -501,17 +499,16 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-//      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
+      //      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display
-//      @OperationParam(name = "coding") final Coding coding,
-//      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-//      @OperationParam(name = "date") final DateTimeType date,
-//      @OperationParam(name = "abstract") final BooleanType abstractt,
-//      @OperationParam(name = "displayLanguage") final StringType displayLanguage
-      )
-      throws Exception {
+      //      @OperationParam(name = "coding") final Coding coding,
+      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      //      @OperationParam(name = "date") final DateTimeType date,
+      //      @OperationParam(name = "abstract") final BooleanType abstractt,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      ) throws Exception {
     // Check if the request is a post, throw exception as we don't support post requests
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
@@ -521,20 +518,23 @@ public class CodeSystemProviderR5 implements IResourceProvider {
     }
     try {
       FhirUtilityR5.mutuallyRequired(display, "display", code, "code");
-//      FhirUtilityR5.notSupported(codeableConcept, "codeableConcept");
-//      FhirUtilityR5.notSupported(codeSystem, "codeSystem");
-//      FhirUtilityR5.notSupported(coding, "coding");
-//      FhirUtilityR5.notSupported(date, "date");
-//      FhirUtilityR5.notSupported(abstractt, "abstract");
-//      FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
-      for (final String param : new String[] {
-              "codeableConcept", "codeSystem", "coding", "date", "abstract", "displayLanguage"
-      }) {
-          FhirUtilityR5.notSupported(request, param);
+      //      FhirUtilityR5.notSupported(codeableConcept, "codeableConcept");
+      //      FhirUtilityR5.notSupported(codeSystem, "codeSystem");
+      //      FhirUtilityR5.notSupported(coding, "coding");
+      //      FhirUtilityR5.notSupported(date, "date");
+      //      FhirUtilityR5.notSupported(abstractt, "abstract");
+      //      FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
+      for (final String param :
+          new String[] {
+            "codeableConcept", "codeSystem", "coding", "date", "abstract", "displayLanguage"
+          }) {
+        FhirUtilityR5.notSupported(request, param);
       }
-      if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
-              .count() > 0) {
-          FhirUtilityR5.notSupported(request, "_has");
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR5.notSupported(request, "_has");
       }
       final List<CodeSystem> cs = findPossibleCodeSystems(id, null, url, version);
       final Parameters params = new Parameters();

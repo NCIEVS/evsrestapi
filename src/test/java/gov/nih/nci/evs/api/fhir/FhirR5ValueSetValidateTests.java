@@ -11,7 +11,6 @@ import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
-
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r5.model.BooleanType;
@@ -101,7 +100,7 @@ public class FhirR5ValueSetValidateTests {
     assertEquals(
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
   }
-  
+
   /**
    * Test value set validate active code parameter not supported.
    *
@@ -115,7 +114,7 @@ public class FhirR5ValueSetValidateTests {
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?url=" + url + "&code=" + activeCode + "&displayLanguage=not_supported";
-    
+
     String errorCode = "not-supported";
     String messageNotSupported = "Input parameter 'displayLanguage' is not supported";
 
@@ -139,12 +138,13 @@ public class FhirR5ValueSetValidateTests {
     // Arrange
     String content;
     String activeCode = "T100";
-    //String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    // String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?code=" + activeCode + "&displayLanguage=not_supported";
-    
+
     String errorCode = "invariant";
-    String messageInvariant = "Use of input parameter 'code' only allowed if 'system' or 'url' is also present.";
+    String messageInvariant =
+        "Use of input parameter 'code' only allowed if 'system' or 'url' is also present.";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
