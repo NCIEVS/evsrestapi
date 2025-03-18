@@ -102,6 +102,11 @@ public class FhirR5ValueSetValidateTests {
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
   }
   
+  /**
+   * Test value set validate active code parameter not supported.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetValidateActiveCodeParameterNotSupported() throws Exception {
     // Arrange
@@ -124,6 +129,11 @@ public class FhirR5ValueSetValidateTests {
     assertEquals(messageNotSupported, (component.getDiagnostics()));
   }
 
+  /**
+   * Test value set validate active code invariant parameters.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetValidateActiveCodeInvariantParameters() throws Exception {
     // Arrange

@@ -102,6 +102,11 @@ public class FhirR5CodeSystemValidateTests {
     assertTrue(((BooleanType) params.getParameter("active").getValue()).getValue());
   }
 
+  /**
+   * Test code system validate active code implicit parameter not supported.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemValidateActiveCodeImplicitParameterNotSupported() throws Exception {
     // Arrange
@@ -124,6 +129,11 @@ public class FhirR5CodeSystemValidateTests {
     assertEquals(messageNotSupported, (component.getDiagnostics()));
   }
   
+  /**
+   * Test code system validate active code instance parameter not supported.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemValidateActiveCodeInstanceParameterNotSupported() throws Exception {
     // Arrange

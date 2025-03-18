@@ -141,6 +141,11 @@ public class FhirR5ValueSetExpandTests {
             .getDisplay());
   }
   
+  /**
+   * Test value set expand implicit parameter not supported.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetExpandImplicitParameterNotSupported() throws Exception {
     // Arrange
@@ -162,6 +167,11 @@ public class FhirR5ValueSetExpandTests {
     assertEquals(messageNotSupported, (component.getDiagnostics()));
   }
 
+  /**
+   * Test value set expand instance parameter not supported.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetExpandInstanceParameterNotSupported() throws Exception {
     // Arrange

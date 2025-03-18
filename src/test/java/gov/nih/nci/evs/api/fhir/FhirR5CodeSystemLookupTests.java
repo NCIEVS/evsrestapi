@@ -106,6 +106,11 @@ public class FhirR5CodeSystemLookupTests {
     assertEquals(version, ((StringType) params.getParameter("version").getValue()).getValue());
   }
 
+  /**
+   * Test code system lookup implicit parameter not supported.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemLookupImplicitParameterNotSupported() throws Exception {
     // Arrange
@@ -127,6 +132,11 @@ public class FhirR5CodeSystemLookupTests {
     assertEquals(messageNotSupported, (component.getDiagnostics()));
   }
 
+  /**
+   * Test code system lookup instance parameter not supported.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemLookupInstanceParameterNotSupported() throws Exception {
     // Arrange

@@ -9,6 +9,9 @@ import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
+
+import org.hl7.fhir.r5.model.OperationOutcome;
+import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r5.model.BooleanType;
 import org.hl7.fhir.r5.model.Parameters;
 import org.junit.jupiter.api.BeforeAll;
@@ -224,5 +227,61 @@ public class FhirR5ConceptMapTranslateTests {
     assertNotNull(content.getBody());
     assertTrue(content.getBody().contains(message));
     assertTrue(content.getBody().contains("not supported"));
+  }
+  
+  /**
+   * Test concept map translate instance parameter not found.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testConceptMapTranslateInstanceParameterNotFound() throws Exception {
+    // Arrange
+    String content;
+    String code = "GO:0016887";
+    String id = "go_to_ncit_mapping_february2020";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint =
+        localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + code + "&system=" + system + "&sourceCodableConcept=notfound";
+
+	String messageNotSupported = "Input parameter 'sourceCodableConcept' is not supported.";
+	String errorCode = "not-supported";
+
+	// Act
+	content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+	OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+	OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+	// Assert
+	assertEquals(errorCode, component.getCode().toCode());
+	assertEquals(messageNotSupported, (component.getDiagnostics()));
+  }
+  
+  /**
+   * Test concept map translate implicit parameter not found.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testConceptMapTranslateImplicitParameterNotFound() throws Exception {
+		// Arrange
+		String content;
+		String code = "GO:0016887";
+		String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+		String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+		String parameters = "?code=" + code + "&system=" + system + "&sourceCodableConcept=notfound";
+
+		String messageNotSupported = "Input parameter 'sourceCodableConcept' is not supported.";
+		String errorCode = "not-supported";
+
+		// Act
+		content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+		OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+		OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+		// Assert
+		assertEquals(errorCode, component.getCode().toCode());
+		assertEquals(messageNotSupported, (component.getDiagnostics()));
   }
 }
