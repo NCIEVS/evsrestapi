@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.1.0.RELEASE] - 2025-03-18
+### Added
+- Added support for Childhood Malignant Neoplasm Subset.
+### Changed
+- Backend migration from Stardog to Apache Jena for data loading and indexing
+- Updates to the EVSRESTAPI SDK examples.
+
 ## [2.0.0.RELEASE] - 2025-01-28
 ### Added
 - FHIR R5 terminology endpoints for CodeSystem, ValueSet, and ConceptMap
