@@ -205,8 +205,8 @@ else
     echo "  Generate report for $db $terminology $version...`/bin/date`"
     export GRAPH_DB=$db
     export EVS_SERVER_PORT="8083"
-    echo "java $local -Xmx4096M -jar $jar --terminology ${terminology}_$version --report" | sed 's/^/      /'
-    java $local -Xmx4096M -jar $jar --terminology ${terminology}_$version --report
+    echo "java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -jar $jar --terminology ${terminology}_$version --report" | sed 's/^/      /'
+    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -jar $jar --terminology ${terminology}_$version --report
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected error building indexes"
         exit 1
