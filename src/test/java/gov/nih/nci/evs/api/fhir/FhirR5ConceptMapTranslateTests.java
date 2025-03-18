@@ -283,4 +283,31 @@ public class FhirR5ConceptMapTranslateTests {
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotSupported, (component.getDiagnostics()));
   }
+  
+  /**
+   * Test concept map translate implicit parameter needed.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testConceptMapTranslateImplicitParameterNeeded() throws Exception {
+    // Arrange
+    String content;
+    String code = "GO:0016887";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + code + "&system=" + system + "&codableConcept=invalid";
+
+    String messageNotSupported = "Either sourceCode or targetCode must be provided";
+    String errorCode = "invalid";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, (component.getDiagnostics()));
+  }
 }
