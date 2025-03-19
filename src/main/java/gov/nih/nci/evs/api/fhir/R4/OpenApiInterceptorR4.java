@@ -4,6 +4,7 @@ import static org.apache.commons.lang3.ObjectUtils.defaultIfNull;
 import static org.apache.commons.lang3.StringUtils.defaultString;
 import static org.apache.commons.lang3.StringUtils.isBlank;
 import static org.apache.commons.lang3.StringUtils.isNotBlank;
+import org.apache.commons.lang3.tuple.Triple;
 
 import ca.uhn.fhir.context.ConfigurationException;
 import ca.uhn.fhir.context.FhirContext;
@@ -56,6 +57,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -158,6 +160,9 @@ public class OpenApiInterceptorR4 {
 
   /** The my use resource pages. */
   private boolean myUseResourcePages;
+  
+  /** The ignore parameters. */
+  private Set<Triple> ignoreParameter = new HashSet<>();
 
   /** Constructor. */
   public OpenApiInterceptorR4() {
@@ -189,6 +194,11 @@ public class OpenApiInterceptorR4 {
 
     myExtensionToContentType.put(".png", "image/png");
     myExtensionToContentType.put(".css", "text/css; charset=UTF-8");
+    
+    ignoreParameter.add(Triple.of("CodeSystem", "validate-code", "system"));
+    ignoreParameter.add(Triple.of("CodeSystem", "validate-code", "systemVersion"));
+    ignoreParameter.add(Triple.of("ValueSet", "validate-code", "version"));
+    
   }
 
   /**
@@ -1155,6 +1165,12 @@ public class OpenApiInterceptorR4 {
 
       for (final OperationDefinition.OperationDefinitionParameterComponent nextParameter :
           theOperationDefinition.getParameter()) {
+    	  
+    	// Don't display unsupported parameters        	
+    	if (ignoreParameter.contains(Triple.of(theResourceType, theOperationDefinition.getCode(), nextParameter.getName()))) {
+    	  continue;
+    	}
+    	  
         if ("0".equals(nextParameter.getMax())
             || !nextParameter.getUse().equals(OperationParameterUse.IN)
             || (!isPrimitive(nextParameter) && nextParameter.getMin() == 0)) {

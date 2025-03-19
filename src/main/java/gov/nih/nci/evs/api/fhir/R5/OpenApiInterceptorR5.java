@@ -56,6 +56,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -66,6 +67,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Triple;
 import org.hl7.fhir.convertors.factory.VersionConvertorFactory_40_50;
 import org.hl7.fhir.convertors.factory.VersionConvertorFactory_43_50;
 import org.hl7.fhir.instance.model.api.IBaseConformance;
@@ -166,6 +168,9 @@ public class OpenApiInterceptorR5 {
 
   /** The use resource pages. */
   private boolean myUseResourcePages;
+  
+  /** The ignore parameters. */
+  private Set<Triple> ignoreParameter = new HashSet<>();
 
   /** Constructor. */
   public OpenApiInterceptorR5() {
@@ -196,6 +201,11 @@ public class OpenApiInterceptorR5 {
 
     myExtensionToContentType.put(".png", "image/png");
     myExtensionToContentType.put(".css", "text/css; charset=UTF-8");
+    
+    
+    ignoreParameter.add(Triple.of("CodeSystem", "validate-code", "system"));
+    ignoreParameter.add(Triple.of("CodeSystem", "validate-code", "systemVersion"));
+    ignoreParameter.add(Triple.of("ValueSet", "validate-code", "version"));
   }
 
   /**
@@ -1120,6 +1130,12 @@ public class OpenApiInterceptorR5 {
     if (theGet) {
       for (final OperationDefinitionParameterComponent nextParameter :
           theOperationDefinition.getParameter()) {
+    	  
+    	// Don't display unsupported parameters
+      	if (ignoreParameter.contains(Triple.of(theResourceType, theOperationDefinition.getCode(), nextParameter.getName()))) {
+      	  continue;
+      	}
+      	
         if ("0".equals(nextParameter.getMax())
             || !nextParameter.getUse().equals(OperationParameterUse.IN)
             || (!isPrimitive(nextParameter) && nextParameter.getMin() == 0)) {
