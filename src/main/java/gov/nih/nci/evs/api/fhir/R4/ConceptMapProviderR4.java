@@ -101,20 +101,22 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-      //      @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
+      // @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "source") final UriType source,
-      //      @OperationParam(name = "coding") final Coding coding,
-      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      // @OperationParam(name = "coding") final Coding coding,
+      // @OperationParam(name = "codeableConcept") final CodeableConcept
+      // codeableConcept,
       @OperationParam(name = "target") final UriType target,
       @OperationParam(name = "targetSystem") final UriType targetSystem,
-      //      @OperationParam(name = "dependency") final UriType dependency,
+      // @OperationParam(name = "dependency") final UriType dependency,
       @OperationParam(name = "reverse", type = BooleanType.class) final BooleanType reverse)
       throws Exception {
-    // check if request is a post, throw exception as we don't support post calls
+    // check if request is a post, throw exception as we don't support post
+    // calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
           "POST method not supported for " + JpaConstants.OPERATION_TRANSLATE,
@@ -207,8 +209,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @return the parameters
    * @throws Exception the exception
    *     <p>no support for dependency parameter
-   * @see <a href="https://hl7.org/fhir/R4/conceptmap-operation-translate.html">conceptmap operation
-   *     translate</a>
+   * @see <a href= "https://hl7.org/fhir/R4/conceptmap-operation-translate.html">conceptmap
+   *     operation translate</a>
    */
   @Operation(name = JpaConstants.OPERATION_TRANSLATE, idempotent = true)
   public Parameters translateImplicit(
@@ -216,20 +218,22 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final HttpServletResponse response,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-      //      @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
+      // @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "source") final UriType source,
-      //      @OperationParam(name = "coding") final Coding coding,
-      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      // @OperationParam(name = "coding") final Coding coding,
+      // @OperationParam(name = "codeableConcept") final CodeableConcept
+      // codeableConcept,
       @OperationParam(name = "target") final UriType target,
       @OperationParam(name = "targetSystem") final UriType targetSystem,
-      //      @OperationParam(name = "dependency") final UriType dependency,
+      // @OperationParam(name = "dependency") final UriType dependency,
       @OperationParam(name = "reverse", type = BooleanType.class) final BooleanType reverse)
       throws Exception {
-    // check if request is a post, throw exception as we don't support post calls
+    // check if request is a post, throw exception as we don't support post
+    // calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
           "POST method not supported for " + JpaConstants.OPERATION_TRANSLATE,
@@ -250,8 +254,9 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       String query = buildFhirQueryString(code, mapsetCodes, reverse, "AND");
       logger.debug("   Fhir query string = " + query);
 
-      //      final List<ConceptMap> cm =
-      //          findPossibleConceptMaps(null, null, system, url, version, source, target);
+      // final List<ConceptMap> cm =
+      // findPossibleConceptMaps(null, null, system, url, version, source,
+      // target);
       MappingResultList maps;
 
       SearchCriteria criteria = new SearchCriteria();
@@ -323,7 +328,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final HttpServletRequest request,
       @OptionalParam(name = "_id") final TokenParam id,
       @OptionalParam(name = "date") final DateRangeParam date,
-      @OptionalParam(name = "system") final StringParam system,
+      @OptionalParam(name = "name") final StringParam name,
       @OptionalParam(name = "url") final StringParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
@@ -354,8 +359,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           logger.debug("  SKIP id mismatch = " + cm.getName());
           continue;
         }
-        if (system != null && !system.getValue().equals(cm.getName())) {
-          logger.debug("  SKIP system mismatch = " + cm.getName());
+        if (name != null && !FhirUtility.compareString(name, cm.getName())) {
+          logger.debug("  SKIP name mismatch = " + cm.getName());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
@@ -405,7 +410,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final UriType targetSystem)
       throws Exception {
     try {
-      //      FhirUtilityR4.notSupportedSearchParams(request);
+      // FhirUtilityR4.notSupportedSearchParams(request);
 
       // If no ID and no url are specified, no code systems match
       if (id == null && url == null && system == null) {
