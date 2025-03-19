@@ -131,6 +131,7 @@ public class LoaderServiceImpl {
    *
    * @param args the command line arguments
    */
+  @SuppressWarnings("resource")
   public static void main(String[] args) throws Exception {
     Options options = prepareOptions();
     CommandLine cmd;
@@ -148,11 +149,12 @@ public class LoaderServiceImpl {
       return;
     }
 
-    @SuppressWarnings("resource")
-    ApplicationContext app = SpringApplication.run(Application.class, args);
-    ElasticLoadService loadService = null;
-
+    ApplicationContext app = null;
     try {
+
+      app = SpringApplication.run(Application.class, args);
+      ElasticLoadService loadService = null;
+
       // create Audit object
       final Audit termAudit = new Audit();
       termAudit.setType("reindex");
@@ -226,17 +228,20 @@ public class LoaderServiceImpl {
           cmd.getOptionValue("t"),
           e.getMessage(),
           "ERROR");
+      // If app is null, initialization failed immediately, return nonzero code
       int exitCode =
-          SpringApplication.exit(
-              app,
-              new ExitCodeGenerator() {
-                @Override
-                public int getExitCode() {
-                  // return the error code
-                  logger.info("Exit code 1");
-                  return 1;
-                }
-              });
+          app == null
+              ? 1
+              : SpringApplication.exit(
+                  app,
+                  new ExitCodeGenerator() {
+                    @Override
+                    public int getExitCode() {
+                      // return the error code
+                      logger.info("Exit code 1");
+                      return 1;
+                    }
+                  });
       System.exit(exitCode);
     }
 
