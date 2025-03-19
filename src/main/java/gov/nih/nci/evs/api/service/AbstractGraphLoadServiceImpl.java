@@ -14,7 +14,7 @@ import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.util.ConceptUtils;
@@ -60,12 +60,11 @@ import org.springframework.util.CollectionUtils;
 
 /** The implementation for {@link ElasticLoadService}. */
 // @Service
-public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
+public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /** the logger *. */
-  private static final Logger logger =
-      LoggerFactory.getLogger(AbstractStardogLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(AbstractGraphLoadServiceImpl.class);
 
-  /** constant value for mapping string */
+  /** constant value for mapping string. */
   public static final String NCIT_MAPS_TO = "NCIt_Maps_To_";
 
   /** the concepts download location *. */
@@ -96,8 +95,8 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   /** The sparql query manager service. */
   @Autowired private SparqlQueryManagerService sparqlQueryManagerService;
 
-  /** The stardog properties. */
-  @Autowired StardogProperties stardogProperties;
+  /** The graph db properties. */
+  @Autowired GraphProperties graphProperties;
 
   /** The main type hierarchy. */
   @Autowired MainTypeHierarchy mainTypeHierarchy;
@@ -105,7 +104,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   /** the sparql query service impl. */
   @Autowired private SparqlQueryManagerServiceImpl sparqlQueryManagerServiceImpl;
 
-  /** The sparql query cache service */
+  /** The sparql query cache service. */
   @Autowired SparqlQueryCacheService sparqlQueryCacheService;
 
   /** The name map. */
@@ -172,7 +171,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
-   * load concepts directly from stardog in batches.
+   * load concepts directly from graph db in batches.
    *
    * @param allConcepts all concepts to load
    * @param terminology the terminology
@@ -479,6 +478,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
 
     // subsets
     List<Concept> subsets = sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
+    // Handle the pediatric neoplasm "extra" subset data for NCIt
     if (terminology.getTerminology().equals("ncit")) {
       this.addExtraSubsets(subsets, terminology);
     }
@@ -516,6 +516,13 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     logger.info("Done loading Elastic Objects!");
   }
 
+  /**
+   * Adds the extra subsets.
+   *
+   * @param existingSubsets the existing subsets
+   * @param terminology the terminology
+   * @throws Exception the exception
+   */
   public void addExtraSubsets(List<Concept> existingSubsets, Terminology terminology)
       throws Exception {
 
@@ -534,10 +541,17 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       // find the concept to add to the subsets list
       Concept newSubsetEntry = new Concept();
       try {
+        // We can't use "full" here or we wind up losing "extensions" and "paths"
+        // So we use the "everything" mode
         newSubsetEntry =
-            esQueryService
-                .getConcept(subsetCode, terminology, new IncludeParam("full"))
-                .orElseThrow();
+            esQueryService.getConcept(subsetCode, terminology, new IncludeParam("*")).orElseThrow();
+        if (newSubsetEntry.equals("C6772")) {
+          logger.info(
+              "XXX1 = "
+                  + new ObjectMapper()
+                      .writerWithDefaultPrettyPrinter()
+                      .writeValueAsString(newSubsetEntry));
+        }
       } catch (NoSuchElementException e) {
         logger.warn("Subset " + subsetCode + " not found as a concept, skipping.");
         Audit.addAudit(
@@ -547,6 +561,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
             terminology.getTerminology(),
             "Subset " + subsetCode + " not found as a concept, skipping.",
             "WARN");
+        // We don't want to fail here but keep going
         continue;
       }
 
@@ -592,11 +607,20 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
         }
         Concept subsetConcept = new Concept();
         try {
+          // We can't use "full" here or we wind up losing "extensions" and "paths"
+          // So we use the "everything" mode
           subsetConcept =
               esQueryService
                   .getConcept(
-                      row.getCell(2).getStringCellValue(), terminology, new IncludeParam("full"))
+                      row.getCell(2).getStringCellValue(), terminology, new IncludeParam("*"))
                   .get();
+          if (subsetCode.equals("C6772")) {
+            logger.info(
+                "XXX2 = "
+                    + new ObjectMapper()
+                        .writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(subsetConcept));
+          }
         } catch (Exception e) {
           logger.warn(
               "Concept "
@@ -702,6 +726,15 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     return sheets;
   }
 
+  /**
+   * Convert.
+   *
+   * @param terminology the terminology
+   * @param conceptCode the concept code
+   * @param conceptName the concept name
+   * @param conceptAssociation the concept association
+   * @return the association entry
+   */
   private AssociationEntry convert(
       Terminology terminology,
       String conceptCode,
@@ -854,9 +887,9 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
       }
 
       // Setup maps if this is a "monthly" version
-      // Determine by checking against the stardog db we are loading from
+      // Determine by checking against the graph db we are loading from
       if (term.getTerminology() == "ncit"
-          && stardogProperties.getDb().equals(term.getMetadata().getMonthlyDb())) {
+          && graphProperties.getDb().equals(term.getMetadata().getMonthlyDb())) {
 
         // setup mappings
         Concept ncitMapsToGdc = setupMap("GDC", term.getVersion());
@@ -883,7 +916,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     // Compute tags because this is the new terminology
     // Do this AFTER setting terminology metadata, which is needed
     if (term.getMetadata().getMonthlyDb() != null) {
-      termUtils.setTags(term, stardogProperties.getDb());
+      termUtils.setTags(term, graphProperties.getDb());
     }
 
     return term;
@@ -904,7 +937,7 @@ public abstract class AbstractStardogLoadServiceImpl extends BaseLoaderService {
     map.setActive(true);
     map.getProperties().add(new Property("downloadOnly", "true"));
     map.getProperties().add(new Property("mapsetLink", null));
-    map.getProperties().add(new Property("loader", "AbstractStardogLoadServiceImpl"));
+    map.getProperties().add(new Property("loader", "AbstractGraphLoadServiceImpl"));
     return map;
   }
 

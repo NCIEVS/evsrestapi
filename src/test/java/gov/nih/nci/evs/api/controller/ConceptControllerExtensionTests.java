@@ -77,6 +77,7 @@ public class ConceptControllerExtensionTests {
    */
   @Test
   public void testMainTypeSet() throws Exception {
+    // If individual concepts fail here, test using MainTypeHierarchyTest
     testHelper("extensions-test-main-type-set.txt", "extensions-test-main-type-result.txt");
   }
 
@@ -87,6 +88,7 @@ public class ConceptControllerExtensionTests {
    */
   @Test
   public void testTargetedSet() throws Exception {
+    // If individual concepts fail here, test using MainTypeHierarchyTest
     testHelper("extensions-test-targeted-set.txt", "extensions-test-targeted-result.txt");
   }
 
@@ -96,7 +98,7 @@ public class ConceptControllerExtensionTests {
    *
    * @throws Exception the exception
    */
-  // @Test
+  //  @Test
   public void testFullSet() throws Exception {
     testHelper("extensions-test-full-set.txt", "extensions-test-full-result.txt");
   }

@@ -232,7 +232,7 @@ public class TerminologyMetadata extends BaseModel {
     subset = new HashSet<>(other.getSubset());
     codeLabel = other.getCodeLabel();
     welcomeText = other.getWelcomeText();
-    extraSubsets = other.getExtraSubsets();
+    extraSubsets = new HashMap<>(other.getExtraSubsets());
   }
 
   /* see superclass */

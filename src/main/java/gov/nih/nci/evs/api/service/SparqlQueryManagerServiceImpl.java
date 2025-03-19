@@ -25,7 +25,7 @@ import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
@@ -65,8 +65,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /** The Constant log. */
   private static final Logger log = LoggerFactory.getLogger(SparqlQueryManagerServiceImpl.class);
 
-  /** The stardog properties. */
-  @Autowired StardogProperties stardogProperties;
+  /** The graph properties. */
+  @Autowired GraphProperties graphProperties;
 
   /** The query builder service. */
   @Autowired QueryBuilderService queryBuilderService;
@@ -103,10 +103,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public void postInit() throws Exception {
     restUtils =
         new RESTUtils(
-            stardogProperties.getUsername(),
-            stardogProperties.getPassword(),
-            stardogProperties.getReadTimeout(),
-            stardogProperties.getConnectTimeout());
+            graphProperties.getUsername(),
+            graphProperties.getPassword(),
+            graphProperties.getReadTimeout(),
+            graphProperties.getConnectTimeout());
 
     // NOTE: see TerminologyCacheLoader for other caching.
 
@@ -126,7 +126,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public String getQueryURL() {
-    return stardogProperties.getQueryUrl();
+    return graphProperties.getQueryUrl();
   }
 
   // Here check the qualified form as well as the URI
@@ -175,7 +175,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                 "all.graphs.and.versions.ignore.sources", ignoreSources);
 
     // NOTE: this is not a hardened approach
-    final String queryURL = getQueryURL().replace(stardogProperties.getDb(), db);
+    final String queryURL = getQueryURL().replace(graphProperties.getDb(), db);
     final String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
 
     // if (log.isDebugEnabled()) {

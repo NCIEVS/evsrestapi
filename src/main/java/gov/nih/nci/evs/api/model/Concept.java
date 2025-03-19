@@ -360,7 +360,7 @@ public class Concept extends ConceptMinimal {
     active = other.getActive();
     normName = other.getNormName();
     stemName = other.getStemName();
-    if (!subsetFlag) {
+    if (!subsetFlag || subsetFlag && subsetLink == null) {
       subsetLink = other.getSubsetLink();
     }
     mapsetLink = other.getMapsetLink();

@@ -5,7 +5,7 @@ import gov.nih.nci.evs.api.model.Extensions;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.AbstractStardogLoadServiceImpl;
+import gov.nih.nci.evs.api.service.AbstractGraphLoadServiceImpl;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import java.util.List;
@@ -23,8 +23,7 @@ import org.springframework.stereotype.Service;
 public class MainTypeHierarchy {
 
   /** The Constant logger. */
-  private static final Logger logger =
-      LoggerFactory.getLogger(AbstractStardogLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(AbstractGraphLoadServiceImpl.class);
 
   /** The sparql query manager service. */
   @Autowired private SparqlQueryManagerService service;
