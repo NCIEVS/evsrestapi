@@ -283,7 +283,7 @@ public class FhirR5ConceptMapTranslateTests {
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotSupported, (component.getDiagnostics()));
   }
-  
+
   /**
    * Test concept map translate implicit parameter needed.
    *

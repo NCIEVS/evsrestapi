@@ -168,7 +168,7 @@ public class OpenApiInterceptorR5 {
 
   /** The use resource pages. */
   private boolean myUseResourcePages;
-  
+
   /** The ignore parameters. */
   private Set<Triple> ignoreParameter = new HashSet<>();
 
@@ -201,8 +201,7 @@ public class OpenApiInterceptorR5 {
 
     myExtensionToContentType.put(".png", "image/png");
     myExtensionToContentType.put(".css", "text/css; charset=UTF-8");
-    
-    
+
     ignoreParameter.add(Triple.of("CodeSystem", "validate-code", "system"));
     ignoreParameter.add(Triple.of("CodeSystem", "validate-code", "systemVersion"));
     ignoreParameter.add(Triple.of("ValueSet", "validate-code", "version"));
@@ -1130,12 +1129,14 @@ public class OpenApiInterceptorR5 {
     if (theGet) {
       for (final OperationDefinitionParameterComponent nextParameter :
           theOperationDefinition.getParameter()) {
-    	  
-    	// Don't display unsupported parameters
-      	if (ignoreParameter.contains(Triple.of(theResourceType, theOperationDefinition.getCode(), nextParameter.getName()))) {
-      	  continue;
-      	}
-      	
+
+        // Don't display unsupported parameters
+        if (ignoreParameter.contains(
+            Triple.of(
+                theResourceType, theOperationDefinition.getCode(), nextParameter.getName()))) {
+          continue;
+        }
+
         if ("0".equals(nextParameter.getMax())
             || !nextParameter.getUse().equals(OperationParameterUse.IN)
             || (!isPrimitive(nextParameter) && nextParameter.getMin() == 0)) {
