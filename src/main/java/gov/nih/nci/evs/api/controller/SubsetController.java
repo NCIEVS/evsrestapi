@@ -89,7 +89,7 @@ public class SubsetController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, inverseAssociations, inverseRoles, maps, parents, properties,"
                 + " roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class),
@@ -161,7 +161,7 @@ public class SubsetController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, inverseAssociations, inverseRoles, maps, parents, properties,"
                 + " roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class),
@@ -247,7 +247,7 @@ public class SubsetController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
                 + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class),

@@ -154,7 +154,7 @@ public class SearchController extends BaseController {
         name = "terminology",
         description =
             "Single terminology to search, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -188,7 +188,7 @@ public class SearchController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
                 + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class),
@@ -300,7 +300,7 @@ public class SearchController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -388,7 +388,7 @@ public class SearchController extends BaseController {
         name = "terminology",
         description =
             "Comma-separated list of terminologies to search, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
                 + " here for complete list</a>)",
         required = false,
         schema = @Schema(implementation = String.class),
@@ -422,7 +422,7 @@ public class SearchController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
                 + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class),
@@ -534,7 +534,7 @@ public class SearchController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -659,7 +659,7 @@ public class SearchController extends BaseController {
               description =
                   "SPARQL query that returns ?code identifying a valid code in the specified"
                       + " terminology. <a"
-                      + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/SPARQL.md'"
+                      + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/SPARQL.md'"
                       + " target='_blank'>See here for more information and examples of using"
                       + " SPARQL with EVSRESTAPI</a>.",
               required = true))
@@ -688,7 +688,7 @@ public class SearchController extends BaseController {
         name = "terminology",
         description =
             "Single terminology to search, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -722,7 +722,7 @@ public class SearchController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
                 + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class),
@@ -840,7 +840,7 @@ public class SearchController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -990,7 +990,7 @@ public class SearchController extends BaseController {
           @RequestBody(
               description =
                   "SPARQL query to execute on the graph for the specified terminology. <a"
-                      + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/SPARQL.md'"
+                      + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/SPARQL.md'"
                       + " target='_blank'>See here for more information and examples of using"
                       + " SPARQL with EVSRESTAPI</a>.",
               required = true))
@@ -1019,7 +1019,7 @@ public class SearchController extends BaseController {
         name = "terminology",
         description =
             "Single terminology to search, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -1046,7 +1046,7 @@ public class SearchController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -1159,7 +1159,7 @@ public class SearchController extends BaseController {
         name = "terminology",
         description =
             "Single terminology to find prefixes for, e.g. 'ncit' or 'hgnc' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
