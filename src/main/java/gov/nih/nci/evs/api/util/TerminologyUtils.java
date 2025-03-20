@@ -330,7 +330,7 @@ public final class TerminologyUtils {
     }
 
     final String licenseUrl =
-        "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md";
+        "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md";
 
     // Check the license key and fail
     if (license == null) {

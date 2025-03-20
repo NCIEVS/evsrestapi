@@ -126,7 +126,7 @@ public class ConceptController extends BaseController {
         name = "terminology",
         description =
             "Terminology, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -138,7 +138,7 @@ public class ConceptController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
                 + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class),
@@ -155,7 +155,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -273,7 +273,7 @@ public class ConceptController extends BaseController {
         name = "terminology",
         description =
             "Terminology, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -304,7 +304,7 @@ public class ConceptController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
                 + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class),
@@ -313,7 +313,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -408,7 +408,7 @@ public class ConceptController extends BaseController {
         name = "terminology",
         description =
             "Terminology, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -424,7 +424,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -520,7 +520,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -593,7 +593,7 @@ public class ConceptController extends BaseController {
         name = "terminology",
         description =
             "Terminology, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -610,7 +610,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -698,7 +698,7 @@ public class ConceptController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
                 + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class),
@@ -719,7 +719,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -821,7 +821,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -892,7 +892,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -950,7 +950,7 @@ public class ConceptController extends BaseController {
         name = "terminology",
         description =
             "Terminology, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -966,7 +966,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -1024,7 +1024,7 @@ public class ConceptController extends BaseController {
         name = "terminology",
         description =
             "Terminology, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -1040,7 +1040,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -1139,7 +1139,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class)),
@@ -1147,7 +1147,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -1238,7 +1238,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -1309,7 +1309,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -1380,7 +1380,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -1453,7 +1453,7 @@ public class ConceptController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
                 + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class),
@@ -1462,7 +1462,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -1549,7 +1549,7 @@ public class ConceptController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
                 + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>. For this call, it is"
                 + " recommended to avoid using this parameter unless you need it for a specific use"
                 + " case.  Any value other than 'minimal' may produce very large payload results. ",
@@ -1572,7 +1572,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -1676,7 +1676,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -1855,7 +1855,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -1955,7 +1955,7 @@ public class ConceptController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
                 + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>. For this call, it is"
                 + " recommended to avoid using this parameter unless you need it for a specific use"
                 + " case.  Any value other than 'minimal' may produce very large payload results. ",
@@ -1978,7 +1978,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -2081,7 +2081,7 @@ public class ConceptController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
                 + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>. For this call, it is"
                 + " recommended to avoid using this parameter unless you need it for a specific use"
                 + " case.  Any value other than 'minimal' may produce very large payload results. ",
@@ -2104,7 +2104,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -2189,7 +2189,7 @@ public class ConceptController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))

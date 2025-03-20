@@ -101,7 +101,7 @@ public class TermSuggestionFormController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -174,7 +174,7 @@ public class TermSuggestionFormController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
