@@ -158,7 +158,6 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * @param details the servlet request details
    * @param id the lookup id
    * @param url the canonical URL for a concept map
-   * @param conceptMap The concept map is provided directly as part of the request.
    * @param conceptMapVersion The identifier that is used to identify a specific version of the
    *     concept map to be used
    * @param sourceCode The code that is to be translated. If a code is provided, a system must be
@@ -168,11 +167,9 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * @param sourceScope Limits the scope of the $translate operation to source codes that are
    *     members of this value set.
    * @param sourceCoding A coding to translate.
-   * @param sourceCodeableConcept A full codeableConcept to validate.
    * @param targetCode The target code that is to be translated to. If a code is provided, a system
    *     must be provided.
    * @param targetCoding A target coding to translate to.
-   * @param targetCodeableConcept A full codeableConcept to validate.
    * @param targetScope Limits the scope of the $translate operation to target codes that are
    *     members of this value set.
    * @param targetSystem Identifies a target code system in which a mapping is sought. This
@@ -189,19 +186,14 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-      // @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
       @OperationParam(name = "sourceCode") final CodeType sourceCode,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "sourceScope") final UriType sourceScope,
       // @OperationParam(name = "sourceCoding") final Coding sourceCoding,
-      // @OperationParam(name = "sourceCodeableConcept") final CodeableConcept
-      // sourceCodeableConcept,
       @OperationParam(name = "targetCode") final UriType targetCode,
       // @OperationParam(name = "targetCoding") final UriType targetCoding,
-      // @OperationParam(name = "targetCodeableConcept") final CodeableConcept
-      // targetCodeableConcept,
       @OperationParam(name = "targetScope") final UriType targetScope,
       @OperationParam(name = "targetSystem") final UriType targetSystem
       // @OperationParam(name = "dependency") final String dependency
@@ -220,11 +212,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyExclusive(targetScope, "targetScope", targetSystem, "targetSystem");
       for (final String param :
           new String[] {
-            "conceptMap",
-            "sourceCoding",
-            "sourceCodableConcept",
-            "targetCodableConcept",
-            "dependency"
+            "sourceCoding", "sourceCodableConcept", "targetCodableConcept", "dependency"
           }) {
         FhirUtilityR5.notSupported(request, param);
       }
@@ -303,7 +291,6 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * @param response the servlet response.
    * @param details the servlet request details.
    * @param url A canonical URL for a concept map. The server must know the concept map.
-   * @param conceptMap The concept map is provided directly as part of the request.
    * @param conceptMapVersion The identifier that is used to identify a specific version of the
    *     concept map to be used for the translation. This is an arbitrary value managed by the
    *     concept map author and is not expected to be globally unique.
@@ -314,11 +301,9 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * @param sourceScope Limits the scope of the $translate operation to source codes that are
    *     members of this value set.
    * @param sourceCoding A coding to translate.
-   * @param sourceCodeableConcept A full codeableConcept to validate.
    * @param targetCode The target code that is to be translated to. If a code is provided, a system
    *     must be provided.
    * @param targetCoding A target coding to translate to.
-   * @param targetCodeableConcept A full codeableConcept to validate.
    * @param targetScope Limits the scope of the $translate operation to target codes that are
    *     members of this value set.
    * @param targetSystem Identifies a target code system in which a mapping is sought. This
@@ -334,19 +319,14 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       final HttpServletResponse response,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-      // @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
       @OperationParam(name = "sourceCode") final CodeType sourceCode,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "sourceScope") final UriType sourceScope,
       // @OperationParam(name = "sourceCoding") final Coding sourceCoding,
-      // @OperationParam(name = "codeableConcept") final CodeableConcept
-      // sourceCodeableConcept,
       @OperationParam(name = "targetCode") final UriType targetCode,
       // @OperationParam(name = "targetCoding") final UriType targetCoding,
-      // @OperationParam(name = "targetCodeableConcept") final CodeableConcept
-      // targetCodeableConcept,
       @OperationParam(name = "targetScope") final UriType targetScope,
       @OperationParam(name = "targetSystem") final UriType targetSystem
       // @OperationParam(name = "dependency") final UriType dependency
@@ -364,11 +344,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyExclusive(targetScope, "targetScope", targetSystem, "targetSystem");
       for (final String param :
           new String[] {
-            "conceptMap",
-            "sourceCoding",
-            "sourceCodableConcept",
-            "targetCodableConcept",
-            "dependency"
+            "sourceCoding", "sourceCodableConcept", "targetCodableConcept", "dependency"
           }) {
         FhirUtilityR5.notSupported(request, param);
       }

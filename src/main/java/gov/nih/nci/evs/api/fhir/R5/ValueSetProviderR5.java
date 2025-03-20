@@ -648,7 +648,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param version the version
    * @param display the display associated with the code. If provided, a code must be provided.
    * @param coding the coding to validate.
-   * @param codeableConcept the codeable concept to validate
    * @param date the date to check the validation against.
    * @param abstractt the abstractt is a logical grouping concept that is not intended to be used as
    *     a 'concrete' concept to in an actual patient/care/process record.
@@ -671,7 +670,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
       //      @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display
       //      @OperationParam(name = "coding") final Coding coding,
-      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       //      @OperationParam(name = "date") final DateTimeType date,
       //      @OperationParam(name = "abstract") final BooleanType abstractt,
       //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
@@ -689,18 +687,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyRequired(code, "code", system, "system", url, "url");
       FhirUtilityR5.mutuallyRequired(system, "system", systemVersion, "systemVersion");
       FhirUtilityR5.mutuallyRequired(display, "display", code, "code");
-      //      FhirUtilityR5.notSupported(codeableConcept, "codeableConcept");
-      //      FhirUtilityR5.notSupported(coding, "coding");
-      //      FhirUtilityR5.notSupported(context, "context");
-      //      FhirUtilityR5.notSupported(date, "date");
-      //      FhirUtilityR5.notSupported(abstractt, "abstract");
-      //      FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
-      //      FhirUtilityR5.notSupported(version, "version");
-      //      FhirUtilityR5.notSupported(valueSet, "valueSet");
-      //      FhirUtilityR5.notSupported(valueSetVersion, "valueSetVersion");
       for (final String param :
           new String[] {
-            "codeableConcept",
             "coding",
             "context",
             "date",
@@ -795,7 +783,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param version the version
    * @param display the display associated with the code. If provided, a code must be provided.
    * @param coding the coding to validate.
-   * @param codeableConcept the codeable concept to validate
    * @param date the date to check the validation against.
    * @param abstractt the abstractt is a logical grouping concept that is not intended to be used as
    *     a 'concrete' concept to in an actual patient/care/process record.
@@ -819,7 +806,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
       //      @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display
       //      @OperationParam(name = "coding") final Coding coding,
-      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       //      @OperationParam(name = "date") final DateTimeType date,
       //      @OperationParam(name = "abstract") final BooleanType abstractt,
       //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
@@ -836,18 +822,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
       FhirUtilityR5.requireAtLeastOneOf(
           code, "code", system, "system", systemVersion, "systemVersion", url, "url");
       FhirUtilityR5.mutuallyRequired(display, "display", code, "code");
-      //      FhirUtilityR5.notSupported(codeableConcept, "codeableConcept");
-      //      FhirUtilityR5.notSupported(coding, "coding");
-      //      FhirUtilityR5.notSupported(context, "context");
-      //      FhirUtilityR5.notSupported(date, "date");
-      //      FhirUtilityR5.notSupported(abstractt, "abstract");
-      //      FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
-      //      FhirUtilityR5.notSupported(version, "version");
-      //      FhirUtilityR5.notSupported(valueSet, "valueSet");
-      //      FhirUtilityR5.notSupported(valueSetVersion, "valueSetVersion");
       for (final String param :
           new String[] {
-            "codeableConcept",
             "coding",
             "context",
             "date",

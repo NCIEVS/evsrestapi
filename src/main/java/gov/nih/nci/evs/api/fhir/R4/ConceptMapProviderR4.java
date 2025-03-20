@@ -74,8 +74,6 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @param details the details
    * @param id the id
    * @param url A canonical URL for a concept map. The server must know the concept map (
-   * @param conceptMap the concept map, The concept map is provided directly as part of the request.
-   *     Servers may choose not to accept concept maps in this fashion.
    * @param conceptMapVersion The identifier that is used to identify a specific version of the
    *     concept map to be used for the translation.
    * @param code The code that is to be translated. If a code is provided, a system must be provided
@@ -84,7 +82,6 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @param source Identifies the value set used when the concept (system/code pair) was chosen.
    *     Optional because user may not always know it
    * @param coding A coding to translate
-   * @param codeableConcept A full codeableConcept to validate.
    * @param target Identifies the value set in which a translation is sought. If there's no target
    *     specified, the server should return all known translations, along with their source
    * @param targetSystem identifies a target code system in which a mapping is sought. This
@@ -102,15 +99,12 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-      // @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "source") final UriType source,
       // @OperationParam(name = "coding") final Coding coding,
-      // @OperationParam(name = "codeableConcept") final CodeableConcept
-      // codeableConcept,
       @OperationParam(name = "target") final UriType target,
       @OperationParam(name = "targetSystem") final UriType targetSystem,
       // @OperationParam(name = "dependency") final UriType dependency,
@@ -127,8 +121,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("target", target, "targetSystem", targetSystem);
-      for (final String param :
-          new String[] {"conceptMap", "coding", "codableConcept", "dependency"}) {
+      for (final String param : new String[] {"coding", "codableConcept", "dependency"}) {
         FhirUtilityR4.notSupported(request, param);
       }
       if (Collections.list(request.getParameterNames()).stream()
@@ -199,8 +192,6 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @param response the response
    * @param details the details
    * @param url A canonical URL for a concept map. The server must know the concept map.
-   * @param conceptMap the concept map, The concept map is provided directly as part of the request.
-   *     Servers may choose not to accept concept maps in this fashion.
    * @param conceptMapVersion The identifier that is used to identify a specific version of the
    *     concept map to be used for the translation.
    * @param code The code that is to be translated. If a code is provided, a system must be provided
@@ -209,7 +200,6 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @param source Identifies the value set used when the concept (system/code pair) was chosen.
    *     Optional because user may not always know it
    * @param coding A coding to translate
-   * @param codeableConcept A full codeableConcept to validate.
    * @param target Identifies the value set in which a translation is sought. If there's no target
    *     specified, the server should return all known translations, along with their source
    * @param targetSystem identifies a target code system in which a mapping is sought. This
@@ -228,15 +218,12 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final HttpServletResponse response,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-      // @OperationParam(name = "conceptMap") final ConceptMap conceptMap,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "source") final UriType source,
       // @OperationParam(name = "coding") final Coding coding,
-      // @OperationParam(name = "codeableConcept") final CodeableConcept
-      // codeableConcept,
       @OperationParam(name = "target") final UriType target,
       @OperationParam(name = "targetSystem") final UriType targetSystem,
       // @OperationParam(name = "dependency") final UriType dependency,
@@ -253,8 +240,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("target", target, "targetSystem", targetSystem);
-      for (final String param :
-          new String[] {"conceptMap", "coding", "codableConcept", "dependency"}) {
+      for (final String param : new String[] {"coding", "codableConcept", "dependency"}) {
         FhirUtilityR4.notSupported(request, param);
       }
       if (Collections.list(request.getParameterNames()).stream()

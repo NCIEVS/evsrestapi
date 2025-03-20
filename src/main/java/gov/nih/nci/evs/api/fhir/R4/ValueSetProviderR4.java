@@ -471,7 +471,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param display the display associated with the code, if provided. If provided, a code must be
    *     provided
    * @param coding the coding to be validated
-   * @param codeableConcept the codeable concept to validate
    * @param date the date that the validation should be checked.
    * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
    *     the validation is being performed in a context where a concept designated as 'abstract' is
@@ -495,7 +494,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
       //      @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display
       //      @OperationParam(name = "coding") final Coding coding,
-      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       //      @OperationParam(name = "date") final DateTimeType date,
       //      @OperationParam(name = "abstract") final BooleanType abstractt,
       //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
@@ -515,7 +513,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
       for (final String param :
           new String[] {
-            "codeableConcept",
             "coding",
             "context",
             "date",
@@ -611,7 +608,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param display the display associated with the code, if provided. If provided, a code must be
    *     provided
    * @param coding the coding to be validated
-   * @param codeableConcept the codeable concept to validate
    * @param date the date that the validation should be checked.
    * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
    *     the validation is being performed in a context where a concept designated as 'abstract' is
@@ -636,7 +632,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
       //      @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display
       //      @OperationParam(name = "coding") final Coding coding,
-      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       //      @OperationParam(name = "date") final DateTimeType date,
       //      @OperationParam(name = "abstract") final BooleanType abstractt,
       //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
@@ -652,19 +647,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.requireAtLeastOneOf(
           "code", code, "system", system, "systemVersion", systemVersion, "url", url);
-      //      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
-      //      FhirUtilityR4.notSupported("coding", coding);
-      //      FhirUtilityR4.notSupported("context", context);
-      //      FhirUtilityR4.notSupported("date", date);
-      //      FhirUtilityR4.notSupported("abstract", abstractt);
-      //      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
-      //      FhirUtilityR4.notSupported("version", version);
-      //      FhirUtilityR4.notSupported("valueSet", valueSet);
-      //      FhirUtilityR4.notSupported("valueSetVersion", valueSetVersion);
 
       for (final String param :
           new String[] {
-            "codeableConcept",
             "coding",
             "context",
             "date",

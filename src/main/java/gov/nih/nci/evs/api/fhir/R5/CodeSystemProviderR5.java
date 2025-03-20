@@ -298,8 +298,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
     try {
       FhirUtilityR5.mutuallyRequired(code, "code", system, "system");
       FhirUtilityR5.mutuallyExclusive(code, "code", coding, "coding");
-      //      FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
-      //      FhirUtilityR5.notSupported(property, "property");
       for (final String param : new String[] {"displayLanguage", "property"}) {
         FhirUtilityR5.notSupported(request, param);
       }
@@ -367,7 +365,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param version the version of the code system, if provided
    * @param display the display associated with the code. If provided, a code must be provided.
    * @param coding the coding to validate
-   * @param codeableConcept the codeable concept to validate
    * @param date the date that the validation should be checked
    * @param abstractt the abstract flag, a logical grouping concept that is not intended to be used
    *     as a 'concrete' concept to in an actual patient/care/process record.
@@ -387,7 +384,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display
       //      @OperationParam(name = "coding") final Coding coding,
-      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       //      @OperationParam(name = "date") final DateRangeParam date,
       //      @OperationParam(name = "abstract") final BooleanType abstractt,
       //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
@@ -401,16 +397,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
     }
     try {
       FhirUtilityR5.mutuallyRequired(display, "display", code, "code");
-      //      FhirUtilityR5.notSupported(codeableConcept, "codeableConcept");
-      //      FhirUtilityR5.notSupported(codeSystem, "codeSystem");
-      //      FhirUtilityR5.notSupported(coding, "coding");
-      //      FhirUtilityR5.notSupported(date, "date");
-      //      FhirUtilityR5.notSupported(abstractt, "abstract");
-      //      FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
       for (final String param :
-          new String[] {
-            "codeableConcept", "codeSystem", "coding", "date", "abstract", "displayLanguage"
-          }) {
+          new String[] {"codeSystem", "coding", "date", "abstract", "displayLanguage"}) {
         FhirUtilityR5.notSupported(request, param);
       }
       if (Collections.list(request.getParameterNames()).stream()
@@ -483,7 +471,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param version the version of the code system, if provided
    * @param display the display associated with the code. If provided, a code must be provided.
    * @param coding the coding to validate
-   * @param codeableConcept the codeable concept to validate
    * @param date the date that the validation should be checked
    * @param abstractt the abstract flag, a logical grouping concept that is not intended to be used
    *     as a 'concrete' concept to in an actual patient/care/process record.
@@ -504,7 +491,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display
       //      @OperationParam(name = "coding") final Coding coding,
-      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       //      @OperationParam(name = "date") final DateTimeType date,
       //      @OperationParam(name = "abstract") final BooleanType abstractt,
       //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
@@ -518,16 +504,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
     }
     try {
       FhirUtilityR5.mutuallyRequired(display, "display", code, "code");
-      //      FhirUtilityR5.notSupported(codeableConcept, "codeableConcept");
-      //      FhirUtilityR5.notSupported(codeSystem, "codeSystem");
-      //      FhirUtilityR5.notSupported(coding, "coding");
-      //      FhirUtilityR5.notSupported(date, "date");
-      //      FhirUtilityR5.notSupported(abstractt, "abstract");
-      //      FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
       for (final String param :
-          new String[] {
-            "codeableConcept", "codeSystem", "coding", "date", "abstract", "displayLanguage"
-          }) {
+          new String[] {"codeSystem", "coding", "date", "abstract", "displayLanguage"}) {
         FhirUtilityR5.notSupported(request, param);
       }
       if (Collections.list(request.getParameterNames()).stream()

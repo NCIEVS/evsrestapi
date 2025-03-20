@@ -279,7 +279,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param version the version of the code system.
    * @param display the display associated with the code If provided, a code must be provided.
    * @param coding the coding to validate.
-   * @param codeableConcept the full codeable concept to validate.
    * @param date the date for when the validation should be checked
    * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
    *     the validation is being performed in a context where a concept designated as 'abstract' is
@@ -300,7 +299,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display
       //      @OperationParam(name = "coding") final Coding coding,
-      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       //      @OperationParam(name = "date") final DateTimeType date,
       //      @OperationParam(name = "abstract") final BooleanType abstractt,
       //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
@@ -313,16 +311,9 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           405);
     }
     try {
-      //      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
-      //      FhirUtilityR4.notSupported("codeSystem", codeSystem);
-      //      FhirUtilityR4.notSupported("coding", coding);
-      //      FhirUtilityR4.notSupported("date", date);
-      //      FhirUtilityR4.notSupported("abstract", abstractt);
-      //      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
+
       for (final String param :
-          new String[] {
-            "codeableConcept", "codeSystem", "coding", "date", "abstract", "displayLanguage"
-          }) {
+          new String[] {"codeSystem", "coding", "date", "abstract", "displayLanguage"}) {
         FhirUtilityR4.notSupported(request, param);
       }
       if (Collections.list(request.getParameterNames()).stream()
@@ -393,7 +384,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param version the version of the code system.
    * @param display the display associated with the code If provided, a code must be provided.
    * @param coding the coding to validate.
-   * @param codeableConcept the full codeable concept to validate.
    * @param date the date for when the validation should be checked
    * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
    *     the validation is being performed in a context where a concept designated as 'abstract' is
@@ -415,7 +405,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display
       //      @OperationParam(name = "coding") final Coding coding,
-      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       //      @OperationParam(name = "date") final DateTimeType date,
       //      @OperationParam(name = "abstract") final BooleanType abstractt,
       //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
@@ -428,16 +417,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           405);
     }
     try {
-      //      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
-      //      FhirUtilityR4.notSupported("codeSystem", codeSystem);
-      //      FhirUtilityR4.notSupported("coding", coding);
-      //      FhirUtilityR4.notSupported("date", date);
-      //      FhirUtilityR4.notSupported("abstract", abstractt);
-      //      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
       for (final String param :
-          new String[] {
-            "codeableConcept", "codeSystem", "coding", "date", "abstract", "displayLanguage"
-          }) {
+          new String[] {"codeSystem", "coding", "date", "abstract", "displayLanguage"}) {
         FhirUtilityR4.notSupported(request, param);
       }
       if (Collections.list(request.getParameterNames()).stream()
