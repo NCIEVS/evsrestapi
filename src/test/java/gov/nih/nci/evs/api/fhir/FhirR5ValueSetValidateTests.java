@@ -116,7 +116,7 @@ public class FhirR5ValueSetValidateTests {
     String parameters = "?url=" + url + "&code=" + activeCode + "&displayLanguage=not_supported";
 
     String errorCode = "not-supported";
-    String messageNotSupported = "Input parameter 'displayLanguage' is not supported";
+    String messageNotSupported = "Input parameter 'displayLanguage' is not supported.";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);

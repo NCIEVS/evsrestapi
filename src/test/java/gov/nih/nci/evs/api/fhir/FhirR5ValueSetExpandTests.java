@@ -154,7 +154,7 @@ public class FhirR5ValueSetExpandTests {
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
     String parameters = "?url=" + url + "&displayLanguage=notfound";
 
-    String messageNotSupported = "Input parameter 'displayLanguage' is not supported";
+    String messageNotSupported = "Input parameter 'displayLanguage' is not supported.";
     String errorCode = "not-supported";
 
     // Act
@@ -182,7 +182,7 @@ public class FhirR5ValueSetExpandTests {
         localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
     String parameters = "?url=" + url + "&displayLanguage=notfound";
 
-    String messageNotSupported = "Input parameter 'displayLanguage' is not supported";
+    String messageNotSupported = "Input parameter 'displayLanguage' is not supported.";
     String errorCode = "not-supported";
 
     // Act
