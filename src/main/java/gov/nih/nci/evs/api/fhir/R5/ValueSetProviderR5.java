@@ -265,21 +265,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
     try {
       FhirUtilityR5.required(url, "url");
-      //      FhirUtilityR5.notSupported(context, "context");
-      //      FhirUtilityR5.notSupported(valueSet, "valueSet");
-      //      FhirUtilityR5.notSupported(contextDirection, "contextDirection");
-      //      FhirUtilityR5.notSupported(date, "date");
-      //      FhirUtilityR5.notSupported(includeDesignations, "includeDesignations");
-      //      FhirUtilityR5.notSupported(designation, "designation");
-      //      FhirUtilityR5.notSupported(includeDefinition, "includeDefinition");
-      //      FhirUtilityR5.notSupported(excludeNested, "excludeNested");
-      //      FhirUtilityR5.notSupported(excludeNotForUI, "excludeNotForUI");
-      //      FhirUtilityR5.notSupported(excludePostCoordinated, "excludePostCoordinated");
-      //      FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
-      //      FhirUtilityR5.notSupported(exclude_system, "exclude-system");
-      //      FhirUtilityR5.notSupported(system_version, "system-version");
-      //      FhirUtilityR5.notSupported(check_system_version, "check-system-version");
-      //      FhirUtilityR5.notSupported(force_system_version, "force-system-version");
 
       for (final String param :
           new String[] {
@@ -297,7 +282,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
             "exclude_system",
             "system_version",
             "check_system_version",
-            "force_system_version"
+            "force_system_version",
+            "_count",
+            "_offset"
           }) {
         FhirUtilityR5.notSupported(request, param);
       }
@@ -498,7 +485,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
           "exclude_system",
           "system_version",
           "check_system_version",
-          "force_system_version"
+          "force_system_version",
+          "_count",
+          "_offset"
         }) {
       FhirUtilityR5.notSupported(request, param);
     }

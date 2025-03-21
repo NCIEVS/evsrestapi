@@ -173,7 +173,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
             "exclude_system",
             "system_version",
             "check_system_version",
-            "force_system_version"
+            "force_system_version",
+            "_count",
+            "_offset"
           }) {
         FhirUtilityR4.notSupported(request, param);
       }
@@ -360,7 +362,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
             "exclude_system",
             "system_version",
             "check_system_version",
-            "force_system_version"
+            "force_system_version",
+            "_count", 
+            "_offset"
           }) {
         FhirUtilityR4.notSupported(request, param);
       }
