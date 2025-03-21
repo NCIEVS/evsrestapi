@@ -5,18 +5,10 @@ import static org.assertj.core.api.Assertions.fail;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.properties.TestProperties;
-import gov.nih.nci.evs.api.support.ApplicationVersion;
-import gov.nih.nci.evs.api.util.ConceptUtils;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.LineIterator;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +24,11 @@ import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.support.ApplicationVersion;
 
 /** Integration tests for VersionController. */
 @ExtendWith(SpringExtension.class)
@@ -64,6 +61,11 @@ public class VersionControllerTests {
     JacksonTester.initFields(this, objectMapper);
   }
 
+  /**
+   * Test get trailing slash version.
+   *
+   * @throws Exception the exception
+   */
   @Test
   /**
    * test get trailing slash 404
