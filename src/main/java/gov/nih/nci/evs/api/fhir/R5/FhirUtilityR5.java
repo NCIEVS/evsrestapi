@@ -411,7 +411,12 @@ public class FhirUtilityR5 {
     if (request.getParameterMap().containsKey(paramName)) {
       String message = "";
       if (paramName.equals("_count") || paramName.equals("_offset")) {
-        message = format("Input parameter '%s' is not supported.  Use '" + paramName.substring(1) + "' instead.", paramName);  	  
+        message =
+            format(
+                "Input parameter '%s' is not supported.  Use '"
+                    + paramName.substring(1)
+                    + "' instead.",
+                paramName);
       } else {
         message = format("Input parameter '%s' is not supported.", paramName);
       }
