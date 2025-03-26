@@ -303,6 +303,47 @@ class FhirR5CodeSystemReadSearchTests {
     // String.class);
     // data = parser.parseResource(Bundle.class, content);
     // validateCodeSystemResults(data, false);
+
+    // Test 6: system instead of url
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+            // "ge2021-06")
+            .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("version", "21.06e")
+            .queryParam("title", "ncit");
+
+    // Test successful case with all parameters
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(Bundle.class, content);
+    validateCodeSystemResults(data, true); // Expecting results
+
+    // Test 7: url same as system
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+            // "ge2021-06")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("version", "21.06e")
+            .queryParam("title", "ncit");
+
+    // Test successful case with all parameters
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(Bundle.class, content);
+    validateCodeSystemResults(data, true); // Expecting results
+
+    // Test 8: url different from system
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2025-01") // Future
+            // date
+            .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("url", "differentFromSystem")
+            .queryParam("version", "21.06e")
+            .queryParam("title", "ncit");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(Bundle.class, content);
+    validateCodeSystemResults(data, false); // Expecting no results
   }
 
   /**

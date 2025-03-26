@@ -650,6 +650,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param request the request
    * @param id the id
    * @param date the date
+   * @param url the url
    * @param system the system
    * @param version the version
    * @param title the title
@@ -663,7 +664,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       final HttpServletRequest request,
       @OptionalParam(name = "_id") final TokenParam id,
       @OptionalParam(name = "date") final DateRangeParam date,
-      @OptionalParam(name = "system") final StringParam system,
+      @OptionalParam(name = "url") final UriType url,
+      @OptionalParam(name = "system") final UriType system,
       @OptionalParam(name = "version") final StringParam version,
       @OptionalParam(name = "title") final StringParam title,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
@@ -682,6 +684,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         // Skip non-matching
         if ((id != null && !id.getValue().equals(cs.getId()))
             || (system != null && !system.getValue().equals(cs.getUrl()))) {
+          logger.debug("  SKIP system mismatch = " + cs.getUrl());
+          continue;
+        }
+        if (url != null && !url.getValue().equals(cs.getUrl())) {
           logger.debug("  SKIP url mismatch = " + cs.getUrl());
           continue;
         }
