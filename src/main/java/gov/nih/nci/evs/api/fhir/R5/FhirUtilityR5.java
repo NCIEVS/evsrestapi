@@ -40,7 +40,7 @@ import org.hl7.fhir.r5.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Utility for FHIR R4. */
+/** Utility for FHIR R5. */
 public class FhirUtilityR5 {
   /** The logger. */
   @SuppressWarnings("unused")
@@ -409,7 +409,17 @@ public class FhirUtilityR5 {
    */
   public static void notSupported(final HttpServletRequest request, final String paramName) {
     if (request.getParameterMap().containsKey(paramName)) {
-      final String message = format("Input parameter '%s' is not supported.", paramName);
+      String message = "";
+      if (paramName.equals("_count") || paramName.equals("_offset")) {
+        message =
+            format(
+                "Input parameter '%s' is not supported.  Use '"
+                    + paramName.substring(1)
+                    + "' instead.",
+                paramName);
+      } else {
+        message = format("Input parameter '%s' is not supported.", paramName);
+      }
       throw exception(message, IssueType.NOTSUPPORTED, 400);
     }
   }
