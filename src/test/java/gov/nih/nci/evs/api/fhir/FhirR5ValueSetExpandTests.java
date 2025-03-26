@@ -119,11 +119,12 @@ public class FhirR5ValueSetExpandTests {
   public void testValueSetExpandImplicit() throws Exception {
     // Arrange
     String content;
-    String activeCode = "T001";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    String displayString = "Organism";
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
     String parameters = "?url=" + url;
+
+    String activeCode = "T001";
+    String displayString = "Organism";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -138,6 +139,60 @@ public class FhirR5ValueSetExpandTests {
             .collect(Collectors.toList())
             .get(0)
             .getDisplay());
+  }
+
+  /**
+   * Test value set expand implicit parameter not supported.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandImplicitParameterNotSupported() throws Exception {
+    // Arrange
+    String content;
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String parameters = "?url=" + url + "&displayLanguage=notfound";
+
+    String messageNotSupported = "Input parameter 'displayLanguage' is not supported.";
+    String errorCode = "not-supported";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, (component.getDiagnostics()));
+  }
+
+  /**
+   * Test value set expand instance parameter not supported.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandInstanceParameterNotSupported() throws Exception {
+    // Arrange
+    String content;
+    String activeID = "umlssemnet_2023aa";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String endpoint =
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
+    String parameters = "?url=" + url + "&displayLanguage=notfound";
+
+    String messageNotSupported = "Input parameter 'displayLanguage' is not supported.";
+    String errorCode = "not-supported";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, (component.getDiagnostics()));
   }
 
   /**
@@ -301,10 +356,11 @@ public class FhirR5ValueSetExpandTests {
     String content;
     String activeID = "umlssemnet_2023aa";
     String url = "http://www.nlm.nih.gov/research/umls/vsNotFound?fhir_vs";
-    String messageNotFound = "Value set " + url + " not found";
     String endpoint =
         localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
     String parameters = "?url=" + url;
+
+    String messageNotFound = "Value set " + url + " not found";
     String errorCode = "exception";
 
     // Act
