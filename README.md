@@ -66,7 +66,7 @@ Information on the build and deployment process for the EVSRESTAPI project
 * In the "Arguments" tab, add to "VM Arguments" the value `-Dspring.profiles.active=local`
 * In the Environment variables add the email credentials and settings for testing:
   * e.g. `AUTH=true;MAIL_USER=<testUserEmail@domain.com;TLS=true;MAIL_PASSWORD=#########;RECAPTCHA_KEY:########;RECAPTCHA_SECRET=#######`
-* Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui.html#/](http://localhost:8082/swagger-ui.html#/)
+* Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui/index.html#/](http://localhost:8082/swagger-ui/index.html#/)
 
 ### Run application in IntelliJ
 * Click "Run" -> "Edit Configurations"
@@ -77,7 +77,7 @@ Information on the build and deployment process for the EVSRESTAPI project
 * In the "VM options" text box, add the value `-Dspring.profiles.active=local`
 * In the Environment variables add the email credentials and settings for testing:
   * e.g. `AUTH=true;MAIL_USER=<testUserEmail@domain.com>;TLS=true;MAIL_PASSWORD=<#########>;RECAPTCHA_KEY:########;RECAPTCHA_SECRET=########`
-* Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui.html#/](http://localhost:8082/swagger-ui.html#/)
+* Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui/index.html#/](http://localhost:8082/swagger-ui/index.html#/)
 
 ### Run application from command line
 * Run with `java -Xmx4096 -Dspring.profiles.active=local -jar build/libs/evsrestapi*jar`
