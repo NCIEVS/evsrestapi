@@ -23,6 +23,15 @@ public class ApplicationProperties {
   /** The ui license - passed by UI to the backend via X-EVSRESAPI-License-Key. */
   private String uiLicense;
 
+  /** The UnitTestData folder */
+  private String unitTestData;
+
+  /** Pediatric Subsets xls file */
+  private String pediatricSubsetsXls;
+
+  /** FTP neoplasm site */
+  private String ftpNeoplasmUrl;
+
   /** The recaptcha secret key. */
   @Value("${google.recaptcha.site.key}")
   private String recaptchaSiteKey;
@@ -115,6 +124,60 @@ public class ApplicationProperties {
    */
   public void setConfigBaseUri(final String configBaseUri) {
     this.configBaseUri = configBaseUri;
+  }
+
+  /**
+   * Returns the pediatricSubsetsXls.
+   *
+   * @return the pediatricSubsetsXls
+   */
+  public String getPediatricSubsetsXls() {
+    return pediatricSubsetsXls;
+  }
+
+  /**
+   * Sets the pediatricSubsetsXls.
+   *
+   * @param uiLicense the pediatricSubsetsXls
+   */
+  public void setPediatricSubsetsXls(final String pediatricSubsetsXls) {
+    this.pediatricSubsetsXls = pediatricSubsetsXls;
+  }
+
+  /**
+   * Returns the unitTestData.
+   *
+   * @return the unitTestData
+   */
+  public String getUnitTestData() {
+    return unitTestData;
+  }
+
+  /**
+   * Sets the unitTestData.
+   *
+   * @param unitTestData the unitTestData
+   */
+  public void setUnitTestData(final String unitTestData) {
+    this.unitTestData = unitTestData;
+  }
+
+  /**
+   * Returns the ftpNeoplasmUrl.
+   *
+   * @return the ftpNeoplasmUrl
+   */
+  public String getFtpNeoplasmUrl() {
+    return ftpNeoplasmUrl;
+  }
+
+  /**
+   * Sets the ftpNeoplasmUrl.
+   *
+   * @param uiLicense the ftpNeoplasmUrl
+   */
+  public void setFtpNeoplasmUrl(final String ftpNeoplasmUrl) {
+    this.ftpNeoplasmUrl = ftpNeoplasmUrl;
   }
 
   /**

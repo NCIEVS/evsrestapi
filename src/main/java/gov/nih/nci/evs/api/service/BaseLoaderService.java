@@ -2,6 +2,7 @@ package gov.nih.nci.evs.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -35,7 +36,7 @@ import org.springframework.util.CollectionUtils;
 /**
  * The service to load concepts to Elasticsearch
  *
- * <p>Retrieves concepts from stardog and creates necessary index on Elasticsearch.
+ * <p>Retrieves concepts from graph db and creates necessary index on Elasticsearch.
  *
  * @author Arun
  */
@@ -64,7 +65,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   @Autowired private RestHighLevelClient client;
 
   /** The dbs. */
-  @Value("${nci.evs.bulkload.stardogDbs}")
+  @Value("${nci.evs.bulkload.graphDbs}")
   private String dbs;
 
   /**
@@ -115,35 +116,40 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws Exception
    */
   @Override
-  public void initialize() throws IOException {
-    try {
-      // Create the metadata index if it doesn't exist
-      boolean createdIndex =
-          operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
-      if (createdIndex) {
-        operationsService
-            .getOpenSearchOperations()
-            .indexOps(IndexCoordinates.of(ElasticOperationsService.METADATA_INDEX))
-            .putMapping(IndexMetadata.class);
-      }
+  public void initialize() throws Exception {
+    // Create the metadata index if it doesn't exist
+    boolean createdIndex =
+        operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
+    if (createdIndex) {
+      operationsService
+          .getOpenSearchOperations()
+          .indexOps(IndexCoordinates.of(ElasticOperationsService.METADATA_INDEX))
+          .putMapping(IndexMetadata.class);
+    }
 
-      // Create the mapping indexes if they don't exist
-      boolean createdMapset =
-          operationsService.createIndex(ElasticOperationsService.MAPSET_INDEX, false);
-      operationsService.createIndex(ElasticOperationsService.MAPPINGS_INDEX, false);
-      if (createdMapset) {
-        operationsService
-            .getOpenSearchOperations()
-            .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPSET_INDEX))
-            .putMapping(Concept.class);
-        operationsService
-            .getOpenSearchOperations()
-            .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX))
-            .putMapping(Mapping.class);
-      }
-    } catch (IOException e) {
-      logger.error(e.getMessage(), e);
-      throw new IOException(e);
+    // Create the mapping indexes if they don't exist
+    boolean createdMapset =
+        operationsService.createIndex(ElasticOperationsService.MAPSET_INDEX, false);
+    operationsService.createIndex(ElasticOperationsService.MAPPINGS_INDEX, false);
+    if (createdMapset) {
+      operationsService
+          .getOpenSearchOperations()
+          .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPSET_INDEX))
+          .putMapping(Concept.class);
+      operationsService
+          .getOpenSearchOperations()
+          .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX))
+          .putMapping(Mapping.class);
+    }
+
+    // create the audit index if it doesn't exist
+    boolean createdAudit =
+        operationsService.createIndex(ElasticOperationsService.AUDIT_INDEX, false);
+    if (createdAudit) {
+      operationsService
+          .getOpenSearchOperations()
+          .indexOps(IndexCoordinates.of(ElasticOperationsService.AUDIT_INDEX))
+          .putMapping(Audit.class);
     }
   }
 
@@ -158,7 +164,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   public Set<String> cleanStaleIndexes(final Terminology terminology) throws Exception {
 
     List<IndexMetadata> iMetas =
-        termUtils.getStaleStardogTerminologies(
+        termUtils.getStaleGraphTerminologies(
             Arrays.asList(dbs.split(",")), terminology, sparqlQueryManagerService, esQueryService);
     if (CollectionUtils.isEmpty(iMetas)) {
       logger.info("NO stale terminologies to remove");
@@ -186,6 +192,13 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
       if (!result) {
         logger.warn("Deleting objects index {} failed!", objectIndexName);
+        Audit.addAudit(
+            operationsService,
+            "DeleteIndexFailed",
+            "cleanStaleIndexes",
+            terminology.getTerminology(),
+            "Deleting objects index " + objectIndexName + " failed!",
+            "WARN");
         continue;
       }
 
@@ -195,6 +208,13 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
       if (!result) {
         logger.warn("Deleting concepts index {} failed!", indexName);
+        Audit.addAudit(
+            operationsService,
+            "WARN",
+            "cleanStaleIndexes",
+            terminology.getTerminology(),
+            "Deleting concepts index " + objectIndexName + " failed!",
+            "WARN");
         continue;
       }
 
@@ -318,7 +338,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public void checkLoadStatus(int total, Terminology term) throws IOException {
+  public void checkLoadStatus(int total, Terminology term) throws Exception {
 
     Long count = esQueryService.getCount(term);
     logger.info("Concepts count for index {} = {}", term.getIndexName(), count);
@@ -331,12 +351,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     int attempts = 0;
 
     while (!completed && attempts < 30) {
-      try {
-        Thread.sleep(2000);
-      } catch (InterruptedException e) {
-        logger.error("Error while checking load status: sleep interrupted - " + e.getMessage(), e);
-        throw new IOException(e);
-      }
+      Thread.sleep(2000);
 
       if (attempts == 15) {
         logger.info("Index completion is taking longer than expected..");
@@ -356,7 +371,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws IOException Signals that an I/O exception has occurred.
    */
   @Override
-  public void loadIndexMetadata(int total, Terminology term) throws IOException {
+  public void loadIndexMetadata(int total, Terminology term) throws IOException, Exception {
     IndexMetadata iMeta = new IndexMetadata();
     iMeta.setIndexName(term.getIndexName());
     iMeta.setTotalConcepts(total);
@@ -454,6 +469,22 @@ public abstract class BaseLoaderService implements ElasticLoadService {
             + "/"
             + termUtils.getTerminologyName(terminology)
             + ".json";
+    logger.info("  get config for " + terminology + " = " + uri);
+    return new ObjectMapper()
+        .readTree(StringUtils.join(EVSUtils.getValueFromFile(uri, "metadata info"), '\n'));
+  }
+
+  /**
+   * Returns the metadata as node from an explicitly local filepath.
+   *
+   * @param terminology the terminology
+   * @return the metadata as node
+   * @throws Exception the exception
+   */
+  public JsonNode getMetadataAsNodeLocal(final String terminology) throws Exception {
+    // Read from the configured URI where this data lives
+    // If terminology is {term}_{version} -> strip the version
+    final String uri = "src/test/resources/" + termUtils.getTerminologyName(terminology) + ".json";
     logger.info("  get config for " + terminology + " = " + uri);
     return new ObjectMapper()
         .readTree(StringUtils.join(EVSUtils.getValueFromFile(uri, "metadata info"), '\n'));

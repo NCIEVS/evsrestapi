@@ -19,6 +19,7 @@ import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -93,10 +94,7 @@ public class HistoryController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/history/{terminology}/{code}/replacements",
-      produces = "application/json")
+  @GetMapping(value = "/history/{terminology}/{code}/replacements", produces = "application/json")
   public @ResponseBody List<History> getReplacements(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code)
@@ -108,7 +106,7 @@ public class HistoryController extends BaseController {
       return HistoryUtils.getReplacements(term, elasticQueryService, code);
 
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -181,7 +179,7 @@ public class HistoryController extends BaseController {
           term, elasticQueryService, Arrays.asList(list.split(",")));
 
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }

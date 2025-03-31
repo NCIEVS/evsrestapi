@@ -1,26 +1,145 @@
 {
-  "formName": "NCIt Test Suggestion Form",
-  "recipientEmail": "test@mail.nih.gov",
-  "sections": [
-    {
-      "name": "Contact Information",
-      "fields": [
-        {
-          "name": "Business Email",
-          "type": "text",
-          "placeholder": "Enter your business email",
-          "required": true
-        },
-        {
-          "name": "Other",
-          "type": "textarea",
-          "placeholder": "Enter additional contact information",
-          "required": false
-        },
-        {
-          "description": "Privacy Notice: For term submission purposes we request business contact information only, not personal information.\n    Your business email, and any other business contact information that you enter, will only be used to contact you\n    about this topic if any clarifications are needed. This information will not be disseminated to others outside the\n    EVS group of the NCI, or stored except as part of the email communications on this topic. "
-        }
-      ]
-    }
-  ]
+	"formName": "NCIt Term Suggestion Request",
+	"formType": "NCIT",
+	"recipientEmail": "ncithesaurus@mail.nih.gov",
+	"sections": [
+		{
+			"name": "contact",
+			"label": "Contact Information",
+			"instructions": {
+				"parts": [
+					{
+						"text": "Privacy Notice:"
+					},
+					{
+						"text": "For term submission purposes we request business contact information only, not personal information. Your business email, and any other business contact information that you enter, will only be used to contact you about this topic if any clarifications are needed. This information will not be disseminated to others outside the EVS group of the NCI, or stored except as part of the email communications on this topic."
+					}
+				]
+			},
+			"fields": [
+				{
+					"name": "email",
+					"label": "Business Email",
+					"type": "text",
+					"value": "",
+					"placeholder": "Enter your business email",
+					"validations": [
+						{
+							"name": "required",
+							"validator": "required",
+							"message": "Email is required"
+						},
+						{
+							"name": "pattern",
+							"validator": "email",
+							"message": "Invalid email format"
+						}
+					]
+				},
+				{
+					"name": "other",
+					"label": "Other",
+					"type": "textarea",
+					"value": "",
+					"placeholder": "Enter additional contact information"
+				}
+			]
+		},
+		{
+			"name": "termInfo",
+			"label": "Term Information",
+			"instructions": {
+				"parts": [
+					{
+						"text": "Fill in the following fields as appropriate. For multiple terms, please consider emailing an Excel, delimited text, or similar file to"
+					},
+					{
+						"text": "ncithesaurus@mail.nih.gov",
+						"link": "mailto:ncithesaurus@mail.nih.gov?Subject=NCIt%20New%20Term%20Request%20File"
+					},
+					{
+						"text": ", which can also respond to any questions."
+					}
+				]
+			},
+			"fields": [
+				{
+					"name": "vocabulary",
+					"label": "Vocabulary",
+					"type": "dropdown",
+					"value": "",
+					"options": [
+						"NCI Thesaurus",
+						"NCI Metathesaurus",
+						"NPO",
+						"Other"
+					],
+					"placeholder": "Select vocabulary",
+					"validations": [
+						{
+							"name": "required",
+							"validator": "required",
+							"message": "Vocabulary is required"
+						}
+					]
+				},
+				{
+					"name": "term",
+					"label": "Term",
+					"type": "textarea",
+					"value": "",
+					"placeholder": "Enter the term(s)",
+					"validations": [
+						{
+							"name": "required",
+							"validator": "required",
+							"message": "Term is required"
+						}
+					]
+				},
+				{
+					"name": "synonym",
+					"label": "Synonym(s)",
+					"type": "textarea",
+					"value": "",
+					"placeholder": "Enter synonyms (if any)"
+				},
+				{
+					"name": "nearestCode",
+					"label": "Nearest Code/CUI",
+					"type": "textarea",
+					"value": "",
+					"placeholder": "Enter nearest code/CUI"
+				},
+				{
+					"name": "other",
+					"label": "Definition/Other",
+					"type": "textarea",
+					"value": "",
+					"placeholder": "Enter definition/other information"
+				}
+			]
+		},
+		{
+			"name": "additionalInfo",
+			"label": "Additional Information",
+			"fields": [
+				{
+					"name": "project",
+					"label": "Project/Product term needed for",
+					"type": "textarea",
+					"value": "",
+					"placeholder": "Enter project/product term"
+				},
+				{
+					"name": "reason",
+					"label": "Reason for suggestion or any additional information",
+					"type": "textarea",
+					"value": "",
+					"placeholder": "Enter reason for suggestion or any additional information that may help us"
+				}
+			]
+		}
+	],
+	"recaptchaSiteKey": "REPLACE_WITH_KEY"
 }

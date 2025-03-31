@@ -1445,7 +1445,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       }
 
       return term;
-    } catch (IOException ex) {
+    } catch (Exception ex) {
       throw new Exception("Could not load terminology ncim");
     }
   }

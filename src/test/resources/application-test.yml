@@ -96,12 +96,12 @@ nci:
       lockFile: ${NCI_EVS_BULK_LOAD_LOCK_FILE_NAME:DownloadSuccessfull.lck}
       downloadBatchSize: ${NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE:1000}
       indexBatchSize: ${NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE:1000}
-      stardogDbs: ${STARDOG_DBS:CTRP,NCIT2}
-    stardog:
-      host: ${STARDOG_HOST:localhost}
-      port: ${STARDOG_PORT:5820}
-      db: ${STARDOG_DB:NCIT2}
-      queryUrl: http://${nci.evs.stardog.host}:${nci.evs.stardog.port}/${nci.evs.stardog.db}/query
+      graphDbs: CTRP,NCIT2
+    graph:
+      host: ${GRAPH_DB_HOST:localhost}
+      port: ${GRAPH_DB_PORT:3030}
+      db: ${GRAPH_DB:NCIT2}
+      queryUrl: http://${nci.evs.graph.host}:${nci.evs.graph.port}/${nci.evs.graph.db}/query
       username: admin
       password: admin
       readTimeout: 30000
@@ -113,7 +113,7 @@ nci:
         scheme: ${ES_SCHEME:http}
       timeout: 200000
     sparql:
-      timeoutSeconds: 5
+      timeoutSeconds: 60
 
 # Springdoc
 springdoc:

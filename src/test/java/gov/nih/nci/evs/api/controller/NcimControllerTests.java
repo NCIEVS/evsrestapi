@@ -64,6 +64,18 @@ public class NcimControllerTests {
     baseUrl = "/api/v1/concept";
   }
 
+  @Test
+  /**
+   * test get trailing slash 404
+   *
+   * @throws Exception
+   */
+  public void testGetTrailingSlashNcim() throws Exception {
+    String url = baseUrl + "/ncim/C0000005/";
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+  }
+
   /**
    * NCIM terminology basic tests.
    *

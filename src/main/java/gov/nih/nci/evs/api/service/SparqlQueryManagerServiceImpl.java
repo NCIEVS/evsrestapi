@@ -8,6 +8,7 @@ import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -17,13 +18,14 @@ import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Role;
+import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
@@ -63,8 +65,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /** The Constant log. */
   private static final Logger log = LoggerFactory.getLogger(SparqlQueryManagerServiceImpl.class);
 
-  /** The stardog properties. */
-  @Autowired StardogProperties stardogProperties;
+  /** The graph properties. */
+  @Autowired GraphProperties graphProperties;
 
   /** The query builder service. */
   @Autowired QueryBuilderService queryBuilderService;
@@ -79,6 +81,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /** The elastic search service. */
   @Autowired ElasticQueryService elasticQueryService;
+
+  /** The operations service. */
+  @Autowired ElasticOperationsService operationsService;
 
   /** The sparql query cache service. */
   @Autowired SparqlQueryCacheService sparqlQueryCacheService;
@@ -98,10 +103,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public void postInit() throws Exception {
     restUtils =
         new RESTUtils(
-            stardogProperties.getUsername(),
-            stardogProperties.getPassword(),
-            stardogProperties.getReadTimeout(),
-            stardogProperties.getConnectTimeout());
+            graphProperties.getUsername(),
+            graphProperties.getPassword(),
+            graphProperties.getReadTimeout(),
+            graphProperties.getConnectTimeout());
 
     // NOTE: see TerminologyCacheLoader for other caching.
 
@@ -121,13 +126,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public String getQueryURL() {
-    return stardogProperties.getQueryUrl();
+    return graphProperties.getQueryUrl();
   }
 
   // Here check the qualified form as well as the URI
 
   // Here check the qualified form as well as the URI
 
+  /* see superclass */
   /* see superclass */
   /* see superclass */
   /* see superclass */
@@ -169,7 +175,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                 "all.graphs.and.versions.ignore.sources", ignoreSources);
 
     // NOTE: this is not a hardened approach
-    final String queryURL = getQueryURL().replace(stardogProperties.getDb(), db);
+    final String queryURL = getQueryURL().replace(graphProperties.getDb(), db);
     final String res = restUtils.runSPARQL(queryPrefix + query, queryURL);
 
     // if (log.isDebugEnabled()) {
@@ -248,6 +254,18 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final String conceptCode, final Terminology terminology, final IncludeParam ip)
       throws Exception {
     return getConceptByType("concept", conceptCode, terminology, ip);
+  }
+
+  @Override
+  public Concept getConceptFromElasticSearch(
+      final String conceptCode, final Terminology terminology, final String include)
+      throws Exception {
+    SearchCriteria searchCriteria = new SearchCriteria();
+    searchCriteria.setTerm(conceptCode);
+    searchCriteria.setInclude(include);
+    ConceptResultList result =
+        elasticSearchService.findConcepts(Collections.singletonList(terminology), searchCriteria);
+    return !result.getConcepts().isEmpty() ? result.getConcepts().get(0) : null;
   }
 
   /* see superclass */
@@ -566,11 +584,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     executor.shutdown();
 
     // Wait up to 10 min for processes to stop
-    try {
-      executor.awaitTermination(10, TimeUnit.MINUTES);
-    } catch (final InterruptedException e) {
-      throw new RuntimeException(e);
-    }
+    executor.awaitTermination(10, TimeUnit.MINUTES);
 
     if (axiomMap.isEmpty()) {
       // This likely occurs if the 10 minute awaitTermination isn't long enough
@@ -2439,11 +2453,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("all.concepts.with.code", terminology);
     String res = null;
-    try {
-      res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-    } catch (final Exception e) {
-      e.printStackTrace();
-    }
+    res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -2479,11 +2489,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query =
         queryBuilderService.constructQuery("all.concepts.without.code", terminology);
     String res = null;
-    try {
-      res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-    } catch (final Exception e) {
-      e.printStackTrace();
-    }
+    res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
@@ -2514,7 +2520,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final List<Concept> subsets = new ArrayList<>();
     for (final String code : terminology.getMetadata().getSubset()) {
       final Concept concept =
-          getConcept(code, terminology, new IncludeParam("minimal,children,properties"));
+          getConceptFromElasticSearch(code, terminology, "minimal,children,properties");
 
       getSubsetsHelper(concept, terminology, 0);
       subsets.add(concept);
@@ -2536,7 +2542,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final List<Concept> children = new ArrayList<>();
     for (final Concept child : concept.getChildren()) {
       final Concept childFull =
-          getConcept(child.getCode(), terminology, new IncludeParam("minimal,children,properties"));
+          getConceptFromElasticSearch(child.getCode(), terminology, "minimal,children,properties");
       boolean valInSubset = false;
       boolean found = false;
       for (final Property prop : childFull.getProperties()) {
@@ -2566,27 +2572,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   @Override
   public List<AssociationEntry> getAssociationEntries(
-      final Terminology terminology, final Concept association) {
+      final Terminology terminology, final Concept association) throws Exception {
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
         queryBuilderService.constructQuery(
             "association.entries", terminology, association.getCode());
     String res = null;
-    try {
-      res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-    } catch (final Exception e1) {
-      e1.printStackTrace();
-    }
+    res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
     final ObjectMapper mapper = new ObjectMapper();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<AssociationEntry> entries = new ArrayList<>();
     Sparql sparqlResult = null;
-    try {
-      sparqlResult = mapper.readValue(res, Sparql.class);
-    } catch (final Exception e) {
-      log.error("Mapper could not read value in Association Entries");
-      e.printStackTrace();
-    }
+    sparqlResult = mapper.readValue(res, Sparql.class);
+
     if (sparqlResult != null) {
       final Bindings[] bindings = sparqlResult.getResults().getBindings();
       for (final Bindings b : bindings) {

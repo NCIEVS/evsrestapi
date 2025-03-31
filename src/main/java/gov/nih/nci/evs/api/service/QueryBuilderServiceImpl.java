@@ -1,7 +1,7 @@
 package gov.nih.nci.evs.api.service;
 
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import java.util.List;
 import java.util.Map;
@@ -26,8 +26,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   /** The Constant log. */
   private static final Logger log = LoggerFactory.getLogger(QueryBuilderServiceImpl.class);
 
-  /** The stardog properties. */
-  @Autowired StardogProperties stardogProperties;
+  /** The graph properties. */
+  @Autowired GraphProperties graphProperties;
 
   /** The env. */
   @Autowired Environment env;

@@ -28,6 +28,7 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -77,6 +78,18 @@ public class ConceptControllerTests {
     JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/concept";
+  }
+
+  @Test
+  /**
+   * test get trailing slash 404
+   *
+   * @throws Exception
+   */
+  public void testGetTrailingSlashNcit() throws Exception {
+    String url = baseUrl + "/ncit/C3224/";
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
   }
 
   /**
@@ -175,6 +188,7 @@ public class ConceptControllerTests {
    * @throws Exception the exception
    */
   @Test
+  @Disabled("The extra mappings are blocked off until we figure out versioning")
   public void testGetConceptExtraMappings() throws Exception {
     String url = null;
     MvcResult result = null;

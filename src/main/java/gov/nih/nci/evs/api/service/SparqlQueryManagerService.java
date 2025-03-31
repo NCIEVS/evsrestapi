@@ -37,6 +37,9 @@ public interface SparqlQueryManagerService {
   public Concept getConcept(String conceptCode, Terminology terminology, IncludeParam ip)
       throws Exception;
 
+  public Concept getConceptFromElasticSearch(
+      String conceptCode, Terminology terminology, String include) throws Exception;
+
   /**
    * Returns the all properties.
    *

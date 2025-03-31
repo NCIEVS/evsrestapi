@@ -7,8 +7,9 @@ export EVS_SERVER_PORT="8080"
 export NCI_EVS_API_PATH="/api/v1"
 
 # true or false
-export METRICS_ENABLED="EDIT_THIS"
+export METRICS_ENABLED=false
 
+export GRAPH_DB_TYPE=stardog
 export STARDOG_HOST="EDIT_THIS, e.g. without https://"
 export STARDOG_PORT=5820
 export STARDOG_DB="EDIT_THIS, e.g. NCIT2"
@@ -16,6 +17,9 @@ export STARDOG_USERNAME="REPLACE_WITH_USERNAME"
 export STARDOG_PASSWORD="REPLACE_WITH_PASSWORD"
 export STARDOG_READ_TIMEOUT="60"
 export STARDOG_CONNECT_TIMEOUT="60"
+export STARDOG_URL=http://${STARDOG_HOST}:${STARDOG_PORT}
+export STARDOG_USERNAME="admin"
+export STARDOG_PASSWORD="admin"
 
 export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=1000
 export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
@@ -38,6 +42,6 @@ export MAIL_TLS=true
 export DATA_DIR=/evs/data/ncim
 
 # Obtaining data/config from evsrestapi-operations
-# Replace "main" with "develop" for 
+# Replace "main" with "develop" for dev/qa servers
 export CONFIG_BASE_URI=https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata
 

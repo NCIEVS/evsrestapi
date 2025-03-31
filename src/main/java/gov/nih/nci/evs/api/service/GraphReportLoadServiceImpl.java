@@ -6,7 +6,7 @@ import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.MainTypeHierarchy;
@@ -33,10 +33,10 @@ import org.springframework.stereotype.Service;
 
 /** The implementation for {@link ElasticLoadService} that just generates a report. */
 @Service
-public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl {
+public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
 
   /** the logger *. */
-  private static final Logger logger = LoggerFactory.getLogger(StardogReportLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(GraphReportLoadServiceImpl.class);
 
   /** The mapper. */
   private ObjectMapper mapper = new ObjectMapper();
@@ -53,8 +53,8 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
   /** The sparql query manager service. */
   @Autowired private SparqlQueryManagerService sparqlQueryManagerService;
 
-  /** The stardog properties. */
-  @Autowired StardogProperties stardogProperties;
+  /** The graph properties. */
+  @Autowired GraphProperties graphProperties;
 
   /** The main type hierarchy. */
   @Autowired MainTypeHierarchy mainTypeHierarchy;
@@ -83,41 +83,32 @@ public class StardogReportLoadServiceImpl extends AbstractStardogLoadServiceImpl
     // Get all concepts
     List<Concept> concepts = sparqlQueryManagerService.getAllConceptsWithoutCode(terminology);
 
-    try {
-      logReport("  ", "concepts without codes = " + concepts.size());
-      int ct = 0;
-      for (final Concept concept : concepts) {
-        if (++ct < 3 || samples.contains(concept.getCode())) {
-          final Concept concept2 =
-              sparqlQueryManagerService.getConcept(
-                  concept.getUri(), terminology, new IncludeParam("full"));
-          concept2.setUri(concept.getUri());
-          logReport("    ", "concept", concept2);
-        }
+    logReport("  ", "concepts without codes = " + concepts.size());
+    int ct = 0;
+    for (final Concept concept : concepts) {
+      if (++ct < 3 || samples.contains(concept.getCode())) {
+        final Concept concept2 =
+            sparqlQueryManagerService.getConcept(
+                concept.getUri(), terminology, new IncludeParam("full"));
+        concept2.setUri(concept.getUri());
+        logReport("    ", "concept", concept2);
       }
-    } catch (final Exception e) {
-      throw new IOException(e);
     }
 
     // Get all concepts
     concepts = sparqlQueryManagerService.getAllConceptsWithCode(terminology);
-    try {
-      logReport("  ", "concepts with codes = " + concepts.size());
-      int ct = 0;
-      for (final Concept concept : concepts) {
-        if (++ct < (6 - samples.size()) || samples.contains(concept.getCode())) {
-          logReport(
-              "    ",
-              "concept",
-              sparqlQueryManagerService.getConcept(
-                  concept.getCode(), terminology, new IncludeParam("full")));
-          // logReport(" ", " paths", hierarchy.getPaths(terminology,
-          // concept.getCode()));
-        }
+    logReport("  ", "concepts with codes = " + concepts.size());
+    ct = 0;
+    for (final Concept concept : concepts) {
+      if (++ct < (6 - samples.size()) || samples.contains(concept.getCode())) {
+        logReport(
+            "    ",
+            "concept",
+            sparqlQueryManagerService.getConcept(
+                concept.getCode(), terminology, new IncludeParam("full")));
+        // logReport(" ", " paths", hierarchy.getPaths(terminology,
+        // concept.getCode()));
       }
-
-    } catch (final Exception e) {
-      throw new IOException(e);
     }
 
     return -1;

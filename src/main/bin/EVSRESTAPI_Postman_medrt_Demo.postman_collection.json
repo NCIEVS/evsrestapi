@@ -1,0 +1,1308 @@
+{
+	"info": {
+		"_postman_id": "89b11194-7e1d-421c-8f44-0cb286abcf1e",
+		"name": "EVSRESTAPI_Postman_medrt_Demo",
+		"description": "Collection of postman calls for demonstrating functionality of the EVSRESTAPI with MED-RT terminology\n\nPrerequisites:  \n1\\. Node.js and npm package manager. Installers can be found here: [https://nodejs.org/en/download/package-manager](https://nodejs.org/en/download/package-manager)\n\n2\\. newman node.js package. Can be installed after node.js and npm are installed with the following command:\n\n``` bash\nnewman run my-collection.json\n\n ```\n\nTo run: Navigate to the src/main/bin folder, in which this collection resides, and run the following command in a CLI:\n\n``` bash\nnewman run EVSRESTAPI_Postman_medrt_Demo.postman_collection.json\n\n ```\n\nAlternatively, run the postman.sh script with a terminology parameter (such as 'medrt') and the script will automatically find the corresponding terminology postman collection in the src/main/bin folder.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30894083"
+	},
+	"item": [
+		{
+			"name": "Get concept by code (minimum information)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Body is valid JSON\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.be.an(\"object\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"N0000000001\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt/N0000000001?include=minimal",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt",
+						"N0000000001"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "minimal"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get concepts by list of codes (minimum information)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Concept array is present and contains 2 elements\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.exist.and.to.be.an('array');\r",
+							"    pm.expect(responseData).to.have.lengthOf(2);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept entries have the correct code field\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    responseData.forEach(function(concept) {\r",
+							"        pm.expect(concept.code).to.satisfy(function(val) {\r",
+							"            return val === \"N0000000001\" || val === \"N0000000021\";\r",
+							"        });\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt?list=N0000000001,N0000000021&include=minimal",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt"
+					],
+					"query": [
+						{
+							"key": "list",
+							"value": "N0000000001,N0000000021"
+						},
+						{
+							"key": "include",
+							"value": "minimal"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Concept Information - N0000000142",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"N0000000142\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has children\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"children\"]).to.exist;\r",
+							"    pm.expect(jsonData[\"children\"]).to.have.length.above(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has all information\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.exist;\r",
+							"    pm.expect(jsonData[\"synonyms\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"properties\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"children\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"parents\"]).to.have.length.above(0);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt/N0000000142?include=full",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt",
+						"N0000000142"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "full"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Concept Information - N0000175428 (roles)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"N0000175428\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has roles\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.exist;\r",
+							"    pm.expect(jsonData[\"roles\"]).to.have.length.above(0);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt/N0000175428?include=roles,inverseRoles",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt",
+						"N0000175428"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "roles,inverseRoles"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Concept Information - N0000000080 (inverseRoles)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"N0000000080\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has inverseRoles\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.exist;\r",
+							"    pm.expect(jsonData[\"inverseRoles\"]).to.have.length.above(0);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt/N0000000080?include=roles,inverseRoles",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt",
+						"N0000000080"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "roles,inverseRoles"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all properties",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"medrt\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Properties array is present and contains expected number of elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/medrt/properties",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"medrt",
+						"properties"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get property by code (or label)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.code).to.exist;\r",
+							"    pm.expect(responseData.name).to.exist;\r",
+							"    pm.expect(responseData.terminology).to.exist;\r",
+							"    pm.expect(responseData.version).to.exist;\r",
+							"    pm.expect(responseData.synonyms).to.exist;\r",
+							"    pm.expect(responseData.properties).to.exist;\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Synonyms array contains correct name and code fields\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"Preferred_Term\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"Preferred_Term\");\r",
+							"  \r",
+							"    pm.expect(responseData.synonyms).to.be.an('array');\r",
+							"    responseData.synonyms.forEach(function(synonym) {\r",
+							"        pm.expect(synonym.type).to.exist;\r",
+							"        pm.expect(synonym.name).to.exist;\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/medrt/property/Preferred_Term?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"medrt",
+						"property",
+						"Preferred_Term"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all roles",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"medrt\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Roles array is present and contains elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/medrt/roles",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"medrt",
+						"roles"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get role by code (or label)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.code).to.exist;\r",
+							"    pm.expect(responseData.name).to.exist;\r",
+							"    pm.expect(responseData.terminology).to.exist;\r",
+							"    pm.expect(responseData.version).to.exist;\r",
+							"    pm.expect(responseData.synonyms).to.exist;\r",
+							"\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"has_MoA\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"has_MoA\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/medrt/role/has_MoA?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"medrt",
+						"role",
+						"has_MoA"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all synonym types",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"medrt\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Synonym Types array is present and contains elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/medrt/synonymTypes?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"medrt",
+						"synonymTypes"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get synonym type by code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.code).to.exist;\r",
+							"    pm.expect(responseData.name).to.exist;\r",
+							"    pm.expect(responseData.terminology).to.exist;\r",
+							"    pm.expect(responseData.version).to.exist;\r",
+							"    pm.expect(responseData.synonyms).to.exist;\r",
+							"\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"Preferred_Term\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"Preferred_Term\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/medrt/synonymType/Preferred_Term?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"medrt",
+						"synonymType",
+						"Preferred_Term"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find root concepts",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('array');\r",
+							"    \r",
+							"\r",
+							"    responseData.forEach(function(item) {\r",
+							"        pm.expect(item.code).to.exist;\r",
+							"        pm.expect(item.name).to.exist;\r",
+							"        pm.expect(item.terminology).to.exist;\r",
+							"        pm.expect(item.version).to.exist;\r",
+							"        pm.expect(item.conceptStatus).to.exist;\r",
+							"        pm.expect(item.leaf).to.exist;\r",
+							"        pm.expect(item.active).to.exist;\r",
+							"\r",
+							"        pm.expect(item.terminology).to.exist.and.to.equal(\"medrt\");\r",
+							"        pm.expect(item.leaf).to.exist.and.to.equal(false);\r",
+							"        pm.expect(item.active).to.exist.and.to.equal(true);\r",
+							"  });\r",
+							"    \r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt/roots",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt",
+						"roots"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get paths to root from a code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response is an array of arrays, and each entry contains at least 2 entries\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    pm.expect(array).to.be.an('array');\r",
+							"    pm.expect(array).to.have.lengthOf.above(1);\r",
+							"    array.forEach((entry) => {\r",
+							"      pm.expect(entry).to.have.property('code');\r",
+							"      pm.expect(entry).to.have.property('name');\r",
+							"      pm.expect(entry).to.have.property('terminology');\r",
+							"      pm.expect(entry).to.have.property('leaf');\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							"pm.test(\"Each array entry has the first entry's code as N0000178295\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  const firstEntryCode = \"N0000178295\";\r",
+							"\r",
+							"  responseData.forEach((array) => {\r",
+							"    pm.expect(array[0].code).to.equal(firstEntryCode);\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry's level field is one higher than the last one, starting at 0 from the first one\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    let prevLevel = -1;\r",
+							"    array.forEach((entry) => {\r",
+							"      pm.expect(entry.level).to.equal(prevLevel + 1);\r",
+							"      prevLevel = entry.level;\r",
+							"    });\r",
+							"  });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt/N0000178295/pathsToRoot",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt",
+						"N0000178295",
+						"pathsToRoot"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get paths from root from a code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Update the test to handle undefined array entries\r",
+							"pm.test(\"Response is an array of arrays, and each entry contains at least 2 entries\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    pm.expect(array).to.be.an('array');\r",
+							"    pm.expect(array).to.have.lengthOf.at.least(2);\r",
+							"    array.forEach((entry) => {\r",
+							"      pm.expect(entry).to.have.property('code');\r",
+							"      pm.expect(entry).to.have.property('name');\r",
+							"      pm.expect(entry).to.have.property('terminology');\r",
+							"      pm.expect(entry).to.have.property('leaf');\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each array entry has the last entry's code as N0000178295\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  const lastEntryCode = \"N0000178295\";\r",
+							"\r",
+							"  responseData.forEach((array) => {\r",
+							"    if (array.length > 0) {\r",
+							"      pm.expect(array[array.length - 1].code).to.equal(lastEntryCode);\r",
+							"    }\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry's level field is one higher than the last one, starting at 0 from the first one\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    let prevLevel = -1;\r",
+							"    array.forEach((entry) => {\r",
+							"      if (prevLevel !== -1) {\r",
+							"        pm.expect(entry.level).to.equal(prevLevel + 1);\r",
+							"      }\r",
+							"      prevLevel = entry.level;\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt/N0000178295/pathsFromRoot",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt",
+						"N0000178295",
+						"pathsFromRoot"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get paths to an ancestor from a code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Update the test to handle undefined array entries\r",
+							"pm.test(\"Response is an array of arrays, and each entry contains at least 2 entries\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    pm.expect(array).to.be.an('array');\r",
+							"    pm.expect(array).to.have.lengthOf.at.least(2);\r",
+							"    array.forEach((entry) => {\r",
+							"      pm.expect(entry).to.have.property('code');\r",
+							"      pm.expect(entry).to.have.property('name');\r",
+							"      pm.expect(entry).to.have.property('terminology');\r",
+							"      pm.expect(entry).to.have.property('leaf');\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each array entry has the first entry's code as N0000178295 and last entry's code as N0000178293\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  const firstEntryCode = \"N0000178295\";\r",
+							"  const lastEntryCode = \"N0000178293\";\r",
+							"\r",
+							"  responseData.forEach((array) => {\r",
+							"    if (array.length > 0) {\r",
+							"        pm.expect(array[0].code).to.equal(firstEntryCode);\r",
+							"        pm.expect(array[array.length - 1].code).to.equal(lastEntryCode);\r",
+							"    }\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry's level field is one higher than the last one, starting at 0 from the first one\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    let prevLevel = -1;\r",
+							"    array.forEach((entry) => {\r",
+							"      if (prevLevel !== -1) {\r",
+							"        pm.expect(entry.level).to.equal(prevLevel + 1);\r",
+							"      }\r",
+							"      prevLevel = entry.level;\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt/N0000178295/pathsToAncestor/N0000178293",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt",
+						"N0000178295",
+						"pathsToAncestor",
+						"N0000178293"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (where term is a code)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Concept results exist\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.above(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"results sorted properly by exact code matches first\", function () {\r",
+							"    var concepts = pm.response.json().concepts;\r",
+							"    var indexBeforeMEDRT = concepts.findIndex(concept => concept.code === 'N0000178295');\r",
+							"    var codesBeforeMEDRT = concepts.slice(0, indexBeforeMEDRT).map(concept => concept.code);\r",
+							"    \r",
+							"    pm.expect(codesBeforeMEDRT).to.not.include.any.members(['N0000178295']);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt/search?terminology=medrt&term=N0000178295",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "medrt"
+						},
+						{
+							"key": "term",
+							"value": "N0000178295"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=match)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.above(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name 'Therapeutic Categories' and terminology 'medrt'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name).to.equal('Therapeutic Categories');\r",
+							"        pm.expect(concept.terminology).to.equal('medrt');\r",
+							"    });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt/search?terminology=medrt&term=Therapeutic Categories&type=match&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "medrt"
+						},
+						{
+							"key": "term",
+							"value": "Therapeutic Categories"
+						},
+						{
+							"key": "type",
+							"value": "match"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=startsWith)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist, at most 5 total by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.at.most(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that starts with 'Therapeutic' and terminology 'medrt'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name).to.satisfy(name => name.toLowerCase().startsWith('therapeutic'));\r",
+							"        pm.expect(concept.terminology).to.equal('medrt');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt/search?terminology=medrt&term=Therapeutic&type=startsWith&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "medrt"
+						},
+						{
+							"key": "term",
+							"value": "Therapeutic"
+						},
+						{
+							"key": "type",
+							"value": "startsWith"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=phrase)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist, at most 5 total by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.at.most(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that contains 'Cells, Cultured' and terminology 'medrt'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('cells, cultured');\r",
+							"        pm.expect(concept.terminology).to.equal('medrt');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt/search?terminology=medrt&term=Cells, Cultured&type=phrase&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "medrt"
+						},
+						{
+							"key": "term",
+							"value": "Cells, Cultured"
+						},
+						{
+							"key": "type",
+							"value": "phrase"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=fuzzy)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist, 5 total by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that contains 'cells' (fuzzy search from calls) and terminology 'medrt'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('cells');\r",
+							"        pm.expect(concept.terminology).to.equal('medrt');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt/search?terminology=medrt&term=calls&type=fuzzy&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "medrt"
+						},
+						{
+							"key": "term",
+							"value": "calls"
+						},
+						{
+							"key": "type",
+							"value": "fuzzy"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=AND)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist, 5 at most by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.at.most(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that contains 'cell' + 'autologous' and terminology 'medrt'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include('cell').and.to.include('autologous');\r",
+							"        pm.expect(concept.terminology).to.equal('medrt');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt/search?terminology=medrt&term=Cell Autologous&type=AND&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "medrt"
+						},
+						{
+							"key": "term",
+							"value": "Cell Autologous"
+						},
+						{
+							"key": "type",
+							"value": "AND"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=OR)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist, 10 total by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.at.most(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that contains 'fish' or 'meat' and terminology 'medrt'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name.toLowerCase()).to.include.oneOf(['fish', 'meat']);\r",
+							"        pm.expect(concept.terminology).to.equal('medrt');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/medrt/search?terminology=medrt&term=fish meat&type=OR&pageSize=10",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"medrt",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "medrt"
+						},
+						{
+							"key": "term",
+							"value": "fish meat"
+						},
+						{
+							"key": "type",
+							"value": "OR"
+						},
+						{
+							"key": "pageSize",
+							"value": "10"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"pm.test(\"Status code is 200\", function () {\r",
+					"    pm.response.to.have.status(200);\r",
+					"});\r",
+					"pm.test(\"Response is not empty\", function () {\r",
+					"    pm.response.to.have.body();\r",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "API_URL",
+			"value": "https://api-evsrest.nci.nih.gov/api/v1",
+			"type": "string"
+		}
+	]
+}

@@ -1,0 +1,918 @@
+{
+	"info": {
+		"_postman_id": "85e817e3-dade-4fa7-9916-9185667260c2",
+		"name": "EVSRESTAPI_Postman_hgnc_Demo",
+		"description": "Collection of postman calls for demonstrating functionality of the EVSRESTAPI with HGNC terminology\n\nPrerequisites:  \n1\\. Node.js and npm package manager. Installers can be found here: [https://nodejs.org/en/download/package-manager](https://nodejs.org/en/download/package-manager)\n\n2\\. newman node.js package. Can be installed after node.js and npm are installed with the following command:\n\n``` bash\nnewman run my-collection.json\n\n ```\n\nTo run: Navigate to the src/main/bin folder, in which this collection resides, and run the following command in a CLI:\n\n``` bash\nnewman run EVSRESTAPI_Postman_hgnc_Demo.postman_collection.json\n\n ```\n\nAlternatively, run the postman.sh script with a terminology parameter (such as 'hgnc') and the script will automatically find the corresponding terminology postman collection in the src/main/bin folder.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "30894083"
+	},
+	"item": [
+		{
+			"name": "Get concept by code (minimum information)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Body is valid JSON\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.be.an(\"object\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"HGNC:10004\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/hgnc/HGNC:10004?include=minimal",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"hgnc",
+						"HGNC:10004"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "minimal"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get concepts by list of codes (minimum information)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Concept array is present and contains 2 elements\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.exist.and.to.be.an('array');\r",
+							"    pm.expect(responseData).to.have.lengthOf(2);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept entries have the correct code field\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    responseData.forEach(function(concept) {\r",
+							"        pm.expect(concept.code).to.satisfy(function(val) {\r",
+							"            return val === \"HGNC:10004\" || val === \"HGNC:10006\";\r",
+							"        });\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/hgnc?list=HGNC:10004,HGNC:10006&include=minimal",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"hgnc"
+					],
+					"query": [
+						{
+							"key": "list",
+							"value": "HGNC:10004,HGNC:10006"
+						},
+						{
+							"key": "include",
+							"value": "minimal"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Concept Information - RNA_cluster",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"RNA_cluster\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has children\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"children\"]).to.exist;\r",
+							"    pm.expect(jsonData[\"children\"]).to.have.length.above(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has all information\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.exist;\r",
+							"    pm.expect(jsonData[\"synonyms\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"properties\"]).to.have.length.above(0);\r",
+							"    pm.expect(jsonData[\"children\"]).to.have.length.above(0);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/hgnc/RNA_cluster?include=full",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"hgnc",
+						"RNA_cluster"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "full"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Check Concept Information - HGNC:37505 (parents)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Correct code\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData[\"code\"]).to.equal(\"HGNC:37505\");\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Concept has parent\", function () {\r",
+							"    var jsonData = pm.response.json();\r",
+							"    pm.expect(jsonData).to.exist;\r",
+							"    pm.expect(jsonData[\"parents\"]).to.have.length.above(0);\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/hgnc/HGNC:37505?include=parents",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"hgnc",
+						"HGNC:37505"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "parents"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all properties",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"hgnc\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Properties array is present and contains expected number of elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/hgnc/properties",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"hgnc",
+						"properties"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get property by code (or label)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.code).to.exist;\r",
+							"    pm.expect(responseData.name).to.exist;\r",
+							"    pm.expect(responseData.terminology).to.exist;\r",
+							"    pm.expect(responseData.version).to.exist;\r",
+							"    pm.expect(responseData.synonyms).to.exist;\r",
+							"    pm.expect(responseData.properties).to.exist;\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Synonyms array contains correct name and code fields\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"alias_name\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"alias_name\");\r",
+							"  \r",
+							"    pm.expect(responseData.synonyms).to.be.an('array');\r",
+							"    responseData.synonyms.forEach(function(synonym) {\r",
+							"        pm.expect(synonym.type).to.exist;\r",
+							"        pm.expect(synonym.name).to.exist;\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/hgnc/property/alias_name?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"hgnc",
+						"property",
+						"alias_name"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get all synonym types",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Validate the schema for the response\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array').that.is.not.empty;\r",
+							"\r",
+							"  responseData.forEach(function(item) {\r",
+							"      pm.expect(item).to.have.property('code').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('name').that.is.a('string');\r",
+							"      pm.expect(item).to.have.property('terminology').that.is.a('string');\r",
+							"      pm.expect(item.terminology).to.equal(\"hgnc\"); // Fixed the syntax for equality check\r",
+							"      pm.expect(item).to.have.property('version').that.is.a('string');\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Synonym Types array is present and contains elements\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  pm.expect(responseData).to.have.lengthOf.at.least(1, \"Array should not be empty\");\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/hgnc/synonymTypes?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"hgnc",
+						"synonymTypes"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get synonym type by code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('object');\r",
+							"    pm.expect(responseData.code).to.exist;\r",
+							"    pm.expect(responseData.name).to.exist;\r",
+							"    pm.expect(responseData.terminology).to.exist;\r",
+							"    pm.expect(responseData.version).to.exist;\r",
+							"    pm.expect(responseData.synonyms).to.exist;\r",
+							"\r",
+							"    pm.expect(responseData.code).to.exist.and.to.equal(\"alias_name\");\r",
+							"    pm.expect(responseData.name).to.exist.and.to.equal(\"alias_name\");\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/metadata/hgnc/synonymType/alias_name?include=summary",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"metadata",
+						"hgnc",
+						"synonymType",
+						"alias_name"
+					],
+					"query": [
+						{
+							"key": "include",
+							"value": "summary"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find root concepts",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response status code is 200\", function () {\r",
+							"    pm.response.to.have.status(200);\r",
+							"});\r",
+							"\r",
+							"\r",
+							"pm.test(\"Response has the required fields\", function () {\r",
+							"    const responseData = pm.response.json();\r",
+							"    \r",
+							"    pm.expect(responseData).to.be.an('array');\r",
+							"    \r",
+							"\r",
+							"    responseData.forEach(function(item) {\r",
+							"        pm.expect(item.code).to.exist;\r",
+							"        pm.expect(item.name).to.exist;\r",
+							"        pm.expect(item.terminology).to.exist;\r",
+							"        pm.expect(item.version).to.exist;\r",
+							"        pm.expect(item.conceptStatus).to.exist;\r",
+							"        pm.expect(item.leaf).to.exist;\r",
+							"        pm.expect(item.active).to.exist;\r",
+							"\r",
+							"        pm.expect(item.terminology).to.exist.and.to.equal(\"go\");\r",
+							"        pm.expect(item.leaf).to.exist.and.to.equal(false);\r",
+							"        pm.expect(item.active).to.exist.and.to.equal(true);\r",
+							"  });\r",
+							"    \r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/go/roots",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"go",
+						"roots"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get paths to root from a code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Response is an array of arrays, and each entry contains at least 2 entries\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    pm.expect(array).to.be.an('array');\r",
+							"    pm.expect(array).to.have.lengthOf.above(1);\r",
+							"    array.forEach((entry) => {\r",
+							"      pm.expect(entry).to.have.property('code');\r",
+							"      pm.expect(entry).to.have.property('name');\r",
+							"      pm.expect(entry).to.have.property('terminology');\r",
+							"      pm.expect(entry).to.have.property('leaf');\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							"pm.test(\"Each array entry has the first entry's code as HGNC:10242\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  const firstEntryCode = \"HGNC:10242\";\r",
+							"\r",
+							"  responseData.forEach((array) => {\r",
+							"    pm.expect(array[0].code).to.equal(firstEntryCode);\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry's level field is one higher than the last one, starting at 0 from the first one\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    let prevLevel = -1;\r",
+							"    array.forEach((entry) => {\r",
+							"      pm.expect(entry.level).to.equal(prevLevel + 1);\r",
+							"      prevLevel = entry.level;\r",
+							"    });\r",
+							"  });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/hgnc/HGNC:10242/pathsToRoot",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"hgnc",
+						"HGNC:10242",
+						"pathsToRoot"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get paths from root from a code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Update the test to handle undefined array entries\r",
+							"pm.test(\"Response is an array of arrays, and each entry contains at least 2 entries\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    pm.expect(array).to.be.an('array');\r",
+							"    pm.expect(array).to.have.lengthOf.at.least(2);\r",
+							"    array.forEach((entry) => {\r",
+							"      pm.expect(entry).to.have.property('code');\r",
+							"      pm.expect(entry).to.have.property('name');\r",
+							"      pm.expect(entry).to.have.property('terminology');\r",
+							"      pm.expect(entry).to.have.property('leaf');\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each array entry has the last entry's code as HGNC:10242\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  const lastEntryCode = \"HGNC:10242\";\r",
+							"\r",
+							"  responseData.forEach((array) => {\r",
+							"    if (array.length > 0) {\r",
+							"      pm.expect(array[array.length - 1].code).to.equal(lastEntryCode);\r",
+							"    }\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry's level field is one higher than the last one, starting at 0 from the first one\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    let prevLevel = -1;\r",
+							"    array.forEach((entry) => {\r",
+							"      if (prevLevel !== -1) {\r",
+							"        pm.expect(entry.level).to.equal(prevLevel + 1);\r",
+							"      }\r",
+							"      prevLevel = entry.level;\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/hgnc/HGNC:10242/pathsFromRoot",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"hgnc",
+						"HGNC:10242",
+						"pathsFromRoot"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Get paths to an ancestor from a code",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"// Update the test to handle undefined array entries\r",
+							"pm.test(\"Response is an array of arrays, and each entry contains at least 2 entries\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  pm.expect(responseData).to.be.an('array');\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    pm.expect(array).to.be.an('array');\r",
+							"    pm.expect(array).to.have.lengthOf.at.least(2);\r",
+							"    array.forEach((entry) => {\r",
+							"      pm.expect(entry).to.have.property('code');\r",
+							"      pm.expect(entry).to.have.property('name');\r",
+							"      pm.expect(entry).to.have.property('terminology');\r",
+							"      pm.expect(entry).to.have.property('leaf');\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each array entry has the first entry's code as HGNC:10242 and last entry's code as RNA_Y\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  const firstEntryCode = \"HGNC:10242\";\r",
+							"  const lastEntryCode = \"RNA_Y\";\r",
+							"\r",
+							"  responseData.forEach((array) => {\r",
+							"    if (array.length > 0) {\r",
+							"        pm.expect(array[0].code).to.equal(firstEntryCode);\r",
+							"        pm.expect(array[array.length - 1].code).to.equal(lastEntryCode);\r",
+							"    }\r",
+							"  });\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each entry's level field is one higher than the last one, starting at 0 from the first one\", function () {\r",
+							"  const responseData = pm.response.json();\r",
+							"  \r",
+							"  responseData.forEach((array) => {\r",
+							"    let prevLevel = -1;\r",
+							"    array.forEach((entry) => {\r",
+							"      if (prevLevel !== -1) {\r",
+							"        pm.expect(entry.level).to.equal(prevLevel + 1);\r",
+							"      }\r",
+							"      prevLevel = entry.level;\r",
+							"    });\r",
+							"  });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/hgnc/HGNC:10242/pathsToAncestor/RNA_Y",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"hgnc",
+						"HGNC:10242",
+						"pathsToAncestor",
+						"RNA_Y"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (where term is a code)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Concept results exist\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.above(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"results sorted properly by exact code matches first\", function () {\r",
+							"    var concepts = pm.response.json().concepts;\r",
+							"    var indexBeforeGO = concepts.findIndex(concept => concept.code === 'HGNC:10242');\r",
+							"    var codesBeforeGO = concepts.slice(0, indexBeforeGO).map(concept => concept.code);\r",
+							"    \r",
+							"    pm.expect(codesBeforeGO).to.not.include.any.members(['HGNC:10242']);\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/hgnc/search?terminology=go&term=HGNC:10242",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"hgnc",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "go"
+						},
+						{
+							"key": "term",
+							"value": "HGNC:10242"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=match)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf.above(0);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name 'RNY1' and terminology 'hgnc'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name).to.equal('RNY1');\r",
+							"        pm.expect(concept.terminology).to.equal('hgnc');\r",
+							"    });\r",
+							"});"
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/hgnc/search?terminology=go&term=RNY1&type=match&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"hgnc",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "go"
+						},
+						{
+							"key": "term",
+							"value": "RNY1"
+						},
+						{
+							"key": "type",
+							"value": "match"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Find concepts by search term (using type=startsWith)",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							"pm.test(\"Valid results exist, 5 total by pagesize\", function () {\r",
+							"    pm.expect(pm.response.json().concepts).to.be.an('array').and.to.have.lengthOf(5);\r",
+							"});\r",
+							"\r",
+							"pm.test(\"Each concept has name that starts with 'RNY' and terminology 'hgnc'\", function () {\r",
+							"    pm.response.json().concepts.forEach(function(concept) {\r",
+							"        pm.expect(concept.name).to.satisfy(name => name.toLowerCase().startsWith('rny'));\r",
+							"        pm.expect(concept.terminology).to.equal('hgnc');\r",
+							"    });\r",
+							"});\r",
+							""
+						],
+						"type": "text/javascript",
+						"packages": {}
+					}
+				}
+			],
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{API_URL}}/concept/hgnc/search?terminology=go&term=RNY&type=startsWith&pageSize=5",
+					"host": [
+						"{{API_URL}}"
+					],
+					"path": [
+						"concept",
+						"hgnc",
+						"search"
+					],
+					"query": [
+						{
+							"key": "terminology",
+							"value": "go"
+						},
+						{
+							"key": "term",
+							"value": "RNY"
+						},
+						{
+							"key": "type",
+							"value": "startsWith"
+						},
+						{
+							"key": "pageSize",
+							"value": "5"
+						}
+					]
+				}
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"pm.test(\"Status code is 200\", function () {\r",
+					"    pm.response.to.have.status(200);\r",
+					"});\r",
+					"pm.test(\"Response is not empty\", function () {\r",
+					"    pm.response.to.have.body();\r",
+					"});"
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "API_URL",
+			"value": "https://api-evsrest.nci.nih.gov/api/v1",
+			"type": "string"
+		}
+	]
+}

@@ -1,4 +1,4 @@
-#!/bin/sh -f
+#!/bin/bash -f
 
 config=1
 download=0
@@ -69,17 +69,17 @@ if [[ $config -eq 1 ]]; then
         echo "ERROR: $CONFIG_ENV_FILE does not exist or has a problem"
         exit 1
     fi
-elif [[ -z $STARDOG_HOST ]]; then
-    echo "ERROR: STARDOG_HOST is not set"
+elif [[ -z $GRAPH_DB_HOST ]]; then
+    echo "ERROR: GRAPH_DB_HOST is not set"
     exit 1
-elif [[ -z $STARDOG_PORT ]]; then
-    echo "ERROR: STARDOG_PORT is not set"
+elif [[ -z $GRAPH_DB_PORT ]]; then
+    echo "ERROR: GRAPH_DB_PORT is not set"
     exit 1
-elif [[ -z $STARDOG_USERNAME ]]; then
-    echo "ERROR: STARDOG_USERNAME is not set"
+elif [[ -z $GRAPH_DB_USERNAME ]]; then
+    echo "ERROR: GRAPH_DB_USERNAME is not set"
     exit 1
-elif [[ -z $STARDOG_PASSWORD ]]; then
-    echo "ERROR: STARDOG_PASSWORD is not set"
+elif [[ -z $GRAPH_DB_PASSWORD ]]; then
+    echo "ERROR: GRAPH_DB_PASSWORD is not set"
     exit 1
 elif [[ -z $ES_SCHEME ]]; then
     echo "ERROR: ES_SCHEME is not set"
@@ -178,8 +178,8 @@ if [[ $skip -eq 0 ]]; then
     echo "  Generate indexes"
     # need to override this setting to make sure it's not too big
     export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=1000
-    echo "java $local -Xmx4800M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
-    java $local -XX:+ExitOnOutOfMemoryError -Xmx4800M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
+    echo "java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4800M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
+    java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4800M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected error building indexes"
         exit 1

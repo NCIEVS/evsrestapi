@@ -1,9 +1,9 @@
 #!/bin/bash -f
 #
-# This script generates a load report for a specified stardog graph
-# into stardog.  The --noconfig flag is for running in the dev environment
+# This script generates a load report for a specified graph.
+# The --noconfig flag is for running in the dev environment
 # where the setenv.sh file does not exist.  The --list flag is used to
-# list terminology/version combinations in stardog
+# list terminology/version combinations in graph db
 #
 config=1
 help=0
@@ -64,27 +64,26 @@ if [[ $config -eq 1 ]]; then
         echo "       consider using --noconfig (if working in dev environment)"
         exit 1
     fi
-elif [[ -z $STARDOG_HOST ]]; then
-    echo "ERROR: STARDOG_HOST is not set"
+elif [[ -z $GRAPH_DB_HOST ]]; then
+    echo "ERROR: GRAPH_DB_HOST is not set"
     exit 1
-elif [[ -z $STARDOG_PORT ]]; then
-    echo "ERROR: STARDOG_PORT is not set"
+elif [[ -z $GRAPH_DB_PORT ]]; then
+    echo "ERROR: GRAPH_DB_PORT is not set"
     exit 1
-elif [[ -z $STARDOG_USERNAME ]]; then
-    echo "ERROR: STARDOG_USERNAME is not set"
+elif [[ -z $GRAPH_DB_USERNAME ]]; then
+    echo "ERROR: GRAPH_DB_USERNAME is not set"
     exit 1
-elif [[ -z $STARDOG_PASSWORD ]]; then
-    echo "ERROR: STARDOG_PASSWORD is not set"
+elif [[ -z $GRAPH_DB_PASSWORD ]]; then
+    echo "ERROR: GRAPH_DB_PASSWORD is not set"
     exit 1
 fi
 
-echo "    stardog = http://${STARDOG_HOST}:${STARDOG_PORT}"
+echo "    GRAPH_DB_URL = http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}"
 echo ""
 
-curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
-    "http://${STARDOG_HOST}:${STARDOG_PORT}/admin/databases" |\
-    $jq | perl -ne 's/\r//; $x=0 if /\]/; if ($x) { s/.* "//; s/",?$//; print "$_"; }; 
-                    $x=1 if/\[/;' > /tmp/db.$$.txt
+curl -s -g -u "${GRAPH_DB_USERNAME}:$GRAPH_DB_PASSWORD" \
+    "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/\$/datasets" |\
+    $jq | grep 'ds.name' | perl -pe 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
 if [[ $? -ne 0 ]]; then
     echo "ERROR: unexpected problem listing databases"
     exit 1
@@ -93,13 +92,13 @@ fi
 echo "  databases = " `cat /tmp/db.$$.txt`
 ct=`cat /tmp/db.$$.txt | wc -l`
 if [[ $ct -eq 0 ]]; then
-    echo "ERROR: no stardog databases, this is unexpected"
+    echo "ERROR: no graph databases, this is unexpected"
     exit 1
 fi
 
 
 # Prep query to read all version info
-echo "  Lookup terminology, version info for graphs in stardog"
+echo "  Lookup terminology, version info for graphs"
 cat > /tmp/x.$$.txt << EOF
 query=PREFIX owl:<http://www.w3.org/2002/07/owl#> 
 PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#> 
@@ -128,8 +127,8 @@ query=`cat /tmp/x.$$.txt`
 /bin/rm -f /tmp/y.$$.txt
 touch /tmp/y.$$.txt
 for d in `cat /tmp/db.$$.txt`; do
-    curl -s -g -u "${STARDOG_USERNAME}:$STARDOG_PASSWORD" \
-        http://${STARDOG_HOST}:${STARDOG_PORT}/$d/query \
+    curl -s -g -u "${GRAPH_DB_USERNAME}:$GRAPH_DB_PASSWORD" \
+        http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$d/query \
         --data-urlencode "$query" -H "Accept: application/sparql-results+json" |\
         $jq | perl -ne '
             chop; $x="version" if /"version"/; 
@@ -141,7 +140,7 @@ for d in `cat /tmp/db.$$.txt`; do
                 print "$version|'$d'|$source\n" if $x eq "version"; 
             } ' >> /tmp/y.$$.txt
     if [[ $? -ne 0 ]]; then
-        echo "ERROR: unexpected problem obtaining $d versions from stardog"
+        echo "ERROR: unexpected problem obtaining $d versions from graph db"
         exit 1
     fi    
 done
@@ -165,7 +164,7 @@ get_terminology(){
 
 if [ $list -eq 1 ]; then
 
-    echo "  List stardog graphs"
+    echo "  List graphs"
     for x in `cat /tmp/y.$$.txt`; do
         version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
         cv=`echo $version | perl -pe 's/\.//;'`
@@ -204,10 +203,10 @@ else
 
     # Generate report
     echo "  Generate report for $db $terminology $version...`/bin/date`"
-    export STARDOG_DB=$db
+    export GRAPH_DB=$db
     export EVS_SERVER_PORT="8083"
-    echo "java $local -Xmx4096M -jar $jar --terminology ${terminology}_$version --report" | sed 's/^/      /'
-    java $local -Xmx4096M -jar $jar --terminology ${terminology}_$version --report
+    echo "java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -jar $jar --terminology ${terminology}_$version --report" | sed 's/^/      /'
+    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -jar $jar --terminology ${terminology}_$version --report
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected error building indexes"
         exit 1

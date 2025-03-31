@@ -4,7 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.annotation.PostConstruct;
@@ -30,8 +30,8 @@ public class QueryBuilderServiceImplTest {
   /** The service. */
   @Autowired QueryBuilderService service;
 
-  /** The stardog properties. */
-  @Autowired StardogProperties stardogProperties;
+  /** The graph properties. */
+  @Autowired GraphProperties graphProperties;
 
   /** The term utils. */
   @Autowired TerminologyUtils termUtils;
@@ -51,10 +51,10 @@ public class QueryBuilderServiceImplTest {
   public void postInit() throws Exception {
     restUtils =
         new RESTUtils(
-            stardogProperties.getUsername(),
-            stardogProperties.getPassword(),
-            stardogProperties.getReadTimeout(),
-            stardogProperties.getConnectTimeout());
+            graphProperties.getUsername(),
+            graphProperties.getPassword(),
+            graphProperties.getReadTimeout(),
+            graphProperties.getConnectTimeout());
   }
 
   /**
@@ -109,7 +109,7 @@ public class QueryBuilderServiceImplTest {
       assertTrue(query2.toLowerCase().contains("graph"));
 
       // Test that this query runs
-      restUtils.runSPARQL(query2, stardogProperties.getQueryUrl(), 30000);
+      restUtils.runSPARQL(query2, graphProperties.getQueryUrl(), 30000);
     }
   }
 
@@ -145,7 +145,7 @@ public class QueryBuilderServiceImplTest {
 
       // Test that this query runs
       try {
-        restUtils.runSPARQL(query2, stardogProperties.getQueryUrl(), 30000);
+        restUtils.runSPARQL(query2, graphProperties.getQueryUrl(), 30000);
         fail("Unexpected success");
       } catch (Exception e) {
         // n/a

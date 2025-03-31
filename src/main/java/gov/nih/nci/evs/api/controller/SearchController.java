@@ -12,7 +12,7 @@ import gov.nih.nci.evs.api.model.SearchCriteriaWithoutTerminology;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
-import gov.nih.nci.evs.api.properties.StardogProperties;
+import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
@@ -49,6 +49,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -66,8 +67,8 @@ public class SearchController extends BaseController {
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(SearchController.class);
 
-  /** The stardog properties. */
-  @Autowired StardogProperties stardogProperties;
+  /** The graph db properties. */
+  @Autowired GraphProperties graphProperties;
 
   /** The elastic search service. */
   @Autowired ElasticSearchService elasticSearchService;
@@ -104,10 +105,10 @@ public class SearchController extends BaseController {
 
     restUtils =
         new RESTUtils(
-            stardogProperties.getUsername(),
-            stardogProperties.getPassword(),
-            stardogProperties.getReadTimeout(),
-            stardogProperties.getConnectTimeout());
+            graphProperties.getUsername(),
+            graphProperties.getPassword(),
+            graphProperties.getReadTimeout(),
+            graphProperties.getConnectTimeout());
   }
 
   /**
@@ -627,7 +628,7 @@ public class SearchController extends BaseController {
     } catch (ResponseStatusException rse) {
       throw rse;
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, null);
       return null;
     }
   }
@@ -863,8 +864,7 @@ public class SearchController extends BaseController {
     // String.class)
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.POST,
+  @PostMapping(
       value = "/concept/{terminology}/search",
       consumes = "text/plain",
       produces = "application/json")
@@ -901,7 +901,7 @@ public class SearchController extends BaseController {
       //      sparqlQuery += " LIMIT 1000";
 
       // validate query
-      res = restUtils.runSPARQL(sparqlQuery, stardogProperties.getQueryUrl(), sparqlTimeout);
+      res = restUtils.runSPARQL(sparqlQuery, graphProperties.getQueryUrl(), sparqlTimeout);
 
     } catch (final QueryException e) {
       final String errorMessage = extractErrorMessage(e.getMessage());
@@ -967,7 +967,7 @@ public class SearchController extends BaseController {
       return list;
 
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1098,7 +1098,7 @@ public class SearchController extends BaseController {
       //      sparqlQuery += " LIMIT 1000";
 
       // validate query
-      res = restUtils.runSPARQL(sparqlQuery, stardogProperties.getQueryUrl(), sparqlTimeout);
+      res = restUtils.runSPARQL(sparqlQuery, graphProperties.getQueryUrl(), sparqlTimeout);
       mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
       JsonNode bindings = mapper.readTree(res).findValue("bindings");
       int total = bindings.size();
@@ -1122,7 +1122,7 @@ public class SearchController extends BaseController {
           "SPARQL query failed validation. Please review your query for syntax mistakes.\n"
               + errorMessage);
     } catch (final ResponseStatusException re) {
-      handleException(re);
+      handleException(re, terminology);
       return null;
     } catch (final Exception e) {
       String errorMessage = extractErrorMessage(e.getMessage());
@@ -1185,7 +1185,7 @@ public class SearchController extends BaseController {
           new ObjectMapper().writeValueAsString(prefixes), new HttpHeaders(), HttpStatus.OK);
 
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }

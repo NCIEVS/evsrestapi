@@ -64,6 +64,18 @@ public class MdrControllerTests {
     // baseUrlMetadata = "/api/v1/metadata";
   }
 
+  @Test
+  /**
+   * test get trailing slash 404
+   *
+   * @throws Exception
+   */
+  public void testGetTrailingSlashMdr() throws Exception {
+    String url = baseUrl + "/mdr/10009802/";
+    log.info("Testing url - " + url);
+    mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+  }
+
   /**
    * MRCONSO basic tests.
    *

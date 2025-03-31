@@ -56,7 +56,7 @@ ext {
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
-version = "2.0.0.RELEASE"
+version = "2.1.0.RELEASE"
 
 sourceCompatibility = 17
 targetCompatibility = 17
@@ -89,7 +89,7 @@ dependencies {
   implementation "org.springframework:spring-aop"
 
   // For vulnerabilities
-  implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.34"
+  implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.35"
 
   //implementation "org.springframework.data:spring-data-elasticsearch:4.2.12"
   implementation "org.opensearch.client:spring-data-opensearch-starter:1.5.3"
@@ -110,10 +110,14 @@ dependencies {
   //  }
   // }
 
-  //implementation "commons-io:commons-io:2.14.0"
-  //implementation "commons-cli:commons-cli:1.4"
-  implementation "cglib:cglib:3.3.0"
-  implementation "com.google.protobuf:protobuf-java:3.25.5"
+  // Apache POI for reading .xls and .xlsx files
+  implementation 'org.apache.poi:poi:5.2.3'
+  implementation 'org.apache.poi:poi-ooxml:5.2.3'
+
+  //implementation 'commons-io:commons-io:2.14.0'
+  //implementation 'commons-cli:commons-cli:1.4'
+  implementation 'cglib:cglib:3.3.0'
+  implementation 'com.google.protobuf:protobuf-java:3.25.5'
 
   // fhir dependencies
   implementation "ca.uhn.hapi.fhir:hapi-fhir-base:7.4.5";
@@ -121,6 +125,7 @@ dependencies {
   implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r5:7.4.5"
   implementation "ca.uhn.hapi.fhir:hapi-fhir-server:7.4.5"
   implementation("ca.uhn.hapi.fhir:hapi-fhir-jpaserver-base:7.4.5") {
+    exclude group: "net.minidev", module: "json-smart"
     exclude group: "ca.uhn.hapi.fhir", module: "hapi-fhir-sql-migrate"
     exclude group: "org.elasticsearch.client", module: "elasticsearch-rest-high-level-client"
     exclude group: "org.elasticsearch.client", module: "elasticsearch-rest-client"
@@ -155,7 +160,9 @@ dependencies {
   /*
    * Test Dependencies
   */
-  testImplementation "org.springframework.boot:spring-boot-starter-test"
+  testImplementation("org.springframework.boot:spring-boot-starter-test") {
+    exclude group: "net.minidev", module: "json-smart"
+  }
   testImplementation "org.opensearch.client:spring-data-opensearch-test-autoconfigure:1.5.3"
   testImplementation "org.junit.jupiter:junit-jupiter-params:5.10.5"
   testImplementation "org.junit.jupiter:junit-jupiter-api:5.10.5"

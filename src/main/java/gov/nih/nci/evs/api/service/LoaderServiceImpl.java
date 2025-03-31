@@ -1,9 +1,12 @@
 package gov.nih.nci.evs.api.service;
 
 import gov.nih.nci.evs.api.Application;
+import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
+import jakarta.annotation.PostConstruct;
+import java.util.Date;
 import java.util.Set;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
@@ -40,7 +43,14 @@ public class LoaderServiceImpl {
   @Autowired Environment env;
 
   /** The Elasticsearch operations service instance *. */
-  @Autowired ElasticOperationsService operationsService;
+  @Autowired private ElasticOperationsService operationsService;
+
+  private static ElasticOperationsService staticOperationsService;
+
+  @PostConstruct
+  public void init() {
+    staticOperationsService = this.operationsService;
+  }
 
   /**
    * prepare command line options available.
@@ -143,6 +153,11 @@ public class LoaderServiceImpl {
     ElasticLoadService loadService = null;
 
     try {
+      // create Audit object
+      final Audit termAudit = new Audit();
+      termAudit.setType("reindex");
+      Date startDate = new Date();
+      termAudit.setStartDate(startDate);
       // which indexing object do we need to use
       if (cmd.getOptionValue("t").equals("mapping")) {
         loadService = app.getBean(MappingLoaderServiceImpl.class);
@@ -154,15 +169,16 @@ public class LoaderServiceImpl {
         if (cmd.getOptionValue("t").equals("ncim")) {
           loadService = app.getBean(MetaElasticLoadServiceImpl.class);
         } else if (cmd.getOptionValue("t").startsWith("ncit")) {
-          loadService = app.getBean(StardogElasticLoadServiceImpl.class);
+          loadService = app.getBean(GraphElasticLoadServiceImpl.class);
         } else {
           loadService = app.getBean(MetaSourceElasticLoadServiceImpl.class);
         }
       } else if (cmd.hasOption("xr")) {
-        loadService = app.getBean(StardogReportLoadServiceImpl.class);
+        loadService = app.getBean(GraphReportLoadServiceImpl.class);
       } else {
-        loadService = app.getBean(StardogElasticLoadServiceImpl.class);
+        loadService = app.getBean(GraphElasticLoadServiceImpl.class);
       }
+      termAudit.setProcess(loadService.getClass().getSimpleName());
 
       loadService.initialize();
       final ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
@@ -173,6 +189,8 @@ public class LoaderServiceImpl {
               cmd.getOptionValue("d"),
               cmd.getOptionValue("t"),
               config.isForceDeleteIndex());
+      termAudit.setTerminology(term.getTerminology());
+      termAudit.setVersion(term.getVersion());
       final HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
       int totalConcepts = 0;
       if (!cmd.hasOption("xl")) {
@@ -188,9 +206,26 @@ public class LoaderServiceImpl {
       }
       final Set<String> removed = loadService.cleanStaleIndexes(term);
       loadService.updateLatestFlag(term, removed);
+      termAudit.setCount(totalConcepts);
+      Date endDate = new Date();
+      termAudit.setEndDate(endDate);
+      termAudit.setElapsedTime(endDate.getTime() - startDate.getTime());
+      termAudit.setLogLevel("INFO");
+      logger.info("Audit: {}", termAudit.toString());
+      // only add new audit if something major has actually happened
+      if (termAudit.getElapsedTime() > 10000) {
+        addAudit(termAudit);
+      }
 
     } catch (Exception e) {
       logger.error(e.getMessage(), e);
+      Audit.addAudit(
+          staticOperationsService,
+          e.getClass().getName(),
+          e.getStackTrace()[0].getClassName(),
+          cmd.getOptionValue("t"),
+          e.getMessage(),
+          "ERROR");
       int exitCode =
           SpringApplication.exit(
               app,
@@ -219,9 +254,10 @@ public class LoaderServiceImpl {
     System.exit(exitCode);
   }
 
-  /**
-   * prepare command line options available.
-   *
-   * @return the options
-   */
+  public static void addAudit(final Audit audit) throws Exception {
+    staticOperationsService.deleteQuery(
+        "terminology:" + audit.getTerminology() + " AND version:" + audit.getVersion(),
+        ElasticOperationsService.AUDIT_INDEX);
+    staticOperationsService.index(audit, ElasticOperationsService.AUDIT_INDEX, Audit.class);
+  }
 }

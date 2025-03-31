@@ -225,7 +225,7 @@ public class ConceptController extends BaseController {
 
       return concepts;
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -376,7 +376,7 @@ public class ConceptController extends BaseController {
       }
       return concept.get();
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -450,7 +450,7 @@ public class ConceptController extends BaseController {
 
       return concept.get().getAssociations();
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -637,7 +637,7 @@ public class ConceptController extends BaseController {
 
       return concept.get().getInverseAssociations();
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -776,7 +776,7 @@ public class ConceptController extends BaseController {
 
       return subsets;
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -847,7 +847,7 @@ public class ConceptController extends BaseController {
 
       return concept.get().getRoles();
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -918,7 +918,7 @@ public class ConceptController extends BaseController {
 
       return concept.get().getInverseRoles();
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -992,7 +992,7 @@ public class ConceptController extends BaseController {
 
       return concept.get().getParents();
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1066,7 +1066,7 @@ public class ConceptController extends BaseController {
 
       return concept.get().getChildren();
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1193,7 +1193,7 @@ public class ConceptController extends BaseController {
       return list.subList(fromIndex, toIndex);
 
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1264,7 +1264,7 @@ public class ConceptController extends BaseController {
 
       return concept.get().getMaps();
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1335,7 +1335,7 @@ public class ConceptController extends BaseController {
 
       return concept.get();
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1405,7 +1405,7 @@ public class ConceptController extends BaseController {
 
       return concept.get().getDisjointWith();
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1491,7 +1491,7 @@ public class ConceptController extends BaseController {
 
       return list;
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1611,7 +1611,7 @@ public class ConceptController extends BaseController {
 
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, true);
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1791,7 +1791,7 @@ public class ConceptController extends BaseController {
       return rootNodes;
 
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1897,7 +1897,7 @@ public class ConceptController extends BaseController {
       return nodes;
 
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -2015,7 +2015,7 @@ public class ConceptController extends BaseController {
 
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -2145,7 +2145,7 @@ public class ConceptController extends BaseController {
       return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
 
     } catch (final Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -2265,7 +2265,7 @@ public class ConceptController extends BaseController {
           fromRecord += pageSize;
         }
       } catch (final Exception e) {
-        handleException(e);
+        handleException(e, terminology);
         return null;
       }
     }
@@ -2294,7 +2294,7 @@ public class ConceptController extends BaseController {
   // concept.setExtensions(mainTypeHierarchy.getExtensions(concept));
   // return concept;
   // } catch (Exception e) {
-  // handleException(e);
+  // handleException(e, terminology);
   // return null;
   // }
   // }

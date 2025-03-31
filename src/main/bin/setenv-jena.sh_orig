@@ -1,0 +1,47 @@
+
+export LOGGING_LEVEL_ORG_SPRINGFRAMEWORK="WARN"
+export LOGGING_LEVEL_GOV_NIH_NCI_EVS_API="INFO"
+export LOGGING_LEVEL_SPRING_DATA_ES="INFO"
+
+export EVS_SERVER_PORT="8080"
+export NCI_EVS_API_PATH="/api/v1"
+
+# true or false
+export METRICS_ENABLED=false
+
+export GRAPH_DB_TYPE=jena
+export GRAPH_DB_HOST="EDIT_THIS, e.g. without https://"
+export GRAPH_DB_PORT=5820
+export GRAPH_DB_DB="EDIT_THIS, e.g. NCIT2"
+export GRAPH_DB_USERNAME="REPLACE_WITH_USERNAME"
+export GRAPH_DB_PASSWORD="REPLACE_WITH_PASSWORD"
+export GRAPH_DB_READ_TIMEOUT="60"
+export GRAPH_DB_CONNECT_TIMEOUT="60"
+export GRAPH_DB_URL=http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}
+export GRAPH_DB_USERNAME="admin"
+export GRAPH_DB_PASSWORD="admin"
+
+export NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE=1000
+export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=100
+export ES_HOST="EDIT_THIS, e.g. without https://"
+export ES_PORT="EDIT_THIS, e.g. 443"
+export ES_SCHEME="EDIT_THIS, e.g. https"
+export ES_CLEAN=false
+
+#
+# Form/Mail settings
+#
+export RECAPTCHA_KEY=...
+export RECAPTCHA_SECRET=...
+export MAIL_HOST=mailfwd.nih.gov
+export MAIL_USER="REPLACE_WITH_USERNAME"
+export MAIL_PASSWORD="REPLACE_WITH_PASSWORD"
+export MAIL_AUTH=true
+export MAIL_TLS=true
+
+export DATA_DIR=/evs/data/ncim
+
+# Obtaining data/config from evsrestapi-operations
+# Replace "main" with "develop" for dev/qa servers
+export CONFIG_BASE_URI=https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata
+

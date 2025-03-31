@@ -179,7 +179,7 @@ public class MetadataController extends BaseController {
 
       return terms;
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, null);
       return null;
     }
   }
@@ -260,7 +260,7 @@ public class MetadataController extends BaseController {
     try {
       return metadataService.getAssociations(terminology, include, list);
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -350,7 +350,7 @@ public class MetadataController extends BaseController {
 
       return concept.get();
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -420,7 +420,7 @@ public class MetadataController extends BaseController {
     try {
       return metadataService.getRoles(terminology, include, list);
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -504,7 +504,7 @@ public class MetadataController extends BaseController {
 
       return concept.get();
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -585,7 +585,7 @@ public class MetadataController extends BaseController {
     try {
       return metadataService.getProperties(terminology, include, list);
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -661,7 +661,7 @@ public class MetadataController extends BaseController {
     try {
       return metadataService.getQualifiers(terminology, include, list);
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -749,7 +749,7 @@ public class MetadataController extends BaseController {
 
       return concept.get();
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -795,7 +795,7 @@ public class MetadataController extends BaseController {
     try {
       return metadataService.getTermTypes(terminology);
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -841,7 +841,7 @@ public class MetadataController extends BaseController {
     try {
       return metadataService.getWelcomeText(terminology);
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -929,7 +929,7 @@ public class MetadataController extends BaseController {
 
       return concept.get();
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -978,7 +978,7 @@ public class MetadataController extends BaseController {
 
       return result.get();
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1024,7 +1024,7 @@ public class MetadataController extends BaseController {
     try {
       return metadataService.getDefinitionSources(terminology);
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1070,7 +1070,7 @@ public class MetadataController extends BaseController {
     try {
       return metadataService.getSynonymSources(terminology);
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1136,7 +1136,7 @@ public class MetadataController extends BaseController {
 
       return result.get();
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1218,7 +1218,7 @@ public class MetadataController extends BaseController {
     try {
       return metadataService.getSynonymTypes(terminology, include, list);
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1308,7 +1308,7 @@ public class MetadataController extends BaseController {
 
       return concept.get();
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1390,7 +1390,7 @@ public class MetadataController extends BaseController {
     try {
       return metadataService.getDefinitionTypes(terminology, include, list);
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1480,7 +1480,7 @@ public class MetadataController extends BaseController {
 
       return concept.get();
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1559,7 +1559,7 @@ public class MetadataController extends BaseController {
     try {
       return metadataService.getSubsets(terminology, include, list);
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1643,7 +1643,7 @@ public class MetadataController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset " + code + " not found");
       return concept.get();
     } catch (Exception e) {
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
@@ -1704,7 +1704,7 @@ public class MetadataController extends BaseController {
       return metadataService.getSourceStats(terminology, source);
     } catch (Exception e) {
       logger.error(source + " search in " + terminology + " failed.");
-      handleException(e);
+      handleException(e, terminology);
       return null;
     }
   }
