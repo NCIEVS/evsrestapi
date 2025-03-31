@@ -171,7 +171,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         logger.debug("  SKIP title mismatch = " + vs.getTitle());
         continue;
       }
-      if (name != null && !name.getValue().equals(vs.getName())) {
+      if (name != null && !FhirUtility.compareString(name, vs.getName())) {
         logger.debug("  SKIP name mismatch = " + vs.getName());
         continue;
       }
