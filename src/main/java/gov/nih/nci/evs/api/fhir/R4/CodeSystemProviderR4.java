@@ -27,15 +27,13 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
@@ -100,10 +98,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "date") final DateRangeParam date,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      @OperationParam(name = "property") final CodeType property)
-      throws Exception {
+      @OperationParam(name = "date") final DateRangeParam date
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      //      @OperationParam(name = "property") final CodeType property
+      ) throws Exception {
     // check if request is a post, throw exception as we don't support post calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
@@ -114,8 +112,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
-      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
-      FhirUtilityR4.notSupported("property", property);
+      //      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
+      //      FhirUtilityR4.notSupported("property", property);
+      for (final String param : new String[] {"displayLanguage", "property"}) {
+        FhirUtilityR4.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
+      }
       final List<CodeSystem> cs = findPossibleCodeSystems(null, date, system, version);
       final Parameters params = new Parameters();
       if (cs.size() > 0) {
@@ -190,10 +197,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "date") final DateRangeParam date,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      @OperationParam(name = "property") final CodeType property)
-      throws Exception {
+      @OperationParam(name = "date") final DateRangeParam date
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      //      @OperationParam(name = "property") final CodeType property
+      ) throws Exception {
     // check if request is a post, throw exception as we don't support post calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
@@ -204,8 +211,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
-      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
-      FhirUtilityR4.notSupported("property", property);
+      //      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
+      //      FhirUtilityR4.notSupported("property", property);
+      for (final String param : new String[] {"displayLanguage", "property"}) {
+        FhirUtilityR4.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
+      }
       final List<CodeSystem> cs = findPossibleCodeSystems(id, date, system, version);
       final Parameters params = new Parameters();
       if (cs.size() > 0) {
@@ -263,7 +279,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param version the version of the code system.
    * @param display the display associated with the code If provided, a code must be provided.
    * @param coding the coding to validate.
-   * @param codeableConcept the full codeable concept to validate.
    * @param date the date for when the validation should be checked
    * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
    *     the validation is being performed in a context where a concept designated as 'abstract' is
@@ -279,16 +294,15 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       final HttpServletResponse response,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
+      //      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "version") final StringType version,
-      @OperationParam(name = "display") final StringType display,
-      @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-      @OperationParam(name = "date") final DateTimeType date,
-      @OperationParam(name = "abstract") final BooleanType abstractt,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage)
-      throws Exception {
+      @OperationParam(name = "display") final StringType display
+      //      @OperationParam(name = "coding") final Coding coding,
+      //      @OperationParam(name = "date") final DateTimeType date,
+      //      @OperationParam(name = "abstract") final BooleanType abstractt,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      ) throws Exception {
     // check if request is a post, throw exception as we don't support post calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
@@ -297,12 +311,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
-      FhirUtilityR4.notSupported("codeSystem", codeSystem);
-      FhirUtilityR4.notSupported("coding", coding);
-      FhirUtilityR4.notSupported("date", date);
-      FhirUtilityR4.notSupported("abstract", abstractt);
-      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
+
+      for (final String param :
+          new String[] {"codeSystem", "coding", "date", "abstract", "displayLanguage"}) {
+        FhirUtilityR4.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
+      }
 
       final List<CodeSystem> cs = findPossibleCodeSystems(null, null, url, version);
       final Parameters params = new Parameters();
@@ -365,7 +384,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param version the version of the code system.
    * @param display the display associated with the code If provided, a code must be provided.
    * @param coding the coding to validate.
-   * @param codeableConcept the full codeable concept to validate.
    * @param date the date for when the validation should be checked
    * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
    *     the validation is being performed in a context where a concept designated as 'abstract' is
@@ -382,16 +400,15 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
+      //      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "version") final StringType version,
-      @OperationParam(name = "display") final StringType display,
-      @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-      @OperationParam(name = "date") final DateTimeType date,
-      @OperationParam(name = "abstract") final BooleanType abstractt,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage)
-      throws Exception {
+      @OperationParam(name = "display") final StringType display
+      //      @OperationParam(name = "coding") final Coding coding,
+      //      @OperationParam(name = "date") final DateTimeType date,
+      //      @OperationParam(name = "abstract") final BooleanType abstractt,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      ) throws Exception {
     // check if request is a post, throw exception as we don't support post calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
@@ -400,12 +417,16 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
-      FhirUtilityR4.notSupported("codeSystem", codeSystem);
-      FhirUtilityR4.notSupported("coding", coding);
-      FhirUtilityR4.notSupported("date", date);
-      FhirUtilityR4.notSupported("abstract", abstractt);
-      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
+      for (final String param :
+          new String[] {"codeSystem", "coding", "date", "abstract", "displayLanguage"}) {
+        FhirUtilityR4.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
+      }
       final List<CodeSystem> cs = findPossibleCodeSystems(id, null, url, version);
       final Parameters params = new Parameters();
       if (cs.size() > 0) {

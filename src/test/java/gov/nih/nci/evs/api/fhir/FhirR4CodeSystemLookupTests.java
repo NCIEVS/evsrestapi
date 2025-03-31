@@ -107,6 +107,60 @@ public class FhirR4CodeSystemLookupTests {
   }
 
   /**
+   * Test code system lookup implicit parameter not supported.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemLookupImplicitParameterNotSupported() throws Exception {
+    // Arrange
+    String content;
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_LOOKUP;
+    String parameters = "?url=" + url + "&displayLanguage=notfound";
+
+    String messageNotSupported = "Input parameter 'displayLanguage' is not supported";
+    String errorCode = "not-supported";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, (component.getDiagnostics()));
+  }
+
+  /**
+   * Test code system lookup instance parameter not supported.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemLookupInstanceParameterNotSupported() throws Exception {
+    // Arrange
+    String content;
+    String activeID = "umlssemnet_2023aa";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String endpoint =
+        localHost + port + fhirCSPath + "/" + activeID + "/" + JpaConstants.OPERATION_LOOKUP;
+    String parameters = "?url=" + url + "&displayLanguage=notfound";
+
+    String messageNotSupported = "Input parameter 'displayLanguage' is not supported";
+    String errorCode = "not-supported";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, (component.getDiagnostics()));
+  }
+
+  /**
    * Test code system lookup code and display string.
    *
    * @throws Exception exception
