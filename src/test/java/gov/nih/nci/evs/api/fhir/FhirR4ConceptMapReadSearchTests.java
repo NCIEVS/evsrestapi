@@ -395,13 +395,13 @@ public class FhirR4ConceptMapReadSearchTests {
     // Verify that concatenated pages equal first 4 of full results
     List<String> fourIds =
         defaultConceptMaps.subList(0, 4).stream()
-            .map(resource -> ((ConceptMap) resource).getIdPart())
+            .map(resource -> resource.getIdPart())
             .sorted()
             .toList();
 
     List<String> paginatedIds =
         Stream.concat(firstPageMaps.stream(), secondPageMaps.stream())
-            .map(resource -> ((ConceptMap) resource).getIdPart())
+            .map(resource -> resource.getIdPart())
             .sorted()
             .toList();
 
@@ -434,6 +434,11 @@ public class FhirR4ConceptMapReadSearchTests {
     }
   }
 
+  /**
+   * Test concept map search variants with parameters.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testConceptMapSearchVariantsWithParameters() throws Exception {
     // Arrange
@@ -537,6 +542,12 @@ public class FhirR4ConceptMapReadSearchTests {
     validateVariantConceptMapResults(allParamsData, true);
   }
 
+  /**
+   * Validate variant concept map results.
+   *
+   * @param bundle the bundle
+   * @param expectResults the expect results
+   */
   private void validateVariantConceptMapResults(Bundle bundle, boolean expectResults) {
     assertNotNull(bundle);
     if (expectResults) {
