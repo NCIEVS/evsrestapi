@@ -10,6 +10,8 @@ import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r4.model.Parameters;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -102,6 +104,35 @@ public class FhirR4ConceptMapTranslateTests {
   }
 
   /**
+   * Test concept map translate instance parameter not found.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testConceptMapTranslateInstanceParameterNotFound() throws Exception {
+    // Arrange
+    String content;
+    String code = "GO:0016887";
+    String id = "go_to_ncit_mapping_february2020";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint =
+        localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + code + "&system=" + system + "&codableConcept=notfound";
+
+    String messageNotSupported = "Input parameter 'codableConcept' is not supported";
+    String errorCode = "not-supported";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, (component.getDiagnostics()));
+  }
+
+  /**
    * Test concept map translate with instance system with reverse = true; id, code, system, and
    * display provided.
    *
@@ -151,6 +182,33 @@ public class FhirR4ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+
+  /**
+   * Test concept map translate implicit parameter not found.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testConceptMapTranslateImplicitParameterNotFound() throws Exception {
+    // Arrange
+    String content;
+    String code = "GO:0016887";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String parameters = "?code=" + code + "&system=" + system + "&codableConcept=notfound";
+
+    String messageNotSupported = "Input parameter 'codableConcept' is not supported";
+    String errorCode = "not-supported";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, (component.getDiagnostics()));
   }
 
   /**
