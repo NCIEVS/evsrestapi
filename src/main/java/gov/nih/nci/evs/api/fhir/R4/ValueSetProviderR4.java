@@ -1,5 +1,36 @@
 package gov.nih.nci.evs.api.fhir.R4;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.CodeType;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.DateTimeType;
+import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.IntegerType;
+import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.UriType;
+import org.hl7.fhir.r4.model.ValueSet;
+import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionComponent;
+import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionContainsComponent;
+import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionParameterComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.IdParam;
@@ -26,32 +57,6 @@ import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.hl7.fhir.r4.model.BooleanType;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.IntegerType;
-import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.UriType;
-import org.hl7.fhir.r4.model.ValueSet;
-import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionComponent;
-import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionContainsComponent;
-import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionParameterComponent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /** FHIR R4 ValueSet provider. */
 @Component
@@ -86,14 +91,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param request the request
    * @param details the details
    * @param url the canonical reference to the value set.
-   * @param valueSet the value set
    * @param version the value set version to specify the version to be used when generating the
    *     expansion
-   * @param context the context of the value set.
-   * @param contextDirection the context direction, incoming or outgoing. Usually accompanied by
-   *     context.
    * @param filter the text filter applied to restrict code that are returned.
-   * @param date the date for which the expansion should be generated.
    * @param offset the offset for number of records.
    * @param count the count for codes that should be provided in the partial page view.
    * @param includeDesignations the include designations flag for included/excluded in value set
@@ -194,8 +194,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       }
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
-      // TODO test and confirm extraneous $
-      if (url.getValue().contains("?fhir_vs=$")) {
+      if (url.getValue().contains("?fhir_vs=")) {
         final List<Association> invAssoc =
             esQueryService
                 .getConcept(
@@ -276,14 +275,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param details the details
    * @param id the id
    * @param url the canonical reference to the value set.
-   * @param valueSet the value set
    * @param version the value set version to specify the version to be used when generating the
    *     expansion
-   * @param context the context of the value set.
-   * @param contextDirection the context direction, incoming or outgoing. Usually accompanied by
-   *     context.
    * @param filter the text filter applied to restrict code that are returned.
-   * @param date the date for which the expansion should be generated.
    * @param offset the offset for number of records.
    * @param count the count for codes that should be provided in the partial page view.
    * @param includeDesignations the include designations flag for included/excluded in value set
@@ -383,8 +377,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
 
-      // TODO test and confirm extraneous $
-      if (url.getValue().contains("?fhir_vs=$")) {
+      if (url.getValue().contains("?fhir_vs=")) {
         final List<Association> invAssoc =
             esQueryService
                 .getConcept(
@@ -463,11 +456,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param request the request
    * @param details the details
    * @param url the value set canonical url
-   * @param context the context of the value set, allows the server to resolve the value set to
-   *     validate against
-   * @param valueSet the value set
-   * @param valueSetVersion the value set version identifier use to specify the version of the value
-   *     set to be used when validating the code
    * @param code the code that is to be validated. If provided, systems or context must be provided
    * @param system the system for the code that is to be validated
    * @param systemVersion the version of the system
@@ -475,6 +463,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param display the display associated with the code, if provided. If provided, a code must be
    *     provided
    * @param coding the coding to be validated
+   * @param codeableConcept the codeable concept
    * @param date the date that the validation should be checked.
    * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
    *     the validation is being performed in a context where a concept designated as 'abstract' is
@@ -601,11 +590,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param details the details
    * @param id the id
    * @param url the value set canonical url
-   * @param context the context of the value set, allows the server to resolve the value set to
-   *     validate against
-   * @param valueSet the value set
-   * @param valueSetVersion the value set version identifier use to specify the version of the value
-   *     set to be used when validating the code
    * @param code the code that is to be validated. If provided, systems or context must be provided
    * @param system the system for the code that is to be validated
    * @param systemVersion the version of the system
@@ -613,6 +597,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param display the display associated with the code, if provided. If provided, a code must be
    *     provided
    * @param coding the coding to be validated
+   * @param codeableConcept the codeable concept
    * @param date the date that the validation should be checked.
    * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
    *     the validation is being performed in a context where a concept designated as 'abstract' is

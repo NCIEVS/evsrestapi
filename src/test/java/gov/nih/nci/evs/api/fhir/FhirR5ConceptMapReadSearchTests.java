@@ -6,9 +6,6 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.HashSet;
@@ -16,6 +13,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
+
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r5.model.ConceptMap;
@@ -37,6 +35,11 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
 
 /**
  * Unit FhirR5Tests. Tests the functionality of the FHIR R5 endpoints, CodeSystem, ValueSet, and
@@ -401,13 +404,13 @@ class FhirR5ConceptMapReadSearchTests {
     // Verify that concatenated pages equal first 4 of full results
     List<String> fourIds =
         defaultConceptMaps.subList(0, 4).stream()
-            .map(resource -> ((ConceptMap) resource).getIdPart())
+            .map(resource -> resource.getIdPart())
             .sorted()
             .toList();
 
     List<String> paginatedIds =
         Stream.concat(firstPageMaps.stream(), secondPageMaps.stream())
-            .map(resource -> ((ConceptMap) resource).getIdPart())
+            .map(resource -> resource.getIdPart())
             .sorted()
             .toList();
 
@@ -440,6 +443,11 @@ class FhirR5ConceptMapReadSearchTests {
     }
   }
 
+  /**
+   * Test concept map search variants with parameters.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testConceptMapSearchVariantsWithParameters() throws Exception {
     // Arrange
@@ -543,6 +551,12 @@ class FhirR5ConceptMapReadSearchTests {
     validateVariantConceptMapResults(allParamsData, true);
   }
 
+  /**
+   * Validate variant concept map results.
+   *
+   * @param bundle the bundle
+   * @param expectResults the expect results
+   */
   private void validateVariantConceptMapResults(Bundle bundle, boolean expectResults) {
     assertNotNull(bundle);
     if (expectResults) {
