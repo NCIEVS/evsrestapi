@@ -12,9 +12,6 @@ import java.util.stream.Collectors;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.CodeableConcept;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.OperationOutcome;
@@ -96,26 +93,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param filter the text filter applied to restrict code that are returned.
    * @param offset the offset for number of records.
    * @param count the count for codes that should be provided in the partial page view.
-   * @param includeDesignations the include designations flag for included/excluded in value set
-   *     expansions
-   * @param designation the designation token that specifies the system + code that either a use or
-   *     language.
-   * @param includeDefinition controls whether the value set definition is included or excluded in
-   *     value set expansions
    * @param activeOnly controls whether inactive concepts are included or excluded in value set
    *     expansions.
-   * @param excludeNested controls whether the value set expansion nests codes or not
-   * @param excludeNotForUI controls whether the value set expansion is assembled for a user
-   *     interface use
-   * @param excludePostCoordinated controls whether the value set expansion includes post
-   *     coordinated codes
-   * @param displayLanguage specifies the language to be used for description in teh expansions
-   * @param exclude_system the code system or particular version of a code system to be excluded
-   *     from the expansion
-   * @param system_version the version to use for a system
-   * @param check_system_version specifies a version to use for a system.
-   * @param force_system_version specifies a version to use for a system. Overrides any specified
-   *     version in the value set
    * @return the value set
    * @throws Exception the exception
    */
@@ -132,19 +111,20 @@ public class ValueSetProviderR4 implements IResourceProvider {
       //      @OperationParam(name = "date") final DateTimeType date,
       @OperationParam(name = "offset") final IntegerType offset,
       @OperationParam(name = "count") final IntegerType count,
-      @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
-      @OperationParam(name = "designation") final StringType designation,
-      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
-      @OperationParam(name = "activeOnly") final BooleanType activeOnly,
-      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
-      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
-      @OperationParam(name = "excludePostCoordinated") final BooleanType excludePostCoordinated,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      @OperationParam(name = "exclude-system") final StringType exclude_system,
-      @OperationParam(name = "system-version") final StringType system_version,
-      @OperationParam(name = "check-system-version") final StringType check_system_version,
-      @OperationParam(name = "force-system-version") final StringType force_system_version)
-      throws Exception {
+      //      @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
+      //      @OperationParam(name = "designation") final StringType designation,
+      //      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
+      @OperationParam(name = "activeOnly") final BooleanType activeOnly
+      //      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
+      //      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
+      //      @OperationParam(name = "excludePostCoordinated") final BooleanType
+      // excludePostCoordinated,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      //      @OperationParam(name = "exclude-system") final StringType exclude_system,
+      //      @OperationParam(name = "system-version") final StringType system_version,
+      //      @OperationParam(name = "check-system-version") final StringType check_system_version,
+      //      @OperationParam(name = "force-system-version") final StringType force_system_version
+      ) throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls
     if (request.getMethod().equals("POST")) {
@@ -156,6 +136,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.required("url", url);
 
+      // The params below should be commented out above
       for (final String param :
           new String[] {
             "valueSet",
@@ -169,7 +150,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
             "excludeNotForUI",
             "excludePostCoordinated",
             "displayLanguage",
-            "exclude_system",
+            "exclude-system",
             "system_version",
             "check_system_version",
             "force_system_version",
@@ -280,26 +261,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param filter the text filter applied to restrict code that are returned.
    * @param offset the offset for number of records.
    * @param count the count for codes that should be provided in the partial page view.
-   * @param includeDesignations the include designations flag for included/excluded in value set
-   *     expansions
-   * @param designation the designation token that specifies the system + code that either a use or
-   *     language.
-   * @param includeDefinition controls whether the value set definition is included or excluded in
-   *     value set expansions
    * @param activeOnly controls whether inactive concepts are included or excluded in value set
    *     expansions.
-   * @param excludeNested controls whether the value set expansion nests codes or not
-   * @param excludeNotForUI controls whether the value set expansion is assembled for a user
-   *     interface use
-   * @param excludePostCoordinated controls whether the value set expansion includes post
-   *     coordinated codes
-   * @param displayLanguage specifies the language to be used for description in teh expansions
-   * @param exclude_system the code system or particular version of a code system to be excluded
-   *     from the expansion
-   * @param system_version the version to use for a system
-   * @param check_system_version specifies a version to use for a system.
-   * @param force_system_version specifies a version to use for a system. Overrides any specified
-   *     version in the value set
    * @return the value set
    * @throws Exception the exception
    */
@@ -317,19 +280,20 @@ public class ValueSetProviderR4 implements IResourceProvider {
       //      @OperationParam(name = "date") final DateTimeType date,
       @ca.uhn.fhir.rest.annotation.Offset final Integer offset,
       @ca.uhn.fhir.rest.annotation.Count final Integer count,
-      @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
-      @OperationParam(name = "designation") final StringType designation,
-      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
-      @OperationParam(name = "activeOnly") final BooleanType activeOnly,
-      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
-      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
-      @OperationParam(name = "excludePostCoordinated") final BooleanType excludePostCoordinated,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      @OperationParam(name = "exclude-system") final StringType exclude_system,
-      @OperationParam(name = "system-version") final StringType system_version,
-      @OperationParam(name = "check-system-version") final StringType check_system_version,
-      @OperationParam(name = "force-system-version") final StringType force_system_version)
-      throws Exception {
+      //      @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
+      //      @OperationParam(name = "designation") final StringType designation,
+      //      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
+      @OperationParam(name = "activeOnly") final BooleanType activeOnly
+      //      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
+      //      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
+      //      @OperationParam(name = "excludePostCoordinated") final BooleanType
+      // excludePostCoordinated,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      //      @OperationParam(name = "exclude-system") final StringType exclude_system,
+      //      @OperationParam(name = "system-version") final StringType system_version,
+      //      @OperationParam(name = "check-system-version") final StringType check_system_version,
+      //      @OperationParam(name = "force-system-version") final StringType force_system_version
+      ) throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls
     if (request.getMethod().equals("POST")) {
@@ -459,17 +423,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param code the code that is to be validated. If provided, systems or context must be provided
    * @param system the system for the code that is to be validated
    * @param systemVersion the version of the system
-   * @param version the version
    * @param display the display associated with the code, if provided. If provided, a code must be
    *     provided
-   * @param coding the coding to be validated
-   * @param codeableConcept the codeable concept
-   * @param date the date that the validation should be checked.
-   * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
-   *     the validation is being performed in a context where a concept designated as 'abstract' is
-   *     appropriate/allowed to be used
-   * @param displayLanguage the display language for the description when validating a display
-   *     property
    * @return the parameters
    * @throws Exception the exception
    */
@@ -484,14 +439,14 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "systemVersion") final StringType systemVersion,
-      @OperationParam(name = "version") final StringType version,
-      @OperationParam(name = "display") final StringType display,
-      @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-      @OperationParam(name = "date") final DateTimeType date,
-      @OperationParam(name = "abstract") final BooleanType abstractt,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage)
-      throws Exception {
+      //      @OperationParam(name = "version") final StringType version,
+      @OperationParam(name = "display") final StringType display
+      //      @OperationParam(name = "coding") final Coding coding,
+      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      //      @OperationParam(name = "date") final DateTimeType date,
+      //      @OperationParam(name = "abstract") final BooleanType abstractt,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      ) throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls
     if (request.getMethod().equals("POST")) {
@@ -505,12 +460,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system, "url", url);
       FhirUtilityR4.mutuallyRequired("system", system, "systemVersion", systemVersion);
 
+      // TODO: not sure that "version" should be in this list
       for (final String param :
           new String[] {
             "coding",
             "context",
             "date",
-            "abstractt",
+            "abstract",
             "displayLanguage",
             "version",
             "valueSet",
@@ -593,17 +549,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param code the code that is to be validated. If provided, systems or context must be provided
    * @param system the system for the code that is to be validated
    * @param systemVersion the version of the system
-   * @param version the version
    * @param display the display associated with the code, if provided. If provided, a code must be
    *     provided
-   * @param coding the coding to be validated
-   * @param codeableConcept the codeable concept
-   * @param date the date that the validation should be checked.
-   * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
-   *     the validation is being performed in a context where a concept designated as 'abstract' is
-   *     appropriate/allowed to be used
-   * @param displayLanguage the display language for the description when validating a display
-   *     property
    * @return the parameters
    * @throws Exception the exception
    */
@@ -619,14 +566,14 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "systemVersion") final StringType systemVersion,
-      @OperationParam(name = "version") final StringType version,
-      @OperationParam(name = "display") final StringType display,
-      @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-      @OperationParam(name = "date") final DateTimeType date,
-      @OperationParam(name = "abstract") final BooleanType abstractt,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage)
-      throws Exception {
+      //      @OperationParam(name = "version") final StringType version,
+      @OperationParam(name = "display") final StringType display
+      //      @OperationParam(name = "coding") final Coding coding,
+      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      //      @OperationParam(name = "date") final DateTimeType date,
+      //      @OperationParam(name = "abstract") final BooleanType abstractt,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      ) throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls
     if (request.getMethod().equals("POST")) {
@@ -639,6 +586,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       FhirUtilityR4.requireAtLeastOneOf(
           "code", code, "system", system, "systemVersion", systemVersion, "url", url);
 
+      // TODO: not sure that "version" should be in this list
       for (final String param :
           new String[] {
             "coding",
