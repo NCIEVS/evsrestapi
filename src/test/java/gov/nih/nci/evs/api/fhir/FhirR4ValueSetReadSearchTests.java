@@ -770,6 +770,21 @@ public class FhirR4ValueSetReadSearchTests {
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     Bundle allParamsData = parser.parseResource(Bundle.class, content);
     validateVariantValueSetResults(allParamsData, true);
+
+    // Test 11: Contains search
+    String cdiscName = "CDISC";
+    containsUrl =
+        endpoint + "?name:contains=" + URLEncoder.encode(cdiscName, StandardCharsets.UTF_8);
+    content = this.restTemplate.getForObject(containsUrl, String.class);
+    containsBundle = parser.parseResource(Bundle.class, content);
+
+    assertNotNull(containsBundle.getEntry());
+    assertFalse(containsBundle.getEntry().isEmpty());
+    foundContainsMatch =
+        containsBundle.getEntry().stream()
+            .map(entry -> ((ValueSet) entry.getResource()).getName())
+            .anyMatch(name -> name.toLowerCase().contains(cdiscName.toLowerCase()));
+    assertTrue(foundContainsMatch);
   }
 
   /**
