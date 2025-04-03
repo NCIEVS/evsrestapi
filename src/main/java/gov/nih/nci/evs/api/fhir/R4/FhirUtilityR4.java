@@ -13,9 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
@@ -40,7 +38,6 @@ import org.hl7.fhir.r4.model.UriType;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /** Utility for FHIR R4. */
@@ -89,18 +86,19 @@ public final class FhirUtilityR4 {
   private static HashMap<String, String> generatePublishers() {
     final HashMap<String, String> publish = new HashMap<>();
     List<Terminology> terms;
-	try {
-	   	ElasticQueryService esQueryService = StaticContextAccessor.getBean(ElasticQueryService.class);
-    	TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
-		
-		terms = termUtils.getIndexedTerminologies(esQueryService);
+    try {
+      ElasticQueryService esQueryService = StaticContextAccessor.getBean(ElasticQueryService.class);
+      TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
 
-		terms.forEach(terminology -> {
-			publish.put(terminology.getTerminology(), terminology.getMetadata().getFhirPublisher());
-		});
-	} catch (Exception e) {
-		return publish;
-	}
+      terms = termUtils.getIndexedTerminologies(esQueryService);
+
+      terms.forEach(
+          terminology -> {
+            publish.put(terminology.getTerminology(), terminology.getMetadata().getFhirPublisher());
+          });
+    } catch (Exception e) {
+      return publish;
+    }
 
     return publish;
   }
@@ -114,17 +112,18 @@ public final class FhirUtilityR4 {
     final HashMap<String, String> uri = new HashMap<>();
     List<Terminology> terms;
     try {
-    	ElasticQueryService esQueryService = StaticContextAccessor.getBean(ElasticQueryService.class);
-    	TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
-		
-    	terms = termUtils.getIndexedTerminologies(esQueryService);
+      ElasticQueryService esQueryService = StaticContextAccessor.getBean(ElasticQueryService.class);
+      TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
 
-		terms.forEach(terminology -> {
-			uri.put(terminology.getTerminology(), terminology.getMetadata().getFhirUri());
-		});
-	} catch (Exception e) {
-        return uri;
-	}
+      terms = termUtils.getIndexedTerminologies(esQueryService);
+
+      terms.forEach(
+          terminology -> {
+            uri.put(terminology.getTerminology(), terminology.getMetadata().getFhirUri());
+          });
+    } catch (Exception e) {
+      return uri;
+    }
 
     return uri;
   }
@@ -136,9 +135,9 @@ public final class FhirUtilityR4 {
    * @return the publisher
    */
   private static String getPublisher(final String terminology) {
-	  if (publishers == null) {
-		              publishers = generatePublishers();
-	  }
+    if (publishers == null) {
+      publishers = generatePublishers();
+    }
     return publishers.get(terminology);
   }
 
@@ -149,9 +148,9 @@ public final class FhirUtilityR4 {
    * @return the uri
    */
   private static String getUri(final String terminology) {
-	  if (uris == null) {
-			uris = generateUris();
-		}
+    if (uris == null) {
+      uris = generateUris();
+    }
     return uris.get(terminology.toLowerCase());
   }
 

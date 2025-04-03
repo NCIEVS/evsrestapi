@@ -13,9 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import org.hl7.fhir.r5.model.BooleanType;
@@ -85,23 +83,23 @@ public class FhirUtilityR5 {
    * @return the hash map
    */
   private static HashMap<String, String> generateUris() {
-	    final HashMap<String, String> uri = new HashMap<>();
-	    List<Terminology> terms;
-	    try {
-	    	ElasticQueryService esQueryService = StaticContextAccessor.getBean(ElasticQueryService.class);
-	    	TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
-			
-	    	terms = termUtils.getIndexedTerminologies(esQueryService);
+    final HashMap<String, String> uri = new HashMap<>();
+    List<Terminology> terms;
+    try {
+      ElasticQueryService esQueryService = StaticContextAccessor.getBean(ElasticQueryService.class);
+      TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
 
-			terms.forEach(terminology -> {
-				uri.put(terminology.getTerminology(), terminology.getMetadata().getFhirUri());
-			});
-		} catch (Exception e) {
-	        return uri;
-		}
+      terms = termUtils.getIndexedTerminologies(esQueryService);
 
-	    return uri;
-	  
+      terms.forEach(
+          terminology -> {
+            uri.put(terminology.getTerminology(), terminology.getMetadata().getFhirUri());
+          });
+    } catch (Exception e) {
+      return uri;
+    }
+
+    return uri;
   }
 
   /**
@@ -110,22 +108,23 @@ public class FhirUtilityR5 {
    * @return the hash map
    */
   private static HashMap<String, String> generatePublishers() {
-	    final HashMap<String, String> publish = new HashMap<>();
-	    List<Terminology> terms;
-		try {
-		   	ElasticQueryService esQueryService = StaticContextAccessor.getBean(ElasticQueryService.class);
-	    	TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
-			
-			terms = termUtils.getIndexedTerminologies(esQueryService);
+    final HashMap<String, String> publish = new HashMap<>();
+    List<Terminology> terms;
+    try {
+      ElasticQueryService esQueryService = StaticContextAccessor.getBean(ElasticQueryService.class);
+      TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
 
-			terms.forEach(terminology -> {
-				publish.put(terminology.getTerminology(), terminology.getMetadata().getFhirPublisher());
-			});
-		} catch (Exception e) {
-			return publish;
-		}
+      terms = termUtils.getIndexedTerminologies(esQueryService);
 
-	    return publish;
+      terms.forEach(
+          terminology -> {
+            publish.put(terminology.getTerminology(), terminology.getMetadata().getFhirPublisher());
+          });
+    } catch (Exception e) {
+      return publish;
+    }
+
+    return publish;
   }
 
   /**
@@ -135,10 +134,10 @@ public class FhirUtilityR5 {
    * @return the publisher for a given terminology
    */
   private static String getPublisher(final String terminology) {
-	  if (publishers == null) {
-		  publishers = generatePublishers();
-	  }
-      return publishers.get(terminology);
+    if (publishers == null) {
+      publishers = generatePublishers();
+    }
+    return publishers.get(terminology);
   }
 
   /**
@@ -148,9 +147,9 @@ public class FhirUtilityR5 {
    * @return the uri for a given terminology
    */
   private static String getUri(final String terminology) {
-	  if (uris == null) {
-		  uris = generateUris();
-	  }
+    if (uris == null) {
+      uris = generateUris();
+    }
     return uris.get(terminology.toLowerCase());
   }
 
