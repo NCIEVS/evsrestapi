@@ -584,10 +584,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     executor.shutdown();
 
     // Wait up to 10 min for processes to stop
-    executor.awaitTermination(10, TimeUnit.MINUTES);
+    executor.awaitTermination(12, TimeUnit.MINUTES);
 
     if (axiomMap.isEmpty()) {
-      // This likely occurs if the 10 minute awaitTermination isn't long enough
+      // This likely occurs if the 12 minute awaitTermination isn't long enough
       log.warn(
           "Missing axioms, likely because awaitTermination was not long enough "
               + "(or there are no axioms).");
