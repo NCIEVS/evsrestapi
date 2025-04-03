@@ -91,6 +91,7 @@ public class SparqlQueryCacheService {
       str.append("\n");
       parentchild.add(str.toString());
     }
+    logger.debug("  hierarchy entries = " + parentchild.size());
 
     // Add role entries
     parentchild.addAll(getHierarchyRoleHelper(terminology, restUtils, sparqlQueryManagerService));

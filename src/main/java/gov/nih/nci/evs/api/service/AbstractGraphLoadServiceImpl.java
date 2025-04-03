@@ -820,15 +820,19 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       String terminology,
       boolean forceDelete)
       throws Exception {
+    logger.info("Get terminology");
+
     TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
     final Terminology term =
         termUtils.getTerminology(config.getTerminology(), sparqlQueryManagerService);
+    logger.info("  terminology = " + term.getTerminology() + ", " + term.getVersion());
 
     // Attempt to read the config, if anything goes wrong
     // the config file is probably not there
     try {
 
       // Load from config
+      logger.info("Get metadata for terminology");
       final JsonNode node = getMetadataAsNode(terminology.toLowerCase());
       final TerminologyMetadata metadata =
           new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
@@ -849,10 +853,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       metadata.setSourceCt(metadata.getSources().size());
       metadata.setWelcomeText(getWelcomeText(terminology.toLowerCase()));
       term.setMetadata(metadata);
-      loadHistory(term, filepath);
 
       // Compute concept statuses
       if (metadata.getConceptStatus() != null) {
+        logger.info("  compute concept status values");
         metadata.setConceptStatuses(
             sparqlQueryManagerService.getDistinctPropertyValues(term, metadata.getConceptStatus()));
         // IF this is just the single value "true", then instead set to
@@ -866,16 +870,21 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
 
       // Compute definition sources
       if (metadata.getDefinitionSource() != null) {
+        logger.info("  compute definition source values");
         metadata.setDefinitionSourceSet(
             sparqlQueryManagerService.getDefinitionSources(term).stream()
                 .map(d -> d.getCode())
                 .collect(Collectors.toSet()));
       }
 
+      logger.info("Load terminology history");
+      loadHistory(term, filepath);
+
       // Setup maps if this is a "monthly" version
       // Determine by checking against the graph db we are loading from
       if (term.getTerminology() == "ncit"
           && graphProperties.getDb().equals(term.getMetadata().getMonthlyDb())) {
+        logger.info("Prepare NCIt mapsets");
 
         // setup mappings
         Concept ncitMapsToGdc = setupMap("GDC", term.getVersion());
@@ -890,7 +899,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         mapsets.put("ICD9CM", ncitMapsToIcd9cm);
         mapsets.put("ICDO3", ncitMapsToIcdo3);
         mapsets.put("MedDRA", ncitMapsToMeddra);
-        logger.info("mapsets = " + mapsets.size());
+        logger.info("  mapsets = " + mapsets.size());
       }
 
     } catch (Exception e) {
@@ -1049,8 +1058,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public HierarchyUtils getHierarchyUtils(Terminology term) throws Exception {
+    logger.info("Load hierarchy");
     final HierarchyUtils hierarchy = sparqlQueryManagerService.getHierarchyUtilsCache(term);
-
     return hierarchy;
   }
 }
