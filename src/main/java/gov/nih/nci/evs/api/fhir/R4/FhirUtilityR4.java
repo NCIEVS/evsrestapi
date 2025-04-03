@@ -38,10 +38,8 @@ import org.hl7.fhir.r4.model.UriType;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Component;
 
 /** Utility for FHIR R4. */
-@Component
 public final class FhirUtilityR4 {
 
   /** The logger. */
