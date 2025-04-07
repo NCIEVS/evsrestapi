@@ -685,7 +685,9 @@ public class OpenApiInterceptorR5 {
 
       final Tag resourceTag = new Tag();
       resourceTag.setName(resourceType);
-      resourceTag.setDescription("The " + resourceType + " FHIR resource type");
+      resourceTag.setDescription("The " + resourceType + " FHIR resource type (<a href=\"https://hl7.org/fhir/R5/"
+              + resourceType + ".html\">https://hl7.org/fhir/R5/"
+              + resourceType + ".html</a>)");
       openApi.addTagsItem(resourceTag);
 
       // Instance Read
@@ -696,10 +698,7 @@ public class OpenApiInterceptorR5 {
         operation.setSummary(
             "Get "
                 + unCamelCase(resourceType)
-                + " by ID. For more information see the R5 spec for this resource at"
-                + " https://hl7.org/fhir/R5/"
-                + resourceType
-                + ".html");
+                + " by ID. ");
         addResourceIdParameter(operation);
         addFhirResourceResponse(ctx, openApi, operation, null);
       }
@@ -840,10 +839,7 @@ public class OpenApiInterceptorR5 {
     operation.setSummary(
         "Search for "
             + unCamelCase(resourceType)
-            + " instances. For more information see the R5 spec for this resource at"
-            + " https://hl7.org/fhir/R5/"
-            + resourceType
-            + ".html");
+            + " instances. ");
     addFhirResourceResponse(ctx, openApi, operation, null);
 
     for (final CapabilityStatementRestResourceSearchParamComponent nextSearchParam :

@@ -679,7 +679,9 @@ public class OpenApiInterceptorR4 {
 
       final Tag resourceTag = new Tag();
       resourceTag.setName(resourceType);
-      resourceTag.setDescription("The " + resourceType + " FHIR resource type");
+      resourceTag.setDescription("The " + resourceType + " FHIR resource type (<a href=\"https://hl7.org/fhir/R4/"
+              + resourceType + ".html\">https://hl7.org/fhir/R4/"
+              + resourceType + ".html</a>)");
       openApi.addTagsItem(resourceTag);
 
       // Instance Read
@@ -690,10 +692,7 @@ public class OpenApiInterceptorR4 {
         operation.setSummary(
             "Get "
                 + unCamelCase(resourceType)
-                + " by ID. For more information see the R4 spec for this resource at"
-                + " https://hl7.org/fhir/R4/"
-                + resourceType
-                + ".html");
+                + " by ID. ");
         addResourceIdParameter(operation);
         addFhirResourceResponse(ctx, openApi, operation, null);
       }
@@ -836,10 +835,7 @@ public class OpenApiInterceptorR4 {
     operation.setSummary(
         "Search for "
             + unCamelCase(resourceType)
-            + " instances. For more information see the R4 spec for this resource at"
-            + " https://hl7.org/fhir/R4/"
-            + resourceType
-            + ".html");
+            + " instances.");
     addFhirResourceResponse(ctx, openApi, operation, null);
 
     for (final CapabilityStatement.CapabilityStatementRestResourceSearchParamComponent
@@ -979,12 +975,7 @@ public class OpenApiInterceptorR4 {
                 unCamelCase(theResourceType)
                     + " operation to perform "
                     + operationDefinition.getCode()
-                    + ". For more information on this operation, see the R4 spec at"
-                    + " https://hl7.org/fhir/R4/"
-                    + theResourceType
-                    + "-operation-"
-                    + operationDefinition.getCode()
-                    + ".html");
+                    + ". ");
           }
           if (operationDefinition.getInstance()) {
             final Operation operation =
@@ -1001,12 +992,7 @@ public class OpenApiInterceptorR4 {
                 unCamelCase(theResourceType)
                     + " operation to perform "
                     + operationDefinition.getCode()
-                    + ". For more information on this operation, see the R4 spec at"
-                    + " https://hl7.org/fhir/R4/"
-                    + theResourceType
-                    + "-operation-"
-                    + operationDefinition.getCode()
-                    + ".html");
+                    + ". ");
           }
         } else {
           if (operationDefinition.getSystem()) {
@@ -1020,12 +1006,7 @@ public class OpenApiInterceptorR4 {
                 unCamelCase(theResourceType)
                     + " operation to perform "
                     + operationDefinition.getCode()
-                    + ". For more information on this operation, see the R4 spec at"
-                    + " https://hl7.org/fhir/R4/"
-                    + theResourceType
-                    + "-operation-"
-                    + operationDefinition.getCode()
-                    + ".html");
+                    + ". ");
           }
         }
       }
