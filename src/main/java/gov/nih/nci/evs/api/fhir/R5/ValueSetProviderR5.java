@@ -15,8 +15,10 @@ import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
@@ -45,6 +47,7 @@ import org.hl7.fhir.r5.model.StringType;
 import org.hl7.fhir.r5.model.UriType;
 import org.hl7.fhir.r5.model.ValueSet;
 import org.hl7.fhir.r5.model.ValueSet.ConceptPropertyComponent;
+import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionContainsComponent;
 import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionParameterComponent;
 import org.slf4j.Logger;
@@ -240,9 +243,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
       //      @OperationParam(name = "date") final DateTimeType date,
       @OperationParam(name = "offset") final IntegerType offset,
       @OperationParam(name = "count") final IntegerType count,
-      //      @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
+      @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
       //      @OperationParam(name = "designation") final StringType designation,
-      //      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
+      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
       @OperationParam(name = "activeOnly") final BooleanType activeOnly,
       //      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
       //      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
@@ -272,9 +275,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
             "context",
             "contextDirection",
             "date",
-            "includeDesignations",
             "designation",
-            "includeDefinition",
             "excludeNested",
             "excludeNotForUI",
             "excludePostCoordinated",
@@ -310,9 +311,24 @@ public class ValueSetProviderR5 implements IResourceProvider {
       // If properties are indicated, retrieve the concept with all potentially
       // needed info
       IncludeParam includeParam = new IncludeParam("minimal");
+      List<String> includeList = new ArrayList<>();
       if (propertyNames != null && !propertyNames.isEmpty()) {
-        includeParam = new IncludeParam("parents,children,properties");
+
+        includeList.add("properties");
       }
+      if (includeDefinition != null && includeDefinition.getValue().booleanValue() == true) {
+        includeList.add("definitions");
+      }
+      if (includeDesignations != null && includeDesignations.getValue().booleanValue() == true) {
+        includeList.add("synonyms");
+      }
+      if (includeList.size() > 1) {
+        includeList.add("parents");
+        includeList.add("children");
+      } else {
+        includeList.add("minimal");
+      }
+      includeParam = new IncludeParam(String.join(",", includeList));
 
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
@@ -348,8 +364,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
         sc.setTerminology(
             terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
         // Add property names to search criteria if indicated
-        if (propertyNames != null && !propertyNames.isEmpty()) {
-          sc.setInclude("parents,children,properties");
+        if (includeList != null && includeList.size() > 1) {
+          sc.setInclude(String.join(",", includeList));
         }
         subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();
       }
@@ -373,6 +389,26 @@ public class ValueSetProviderR5 implements IResourceProvider {
           if (propertyNames != null && !propertyNames.isEmpty()) {
             for (String propertyName : propertyNames) {
               addConceptProperty(vsContains, subset, propertyName);
+            }
+          }
+          // Add definitions to the contains component if they were requested
+          if (includeDefinition != null
+              && includeDefinition.booleanValue()
+              && subset.getDefinitions() != null) {
+            addConceptProperty(vsContains, subset, "definition");
+          }
+          // Add synonyms to the contains component if they were requested
+          if (includeDesignations != null
+              && includeDesignations.booleanValue()
+              && subset.getSynonyms() != null) {
+            for (Synonym term : subset.getSynonyms()) {
+              ConceptReferenceDesignationComponent designation =
+                  new ConceptReferenceDesignationComponent()
+                      .setLanguage("en")
+                      .setUse(new Coding(term.getUri(), term.getTermType(), term.getName()))
+                      .setValue(term.getName());
+
+              vsContains.addDesignation(designation);
             }
           }
           vsExpansion.addContains(vsContains);
@@ -445,9 +481,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
       //      @OperationParam(name = "date") final DateTimeType date,
       @OperationParam(name = "offset") final IntegerType offset,
       @OperationParam(name = "count") final IntegerType count,
-      //      @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
+      @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
       //      @OperationParam(name = "designation") final StringType designation,
-      //      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
+      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
       @OperationParam(name = "activeOnly") final BooleanType activeOnly,
       //      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
       //      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
@@ -475,9 +511,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
           "context",
           "contextDirection",
           "date",
-          "includeDesignations",
           "designation",
-          "includeDefinition",
           "excludeNested",
           "excludeNotForUI",
           "excludePostCoordinated",
@@ -515,9 +549,24 @@ public class ValueSetProviderR5 implements IResourceProvider {
       // If properties are indicated, retrieve the concept with all potentially
       // needed info
       IncludeParam includeParam = new IncludeParam("minimal");
+      List<String> includeList = new ArrayList<>();
       if (propertyNames != null && !propertyNames.isEmpty()) {
-        includeParam = new IncludeParam("parents,children,properties");
+
+        includeList.add("properties");
       }
+      if (includeDefinition != null && includeDefinition.getValue().booleanValue() == true) {
+        includeList.add("definitions");
+      }
+      if (includeDesignations != null && includeDesignations.getValue().booleanValue() == true) {
+        includeList.add("synonyms");
+      }
+      if (includeList.size() > 1) {
+        includeList.add("parents");
+        includeList.add("children");
+      } else {
+        includeList.add("minimal");
+      }
+      includeParam = new IncludeParam(String.join(",", includeList));
 
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
@@ -554,7 +603,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
             terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
         // Add property names to search criteria if indicated
         if (propertyNames != null && !propertyNames.isEmpty()) {
-          sc.setInclude("parents,children,properties");
+          sc.setInclude(String.join(",", includeList));
         }
         subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();
       }
@@ -578,6 +627,26 @@ public class ValueSetProviderR5 implements IResourceProvider {
           if (propertyNames != null && !propertyNames.isEmpty()) {
             for (String propertyName : propertyNames) {
               addConceptProperty(vsContains, subset, propertyName);
+            }
+          }
+          // Add definitions to the contains component if they were requested
+          if (includeDefinition != null
+              && includeDefinition.booleanValue()
+              && subset.getDefinitions() != null) {
+            addConceptProperty(vsContains, subset, "definition");
+          }
+          // Add synonyms to the contains component if they were requested
+          if (includeDesignations != null
+              && includeDesignations.booleanValue()
+              && subset.getSynonyms() != null) {
+            for (Synonym term : subset.getSynonyms()) {
+              ConceptReferenceDesignationComponent designation =
+                  new ConceptReferenceDesignationComponent()
+                      .setLanguage("en")
+                      .setUse(new Coding(term.getUri(), term.getTermType(), term.getName()))
+                      .setValue(term.getName());
+
+              vsContains.addDesignation(designation);
             }
           }
           vsExpansion.addContains(vsContains);
@@ -1017,6 +1086,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
             new ConceptPropertyComponent()
                 .setCode("child")
                 .setValue(new Coding().setCode(child.getCode())));
+      }
+    } else if (propertyName.contains("definition")) {
+      for (final Definition def : concept.getDefinitions()) {
+        vsContains.addProperty(
+            new ConceptPropertyComponent()
+                .setCode("definition")
+                .setValue(new StringType(def.getDefinition())));
       }
     } else if (concept.getProperties().stream().anyMatch(p -> p.getType().equals(propertyName))) {
       concept.getProperties().stream()
