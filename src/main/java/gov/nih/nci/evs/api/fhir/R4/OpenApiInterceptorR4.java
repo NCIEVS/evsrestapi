@@ -162,7 +162,7 @@ public class OpenApiInterceptorR4 {
   private boolean myUseResourcePages;
 
   /** The ignore parameters. */
-  private Set<Triple> ignoreParameter = new HashSet<>();
+  private Set<Triple<String, String, String>> ignoreParameter = new HashSet<>();
 
   /** Constructor. */
   public OpenApiInterceptorR4() {
@@ -197,6 +197,7 @@ public class OpenApiInterceptorR4 {
 
     ignoreParameter.add(Triple.of("CodeSystem", "validate-code", "system"));
     ignoreParameter.add(Triple.of("CodeSystem", "validate-code", "systemVersion"));
+    // TODO: we probably want this
     ignoreParameter.add(Triple.of("ValueSet", "validate-code", "version"));
   }
 
