@@ -126,7 +126,7 @@ public class ConceptController extends BaseController {
         name = "terminology",
         description =
             "Terminology, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\" target=\"_blank\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -273,7 +273,7 @@ public class ConceptController extends BaseController {
         name = "terminology",
         description =
             "Terminology, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\" target=\"_blank\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -408,7 +408,7 @@ public class ConceptController extends BaseController {
         name = "terminology",
         description =
             "Terminology, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\" target=\"_blank\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -593,7 +593,7 @@ public class ConceptController extends BaseController {
         name = "terminology",
         description =
             "Terminology, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\" target=\"_blank\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -950,7 +950,7 @@ public class ConceptController extends BaseController {
         name = "terminology",
         description =
             "Terminology, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\" target=\"_blank\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -1024,7 +1024,7 @@ public class ConceptController extends BaseController {
         name = "terminology",
         description =
             "Terminology, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\" target=\"_blank\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
