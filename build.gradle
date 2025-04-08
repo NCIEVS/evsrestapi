@@ -89,7 +89,7 @@ dependencies {
   implementation "org.springframework:spring-aop"
 
   // For vulnerabilities
-  implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.35"
+  implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.39"
 
   //implementation "org.springframework.data:spring-data-elasticsearch:4.2.12"
   implementation "org.opensearch.client:spring-data-opensearch-starter:1.5.3"
