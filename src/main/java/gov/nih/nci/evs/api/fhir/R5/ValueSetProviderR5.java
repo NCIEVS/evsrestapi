@@ -322,7 +322,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
       if (includeDesignations != null && includeDesignations.getValue().booleanValue() == true) {
         includeList.add("synonyms");
       }
-      if (includeList.size() > 1) {
+      if (includeList.size() >= 1) {
         includeList.add("parents");
         includeList.add("children");
       } else {
@@ -551,7 +551,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
       IncludeParam includeParam = new IncludeParam("minimal");
       List<String> includeList = new ArrayList<>();
       if (propertyNames != null && !propertyNames.isEmpty()) {
-
         includeList.add("properties");
       }
       if (includeDefinition != null && includeDefinition.getValue().booleanValue() == true) {
@@ -560,7 +559,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
       if (includeDesignations != null && includeDesignations.getValue().booleanValue() == true) {
         includeList.add("synonyms");
       }
-      if (includeList.size() > 1) {
+      if (includeList.size() >= 1) {
         includeList.add("parents");
         includeList.add("children");
       } else {

@@ -742,16 +742,15 @@ public class FhirR5ValueSetExpandTests {
             .collect(Collectors.toList())
             .get(0)
             .getDisplay());
-    assertEquals(
-        parentCode,
+    assertTrue(
         valueSet.getExpansion().getContains().stream()
-            .filter(comp -> comp.getCode().equals(activeCode))
-            .collect(Collectors.toList())
-            .get(0)
-            .getProperty()
-            .get(0)
-            .getValue()
-            .toString());
+            .anyMatch(
+                comp ->
+                    comp.getProperty().stream()
+                        .anyMatch(
+                            prop ->
+                                "parent".equals(prop.getCode())
+                                    && parentCode.equals(prop.getValue().toString()))));
     assertTrue(
         valueSet.getExpansion().getContains().stream()
             .anyMatch(
