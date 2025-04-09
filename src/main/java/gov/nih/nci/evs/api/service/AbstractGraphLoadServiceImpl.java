@@ -666,6 +666,21 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       // add extra relevant properties to new subset
       newSubsetEntry.getProperties().add(new Property("Publish_Value_Set", "Yes"));
       newSubsetEntry.getProperties().add(new Property("EVSRESTAPI_Subset_Format", "NCI"));
+
+      // add self as concept_in_subset association/inverseAssociation of newSubsetEntry
+      final Association selfConceptAssoc = new Association();
+      selfConceptAssoc.setType("Concept_In_Subset");
+      selfConceptAssoc.setRelatedCode(newSubsetEntry.getCode());
+      selfConceptAssoc.setRelatedName(newSubsetEntry.getName());
+
+      final Qualifier selfConceptComputed = new Qualifier();
+      selfConceptComputed.setValue("This is computed by the existing subset relationship");
+      selfConceptComputed.setType("computed");
+      selfConceptAssoc.getQualifiers().add(selfConceptComputed);
+
+      Association selfInverseAssoc = new Association(selfConceptAssoc);
+      newSubsetEntry.getInverseAssociations().add(selfInverseAssoc);
+
       // index newSubsetEntry
       operationsService.index(newSubsetEntry, terminology.getIndexName(), Concept.class);
       // create new subset for parentSubset to add as child of existing subset
