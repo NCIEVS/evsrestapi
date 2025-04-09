@@ -18,6 +18,7 @@ import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.ElasticSearchService;
@@ -37,6 +38,7 @@ import java.util.stream.Collectors;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeType;
+import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.OperationOutcome;
@@ -45,6 +47,7 @@ import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.UriType;
 import org.hl7.fhir.r4.model.ValueSet;
+import org.hl7.fhir.r4.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionContainsComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionParameterComponent;
@@ -132,9 +135,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
       //      @OperationParam(name = "date") final DateTimeType date,
       @OperationParam(name = "offset") final IntegerType offset,
       @OperationParam(name = "count") final IntegerType count,
-      //      @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
+      @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
       //      @OperationParam(name = "designation") final StringType designation,
-      //      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
+      //	  @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
       @OperationParam(name = "activeOnly") final BooleanType activeOnly
       //      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
       //      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
@@ -163,7 +166,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
             "context",
             "contextDirection",
             "date",
-            "includeDesignations",
             "designation",
             "includeDefinition",
             "excludeNested",
@@ -193,6 +195,19 @@ public class ValueSetProviderR4 implements IResourceProvider {
             OperationOutcome.IssueType.EXCEPTION,
             500);
       }
+
+      // If properties are indicated, retrieve the concept with all potentially
+      // needed info
+      IncludeParam includeParam = new IncludeParam("minimal");
+      List<String> includeList = new ArrayList<>();
+
+      if (includeDesignations != null && includeDesignations.getValue().booleanValue() == true) {
+        includeList.add("synonyms");
+      } else {
+        includeList.add("minimal");
+      }
+      includeParam = new IncludeParam(String.join(",", includeList));
+
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
       if (url.getValue().contains("?fhir_vs=")) {
@@ -210,7 +225,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
                   .getConcept(
                       assn.getRelatedCode(),
                       termUtils.getIndexedTerminology(vs.getTitle(), esQueryService),
-                      new IncludeParam("minimal"))
+                      includeParam)
                   .orElse(null);
           if (member != null) {
             subsetMembers.add(member);
@@ -226,6 +241,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
         sc.setType("contains");
         sc.setTerminology(
             terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
+        if (includeList != null && includeList.size() >= 1) {
+          sc.setInclude(String.join(",", includeList));
+        }
         subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();
       }
       final ValueSetExpansionComponent vsExpansion = new ValueSetExpansionComponent();
@@ -252,6 +270,21 @@ public class ValueSetProviderR4 implements IResourceProvider {
           vsParameter.setName("version");
           vsParameter.setValue(version);
           vsExpansion.addParameter(vsParameter);
+
+          // Add synonyms to the contains component if they were requested
+          if (includeDesignations != null
+              && includeDesignations.booleanValue()
+              && subset.getSynonyms() != null) {
+            for (Synonym term : subset.getSynonyms()) {
+              ConceptReferenceDesignationComponent designation =
+                  new ConceptReferenceDesignationComponent()
+                      .setLanguage("en")
+                      .setUse(new Coding(term.getUri(), term.getTermType(), term.getName()))
+                      .setValue(term.getName());
+
+              vsContains.addDesignation(designation);
+            }
+          }
         }
       }
       vs.setExpansion(vsExpansion);
@@ -323,9 +356,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
       //      @OperationParam(name = "date") final DateTimeType date,
       @ca.uhn.fhir.rest.annotation.Offset final Integer offset,
       @ca.uhn.fhir.rest.annotation.Count final Integer count,
-      //      @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
+      @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
       //      @OperationParam(name = "designation") final StringType designation,
-      //      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
+      //	  @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
       @OperationParam(name = "activeOnly") final BooleanType activeOnly
       //      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
       //      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
@@ -352,7 +385,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
             "context",
             "contextDirection",
             "date",
-            "includeDesignations",
             "designation",
             "includeDefinition",
             "excludeNested",
@@ -381,6 +413,19 @@ public class ValueSetProviderR4 implements IResourceProvider {
             OperationOutcome.IssueType.EXCEPTION,
             500);
       }
+
+      // If properties are indicated, retrieve the concept with all potentially
+      // needed info
+      IncludeParam includeParam = new IncludeParam("minimal");
+      List<String> includeList = new ArrayList<>();
+
+      if (includeDesignations != null && includeDesignations.getValue().booleanValue() == true) {
+        includeList.add("synonyms");
+      } else {
+        includeList.add("minimal");
+      }
+      includeParam = new IncludeParam(String.join(",", includeList));
+
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
 
@@ -399,7 +444,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
                   .getConcept(
                       assn.getRelatedCode(),
                       termUtils.getIndexedTerminology(vs.getTitle(), esQueryService),
-                      new IncludeParam("minimal"))
+                      includeParam)
                   .orElse(null);
           if (member != null) {
             subsetMembers.add(member);
@@ -415,6 +460,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
         sc.setType("contains");
         sc.setTerminology(
             terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
+        if (includeList != null && includeList.size() >= 1) {
+          sc.setInclude(String.join(",", includeList));
+        }
         subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();
       }
       final ValueSetExpansionComponent vsExpansion = new ValueSetExpansionComponent();
@@ -441,6 +489,21 @@ public class ValueSetProviderR4 implements IResourceProvider {
           vsParameter.setName("version");
           vsParameter.setValue(version);
           vsExpansion.addParameter(vsParameter);
+
+          // Add synonyms to the contains component if they were requested
+          if (includeDesignations != null
+              && includeDesignations.booleanValue()
+              && subset.getSynonyms() != null) {
+            for (Synonym term : subset.getSynonyms()) {
+              ConceptReferenceDesignationComponent designation =
+                  new ConceptReferenceDesignationComponent()
+                      .setLanguage("en")
+                      .setUse(new Coding(term.getUri(), term.getTermType(), term.getName()))
+                      .setValue(term.getName());
+
+              vsContains.addDesignation(designation);
+            }
+          }
         }
       }
       vs.setExpansion(vsExpansion);
