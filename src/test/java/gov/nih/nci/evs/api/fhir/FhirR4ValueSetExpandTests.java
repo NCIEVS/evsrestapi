@@ -11,11 +11,13 @@ import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r4.model.ValueSet;
+import org.hl7.fhir.r4.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -152,7 +154,7 @@ public class FhirR4ValueSetExpandTests {
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
     String parameters = "?url=" + url + "&displayLanguage=notfound";
 
-    String messageNotSupported = "Input parameter 'displayLanguage' is not supported";
+    String messageNotSupported = "Input parameter 'displayLanguage' is not supported.";
     String errorCode = "not-supported";
 
     // Act
@@ -180,7 +182,7 @@ public class FhirR4ValueSetExpandTests {
         localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
     String parameters = "?url=" + url + "&displayLanguage=notfound";
 
-    String messageNotSupported = "Input parameter 'displayLanguage' is not supported";
+    String messageNotSupported = "Input parameter 'displayLanguage' is not supported.";
     String errorCode = "not-supported";
 
     // Act
@@ -326,5 +328,118 @@ public class FhirR4ValueSetExpandTests {
                 .collect(Collectors.toList())
                 .size()
             == disciplineStys.size());
+  }
+
+  /**
+   * Test value set expand instance subset with designations.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandInstanceSubsetWithDesignations() throws Exception {
+    // Arrange
+    String content;
+    String activeID = "ncit_c54459";
+    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
+    String endpoint =
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
+    String parameters = "?url=" + url + "&includeDesignations=true";
+
+    String displayString = "Schedule I Substance";
+    String activeCode = "C48672";
+    String expectedDesignation = "Schedule I Controlled Substance";
+    String expectedTty = "SY";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertTrue(valueSet.hasExpansion());
+    assertEquals(
+        displayString,
+        valueSet.getExpansion().getContains().stream()
+            .filter(comp -> comp.getCode().equals(activeCode))
+            .collect(Collectors.toList())
+            .get(0)
+            .getDisplay());
+
+    Optional<ConceptReferenceDesignationComponent> actualDesignationOptional =
+        valueSet.getExpansion().getContains().stream()
+            .filter(contains -> contains.getCode().equals(activeCode))
+            .findFirst()
+            .flatMap(
+                contains ->
+                    contains.getDesignation().stream()
+                        .filter(
+                            designation ->
+                                designation.getValue().equals(expectedDesignation)
+                                    && designation.getLanguage().equals("en"))
+                        .findFirst());
+
+    assertTrue(actualDesignationOptional.isPresent());
+
+    actualDesignationOptional.ifPresent(
+        actualDesignation -> {
+          assertEquals(expectedDesignation, actualDesignation.getValue());
+          assertEquals("en", actualDesignation.getLanguage());
+          assertEquals(expectedTty, actualDesignation.getUse().getCode());
+        });
+  }
+
+  /**
+   * Test value set expand implicit subset with designations.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandImplicitSubsetWithDesignations() throws Exception {
+    // Arrange
+    String content;
+    String activeID = "ncit_c54459";
+    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String parameters = "?url=" + url + "&includeDesignations=true";
+
+    String displayString = "Schedule I Substance";
+    String activeCode = "C48672";
+    String expectedDesignation = "Schedule I Controlled Substance";
+    String expectedTty = "SY";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertTrue(valueSet.hasExpansion());
+    assertEquals(
+        displayString,
+        valueSet.getExpansion().getContains().stream()
+            .filter(comp -> comp.getCode().equals(activeCode))
+            .collect(Collectors.toList())
+            .get(0)
+            .getDisplay());
+
+    Optional<ConceptReferenceDesignationComponent> actualDesignationOptional =
+        valueSet.getExpansion().getContains().stream()
+            .filter(contains -> contains.getCode().equals(activeCode))
+            .findFirst()
+            .flatMap(
+                contains ->
+                    contains.getDesignation().stream()
+                        .filter(
+                            designation ->
+                                designation.getValue().equals(expectedDesignation)
+                                    && designation.getLanguage().equals("en"))
+                        .findFirst());
+
+    assertTrue(actualDesignationOptional.isPresent());
+
+    actualDesignationOptional.ifPresent(
+        actualDesignation -> {
+          assertEquals(expectedDesignation, actualDesignation.getValue());
+          assertEquals("en", actualDesignation.getLanguage());
+          assertEquals(expectedTty, actualDesignation.getUse().getCode());
+        });
   }
 }
