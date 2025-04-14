@@ -8,7 +8,7 @@ Run the following command to build the Jena image:
 
 ```bash
 cd docker/fuseki
-docker build -t evsrestapi/fuseki:5.1.0  .
+docker build -t evsrestapi/fuseki:5.3.0  .
 ```
 
 ### Running a Jena/Fuseki Container 
@@ -18,7 +18,7 @@ Note: you need the mount path to a local directory ($dir) of your choice to pers
 
 ```bash
 dir=c:/Users/carlsenbr/eclipse-workspace/data/fuseki
-docker run -d --name=jena_evs --rm -p "3030:3030" -v "$dir":/opt/fuseki/run/databases evsrestapi/fuseki:5.1.0
+docker run -d --name=jena_evs --rm -p "3030:3030" -v "$dir":/opt/fuseki/run/databases evsrestapi/fuseki:5.3.0
 ```
 
 ### Running a sparql query (assumes jena/fuseki running on localhost and curl and jq are installed)
