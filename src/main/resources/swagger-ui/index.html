@@ -19,7 +19,15 @@
 				th:text="${SERVER_NAME}"></span>
 		</h1>
 	</div>
+	<div class="banner2" style="border-bottom: none;">
+		<div>
+			API documentation for interacting with FHIR endpoints. To learn more
+			about how to interact with this api, see the <a href=\"https://github.com/NCIEVS/evsrestapi-client-SDK\">Github
+				evsrestapi-client-SDK project.</a>
+		</div>
+	</div>
 	<div class="banner2">
+	
 		<div>
 			<div class="banner2_key">FHIR Server Base URL</div>
 			<div class="banner2_value">
@@ -37,6 +45,19 @@
 			<div class="banner2_value">[[${FHIR_VERSION}]]
 				([[${FHIR_VERSION_CODENAME}]])</div>
 		</div>
+		<div>
+			<div class="banner2_key">Terms of service</div>
+			<div class="banner2_value">
+			<a href="https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/ThesaurusTermsofUse.htm" >NCI Thesaurus Terms of Use</a>
+			</div>
+		</div>
+		<div>
+			<div class="banner2_key">Contact</div>
+			<div class="banner2_value">
+				<a href="mailto:NCIAppSupport@nih.gov">NCI EVS</a>
+			</div>
+		</div>
+
 	</div>
 	<div class="bannerCopyright" th:if="${COPYRIGHT_HTML} != null"
 		th:utext="${COPYRIGHT_HTML}"></div>

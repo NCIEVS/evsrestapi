@@ -686,7 +686,14 @@ public class OpenApiInterceptorR5 {
 
       final Tag resourceTag = new Tag();
       resourceTag.setName(resourceType);
-      resourceTag.setDescription("The " + resourceType + " FHIR resource type");
+      resourceTag.setDescription(
+          "The "
+              + resourceType
+              + " FHIR resource type (<a target=\"_blank\" href=\"https://hl7.org/fhir/R5/"
+              + resourceType
+              + ".html\">https://hl7.org/fhir/R5/"
+              + resourceType
+              + ".html</a>)");
       openApi.addTagsItem(resourceTag);
 
       // Instance Read
@@ -694,13 +701,7 @@ public class OpenApiInterceptorR5 {
         final Operation operation =
             getPathItem(paths, "/" + resourceType + "/{id}", PathItem.HttpMethod.GET);
         operation.addTagsItem(resourceType);
-        operation.setSummary(
-            "Get "
-                + unCamelCase(resourceType)
-                + " by ID. For more information see the R5 spec for this resource at"
-                + " https://hl7.org/fhir/R5/"
-                + resourceType
-                + ".html");
+        operation.setSummary("Get " + unCamelCase(resourceType) + " by ID. ");
         addResourceIdParameter(operation);
         addFhirResourceResponse(ctx, openApi, operation, null);
       }
@@ -837,14 +838,8 @@ public class OpenApiInterceptorR5 {
       final String resourceType,
       final CapabilityStatementRestResourceComponent nextResource) {
     operation.addTagsItem(resourceType);
-    operation.setDescription("This is a search type");
-    operation.setSummary(
-        "Search for "
-            + unCamelCase(resourceType)
-            + " instances. For more information see the R5 spec for this resource at"
-            + " https://hl7.org/fhir/R5/"
-            + resourceType
-            + ".html");
+    //    operation.setDescription("This is a search type");
+    operation.setSummary("Search for " + unCamelCase(resourceType) + " instances. ");
     addFhirResourceResponse(ctx, openApi, operation, null);
 
     for (final CapabilityStatementRestResourceSearchParamComponent nextSearchParam :
@@ -977,11 +972,17 @@ public class OpenApiInterceptorR5 {
                     PathItem.HttpMethod.GET);
             populateOperation(
                 theFhirContext, theOpenApi, theResourceType, operationDefinition, operation, true);
-            operation.setSummary(operationDefinition.getCode());
             operation.setSummary(
                 unCamelCase(theResourceType)
                     + " operation to perform "
                     + operationDefinition.getCode());
+            final String url =
+                "https://hl7.org/fhir/R5/"
+                    + theResourceType
+                    + "-operation-"
+                    + operationDefinition.getCode()
+                    + ".html";
+            operation.setDescription("See [" + url + "](" + url + ")");
           }
           if (operationDefinition.getInstance()) {
             final Operation operation =
@@ -993,11 +994,17 @@ public class OpenApiInterceptorR5 {
             // addAuthParameter(operation);
             populateOperation(
                 theFhirContext, theOpenApi, theResourceType, operationDefinition, operation, true);
-            operation.setSummary(operationDefinition.getCode());
             operation.setSummary(
                 unCamelCase(theResourceType)
                     + " operation to perform "
                     + operationDefinition.getCode());
+            final String url =
+                "https://hl7.org/fhir/R5/"
+                    + theResourceType
+                    + "-operation-"
+                    + operationDefinition.getCode()
+                    + ".html";
+            operation.setDescription("See [" + url + "](" + url + ")");
           }
         } else {
           if (operationDefinition.getSystem()) {
@@ -1006,7 +1013,6 @@ public class OpenApiInterceptorR5 {
                     thePaths, "/$" + operationDefinition.getCode(), PathItem.HttpMethod.GET);
             populateOperation(
                 theFhirContext, theOpenApi, null, operationDefinition, operation, true);
-            operation.setSummary(operationDefinition.getCode());
             operation.setSummary(
                 unCamelCase(theResourceType)
                     + " operation to perform "
