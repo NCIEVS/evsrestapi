@@ -3,16 +3,17 @@ package gov.nih.nci.evs.api.fhir.R4;
 import static java.lang.String.format;
 
 import ca.uhn.fhir.rest.param.NumberParam;
+import gov.nih.nci.evs.api.controller.StaticContextAccessor;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
@@ -76,86 +77,55 @@ public final class FhirUtilityR4 {
   }
 
   /**
-   * Generate publishers.
+   * Generate publishers from the terminology metadata.
    *
    * @return the hash map
    */
   private static HashMap<String, String> generatePublishers() {
-    final HashMap<String, String> publish = new HashMap<>();
-    publish.put(
-        "mdr",
-        "MedDRA Maintenance and Support Services Organization (MedDRA MSSO); Mr. Patrick Revelle;"
-            + " MSSO Director");
-    publish.put("umlssemnet", "National Library of Medicine");
-    publish.put("go", "GO Consortium");
-    publish.put("icd10cm", "NCHS");
-    publish.put("icd10", "World Health Organization");
-    publish.put("hgnc", "HUGO Gene Nomenclature Committee");
-    publish.put("duo", "Data Use Ontology");
-    publish.put("obi", "Ontology for Biomedical Investigations");
-    publish.put("obib", "Ontology for Biobanking");
-    publish.put("ndfrt", "Veterans Health Administration");
-    publish.put("snomedct_us", "National Library of Medicine");
-    publish.put("ctcae5", "NCI");
-    publish.put("lnc", "LOINC and Health Data Standards, Regenstrief Institute, Inc.");
-    publish.put("ncit", "NCI");
-    publish.put("icd9cm", "NCHS");
-    publish.put("radlex", "RSNA (Radiological Society of North America)");
-    publish.put("canmed", "National Cancer Institute Enterprise Vocabulary Services");
-    publish.put("medrt", "National Library of Medicine");
-    publish.put("chebi", "Open Biomedical Ontologies - European Bioinformatics Institute");
-    publish.put("ncim", "National Cancer Institute Enterprise Vocabulary Services");
-    publish.put("pdq", "National Cancer Institute");
-    publish.put("ma", "The Jackson Laboratory");
-    publish.put("hl7v30", "Health Level Seven International");
-    publish.put("mged", "National Cancer Institute");
-    publish.put("npo", "National Cancer Institute");
-    publish.put("ma", "National Cancer Institute");
-    publish.put("zfa", "National Cancer Institute");
+    final HashMap<String, String> map = new HashMap<>();
+    List<Terminology> terminologies;
+    try {
+      ElasticQueryService esQueryService = StaticContextAccessor.getBean(ElasticQueryService.class);
+      TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
 
-    return publish;
+      terminologies = termUtils.getIndexedTerminologies(esQueryService);
+
+      terminologies.forEach(
+          terminology -> {
+            if (terminology.getMetadata().getFhirPublisher() != null) {
+              map.put(terminology.getTerminology(), terminology.getMetadata().getFhirPublisher());
+            }
+          });
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
+    return map;
   }
 
   /**
-   * Generate uris.
+   * Generate uris from the terminology metadata.
    *
    * @return the hash map
    */
   private static HashMap<String, String> generateUris() {
-    final HashMap<String, String> uri = new HashMap<>();
-    uri.put("mdr", "https://www.meddra.org");
-    uri.put("umlssemnet", "http://www.nlm.nih.gov/research/umls/umlssemnet.owl");
-    uri.put("go", "http://purl.obolibrary.org/obo/go.owl");
-    uri.put("icd10", "http://hl7.org/fhir/sid/icd-10");
-    uri.put("icd10cm", "http://hl7.org/fhir/sid/icd-10-cm");
-    uri.put("hgnc", "http://www.genenames.org");
-    uri.put("duo", "https://obofoundry.org/ontology/duo.html");
-    uri.put("obi", "https://obi-ontology.org/");
-    uri.put("obib", "https://obofoundry.org/ontology/obib.html");
-    uri.put("ndfrt", "https://bioportal.bioontology.org/ontologies/NDF-RT");
-    uri.put("snomedct_us", "http://snomed.info/sct");
-    uri.put("ctcae5", "http://hl7.org/fhir/us/ctcae");
-    uri.put("lnc", "http://loinc.org");
-    uri.put("ncit", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    uri.put("icd9cm", "http://terminology.hl7.org/CodeSystem/icd9cm");
-    uri.put("radlex", "http://radlex.org/");
-    uri.put("canmed", "http://seer.nci.nih.gov/CanMED.owl");
-    uri.put("medrt", "http://va.gov/terminology/medrt");
-    uri.put("chebi", "http://www.ebi.ac.uk/chebi/");
-    uri.put("ncim", "https://ncim.nci.nih.gov/ncimbrowser/");
-    uri.put("pdq", "https://www.cancer.gov/publications/pdq");
-    uri.put(
-        "hl7v30",
-        "https://www.nlm.nih.gov/research/umls/sourcereleasedocs/current/HL7V3.0/index.html");
-    uri.put("mged", "http://mged.sourceforge.net/ontologies/MGEDOntology.owl");
-    uri.put("npo", "http://purl.bioontology.org/ontology/npo");
-    uri.put("ma", "http://purl.obolibrary.org/obo/emap.owl");
-    uri.put("zfa", "http://purl.obolibrary.org/obo/zfa.owl");
-    // Put reverse entries isnomedn
-    for (final Map.Entry<String, String> entry : new HashSet<>(uri.entrySet())) {
-      uri.put(entry.getValue(), entry.getKey());
+    final HashMap<String, String> map = new HashMap<>();
+    List<Terminology> terminologies;
+    try {
+      ElasticQueryService esQueryService = StaticContextAccessor.getBean(ElasticQueryService.class);
+      TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
+
+      terminologies = termUtils.getIndexedTerminologies(esQueryService);
+      terminologies.forEach(
+          terminology -> {
+            if (terminology.getMetadata().getFhirUri() != null) {
+              map.put(terminology.getTerminology(), terminology.getMetadata().getFhirUri());
+            }
+          });
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
-    return uri;
+
+    return map;
   }
 
   /**
@@ -165,7 +135,9 @@ public final class FhirUtilityR4 {
    * @return the publisher
    */
   private static String getPublisher(final String terminology) {
-    return publishers.get(terminology);
+    return publishers.containsKey(terminology)
+        ? publishers.get(terminology)
+        : "publisher not specified";
   }
 
   /**
@@ -175,7 +147,9 @@ public final class FhirUtilityR4 {
    * @return the uri
    */
   private static String getUri(final String terminology) {
-    return uris.get(terminology.toLowerCase());
+    return uris.containsKey(terminology.toLowerCase())
+        ? uris.get(terminology.toLowerCase())
+        : "uri not specified";
   }
 
   /**
