@@ -162,7 +162,7 @@ public class OpenApiInterceptorR4 {
   private boolean myUseResourcePages;
 
   /** The ignore parameters. */
-  private Set<Triple> ignoreParameter = new HashSet<>();
+  private Set<Triple<String, String, String>> ignoreParameter = new HashSet<>();
 
   /** Constructor. */
   public OpenApiInterceptorR4() {
@@ -682,7 +682,7 @@ public class OpenApiInterceptorR4 {
       resourceTag.setDescription(
           "The "
               + resourceType
-              + " FHIR resource type (<a href=\"https://hl7.org/fhir/R4/"
+              + " FHIR resource type (see <a target=\"_blank\" href=\"https://hl7.org/fhir/R4/"
               + resourceType
               + ".html\">https://hl7.org/fhir/R4/"
               + resourceType
@@ -833,7 +833,7 @@ public class OpenApiInterceptorR4 {
       final String resourceType,
       final CapabilityStatement.CapabilityStatementRestResourceComponent nextResource) {
     operation.addTagsItem(resourceType);
-    operation.setDescription("This is a search type");
+    //    operation.setDescription("This is a search type");
     operation.setSummary("Search for " + unCamelCase(resourceType) + " instances.");
     addFhirResourceResponse(ctx, openApi, operation, null);
 
@@ -969,12 +969,18 @@ public class OpenApiInterceptorR4 {
                     PathItem.HttpMethod.GET);
             populateOperation(
                 theFhirContext, theOpenApi, theResourceType, operationDefinition, operation, true);
-            operation.setSummary(operationDefinition.getCode());
             operation.setSummary(
                 unCamelCase(theResourceType)
                     + " operation to perform "
                     + operationDefinition.getCode()
                     + ". ");
+            final String url =
+                "https://hl7.org/fhir/R4/"
+                    + theResourceType
+                    + "-operation-"
+                    + operationDefinition.getCode()
+                    + ".html";
+            operation.setDescription("See [" + url + "](" + url + ")");
           }
           if (operationDefinition.getInstance()) {
             final Operation operation =
@@ -986,12 +992,18 @@ public class OpenApiInterceptorR4 {
             // addAuthParameter(operation);
             populateOperation(
                 theFhirContext, theOpenApi, theResourceType, operationDefinition, operation, true);
-            operation.setSummary(operationDefinition.getCode());
             operation.setSummary(
                 unCamelCase(theResourceType)
                     + " operation to perform "
                     + operationDefinition.getCode()
                     + ". ");
+            final String url =
+                "https://hl7.org/fhir/R4/"
+                    + theResourceType
+                    + "-operation-"
+                    + operationDefinition.getCode()
+                    + ".html";
+            operation.setDescription("See [" + url + "](" + url + ")");
           }
         } else {
           if (operationDefinition.getSystem()) {
@@ -1000,7 +1012,6 @@ public class OpenApiInterceptorR4 {
                     thePaths, "/$" + operationDefinition.getCode(), PathItem.HttpMethod.GET);
             populateOperation(
                 theFhirContext, theOpenApi, null, operationDefinition, operation, true);
-            operation.setSummary(operationDefinition.getCode());
             operation.setSummary(
                 unCamelCase(theResourceType)
                     + " operation to perform "
