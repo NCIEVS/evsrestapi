@@ -48,10 +48,10 @@ public class FhirUtilityR5 {
   private static Logger logger = LoggerFactory.getLogger(FhirUtilityR5.class);
 
   /** The publishers. */
-  private static HashMap<String, String> publishers;
+  private static HashMap<String, String> publishers = generatePublishers();
 
   /** The uris. */
-  private static HashMap<String, String> uris;
+  private static HashMap<String, String> uris = generateUris();
 
   /** The unsupported params list for search. */
   private static final String[] unsupportedParams =
@@ -93,10 +93,12 @@ public class FhirUtilityR5 {
 
       terms.forEach(
           terminology -> {
-            uri.put(terminology.getTerminology(), terminology.getMetadata().getFhirUri());
+            if (terminology.getMetadata().getFhirUri() != null) {
+              uri.put(terminology.getTerminology(), terminology.getMetadata().getFhirUri());
+            }
           });
     } catch (Exception e) {
-      return uri;
+      throw new RuntimeException(e);
     }
 
     return uri;
@@ -118,10 +120,13 @@ public class FhirUtilityR5 {
 
       terms.forEach(
           terminology -> {
-            publish.put(terminology.getTerminology(), terminology.getMetadata().getFhirPublisher());
+            if (terminology.getMetadata().getFhirPublisher() != null) {
+              publish.put(
+                  terminology.getTerminology(), terminology.getMetadata().getFhirPublisher());
+            }
           });
     } catch (Exception e) {
-      return publish;
+      throw new RuntimeException(e);
     }
 
     return publish;
@@ -134,10 +139,9 @@ public class FhirUtilityR5 {
    * @return the publisher for a given terminology
    */
   private static String getPublisher(final String terminology) {
-    if (publishers == null) {
-      publishers = generatePublishers();
-    }
-    return publishers.get(terminology);
+    return publishers.containsKey(terminology)
+        ? publishers.get(terminology)
+        : "publisher not specified";
   }
 
   /**
@@ -147,10 +151,9 @@ public class FhirUtilityR5 {
    * @return the uri for a given terminology
    */
   private static String getUri(final String terminology) {
-    if (uris == null) {
-      uris = generateUris();
-    }
-    return uris.get(terminology.toLowerCase());
+    return uris.containsKey(terminology.toLowerCase())
+        ? uris.get(terminology.toLowerCase())
+        : "uri not specified";
   }
 
   /**

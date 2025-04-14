@@ -2,19 +2,12 @@ package gov.nih.nci.evs.api.fhir.R4;
 
 import static java.lang.String.format;
 
-import ca.uhn.fhir.rest.param.NumberParam;
-import gov.nih.nci.evs.api.controller.StaticContextAccessor;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.util.FHIRServerResponseException;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
+
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
@@ -39,6 +32,15 @@ import org.hl7.fhir.r4.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import ca.uhn.fhir.rest.param.NumberParam;
+import gov.nih.nci.evs.api.controller.StaticContextAccessor;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.util.FHIRServerResponseException;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
+import jakarta.servlet.http.HttpServletRequest;
+
 /** Utility for FHIR R4. */
 public final class FhirUtilityR4 {
 
@@ -47,10 +49,10 @@ public final class FhirUtilityR4 {
   private static Logger logger = LoggerFactory.getLogger(FhirUtilityR4.class);
 
   /** The publishers. */
-  private static HashMap<String, String> publishers;
+  private static HashMap<String, String> publishers = generatePublishers();
 
   /** The uris. */
-  private static HashMap<String, String> uris;
+  private static HashMap<String, String> uris = generateUris();
 
   /** The unsupported params list for search. */
   private static final String[] unsupportedParams =
@@ -82,23 +84,24 @@ public final class FhirUtilityR4 {
    * @return the hash map
    */
   private static HashMap<String, String> generatePublishers() {
-    final HashMap<String, String> publish = new HashMap<>();
-    List<Terminology> terms;
+    final HashMap<String, String> map = new HashMap<>();
+    List<Terminology> terminologies;
     try {
       ElasticQueryService esQueryService = StaticContextAccessor.getBean(ElasticQueryService.class);
       TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
 
-      terms = termUtils.getIndexedTerminologies(esQueryService);
+      terminologies = termUtils.getIndexedTerminologies(esQueryService);
 
-      terms.forEach(
+      terminologies.forEach(
           terminology -> {
-            publish.put(terminology.getTerminology(), terminology.getMetadata().getFhirPublisher());
+            if (terminology.getMetadata().getFhirPublisher() != null) {
+              map.put(terminology.getTerminology(), terminology.getMetadata().getFhirPublisher());
+            }
           });
     } catch (Exception e) {
-      return publish;
+      throw new RuntimeException(e);
     }
-
-    return publish;
+    return map;
   }
 
   /**
@@ -107,23 +110,24 @@ public final class FhirUtilityR4 {
    * @return the hash map
    */
   private static HashMap<String, String> generateUris() {
-    final HashMap<String, String> uri = new HashMap<>();
-    List<Terminology> terms;
+    final HashMap<String, String> map = new HashMap<>();
+    List<Terminology> terminologies;
     try {
       ElasticQueryService esQueryService = StaticContextAccessor.getBean(ElasticQueryService.class);
       TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
 
-      terms = termUtils.getIndexedTerminologies(esQueryService);
-
-      terms.forEach(
+      terminologies = termUtils.getIndexedTerminologies(esQueryService);
+      terminologies.forEach(
           terminology -> {
-            uri.put(terminology.getTerminology(), terminology.getMetadata().getFhirUri());
+            if (terminology.getMetadata().getFhirUri() != null) {
+              map.put(terminology.getTerminology(), terminology.getMetadata().getFhirUri());
+            }
           });
     } catch (Exception e) {
-      return uri;
+      throw new RuntimeException(e);
     }
 
-    return uri;
+    return map;
   }
 
   /**
@@ -133,10 +137,9 @@ public final class FhirUtilityR4 {
    * @return the publisher
    */
   private static String getPublisher(final String terminology) {
-    if (publishers == null) {
-      publishers = generatePublishers();
-    }
-    return publishers.get(terminology);
+    return publishers.containsKey(terminology)
+        ? publishers.get(terminology)
+        : "publisher not specified";
   }
 
   /**
@@ -146,10 +149,9 @@ public final class FhirUtilityR4 {
    * @return the uri
    */
   private static String getUri(final String terminology) {
-    if (uris == null) {
-      uris = generateUris();
-    }
-    return uris.get(terminology.toLowerCase());
+    return uris.containsKey(terminology.toLowerCase())
+        ? uris.get(terminology.toLowerCase())
+        : "uri not specified";
   }
 
   /**

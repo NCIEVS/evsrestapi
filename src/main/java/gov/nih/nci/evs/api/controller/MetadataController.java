@@ -164,6 +164,8 @@ public class MetadataController extends BaseController {
           meta.setSynonymSubSource(null);
           meta.setDefinitionSource(null);
           meta.setDefinition(null);
+          meta.setFhirPublisher(null);
+          meta.setFhirUri(null);
           meta.setMapRelation(null);
           meta.setMap(null);
           meta.setMapTarget(null);
