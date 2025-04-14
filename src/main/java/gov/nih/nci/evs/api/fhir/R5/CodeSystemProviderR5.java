@@ -108,6 +108,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       throws Exception {
     try {
       FhirUtilityR5.notSupportedSearchParams(request);
+      FhirUtilityR5.mutuallyExclusive("url", url, "system", system);
+
       // Get the indexed terms
       final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
       final List<CodeSystem> list = new ArrayList<>();
@@ -206,8 +208,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR5.mutuallyRequired(code, "code", system, "system");
-      FhirUtilityR5.mutuallyExclusive(code, "code", coding, "coding");
+      FhirUtilityR5.mutuallyRequired("code", code, "system", system);
+      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       //      FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
       //      FhirUtilityR5.notSupported(property, "property");
       for (final String param : new String[] {"displayLanguage", "property"}) {
@@ -304,8 +306,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR5.mutuallyRequired(code, "code", system, "system");
-      FhirUtilityR5.mutuallyExclusive(code, "code", coding, "coding");
+      FhirUtilityR5.mutuallyRequired("code", code, "system", system);
+      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       for (final String param : new String[] {"displayLanguage", "property"}) {
         FhirUtilityR5.notSupported(request, param);
       }
@@ -404,7 +406,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR5.mutuallyRequired(display, "display", code, "code");
+      FhirUtilityR5.mutuallyRequired("display", display, "code", code);
       for (final String param :
           new String[] {"codeSystem", "coding", "date", "abstract", "displayLanguage"}) {
         FhirUtilityR5.notSupported(request, param);
@@ -511,7 +513,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR5.mutuallyRequired(display, "display", code, "code");
+      FhirUtilityR5.mutuallyRequired("display", display, "code", code);
       for (final String param :
           new String[] {"codeSystem", "coding", "date", "abstract", "displayLanguage"}) {
         FhirUtilityR5.notSupported(request, param);
@@ -608,10 +610,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR5.mutuallyRequired(codeA, "codeA", system, "system");
-      FhirUtilityR5.mutuallyRequired(codeB, "codeB", system, "system");
-      FhirUtilityR5.mutuallyExclusive(codingB, "codingB", codeB, "codeB");
-      FhirUtilityR5.mutuallyExclusive(codingA, "codingA", codeA, "codeA");
+      FhirUtilityR5.mutuallyRequired("codeA", codeA, "system", system);
+      FhirUtilityR5.mutuallyRequired("codeB", codeB, "system", system);
+      FhirUtilityR5.mutuallyExclusive("codingB", codingB, "codeB", codeB);
+      FhirUtilityR5.mutuallyExclusive("codingA", codingA, "codeA", codeA);
       final List<CodeSystem> cs = findPossibleCodeSystems(null, null, system, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
@@ -702,10 +704,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR5.mutuallyRequired(codeA, "codeA", system, "system");
-      FhirUtilityR5.mutuallyRequired(codeB, "codeB", system, "system");
-      FhirUtilityR5.mutuallyExclusive(codingB, "codingB", codeB, "codeB");
-      FhirUtilityR5.mutuallyExclusive(codingA, "codingA", codeA, "codeA");
+      FhirUtilityR5.mutuallyRequired("codeA", codeA, "system", system);
+      FhirUtilityR5.mutuallyRequired("codeB", codeB, "system", system);
+      FhirUtilityR5.mutuallyExclusive("codingB", codingB, "codeB", codeB);
+      FhirUtilityR5.mutuallyExclusive("codingA", codingA, "codeA", codeA);
       final List<CodeSystem> cs = findPossibleCodeSystems(null, null, system, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {

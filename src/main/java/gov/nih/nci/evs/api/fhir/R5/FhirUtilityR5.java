@@ -2,20 +2,13 @@ package gov.nih.nci.evs.api.fhir.R5;
 
 import static java.lang.String.format;
 
-import ca.uhn.fhir.rest.param.NumberParam;
-import gov.nih.nci.evs.api.controller.StaticContextAccessor;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.util.FHIRServerResponseException;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
-import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+
 import org.hl7.fhir.r5.model.BooleanType;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.Bundle.BundleEntryComponent;
@@ -40,6 +33,15 @@ import org.hl7.fhir.r5.model.UriType;
 import org.hl7.fhir.r5.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import ca.uhn.fhir.rest.param.NumberParam;
+import gov.nih.nci.evs.api.controller.StaticContextAccessor;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.util.FHIRServerResponseException;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
+import jakarta.servlet.http.HttpServletRequest;
 
 /** Utility for FHIR R5. */
 public class FhirUtilityR5 {
@@ -300,28 +302,28 @@ public class FhirUtilityR5 {
   /**
    * Check if the required object is valid.
    *
-   * @param obj the required object
-   * @param objName the string name of the object
+   * @param param the required object
+   * @param paramName the string name of the object
    */
-  public static void required(final Object obj, final String objName) {
-    if (obj == null) {
-      throw exception(format("Must use '%s' parameter.", objName), IssueType.INVARIANT, 400);
+  public static void required(final String paramName, final Object param) {
+    if (param == null) {
+      throw exception(format("Must use '%s' parameter.", paramName), IssueType.INVARIANT, 400);
     }
   }
 
   /**
    * Check if the object is mutually exclusive.
    *
-   * @param obj1 first object
-   * @param obj1Name first object string name
-   * @param obj2 second object
-   * @param obj2Name second object string name
+   * @param param1Name first object string name
+   * @param param1 first object
+   * @param param2Name second object string name
+   * @param param2 second object
    */
   public static void mutuallyExclusive(
-      final Object obj1, final String obj1Name, final Object obj2, final String obj2Name) {
-    if (obj1 != null && obj2 != null) {
+      final String param1Name, final Object param1, final String param2Name, final Object param2) {
+    if (param1 != null && param2 != null) {
       throw exception(
-          format("Must use one of '%s' or '%s' parameters", obj1Name, obj2Name),
+          format("Must use one of '%s' or '%s' parameters", param1Name, param2Name),
           IssueType.INVARIANT,
           400);
     }
@@ -331,26 +333,26 @@ public class FhirUtilityR5 {
    * Check if the object is not supported.
    *
    * @param obj the object
-   * @param objName the string name of the object
+   * @param paramName the string name of the object
    */
-  public static void notSupported(final Object obj, final String objName) {
-    notSupported(obj, objName, null);
+  public static void notSupported(final String paramName, final Object obj) {
+    notSupported(paramName, obj, null);
   }
 
   /**
    * Check if the object is not supported with additional detail param.
    *
    * @param obj the object
-   * @param objName the string name of the object
+   * @param paramName the string name of the object
    * @param additionalDetail additional information and details
    */
   public static void notSupported(
-      final Object obj, final String objName, final String additionalDetail) {
+      final String paramName, final Object obj, final String additionalDetail) {
     if (obj != null) {
       final String message =
           format(
               "Input parameter '%s' is not supported '%s'",
-              objName, (additionalDetail == null ? "." : format(" '%s'", additionalDetail)));
+              paramName, (additionalDetail == null ? "." : format(" '%s'", additionalDetail)));
       throw exception(message, IssueType.NOTSUPPORTED, 400);
     }
   }
@@ -398,80 +400,80 @@ public class FhirUtilityR5 {
   /**
    * Check we have at least one required object fopr 2 objects.
    *
-   * @param obj1 the first object
-   * @param obj1Name the first object name
-   * @param obj2 the second object
-   * @param obj2Name the second object name
+   * @param param1Name the first object name
+   * @param param1 the first object
+   * @param param2Name the second object name
+   * @param param2 the second object
    */
   public static void requireExactlyOneOf(
-      final Object obj1, final String obj1Name, final Object obj2, final String obj2Name) {
-    if (obj1 == null && obj2 == null) {
+      final String param1Name, final Object param1, final String param2Name, final Object param2) {
+    if (param1 == null && param2 == null) {
       throw exception(
-          format("Must supply one of '%s' or '%s' parameters.", obj1Name, obj2Name),
+          format("Must supply one of '%s' or '%s' parameters.", param1Name, param2Name),
           IssueType.INVARIANT,
           400);
     } else {
-      mutuallyExclusive(obj1, obj1Name, obj2, obj2Name);
+      mutuallyExclusive(param1Name, param1, param2Name, param2);
     }
   }
 
   /**
    * Check we have exactly one required object for 3 objects.
    *
-   * @param obj1 first object
-   * @param obj1Name first object name
-   * @param obj2 second object
-   * @param obj2Name second object name
-   * @param obj3 third object
-   * @param obj3Name third object name
+   * @param param1Name first object name
+   * @param param1 first object
+   * @param param2Name second object name
+   * @param param2 second object
+   * @param param3Name third object name
+   * @param param3 third object
    */
   public static void requireExactlyOneOf(
-      final Object obj1,
-      final String obj1Name,
-      final Object obj2,
-      final String obj2Name,
-      final Object obj3,
-      final String obj3Name) {
-    if (obj1 == null && obj2 == null && obj3 == null) {
+      final String param1Name,
+      final Object param1,
+      final String param2Name,
+      final Object param2,
+      final String param3Name,
+      final Object param3) {
+    if (param1 == null && param2 == null && param3 == null) {
       throw exception(
           format(
               "Must supply at least one of '%s', '%s', or '%s' parameters.",
-              obj1Name, obj2Name, obj3Name),
+              param1Name, param2Name, param3Name),
           IssueType.INVARIANT,
           400);
     } else {
-      mutuallyExclusive(obj1, obj1Name, obj2, obj2Name);
-      mutuallyExclusive(obj1, obj1Name, obj3, obj3Name);
-      mutuallyExclusive(obj2, obj2Name, obj3, obj3Name);
+      mutuallyExclusive(param1Name, param1, param2Name, param2);
+      mutuallyExclusive(param1Name, param1, param3Name, param3);
+      mutuallyExclusive(param2Name, param2, param3Name, param3);
     }
   }
 
   /**
    * Check we have at least one required object for 4 objects.
    *
-   * @param obj1 first object
-   * @param obj1Name first object name
-   * @param obj2 second object
-   * @param obj2Name second object name
-   * @param obj3 third object
-   * @param obj3Name third object name
-   * @param obj4 fourth object
-   * @param obj4Name fourth object name
+   * @param param1 first object
+   * @param param1Name first object name
+   * @param param2 second object
+   * @param param2Name second object name
+   * @param param3 third object
+   * @param param3Name third object name
+   * @param param4 fourth object
+   * @param param4Name fourth object name
    */
   public static void requireAtLeastOneOf(
-      final Object obj1,
-      final String obj1Name,
-      final Object obj2,
-      final String obj2Name,
-      final Object obj3,
-      final String obj3Name,
-      final Object obj4,
-      final String obj4Name) {
-    if (obj1 == null && obj2 == null && obj3 == null && obj4 == null) {
+      final String param1Name,
+      final Object param1,
+      final String param2Name,
+      final Object param2,
+      final String param3Name,
+      final Object param3,
+      final String param4Name,
+      final Object param4) {
+    if (param1 == null && param2 == null && param3 == null && param4 == null) {
       throw exception(
           format(
               "Must supply at least one of '%s', '%s', '%s', or '%s' parameters.",
-              obj1Name, obj2Name, obj3Name, obj4Name),
+              param1Name, param2Name, param3Name, param4Name),
           IssueType.INVARIANT,
           400);
     }
@@ -480,18 +482,18 @@ public class FhirUtilityR5 {
   /**
    * Check we have both required fields for 2 objects.
    *
-   * @param obj1 first object
-   * @param obj1Name first object name
-   * @param obj2 second object
-   * @param obj2Name second object name
+   * @param param1Name first object name
+   * @param param1 first object
+   * @param param2Name second object name
+   * @param param2 second object
    */
   public static void mutuallyRequired(
-      final Object obj1, final String obj1Name, final Object obj2, final String obj2Name) {
-    if (obj1 != null && obj2 == null) {
+      final String param1Name, final Object param1, final String param2Name, final Object param2) {
+    if (param1 != null && param2 == null) {
       throw exception(
           format(
               "Input parameter '%s' can only be used in conjunction with parameter '%s'.",
-              obj1Name, obj2Name),
+              param1Name, param2Name),
           IssueType.INVARIANT,
           400);
     }
@@ -500,25 +502,25 @@ public class FhirUtilityR5 {
   /**
    * Check we have all required fields for 3 objects.
    *
-   * @param obj1 first object
-   * @param obj1Name first object name
-   * @param obj2 second object
-   * @param obj2Name second object name
-   * @param obj3 third object
-   * @param obj3Name third object name
+   * @param param1Name first object name
+   * @param param1 first object
+   * @param param2Name second object name
+   * @param param2 second object
+   * @param param3Name third object name
+   * @param param3 third object
    */
   public static void mutuallyRequired(
-      final Object obj1,
-      final String obj1Name,
-      final Object obj2,
-      final String obj2Name,
-      final Object obj3,
-      final String obj3Name) {
-    if (obj1 != null && obj2 == null && obj3 == null) {
+      final String param1Name,
+      final Object param1,
+      final String param2Name,
+      final Object param2,
+      final String param3Name,
+      final Object param3) {
+    if (param1 != null && param2 == null && param3 == null) {
       throw exception(
           format(
               "Use of input parameter '%s' only allowed if '%s' or '%s' is also present.",
-              obj1Name, obj2Name, obj3Name),
+              param1Name, param2Name, param3Name),
           IssueType.INVARIANT,
           400);
     }

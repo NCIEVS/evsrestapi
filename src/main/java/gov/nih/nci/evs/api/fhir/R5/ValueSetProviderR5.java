@@ -242,7 +242,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR5.required(url, "url");
+      FhirUtilityR5.required("url", url);
       for (final String param :
           new String[] {
             "valueSet",
@@ -606,10 +606,10 @@ public class ValueSetProviderR5 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR5.required(code, "code");
-      FhirUtilityR5.mutuallyRequired(code, "code", system, "system", url, "url");
-      FhirUtilityR5.mutuallyRequired(system, "system", systemVersion, "systemVersion");
-      FhirUtilityR5.mutuallyRequired(display, "display", code, "code");
+      FhirUtilityR5.required("code", code);
+      FhirUtilityR5.mutuallyRequired("code", code, "system", system, "url", url);
+      FhirUtilityR5.mutuallyRequired("system", system, "systemVersion", systemVersion);
+      FhirUtilityR5.mutuallyRequired("display", display, "code", code);
 
       // TODO: not sure that "version" should be in this list
       for (final String param :
@@ -728,8 +728,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
     try {
       FhirUtilityR5.requireAtLeastOneOf(
-          code, "code", system, "system", systemVersion, "systemVersion", url, "url");
-      FhirUtilityR5.mutuallyRequired(display, "display", code, "code");
+          "code", code, "system", system, "systemVersion", systemVersion, "url", url);
+      FhirUtilityR5.mutuallyRequired("display", display, "code", code);
 
       // TODO: not sure that "version" should be in this list
       for (final String param :

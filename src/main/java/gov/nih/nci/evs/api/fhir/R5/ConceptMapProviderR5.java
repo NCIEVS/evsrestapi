@@ -207,9 +207,9 @@ public class ConceptMapProviderR5 implements IResourceProvider {
     }
 
     try {
-      FhirUtilityR5.mutuallyRequired(sourceCode, "sourceCode", system, "system");
-      FhirUtilityR5.mutuallyRequired(targetCode, "targetCode", system, "system");
-      FhirUtilityR5.mutuallyExclusive(targetScope, "targetScope", targetSystem, "targetSystem");
+      FhirUtilityR5.mutuallyRequired("sourceCode", sourceCode, "system", system);
+      FhirUtilityR5.mutuallyRequired("targetCode", targetCode, "system", system);
+      FhirUtilityR5.mutuallyExclusive("targetScope", targetScope, "targetSystem", targetSystem);
       for (final String param :
           new String[] {
             "sourceCoding", "sourceCodableConcept", "targetCodableConcept", "dependency"
@@ -341,9 +341,9 @@ public class ConceptMapProviderR5 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR5.mutuallyRequired(sourceCode, "sourceCode", system, "system");
-      FhirUtilityR5.mutuallyRequired(targetCode, "targetCode", system, "system");
-      FhirUtilityR5.mutuallyExclusive(targetScope, "targetScope", targetSystem, "targetSystem");
+      FhirUtilityR5.mutuallyRequired("sourceCode", sourceCode, "system", system);
+      FhirUtilityR5.mutuallyRequired("targetCode", targetCode, "system", system);
+      FhirUtilityR5.mutuallyExclusive("targetScope", targetScope, "targetSystem", targetSystem);
       for (final String param :
           new String[] {
             "sourceCoding", "sourceCodableConcept", "targetCodableConcept", "dependency"

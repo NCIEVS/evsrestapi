@@ -149,9 +149,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
             "excludePostCoordinated",
             "displayLanguage",
             "exclude-system",
-            "system_version",
-            "check_system_version",
-            "force_system_version",
+            "system-version",
+            "check-system-version",
+            "force-system-version",
             "_count",
             "_offset"
           }) {
@@ -314,10 +314,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
             "excludeNotForUI",
             "excludePostCoordinated",
             "displayLanguage",
-            "exclude_system",
-            "system_version",
-            "check_system_version",
-            "force_system_version",
+            "exclude-system",
+            "system-version",
+            "check-system-version",
+            "force-system-version",
             "_count",
             "_offset"
           }) {

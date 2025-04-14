@@ -1,35 +1,10 @@
 package gov.nih.nci.evs.api.fhir.R4;
 
-import ca.uhn.fhir.jpa.model.util.JpaConstants;
-import ca.uhn.fhir.model.api.annotation.Description;
-import ca.uhn.fhir.rest.annotation.IdParam;
-import ca.uhn.fhir.rest.annotation.Operation;
-import ca.uhn.fhir.rest.annotation.OperationParam;
-import ca.uhn.fhir.rest.annotation.OptionalParam;
-import ca.uhn.fhir.rest.annotation.Read;
-import ca.uhn.fhir.rest.annotation.Search;
-import ca.uhn.fhir.rest.param.DateRangeParam;
-import ca.uhn.fhir.rest.param.NumberParam;
-import ca.uhn.fhir.rest.param.StringParam;
-import ca.uhn.fhir.rest.param.TokenParam;
-import ca.uhn.fhir.rest.server.IResourceProvider;
-import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
-import gov.nih.nci.evs.api.controller.ConceptController;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticOperationsService;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.ElasticSearchService;
-import gov.nih.nci.evs.api.util.FHIRServerResponseException;
-import gov.nih.nci.evs.api.util.FhirUtility;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.CodeType;
@@ -44,6 +19,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
+import ca.uhn.fhir.model.api.annotation.Description;
+import ca.uhn.fhir.rest.annotation.IdParam;
+import ca.uhn.fhir.rest.annotation.Operation;
+import ca.uhn.fhir.rest.annotation.OperationParam;
+import ca.uhn.fhir.rest.annotation.OptionalParam;
+import ca.uhn.fhir.rest.annotation.Read;
+import ca.uhn.fhir.rest.annotation.Search;
+import ca.uhn.fhir.rest.param.DateRangeParam;
+import ca.uhn.fhir.rest.param.NumberParam;
+import ca.uhn.fhir.rest.param.StringParam;
+import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.param.UriParam;
+import ca.uhn.fhir.rest.server.IResourceProvider;
+import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
+import gov.nih.nci.evs.api.controller.ConceptController;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.ElasticOperationsService;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.ElasticSearchService;
+import gov.nih.nci.evs.api.util.FHIRServerResponseException;
+import gov.nih.nci.evs.api.util.FhirUtility;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 
 /** FHIR R4 CodeSystem provider. */
 @Component
@@ -685,8 +688,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       final HttpServletRequest request,
       @OptionalParam(name = "_id") final TokenParam id,
       @OptionalParam(name = "date") final DateRangeParam date,
-      @OptionalParam(name = "url") final UriType url,
-      @OptionalParam(name = "system") final UriType system,
+      @OptionalParam(name = "url") final UriParam url,
+      @OptionalParam(name = "system") final UriParam system,
       @OptionalParam(name = "version") final StringParam version,
       @OptionalParam(name = "title") final StringParam title,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
@@ -697,6 +700,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       throws Exception {
     try {
       FhirUtilityR4.notSupportedSearchParams(request);
+      FhirUtilityR4.mutuallyExclusive("url", url, "system", system);
+
       final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
 
       final List<CodeSystem> list = new ArrayList<>();
