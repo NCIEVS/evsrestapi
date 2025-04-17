@@ -177,6 +177,40 @@ public class MetadataControllerTests {
   }
 
   /**
+   * Test get metadata overview.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetOverviewMetadata() throws Exception {
+
+    String url = baseUrl + "/ncit";
+    log.info("Testing url - " + url);
+
+    MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    Map<String, List<Concept>> metadata =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<Map<String, List<Concept>>>() {
+                  // n/a
+                });
+    assertThat(metadata).isNotEmpty();
+
+    // check that all metadata groups are present for NCIt
+    assertThat(metadata.get("associations")).isNotEmpty();
+    assertThat(metadata.get("properties")).isNotEmpty();
+    assertThat(metadata.get("qualifiers")).isNotEmpty();
+    assertThat(metadata.get("roles")).isNotEmpty();
+    assertThat(metadata.get("termTypes")).isNotEmpty();
+    assertThat(metadata.get("sources")).isNotEmpty();
+    assertThat(metadata.get("definitionTypes")).isNotEmpty();
+    assertThat(metadata.get("synonymTypes")).isNotEmpty();
+  }
+
+  /**
    * Test get terminology metadata.
    *
    * @throws Exception the exception
