@@ -27,9 +27,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -98,10 +98,7 @@ public class MetadataController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/metadata/terminologies",
-      produces = "application/json")
+  @GetMapping(value = "/metadata/terminologies", produces = "application/json")
   public @ResponseBody List<Terminology> getTerminologies(
       @RequestParam(required = false, name = "latest") final Optional<Boolean> latest,
       @RequestParam(required = false, name = "tag") final Optional<String> tag,
@@ -334,10 +331,7 @@ public class MetadataController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/metadata/{terminology}/associations",
-      produces = "application/json")
+  @GetMapping(value = "/metadata/{terminology}/associations", produces = "application/json")
   public @ResponseBody List<Concept> getAssociations(
       @PathVariable(value = "terminology") final String terminology,
       @RequestParam(required = false, name = "include") final Optional<String> include,
@@ -412,8 +406,7 @@ public class MetadataController extends BaseController {
         example = "summary")
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
+  @GetMapping(
       value = "/metadata/{terminology}/association/{codeOrName}",
       produces = "application/json")
   public @ResponseBody Concept getAssociation(
@@ -465,10 +458,7 @@ public class MetadataController extends BaseController {
                 mediaType = "application/json",
                 schema = @Schema(implementation = RestException.class)))
   })
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/metadata/{terminology}/roles",
-      produces = "application/json")
+  @GetMapping(value = "/metadata/{terminology}/roles", produces = "application/json")
   @Parameters({
     @Parameter(
         name = "terminology",
@@ -569,10 +559,7 @@ public class MetadataController extends BaseController {
         example = "summary")
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/metadata/{terminology}/role/{codeOrName}",
-      produces = "application/json")
+  @GetMapping(value = "/metadata/{terminology}/role/{codeOrName}", produces = "application/json")
   public @ResponseBody Concept getRole(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "codeOrName") final String code,
@@ -626,10 +613,7 @@ public class MetadataController extends BaseController {
                 mediaType = "application/json",
                 schema = @Schema(implementation = RestException.class)))
   })
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/metadata/{terminology}/properties",
-      produces = "application/json")
+  @GetMapping(value = "/metadata/{terminology}/properties", produces = "application/json")
   @Parameters({
     @Parameter(
         name = "terminology",
@@ -706,10 +690,7 @@ public class MetadataController extends BaseController {
                 mediaType = "application/json",
                 schema = @Schema(implementation = RestException.class)))
   })
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/metadata/{terminology}/qualifiers",
-      produces = "application/json")
+  @GetMapping(value = "/metadata/{terminology}/qualifiers", produces = "application/json")
   @Parameters({
     @Parameter(
         name = "terminology",
@@ -813,8 +794,7 @@ public class MetadataController extends BaseController {
         example = "summary")
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
+  @GetMapping(
       value = "/metadata/{terminology}/qualifier/{codeOrName}",
       produces = "application/json")
   public @ResponseBody Concept getQualifier(
@@ -860,10 +840,7 @@ public class MetadataController extends BaseController {
                 mediaType = "application/json",
                 schema = @Schema(implementation = RestException.class)))
   })
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/metadata/{terminology}/termTypes",
-      produces = "application/json")
+  @GetMapping(value = "/metadata/{terminology}/termTypes", produces = "application/json")
   @Parameters({
     @Parameter(
         name = "terminology",
@@ -906,10 +883,7 @@ public class MetadataController extends BaseController {
                 mediaType = "application/json",
                 schema = @Schema(implementation = RestException.class)))
   })
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/metadata/{terminology}/welcomeText",
-      produces = "text/html")
+  @GetMapping(value = "/metadata/{terminology}/welcomeText", produces = "text/html")
   @Parameters({
     @Parameter(
         name = "terminology",
@@ -993,8 +967,7 @@ public class MetadataController extends BaseController {
         example = "summary")
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
+  @GetMapping(
       value = "/metadata/{terminology}/property/{codeOrName}",
       produces = "application/json")
   public @ResponseBody Concept getProperty(
@@ -1049,10 +1022,7 @@ public class MetadataController extends BaseController {
         example = "ncit")
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/metadata/{terminology}/conceptStatuses",
-      produces = "application/json")
+  @GetMapping(value = "/metadata/{terminology}/conceptStatuses", produces = "application/json")
   public @ResponseBody List<String> getConceptStatuses(
       @PathVariable(value = "terminology") final String terminology) throws Exception {
     try {
@@ -1101,10 +1071,7 @@ public class MetadataController extends BaseController {
         example = "ncit")
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/metadata/{terminology}/definitionSources",
-      produces = "application/json")
+  @GetMapping(value = "/metadata/{terminology}/definitionSources", produces = "application/json")
   public @ResponseBody List<ConceptMinimal> getDefinitionSources(
       @PathVariable(value = "terminology") final String terminology) throws Exception {
     try {
@@ -1147,10 +1114,7 @@ public class MetadataController extends BaseController {
         example = "ncit")
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/metadata/{terminology}/synonymSources",
-      produces = "application/json")
+  @GetMapping(value = "/metadata/{terminology}/synonymSources", produces = "application/json")
   public @ResponseBody List<ConceptMinimal> getSynonymSources(
       @PathVariable(value = "terminology") final String terminology) throws Exception {
     try {
@@ -1202,8 +1166,7 @@ public class MetadataController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
+  @GetMapping(
       value = "/metadata/{terminology}/qualifier/{codeOrName}/values",
       produces = "application/json")
   public @ResponseBody List<String> getQualifierValues(
@@ -1259,10 +1222,7 @@ public class MetadataController extends BaseController {
                 mediaType = "application/json",
                 schema = @Schema(implementation = RestException.class)))
   })
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/metadata/{terminology}/synonymTypes",
-      produces = "application/json")
+  @GetMapping(value = "/metadata/{terminology}/synonymTypes", produces = "application/json")
   @Parameters({
     @Parameter(
         name = "terminology",
@@ -1370,8 +1330,7 @@ public class MetadataController extends BaseController {
         example = "summary")
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
+  @GetMapping(
       value = "/metadata/{terminology}/synonymType/{codeOrName}",
       produces = "application/json")
   public @ResponseBody Concept getSynonymType(
@@ -1431,10 +1390,7 @@ public class MetadataController extends BaseController {
                 mediaType = "application/json",
                 schema = @Schema(implementation = RestException.class)))
   })
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/metadata/{terminology}/definitionTypes",
-      produces = "application/json")
+  @GetMapping(value = "/metadata/{terminology}/definitionTypes", produces = "application/json")
   @Parameters({
     @Parameter(
         name = "terminology",
@@ -1542,8 +1498,7 @@ public class MetadataController extends BaseController {
         example = "summary")
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
+  @GetMapping(
       value = "/metadata/{terminology}/definitionType/{codeOrName}",
       produces = "application/json")
   public @ResponseBody Concept getDefinitionType(
@@ -1604,10 +1559,7 @@ public class MetadataController extends BaseController {
                 mediaType = "application/json",
                 schema = @Schema(implementation = RestException.class)))
   })
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/metadata/{terminology}/subsets",
-      produces = "application/json")
+  @GetMapping(value = "/metadata/{terminology}/subsets", produces = "application/json")
   @Parameters({
     @Parameter(
         name = "terminology",
@@ -1710,10 +1662,7 @@ public class MetadataController extends BaseController {
         example = "summary")
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/metadata/{terminology}/subset/{code}",
-      produces = "application/json")
+  @GetMapping(value = "/metadata/{terminology}/subset/{code}", produces = "application/json")
   public @ResponseBody Concept getSubset(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "code") final String code,
@@ -1778,10 +1727,7 @@ public class MetadataController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "metadata/{terminology}/stats/{source}",
-      produces = "application/json")
+  @GetMapping(value = "metadata/{terminology}/stats/{source}", produces = "application/json")
   public @ResponseBody Map<String, List<StatisticsEntry>> getSourceStats(
       @PathVariable(value = "terminology") final String terminology,
       @PathVariable(value = "source") final String source)
