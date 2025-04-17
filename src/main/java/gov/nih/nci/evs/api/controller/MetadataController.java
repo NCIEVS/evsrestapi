@@ -18,6 +18,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -180,6 +181,91 @@ public class MetadataController extends BaseController {
       return terms;
     } catch (Exception e) {
       handleException(e, null);
+      return null;
+    }
+  }
+
+  /**
+   * Returns the metadata.
+   *
+   * @param terminology the terminology
+   * @return the metadata
+   * @throws Exception the exception
+   */
+  @Operation(
+      summary =
+          "Get some metadata (associations, properties, qualifiers, roles, term types, sources,"
+              + " definition types, synonym types) for the terminology overview tab in EVS-Explore")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Successfully retrieved the requested information"),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Resource not found",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = RestException.class))),
+    @ApiResponse(
+        responseCode = "417",
+        description = "Expectation failed",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+    @Parameter(
+        name = "terminology",
+        description =
+            "Terminology, e.g. 'ncit' or 'ncim' (<a"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
+                + " here for complete list</a>)",
+        required = true,
+        schema = @Schema(implementation = String.class))
+  })
+  @RecordMetric
+  @RequestMapping(
+      method = RequestMethod.GET,
+      value = "/metadata/{terminology}",
+      produces = "application/json")
+  public @ResponseBody Map<String, List<Concept>> getOverviewMetadata(
+      @PathVariable(value = "terminology") final String terminology) throws Exception {
+    Map<String, List<Concept>> metadata = new HashMap<>();
+    try {
+      metadata.put(
+          "associations",
+          metadataService.getAssociations(terminology, Optional.empty(), Optional.empty()));
+      metadata.put(
+          "properties",
+          metadataService.getProperties(terminology, Optional.empty(), Optional.empty()));
+      metadata.put(
+          "qualifiers",
+          metadataService.getQualifiers(terminology, Optional.empty(), Optional.empty()));
+      metadata.put(
+          "roles", metadataService.getRoles(terminology, Optional.empty(), Optional.empty()));
+      metadata.put(
+          "termTypes",
+          metadataService.getTermTypes(terminology).stream()
+              .map(Concept::new)
+              .collect(Collectors.toList()));
+      metadata.put(
+          "sources",
+          metadataService.getSynonymSources(terminology).stream()
+              .map(Concept::new)
+              .collect(Collectors.toList()));
+      metadata.put(
+          "definitionTypes",
+          metadataService.getDefinitionSources(terminology).stream()
+              .map(Concept::new)
+              .collect(Collectors.toList()));
+      metadata.put(
+          "synonymTypes",
+          metadataService.getSynonymTypes(terminology, Optional.empty(), Optional.empty()));
+      return metadata;
+    } catch (Exception e) {
+      handleException(e, terminology);
       return null;
     }
   }
