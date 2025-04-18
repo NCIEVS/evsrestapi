@@ -2,13 +2,20 @@ package gov.nih.nci.evs.api.fhir.R5;
 
 import static java.lang.String.format;
 
+import ca.uhn.fhir.rest.param.NumberParam;
+import gov.nih.nci.evs.api.controller.StaticContextAccessor;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.util.FHIRServerResponseException;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
+import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
 import org.hl7.fhir.r5.model.BooleanType;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.Bundle.BundleEntryComponent;
@@ -33,15 +40,6 @@ import org.hl7.fhir.r5.model.UriType;
 import org.hl7.fhir.r5.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import ca.uhn.fhir.rest.param.NumberParam;
-import gov.nih.nci.evs.api.controller.StaticContextAccessor;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.util.FHIRServerResponseException;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
-import jakarta.servlet.http.HttpServletRequest;
 
 /** Utility for FHIR R5. */
 public class FhirUtilityR5 {
