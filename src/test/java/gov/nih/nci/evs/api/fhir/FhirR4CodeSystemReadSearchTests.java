@@ -232,6 +232,47 @@ public class FhirR4CodeSystemReadSearchTests {
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateCodeSystemResults(data, false);
+
+    // Test 6: url instead of system
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+            // "ge2021-06")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("version", "21.06e")
+            .queryParam("title", "ncit");
+
+    // Test successful case with all parameters
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(Bundle.class, content);
+    validateCodeSystemResults(data, true); // Expecting results
+
+    // Test 7: url same as system
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+            // "ge2021-06")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("version", "21.06e")
+            .queryParam("title", "ncit");
+
+    // Test successful case with all parameters
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(Bundle.class, content);
+    validateCodeSystemResults(data, true); // Expecting results
+
+    // Test 8: url different from system
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2025-01") // Future
+            // date
+            .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("url", "differentFromSystem")
+            .queryParam("version", "21.06e")
+            .queryParam("title", "ncit");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(Bundle.class, content);
+    validateCodeSystemResults(data, false); // Expecting no results
   }
 
   /**
@@ -268,6 +309,11 @@ public class FhirR4CodeSystemReadSearchTests {
     }
   }
 
+  /**
+   * Test code system read with parameters.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemReadWithParameters() throws Exception {
     // TODO: implement for date when the CodeSystem data has dates
@@ -438,13 +484,13 @@ public class FhirR4CodeSystemReadSearchTests {
     // Verify that concatenated pages equal first 4 of full results
     List<String> fourIds =
         defaultCodeSystems.subList(0, 4).stream()
-            .map(resource -> ((CodeSystem) resource).getIdPart())
+            .map(resource -> resource.getIdPart())
             .sorted()
             .toList();
 
     List<String> paginatedIds =
         Stream.concat(firstPageSystems.stream(), secondPageSystems.stream())
-            .map(resource -> ((CodeSystem) resource).getIdPart())
+            .map(resource -> resource.getIdPart())
             .sorted()
             .toList();
 
@@ -477,6 +523,11 @@ public class FhirR4CodeSystemReadSearchTests {
     }
   }
 
+  /**
+   * Test code system search variants with parameters.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemSearchVariantsWithParameters() throws Exception {
     // Arrange
