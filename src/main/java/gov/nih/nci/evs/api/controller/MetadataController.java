@@ -225,10 +225,7 @@ public class MetadataController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/metadata/{terminology}",
-      produces = "application/json")
+  @GetMapping(value = "/metadata/{terminology}", produces = "application/json")
   public @ResponseBody Map<String, List<Concept>> getOverviewMetadata(
       @PathVariable(value = "terminology") final String terminology) throws Exception {
     Map<String, List<Concept>> metadata = new HashMap<>();
