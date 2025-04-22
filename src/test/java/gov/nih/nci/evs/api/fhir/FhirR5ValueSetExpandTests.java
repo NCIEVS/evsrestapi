@@ -11,11 +11,13 @@ import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r5.model.ValueSet;
+import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -278,12 +280,12 @@ public class FhirR5ValueSetExpandTests {
     String content;
     String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
-    String parameters = "?url=" + url + "&property=parent" + "&property=Contributing_Source";
+    String propertyName = "Contributing_Source";
+    String parameters = "?url=" + url + "&property=parent" + "&property=" + propertyName;
 
     String displayString = "Schedule I Substance";
     String activeCode = "C48672";
     String parentCode = "#C48670";
-    String propertyName = "Contributing_Source";
     String propertyValue = "FDA";
 
     // Act
@@ -318,6 +320,211 @@ public class FhirR5ValueSetExpandTests {
                             prop ->
                                 propertyName.equals(prop.getCode())
                                     && propertyValue.equals(prop.getValue().toString()))));
+  }
+
+  /**
+   * Test value set expand implicit subset with definitions.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandImplicitSubsetWithDefinitions() throws Exception {
+    // Arrange
+    String content;
+    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String propertyName = "Contributing_Source";
+    String parameters =
+        "?url="
+            + url
+            + "&property=parent"
+            + "&property="
+            + propertyName
+            + "&includeDefinition=true";
+
+    String displayString = "Schedule I Substance";
+    String activeCode = "C48672";
+    String parentCode = "#C48670";
+    String propertyValue = "FDA";
+    String expectedDefinition = "A category of drugs not considered legitimate for medical use.";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertTrue(valueSet.hasExpansion());
+    assertEquals(
+        displayString,
+        valueSet.getExpansion().getContains().stream()
+            .filter(comp -> comp.getCode().equals(activeCode))
+            .collect(Collectors.toList())
+            .get(0)
+            .getDisplay());
+    assertEquals(
+        parentCode,
+        valueSet.getExpansion().getContains().stream()
+            .filter(comp -> comp.getCode().equals(activeCode))
+            .collect(Collectors.toList())
+            .get(0)
+            .getProperty()
+            .get(0)
+            .getValue()
+            .toString());
+    assertTrue(
+        valueSet.getExpansion().getContains().stream()
+            .anyMatch(
+                comp ->
+                    comp.getProperty().stream()
+                        .anyMatch(
+                            prop ->
+                                propertyName.equals(prop.getCode())
+                                    && propertyValue.equals(prop.getValue().toString()))));
+
+    Optional<String> actualDefinitionOptional =
+        valueSet.getExpansion().getContains().stream()
+            .filter(contains -> contains.getCode().equals(activeCode))
+            .findFirst()
+            .flatMap(
+                contains ->
+                    contains.getProperty().stream()
+                        .filter(property -> property.getCode().equals("definition"))
+                        .findFirst()
+                        .map(property -> property.getValue().toString()));
+
+    assertTrue(actualDefinitionOptional.isPresent());
+    assertEquals(expectedDefinition, actualDefinitionOptional.orElse(null));
+  }
+
+  /**
+   * Test value set expand implicit subset with designations.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandImplicitSubsetWithDesignations() throws Exception {
+    // Arrange
+    String content;
+    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String propertyName = "Contributing_Source";
+    String parameters =
+        "?url="
+            + url
+            + "&property=parent"
+            + "&property="
+            + propertyName
+            + "&includeDesignations=true";
+
+    String displayString = "Schedule I Substance";
+    String activeCode = "C48672";
+    String parentCode = "#C48670";
+    String propertyValue = "FDA";
+    String expectedDesignation = "Schedule I Controlled Substance";
+    String expectedTty = "SY";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertTrue(valueSet.hasExpansion());
+    assertEquals(
+        displayString,
+        valueSet.getExpansion().getContains().stream()
+            .filter(comp -> comp.getCode().equals(activeCode))
+            .collect(Collectors.toList())
+            .get(0)
+            .getDisplay());
+    assertEquals(
+        parentCode,
+        valueSet.getExpansion().getContains().stream()
+            .filter(comp -> comp.getCode().equals(activeCode))
+            .collect(Collectors.toList())
+            .get(0)
+            .getProperty()
+            .get(0)
+            .getValue()
+            .toString());
+    assertTrue(
+        valueSet.getExpansion().getContains().stream()
+            .anyMatch(
+                comp ->
+                    comp.getProperty().stream()
+                        .anyMatch(
+                            prop ->
+                                propertyName.equals(prop.getCode())
+                                    && propertyValue.equals(prop.getValue().toString()))));
+
+    Optional<ConceptReferenceDesignationComponent> actualDesignationOptional =
+        valueSet.getExpansion().getContains().stream()
+            .filter(contains -> contains.getCode().equals(activeCode))
+            .findFirst()
+            .flatMap(
+                contains ->
+                    contains.getDesignation().stream()
+                        .filter(
+                            designation ->
+                                designation.getValue().equals(expectedDesignation)
+                                    && designation.getLanguage().equals("en"))
+                        .findFirst());
+
+    assertTrue(
+        actualDesignationOptional.isPresent(),
+        "Designation for '" + expectedDesignation + "' not found.");
+
+    actualDesignationOptional.ifPresent(
+        actualDesignation -> {
+          assertEquals(expectedDesignation, actualDesignation.getValue());
+          assertEquals("en", actualDesignation.getLanguage());
+          assertEquals(expectedTty, actualDesignation.getUse().getCode());
+        });
+  }
+
+  /**
+   * Test value set expand implicit subset no designations.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandImplicitSubsetNoDesignations() throws Exception {
+    // Arrange
+    String content;
+    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String propertyName = "Contributing_Source";
+    String parameters =
+        "?url="
+            + url
+            + "&property=parent"
+            + "&property="
+            + propertyName
+            + "&includeDesignations=false";
+
+    String activeCode = "C48672";
+    String expectedDesignation = "Schedule I Controlled Substance";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertTrue(valueSet.hasExpansion());
+
+    Optional<ConceptReferenceDesignationComponent> actualDesignationOptional =
+        valueSet.getExpansion().getContains().stream()
+            .filter(contains -> contains.getCode().equals(activeCode))
+            .findFirst()
+            .flatMap(
+                contains ->
+                    contains.getDesignation().stream()
+                        .filter(
+                            designation ->
+                                designation.getValue().equals(expectedDesignation)
+                                    && designation.getLanguage().equals("en"))
+                        .findFirst());
+
+    assertFalse(actualDesignationOptional.isPresent());
   }
 
   /**
@@ -514,13 +721,74 @@ public class FhirR5ValueSetExpandTests {
     String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
     String endpoint =
         localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
-    String parameters = "?url=" + url + "&property=parent" + "&property=Contributing_Source";
+    String propertyName = "Contributing_Source";
+    String parameters = "?url=" + url + "&property=parent" + "&property=" + propertyName;
 
     String displayString = "Schedule I Substance";
     String activeCode = "C48672";
     String parentCode = "#C48670";
-    String propertyName = "Contributing_Source";
     String propertyValue = "FDA";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertTrue(valueSet.hasExpansion());
+    assertEquals(
+        displayString,
+        valueSet.getExpansion().getContains().stream()
+            .filter(comp -> comp.getCode().equals(activeCode))
+            .collect(Collectors.toList())
+            .get(0)
+            .getDisplay());
+    assertTrue(
+        valueSet.getExpansion().getContains().stream()
+            .anyMatch(
+                comp ->
+                    comp.getProperty().stream()
+                        .anyMatch(
+                            prop ->
+                                "parent".equals(prop.getCode())
+                                    && parentCode.equals(prop.getValue().toString()))));
+    assertTrue(
+        valueSet.getExpansion().getContains().stream()
+            .anyMatch(
+                comp ->
+                    comp.getProperty().stream()
+                        .anyMatch(
+                            prop ->
+                                propertyName.equals(prop.getCode())
+                                    && propertyValue.equals(prop.getValue().toString()))));
+  }
+
+  /**
+   * Test value set expand instance subset with definitions.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandInstanceSubsetWithDefinitions() throws Exception {
+    // Arrange
+    String content;
+    String activeID = "ncit_c54459";
+    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
+    String endpoint =
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
+    String propertyName = "Contributing_Source";
+    String parameters =
+        "?url="
+            + url
+            + "&property=parent"
+            + "&property="
+            + propertyName
+            + "&includeDefinition=true";
+
+    String displayString = "Schedule I Substance";
+    String activeCode = "C48672";
+    String parentCode = "#C48670";
+    String propertyValue = "FDA";
+    String expectedDefinition = "A category of drugs not considered legitimate for medical use.";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -554,5 +822,104 @@ public class FhirR5ValueSetExpandTests {
                             prop ->
                                 propertyName.equals(prop.getCode())
                                     && propertyValue.equals(prop.getValue().toString()))));
+
+    Optional<String> actualDefinitionOptional =
+        valueSet.getExpansion().getContains().stream()
+            .filter(contains -> contains.getCode().equals(activeCode))
+            .findFirst()
+            .flatMap(
+                contains ->
+                    contains.getProperty().stream()
+                        .filter(property -> property.getCode().equals("definition"))
+                        .findFirst()
+                        .map(property -> property.getValue().toString()));
+
+    assertTrue(actualDefinitionOptional.isPresent());
+    assertEquals(expectedDefinition, actualDefinitionOptional.orElse(null));
+  }
+
+  /**
+   * Test value set expand instance subset with designations.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandInstanceSubsetWithDesignations() throws Exception {
+    // Arrange
+    String content;
+    String activeID = "ncit_c54459";
+    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
+    String endpoint =
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
+    String propertyName = "Contributing_Source";
+    String parameters =
+        "?url="
+            + url
+            + "&property=parent"
+            + "&property="
+            + propertyName
+            + "&includeDesignations=true";
+
+    String displayString = "Schedule I Substance";
+    String activeCode = "C48672";
+    String parentCode = "#C48670";
+    String propertyValue = "FDA";
+    String expectedDesignation = "Schedule I Controlled Substance";
+    String expectedTty = "SY";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertTrue(valueSet.hasExpansion());
+    assertEquals(
+        displayString,
+        valueSet.getExpansion().getContains().stream()
+            .filter(comp -> comp.getCode().equals(activeCode))
+            .collect(Collectors.toList())
+            .get(0)
+            .getDisplay());
+    assertEquals(
+        parentCode,
+        valueSet.getExpansion().getContains().stream()
+            .filter(comp -> comp.getCode().equals(activeCode))
+            .collect(Collectors.toList())
+            .get(0)
+            .getProperty()
+            .get(0)
+            .getValue()
+            .toString());
+    assertTrue(
+        valueSet.getExpansion().getContains().stream()
+            .anyMatch(
+                comp ->
+                    comp.getProperty().stream()
+                        .anyMatch(
+                            prop ->
+                                propertyName.equals(prop.getCode())
+                                    && propertyValue.equals(prop.getValue().toString()))));
+
+    Optional<ConceptReferenceDesignationComponent> actualDesignationOptional =
+        valueSet.getExpansion().getContains().stream()
+            .filter(contains -> contains.getCode().equals(activeCode))
+            .findFirst()
+            .flatMap(
+                contains ->
+                    contains.getDesignation().stream()
+                        .filter(
+                            designation ->
+                                designation.getValue().equals(expectedDesignation)
+                                    && designation.getLanguage().equals("en"))
+                        .findFirst());
+
+    assertTrue(actualDesignationOptional.isPresent());
+
+    actualDesignationOptional.ifPresent(
+        actualDesignation -> {
+          assertEquals(expectedDesignation, actualDesignation.getValue());
+          assertEquals("en", actualDesignation.getLanguage());
+          assertEquals(expectedTty, actualDesignation.getUse().getCode());
+        });
   }
 }
