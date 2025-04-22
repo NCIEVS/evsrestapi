@@ -545,13 +545,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         // So we use the "everything" mode
         newSubsetEntry =
             esQueryService.getConcept(subsetCode, terminology, new IncludeParam("*")).orElseThrow();
-        if (newSubsetEntry.equals("C6772")) {
-          logger.info(
-              "XXX1 = "
-                  + new ObjectMapper()
-                      .writerWithDefaultPrettyPrinter()
-                      .writeValueAsString(newSubsetEntry));
-        }
       } catch (NoSuchElementException e) {
         logger.warn("Subset " + subsetCode + " not found as a concept, skipping.");
         Audit.addAudit(
@@ -614,13 +607,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
                   .getConcept(
                       row.getCell(2).getStringCellValue(), terminology, new IncludeParam("*"))
                   .get();
-          if (subsetCode.equals("C6772")) {
-            logger.info(
-                "XXX2 = "
-                    + new ObjectMapper()
-                        .writerWithDefaultPrettyPrinter()
-                        .writeValueAsString(subsetConcept));
-          }
         } catch (Exception e) {
           logger.warn(
               "Concept "

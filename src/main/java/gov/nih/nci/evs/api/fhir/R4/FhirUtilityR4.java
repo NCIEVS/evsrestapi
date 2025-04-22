@@ -295,12 +295,12 @@ public final class FhirUtilityR4 {
   /**
    * Required.
    *
-   * @param param1Name the param 1 name
-   * @param param1 the param 1
+   * @param paramName the param 1 name
+   * @param param the param 1
    */
-  public static void required(final String param1Name, final Object param1) {
-    if (param1 == null) {
-      throw exception(format("Must use '%s' parameter.", param1Name), IssueType.INVARIANT, 400);
+  public static void required(final String paramName, final Object param) {
+    if (param == null) {
+      throw exception(format("Must use '%s' parameter.", paramName), IssueType.INVARIANT, 400);
     }
   }
 

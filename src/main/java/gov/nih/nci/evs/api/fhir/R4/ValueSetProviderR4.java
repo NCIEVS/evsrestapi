@@ -89,36 +89,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param request the request
    * @param details the details
    * @param url the canonical reference to the value set.
-   * @param valueSet the value set
    * @param version the value set version to specify the version to be used when generating the
    *     expansion
-   * @param context the context of the value set.
-   * @param contextDirection the context direction, incoming or outgoing. Usually accompanied by
-   *     context.
    * @param filter the text filter applied to restrict code that are returned.
-   * @param date the date for which the expansion should be generated.
    * @param offset the offset for number of records.
    * @param count the count for codes that should be provided in the partial page view.
-   * @param includeDesignations the include designations flag for included/excluded in value set
-   *     expansions
-   * @param designation the designation token that specifies the system + code that either a use or
-   *     language.
-   * @param includeDefinition controls whether the value set definition is included or excluded in
-   *     value set expansions
    * @param activeOnly controls whether inactive concepts are included or excluded in value set
    *     expansions.
-   * @param excludeNested controls whether the value set expansion nests codes or not
-   * @param excludeNotForUI controls whether the value set expansion is assembled for a user
-   *     interface use
-   * @param excludePostCoordinated controls whether the value set expansion includes post
-   *     coordinated codes
-   * @param displayLanguage specifies the language to be used for description in teh expansions
-   * @param exclude_system the code system or particular version of a code system to be excluded
-   *     from the expansion
-   * @param system_version the version to use for a system
-   * @param check_system_version specifies a version to use for a system.
-   * @param force_system_version specifies a version to use for a system. Overrides any specified
-   *     version in the value set
    * @return the value set
    * @throws Exception the exception
    */
@@ -160,6 +137,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.required("url", url);
 
+      // The params below should be commented out above
       for (final String param :
           new String[] {
             "valueSet",
@@ -172,10 +150,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
             "excludeNotForUI",
             "excludePostCoordinated",
             "displayLanguage",
-            "exclude_system",
-            "system_version",
-            "check_system_version",
-            "force_system_version",
+            "exclude-system",
+            "system-version",
+            "check-system-version",
+            "force-system-version",
             "_count",
             "_offset"
           }) {
@@ -309,36 +287,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param details the details
    * @param id the id
    * @param url the canonical reference to the value set.
-   * @param valueSet the value set
    * @param version the value set version to specify the version to be used when generating the
    *     expansion
-   * @param context the context of the value set.
-   * @param contextDirection the context direction, incoming or outgoing. Usually accompanied by
-   *     context.
    * @param filter the text filter applied to restrict code that are returned.
-   * @param date the date for which the expansion should be generated.
    * @param offset the offset for number of records.
    * @param count the count for codes that should be provided in the partial page view.
-   * @param includeDesignations the include designations flag for included/excluded in value set
-   *     expansions
-   * @param designation the designation token that specifies the system + code that either a use or
-   *     language.
-   * @param includeDefinition controls whether the value set definition is included or excluded in
-   *     value set expansions
    * @param activeOnly controls whether inactive concepts are included or excluded in value set
    *     expansions.
-   * @param excludeNested controls whether the value set expansion nests codes or not
-   * @param excludeNotForUI controls whether the value set expansion is assembled for a user
-   *     interface use
-   * @param excludePostCoordinated controls whether the value set expansion includes post
-   *     coordinated codes
-   * @param displayLanguage specifies the language to be used for description in teh expansions
-   * @param exclude_system the code system or particular version of a code system to be excluded
-   *     from the expansion
-   * @param system_version the version to use for a system
-   * @param check_system_version specifies a version to use for a system.
-   * @param force_system_version specifies a version to use for a system. Overrides any specified
-   *     version in the value set
    * @return the value set
    * @throws Exception the exception
    */
@@ -391,10 +346,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
             "excludeNotForUI",
             "excludePostCoordinated",
             "displayLanguage",
-            "exclude_system",
-            "system_version",
-            "check_system_version",
-            "force_system_version",
+            "exclude-system",
+            "system-version",
+            "check-system-version",
+            "force-system-version",
             "_count",
             "_offset"
           }) {
@@ -526,24 +481,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param request the request
    * @param details the details
    * @param url the value set canonical url
-   * @param context the context of the value set, allows the server to resolve the value set to
-   *     validate against
-   * @param valueSet the value set
-   * @param valueSetVersion the value set version identifier use to specify the version of the value
-   *     set to be used when validating the code
    * @param code the code that is to be validated. If provided, systems or context must be provided
    * @param system the system for the code that is to be validated
    * @param systemVersion the version of the system
-   * @param version the version
    * @param display the display associated with the code, if provided. If provided, a code must be
    *     provided
-   * @param coding the coding to be validated
-   * @param date the date that the validation should be checked.
-   * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
-   *     the validation is being performed in a context where a concept designated as 'abstract' is
-   *     appropriate/allowed to be used
-   * @param displayLanguage the display language for the description when validating a display
-   *     property
    * @return the parameters
    * @throws Exception the exception
    */
@@ -561,6 +503,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       //      @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display
       //      @OperationParam(name = "coding") final Coding coding,
+      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       //      @OperationParam(name = "date") final DateTimeType date,
       //      @OperationParam(name = "abstract") final BooleanType abstractt,
       //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
@@ -578,12 +521,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system, "url", url);
       FhirUtilityR4.mutuallyRequired("system", system, "systemVersion", systemVersion);
 
+      // TODO: not sure that "version" should be in this list
       for (final String param :
           new String[] {
             "coding",
             "context",
             "date",
-            "abstractt",
+            "abstract",
             "displayLanguage",
             "version",
             "valueSet",
@@ -663,24 +607,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param details the details
    * @param id the id
    * @param url the value set canonical url
-   * @param context the context of the value set, allows the server to resolve the value set to
-   *     validate against
-   * @param valueSet the value set
-   * @param valueSetVersion the value set version identifier use to specify the version of the value
-   *     set to be used when validating the code
    * @param code the code that is to be validated. If provided, systems or context must be provided
    * @param system the system for the code that is to be validated
    * @param systemVersion the version of the system
-   * @param version the version
    * @param display the display associated with the code, if provided. If provided, a code must be
    *     provided
-   * @param coding the coding to be validated
-   * @param date the date that the validation should be checked.
-   * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
-   *     the validation is being performed in a context where a concept designated as 'abstract' is
-   *     appropriate/allowed to be used
-   * @param displayLanguage the display language for the description when validating a display
-   *     property
    * @return the parameters
    * @throws Exception the exception
    */
@@ -699,6 +630,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       //      @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display
       //      @OperationParam(name = "coding") final Coding coding,
+      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       //      @OperationParam(name = "date") final DateTimeType date,
       //      @OperationParam(name = "abstract") final BooleanType abstractt,
       //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
@@ -715,6 +647,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       FhirUtilityR4.requireAtLeastOneOf(
           "code", code, "system", system, "systemVersion", systemVersion, "url", url);
 
+      // TODO: not sure that "version" should be in this list
       for (final String param :
           new String[] {
             "coding",

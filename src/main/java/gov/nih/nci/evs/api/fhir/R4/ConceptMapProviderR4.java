@@ -105,6 +105,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "source") final UriType source,
       // @OperationParam(name = "coding") final Coding coding,
+      // @OperationParam(name = "codeableConcept") final CodeableConcept
+      // codeableConcept,
       @OperationParam(name = "target") final UriType target,
       @OperationParam(name = "targetSystem") final UriType targetSystem,
       // @OperationParam(name = "dependency") final UriType dependency,
@@ -224,6 +226,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "source") final UriType source,
       // @OperationParam(name = "coding") final Coding coding,
+      // @OperationParam(name = "codeableConcept") final CodeableConcept
+      // codeableConcept,
       @OperationParam(name = "target") final UriType target,
       @OperationParam(name = "targetSystem") final UriType targetSystem,
       // @OperationParam(name = "dependency") final UriType dependency,
@@ -320,7 +324,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @param request the request
    * @param id the id
    * @param date the date
-   * @param system the system
+   * @param name the name
    * @param url the url
    * @param version the version
    * @param count the count

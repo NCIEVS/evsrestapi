@@ -75,7 +75,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * @param request the request
    * @param id the id
    * @param date the date
-   * @param system the system
+   * @param name the name
    * @param url the url
    * @param version the version
    * @param count the count
@@ -207,9 +207,9 @@ public class ConceptMapProviderR5 implements IResourceProvider {
     }
 
     try {
-      FhirUtilityR5.mutuallyRequired(sourceCode, "sourceCode", system, "system");
-      FhirUtilityR5.mutuallyRequired(targetCode, "targetCode", system, "system");
-      FhirUtilityR5.mutuallyExclusive(targetScope, "targetScope", targetSystem, "targetSystem");
+      FhirUtilityR5.mutuallyRequired("sourceCode", sourceCode, "system", system);
+      FhirUtilityR5.mutuallyRequired("targetCode", targetCode, "system", system);
+      FhirUtilityR5.mutuallyExclusive("targetScope", targetScope, "targetSystem", targetSystem);
       for (final String param :
           new String[] {
             "sourceCoding", "sourceCodableConcept", "targetCodableConcept", "dependency"
@@ -325,6 +325,8 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "sourceScope") final UriType sourceScope,
       // @OperationParam(name = "sourceCoding") final Coding sourceCoding,
+      // @OperationParam(name = "codeableConcept") final CodeableConcept
+      // sourceCodeableConcept,
       @OperationParam(name = "targetCode") final UriType targetCode,
       // @OperationParam(name = "targetCoding") final UriType targetCoding,
       @OperationParam(name = "targetScope") final UriType targetScope,
@@ -339,9 +341,9 @@ public class ConceptMapProviderR5 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR5.mutuallyRequired(sourceCode, "sourceCode", system, "system");
-      FhirUtilityR5.mutuallyRequired(targetCode, "targetCode", system, "system");
-      FhirUtilityR5.mutuallyExclusive(targetScope, "targetScope", targetSystem, "targetSystem");
+      FhirUtilityR5.mutuallyRequired("sourceCode", sourceCode, "system", system);
+      FhirUtilityR5.mutuallyRequired("targetCode", targetCode, "system", system);
+      FhirUtilityR5.mutuallyExclusive("targetScope", targetScope, "targetSystem", targetSystem);
       for (final String param :
           new String[] {
             "sourceCoding", "sourceCodableConcept", "targetCodableConcept", "dependency"
