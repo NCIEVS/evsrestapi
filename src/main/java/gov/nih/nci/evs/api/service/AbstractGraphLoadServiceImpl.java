@@ -528,11 +528,11 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
 
     String filePath =
         this.applicationProperties.getUnitTestData()
-            + this.applicationProperties.getPediatricSubsetsXls();
+            + this.applicationProperties.getChildhoodNeoplasmSubsetsXls();
 
     String url =
         this.applicationProperties.getFtpNeoplasmUrl()
-            + this.applicationProperties.getPediatricSubsetsXls();
+            + this.applicationProperties.getChildhoodNeoplasmSubsetsXls();
     // List to hold the sheet references
     List<Sheet> sheets = loadExcelSheets(url, filePath);
 
@@ -666,6 +666,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       // add extra relevant properties to new subset
       newSubsetEntry.getProperties().add(new Property("Publish_Value_Set", "Yes"));
       newSubsetEntry.getProperties().add(new Property("EVSRESTAPI_Subset_Format", "NCI"));
+      newSubsetEntry.setSubsetLink(url);
       // index newSubsetEntry
       operationsService.index(newSubsetEntry, terminology.getIndexName(), Concept.class);
       // create new subset for parentSubset to add as child of existing subset
