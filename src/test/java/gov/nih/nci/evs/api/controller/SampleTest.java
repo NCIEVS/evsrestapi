@@ -3,7 +3,7 @@ package gov.nih.nci.evs.api.controller;
 import gov.nih.nci.evs.api.ConceptSampleTester;
 import gov.nih.nci.evs.api.SampleRecord;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.OpensearchQueryServiceImpl;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
@@ -32,7 +32,7 @@ public class SampleTest {
   @Autowired private MockMvc mvc;
 
   /** The elastic query service. */
-  @Autowired ElasticQueryService esQueryService;
+  @Autowired OpensearchQueryServiceImpl osQueryService;
 
   /** The samples. */
   private static Map<String, List<SampleRecord>> samples;
@@ -46,7 +46,7 @@ public class SampleTest {
   /** Constructor */
   @Autowired
   public void setTermUtils(TerminologyUtils termUtils) {
-    conceptSampleTester = new ConceptSampleTester(termUtils, esQueryService);
+    conceptSampleTester = new ConceptSampleTester(termUtils, osQueryService);
   }
 
   /**

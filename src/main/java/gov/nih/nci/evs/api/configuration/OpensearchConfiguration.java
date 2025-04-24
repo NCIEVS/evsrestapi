@@ -13,7 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
 
-/** Configuration for elasticsearch/opensearch. */
+/** Configuration for opensearch. */
 @Configuration
 public class OpensearchConfiguration {
 
@@ -30,14 +30,14 @@ public class OpensearchConfiguration {
    */
   @Bean
   RestHighLevelClient client() {
-    final String esHost = env.getProperty("nci.evs.elasticsearch.server.host");
-    final int esPort = Integer.parseInt(env.getProperty("nci.evs.elasticsearch.server.port"));
-    final String esScheme = env.getProperty("nci.evs.elasticsearch.server.scheme");
+    final String osHost = env.getProperty("nci.evs.elasticsearch.server.host");
+    final int osPort = Integer.parseInt(env.getProperty("nci.evs.elasticsearch.server.port"));
+    final String osScheme = env.getProperty("nci.evs.elasticsearch.server.scheme");
     final int timeout = Integer.parseInt(env.getProperty("nci.evs.elasticsearch.timeout"));
     logger.info(
-        String.format("Configuring opensearch client for host %s %s %s", esHost, esPort, timeout));
+        String.format("Configuring opensearch client for host %s %s %s", osHost, osPort, timeout));
     return new RestHighLevelClient(
-        RestClient.builder(new HttpHost(esHost, esPort, esScheme))
+        RestClient.builder(new HttpHost(osHost, osPort, osScheme))
             .setRequestConfigCallback(
                 builder -> builder.setConnectTimeout(timeout).setSocketTimeout(timeout)));
 

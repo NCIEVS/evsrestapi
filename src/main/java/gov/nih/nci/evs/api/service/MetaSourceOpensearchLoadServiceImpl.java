@@ -11,8 +11,8 @@ import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
-import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
+import gov.nih.nci.evs.api.support.es.OpensearchObject;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PushBackReader;
@@ -39,13 +39,13 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.stereotype.Service;
 
-/** The implementation for {@link MetaSourceElasticLoadServiceImpl}. */
+/** The implementation for {@link MetaSourceOpensearchLoadServiceImpl}. */
 @Service
-public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
+public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
 
   /** the logger *. */
   private static final Logger logger =
-      LoggerFactory.getLogger(MetaSourceElasticLoadServiceImpl.class);
+      LoggerFactory.getLogger(MetaSourceOpensearchLoadServiceImpl.class);
 
   /** the concepts download location *. */
   @Value("${nci.evs.bulkload.conceptsDir}")
@@ -141,8 +141,8 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /** the environment *. */
   @Autowired Environment env;
 
-  /** The Elasticsearch operations service instance *. */
-  @Autowired ElasticOperationsService operationsService;
+  /** The Opensearch operations service instance *. */
+  @Autowired OpensearchOperationsService operationsService;
 
   /**
    * Returns the filepath.
@@ -436,7 +436,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public int loadConcepts(
-      ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+      OpensearchLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
       throws Exception {
     logger.info("Loading Concepts (index batch size = " + INDEX_BATCH_SIZE + ")");
 
@@ -1198,12 +1198,12 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public void loadObjects(
-      ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+      OpensearchLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
       throws Exception {
 
     final String indexName = terminology.getObjectIndexName();
 
-    logger.info("Loading Elastic Objects");
+    logger.info("Loading Opensearch Objects");
     logger.debug("object index name: {}", indexName);
 
     // Create index
@@ -1215,9 +1215,9 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     //
     if (terminology.getMetadata().getHierarchy() != null
         && terminology.getMetadata().getHierarchy()) {
-      ElasticObject hierarchyObject = new ElasticObject("hierarchy");
+      OpensearchObject hierarchyObject = new OpensearchObject("hierarchy");
       hierarchyObject.setHierarchy(hierarchy);
-      operationsService.index(hierarchyObject, indexName, ElasticObject.class);
+      operationsService.index(hierarchyObject, indexName, OpensearchObject.class);
       logger.info("  Hierarchy loaded");
     } else {
       logger.info("  Hierarchy skipped");
@@ -1226,12 +1226,12 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     //
     // Handle associations
     //
-    final ElasticObject associations = new ElasticObject("associations");
+    final OpensearchObject associations = new OpensearchObject("associations");
     // MRSAT: association metadata for MRREL
     for (final String rel : relSet) {
       associations.getConcepts().add(buildMetadata(terminology, rel, relMap.get(rel)));
     }
-    operationsService.index(associations, indexName, ElasticObject.class);
+    operationsService.index(associations, indexName, OpensearchObject.class);
 
     // Hanlde "concept statuses" - n/a
 
@@ -1242,17 +1242,17 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     //
     // Handle definitionTypes
     //
-    final ElasticObject defTypes = new ElasticObject("definitionTypes");
+    final OpensearchObject defTypes = new OpensearchObject("definitionTypes");
     // Only create definition metadata if there are actualy definitions
     if (definitionCt > 0) {
       defTypes.getConcepts().add(buildMetadata(terminology, "DEFINITION", "Definition"));
     }
-    operationsService.index(defTypes, indexName, ElasticObject.class);
+    operationsService.index(defTypes, indexName, OpensearchObject.class);
 
     //
     // Handle properties
     //
-    final ElasticObject properties = new ElasticObject("properties");
+    final OpensearchObject properties = new OpensearchObject("properties");
 
     // NCI_META_CUI
     atnMap.put("NCI_META_CUI", "CUI assignment in the NCI Metatehsaurus");
@@ -1265,12 +1265,12 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
       properties.getConcepts().add(buildMetadata(terminology, atn, atnMap.get(atn)));
     }
 
-    operationsService.index(properties, indexName, ElasticObject.class);
+    operationsService.index(properties, indexName, OpensearchObject.class);
 
     //
     // Handle qualifiers
     //
-    final ElasticObject qualifiers = new ElasticObject("qualifiers");
+    final OpensearchObject qualifiers = new OpensearchObject("qualifiers");
 
     // qualifiers to build - from relationships
     // removed for now: "AUI1", "STYPE1", "AUI2", "STYPE2", "SUPPRESS", "RG",
@@ -1286,19 +1286,19 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     }
     ConceptUtils.limitQualMap(qualMap, 1000);
     qualifiers.setMap(qualMap);
-    operationsService.index(qualifiers, indexName, ElasticObject.class);
+    operationsService.index(qualifiers, indexName, OpensearchObject.class);
 
     //
     // Handle roles - n/a
     //
-    final ElasticObject roles = new ElasticObject("roles");
-    operationsService.index(roles, indexName, ElasticObject.class);
+    final OpensearchObject roles = new OpensearchObject("roles");
+    operationsService.index(roles, indexName, OpensearchObject.class);
 
     //
     // Handle subsets - n/a
     //
-    final ElasticObject subsets = new ElasticObject("subsets");
-    operationsService.index(subsets, indexName, ElasticObject.class);
+    final OpensearchObject subsets = new OpensearchObject("subsets");
+    operationsService.index(subsets, indexName, OpensearchObject.class);
 
     //
     // Handle synonymSources - n/a - handled inline
@@ -1307,10 +1307,10 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     //
     // Handle synonymTypes
     //
-    final ElasticObject syTypes = new ElasticObject("synonymTypes");
+    final OpensearchObject syTypes = new OpensearchObject("synonymTypes");
     syTypes.getConcepts().add(buildMetadata(terminology, "Preferred_Name", "Preferred name"));
     syTypes.getConcepts().add(buildMetadata(terminology, "Synonym", "Synonym"));
-    operationsService.index(syTypes, indexName, ElasticObject.class);
+    operationsService.index(syTypes, indexName, OpensearchObject.class);
 
     //
     // Handle termTypes - n/a - handled inline
@@ -1361,7 +1361,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
     }
     batchSize += conceptSize;
 
-    // Send to elasticsearch if the overall batch size > 9M
+    // Send to Opensearch if the overall batch size > 9M
     if (flag || batchSize > 9000000) {
       // Log the bytes and number of concepts
       logger.info("    BATCH index = " + batchSize + ", " + batch.size());
@@ -1375,7 +1375,7 @@ public class MetaSourceElasticLoadServiceImpl extends BaseLoaderService {
   @Override
   public Terminology getTerminology(
       ApplicationContext app,
-      ElasticLoadConfig config,
+      OpensearchLoadConfig config,
       String filepath,
       String terminology,
       boolean forceDelete)

@@ -20,9 +20,9 @@ import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.service.OpenSearchService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -64,10 +64,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
   private static Logger logger = LoggerFactory.getLogger(ValueSetProviderR4.class);
 
   /** The search service. */
-  @Autowired ElasticSearchService searchService;
+  @Autowired OpenSearchService searchService;
 
   /** The search service. */
-  @Autowired ElasticQueryService esQueryService;
+  @Autowired OpensearchQueryService osQueryService;
 
   /** The metadata service. */
   @Autowired MetadataService metadataService;
@@ -190,19 +190,19 @@ public class ValueSetProviderR4 implements IResourceProvider {
       List<Concept> subsetMembers = new ArrayList<Concept>();
       if (url.getValue().contains("?fhir_vs=")) {
         final List<Association> invAssoc =
-            esQueryService
+            osQueryService
                 .getConcept(
                     vs.getIdentifier().get(0).getValue(),
-                    termUtils.getIndexedTerminology(vs.getTitle(), esQueryService),
+                    termUtils.getIndexedTerminology(vs.getTitle(), osQueryService),
                     new IncludeParam("inverseAssociations"))
                 .get()
                 .getInverseAssociations();
         for (final Association assn : invAssoc) {
           final Concept member =
-              esQueryService
+              osQueryService
                   .getConcept(
                       assn.getRelatedCode(),
-                      termUtils.getIndexedTerminology(vs.getTitle(), esQueryService),
+                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService),
                       includeParam)
                   .orElse(null);
           if (member != null) {
@@ -211,7 +211,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         }
       } else {
         final List<Terminology> terminologies = new ArrayList<>();
-        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), esQueryService));
+        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService));
         final SearchCriteria sc = new SearchCriteria();
         sc.setPageSize(count != null ? count.getValue() : 10);
         sc.setFromRecord(offset != null ? offset.getValue() : 0);
@@ -386,19 +386,19 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
       if (url.getValue().contains("?fhir_vs=")) {
         final List<Association> invAssoc =
-            esQueryService
+            osQueryService
                 .getConcept(
                     vs.getIdentifier().get(0).getValue(),
-                    termUtils.getIndexedTerminology(vs.getTitle(), esQueryService),
+                    termUtils.getIndexedTerminology(vs.getTitle(), osQueryService),
                     new IncludeParam("inverseAssociations"))
                 .get()
                 .getInverseAssociations();
         for (final Association assn : invAssoc) {
           final Concept member =
-              esQueryService
+              osQueryService
                   .getConcept(
                       assn.getRelatedCode(),
-                      termUtils.getIndexedTerminology(vs.getTitle(), esQueryService),
+                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService),
                       includeParam)
                   .orElse(null);
           if (member != null) {
@@ -407,7 +407,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         }
       } else {
         final List<Terminology> terminologies = new ArrayList<>();
-        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), esQueryService));
+        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService));
         final SearchCriteria sc = new SearchCriteria();
         sc.setPageSize(count != null ? count : 10);
         sc.setFromRecord(offset != null ? offset : 0);
@@ -556,7 +556,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         if (vs.getIdentifier() != null && !vs.getIdentifier().isEmpty()) {
           sc.setSubset(Arrays.asList(vs.getIdentifier().get(0).getValue()));
         }
-        final Terminology term = termUtils.getIndexedTerminology(vs.getTitle(), esQueryService);
+        final Terminology term = termUtils.getIndexedTerminology(vs.getTitle(), osQueryService);
         sc.setTerminology(Arrays.asList(vs.getTitle()));
         sc.validate(term, metadataService);
         final List<Terminology> terms = Arrays.asList(term);
@@ -679,7 +679,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         if (vs.getIdentifier() != null && !vs.getIdentifier().isEmpty()) {
           sc.setSubset(Arrays.asList(vs.getIdentifier().get(0).getValue()));
         }
-        final Terminology term = termUtils.getIndexedTerminology(vs.getTitle(), esQueryService);
+        final Terminology term = termUtils.getIndexedTerminology(vs.getTitle(), osQueryService);
         sc.validate(term, metadataService);
         final List<Terminology> terms = Arrays.asList(term);
         final List<Concept> conc = searchService.findConcepts(terms, sc).getConcepts();
@@ -749,7 +749,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
           final NumberParam offset)
       throws Exception {
     FhirUtilityR4.notSupportedSearchParams(request);
-    final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
+    final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
     final List<ValueSet> list = new ArrayList<>();
 
     if (code == null) {
@@ -788,9 +788,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
             .map(c -> c.getCode())
             .collect(Collectors.toSet());
     final List<Concept> subsetsAsConcepts =
-        esQueryService.getConcepts(
+        osQueryService.getConcepts(
             codes,
-            termUtils.getIndexedTerminology("ncit", esQueryService),
+            termUtils.getIndexedTerminology("ncit", osQueryService),
             new IncludeParam("minimal"));
     for (final Concept subset : subsetsAsConcepts) {
       final ValueSet vs = FhirUtilityR4.toR4VS(subset);
@@ -879,7 +879,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       return new ArrayList<>(0);
     }
 
-    final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
+    final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
 
     final List<ValueSet> list = new ArrayList<ValueSet>();
     for (final Terminology terminology : terms) {
@@ -912,9 +912,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
             .map(c -> c.getCode())
             .collect(Collectors.toSet());
     final List<Concept> subsetsAsConcepts =
-        esQueryService.getConcepts(
+        osQueryService.getConcepts(
             codes,
-            termUtils.getIndexedTerminology("ncit", esQueryService),
+            termUtils.getIndexedTerminology("ncit", osQueryService),
             new IncludeParam("minimal"));
 
     for (final Concept subset : subsetsAsConcepts) {

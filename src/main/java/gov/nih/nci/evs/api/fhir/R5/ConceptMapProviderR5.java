@@ -1,6 +1,6 @@
 package gov.nih.nci.evs.api.fhir.R5;
 
-import static gov.nih.nci.evs.api.service.ElasticSearchServiceImpl.escape;
+import static gov.nih.nci.evs.api.service.OpenSearchServiceImpl.escape;
 
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
@@ -22,8 +22,8 @@ import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.SearchCriteria;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.ElasticSearchService;
+import gov.nih.nci.evs.api.service.OpenSearchService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
@@ -54,10 +54,10 @@ public class ConceptMapProviderR5 implements IResourceProvider {
   private static Logger logger = LoggerFactory.getLogger(ConceptMapProviderR5.class);
 
   /** the query service. */
-  @Autowired ElasticQueryService esQueryService;
+  @Autowired OpensearchQueryService osQueryService;
 
-  /** the elastic search service. */
-  @Autowired ElasticSearchService esSearchService;
+  /** the opensearch search service. */
+  @Autowired OpenSearchService osSearchService;
 
   /**
    * Returns the type of resource for this provider.
@@ -100,7 +100,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
     try {
       FhirUtilityR5.notSupportedSearchParams(request);
 
-      final List<Concept> mapsets = esQueryService.getMapsets(new IncludeParam("properties"));
+      final List<Concept> mapsets = osQueryService.getMapsets(new IncludeParam("properties"));
 
       final List<ConceptMap> list = new ArrayList<>();
       for (final Concept mapset : mapsets) {
@@ -241,7 +241,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       criteria.setPageSize(10000);
       criteria.setFromRecord(0);
 
-      maps = esSearchService.findConceptMappings(query, criteria);
+      maps = osSearchService.findConceptMappings(query, criteria);
       final List<Mapping> conceptMaps = maps.getMaps();
 
       if (!conceptMaps.isEmpty()) {
@@ -375,7 +375,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       criteria.setPageSize(10000);
       criteria.setFromRecord(0);
 
-      maps = esSearchService.findConceptMappings(query, criteria);
+      maps = osSearchService.findConceptMappings(query, criteria);
       final List<Mapping> conceptMaps = maps.getMaps();
 
       if (!conceptMaps.isEmpty()) {
@@ -467,7 +467,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       final UriType targetSystem)
       throws Exception {
     try {
-      final List<Concept> mapsets = esQueryService.getMapsets(new IncludeParam("properties"));
+      final List<Concept> mapsets = osQueryService.getMapsets(new IncludeParam("properties"));
       final List<ConceptMap> list = new ArrayList<>();
       // Find the matching mapsets
       for (final Concept mapset : mapsets) {

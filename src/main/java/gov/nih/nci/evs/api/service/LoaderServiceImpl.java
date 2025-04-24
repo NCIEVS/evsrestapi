@@ -3,7 +3,7 @@ package gov.nih.nci.evs.api.service;
 import gov.nih.nci.evs.api.Application;
 import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import jakarta.annotation.PostConstruct;
 import java.util.Date;
@@ -42,10 +42,10 @@ public class LoaderServiceImpl {
   /** the environment *. */
   @Autowired Environment env;
 
-  /** The Elasticsearch operations service instance *. */
-  @Autowired private ElasticOperationsService operationsService;
+  /** The Opensearch operations service instance *. */
+  @Autowired private OpensearchOperationsService operationsService;
 
-  private static ElasticOperationsService staticOperationsService;
+  private static OpensearchOperationsService staticOperationsService;
 
   @PostConstruct
   public void init() {
@@ -104,8 +104,8 @@ public class LoaderServiceImpl {
    * @param defaultLocation the default download location to use
    * @return the config object
    */
-  public static ElasticLoadConfig buildConfig(CommandLine cmd, String defaultLocation) {
-    ElasticLoadConfig config = new ElasticLoadConfig();
+  public static OpensearchLoadConfig buildConfig(CommandLine cmd, String defaultLocation) {
+    OpensearchLoadConfig config = new OpensearchLoadConfig();
 
     config.setTerminology(cmd.getOptionValue('t'));
     config.setForceDeleteIndex(cmd.hasOption('f'));
@@ -127,7 +127,7 @@ public class LoaderServiceImpl {
   }
 
   /**
-   * the main method to trigger elasticsearch load via command line *.
+   * the main method to trigger Opensearch load via command line *.
    *
    * @param args the command line arguments
    */
@@ -153,7 +153,7 @@ public class LoaderServiceImpl {
     try {
 
       app = SpringApplication.run(Application.class, args);
-      ElasticLoadService loadService = null;
+      OpensearchLoadService loadService = null;
 
       // create Audit object
       final Audit termAudit = new Audit();
@@ -169,21 +169,21 @@ public class LoaderServiceImpl {
       }
       if (cmd.hasOption('d')) {
         if (cmd.getOptionValue("t").equals("ncim")) {
-          loadService = app.getBean(MetaElasticLoadServiceImpl.class);
+          loadService = app.getBean(MetaOpensearchLoadServiceImpl.class);
         } else if (cmd.getOptionValue("t").startsWith("ncit")) {
-          loadService = app.getBean(GraphElasticLoadServiceImpl.class);
+          loadService = app.getBean(GraphOpensearchLoadServiceImpl.class);
         } else {
-          loadService = app.getBean(MetaSourceElasticLoadServiceImpl.class);
+          loadService = app.getBean(MetaSourceOpensearchLoadServiceImpl.class);
         }
       } else if (cmd.hasOption("xr")) {
         loadService = app.getBean(GraphReportLoadServiceImpl.class);
       } else {
-        loadService = app.getBean(GraphElasticLoadServiceImpl.class);
+        loadService = app.getBean(GraphOpensearchLoadServiceImpl.class);
       }
       termAudit.setProcess(loadService.getClass().getSimpleName());
 
       loadService.initialize();
-      final ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
+      final OpensearchLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
       final Terminology term =
           loadService.getTerminology(
               app,
@@ -262,7 +262,7 @@ public class LoaderServiceImpl {
   public static void addAudit(final Audit audit) throws Exception {
     staticOperationsService.deleteQuery(
         "terminology:" + audit.getTerminology() + " AND version:" + audit.getVersion(),
-        ElasticOperationsService.AUDIT_INDEX);
-    staticOperationsService.index(audit, ElasticOperationsService.AUDIT_INDEX, Audit.class);
+        OpensearchOperationsService.AUDIT_INDEX);
+    staticOperationsService.index(audit, OpensearchOperationsService.AUDIT_INDEX, Audit.class);
   }
 }

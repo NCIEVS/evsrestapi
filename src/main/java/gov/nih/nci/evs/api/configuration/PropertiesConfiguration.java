@@ -1,9 +1,9 @@
 package gov.nih.nci.evs.api.configuration;
 
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.properties.ElasticQueryProperties;
-import gov.nih.nci.evs.api.properties.ElasticServerProperties;
 import gov.nih.nci.evs.api.properties.GraphProperties;
+import gov.nih.nci.evs.api.properties.OpensearchQueryProperties;
+import gov.nih.nci.evs.api.properties.OpensearchServerProperties;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.autoconfigure.web.ServerProperties;
@@ -60,24 +60,24 @@ public class PropertiesConfiguration {
   }
 
   /**
-   * Elastic query properties.
+   * Opensearch query properties.
    *
-   * @return the elastic query properties
+   * @return the opensearch query properties
    */
   @Bean
   @ConfigurationProperties(prefix = "nci.evs.elasticsearch.query", ignoreUnknownFields = false)
-  ElasticQueryProperties elasticQueryProperties() {
-    return new ElasticQueryProperties();
+  OpensearchQueryProperties OpensearchQueryProperties() {
+    return new OpensearchQueryProperties();
   }
 
   /**
-   * Elastic server properties.
+   * Opensearch server properties.
    *
-   * @return the elastic server properties
+   * @return the opensearch server properties
    */
   @Bean
   @ConfigurationProperties(prefix = "nci.evs.elasticsearch.server", ignoreUnknownFields = false)
-  ElasticServerProperties elasticServerProperties() {
-    return new ElasticServerProperties();
+  OpensearchServerProperties OpensearchServerProperties() {
+    return new OpensearchServerProperties();
   }
 }

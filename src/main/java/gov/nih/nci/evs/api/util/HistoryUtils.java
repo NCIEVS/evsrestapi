@@ -4,7 +4,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -39,7 +39,7 @@ public final class HistoryUtils {
    * @throws Exception the exception
    */
   public static List<History> getReplacements(
-      final Terminology terminology, final ElasticQueryService service, final String code)
+      final Terminology terminology, final OpensearchQueryService service, final String code)
       throws Exception {
 
     final List<History> replacements = new ArrayList<>();
@@ -98,7 +98,7 @@ public final class HistoryUtils {
    * @throws Exception the exception
    */
   public static List<History> getReplacements(
-      final Terminology terminology, final ElasticQueryService service, final List<String> codes)
+      final Terminology terminology, final OpensearchQueryService service, final List<String> codes)
       throws Exception {
 
     final List<History> replacements = new ArrayList<>();
