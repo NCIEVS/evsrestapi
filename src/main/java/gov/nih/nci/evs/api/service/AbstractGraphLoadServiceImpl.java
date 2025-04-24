@@ -545,13 +545,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         // So we use the "everything" mode
         newSubsetEntry =
             esQueryService.getConcept(subsetCode, terminology, new IncludeParam("*")).orElseThrow();
-        if (newSubsetEntry.equals("C6772")) {
-          logger.info(
-              "XXX1 = "
-                  + new ObjectMapper()
-                      .writerWithDefaultPrettyPrinter()
-                      .writeValueAsString(newSubsetEntry));
-        }
       } catch (NoSuchElementException e) {
         logger.warn("Subset " + subsetCode + " not found as a concept, skipping.");
         Audit.addAudit(
@@ -614,13 +607,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
                   .getConcept(
                       row.getCell(2).getStringCellValue(), terminology, new IncludeParam("*"))
                   .get();
-          if (subsetCode.equals("C6772")) {
-            logger.info(
-                "XXX2 = "
-                    + new ObjectMapper()
-                        .writerWithDefaultPrettyPrinter()
-                        .writeValueAsString(subsetConcept));
-          }
         } catch (Exception e) {
           logger.warn(
               "Concept "
@@ -666,6 +652,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       // add extra relevant properties to new subset
       newSubsetEntry.getProperties().add(new Property("Publish_Value_Set", "Yes"));
       newSubsetEntry.getProperties().add(new Property("EVSRESTAPI_Subset_Format", "NCI"));
+      newSubsetEntry.setSubsetLink(url);
       // index newSubsetEntry
       operationsService.index(newSubsetEntry, terminology.getIndexName(), Concept.class);
       // create new subset for parentSubset to add as child of existing subset
@@ -679,7 +666,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         parentSubset.getProperties().add(new Property("Publish_Value_Set", "Yes"));
       }
       parentSubset.getProperties().add(new Property("EVSRESTAPI_Subset_Format", "NCI"));
-      parentSubset.setSubsetLink(url);
       // index parentSubset
       operationsService.index(parentSubset, terminology.getObjectIndexName(), Concept.class);
     }
