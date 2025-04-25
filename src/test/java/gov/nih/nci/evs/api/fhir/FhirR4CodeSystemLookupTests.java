@@ -10,6 +10,8 @@ import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
+
+import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.hl7.fhir.r4.model.BooleanType;
@@ -17,6 +19,7 @@ import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.Parameters.ParametersParameterComponent;
+import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.StringType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +35,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
@@ -105,6 +109,75 @@ public class FhirR4CodeSystemLookupTests {
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
     assertEquals(version, ((StringType) params.getParameter("version").getValue()).getValue());
   }
+  
+  /**
+   * Test code system lookup code with coding.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemLookupImplicitCodeWithCoding() throws Exception {
+    // Arrange
+    String activeCode = "T100";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    String displayString = "Age Group";
+    String name = "UMLS Semantic Network 2023AA";
+    String version = "2023AA";
+    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_LOOKUP;
+
+    // Create the Coding object
+    Coding coding = new Coding(url, activeCode, null);
+
+    // Construct the GET request URI with the coding parameter
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    builder.queryParam("coding", coding.getSystem() + "|" + coding.getCode());
+
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertEquals(name, ((StringType) params.getParameter("name").getValue()).getValue());
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+    assertEquals(version, ((StringType) params.getParameter("version").getValue()).getValue());
+  }
+
+
+  @Test
+  public void testCodeSystemLookupInstanceCodeWithCoding() throws Exception {
+    // Arrange
+    String activeCode = "T100";
+    String activeId = "umlssemnet_2023aa";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    String displayString = "Age Group";
+    String name = "UMLS Semantic Network 2023AA";
+    String version = "2023AA";
+    String endpoint = localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_LOOKUP;
+
+    // Create the Coding object
+    Coding coding = new Coding(url, activeCode, null);
+
+    // Construct the GET request URI with the coding parameter
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    builder.queryParam("coding", coding.getSystem() + "|" + coding.getCode());
+
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertEquals(name, ((StringType) params.getParameter("name").getValue()).getValue());
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+    assertEquals(version, ((StringType) params.getParameter("version").getValue()).getValue());
+  }
+
+
 
   /**
    * Test code system lookup implicit parameter not supported.

@@ -6,12 +6,15 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.URI;
+
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import org.hl7.fhir.r5.model.BooleanType;
+import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r5.model.Parameters;
@@ -27,9 +30,13 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Class tests for FhirR5Tests. Tests the functionality of the FHIR R5 endpoints, CodeSystem,
@@ -101,6 +108,61 @@ public class FhirR5ValueSetValidateTests {
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
   }
 
+  @Test
+  public void testValueSetValidateActiveImplicitCodeWithCoding() throws Exception {
+    // Arrange
+    String activeCode = "T100";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String displayString = "Age Group";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+
+    // Create the Coding object
+    Coding coding = new Coding(url, activeCode, null);
+
+    // Construct the GET request URI with the coding parameter
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    builder.queryParam("coding", coding.getSystem() + "|" + coding.getCode());
+
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+  }
+  
+  @Test
+  public void testValueSetValidateActiveInstanceCodeWithCoding() throws Exception {
+    // Arrange
+    String activeCode = "T100";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String activeId = "umlssemnet_2023aa";
+    String displayString = "Age Group";
+    String endpoint = localHost + port + fhirVSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+
+    // Create the Coding object
+    Coding coding = new Coding(url, activeCode, null);
+
+    // Construct the GET request URI with the coding parameter
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    builder.queryParam("coding", coding.getSystem() + "|" + coding.getCode());
+
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+  }
+  
   /**
    * Test value set validate active code parameter not supported.
    *

@@ -104,7 +104,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "source") final UriType source,
-      // @OperationParam(name = "coding") final Coding coding,
+      @OperationParam(name = "coding") final Coding coding,
       // @OperationParam(name = "codeableConcept") final CodeableConcept
       // codeableConcept,
       @OperationParam(name = "target") final UriType target,
@@ -123,7 +123,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("target", target, "targetSystem", targetSystem);
-      for (final String param : new String[] {"coding", "codableConcept", "dependency"}) {
+      for (final String param : new String[] {"codableConcept", "dependency"}) {
         FhirUtilityR4.notSupported(request, param);
       }
       if (Collections.list(request.getParameterNames()).stream()
@@ -132,14 +132,29 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           > 0) {
         FhirUtilityR4.notSupported(request, "_has");
       }
+      
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (coding != null) {
+        systemToLookup = coding.getSystemElement();
+      }
+      
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
-          findPossibleConceptMaps(null, null, system, url, version, source, target, targetSystem);
+          findPossibleConceptMaps(null, null, systemToLookup, url, version, source, target, targetSystem);
       // Extract the mapsetcode from cm build the query
       final List<String> mapsetCodes = cm.stream().map(m -> m.getTitle()).toList();
 
       // Build a string query to search for the code/target
-      String query = buildFhirQueryString(code, mapsetCodes, reverse, "AND");
+      CodeType sourceCodeToLookup = null;
+      if (code != null) {
+    	  sourceCodeToLookup = code;
+      } else if (coding != null) {
+    	  sourceCodeToLookup = coding.getCodeElement();
+      }
+      
+      String query = buildFhirQueryString(sourceCodeToLookup, mapsetCodes, reverse, "AND");
       logger.debug("   Fhir query string = " + query);
 
       MappingResultList maps;
@@ -225,7 +240,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "source") final UriType source,
-      // @OperationParam(name = "coding") final Coding coding,
+      @OperationParam(name = "coding") final Coding coding,
       // @OperationParam(name = "codeableConcept") final CodeableConcept
       // codeableConcept,
       @OperationParam(name = "target") final UriType target,
@@ -244,7 +259,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("target", target, "targetSystem", targetSystem);
-      for (final String param : new String[] {"coding", "codableConcept", "dependency"}) {
+      for (final String param : new String[] {"codableConcept", "dependency"}) {
         FhirUtilityR4.notSupported(request, param);
       }
       if (Collections.list(request.getParameterNames()).stream()
@@ -253,14 +268,29 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           > 0) {
         FhirUtilityR4.notSupported(request, "_has");
       }
+      
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (coding != null) {
+        systemToLookup = coding.getSystemElement();
+      }
+      
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
-          findPossibleConceptMaps(null, null, system, url, version, source, target, targetSystem);
+          findPossibleConceptMaps(null, null, systemToLookup, url, version, source, target, targetSystem);
       // Extract the mapsetcode from cm build the query
       final List<String> mapsetCodes = cm.stream().map(m -> m.getTitle()).toList();
 
       // Build a string query to search for the code/target
-      String query = buildFhirQueryString(code, mapsetCodes, reverse, "AND");
+      CodeType sourceCodeToLookup = null;
+      if (code != null) {
+    	  sourceCodeToLookup = code;
+      } else if (coding != null) {
+    	  sourceCodeToLookup = coding.getCodeElement();
+      }
+      
+      String query = buildFhirQueryString(sourceCodeToLookup, mapsetCodes, reverse, "AND");
       logger.debug("   Fhir query string = " + query);
 
       // final List<ConceptMap> cm =

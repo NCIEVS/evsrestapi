@@ -4,11 +4,14 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.URI;
+
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r5.model.Parameters;
@@ -27,6 +30,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.util.UriComponentsBuilder;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -144,6 +148,69 @@ public class FhirR5CodeSystemSubsumesTests {
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
+  }
+
+  /**
+   * Test code system subsumes coding.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemSubsumesImplicitWithCoding() throws Exception {
+    // Arrange
+    String url = "http://snomed.info/sct";
+    String activeCodeA = "448772000";
+    String activeCodeB = "271860004";
+    String outcome = "subsumes";
+    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
+
+    // Create Coding objects
+    Coding codingA = new Coding(url, activeCodeA, null);
+    Coding codingB = new Coding(url, activeCodeB, null);
+
+    // Construct the GET request URI with codingA and codingB parameters
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    builder.queryParam("codingA", codingA.getSystem() + "|" + codingA.getCode());
+    builder.queryParam("codingB", codingB.getSystem() + "|" + codingB.getCode());
+
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
+  }
+
+  @Test
+  public void testCodeSystemSubsumesInstanceWithCoding() throws Exception {
+    // Arrange
+    String url = "http://snomed.info/sct";
+    String activeId = "snomedct_us_2020_09_01";
+    String activeCodeA = "448772000";
+    String activeCodeB = "271860004";
+    String outcome = "subsumes";
+    String endpoint =
+        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES;
+
+    // Create Coding objects
+    Coding codingA = new Coding(url, activeCodeA, null);
+    Coding codingB = new Coding(url, activeCodeB, null);
+
+    // Construct the GET request URI with codingA and codingB parameters
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    builder.queryParam("codingA", codingA.getSystem() + "|" + codingA.getCode());
+    builder.queryParam("codingB", codingB.getSystem() + "|" + codingB.getCode());
+
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert

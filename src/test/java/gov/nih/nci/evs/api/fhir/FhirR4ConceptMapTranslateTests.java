@@ -4,6 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.URI;
+
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
@@ -12,6 +14,7 @@ import gov.nih.nci.evs.api.properties.TestProperties;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
+import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.Parameters;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,6 +32,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
@@ -282,5 +286,69 @@ public class FhirR4ConceptMapTranslateTests {
     assertNotNull(content.getBody());
     assertTrue(content.getBody().contains(message));
     assertTrue(content.getBody().contains("not supported"));
+  }
+  
+  /**
+   * Test concept map translate instance with source coding.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testConceptMapTranslateInstanceWithSourceCoding() throws Exception {
+    // Arrange
+    String code = "GO:0016887";
+    String id = "go_to_ncit_mapping_february2020";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint =
+        localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
+
+    // Create the Coding object
+    Coding sourceCoding = new Coding(system, code, null);
+
+    // Construct the GET request URI with the sourceCoding parameter
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    builder.queryParam("coding", sourceCoding.getSystem() + "|" + sourceCoding.getCode());
+
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+  
+
+  /**
+   * Test concept map translate implicit with source coding.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testConceptMapTranslateImplicitWithSourceCoding() throws Exception {
+    // Arrange
+    String code = "GO:0016887";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint =
+        localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+
+    // Create the Coding object
+    Coding sourceCoding = new Coding(system, code, null);
+
+    // Construct the GET request URI with the sourceCoding parameter
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    builder.queryParam("coding", sourceCoding.getSystem() + "|" + sourceCoding.getCode());
+
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
   }
 }

@@ -29,6 +29,7 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -663,15 +664,15 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "systemVersion") final StringType systemVersion,
       //      @OperationParam(name = "version") final StringType version,
-      @OperationParam(name = "display") final StringType display
-      //      @OperationParam(name = "coding") final Coding coding,
+      @OperationParam(name = "display") final StringType display,
+      @OperationParam(name = "coding") final Coding coding
       //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       //      @OperationParam(name = "date") final DateTimeType date,
       //      @OperationParam(name = "abstract") final BooleanType abstractt,
       //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
       ) throws Exception {
     // check if request is a post, throw exception as we don't support post
-    // calls
+    // calls except for coding parameter
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
           "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
@@ -679,15 +680,14 @@ public class ValueSetProviderR5 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR5.required("code", code);
       FhirUtilityR5.mutuallyRequired("code", code, "system", system, "url", url);
       FhirUtilityR5.mutuallyRequired("system", system, "systemVersion", systemVersion);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
 
       // TODO: not sure that "version" should be in this list
+      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       for (final String param :
           new String[] {
-            "coding",
             "context",
             "date",
             "abstract",
@@ -699,13 +699,27 @@ public class ValueSetProviderR5 implements IResourceProvider {
         FhirUtilityR5.notSupported(request, param);
       }
 
-      final List<ValueSet> list = findPossibleValueSets(null, system, url, systemVersion);
+      UriType urlToLookup = null;
+      if (url != null) {
+    	  urlToLookup = url;
+      }
+      if (coding != null) {
+        urlToLookup = coding.getSystemElement();
+      }
+
+      final List<ValueSet> list = findPossibleValueSets(null, system, urlToLookup, systemVersion);
       final Parameters params = new Parameters();
 
       if (!list.isEmpty()) {
+        String codeToLookup = "";
+        if (code != null) {
+          codeToLookup = code.getCode();
+        } else if (coding != null) {
+          codeToLookup = coding.getCode();
+        }
         final ValueSet vs = list.get(0);
         final SearchCriteria sc = new SearchCriteria();
-        sc.setTerm(code.getCode());
+        sc.setTerm(codeToLookup);
         sc.setInclude("minimal");
         sc.setType("exact");
         sc.setFromRecord(0);
@@ -734,7 +748,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
           }
         } else {
           params.addParameter("result", false);
-          params.addParameter("message", "The code '" + code.getCode() + "' was not found.");
+          params.addParameter("message", "The code '" + codeToLookup + "' was not found.");
         }
       } else {
         params.addParameter("result", false);
@@ -784,8 +798,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "systemVersion") final StringType systemVersion,
       //      @OperationParam(name = "version") final StringType version,
-      @OperationParam(name = "display") final StringType display
-      //      @OperationParam(name = "coding") final Coding coding,
+      @OperationParam(name = "display") final StringType display,
+      @OperationParam(name = "coding") final Coding coding
       //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       //      @OperationParam(name = "date") final DateTimeType date,
       //      @OperationParam(name = "abstract") final BooleanType abstractt,
@@ -801,13 +815,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
     try {
       FhirUtilityR5.requireAtLeastOneOf(
-          "code", code, "system", system, "systemVersion", systemVersion, "url", url);
+          "code", code, "system", system, "coding", coding, "url", url);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
 
       // TODO: not sure that "version" should be in this list
+      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       for (final String param :
           new String[] {
-            "coding",
             "context",
             "date",
             "abstract",
@@ -819,12 +833,26 @@ public class ValueSetProviderR5 implements IResourceProvider {
         FhirUtilityR5.notSupported(request, param);
       }
 
-      final List<ValueSet> list = findPossibleValueSets(id, system, url, systemVersion);
+      UriType urlToLookup = null;
+      if (url != null) {
+    	  urlToLookup = url;
+      }
+      if (coding != null) {
+        urlToLookup = coding.getSystemElement();
+      }
+
+      final List<ValueSet> list = findPossibleValueSets(id, system, urlToLookup, systemVersion);
       final Parameters params = new Parameters();
       if (!list.isEmpty()) {
+        String codeToLookup = "";
+        if (code != null) {
+          codeToLookup = code.getCode();
+        } else if (coding != null) {
+          codeToLookup = coding.getCode();
+        }
         final ValueSet vs = list.get(0);
         final SearchCriteria sc = new SearchCriteria();
-        sc.setTerm(code.getCode());
+        sc.setTerm(codeToLookup);
         sc.setInclude("minimal");
         sc.setType("exact");
         if (vs.getIdentifier() != null && !vs.getIdentifier().isEmpty()) {
@@ -852,7 +880,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
           }
         } else {
           params.addParameter("result", false);
-          params.addParameter("message", "The code '" + code.getCode() + "' was not found.");
+          params.addParameter("message", "The code '" + codeToLookup + "' was not found.");
         }
       } else {
         params.addParameter("result", false);

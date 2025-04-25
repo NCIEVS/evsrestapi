@@ -4,12 +4,15 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.net.URI;
+
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import org.hl7.fhir.r5.model.BooleanType;
+import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r5.model.Parameters;
@@ -29,6 +32,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Class tests for FhirR5Tests. Tests the functionality of the FHIR R5 endpoints, CodeSystem,
@@ -102,7 +106,71 @@ public class FhirR5ConceptMapTranslateTests {
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
   }
+  
+  /**
+   * Test concept map translate instance with source coding.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testConceptMapTranslateInstanceWithSourceCoding() throws Exception {
+    // Arrange
+    String code = "GO:0016887";
+    String id = "go_to_ncit_mapping_february2020";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint =
+        localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
 
+    // Create the Coding object
+    Coding sourceCoding = new Coding(system, code, null);
+
+    // Construct the GET request URI with the sourceCoding parameter
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    builder.queryParam("sourceCoding", sourceCoding.getSystem() + "|" + sourceCoding.getCode());
+
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+  
+
+  /**
+   * Test concept map translate implicit with source coding.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testConceptMapTranslateImplicitWithSourceCoding() throws Exception {
+    // Arrange
+    String code = "GO:0016887";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint =
+        localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+
+    // Create the Coding object
+    Coding sourceCoding = new Coding(system, code, null);
+
+    // Construct the GET request URI with the sourceCoding parameter
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    builder.queryParam("sourceCoding", sourceCoding.getSystem() + "|" + sourceCoding.getCode());
+
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+  }
+  
   /**
    * Test concept map translate with instance system with reverse = true; id, code, system, and
    * display provided.
@@ -110,16 +178,15 @@ public class FhirR5ConceptMapTranslateTests {
    * @throws Exception exception
    */
   @Test
-  public void testConceptMaptTranslateInstanceWithReverse() throws Exception {
+  public void testConceptMapTranslateInstanceWithTarget() throws Exception {
     // Arrange
     String content;
     String code = "C19939";
     String id = "go_to_ncit_mapping_february2020";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
-    String reverse = "true";
     String endpoint =
         localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
-    String parameters = "?targetCode=" + code + "&system=" + system + "&reverse=" + reverse;
+    String parameters = "?targetCode=" + code + "&system=" + system;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -130,6 +197,8 @@ public class FhirR5ConceptMapTranslateTests {
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
   }
+  
+
 
   /**
    * Test concept map translate with implicit system; code and system provided.
@@ -161,14 +230,13 @@ public class FhirR5ConceptMapTranslateTests {
    * @throws Exception exception
    */
   @Test
-  public void testConceptMapTranslateImplicitWithReverse() throws Exception {
+  public void testConceptMapTranslateImplicitWithTarget() throws Exception {
     // Arrange
     String content;
     String code = "C19939";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
-    String reverse = "true";
     String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
-    String parameters = "?targetCode=" + code + "&system=" + system + "&reverse=" + reverse;
+    String parameters = "?targetCode=" + code + "&system=" + system;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);

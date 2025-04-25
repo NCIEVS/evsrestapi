@@ -124,7 +124,15 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           > 0) {
         FhirUtilityR4.notSupported(request, "_has");
       }
-      final List<CodeSystem> cs = findPossibleCodeSystems(null, date, system, version);
+      
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (coding != null) {
+        systemToLookup = coding.getSystemElement();
+      }
+  
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, date, systemToLookup, version);
       final Parameters params = new Parameters();
       if (cs.size() > 0) {
         String codeToLookup = "";
@@ -223,7 +231,15 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           > 0) {
         FhirUtilityR4.notSupported(request, "_has");
       }
-      final List<CodeSystem> cs = findPossibleCodeSystems(id, date, system, version);
+
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (coding != null) {
+        systemToLookup = coding.getSystemElement();
+      }
+
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, date, systemToLookup, version);
       final Parameters params = new Parameters();
       if (cs.size() > 0) {
         String codeToLookup = "";
@@ -520,7 +536,15 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.mutuallyRequired("codeB", codeB, "system", system);
       FhirUtilityR4.mutuallyExclusive("codingB", codingB, "codeB", codeB);
       FhirUtilityR4.mutuallyExclusive("codingA", codingA, "codeA", codeA);
-      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, system, version);
+      
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (codingA != null) {
+        systemToLookup = codingA.getSystemElement();
+      }
+      
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (cs.size() > 0) {
         String code1 = "";
@@ -616,7 +640,15 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.mutuallyRequired("codeB", codeB, "system", system);
       FhirUtilityR4.mutuallyExclusive("codingB", codingB, "codeB", codeB);
       FhirUtilityR4.mutuallyExclusive("codeA", codingA, "codeA", codeA);
-      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, system, version);
+      
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (codingA != null) {
+        systemToLookup = codingA.getSystemElement();
+      }
+      
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (cs.size() > 0) {
         String code1 = "";

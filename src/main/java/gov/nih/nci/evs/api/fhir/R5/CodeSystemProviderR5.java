@@ -201,6 +201,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       //      @OperationParam(name = "property") final CodeType property
       ) throws Exception {
     // Check if the request is a POST, throw exception as we don't support post calls
+    // exception for coding parameter
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
           "POST method not supported for " + JpaConstants.OPERATION_LOOKUP,
@@ -222,7 +223,14 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         FhirUtilityR5.notSupported(request, "_has");
       }
 
-      final List<CodeSystem> cs = findPossibleCodeSystems(null, date, system, version);
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (coding != null) {
+        systemToLookup = coding.getSystemElement();
+      }
+
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, date, systemToLookup, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String codeToLookup = "";
@@ -298,7 +306,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
       //      @OperationParam(name = "property") final CodeType property
       ) throws Exception {
-    // check if the request is a post, throw exception as we don't support post calls
+    // Check if the request is a POST, throw exception as we don't support post calls
+    // exception for coding parameter
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
           "POST method not supported for " + JpaConstants.OPERATION_LOOKUP,
@@ -317,7 +326,15 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           > 0) {
         FhirUtilityR5.notSupported(request, "_has");
       }
-      final List<CodeSystem> cs = findPossibleCodeSystems(id, date, system, version);
+
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (coding != null) {
+        systemToLookup = coding.getSystemElement();
+      }
+
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, date, systemToLookup, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String codeToLookup = "";
@@ -614,7 +631,22 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyRequired("codeB", codeB, "system", system);
       FhirUtilityR5.mutuallyExclusive("codingB", codingB, "codeB", codeB);
       FhirUtilityR5.mutuallyExclusive("codingA", codingA, "codeA", codeA);
-      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, system, version);
+
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (codingA != null) {
+        systemToLookup = codingA.getSystemElement();
+      }
+      if (codingA != null && codingB != null) {
+        if (!codingA.getSystem().equals(codingB.getSystem())) {
+          throw FhirUtilityR5.exception(
+              "CodingA system and CodingB system are expected to match",
+              OperationOutcome.IssueType.EXCEPTION,
+              400);
+        }
+      }
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String code1 = "";
@@ -632,6 +664,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           throw FhirUtilityR5.exception(
               "No codeB parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
         }
+
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
@@ -708,7 +741,23 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyRequired("codeB", codeB, "system", system);
       FhirUtilityR5.mutuallyExclusive("codingB", codingB, "codeB", codeB);
       FhirUtilityR5.mutuallyExclusive("codingA", codingA, "codeA", codeA);
-      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, system, version);
+
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (codingA != null) {
+        systemToLookup = codingA.getSystemElement();
+      }
+      if (codingA != null && codingB != null) {
+        if (!codingA.getSystem().equals(codingB.getSystem())) {
+          throw FhirUtilityR5.exception(
+              "CodingA system and CodingB system are expected to match",
+              OperationOutcome.IssueType.EXCEPTION,
+              400);
+        }
+      }
+
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String code1 = "";
