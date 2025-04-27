@@ -681,11 +681,11 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
     try {
       FhirUtilityR5.mutuallyRequired("code", code, "system", system, "url", url);
+      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR5.mutuallyRequired("system", system, "systemVersion", systemVersion);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
 
       // TODO: not sure that "version" should be in this list
-      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       for (final String param :
           new String[] {
             "context",
@@ -701,7 +701,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
       UriType urlToLookup = null;
       if (url != null) {
-    	  urlToLookup = url;
+        urlToLookup = url;
       }
       if (coding != null) {
         urlToLookup = coding.getSystemElement();
@@ -816,10 +816,10 @@ public class ValueSetProviderR5 implements IResourceProvider {
     try {
       FhirUtilityR5.requireAtLeastOneOf(
           "code", code, "system", system, "coding", coding, "url", url);
+      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
 
       // TODO: not sure that "version" should be in this list
-      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       for (final String param :
           new String[] {
             "context",
@@ -835,7 +835,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
       UriType urlToLookup = null;
       if (url != null) {
-    	  urlToLookup = url;
+        urlToLookup = url;
       }
       if (coding != null) {
         urlToLookup = coding.getSystemElement();

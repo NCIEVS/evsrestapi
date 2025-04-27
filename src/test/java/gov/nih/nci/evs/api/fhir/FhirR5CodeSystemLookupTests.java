@@ -11,7 +11,6 @@ import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
-
 import java.net.URI;
 import java.util.HashSet;
 import java.util.List;
@@ -148,7 +147,6 @@ public class FhirR5CodeSystemLookupTests {
     assertEquals(version, ((StringType) params.getParameter("version").getValue()).getValue());
   }
 
-
   @Test
   public void testCodeSystemLookupInstanceCodeWithCoding() throws Exception {
     // Arrange
@@ -158,7 +156,8 @@ public class FhirR5CodeSystemLookupTests {
     String displayString = "Age Group";
     String name = "UMLS Semantic Network 2023AA";
     String version = "2023AA";
-    String endpoint = localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_LOOKUP;
+    String endpoint =
+        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_LOOKUP;
 
     // Create the Coding object
     Coding coding = new Coding(url, activeCode, null);
@@ -180,7 +179,6 @@ public class FhirR5CodeSystemLookupTests {
     assertEquals(version, ((StringType) params.getParameter("version").getValue()).getValue());
   }
 
-
   /**
    * Test code system lookup implicit parameter not supported.
    *
@@ -191,8 +189,7 @@ public class FhirR5CodeSystemLookupTests {
     // Arrange
     String content;
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    String endpoint =
-        localHost + port + fhirCSPath  + "/" + JpaConstants.OPERATION_LOOKUP;
+    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_LOOKUP;
     String parameters = "?url=" + url + "&displayLanguage=notfound";
 
     String messageNotSupported = "Input parameter 'displayLanguage' is not supported.";
@@ -505,5 +502,68 @@ public class FhirR5CodeSystemLookupTests {
     assertNotNull(content.getBody());
     assertTrue(content.getBody().contains(message));
     assertTrue(content.getBody().contains("not supported"));
+  }
+
+  /**
+   * Test code system lookup implicit code with both code and coding.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemLookupImplicitCodeWithBothCodeAndCoding() throws Exception {
+    // Arrange
+    String activeCode = "T100";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    Coding coding = new Coding(url, activeCode, null);
+
+    String messageNotSupported = "Must use one of 'code' or 'coding' parameters";
+    String errorCode = "invariant";
+
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(
+            localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_LOOKUP);
+    builder.queryParam("code", activeCode);
+    builder.queryParam("system", url);
+    builder.queryParam("coding", coding.getSystem() + "|" + coding.getCode());
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, (component.getDiagnostics()));
+  }
+
+  /**
+   * Test code system lookup implicit code with no system.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemLookupImplicitCodeWithNoSystem() throws Exception {
+    // Arrange
+    String activeCode = "T100";
+
+    String messageNotSupported =
+        "Input parameter 'code' can only be used in conjunction with parameter 'system'.";
+    String errorCode = "invariant";
+
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(
+            localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_LOOKUP);
+    builder.queryParam("code", activeCode);
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, (component.getDiagnostics()));
   }
 }

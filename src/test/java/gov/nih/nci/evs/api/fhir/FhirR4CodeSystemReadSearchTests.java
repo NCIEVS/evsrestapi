@@ -246,7 +246,7 @@ public class FhirR4CodeSystemReadSearchTests {
     data = parser.parseResource(Bundle.class, content);
     validateCodeSystemResults(data, true); // Expecting results
 
-    // Test 7: url same as system
+    // Test 7: url and system
     builder =
         UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
             // "ge2021-06")
@@ -255,24 +255,16 @@ public class FhirR4CodeSystemReadSearchTests {
             .queryParam("version", "21.06e")
             .queryParam("title", "ncit");
 
-    // Test successful case with all parameters
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
-    data = parser.parseResource(Bundle.class, content);
-    validateCodeSystemResults(data, true); // Expecting results
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
-    // Test 8: url different from system
-    builder =
-        UriComponentsBuilder.fromUriString(endpoint)
-            .queryParam("date", "ge2025-01") // Future
-            // date
-            .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("url", "differentFromSystem")
-            .queryParam("version", "21.06e")
-            .queryParam("title", "ncit");
+    String messageNotFound = "Use one of 'url' or 'system' parameters.";
+    String errorCode = "invariant";
 
-    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
-    data = parser.parseResource(Bundle.class, content);
-    validateCodeSystemResults(data, false); // Expecting no results
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
   /**

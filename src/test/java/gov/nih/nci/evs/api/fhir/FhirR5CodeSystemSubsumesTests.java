@@ -4,13 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.net.URI;
-
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import java.net.URI;
 import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
@@ -395,5 +394,75 @@ public class FhirR5CodeSystemSubsumesTests {
     assertNotNull(content.getBody());
     assertTrue(content.getBody().contains(message));
     assertTrue(content.getBody().contains("not supported"));
+  }
+
+  /**
+   * Test code system subsumes implicit with both code and coding get.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemSubsumesImplicitWithBothCodeAndCodingGet() throws Exception {
+    // Arrange
+    String url = "http://snomed.info/sct";
+    String activeCodeA = "448772000";
+    String activeCodeB = "271860004";
+    Coding codingA = new Coding(url, activeCodeA, null);
+
+    String messageNotSupported = "Must use one of 'codingA' or 'codeA' parameters";
+    String errorCode = "invariant";
+
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(
+            localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES);
+    builder.queryParam("codeA", activeCodeA);
+    builder.queryParam("system", url);
+    builder.queryParam("codingA", codingA.getSystem() + "|" + codingA.getCode());
+    builder.queryParam("codeB", activeCodeB);
+    builder.queryParam("systemB", url);
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, component.getDiagnostics());
+  }
+
+  /**
+   * Test code system subsumes implicit with code A no system.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemSubsumesImplicitWithCodeANoSystem() throws Exception {
+    // Arrange
+    String activeCodeA = "448772000";
+    String activeCodeB = "271860004";
+    String url = "http://snomed.info/sct";
+
+    String messageNotSupported =
+        "Input parameter 'codeA' can only be used in conjunction with parameter 'system'.";
+    String errorCode = "invariant";
+
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(
+            localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES);
+    builder.queryParam("codeA", activeCodeA);
+    builder.queryParam("codeB", activeCodeB);
+    builder.queryParam("systemB", url);
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, component.getDiagnostics());
   }
 }

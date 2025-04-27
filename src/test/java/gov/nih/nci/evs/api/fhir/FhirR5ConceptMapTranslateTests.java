@@ -4,13 +4,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.net.URI;
-
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import java.net.URI;
 import org.hl7.fhir.r5.model.BooleanType;
 import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.OperationOutcome;
@@ -106,7 +105,7 @@ public class FhirR5ConceptMapTranslateTests {
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
   }
-  
+
   /**
    * Test concept map translate instance with source coding.
    *
@@ -138,7 +137,6 @@ public class FhirR5ConceptMapTranslateTests {
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
   }
-  
 
   /**
    * Test concept map translate implicit with source coding.
@@ -150,8 +148,7 @@ public class FhirR5ConceptMapTranslateTests {
     // Arrange
     String code = "GO:0016887";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
-    String endpoint =
-        localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
 
     // Create the Coding object
     Coding sourceCoding = new Coding(system, code, null);
@@ -170,7 +167,7 @@ public class FhirR5ConceptMapTranslateTests {
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
   }
-  
+
   /**
    * Test concept map translate with instance system with reverse = true; id, code, system, and
    * display provided.
@@ -197,8 +194,6 @@ public class FhirR5ConceptMapTranslateTests {
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
   }
-  
-
 
   /**
    * Test concept map translate with implicit system; code and system provided.
@@ -371,6 +366,64 @@ public class FhirR5ConceptMapTranslateTests {
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, (component.getDiagnostics()));
+  }
+
+  @Test
+  public void testConceptMapTranslateImplicitCodeWithBothCodeAndCoding() throws Exception {
+    // Arrange
+    String content;
+    String code = "GO:0016887";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+    Coding coding = new Coding(system, code, null);
+
+    String messageNotSupported = "Must use one of 'sourceCode' or 'sourceCoding' parameters";
+    String errorCode = "invariant";
+
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    builder.queryParam("sourceCode", code);
+    builder.queryParam("system", system);
+    builder.queryParam("sourceCoding", coding.getSystem() + "|" + coding.getCode());
+    URI getUri = builder.build().toUri();
+
+    // Act
+    content = this.restTemplate.getForObject(getUri, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, (component.getDiagnostics()));
+  }
+
+  /**
+   * Test concept map translate implicit code with no system.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testConceptMapTranslateImplicitCodeWithNoSystem() throws Exception {
+    // Arrange
+    String code = "GO:0016887";
+
+    String messageNotSupported =
+        "Input parameter 'sourceCode' can only be used in conjunction with parameter 'system'.";
+    String errorCode = "invariant";
+
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(
+            localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE);
+    builder.queryParam("sourceCode", code);
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
     OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
     OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 

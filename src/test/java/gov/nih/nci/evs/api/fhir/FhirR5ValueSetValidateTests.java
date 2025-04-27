@@ -6,13 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import java.net.URI;
-
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import java.net.URI;
 import org.hl7.fhir.r5.model.BooleanType;
 import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.OperationOutcome;
@@ -30,10 +29,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -134,7 +130,7 @@ public class FhirR5ValueSetValidateTests {
     assertEquals(
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
   }
-  
+
   @Test
   public void testValueSetValidateActiveInstanceCodeWithCoding() throws Exception {
     // Arrange
@@ -142,7 +138,8 @@ public class FhirR5ValueSetValidateTests {
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     String activeId = "umlssemnet_2023aa";
     String displayString = "Age Group";
-    String endpoint = localHost + port + fhirVSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String endpoint =
+        localHost + port + fhirVSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
 
     // Create the Coding object
     Coding coding = new Coding(url, activeCode, null);
@@ -162,7 +159,7 @@ public class FhirR5ValueSetValidateTests {
     assertEquals(
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
   }
-  
+
   /**
    * Test value set validate active code parameter not supported.
    *
@@ -486,5 +483,68 @@ public class FhirR5ValueSetValidateTests {
     assertNotNull(content.getBody());
     assertTrue(content.getBody().contains(message));
     assertTrue(content.getBody().contains("not supported"));
+  }
+
+  /**
+   * Test value set validate implicit code with both code and coding.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetValidateImplicitCodeWithBothCodeAndCoding() throws Exception {
+    // Arrange
+    String activeCode = "T100";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    Coding coding = new Coding(url, activeCode, null);
+
+    String messageNotSupported = "Must use one of 'code' or 'coding' parameters";
+    String errorCode = "invariant";
+
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(
+            localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE);
+    builder.queryParam("code", activeCode);
+    builder.queryParam("url", url);
+    builder.queryParam("coding", coding.getSystem() + "|" + coding.getCode());
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, (component.getDiagnostics()));
+  }
+
+  /**
+   * Test value set validate implicit code with no system.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetValidateImplicitCodeWithNoSystem() throws Exception {
+    // Arrange
+    String activeCode = "T100";
+
+    String messageNotSupported =
+        "Use of input parameter 'code' only allowed if 'system' or 'url' is also present.";
+    String errorCode = "invariant";
+
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(
+            localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE);
+    builder.queryParam("code", activeCode);
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, (component.getDiagnostics()));
   }
 }

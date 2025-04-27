@@ -423,7 +423,9 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           405);
     }
     try {
+      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
+      FhirUtilityR5.mutuallyRequired("code", code, "url", url);
       for (final String param :
           new String[] {"codeSystem", "date", "abstract", "displayLanguage"}) {
         FhirUtilityR5.notSupported(request, param);
@@ -434,23 +436,23 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           > 0) {
         FhirUtilityR5.notSupported(request, "_has");
       }
-      
+
       UriType systemToLookup = null;
       if (url != null) {
         systemToLookup = url;
       } else if (coding != null) {
         systemToLookup = coding.getSystemElement();
       }
-      
+
       final List<CodeSystem> cs = findPossibleCodeSystems(null, null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
-    	  String codeToValidate = "";
-          if (code != null) {
-        	  codeToValidate = code.getCode();
-          } else if (coding != null) {
-        	  codeToValidate = coding.getCode();
-          }
+        String codeToValidate = "";
+        if (code != null) {
+          codeToValidate = code.getCode();
+        } else if (coding != null) {
+          codeToValidate = coding.getCode();
+        }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
@@ -543,6 +545,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           405);
     }
     try {
+      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
       for (final String param :
           new String[] {"codeSystem", "date", "abstract", "displayLanguage"}) {
@@ -554,23 +557,23 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           > 0) {
         FhirUtilityR5.notSupported(request, "_has");
       }
-      
+
       UriType systemToLookup = null;
       if (url != null) {
         systemToLookup = url;
       } else if (coding != null) {
         systemToLookup = coding.getSystemElement();
       }
-      
+
       final List<CodeSystem> cs = findPossibleCodeSystems(id, null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
-    	  String codeToValidate = "";
-          if (code != null) {
-        	  codeToValidate = code.getCode();
-          } else if (coding != null) {
-        	  codeToValidate = coding.getCode();
-          }
+        String codeToValidate = "";
+        if (code != null) {
+          codeToValidate = code.getCode();
+        } else if (coding != null) {
+          codeToValidate = coding.getCode();
+        }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);

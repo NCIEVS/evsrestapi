@@ -518,33 +518,33 @@ public class ValueSetProviderR4 implements IResourceProvider {
           405);
     }
     try {
-//    	FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
-//      FhirUtilityR4.mutuallyRequired("code", code, "system", system, "url", url);
-//      FhirUtilityR4.mutuallyRequired("system", system, "systemVersion", systemVersion);
+      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
+      FhirUtilityR4.mutuallyRequired("code", code, "system", system, "url", url);
+      FhirUtilityR4.mutuallyRequired("system", system, "systemVersion", systemVersion);
 
       // TODO: not sure that "version" should be in this list
-//      for (final String param :
-//          new String[] {
-//            "context",
-//            "date",
-//            "abstract",
-//            "displayLanguage",
-//            "version",
-//            "valueSet",
-//            "valueSetVersion"
-//          }) {
-//        FhirUtilityR4.notSupported(request, param);
-//      }
-//      if (Collections.list(request.getParameterNames()).stream()
-//              .filter(k -> k.startsWith("_has"))
-//              .count()
-//          > 0) {
-//        FhirUtilityR4.notSupported(request, "_has");
-//      }
+      for (final String param :
+          new String[] {
+            "context",
+            "date",
+            "abstract",
+            "displayLanguage",
+            "version",
+            "valueSet",
+            "valueSetVersion"
+          }) {
+        FhirUtilityR4.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
+      }
 
       UriType urlToLookup = null;
       if (url != null) {
-    	  urlToLookup = url;
+        urlToLookup = url;
       }
       if (coding != null) {
         urlToLookup = coding.getSystemElement();
@@ -554,12 +554,12 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final Parameters params = new Parameters();
 
       if (list.size() > 0) {
-    	  String codeToLookup = "";
-          if (code != null) {
-            codeToLookup = code.getCode();
-          } else if (coding != null) {
-            codeToLookup = coding.getCode();
-          }
+        String codeToLookup = "";
+        if (code != null) {
+          codeToLookup = code.getCode();
+        } else if (coding != null) {
+          codeToLookup = coding.getCode();
+        }
         final ValueSet vs = list.get(0);
         final SearchCriteria sc = new SearchCriteria();
         sc.setTerm(codeToLookup);
@@ -658,7 +658,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
           405);
     }
     try {
-    	FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
+      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR4.requireAtLeastOneOf(
           "code", code, "coding", coding, "systemVersion", systemVersion, "url", url);
 
@@ -684,7 +684,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
       UriType urlToLookup = null;
       if (url != null) {
-    	  urlToLookup = url;
+        urlToLookup = url;
       }
       if (coding != null) {
         urlToLookup = coding.getSystemElement();
@@ -693,12 +693,12 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final List<ValueSet> list = findPossibleValueSets(id, system, urlToLookup, systemVersion);
       final Parameters params = new Parameters();
       if (list.size() > 0) {
-    	  String codeToLookup = "";
-          if (code != null) {
-            codeToLookup = code.getCode();
-          } else if (coding != null) {
-            codeToLookup = coding.getCode();
-          }
+        String codeToLookup = "";
+        if (code != null) {
+          codeToLookup = code.getCode();
+        } else if (coding != null) {
+          codeToLookup = coding.getCode();
+        }
         final ValueSet vs = list.get(0);
         final SearchCriteria sc = new SearchCriteria();
         sc.setTerm(codeToLookup);

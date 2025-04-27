@@ -195,8 +195,8 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       @OperationParam(name = "targetCode") final UriType targetCode,
       @OperationParam(name = "targetCoding") final UriType targetCoding,
       @OperationParam(name = "targetScope") final UriType targetScope,
-      @OperationParam(name = "targetSystem") final UriType targetSystem
-      ) throws Exception {
+      @OperationParam(name = "targetSystem") final UriType targetSystem)
+      throws Exception {
     // Check if request is POST, throw error as we don't support POST calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
@@ -210,9 +210,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyRequired("targetCode", targetCode, "system", system);
       FhirUtilityR5.mutuallyExclusive("targetScope", targetScope, "targetSystem", targetSystem);
       for (final String param :
-          new String[] {
-            "sourceCodableConcept", "targetCodableConcept", "dependency"
-          }) {
+          new String[] {"sourceCodableConcept", "targetCodableConcept", "dependency"}) {
         FhirUtilityR5.notSupported(request, param);
       }
       if (Collections.list(request.getParameterNames()).stream()
@@ -228,7 +226,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       } else if (sourceCoding != null) {
         systemToLookup = sourceCoding.getSystemElement();
       }
-      
+
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
           findPossibleConceptMaps(null, null, systemToLookup, url, version, targetSystem);
@@ -238,17 +236,18 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       // Build a string query to search for the source code and target code
       CodeType sourceCodeToLookup = null;
       if (sourceCode != null) {
-    	  sourceCodeToLookup = sourceCode;
+        sourceCodeToLookup = sourceCode;
       } else if (sourceCoding != null) {
-    	  sourceCodeToLookup = sourceCoding.getCodeElement();
+        sourceCodeToLookup = sourceCoding.getCodeElement();
       }
       UriType targetCodeToLookup = null;
       if (targetCode != null) {
-    	  targetCodeToLookup = targetCode;
+        targetCodeToLookup = targetCode;
       } else if (targetCoding != null) {
-    	  targetCodeToLookup = targetCoding.copy();
+        targetCodeToLookup = targetCoding.copy();
       }
-      String query = buildFhirQueryString(sourceCodeToLookup, targetCodeToLookup, mapsetCodes, "AND");
+      String query =
+          buildFhirQueryString(sourceCodeToLookup, targetCodeToLookup, mapsetCodes, "AND");
       logger.debug("   Fhir query string = " + query);
 
       MappingResultList maps;
@@ -361,11 +360,10 @@ public class ConceptMapProviderR5 implements IResourceProvider {
     try {
       FhirUtilityR5.mutuallyRequired("sourceCode", sourceCode, "system", system);
       FhirUtilityR5.mutuallyRequired("targetCode", targetCode, "system", system);
+      FhirUtilityR5.mutuallyExclusive("sourceCode", sourceCode, "sourceCoding", sourceCoding);
       FhirUtilityR5.mutuallyExclusive("targetScope", targetScope, "targetSystem", targetSystem);
       for (final String param :
-          new String[] {
-            "sourceCodableConcept", "targetCodableConcept", "dependency"
-          }) {
+          new String[] {"sourceCodableConcept", "targetCodableConcept", "dependency"}) {
         FhirUtilityR5.notSupported(request, param);
       }
       if (Collections.list(request.getParameterNames()).stream()
@@ -381,7 +379,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       } else if (sourceCoding != null) {
         systemToLookup = sourceCoding.getSystemElement();
       }
-      
+
       final Parameters params = new Parameters();
       final List<ConceptMap> cm =
           findPossibleConceptMaps(null, null, systemToLookup, url, version, targetSystem);
@@ -390,17 +388,18 @@ public class ConceptMapProviderR5 implements IResourceProvider {
 
       CodeType sourceCodeToLookup = null;
       if (sourceCode != null) {
-    	  sourceCodeToLookup = sourceCode;
+        sourceCodeToLookup = sourceCode;
       } else if (sourceCoding != null) {
-    	  sourceCodeToLookup = sourceCoding.getCodeElement();
+        sourceCodeToLookup = sourceCoding.getCodeElement();
       }
       UriType targetCodeToLookup = null;
       if (targetCode != null) {
-    	  targetCodeToLookup = targetCode;
+        targetCodeToLookup = targetCode;
       } else if (targetCoding != null) {
-    	  targetCodeToLookup = targetCoding.copy();
+        targetCodeToLookup = targetCoding.copy();
       }
-      String query = buildFhirQueryString(sourceCodeToLookup, targetCodeToLookup, mapsetCodes, "AND");
+      String query =
+          buildFhirQueryString(sourceCodeToLookup, targetCodeToLookup, mapsetCodes, "AND");
       logger.debug("   Fhir query string = " + query);
 
       MappingResultList maps;
