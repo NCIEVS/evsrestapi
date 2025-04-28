@@ -528,18 +528,18 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
 
     String filePath =
         this.applicationProperties.getUnitTestData()
-            + this.applicationProperties.getPediatricSubsetsXls();
+            + this.applicationProperties.getChildhoodNeoplasmSubsetsXls();
 
     String url =
         this.applicationProperties.getFtpNeoplasmUrl()
-            + this.applicationProperties.getPediatricSubsetsXls();
+            + this.applicationProperties.getChildhoodNeoplasmSubsetsXls();
     // List to hold the sheet references
     List<Sheet> sheets = loadExcelSheets(url, filePath);
 
     for (Sheet sheet : sheets) {
       String subsetCode = sheet.getRow(1).getCell(1).getStringCellValue();
       // find the concept to add to the subsets list
-      Concept newSubsetEntry = new Concept();
+      Concept subsetConcept = new Concept();
       try {
         // We can't use "full" here or we wind up losing "extensions" and "paths"
         // So we use the "everything" mode
@@ -600,7 +600,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
           isFirstRow = false;
           continue;
         }
-        Concept subsetConcept = new Concept();
+        Concept subsetMember = new Concept();
         try {
           // We can't use "full" here or we wind up losing "extensions" and "paths"
           // So we use the "everything" mode
@@ -623,22 +623,22 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         // make new computed association for the subset members
         final Association conceptAssoc = new Association();
         conceptAssoc.setType("Concept_In_Subset");
-        conceptAssoc.setRelatedCode(newSubsetEntry.getCode());
-        conceptAssoc.setRelatedName(newSubsetEntry.getName());
+        conceptAssoc.setRelatedCode(subsetConcept.getCode());
+        conceptAssoc.setRelatedName(subsetConcept.getName());
 
         final Qualifier conceptComputed = new Qualifier();
         conceptComputed.setValue("This is computed by the existing subset relationship");
         conceptComputed.setType("computed");
         conceptAssoc.getQualifiers().add(conceptComputed);
 
-        subsetConcept.getAssociations().add(conceptAssoc);
+        subsetMember.getAssociations().add(conceptAssoc);
         // edit codes for inverseAssociation
         Association inverseAssoc = new Association(conceptAssoc);
-        inverseAssoc.setRelatedCode(subsetConcept.getCode());
-        inverseAssoc.setRelatedName(subsetConcept.getName());
-        newSubsetEntry.getInverseAssociations().add(inverseAssoc);
-        // index subsetConcept
-        operationsService.index(subsetConcept, terminology.getIndexName(), Concept.class);
+        inverseAssoc.setRelatedCode(subsetMember.getCode());
+        inverseAssoc.setRelatedName(subsetMember.getName());
+        subsetConcept.getInverseAssociations().add(inverseAssoc);
+        // index subsetMember
+        operationsService.index(subsetMember, terminology.getIndexName(), Concept.class);
       }
       if (missingConcepts.size() > 0) {
         Audit.addAudit(
@@ -650,14 +650,15 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
             "WARN");
       }
       // explicitly set leaf since it defaults to false
-      newSubsetEntry.setLeaf(!newSubsets.containsValue(newSubsetEntry.getCode()));
+      subsetConcept.setLeaf(!newSubsets.containsValue(subsetConcept.getCode()));
       // add extra relevant properties to new subset
-      newSubsetEntry.getProperties().add(new Property("Publish_Value_Set", "Yes"));
-      newSubsetEntry.getProperties().add(new Property("EVSRESTAPI_Subset_Format", "NCI"));
-      // index newSubsetEntry
-      operationsService.index(newSubsetEntry, terminology.getIndexName(), Concept.class);
+      subsetConcept.getProperties().add(new Property("Publish_Value_Set", "Yes"));
+      subsetConcept.getProperties().add(new Property("EVSRESTAPI_Subset_Format", "NCI"));
+      subsetConcept.setSubsetLink(url);
+      // index subsetConcept
+      operationsService.index(subsetConcept, terminology.getIndexName(), Concept.class);
       // create new subset for parentSubset to add as child of existing subset
-      Concept parentSubsetChild = new Concept(newSubsetEntry);
+      Concept parentSubsetChild = new Concept(subsetConcept);
       // strip out everything the subset tree doesn't need
       ConceptUtils.applyInclude(parentSubsetChild, new IncludeParam("minimal,properties"));
 
