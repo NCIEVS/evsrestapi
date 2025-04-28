@@ -2,6 +2,9 @@ package gov.nih.nci.evs.api.fhir;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.parser.IParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.junit.jupiter.api.BeforeAll;
@@ -16,13 +19,8 @@ import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.IParser;
-
 /**
- * Unit FhirR5Tests. Tests the functionality of the FHIR R5 endpoint CodeSystem specifically the 
+ * Unit FhirR5Tests. Tests the functionality of the FHIR R5 endpoint CodeSystem specifically the
  * general operations.
  */
 @ExtendWith(SpringExtension.class)
@@ -72,8 +70,12 @@ class FhirR5CodeSystemGeneralOperations {
     String codeSystemId = "umlssemnet_2023aa";
     String endpoint = localHost + port + fhirCSPath;
 
-    String messageNotFound = "Invalid request: The FHIR endpoint on this server does not know how to handle GET operation[CodeSystem/$validate] with parameters [[]]";
-    String messageNotFoundWithId = "Invalid request: The FHIR endpoint on this server does not know how to handle GET operation[CodeSystem/umlssemnet_2023aa/$validate] with parameters [[]]";
+    String messageNotFound =
+        "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
+            + " operation[CodeSystem/$validate] with parameters [[]]";
+    String messageNotFoundWithId =
+        "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
+            + " operation[CodeSystem/umlssemnet_2023aa/$validate] with parameters [[]]";
     String errorCode = "not-supported";
 
     // Act
@@ -84,8 +86,9 @@ class FhirR5CodeSystemGeneralOperations {
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFound, (component.getDiagnostics()));
-    
-    content = this.restTemplate.getForObject(endpoint + "/" + codeSystemId + "/$validate", String.class);
+
+    content =
+        this.restTemplate.getForObject(endpoint + "/" + codeSystemId + "/$validate", String.class);
     outcome = parser.parseResource(OperationOutcome.class, content);
     component = outcome.getIssueFirstRep();
 
@@ -106,8 +109,12 @@ class FhirR5CodeSystemGeneralOperations {
     String codeSystemId = "umlssemnet_2023aa";
     String endpoint = localHost + port + fhirCSPath;
 
-    String messageNotFound = "Invalid request: The FHIR endpoint on this server does not know how to handle GET operation[CodeSystem/$meta] with parameters [[]]";
-    String messageNotFoundWithId = "Invalid request: The FHIR endpoint on this server does not know how to handle GET operation[CodeSystem/umlssemnet_2023aa/$meta] with parameters [[]]";
+    String messageNotFound =
+        "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
+            + " operation[CodeSystem/$meta] with parameters [[]]";
+    String messageNotFoundWithId =
+        "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
+            + " operation[CodeSystem/umlssemnet_2023aa/$meta] with parameters [[]]";
     String errorCode = "not-supported";
 
     // Act
@@ -118,16 +125,16 @@ class FhirR5CodeSystemGeneralOperations {
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFound, (component.getDiagnostics()));
-    
+
     // Act
-    content = this.restTemplate.getForObject(endpoint + "/" + codeSystemId + "/$meta", String.class);
+    content =
+        this.restTemplate.getForObject(endpoint + "/" + codeSystemId + "/$meta", String.class);
     outcome = parser.parseResource(OperationOutcome.class, content);
     component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFoundWithId, (component.getDiagnostics()));
- 
   }
 
   /**
@@ -142,8 +149,12 @@ class FhirR5CodeSystemGeneralOperations {
     String codeSystemId = "umlssemnet_2023aa";
     String endpoint = localHost + port + fhirCSPath;
 
-    String messageNotFound = "Invalid request: The FHIR endpoint on this server does not know how to handle GET operation[CodeSystem/$graphql] with parameters [[]]";
-    String messageNotFoundWithId = "Invalid request: The FHIR endpoint on this server does not know how to handle GET operation[CodeSystem/umlssemnet_2023aa/$graphql] with parameters [[]]";
+    String messageNotFound =
+        "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
+            + " operation[CodeSystem/$graphql] with parameters [[]]";
+    String messageNotFoundWithId =
+        "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
+            + " operation[CodeSystem/umlssemnet_2023aa/$graphql] with parameters [[]]";
     String errorCode = "not-supported";
 
     // Act
@@ -154,9 +165,10 @@ class FhirR5CodeSystemGeneralOperations {
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFound, (component.getDiagnostics()));
-    
+
     // Act
-    content = this.restTemplate.getForObject(endpoint + "/" + codeSystemId + "/$graphql", String.class);
+    content =
+        this.restTemplate.getForObject(endpoint + "/" + codeSystemId + "/$graphql", String.class);
     outcome = parser.parseResource(OperationOutcome.class, content);
     component = outcome.getIssueFirstRep();
 
@@ -164,7 +176,7 @@ class FhirR5CodeSystemGeneralOperations {
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFoundWithId, (component.getDiagnostics()));
   }
-  
+
   /**
    * Test code system graph.
    *
@@ -177,20 +189,22 @@ class FhirR5CodeSystemGeneralOperations {
     String codeSystemId = "umlssemnet_2023aa";
     String endpoint = localHost + port + fhirCSPath;
 
-    String messageNotFoundWithId = "Invalid request: The FHIR endpoint on this server does not know how to handle GET operation[CodeSystem/umlssemnet_2023aa/$graph] with parameters [[]]";
+    String messageNotFoundWithId =
+        "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
+            + " operation[CodeSystem/umlssemnet_2023aa/$graph] with parameters [[]]";
     String errorCode = "not-supported";
 
     // Act
-    content = this.restTemplate.getForObject(endpoint + "/" + codeSystemId + "/$graph", String.class);
+    content =
+        this.restTemplate.getForObject(endpoint + "/" + codeSystemId + "/$graph", String.class);
     OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
     OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFoundWithId, (component.getDiagnostics()));
-   
   }
-  
+
   /**
    * Test code system add.
    *
@@ -203,7 +217,9 @@ class FhirR5CodeSystemGeneralOperations {
     String codeSystemId = "umlssemnet_2023aa";
     String endpoint = localHost + port + fhirCSPath;
 
-    String messageNotFoundWithId = "Invalid request: The FHIR endpoint on this server does not know how to handle GET operation[CodeSystem/umlssemnet_2023aa/$add] with parameters [[]]";
+    String messageNotFoundWithId =
+        "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
+            + " operation[CodeSystem/umlssemnet_2023aa/$add] with parameters [[]]";
     String errorCode = "not-supported";
 
     // Act
@@ -214,9 +230,8 @@ class FhirR5CodeSystemGeneralOperations {
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFoundWithId, (component.getDiagnostics()));
-   
   }
-  
+
   /**
    * Test code system remove.
    *
@@ -229,20 +244,22 @@ class FhirR5CodeSystemGeneralOperations {
     String codeSystemId = "umlssemnet_2023aa";
     String endpoint = localHost + port + fhirCSPath;
 
-    String messageNotFoundWithId = "Invalid request: The FHIR endpoint on this server does not know how to handle GET operation[CodeSystem/umlssemnet_2023aa/$remove] with parameters [[]]";
+    String messageNotFoundWithId =
+        "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
+            + " operation[CodeSystem/umlssemnet_2023aa/$remove] with parameters [[]]";
     String errorCode = "not-supported";
 
     // Act
-    content = this.restTemplate.getForObject(endpoint + "/" + codeSystemId + "/$remove", String.class);
+    content =
+        this.restTemplate.getForObject(endpoint + "/" + codeSystemId + "/$remove", String.class);
     OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
     OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFoundWithId, (component.getDiagnostics()));
-   
   }
-  
+
   /**
    * Test code system filter.
    *
@@ -255,17 +272,19 @@ class FhirR5CodeSystemGeneralOperations {
     String codeSystemId = "umlssemnet_2023aa";
     String endpoint = localHost + port + fhirCSPath;
 
-    String messageNotFoundWithId = "Invalid request: The FHIR endpoint on this server does not know how to handle GET operation[CodeSystem/umlssemnet_2023aa/$filter] with parameters [[]]";
+    String messageNotFoundWithId =
+        "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
+            + " operation[CodeSystem/umlssemnet_2023aa/$filter] with parameters [[]]";
     String errorCode = "not-supported";
 
     // Act
-    content = this.restTemplate.getForObject(endpoint + "/" + codeSystemId + "/$filter", String.class);
+    content =
+        this.restTemplate.getForObject(endpoint + "/" + codeSystemId + "/$filter", String.class);
     OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
     OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotFoundWithId, (component.getDiagnostics()));
-   
   }
 }
