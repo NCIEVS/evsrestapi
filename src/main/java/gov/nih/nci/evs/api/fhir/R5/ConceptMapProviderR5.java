@@ -193,6 +193,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       @OperationParam(name = "sourceScope") final UriType sourceScope,
       @OperationParam(name = "sourceCoding") final Coding sourceCoding,
       @OperationParam(name = "targetCode") final UriType targetCode,
+      // TODO: support for targetCoding not provided due to API error; should be Coding
       @OperationParam(name = "targetCoding") final UriType targetCoding,
       @OperationParam(name = "targetScope") final UriType targetScope,
       @OperationParam(name = "targetSystem") final UriType targetSystem)
@@ -345,6 +346,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       // @OperationParam(name = "codeableConcept") final CodeableConcept
       // sourceCodeableConcept,
       @OperationParam(name = "targetCode") final UriType targetCode,
+      // TODO: support for targetCoding not provided due to API error; should be Coding
       @OperationParam(name = "targetCoding") final UriType targetCoding,
       @OperationParam(name = "targetScope") final UriType targetScope,
       @OperationParam(name = "targetSystem") final UriType targetSystem
