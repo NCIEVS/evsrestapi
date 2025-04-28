@@ -201,6 +201,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       //      @OperationParam(name = "property") final CodeType property
       ) throws Exception {
     // Check if the request is a POST, throw exception as we don't support post calls
+    // exception for coding parameter
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
           "POST method not supported for " + JpaConstants.OPERATION_LOOKUP,
@@ -222,7 +223,14 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         FhirUtilityR5.notSupported(request, "_has");
       }
 
-      final List<CodeSystem> cs = findPossibleCodeSystems(null, date, system, version);
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (coding != null) {
+        systemToLookup = coding.getSystemElement();
+      }
+
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, date, systemToLookup, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String codeToLookup = "";
@@ -298,7 +306,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
       //      @OperationParam(name = "property") final CodeType property
       ) throws Exception {
-    // check if the request is a post, throw exception as we don't support post calls
+    // Check if the request is a POST, throw exception as we don't support post calls
+    // exception for coding parameter
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR5.exception(
           "POST method not supported for " + JpaConstants.OPERATION_LOOKUP,
@@ -317,7 +326,15 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           > 0) {
         FhirUtilityR5.notSupported(request, "_has");
       }
-      final List<CodeSystem> cs = findPossibleCodeSystems(id, date, system, version);
+
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (coding != null) {
+        systemToLookup = coding.getSystemElement();
+      }
+
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, date, systemToLookup, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String codeToLookup = "";
@@ -392,8 +409,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       //      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "version") final StringType version,
-      @OperationParam(name = "display") final StringType display
-      //      @OperationParam(name = "coding") final Coding coding,
+      @OperationParam(name = "display") final StringType display,
+      @OperationParam(name = "coding") final Coding coding
       //      @OperationParam(name = "date") final DateRangeParam date,
       //      @OperationParam(name = "abstract") final BooleanType abstractt,
       //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
@@ -406,9 +423,11 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           405);
     }
     try {
+      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
+      FhirUtilityR5.mutuallyRequired("code", code, "url", url);
       for (final String param :
-          new String[] {"codeSystem", "coding", "date", "abstract", "displayLanguage"}) {
+          new String[] {"codeSystem", "date", "abstract", "displayLanguage"}) {
         FhirUtilityR5.notSupported(request, param);
       }
       if (Collections.list(request.getParameterNames()).stream()
@@ -417,10 +436,23 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           > 0) {
         FhirUtilityR5.notSupported(request, "_has");
       }
-      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, url, version);
+
+      UriType systemToLookup = null;
+      if (url != null) {
+        systemToLookup = url;
+      } else if (coding != null) {
+        systemToLookup = coding.getSystemElement();
+      }
+
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
-        final String codeToValidate = code.getCode();
+        String codeToValidate = "";
+        if (code != null) {
+          codeToValidate = code.getCode();
+        } else if (coding != null) {
+          codeToValidate = coding.getCode();
+        }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
@@ -499,8 +531,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       //      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "version") final StringType version,
-      @OperationParam(name = "display") final StringType display
-      //      @OperationParam(name = "coding") final Coding coding,
+      @OperationParam(name = "display") final StringType display,
+      @OperationParam(name = "coding") final Coding coding
       //      @OperationParam(name = "date") final DateTimeType date,
       //      @OperationParam(name = "abstract") final BooleanType abstractt,
       //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
@@ -513,9 +545,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           405);
     }
     try {
+      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
       for (final String param :
-          new String[] {"codeSystem", "coding", "date", "abstract", "displayLanguage"}) {
+          new String[] {"codeSystem", "date", "abstract", "displayLanguage"}) {
         FhirUtilityR5.notSupported(request, param);
       }
       if (Collections.list(request.getParameterNames()).stream()
@@ -524,10 +557,23 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           > 0) {
         FhirUtilityR5.notSupported(request, "_has");
       }
-      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, url, version);
+
+      UriType systemToLookup = null;
+      if (url != null) {
+        systemToLookup = url;
+      } else if (coding != null) {
+        systemToLookup = coding.getSystemElement();
+      }
+
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
-        final String codeToValidate = code.getCode();
+        String codeToValidate = "";
+        if (code != null) {
+          codeToValidate = code.getCode();
+        } else if (coding != null) {
+          codeToValidate = coding.getCode();
+        }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
@@ -614,7 +660,22 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyRequired("codeB", codeB, "system", system);
       FhirUtilityR5.mutuallyExclusive("codingB", codingB, "codeB", codeB);
       FhirUtilityR5.mutuallyExclusive("codingA", codingA, "codeA", codeA);
-      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, system, version);
+
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (codingA != null) {
+        systemToLookup = codingA.getSystemElement();
+      }
+      if (codingA != null && codingB != null) {
+        if (!codingA.getSystem().equals(codingB.getSystem())) {
+          throw FhirUtilityR5.exception(
+              "CodingA system and CodingB system are expected to match",
+              OperationOutcome.IssueType.EXCEPTION,
+              400);
+        }
+      }
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String code1 = "";
@@ -632,6 +693,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           throw FhirUtilityR5.exception(
               "No codeB parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
         }
+
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
@@ -708,7 +770,23 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyRequired("codeB", codeB, "system", system);
       FhirUtilityR5.mutuallyExclusive("codingB", codingB, "codeB", codeB);
       FhirUtilityR5.mutuallyExclusive("codingA", codingA, "codeA", codeA);
-      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, system, version);
+
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (codingA != null) {
+        systemToLookup = codingA.getSystemElement();
+      }
+      if (codingA != null && codingB != null) {
+        if (!codingA.getSystem().equals(codingB.getSystem())) {
+          throw FhirUtilityR5.exception(
+              "CodingA system and CodingB system are expected to match",
+              OperationOutcome.IssueType.EXCEPTION,
+              400);
+        }
+      }
+
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String code1 = "";

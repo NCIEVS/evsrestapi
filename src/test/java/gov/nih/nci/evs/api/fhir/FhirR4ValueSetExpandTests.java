@@ -396,7 +396,6 @@ public class FhirR4ValueSetExpandTests {
   public void testValueSetExpandImplicitSubsetWithDesignations() throws Exception {
     // Arrange
     String content;
-    String activeID = "ncit_c54459";
     String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
     String parameters = "?url=" + url + "&includeDesignations=true";

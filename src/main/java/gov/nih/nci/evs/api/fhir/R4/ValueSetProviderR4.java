@@ -14,6 +14,7 @@ import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.controller.SubsetController;
+import gov.nih.nci.evs.api.fhir.R5.FhirUtilityR5;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -501,8 +502,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "systemVersion") final StringType systemVersion,
       //      @OperationParam(name = "version") final StringType version,
-      @OperationParam(name = "display") final StringType display
-      //      @OperationParam(name = "coding") final Coding coding,
+      @OperationParam(name = "display") final StringType display,
+      @OperationParam(name = "coding") final Coding coding
       //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       //      @OperationParam(name = "date") final DateTimeType date,
       //      @OperationParam(name = "abstract") final BooleanType abstractt,
@@ -517,14 +518,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR4.required("code", code);
+      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR4.mutuallyRequired("code", code, "system", system, "url", url);
       FhirUtilityR4.mutuallyRequired("system", system, "systemVersion", systemVersion);
 
       // TODO: not sure that "version" should be in this list
       for (final String param :
           new String[] {
-            "coding",
             "context",
             "date",
             "abstract",
@@ -542,13 +542,27 @@ public class ValueSetProviderR4 implements IResourceProvider {
         FhirUtilityR4.notSupported(request, "_has");
       }
 
-      final List<ValueSet> list = findPossibleValueSets(null, system, url, systemVersion);
+      UriType urlToLookup = null;
+      if (url != null) {
+        urlToLookup = url;
+      }
+      if (coding != null) {
+        urlToLookup = coding.getSystemElement();
+      }
+
+      final List<ValueSet> list = findPossibleValueSets(null, system, urlToLookup, systemVersion);
       final Parameters params = new Parameters();
 
       if (list.size() > 0) {
+        String codeToLookup = "";
+        if (code != null) {
+          codeToLookup = code.getCode();
+        } else if (coding != null) {
+          codeToLookup = coding.getCode();
+        }
         final ValueSet vs = list.get(0);
         final SearchCriteria sc = new SearchCriteria();
-        sc.setTerm(code.getCode());
+        sc.setTerm(codeToLookup);
         sc.setInclude("minimal");
         sc.setType("exact");
         sc.setFromRecord(0);
@@ -577,7 +591,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
           }
         } else {
           params.addParameter("result", false);
-          params.addParameter("message", "The code '" + code.getCode() + "' was not found.");
+          params.addParameter("message", "The code '" + codeToLookup + "' was not found.");
         }
 
       } else {
@@ -628,8 +642,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "systemVersion") final StringType systemVersion,
       //      @OperationParam(name = "version") final StringType version,
-      @OperationParam(name = "display") final StringType display
-      //      @OperationParam(name = "coding") final Coding coding,
+      @OperationParam(name = "display") final StringType display,
+      @OperationParam(name = "coding") final Coding coding
       //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
       //      @OperationParam(name = "date") final DateTimeType date,
       //      @OperationParam(name = "abstract") final BooleanType abstractt,
@@ -644,13 +658,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
           405);
     }
     try {
+      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR4.requireAtLeastOneOf(
-          "code", code, "system", system, "systemVersion", systemVersion, "url", url);
+          "code", code, "coding", coding, "systemVersion", systemVersion, "url", url);
 
       // TODO: not sure that "version" should be in this list
       for (final String param :
           new String[] {
-            "coding",
             "context",
             "date",
             "abstractt",
@@ -668,12 +682,26 @@ public class ValueSetProviderR4 implements IResourceProvider {
         FhirUtilityR4.notSupported(request, "_has");
       }
 
-      final List<ValueSet> list = findPossibleValueSets(id, system, url, systemVersion);
+      UriType urlToLookup = null;
+      if (url != null) {
+        urlToLookup = url;
+      }
+      if (coding != null) {
+        urlToLookup = coding.getSystemElement();
+      }
+
+      final List<ValueSet> list = findPossibleValueSets(id, system, urlToLookup, systemVersion);
       final Parameters params = new Parameters();
       if (list.size() > 0) {
+        String codeToLookup = "";
+        if (code != null) {
+          codeToLookup = code.getCode();
+        } else if (coding != null) {
+          codeToLookup = coding.getCode();
+        }
         final ValueSet vs = list.get(0);
         final SearchCriteria sc = new SearchCriteria();
-        sc.setTerm(code.getCode());
+        sc.setTerm(codeToLookup);
         sc.setInclude("minimal");
         sc.setType("exact");
         if (vs.getIdentifier() != null && !vs.getIdentifier().isEmpty()) {
@@ -699,7 +727,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
           }
         } else {
           params.addParameter("result", false);
-          params.addParameter("message", "The code '" + code.getCode() + "' was not found.");
+          params.addParameter("message", "The code '" + codeToLookup + "' was not found.");
         }
 
       } else {
