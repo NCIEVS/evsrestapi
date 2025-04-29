@@ -30,10 +30,10 @@ public class OpensearchConfiguration {
    */
   @Bean
   RestHighLevelClient client() {
-    final String osHost = env.getProperty("nci.evs.elasticsearch.server.host");
-    final int osPort = Integer.parseInt(env.getProperty("nci.evs.elasticsearch.server.port"));
-    final String osScheme = env.getProperty("nci.evs.elasticsearch.server.scheme");
-    final int timeout = Integer.parseInt(env.getProperty("nci.evs.elasticsearch.timeout"));
+    final String osHost = env.getProperty("nci.evs.opensearch.server.host");
+    final int osPort = Integer.parseInt(env.getProperty("nci.evs.opensearch.server.port"));
+    final String osScheme = env.getProperty("nci.evs.opensearch.server.scheme");
+    final int timeout = Integer.parseInt(env.getProperty("nci.evs.opensearch.timeout"));
     logger.info(
         String.format("Configuring opensearch client for host %s %s %s", osHost, osPort, timeout));
     return new RestHighLevelClient(

@@ -543,7 +543,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       try {
         // We can't use "full" here or we wind up losing "extensions" and "paths"
         // So we use the "everything" mode
-        newSubsetEntry =
+        subsetConcept =
             opensearchQueryService
                 .getConcept(subsetCode, terminology, new IncludeParam("*"))
                 .orElseThrow();

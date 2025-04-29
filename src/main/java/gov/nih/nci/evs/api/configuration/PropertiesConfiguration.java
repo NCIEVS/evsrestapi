@@ -65,7 +65,7 @@ public class PropertiesConfiguration {
    * @return the opensearch query properties
    */
   @Bean
-  @ConfigurationProperties(prefix = "nci.evs.elasticsearch.query", ignoreUnknownFields = false)
+  @ConfigurationProperties(prefix = "nci.evs.opensearch.query", ignoreUnknownFields = false)
   OpensearchQueryProperties OpensearchQueryProperties() {
     return new OpensearchQueryProperties();
   }
@@ -76,7 +76,7 @@ public class PropertiesConfiguration {
    * @return the opensearch server properties
    */
   @Bean
-  @ConfigurationProperties(prefix = "nci.evs.elasticsearch.server", ignoreUnknownFields = false)
+  @ConfigurationProperties(prefix = "nci.evs.opensearch.server", ignoreUnknownFields = false)
   OpensearchServerProperties OpensearchServerProperties() {
     return new OpensearchServerProperties();
   }
