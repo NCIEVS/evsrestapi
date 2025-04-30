@@ -157,7 +157,7 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
 
   /* see superclass */
   @Override
-  public Boolean deleteQuery(String query, String indexName) {
+  public Boolean deleteQuery(String query, String indexName) throws Exception {
     try {
       final NativeSearchQuery deleteQuery =
           new NativeSearchQueryBuilder().withQuery(QueryBuilders.queryStringQuery(query)).build();

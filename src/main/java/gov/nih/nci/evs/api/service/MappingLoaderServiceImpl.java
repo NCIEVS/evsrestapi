@@ -316,7 +316,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       } else if (!mapsetsToAdd.contains(metadata[0])) {
         logger.info("  " + metadata[0] + " needs update to version: " + metadata[2]);
         operationsService.deleteQuery(
-            ElasticOperationsService.MAPSET_INDEX, "mapsetCode:" + metadata[0]);
+            "mapsetCode:" + metadata[0], ElasticOperationsService.MAPSET_INDEX);
       }
       final Concept map = new Concept();
       map.setName(metadata[0]);
