@@ -1,8 +1,13 @@
 package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.Application;
+import gov.nih.nci.evs.api.model.Audit;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import jakarta.annotation.PostConstruct;
 import java.util.Date;
 import java.util.Set;
-
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -18,13 +23,6 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
-
-import gov.nih.nci.evs.api.Application;
-import gov.nih.nci.evs.api.model.Audit;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import jakarta.annotation.PostConstruct;
 
 /**
  * The implementation for {@link LoaderService}.
