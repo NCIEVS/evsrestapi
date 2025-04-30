@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.1.1.RELEASE] - 2025-04-30
+### Changed
+- Load childhood neoplasm data from a renamed file and include subsetLink data
+- Fix the query for deleting mappings when fixing the mapping version.
+
 ## [2.1.0.RELEASE] - 2025-03-18
 ### Added
 - Added support for Childhood Malignant Neoplasm Subset.
