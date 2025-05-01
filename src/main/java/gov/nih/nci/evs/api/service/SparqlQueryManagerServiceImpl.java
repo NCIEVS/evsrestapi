@@ -9,6 +9,7 @@ import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.DisjointWith;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -45,6 +46,8 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.apache.commons.io.FilenameUtils;
@@ -435,6 +438,40 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       if (ip.isDefinitions()) {
         concept.setDefinitions(EVSUtils.getDefinitions(terminology, properties, axioms));
+
+        // Special handling for "complex definition" (like NPO) definitions
+        for (final Definition def : concept.getDefinitions()) {
+          if (def.getDefinition().startsWith("<ncicp:ComplexDefinition")
+              && def.getDefinition().contains("ncicp:def-definition")) {
+
+            log.info("XXX complex def before = " + def);
+            // e.g. <ncicp:ComplexDefinition
+            // xmlns:ncicp="http://ncicb.nci.nih.gov/xml/owl/EVS/ComplexProperties.xsd#">
+            // <ncicp:def-definition>For definition, please refer to Gene Ontology (v.
+            // 1.1.2341)</ncicp:def-definition><ncicp:attr>Gene Ontology (v.
+            // 1.1.2341)</ncicp:attr></ncicp:ComplexDefinition>
+
+            // Extract the "attribution" parts
+            // Pattern to find the content within <ncicp:attr> tags
+            final Pattern attrPattern = Pattern.compile("<ncicp:attr>(.*?)</ncicp:attr>");
+            final Matcher attrMatcher = attrPattern.matcher(def.getDefinition());
+
+            // Iterate through the matches and extract the attribute values
+            while (attrMatcher.find()) {
+              final Qualifier qualifier = new Qualifier();
+              qualifier.setType("attribution");
+              qualifier.setValue(attrMatcher.group(1));
+              def.getQualifiers().add(qualifier);
+            }
+
+            // Extract the "definition" part
+            final String definition =
+                def.getDefinition()
+                    .replaceFirst(".*<ncicp:def-definition>(.*)</ncicp:def-definition>.*", "$1");
+            def.setDefinition(definition);
+            log.info("XXX complex def after = " + def);
+          }
+        }
       }
 
       if (ip.isChildren()) {
