@@ -259,6 +259,12 @@ public class LoaderServiceImpl {
     System.exit(exitCode);
   }
 
+  /**
+   * Adds the audit.
+   *
+   * @param audit the audit
+   * @throws Exception the exception
+   */
   public static void addAudit(final Audit audit) throws Exception {
     staticOperationsService.deleteQuery(
         "terminology:" + audit.getTerminology() + " AND version:" + audit.getVersion(),
