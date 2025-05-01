@@ -305,7 +305,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         logger.info("  deleting " + metadata[0] + " " + metadata[2]);
         operationsService.delete(metadata[0], ElasticOperationsService.MAPSET_INDEX);
         operationsService.deleteQuery(
-            ElasticOperationsService.MAPPINGS_INDEX, "mapsetCode:" + metadata[0]);
+            "mapsetCode:" + metadata[0], ElasticOperationsService.MAPPINGS_INDEX);
         continue;
       }
 
@@ -316,9 +316,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       } else if (!mapsetsToAdd.contains(metadata[0])) {
         logger.info("  " + metadata[0] + " needs update to version: " + metadata[2]);
         operationsService.deleteQuery(
-            "mapsetCode:" + metadata[0], ElasticOperationsService.MAPSET_INDEX);
-        operationsService.deleteQuery(
-            ElasticOperationsService.MAPPINGS_INDEX, "mapsetCode:" + metadata[0]);
+            "mapsetCode:" + metadata[0], ElasticOperationsService.MAPPINGS_INDEX);
       }
       final Concept map = new Concept();
       map.setName(metadata[0]);
