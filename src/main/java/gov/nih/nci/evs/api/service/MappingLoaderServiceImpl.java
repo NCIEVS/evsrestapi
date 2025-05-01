@@ -232,16 +232,18 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   public void loadObjects(
       final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
       throws Exception {
+
+    // Get mapset metadata without the header line
     final String uri = applicationProperties.getConfigBaseUri();
     final String mappingUri = uri.replaceFirst("config/metadata", "data/mappings/");
     final String mapsetMetadataUri = uri + "/mapsetMetadata.txt";
-    logger.info("evs_mapsets " + mapsetMetadataUri);
+    logger.info("  Download mapset metadata = " + mapsetMetadataUri);
     final String rawMetadata =
         StringUtils.join(EVSUtils.getValueFromFile(mapsetMetadataUri, "mapsetMetadataUri"), '\n');
     List<String> allLines = Arrays.asList(rawMetadata.split("\n"));
-    // skip header line
     allLines = allLines.subList(1, allLines.size());
 
+    // Find all mapset codes from metadata that are handled by this loader
     final List<String> allCodes = new ArrayList<String>();
     for (final String line : allLines) {
       if (line.split(",")[4].contains("MappingLoadServiceImpl")) {
@@ -249,7 +251,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       }
     }
 
-    // all the current codes that this deals with
+    // Build mapset code -> version map
     final List<String> currentMapsetCodes =
         esQueryService.getMapsets(new IncludeParam("properties")).stream()
             .filter(
@@ -274,7 +276,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             .map(Concept::getVersion)
             .collect(Collectors.toList());
 
-    final Map<String, String> currentMapsets =
+    final Map<String, String> mapsetVersionMap =
         IntStream.range(0, currentMapsetCodes.size())
             .boxed()
             .collect(
@@ -284,12 +286,12 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     // mapsets to add (not in current index and should be)
     final List<String> mapsetsToAdd =
         allCodes.stream().filter(l -> !currentMapsetCodes.contains(l)).collect(Collectors.toList());
-    logger.info("Mapsets to add = " + mapsetsToAdd.toString());
+    logger.info("  Mapsets to add = " + mapsetsToAdd);
 
     // mapsets to remove (in current index and shouldn't be)
     final List<String> mapsetsToRemove =
         currentMapsetCodes.stream().filter(l -> !allCodes.contains(l)).collect(Collectors.toList());
-    logger.info("Mapsets to remove = " + mapsetsToRemove.toString());
+    logger.info("  Mapsets to remove = " + mapsetsToRemove);
 
     final List<String> terms =
         termUtils.getIndexedTerminologies(esQueryService).stream()
@@ -297,38 +299,46 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             .collect(Collectors.toList());
 
     for (final String line : allLines) {
-      logger.info("mapset metadata line = " + allLines);
+
       // build each mapset
       final String[] metadata = line.split(",", -1);
-      // remove and skip
-      if (mapsetsToRemove.contains(metadata[0])) {
-        logger.info("  deleting " + metadata[0] + " " + metadata[2]);
-        operationsService.delete(metadata[0], ElasticOperationsService.MAPSET_INDEX);
+      final String code = metadata[0];
+      final String version = metadata[2];
+
+      // remove and continue
+      if (mapsetsToRemove.contains(code)) {
+        logger.info("  Delete mapset (and mappings) = " + code + " " + version);
+        operationsService.delete(code, ElasticOperationsService.MAPSET_INDEX);
         operationsService.deleteQuery(
-            "mapsetCode:" + metadata[0], ElasticOperationsService.MAPPINGS_INDEX);
+            "mapsetCode:" + code, ElasticOperationsService.MAPPINGS_INDEX);
         continue;
       }
 
       // skip if no update needed
-      if (!mappingNeedsUpdate(metadata[0], metadata[2], currentMapsets)) {
-        logger.info("  " + metadata[0] + " " + metadata[2] + " is current");
+      if (!mappingNeedsUpdate(code, version, mapsetVersionMap)) {
+        logger.info("  SKIP current mapset = " + code + " " + version);
         continue;
-      } else if (!mapsetsToAdd.contains(metadata[0])) {
-        logger.info("  " + metadata[0] + " needs update to version: " + metadata[2]);
+      } else if (!mapsetsToAdd.contains(code)) {
+        logger.info("  Update mapset to version = " + code + " " + version);
         operationsService.deleteQuery(
-            "mapsetCode:" + metadata[0], ElasticOperationsService.MAPPINGS_INDEX);
+            "mapsetCode:" + code, ElasticOperationsService.MAPPINGS_INDEX);
+      } else {
+        logger.info("  Add mapset = " + code + " " + version);
       }
+
+      // Create the mapset concept and set metadata
       final Concept map = new Concept();
-      map.setName(metadata[0]);
-      map.setCode(metadata[0]);
-      if (metadata[2] != null && !metadata[2].isEmpty()) { // version numbers
-        map.setVersion(metadata[2]);
+      map.setName(code);
+      map.setCode(code);
+      // version numbers
+      if (version != null && !version.isEmpty()) {
+        map.setVersion(version);
       } else {
         map.setVersion(null);
       }
       map.getProperties().add(new Property("loader", "MappingLoadServiceImpl"));
 
-      // setting up metadata
+      // Get the welcome text
       if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) { // welcome
 
         try (final InputStream is =
@@ -352,6 +362,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                     + metadata[3]);
           }
         }
+
+        // Configure source/target terminology and version
         map.getProperties().add(new Property("sourceTerminology", metadata[5]));
         map.getProperties().add(new Property("sourceTerminologyVersion", metadata[6]));
         map.getProperties().add(new Property("targetTerminology", metadata[7]));
@@ -362,12 +374,12 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         map.getProperties()
             .add(new Property("targetLoaded", Boolean.toString(terms.contains(metadata[7]))));
 
+        // Get the map data and build the maps
         final String mappingDataUri =
             mappingUri
                 + map.getName()
                 + (map.getVersion() != null ? ("_" + map.getVersion()) : "")
                 + ".txt";
-
         final String mappingData =
             StringUtils.join(EVSUtils.getValueFromFile(mappingDataUri, "mappingDataUri"), '\n');
         map.setMaps(buildMaps(mappingData, metadata));
@@ -395,9 +407,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       } else {
         map.getProperties().add(new Property("downloadOnly", "false"));
       }
-      logger.info("indexing " + metadata[0]);
+      logger.info("  INDEX mapset (and mappings) = " + code + " " + version);
 
-      // Sort maps (e.g. mostly for SNOMED maps)
+      // Sort maps (e.g. mostly for SNOMEDCT maps which have multiple groups)
       Collections.sort(
           map.getMaps(),
           new Comparator<Mapping>() {
