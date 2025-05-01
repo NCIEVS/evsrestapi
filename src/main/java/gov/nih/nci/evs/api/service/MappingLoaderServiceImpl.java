@@ -320,6 +320,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         continue;
       } else if (!mapsetsToAdd.contains(code)) {
         logger.info("  Update mapset to version = " + code + " " + version);
+        // No need to delete from MAPSET_INDEX because the index call below
+        // will just replace/update the mapset to the new version
         operationsService.deleteQuery(
             "mapsetCode:" + code, ElasticOperationsService.MAPPINGS_INDEX);
       } else {
