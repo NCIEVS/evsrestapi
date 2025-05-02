@@ -19,6 +19,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
@@ -161,7 +163,7 @@ public class EVSUtils {
    */
   public static List<Definition> getDefinitions(
       Terminology terminology, List<Property> properties, List<Axiom> axioms) {
-    final ArrayList<Definition> results = new ArrayList<>();
+    final List<Definition> results = new ArrayList<>();
     final Set<String> defCodes = terminology.getMetadata().getDefinition();
     final Set<String> defSeen = new HashSet<>();
 
@@ -209,6 +211,43 @@ public class EVSUtils {
 
         defSeen.add(definition.getType() + definition.getDefinition().trim());
         results.add(definition);
+      }
+    }
+
+    // Special handling for "complex definition" (like NPO) definitions
+    for (final Definition def : results) {
+      if (def.getDefinition().startsWith("<ncicp:ComplexDefinition")
+          && def.getDefinition().contains("ncicp:def-definition")) {
+
+        // e.g. <ncicp:ComplexDefinition
+        // xmlns:ncicp="http://ncicb.nci.nih.gov/xml/owl/EVS/ComplexProperties.xsd#">
+        // <ncicp:def-definition>For definition, please refer to Gene Ontology (v.
+        // 1.1.2341)</ncicp:def-definition><ncicp:attr>Gene Ontology (v.
+        // 1.1.2341)</ncicp:attr></ncicp:ComplexDefinition>
+
+        // NOTE: there are other parts of complex definitions that we are not rendering
+        // ncicp:Definition_Review_Date
+        // ncicp:Definition_Reviewer_Name
+        // ncicp:def-source
+
+        // Extract the "attribution" parts
+        // Pattern to find the content within <ncicp:attr> tags
+        final Pattern attrPattern = Pattern.compile("<ncicp:attr>(.*?)</ncicp:attr>");
+        final Matcher attrMatcher = attrPattern.matcher(def.getDefinition());
+
+        // Iterate through the matches and extract the attribute values
+        while (attrMatcher.find()) {
+          final Qualifier qualifier = new Qualifier();
+          qualifier.setType("attribution");
+          qualifier.setValue(attrMatcher.group(1));
+          def.getQualifiers().add(qualifier);
+        }
+
+        // Extract the "definition" part
+        final String definition =
+            def.getDefinition()
+                .replaceFirst(".*<ncicp:def-definition>(.*)</ncicp:def-definition>.*", "$1");
+        def.setDefinition(definition);
       }
     }
     return results;
