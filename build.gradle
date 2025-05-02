@@ -1,6 +1,6 @@
  buildscript {
   ext {
-    springBootVersion = '3.3.5'
+    springBootVersion = '3.3.11'
     // Remove this line to see what version is favored by springBootVersion
     // and the version brought in by spring-data-elasticsearch
     set('elasticsearch.version', '7.12.1')
