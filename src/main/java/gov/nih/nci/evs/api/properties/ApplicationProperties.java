@@ -26,8 +26,8 @@ public class ApplicationProperties {
   /** The UnitTestData folder */
   private String unitTestData;
 
-  /** Pediatric Subsets xls file */
-  private String pediatricSubsetsXls;
+  /** Childhood Neoplasm Subsets xls file */
+  private String childhoodNeoplasmSubsetsXls;
 
   /** FTP neoplasm site */
   private String ftpNeoplasmUrl;
@@ -131,8 +131,8 @@ public class ApplicationProperties {
    *
    * @return the pediatricSubsetsXls
    */
-  public String getPediatricSubsetsXls() {
-    return pediatricSubsetsXls;
+  public String getChildhoodNeoplasmSubsetsXls() {
+    return childhoodNeoplasmSubsetsXls;
   }
 
   /**
@@ -140,8 +140,8 @@ public class ApplicationProperties {
    *
    * @param uiLicense the pediatricSubsetsXls
    */
-  public void setPediatricSubsetsXls(final String pediatricSubsetsXls) {
-    this.pediatricSubsetsXls = pediatricSubsetsXls;
+  public void setChildhoodNeoplasmSubsetsXls(final String childhoodNeoplasmSubsetsXls) {
+    this.childhoodNeoplasmSubsetsXls = childhoodNeoplasmSubsetsXls;
   }
 
   /**

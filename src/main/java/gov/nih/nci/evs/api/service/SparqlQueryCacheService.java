@@ -6,6 +6,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Qualifier;
+import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
@@ -230,6 +231,20 @@ public class SparqlQueryCacheService {
 
       concepts.add(concept);
     }
+
+    // For NPO we are manufacturing a definition qualifier
+    if (terminology.getTerminology().equals("npo")) {
+      final Concept attribution = new Concept();
+      attribution.setCode("ncicp:attr");
+      attribution.setName("attribution");
+      attribution.setTerminology("npo");
+      attribution.setVersion(terminology.getVersion());
+      final Synonym sy = new Synonym();
+      sy.setName("attribution");
+      sy.setType("rdfs:label");
+      attribution.getSynonyms().add(sy);
+    }
+
     return concepts;
   }
 

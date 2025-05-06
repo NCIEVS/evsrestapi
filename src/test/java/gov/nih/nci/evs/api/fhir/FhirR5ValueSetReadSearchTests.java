@@ -620,13 +620,13 @@ class FhirR5ValueSetReadSearchTests {
     // Verify that concatenated pages equal first 4 of full results
     List<String> fourIds =
         defaultValueSets.subList(0, 4).stream()
-            .map(resource -> ((ValueSet) resource).getIdPart())
+            .map(resource -> resource.getIdPart())
             .sorted()
             .toList();
 
     List<String> paginatedIds =
         Stream.concat(firstPageSets.stream(), secondPageSets.stream())
-            .map(resource -> ((ValueSet) resource).getIdPart())
+            .map(resource -> resource.getIdPart())
             .sorted()
             .toList();
 
@@ -659,6 +659,11 @@ class FhirR5ValueSetReadSearchTests {
     }
   }
 
+  /**
+   * Test value set search variants with parameters.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetSearchVariantsWithParameters() throws Exception {
     // Arrange
@@ -808,6 +813,12 @@ class FhirR5ValueSetReadSearchTests {
     assertTrue(foundContainsMatch);
   }
 
+  /**
+   * Validate variant value set results.
+   *
+   * @param bundle the bundle
+   * @param expectResults the expect results
+   */
   private void validateVariantValueSetResults(Bundle bundle, boolean expectResults) {
     assertNotNull(bundle);
     if (expectResults) {

@@ -303,6 +303,38 @@ class FhirR5CodeSystemReadSearchTests {
     // String.class);
     // data = parser.parseResource(Bundle.class, content);
     // validateCodeSystemResults(data, false);
+
+    // Test 6: system instead of url
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+            // "ge2021-06")
+            .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("version", "21.06e")
+            .queryParam("title", "ncit");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(Bundle.class, content);
+    validateCodeSystemResults(data, true); // Expecting results
+
+    // Test 7: url and system
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+            // "ge2021-06")
+            .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
+            .queryParam("version", "21.06e")
+            .queryParam("title", "ncit");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    String messageNotFound = "Must use one of 'url' or 'system' parameters";
+    String errorCode = "invariant";
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
   /**
@@ -451,13 +483,13 @@ class FhirR5CodeSystemReadSearchTests {
     // Verify that concatenated pages equal first 4 of full results
     List<String> fourIds =
         defaultCodeSystems.subList(0, 4).stream()
-            .map(resource -> ((CodeSystem) resource).getIdPart())
+            .map(resource -> resource.getIdPart())
             .sorted()
             .toList();
 
     List<String> paginatedIds =
         Stream.concat(firstPageSystems.stream(), secondPageSystems.stream())
-            .map(resource -> ((CodeSystem) resource).getIdPart())
+            .map(resource -> resource.getIdPart())
             .sorted()
             .toList();
 
@@ -490,6 +522,11 @@ class FhirR5CodeSystemReadSearchTests {
     }
   }
 
+  /**
+   * Test code system search variants with parameters.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemSearchVariantsWithParameters() throws Exception {
     // Arrange
