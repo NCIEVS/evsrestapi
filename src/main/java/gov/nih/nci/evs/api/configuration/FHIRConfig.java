@@ -53,7 +53,7 @@ public class FHIRConfig {
 
     // Use apache proxy address strategy
     hapiServlet.setServerAddressStrategy(new ApacheProxyAddressStrategy(true));
-    final ResponseHighlighterInterceptor interceptor = new ResponseHighlighterInterceptor();
+    final EvsResponseHighlighterInterceptor interceptor = new EvsResponseHighlighterInterceptor();
     hapiServlet.registerInterceptor(interceptor);
 
     return servletRegistrationBean;

@@ -9,7 +9,21 @@ import ca.uhn.fhir.rest.server.RestfulServerConfiguration;
 import ca.uhn.fhir.rest.server.provider.ServerCapabilityStatementProvider;
 import ca.uhn.fhir.rest.server.util.ISearchParamRegistry;
 import jakarta.servlet.http.HttpServletRequest;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+
+import org.hl7.fhir.r5.model.CanonicalType;
+import org.hl7.fhir.r5.model.CapabilityStatement;
+import org.hl7.fhir.r5.model.CodeableConcept;
+import org.hl7.fhir.r5.model.Coding;
+import org.hl7.fhir.r5.model.CapabilityStatement.CapabilityStatementRestComponent;
+import org.hl7.fhir.r5.model.CapabilityStatement.CapabilityStatementRestSecurityComponent;
+
 import org.hl7.fhir.instance.model.api.IBaseConformance;
+import org.hl7.fhir.r5.model.UriType;
 
 /**
  * See <a href="https://www.hl7.org/fhir/terminologycapabilities.html">terminology capabilities</a>
@@ -67,7 +81,36 @@ public class FhirTerminologyCapabilitiesProviderR5 extends ServerCapabilityState
         && request.getParameter("mode").equals("terminology")) {
       return new FhirTerminologyCapabilitiesR5().withDefaults();
     } else {
-      return super.getServerConformance(request, requestDetails);
+      IBaseConformance ibc = super.getServerConformance(request, requestDetails);
+      CapabilityStatement capabilityStatement = (CapabilityStatement) ibc;
+      CanonicalType instantiateUri = new CanonicalType("http://hl7.org/fhir/CapabilityStatement/terminology-server");
+
+      capabilityStatement.setInstantiates(Collections.singletonList(instantiateUri));
+      
+      // Find the "rest" component with mode = "server"
+      Optional<CapabilityStatementRestComponent> serverRestComponent =
+              capabilityStatement.getRest().stream()
+                  .filter(rest -> "server".equals(rest.getMode().toString().toLowerCase()
+                		  ))
+                  .findFirst();
+
+      if (serverRestComponent.isPresent()) {
+        CapabilityStatementRestComponent rest = serverRestComponent.get();
+        CapabilityStatementRestSecurityComponent security = rest.getSecurity();
+        if (security.isEmpty()) {
+          security = new CapabilityStatementRestSecurityComponent();
+          rest.setSecurity(security);
+        }
+
+        // Create the CodeableConcept for the "service" property
+        CodeableConcept serviceCodeableConcept = new CodeableConcept();
+        serviceCodeableConcept.addCoding(
+            new Coding("http://terminology.hl7.org/CodeSystem/restful-security-service", "OAuth2.0", "OAuth 2.0")); // Example coding
+
+        // Set the "service" property
+        security.setService(Collections.singletonList(serviceCodeableConcept));
+      }
+      return capabilityStatement;
     }
   }
 }
