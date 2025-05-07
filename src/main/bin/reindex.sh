@@ -405,10 +405,10 @@ for x in `cat /tmp/y.$$.txt`; do
             if [[ -z "$prev_version" || "$prev_version" == "null" ]]; then
                 echo "ERROR: Failed to extract prev_version from API"
                 exit 1
+            else 
+                echo "Trying again with prev_version=$prev_version"
+                download_and_unpack "$prev_version"
             fi
-
-            echo "Trying again with prev_version=$prev_version"
-            download_and_unpack "$prev_version"
         fi
 
         # cd back out
