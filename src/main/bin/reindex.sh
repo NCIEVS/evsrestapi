@@ -320,6 +320,42 @@ get_terminology(){
   fi
 }
 
+download_and_unpack() {
+    local ver="$1"
+    success=0
+    for i in {1..5}; do 
+        echo "  Download NCIt History version $ver: attempt $i"
+        url="https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/cumulative_history_$ver.zip"
+        echo "    url = $url"
+        
+        curl -w "\n%{http_code}" -s -o cumulative_history_$ver.zip "$url" > /tmp/x.$$ 
+        if [[ $? -ne 0 ]]; then
+            echo "ERROR: problem downloading NCIt history (trying again $i)"
+        elif [[ $(tail -1 /tmp/x.$$) -eq 404 ]]; then
+            echo "ERROR: url does not exist, bail out"
+            break
+        else
+            echo "  Unpack NCIt history"
+            unzip cumulative_history_$ver.zip > /tmp/x.$$ 2>&1
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$
+                echo "ERROR: problem unpacking cumulative_history_$ver.zip"
+                break
+            fi
+
+            historyFile="$DIR/NCIT_HISTORY/cumulative_history_$ver.txt"
+
+            if [[ -f "$historyFile" ]]; then
+                echo "    historyFile = $historyFile"
+                success=1
+            else
+                echo "ERROR: expected file $historyFile not found"
+            fi
+            break
+        fi
+    done
+}
+
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
     version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
@@ -353,34 +389,27 @@ for x in `cat /tmp/y.$$.txt`; do
         cd $DIR/NCIT_HISTORY
 
         # Download file (try 5 times)
-        for i in {1..5}; do 
+        success=0
+        download_and_unpack "$version"
 
-        	echo "  Download latest NCIt History: attempt $i"
-        	# Use the upload directory because this is where we can control it from
-        	url=https://evs.nci.nih.gov/ftp1/upload/cumulative_history_$version.zip
-            echo "    url = $url"
-            curl -w "\n%{http_code}" -s -o cumulative_history_$version.zip $url > /tmp/x.$$
-            if [[ $? -ne 0 ]]; then
-                echo "ERROR: problem downloading NCIt history (trying again $i)"
-            elif [[ `tail -1 /tmp/x.$$` -eq 404 ]]; then
-                echo "ERROR: url does not exist, bail out"
-                break;
-            else
+        # try to get previous version of the history file
+        if [[ $success -eq 0 ]]; then
+            echo "Initial version $version failed. Fetching latest version from API..."
 
-                echo "  Unpack NCIt history"
-                unzip cumulative_history_$version.zip > /tmp/x.$$ 2>&1
-                if [[ $? -ne 0 ]]; then
-                    cat /tmp/x.$$
-                    echo "ERROR: problem unpacking cumulative_history_$version.zip"
-                    break
-                fi
+            response=$(curl -s -X 'GET' \
+              'https://api-evsrest.nci.nih.gov/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit' \
+              -H 'accept: application/json')
 
-                # Set historyFile for later steps    
-                historyFile=$DIR/NCIT_HISTORY/cumulative_history_$version.txt
-                echo "    historyFile = $DIR/NCIT_HISTORY/cumulative_history_$version.txt"
-                break
+            prev_version=$(echo "$response" | jq -r '.[0].version')
+
+            if [[ -z "$prev_version" || "$prev_version" == "null" ]]; then
+                echo "ERROR: Failed to extract prev_version from API"
+                exit 1
+            else 
+                echo "Trying again with prev_version=$prev_version"
+                download_and_unpack "$prev_version"
             fi
-        done
+        fi
 
         # cd back out
         cd - > /dev/null 2> /dev/null

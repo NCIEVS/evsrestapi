@@ -310,9 +310,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       // remove and continue
       if (mapsetsToRemove.contains(code)) {
         logger.info("  Delete mapset (and mappings) = " + code + " " + version);
-        operationsService.delete(code, ElasticOperationsService.MAPSET_INDEX);
+        operationsService.delete(code, OpensearchOperationsService.MAPSET_INDEX);
         operationsService.deleteQuery(
-            "mapsetCode:" + code, ElasticOperationsService.MAPPINGS_INDEX);
+            "mapsetCode:" + code, OpensearchOperationsService.MAPPINGS_INDEX);
         continue;
       }
 
@@ -325,7 +325,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         // No need to delete from MAPSET_INDEX because the index call below
         // will just replace/update the mapset to the new version
         operationsService.deleteQuery(
-            "mapsetCode:" + code, ElasticOperationsService.MAPPINGS_INDEX);
+            "mapsetCode:" + code, OpensearchOperationsService.MAPPINGS_INDEX);
       } else {
         logger.info("  Add mapset = " + code + " " + version);
       }
