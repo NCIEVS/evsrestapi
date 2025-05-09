@@ -7,8 +7,8 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.GraphElasticLoadServiceImpl;
+import gov.nih.nci.evs.api.service.GraphOpensearchLoadServiceImpl;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 import org.slf4j.Logger;
@@ -26,11 +26,11 @@ public class TerminologyUtilsTest {
   /** The term utils. */
   @Autowired private TerminologyUtils termUtils;
 
-  /** The elastic query service *. */
-  @Autowired private ElasticQueryService esQueryService;
+  /** The opensearch query service *. */
+  @Autowired private OpensearchQueryService osQueryService;
 
   /** The graph loader service. */
-  @Autowired private GraphElasticLoadServiceImpl graphElasticLoadServiceImpl;
+  @Autowired private GraphOpensearchLoadServiceImpl graphOpensearchLoadServiceImpl;
 
   /** The logger. */
   @SuppressWarnings("unused")
@@ -45,7 +45,7 @@ public class TerminologyUtilsTest {
   public void testRemodeledQualifiers() throws Exception {
 
     final Terminology ncit =
-        termUtils.getIndexedTerminologies(esQueryService).stream()
+        termUtils.getIndexedTerminologies(osQueryService).stream()
             .filter(
                 t ->
                     t.getLatest() != null
@@ -56,7 +56,7 @@ public class TerminologyUtilsTest {
             .get();
     final IncludeParam ip = new IncludeParam((String) null);
 
-    final List<Concept> list = esQueryService.getQualifiers(ncit, ip);
+    final List<Concept> list = osQueryService.getQualifiers(ncit, ip);
 
     assertThat(
             list.stream().filter(c -> ncit.getMetadata().isRemodeledQualifier(c.getCode())).count())
@@ -72,7 +72,7 @@ public class TerminologyUtilsTest {
   public void testPaging() throws Exception {
 
     // Verify more than one default page of data comes back
-    final List<Terminology> list = termUtils.getIndexedTerminologies(esQueryService);
+    final List<Terminology> list = termUtils.getIndexedTerminologies(osQueryService);
     assertThat(list.size()).isGreaterThan(10);
   }
 
@@ -87,7 +87,7 @@ public class TerminologyUtilsTest {
     final TerminologyMetadata metadata =
         new ObjectMapper()
             .treeToValue(
-                graphElasticLoadServiceImpl.getMetadataAsNodeLocal(terminology),
+                graphOpensearchLoadServiceImpl.getMetadataAsNodeLocal(terminology),
                 TerminologyMetadata.class);
     assertThat(metadata.getExtraSubsets()).isNotEmpty();
   }

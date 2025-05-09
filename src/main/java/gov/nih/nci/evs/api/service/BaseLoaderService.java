@@ -8,8 +8,8 @@ import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.IOException;
@@ -34,13 +34,13 @@ import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.util.CollectionUtils;
 
 /**
- * The service to load concepts to Elasticsearch
+ * The service to load concepts to Opensearch
  *
- * <p>Retrieves concepts from graph db and creates necessary index on Elasticsearch.
+ * <p>Retrieves concepts from graph db and creates necessary index on Opensearch.
  *
  * @author Arun
  */
-public abstract class BaseLoaderService implements ElasticLoadService {
+public abstract class BaseLoaderService implements OpensearchLoadService {
 
   /** the logger *. */
   private static final Logger logger = LoggerFactory.getLogger(BaseLoaderService.class);
@@ -48,11 +48,11 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   /** the metrics db path. */
   @Autowired ApplicationProperties applicationProperties;
 
-  /** The Elasticsearch operations service instance *. */
-  @Autowired ElasticOperationsService operationsService;
+  /** The Opensearch operations service instance *. */
+  @Autowired OpensearchOperationsService operationsService;
 
-  /** The elasticsearch query service *. */
-  @Autowired private ElasticQueryService esQueryService;
+  /** The Opensearch query service *. */
+  @Autowired private OpensearchQueryService osQueryService;
 
   /** The sparql query service *. */
   @Autowired private SparqlQueryManagerService sparqlQueryManagerService;
@@ -75,8 +75,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @param defaultLocation the default download location to use
    * @return the config object
    */
-  public static ElasticLoadConfig buildConfig(CommandLine cmd, String defaultLocation) {
-    ElasticLoadConfig config = new ElasticLoadConfig();
+  public static OpensearchLoadConfig buildConfig(CommandLine cmd, String defaultLocation) {
+    OpensearchLoadConfig config = new OpensearchLoadConfig();
 
     config.setTerminology(cmd.getOptionValue('t'));
     config.setForceDeleteIndex(cmd.hasOption('f'));
@@ -119,36 +119,36 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   public void initialize() throws Exception {
     // Create the metadata index if it doesn't exist
     boolean createdIndex =
-        operationsService.createIndex(ElasticOperationsService.METADATA_INDEX, false);
+        operationsService.createIndex(OpensearchOperationsService.METADATA_INDEX, false);
     if (createdIndex) {
       operationsService
           .getOpenSearchOperations()
-          .indexOps(IndexCoordinates.of(ElasticOperationsService.METADATA_INDEX))
+          .indexOps(IndexCoordinates.of(OpensearchOperationsService.METADATA_INDEX))
           .putMapping(IndexMetadata.class);
     }
 
     // Create the mapping indexes if they don't exist
     boolean createdMapset =
-        operationsService.createIndex(ElasticOperationsService.MAPSET_INDEX, false);
-    operationsService.createIndex(ElasticOperationsService.MAPPINGS_INDEX, false);
+        operationsService.createIndex(OpensearchOperationsService.MAPSET_INDEX, false);
+    operationsService.createIndex(OpensearchOperationsService.MAPPINGS_INDEX, false);
     if (createdMapset) {
       operationsService
           .getOpenSearchOperations()
-          .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPSET_INDEX))
+          .indexOps(IndexCoordinates.of(OpensearchOperationsService.MAPSET_INDEX))
           .putMapping(Concept.class);
       operationsService
           .getOpenSearchOperations()
-          .indexOps(IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX))
+          .indexOps(IndexCoordinates.of(OpensearchOperationsService.MAPPINGS_INDEX))
           .putMapping(Mapping.class);
     }
 
     // create the audit index if it doesn't exist
     boolean createdAudit =
-        operationsService.createIndex(ElasticOperationsService.AUDIT_INDEX, false);
+        operationsService.createIndex(OpensearchOperationsService.AUDIT_INDEX, false);
     if (createdAudit) {
       operationsService
           .getOpenSearchOperations()
-          .indexOps(IndexCoordinates.of(ElasticOperationsService.AUDIT_INDEX))
+          .indexOps(IndexCoordinates.of(OpensearchOperationsService.AUDIT_INDEX))
           .putMapping(Audit.class);
     }
   }
@@ -165,7 +165,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
 
     List<IndexMetadata> iMetas =
         termUtils.getStaleGraphTerminologies(
-            Arrays.asList(dbs.split(",")), terminology, sparqlQueryManagerService, esQueryService);
+            Arrays.asList(dbs.split(",")), terminology, sparqlQueryManagerService, osQueryService);
     if (CollectionUtils.isEmpty(iMetas)) {
       logger.info("NO stale terminologies to remove");
       return new HashSet<>(0);
@@ -239,7 +239,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
       throws Exception {
     // update latest flag
     logger.info("Updating latest flags on all metadata objects");
-    List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+    List<IndexMetadata> iMetas = osQueryService.getIndexMetadata(true);
 
     // If certain terminology/version combinations were removed, skip them here
     iMetas.removeIf(m -> removed.contains(m.getTerminologyVersion()));
@@ -327,7 +327,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     }
 
     operationsService.bulkIndex(
-        iMetas, ElasticOperationsService.METADATA_INDEX, IndexMetadata.class);
+        iMetas, OpensearchOperationsService.METADATA_INDEX, IndexMetadata.class);
   }
 
   /**
@@ -340,7 +340,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
   @Override
   public void checkLoadStatus(int total, Terminology term) throws Exception {
 
-    Long count = esQueryService.getCount(term);
+    Long count = osQueryService.getCount(term);
     logger.info("Concepts count for index {} = {}", term.getIndexName(), count);
     boolean completed = (total == count.intValue());
 
@@ -357,7 +357,7 @@ public abstract class BaseLoaderService implements ElasticLoadService {
         logger.info("Index completion is taking longer than expected..");
       }
 
-      count = esQueryService.getCount(term);
+      count = osQueryService.getCount(term);
       completed = (total == count.intValue());
       attempts++;
     }
@@ -384,15 +384,15 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     initialize();
 
     // Non-blocking index approach
-    // operationsService.index(iMeta, ElasticOperationsService.METADATA_INDEX,
-    // ElasticOperationsService.METADATA_TYPE, IndexMetadata.class);
+    // operationsService.index(iMeta, OpensearchOperationsService.METADATA_INDEX,
+    // OpensearchOperationsService.METADATA_TYPE, IndexMetadata.class);
 
     // Make sure this blocks before proceeding
     operationsService.bulkIndexAndWait(
-        Arrays.asList(iMeta), ElasticOperationsService.METADATA_INDEX, IndexMetadata.class);
+        Arrays.asList(iMeta), OpensearchOperationsService.METADATA_INDEX, IndexMetadata.class);
 
     // This block is for debugging presence of the iMeta
-    List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+    List<IndexMetadata> iMetas = osQueryService.getIndexMetadata(true);
     final List<String> completed =
         iMetas.stream().map(t -> t.getTerminologyVersion()).sorted().collect(Collectors.toList());
     logger.info("  Completed terminologies = " + completed);
@@ -414,12 +414,12 @@ public abstract class BaseLoaderService implements ElasticLoadService {
    * @throws InterruptedException the interrupted exception
    */
   protected void findAndDeleteTerminology(String ID) throws IOException, InterruptedException {
-    DeleteRequest request = new DeleteRequest(ElasticOperationsService.METADATA_INDEX, ID);
+    DeleteRequest request = new DeleteRequest(OpensearchOperationsService.METADATA_INDEX, ID);
     client.delete(request, RequestOptions.DEFAULT);
 
     // This block is for debugging presence of the iMeta still in the index
     // Thread.sleep(2000);
-    // List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+    // List<IndexMetadata> iMetas = osQueryService.getIndexMetadata(true);
     // for (IndexMetadata iMetaPostDelete : iMetas) {
     // logger.info("iMetaPostDelete = " + iMetaPostDelete);
     // }

@@ -13,7 +13,7 @@ import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -57,8 +57,8 @@ public class ConceptSampleTester {
 
   private TerminologyUtils termUtils = null;
 
-  /** The elasticquery service. */
-  private ElasticQueryService esQueryService = null;
+  /** The opensearchquery service. */
+  private OpensearchQueryService osQueryService = null;
 
   /** The errors. */
   private List<String> errors = new ArrayList<String>();
@@ -68,9 +68,9 @@ public class ConceptSampleTester {
    *
    * @param termUtils the terminology utils
    */
-  public ConceptSampleTester(TerminologyUtils termUtils, ElasticQueryService esQueryService) {
+  public ConceptSampleTester(TerminologyUtils termUtils, OpensearchQueryService osQueryService) {
     this.termUtils = termUtils;
-    this.esQueryService = esQueryService;
+    this.osQueryService = osQueryService;
   }
 
   /**
@@ -90,7 +90,7 @@ public class ConceptSampleTester {
    */
   private void lookupTerminology(final String term) throws Exception {
 
-    terminology = termUtils.getIndexedTerminology(term, esQueryService);
+    terminology = termUtils.getIndexedTerminology(term, osQueryService);
   }
 
   /**

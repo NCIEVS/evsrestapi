@@ -3,7 +3,7 @@ package gov.nih.nci.evs.api.model;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
-import gov.nih.nci.evs.api.service.ElasticOperationsService;
+import gov.nih.nci.evs.api.service.OpensearchOperationsService;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Date;
 import java.util.Objects;
@@ -419,7 +419,7 @@ public class Audit {
    * @param
    */
   public static void addAudit(
-      final ElasticOperationsService operationsService,
+      final OpensearchOperationsService operationsService,
       String type,
       String process,
       String terminology,
@@ -427,6 +427,6 @@ public class Audit {
       String logLevel)
       throws Exception {
     Audit audit = new Audit(type, terminology, null, new Date(), process, details, logLevel);
-    operationsService.index(audit, ElasticOperationsService.AUDIT_INDEX, Audit.class);
+    operationsService.index(audit, OpensearchOperationsService.AUDIT_INDEX, Audit.class);
   }
 }

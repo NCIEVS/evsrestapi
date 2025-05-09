@@ -24,11 +24,11 @@ import java.util.Optional;
 import java.util.Set;
 
 /**
- * The elasticsearch/OpenSearch DB query service.
+ * The Opensearch/OpenSearch DB query service.
  *
  * @author Arun
  */
-public interface ElasticQueryService {
+public interface OpensearchQueryService {
 
   /**
    * Check if concept exists.

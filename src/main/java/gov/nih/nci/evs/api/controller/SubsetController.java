@@ -5,8 +5,8 @@ import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,7 +27,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,8 +41,8 @@ public class SubsetController extends BaseController {
   /** Logger. */
   private static final Logger logger = LoggerFactory.getLogger(SubsetController.class);
 
-  /** The elastic query service. */
-  @Autowired ElasticQueryService elasticQueryService;
+  /** The opensearch query service. */
+  @Autowired OpensearchQueryService opensearchQueryService;
 
   /** The metadata service. */
   @Autowired MetadataService metadataService;
@@ -266,10 +265,7 @@ public class SubsetController extends BaseController {
         example = "10000"),
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/subset/{terminology}/{code}/members",
-      produces = "application/json")
+  @GetMapping(value = "/subset/{terminology}/{code}/members", produces = "application/json")
   public @ResponseBody List<Concept> getSubsetMembers(
       @PathVariable(value = "terminology") final String terminology,
       @RequestParam("fromRecord") final Optional<Integer> fromRecord,
@@ -278,11 +274,11 @@ public class SubsetController extends BaseController {
       @RequestParam("include") final Optional<String> include)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
 
       final Optional<Concept> concept =
-          elasticQueryService.getConcept(
+          opensearchQueryService.getConcept(
               code, term, new IncludeParam("synonyms,inverseAssociations"));
 
       if (!concept.isPresent()) {
@@ -304,7 +300,7 @@ public class SubsetController extends BaseController {
             Math.min(pageSize.orElse(associationListSize) + fromIndex, associationListSize);
         for (final Association assn : associations.subList(fromIndex, toIndex)) {
           final Concept member =
-              elasticQueryService.getConcept(assn.getRelatedCode(), term, ip).orElse(null);
+              opensearchQueryService.getConcept(assn.getRelatedCode(), term, ip).orElse(null);
           if (member != null) {
             subsets.add(member);
           } else {

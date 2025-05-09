@@ -4,14 +4,14 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticOperationsService;
+import gov.nih.nci.evs.api.service.OpensearchOperationsService;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
 /** The Class IndexMetadata. */
-@Document(indexName = ElasticOperationsService.METADATA_INDEX)
+@Document(indexName = OpensearchOperationsService.METADATA_INDEX)
 @JsonInclude(Include.NON_EMPTY)
 public class IndexMetadata {
 

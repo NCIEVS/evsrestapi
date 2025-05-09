@@ -23,17 +23,18 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 /**
- * The implementation for {@link ElasticOperationsService}.
+ * The implementation for {@link OpensearchOperationsService}.
  *
  * @author Arun
  */
 @Service
-public class ElasticOperationsServiceImpl implements ElasticOperationsService {
+public class OpensearchOperationsServiceImpl implements OpensearchOperationsService {
 
   /** The Constant logger. */
-  private static final Logger logger = LoggerFactory.getLogger(ElasticOperationsServiceImpl.class);
+  private static final Logger logger =
+      LoggerFactory.getLogger(OpensearchOperationsServiceImpl.class);
 
-  /** Elasticsearch operations *. */
+  /** Opensearch operations *. */
   @Autowired OpenSearchOperations operations;
 
   /* see superclass */
@@ -107,7 +108,7 @@ public class ElasticOperationsServiceImpl implements ElasticOperationsService {
 
     final IndexQuery query = new IndexQueryBuilder().withObject(metric).build();
     // BAC: removed this, we do not need to put the mapping on each request
-    // operations.putMapping(index, ElasticOperationsService.METRIC_TYPE,
+    // operations.putMapping(index, OpensearchOperationsService.METRIC_TYPE,
     // Metric.class);
     try {
       operations.index(query, IndexCoordinates.of(index));

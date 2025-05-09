@@ -6,7 +6,7 @@ import ca.uhn.fhir.rest.param.NumberParam;
 import gov.nih.nci.evs.api.controller.StaticContextAccessor;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
@@ -85,10 +85,11 @@ public final class FhirUtilityR4 {
     final HashMap<String, String> map = new HashMap<>();
     List<Terminology> terminologies;
     try {
-      ElasticQueryService esQueryService = StaticContextAccessor.getBean(ElasticQueryService.class);
+      OpensearchQueryService osQueryService =
+          StaticContextAccessor.getBean(OpensearchQueryService.class);
       TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
 
-      terminologies = termUtils.getIndexedTerminologies(esQueryService);
+      terminologies = termUtils.getIndexedTerminologies(osQueryService);
 
       terminologies.forEach(
           terminology -> {
@@ -111,10 +112,11 @@ public final class FhirUtilityR4 {
     final HashMap<String, String> map = new HashMap<>();
     List<Terminology> terminologies;
     try {
-      ElasticQueryService esQueryService = StaticContextAccessor.getBean(ElasticQueryService.class);
+      OpensearchQueryService osQueryService =
+          StaticContextAccessor.getBean(OpensearchQueryService.class);
       TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
 
-      terminologies = termUtils.getIndexedTerminologies(esQueryService);
+      terminologies = termUtils.getIndexedTerminologies(osQueryService);
       terminologies.forEach(
           terminology -> {
             if (terminology.getMetadata().getFhirUri() != null) {

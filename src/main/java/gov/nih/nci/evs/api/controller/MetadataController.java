@@ -6,8 +6,8 @@ import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -47,8 +47,8 @@ public class MetadataController extends BaseController {
   /** The metadata service. */
   @Autowired MetadataService metadataService;
 
-  /** The elasticquery service. */
-  @Autowired ElasticQueryService esQueryService;
+  /** The opensearch service. */
+  @Autowired OpensearchQueryService osQueryService;
 
   /** The term utils. */
   @Autowired TerminologyUtils termUtils;
@@ -106,7 +106,7 @@ public class MetadataController extends BaseController {
       throws Exception {
     List<String> tagList = Arrays.asList("monthly", "weekly");
     try {
-      List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
+      List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
 
       if (latest.isPresent()) {
         terms =

@@ -2,8 +2,8 @@ package gov.nih.nci.evs.api.aop;
 
 import gov.nih.nci.evs.api.model.Metric;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.properties.ElasticServerProperties;
-import gov.nih.nci.evs.api.service.ElasticOperationsService;
+import gov.nih.nci.evs.api.properties.OpensearchServerProperties;
+import gov.nih.nci.evs.api.service.OpensearchOperationsService;
 import jakarta.annotation.PostConstruct;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Calendar;
@@ -34,11 +34,11 @@ public class MetricAdvice {
   /** the metrics db path. */
   @Autowired ApplicationProperties applicationProperties;
 
-  /** The elastic server properties. */
-  @Autowired ElasticServerProperties elasticServerProperties;
+  /** The opensearch server properties. */
+  @Autowired OpensearchServerProperties OpensearchServerProperties;
 
   /** The operations service. */
-  @Autowired ElasticOperationsService operationsService;
+  @Autowired OpensearchOperationsService operationsService;
 
   /** The database found. */
   boolean databaseFound;
@@ -63,7 +63,7 @@ public class MetricAdvice {
      *
      * <p>boolean result = operationsService.createIndex(indexName, false); if (result) {
      * operationsService.getOpenSearchOperations().putMapping(indexName,
-     * ElasticOperationsService.METRIC_TYPE, Metric.class); }
+     * OpensearchOperationsService.METRIC_TYPE, Metric.class); }
      */
   }
 

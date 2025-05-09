@@ -22,10 +22,10 @@ import org.springframework.data.elasticsearch.annotations.Document;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 
-/** The elasticsearch wrapper object for cached objects. */
+/** The Opensearch wrapper object for cached objects. */
 @Document(indexName = "default_object")
 @JsonInclude(content = Include.NON_EMPTY)
-public class ElasticObject extends BaseModel {
+public class OpensearchObject extends BaseModel {
 
   /** The name. */
   @Id private String name;
@@ -52,17 +52,17 @@ public class ElasticObject extends BaseModel {
   @Field(type = FieldType.Object, enabled = false)
   private String mapString;
 
-  /** Instantiates an empty {@link ElasticObject}. */
-  public ElasticObject() {
+  /** Instantiates an empty {@link OpensearchObject}. */
+  public OpensearchObject() {
     // n/a
   }
 
   /**
-   * Instantiates a {@link ElasticObject} from the specified parameters.
+   * Instantiates a {@link OpensearchObject} from the specified parameters.
    *
    * @param name the name
    */
-  public ElasticObject(String name) {
+  public OpensearchObject(String name) {
     this.name = name;
   }
 
@@ -203,7 +203,7 @@ public class ElasticObject extends BaseModel {
   @JsonIgnore
   public Map<String, Set<String>> getMap() throws Exception {
 
-    // The X is to trick elasticsearch into avoiding trying to index this like a
+    // The X is to trick opensearch into avoiding trying to index this like a
     // map
     if (mapString == null || !mapString.startsWith("X")) {
       return new HashMap<>();
@@ -227,7 +227,7 @@ public class ElasticObject extends BaseModel {
     if (map == null) {
       this.mapString = null;
     } else {
-      // The X is to trick elasticsearch into avoiding trying to index this like
+      // The X is to trick opensearch into avoiding trying to index this like
       // a map
       this.mapString = "X" + new ObjectMapper().writeValueAsString(map);
     }

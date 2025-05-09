@@ -1,7 +1,7 @@
 package gov.nih.nci.evs.api.properties;
 
-/** The Class ElasticServerProperties. */
-public class ElasticServerProperties {
+/** The Class OpensearchServerProperties. */
+public class OpensearchServerProperties {
 
   /** The host *. */
   private String host;

@@ -95,11 +95,11 @@ nci:
       password: admin
       readTimeout: 500000
       connectTimeout: 30000
-    elasticsearch:
+    opensearch:
       server:
-        host: ${ES_HOST:localhost}
-        port: ${ES_PORT:9201}
-        scheme: ${ES_SCHEME:http}
+        host: ${OS_HOST:localhost}
+        port: ${OS_PORT:9201}
+        scheme: ${OS_SCHEME:http}
       timeout: 200000
     sparql:
       timeoutSeconds: 60

@@ -6,7 +6,7 @@ import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -51,11 +51,11 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   /** The application properties. */
   @Autowired ApplicationProperties applicationProperties;
 
-  /** The Elasticsearch operations service instance *. */
-  @Autowired ElasticOperationsService operationsService;
+  /** The Opensearch operations service instance *. */
+  @Autowired OpensearchOperationsService operationsService;
 
-  /** The Elasticsearch operations service instance *. */
-  @Autowired ElasticQueryService esQueryService;
+  /** The Opensearch operations service instance *. */
+  @Autowired OpensearchQueryService osQueryService;
 
   /** The terminology utils. */
   @Autowired TerminologyUtils termUtils;
@@ -113,9 +113,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           // Determine "source"
           final String source = metadata[0].split("_")[0];
           final Terminology sourceTerminology =
-              termUtils.getIndexedTerminology(source.toLowerCase(), esQueryService);
+              termUtils.getIndexedTerminology(source.toLowerCase(), osQueryService);
           final Concept sourceConcept =
-              esQueryService
+              osQueryService
                   .getConcept(conceptSplit[0].strip(), sourceTerminology, new IncludeParam())
                   .orElse(null);
           String sourceName = "Unable to determine name";
@@ -126,9 +126,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           // Determine "target" terminology
           final String target = metadata[0].split("_")[2];
           final Terminology targetTerminology =
-              termUtils.getIndexedTerminology(target.toLowerCase(), esQueryService);
+              termUtils.getIndexedTerminology(target.toLowerCase(), osQueryService);
           final Concept targetConcept =
-              esQueryService
+              osQueryService
                   .getConcept(conceptSplit[1].strip(), targetTerminology, new IncludeParam())
                   .orElse(null);
           String targetName = "Unable to determine name";
@@ -230,7 +230,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public void loadObjects(
-      final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
+      final OpensearchLoadConfig config,
+      final Terminology terminology,
+      final HierarchyUtils hierarchy)
       throws Exception {
 
     // Get mapset metadata without the header line
@@ -253,7 +255,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
 
     // Build mapset code -> version map
     final List<String> currentMapsetCodes =
-        esQueryService.getMapsets(new IncludeParam("properties")).stream()
+        osQueryService.getMapsets(new IncludeParam("properties")).stream()
             .filter(
                 concept ->
                     concept.getProperties().stream()
@@ -265,7 +267,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             .collect(Collectors.toList());
 
     final List<String> currentMapsetVersions =
-        esQueryService.getMapsets(new IncludeParam("properties")).stream()
+        osQueryService.getMapsets(new IncludeParam("properties")).stream()
             .filter(
                 concept ->
                     concept.getProperties().stream()
@@ -294,7 +296,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     logger.info("  Mapsets to remove = " + mapsetsToRemove);
 
     final List<String> terms =
-        termUtils.getIndexedTerminologies(esQueryService).stream()
+        termUtils.getIndexedTerminologies(osQueryService).stream()
             .map(Terminology::getTerminology)
             .collect(Collectors.toList());
 
@@ -308,9 +310,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       // remove and continue
       if (mapsetsToRemove.contains(code)) {
         logger.info("  Delete mapset (and mappings) = " + code + " " + version);
-        operationsService.delete(code, ElasticOperationsService.MAPSET_INDEX);
+        operationsService.delete(code, OpensearchOperationsService.MAPSET_INDEX);
         operationsService.deleteQuery(
-            "mapsetCode:" + code, ElasticOperationsService.MAPPINGS_INDEX);
+            "mapsetCode:" + code, OpensearchOperationsService.MAPPINGS_INDEX);
         continue;
       }
 
@@ -323,7 +325,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         // No need to delete from MAPSET_INDEX because the index call below
         // will just replace/update the mapset to the new version
         operationsService.deleteQuery(
-            "mapsetCode:" + code, ElasticOperationsService.MAPPINGS_INDEX);
+            "mapsetCode:" + code, OpensearchOperationsService.MAPPINGS_INDEX);
       } else {
         logger.info("  Add mapset = " + code + " " + version);
       }
@@ -436,16 +438,18 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         mapToSort.setSortKey(String.valueOf(1000000 + i++));
       }
       operationsService.bulkIndex(
-          map.getMaps(), ElasticOperationsService.MAPPINGS_INDEX, Mapping.class);
+          map.getMaps(), OpensearchOperationsService.MAPPINGS_INDEX, Mapping.class);
       map.setMaps(null);
-      operationsService.index(map, ElasticOperationsService.MAPSET_INDEX, Concept.class);
+      operationsService.index(map, OpensearchOperationsService.MAPSET_INDEX, Concept.class);
     }
   }
 
   /* see superclass */
   @Override
   public int loadConcepts(
-      final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
+      final OpensearchLoadConfig config,
+      final Terminology terminology,
+      final HierarchyUtils hierarchy)
       throws IOException, Exception {
     // n/a
     return 0;
@@ -455,7 +459,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   @Override
   public Terminology getTerminology(
       final ApplicationContext app,
-      final ElasticLoadConfig config,
+      final OpensearchLoadConfig config,
       final String filepath,
       final String termName,
       final boolean forceDelete)

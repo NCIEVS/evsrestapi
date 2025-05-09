@@ -19,9 +19,9 @@ import gov.nih.nci.evs.api.controller.ConceptController;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticOperationsService;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.ElasticSearchService;
+import gov.nih.nci.evs.api.service.OpenSearchService;
+import gov.nih.nci.evs.api.service.OpensearchOperationsService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -54,13 +54,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   private static Logger logger = LoggerFactory.getLogger(CodeSystemProviderR4.class);
 
   /** The operations service. */
-  @Autowired ElasticOperationsService operationsService;
+  @Autowired OpensearchOperationsService operationsService;
 
   /** the query service. */
-  @Autowired ElasticQueryService esQueryService;
+  @Autowired OpensearchQueryService osQueryService;
 
   /** The search service. */
-  @Autowired ElasticSearchService searchService;
+  @Autowired OpenSearchService searchService;
 
   /** The concept controller. */
   @Autowired ConceptController conceptController;
@@ -143,9 +143,9 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService);
         final Concept conc =
-            esQueryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
+            osQueryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
         // required in the specification
         params.addParameter("name", codeSys.getName());
         params.addParameter("display", conc.getName());
@@ -250,9 +250,9 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService);
         final Concept conc =
-            esQueryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
+            osQueryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
         // required in the specification
         params.addParameter("name", codeSys.getName());
         params.addParameter("display", conc.getName());
@@ -360,12 +360,12 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService);
         final Optional<Concept> check =
-            esQueryService.getConcept(codeToValidate, term, new IncludeParam("children"));
+            osQueryService.getConcept(codeToValidate, term, new IncludeParam("children"));
         if (check.isPresent()) {
           final Concept conc =
-              esQueryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
+              osQueryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
           if (display == null || conc.getName().equals(display.getValue())) {
             params.addParameter("result", true);
             params.addParameter("code", conc.getCode());
@@ -480,12 +480,12 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService);
         final Optional<Concept> check =
-            esQueryService.getConcept(codeToValidate, term, new IncludeParam("children"));
+            osQueryService.getConcept(codeToValidate, term, new IncludeParam("children"));
         if (check.isPresent()) {
           final Concept conc =
-              esQueryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
+              osQueryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
           if (display == null || conc.getName().equals(display.getValue())) {
             params.addParameter("code", conc.getCode());
             params.addParameter("result", true);
@@ -594,17 +594,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService);
         final Optional<Concept> checkA =
-            esQueryService.getConcept(code1, term, new IncludeParam("minimal"));
+            osQueryService.getConcept(code1, term, new IncludeParam("minimal"));
         final Optional<Concept> checkB =
-            esQueryService.getConcept(code2, term, new IncludeParam("minimal"));
+            osQueryService.getConcept(code2, term, new IncludeParam("minimal"));
         if (checkA.get() != null && checkB.get() != null) {
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
-          if (esQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
+          if (osQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumes");
-          } else if (esQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
+          } else if (osQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumed-by");
           } else {
             params.addParameter("outcome", "no-subsumption-relationship");
@@ -698,17 +698,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService);
         final Optional<Concept> checkA =
-            esQueryService.getConcept(code1, term, new IncludeParam("minimal"));
+            osQueryService.getConcept(code1, term, new IncludeParam("minimal"));
         final Optional<Concept> checkB =
-            esQueryService.getConcept(code2, term, new IncludeParam("minimal"));
+            osQueryService.getConcept(code2, term, new IncludeParam("minimal"));
         if (checkA.get() != null && checkB.get() != null) {
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
-          if (esQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
+          if (osQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumes");
-          } else if (esQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
+          } else if (osQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumed-by");
           } else {
             params.addParameter("outcome", "no-subsumption-relationship");
@@ -762,7 +762,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupportedSearchParams(request);
       FhirUtilityR4.mutuallyExclusive("url", url, "system", system);
 
-      final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
+      final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
 
       final List<CodeSystem> list = new ArrayList<>();
       for (final Terminology terminology : terms) {
@@ -825,7 +825,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         return new ArrayList<>(0);
       }
 
-      final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
+      final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
 
       final List<CodeSystem> list = new ArrayList<>();
       for (final Terminology terminology : terms) {

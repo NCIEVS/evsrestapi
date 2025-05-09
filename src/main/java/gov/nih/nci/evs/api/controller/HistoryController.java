@@ -3,7 +3,7 @@ package gov.nih.nci.evs.api.controller;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.HistoryUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -37,8 +36,8 @@ public class HistoryController extends BaseController {
   @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(HistoryController.class);
 
-  /** The elastic query service. */
-  @Autowired ElasticQueryService elasticQueryService;
+  /** The opensearch query service. */
+  @Autowired OpensearchQueryService opensearchQueryService;
 
   /** The term utils. */
   @Autowired TerminologyUtils termUtils;
@@ -102,8 +101,8 @@ public class HistoryController extends BaseController {
 
     try {
 
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
-      return HistoryUtils.getReplacements(term, elasticQueryService, code);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      return HistoryUtils.getReplacements(term, opensearchQueryService, code);
 
     } catch (final Exception e) {
       handleException(e, terminology);
@@ -163,10 +162,7 @@ public class HistoryController extends BaseController {
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/history/{terminology}/replacements",
-      produces = "application/json")
+  @GetMapping(value = "/history/{terminology}/replacements", produces = "application/json")
   public @ResponseBody List<History> getReplacementsFromList(
       @PathVariable(value = "terminology") final String terminology,
       @RequestParam(required = true, name = "list") final String list)
@@ -174,9 +170,9 @@ public class HistoryController extends BaseController {
 
     try {
 
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       return HistoryUtils.getReplacements(
-          term, elasticQueryService, Arrays.asList(list.split(",")));
+          term, opensearchQueryService, Arrays.asList(list.split(",")));
 
     } catch (final Exception e) {
       handleException(e, terminology);

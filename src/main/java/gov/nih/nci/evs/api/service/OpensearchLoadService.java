@@ -1,20 +1,20 @@
 package gov.nih.nci.evs.api.service;
 
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import java.io.IOException;
 import java.util.Set;
 import org.springframework.context.ApplicationContext;
 
 /**
- * The service to load concepts to Elasticsearch/OpenSearch.
+ * The service to load concepts to OpenSearch.
  *
- * <p>Retrieves concepts from graph db and creates necessary index on Elasticsearch/OpenSearch.
+ * <p>Retrieves concepts from graph db and creates necessary index on OpenSearch.
  *
  * @author Arun
  */
-public interface ElasticLoadService {
+public interface OpensearchLoadService {
 
   /**
    * Initialize the service to ensure indexes are created.
@@ -24,7 +24,7 @@ public interface ElasticLoadService {
   public void initialize() throws IOException, Exception;
 
   /**
-   * Load cached objects to elasticsearch.
+   * Load cached objects to Opensearch.
    *
    * @param config the load config from command line input
    * @param terminology the terminology
@@ -32,11 +32,11 @@ public interface ElasticLoadService {
    * @throws IOException the io exception
    * @throws Exception
    */
-  void loadObjects(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+  void loadObjects(OpensearchLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
       throws IOException, Exception;
 
   /**
-   * Load concepts to elasticsearch.
+   * Load concepts to Opensearch.
    *
    * @param config the load config from command line input
    * @param terminology the terminology
@@ -45,7 +45,7 @@ public interface ElasticLoadService {
    * @throws IOException the io exception
    * @throws Exception
    */
-  int loadConcepts(ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+  int loadConcepts(OpensearchLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
       throws IOException, Exception;
 
   /**
@@ -61,7 +61,7 @@ public interface ElasticLoadService {
    *
    * @param terminology the terminology
    * @param removed the removed terminologyVersion combinations (by cleanStaleIndexes). Needed
-   *     because elasticsearch may not have yet finished removing them.
+   *     because Opensearch may not have yet finished removing them.
    * @throws Exception the exception
    */
   void updateLatestFlag(Terminology terminology, Set<String> removed) throws Exception;
@@ -79,7 +79,7 @@ public interface ElasticLoadService {
    */
   Terminology getTerminology(
       ApplicationContext app,
-      ElasticLoadConfig config,
+      OpensearchLoadConfig config,
       String filepath,
       String termName,
       boolean forceDelete)

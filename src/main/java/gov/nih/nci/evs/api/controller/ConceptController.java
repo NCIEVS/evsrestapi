@@ -15,9 +15,9 @@ import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.service.OpenSearchService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -67,11 +67,11 @@ public class ConceptController extends BaseController {
   /** The sparql query manager service. */
   @Autowired SparqlQueryManagerService sparqlQueryManagerService;
 
-  /** The elastic query service. */
-  @Autowired ElasticQueryService elasticQueryService;
+  /** The opensearch query service. */
+  @Autowired OpensearchQueryService opensearchQueryService;
 
-  /** The elastic search service. */
-  @Autowired ElasticSearchService elasticSearchService;
+  /** The opensearch search service. */
+  @Autowired OpenSearchService openSearchService;
 
   /** The term utils. */
   /* The terminology utils */
@@ -169,7 +169,7 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
@@ -182,13 +182,13 @@ public class ConceptController extends BaseController {
       }
 
       final List<Concept> concepts =
-          elasticQueryService.getConcepts(Arrays.asList(codes), term, ip);
+          opensearchQueryService.getConcepts(Arrays.asList(codes), term, ip);
 
       if (ip.isMaps() && concepts.size() > 0) {
         List<Mapping> firstList = null;
         List<String> conceptCodeList = Arrays.asList(list.split(","));
         List<Mapping> secondList =
-            elasticSearchService.getConceptMappings(conceptCodeList, terminology);
+            openSearchService.getConceptMappings(conceptCodeList, terminology);
 
         // Pre-process secondList into a map
         Map<String, List<Mapping>> secondMap =
@@ -329,11 +329,11 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
-      final Optional<Concept> concept = elasticQueryService.getConcept(code, term, ip);
+      final Optional<Concept> concept = opensearchQueryService.getConcept(code, term, ip);
 
       if (!concept.isPresent() || concept.get().getCode() == null) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -343,7 +343,7 @@ public class ConceptController extends BaseController {
       //      if (ip.isMaps()) {
       //        List<Mapping> firstList = concept.get().getMaps();
       //        List<Mapping> secondList =
-      //            elasticSearchService.getConceptMappings(Arrays.asList(code), terminology);
+      //            openSearchService.getConceptMappings(Arrays.asList(code), terminology);
       //
       //        // Create a set of existing keys in firstList to check for matches
       //        Set<String> existingKeys =
@@ -438,11 +438,11 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
-          elasticQueryService.getConcept(code, term, new IncludeParam("associations"));
+          opensearchQueryService.getConcept(code, term, new IncludeParam("associations"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -538,7 +538,7 @@ public class ConceptController extends BaseController {
       throws Exception {
     // Get the association "label"
     final Long startTime = System.currentTimeMillis();
-    final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+    final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
     termUtils.checkLicense(term, license);
 
     final Optional<Concept> association =
@@ -549,7 +549,7 @@ public class ConceptController extends BaseController {
     }
     final String label = association.get().getName();
     if (termUtils
-        .getIndexedTerminology(terminology, elasticQueryService)
+        .getIndexedTerminology(terminology, opensearchQueryService)
         .getMetadata()
         .getSubsetMember()
         .contains(codeOrLabel)) {
@@ -625,11 +625,11 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
-          elasticQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
+          opensearchQueryService.getConcept(code, term, new IncludeParam("inverseAssociations"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -735,12 +735,12 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
 
       final Optional<Concept> concept =
-          elasticQueryService.getConcept(
+          opensearchQueryService.getConcept(
               code, term, new IncludeParam("synonyms,inverseAssociations"));
 
       if (!concept.isPresent()) {
@@ -761,7 +761,7 @@ public class ConceptController extends BaseController {
             Math.min(pageSize.orElse(associationListSize) + fromIndex, associationListSize);
         for (final Association assn : associations.subList(fromIndex, toIndex)) {
           final Concept member =
-              elasticQueryService.getConcept(assn.getRelatedCode(), term, ip).orElse(null);
+              opensearchQueryService.getConcept(assn.getRelatedCode(), term, ip).orElse(null);
           if (member != null) {
             subsets.add(member);
           } else {
@@ -835,11 +835,11 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
-          elasticQueryService.getConcept(code, term, new IncludeParam("roles"));
+          opensearchQueryService.getConcept(code, term, new IncludeParam("roles"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -906,11 +906,11 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
-          elasticQueryService.getConcept(code, term, new IncludeParam("inverseRoles"));
+          opensearchQueryService.getConcept(code, term, new IncludeParam("inverseRoles"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -980,11 +980,11 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
-          elasticQueryService.getConcept(code, term, new IncludeParam("parents"));
+          opensearchQueryService.getConcept(code, term, new IncludeParam("parents"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -1054,11 +1054,11 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
-          elasticQueryService.getConcept(code, term, new IncludeParam("children"));
+          opensearchQueryService.getConcept(code, term, new IncludeParam("children"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -1163,15 +1163,15 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
 
-      if (!elasticQueryService.checkConceptExists(code, term)) {
+      if (!opensearchQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
       final List<Concept> baseList =
-          new ArrayList<Concept>(elasticQueryService.getDescendants(code, term));
+          new ArrayList<Concept>(opensearchQueryService.getDescendants(code, term));
       final Predicate<Concept> byLevel = concept -> concept.getLevel() <= maxLevel.orElse(10000);
       final List<Concept> list = baseList.stream().filter(byLevel).collect(Collectors.toList());
 
@@ -1252,11 +1252,11 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
-          elasticQueryService.getConcept(code, term, new IncludeParam("maps"));
+          opensearchQueryService.getConcept(code, term, new IncludeParam("maps"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -1323,11 +1323,11 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
-          elasticQueryService.getConcept(code, term, new IncludeParam("history"));
+          opensearchQueryService.getConcept(code, term, new IncludeParam("history"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -1393,11 +1393,11 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
-          elasticQueryService.getConcept(code, term, new IncludeParam("disjointWith"));
+          opensearchQueryService.getConcept(code, term, new IncludeParam("disjointWith"));
 
       if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
@@ -1476,11 +1476,11 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-      final List<Concept> list = elasticQueryService.getRootNodes(term, ip);
+      final List<Concept> list = opensearchQueryService.getRootNodes(term, ip);
       if (list == null || list.isEmpty()) {
         return new ArrayList<>();
       }
@@ -1589,15 +1589,15 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-      if (!elasticQueryService.checkConceptExists(code, term)) {
+      if (!opensearchQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
 
-      final Paths paths = elasticQueryService.getPathsToRoot(code, term);
+      final Paths paths = opensearchQueryService.getPathsToRoot(code, term);
 
       if (fromRecord.orElse(0) >= paths.getPaths().size()) {
         return new ArrayList<>();
@@ -1609,7 +1609,7 @@ public class ConceptController extends BaseController {
                 .subList(fromRecord.orElse(0), Math.min(paths.getPaths().size(), toIndex)));
       }
 
-      return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, true);
+      return ConceptUtils.convertPathsWithInclude(opensearchQueryService, ip, term, paths, true);
     } catch (final Exception e) {
       handleException(e, terminology);
       return null;
@@ -1691,10 +1691,10 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
 
-      if (!elasticQueryService.checkConceptExists(code, term)) {
+      if (!opensearchQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
       if (limit.isPresent()) {
@@ -1704,11 +1704,11 @@ public class ConceptController extends BaseController {
         }
       }
       // final List<HierarchyNode> nodes =
-      // elasticQueryService.getPathInHierarchy(code, term);
+      // opensearchQueryService.getPathInHierarchy(code, term);
       // return nodes;
 
-      final List<HierarchyNode> rootNodes = elasticQueryService.getRootNodesHierarchy(term);
-      final Paths paths = elasticQueryService.getPathsToRoot(code, term);
+      final List<HierarchyNode> rootNodes = opensearchQueryService.getRootNodesHierarchy(term);
+      final Paths paths = opensearchQueryService.getPathsToRoot(code, term);
 
       // root hierarchy node map for quick look up
       final HashMap<String, HierarchyNode> rootNodeMap = new HashMap<>();
@@ -1739,7 +1739,7 @@ public class ConceptController extends BaseController {
           if (!previous.getChildren().stream()
               .anyMatch(n -> n.getCt() == null && n.getCode().equals(c.getCode()))) {
             List<HierarchyNode> children =
-                elasticQueryService.getChildNodes(previous.getCode(), 0, term);
+                opensearchQueryService.getChildNodes(previous.getCode(), 0, term);
 
             // Apply the limit
             if (limit.isPresent() && children.size() > limit.get().intValue()) {
@@ -1871,10 +1871,10 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
 
-      if (!elasticQueryService.checkConceptExists(code, term)) {
+      if (!opensearchQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
       if (limit.isPresent()) {
@@ -1887,7 +1887,7 @@ public class ConceptController extends BaseController {
       if ("ncim".equals(terminology)) {
         return new ArrayList<>();
       }
-      final List<HierarchyNode> nodes = elasticQueryService.getChildNodes(code, 0, term);
+      final List<HierarchyNode> nodes = opensearchQueryService.getChildNodes(code, 0, term);
       // "count" doesn't force it to use check the stream.
       nodes.stream().peek(n -> n.setLevel(null)).collect(Collectors.toList());
 
@@ -1994,14 +1994,14 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-      if (!elasticQueryService.checkConceptExists(code, term)) {
+      if (!opensearchQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final Paths paths = elasticQueryService.getPathsToRoot(code, term);
+      final Paths paths = opensearchQueryService.getPathsToRoot(code, term);
 
       if (fromRecord.orElse(0) >= paths.getPaths().size()) {
         return new ArrayList<>();
@@ -2013,7 +2013,7 @@ public class ConceptController extends BaseController {
                 .subList(fromRecord.orElse(0), Math.min(paths.getPaths().size(), toIndex)));
       }
 
-      return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
+      return ConceptUtils.convertPathsWithInclude(opensearchQueryService, ip, term, paths, false);
     } catch (final Exception e) {
       handleException(e, terminology);
       return null;
@@ -2123,14 +2123,14 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
-      if (!elasticQueryService.checkConceptExists(code, term)) {
+      if (!opensearchQueryService.checkConceptExists(code, term)) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Code not found = " + code);
       }
-      final Paths paths = elasticQueryService.getPathsToParent(code, ancestorCode, term);
+      final Paths paths = opensearchQueryService.getPathsToParent(code, ancestorCode, term);
 
       if (fromRecord.orElse(0) >= paths.getPaths().size()) {
         return new ArrayList<>();
@@ -2142,7 +2142,7 @@ public class ConceptController extends BaseController {
                 .subList(fromRecord.orElse(0), Math.min(paths.getPaths().size(), toIndex)));
       }
 
-      return ConceptUtils.convertPathsWithInclude(elasticQueryService, ip, term, paths, false);
+      return ConceptUtils.convertPathsWithInclude(opensearchQueryService, ip, term, paths, false);
 
     } catch (final Exception e) {
       handleException(e, terminology);
@@ -2202,10 +2202,10 @@ public class ConceptController extends BaseController {
       throws Exception {
     List<String> codes = new ArrayList<String>();
     final List<Terminology> terminologies = new ArrayList<Terminology>();
-    final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+    final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
     // First get root concepts
     final List<Concept> roots =
-        elasticQueryService.getRootNodes(term, new IncludeParam("children,descendants"));
+        opensearchQueryService.getRootNodes(term, new IncludeParam("children,descendants"));
     if (roots != null && !roots.isEmpty()) {
       codes.addAll(roots.stream().map(c -> c.getCode()).collect(Collectors.toList()));
       // Handle case where root has no descendants (children will)
@@ -2217,7 +2217,7 @@ public class ConceptController extends BaseController {
               .flatMap(
                   c -> {
                     try {
-                      return elasticQueryService
+                      return opensearchQueryService
                           .getConcept(c.getCode(), term, new IncludeParam("descendants"))
                           .stream();
                     } catch (Exception e) {
@@ -2252,7 +2252,7 @@ public class ConceptController extends BaseController {
           sc.setFromRecord(fromRecord);
           sc.setPageSize(pageSize);
           sc.setTerminology(Arrays.asList(terminology));
-          list = elasticSearchService.findConcepts(terminologies, sc);
+          list = openSearchService.findConcepts(terminologies, sc);
           if (list.getConcepts() == null || list.getConcepts().isEmpty()) {
             logger.info(
                 "  read {} total concepts for {}",

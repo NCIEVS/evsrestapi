@@ -7,7 +7,7 @@ import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.GraphProperties;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.MainTypeHierarchy;
 import java.io.File;
@@ -31,7 +31,7 @@ import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-/** The implementation for {@link ElasticLoadService} that just generates a report. */
+/** The implementation for {@link OpensearchLoadService} that just generates a report. */
 @Service
 public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
 
@@ -47,8 +47,8 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
   /** the environment *. */
   @Autowired Environment env;
 
-  /** The Elasticsearch operations service instance *. */
-  @Autowired ElasticOperationsService operationsService;
+  /** The Opensearch operations service instance *. */
+  @Autowired OpensearchOperationsService operationsService;
 
   /** The sparql query manager service. */
   @Autowired private SparqlQueryManagerService sparqlQueryManagerService;
@@ -62,7 +62,9 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
   /* see superclass */
   @Override
   public int loadConcepts(
-      final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
+      final OpensearchLoadConfig config,
+      final Terminology terminology,
+      final HierarchyUtils hierarchy)
       throws Exception {
 
     final String resource = "metadata/" + terminology.getTerminology() + ".txt";
@@ -117,7 +119,9 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
   /* see superclass */
   @Override
   public void loadObjects(
-      final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
+      final OpensearchLoadConfig config,
+      final Terminology terminology,
+      final HierarchyUtils hierarchy)
       throws Exception {
 
     // TODO: show hierarchy (passed in)
@@ -219,7 +223,7 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
     // LATER (ncit only): Show subsets
     // List<Concept> subsets =
     // sparqlQueryManagerServiceImpl.getAllSubsets(terminology);
-    // ElasticObject subsetsObject = new ElasticObject("subsets");
+    // OpensearchObject subsetsObject = new OpensearchObject("subsets");
     // for (Concept subset : subsets)
     // addSubsetLinks(subset, terminology.getMetadata().getSubsetLinks(),
     // terminology.getMetadata().getSubsetPrefix());
@@ -241,7 +245,7 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
   @Override
   public Terminology getTerminology(
       final ApplicationContext app,
-      final ElasticLoadConfig config,
+      final OpensearchLoadConfig config,
       final String filepath,
       final String terminology,
       final boolean forceDelete)

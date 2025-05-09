@@ -20,8 +20,8 @@ public class ConceptMappingTest {
   /** The logger. */
   private static final Logger logger = LoggerFactory.getLogger(ConceptMappingTest.class);
 
-  /** The Elasticsearch operations service instance *. */
-  @Autowired ElasticOperationsService operationsService;
+  /** The Opensearch operations service instance *. */
+  @Autowired OpensearchOperationsService operationsService;
 
   /**
    * Test concept mapping.
