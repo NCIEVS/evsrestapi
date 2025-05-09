@@ -4163,6 +4163,41 @@ public class SearchControllerTests {
     assertThat((long) fromRecord).isGreaterThan(total);
   }
 
+  /** Test childhood neoplasm subsets contain themselves */
+  @Test
+  public void testChildhoodNeoplasmSubsetsContainSelf() throws Exception {
+    MvcResult result = null;
+    String content = null;
+
+    String url = "/api/v1/concept/ncit/search?include=minimal&subset=C6283&pageSize=1000";
+    log.info("Testing url - " + url);
+    result = this.mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    assertThat(content).isNotNull();
+
+    ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // check that C6283 contains itself and child
+    assertThat(list.getConcepts().stream().anyMatch(concept -> concept.getCode().equals("C6283")))
+        .isTrue();
+    assertThat(list.getConcepts().stream().anyMatch(concept -> concept.getCode().equals("C4005")))
+        .isTrue();
+
+    url = "/api/v1/concept/ncit/search?include=minimal&subset=C4005&pageSize=1000";
+    log.info("Testing url - " + url);
+    result = this.mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    assertThat(content).isNotNull();
+
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // check that C4005 contains itself
+    assertThat(list.getConcepts().stream().anyMatch(concept -> concept.getCode().equals("C4005")))
+        .isTrue();
+  }
+
   /**
    * Test sparql prefixes.
    *
