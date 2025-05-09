@@ -629,14 +629,21 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         conceptComputed.setType("computed");
         conceptAssoc.getQualifiers().add(conceptComputed);
 
-        subsetMember.getAssociations().add(conceptAssoc);
+        // handle the case where the code is itself a member in its own subset
+        if (subsetMember.getCode().equals(subsetConcept.getCode())) {
+          subsetConcept.getAssociations().add(conceptAssoc);
+        } else {
+          subsetMember.getAssociations().add(conceptAssoc);
+        }
         // edit codes for inverseAssociation
         Association inverseAssoc = new Association(conceptAssoc);
         inverseAssoc.setRelatedCode(subsetMember.getCode());
         inverseAssoc.setRelatedName(subsetMember.getName());
         subsetConcept.getInverseAssociations().add(inverseAssoc);
-        // index subsetMember
-        operationsService.index(subsetMember, terminology.getIndexName(), Concept.class);
+        // index subsetMember (but only if the member is not also the subset concept itself)
+        if (!subsetMember.getCode().equals(subsetConcept.getCode())) {
+          operationsService.index(subsetMember, terminology.getIndexName(), Concept.class);
+        }
       }
       if (missingConcepts.size() > 0) {
         Audit.addAudit(
@@ -653,20 +660,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       subsetConcept.getProperties().add(new Property("Publish_Value_Set", "Yes"));
       subsetConcept.getProperties().add(new Property("EVSRESTAPI_Subset_Format", "NCI"));
       subsetConcept.setSubsetLink(url);
-
-      // add self as concept_in_subset association/inverseAssociation of subsetConcept
-      final Association selfConceptAssoc = new Association();
-      selfConceptAssoc.setType("Concept_In_Subset");
-      selfConceptAssoc.setRelatedCode(subsetConcept.getCode());
-      selfConceptAssoc.setRelatedName(subsetConcept.getName());
-
-      final Qualifier selfConceptComputed = new Qualifier();
-      selfConceptComputed.setValue("This is computed by the existing subset relationship");
-      selfConceptComputed.setType("computed");
-      selfConceptAssoc.getQualifiers().add(selfConceptComputed);
-
-      Association selfInverseAssoc = new Association(selfConceptAssoc);
-      subsetConcept.getInverseAssociations().add(selfInverseAssoc);
 
       // index subsetConcept
       operationsService.index(subsetConcept, terminology.getIndexName(), Concept.class);
