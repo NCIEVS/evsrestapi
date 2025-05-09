@@ -195,6 +195,25 @@ remove_elasticsearch_indexes(){
       check_http_status 200 "DELETE /$i expecting 200"
   done
 }
+
+# Load legacy  maps so we can simulate loading an old version and 
+# confirming that there are no duplicates
+load_old_maps(){
+  echo "  Load old maps"
+
+  jar="./build/libs/evsrestapi-2.2.0.RELEASE.jar"
+  oldConfigBaseUri=$CONFIG_BASE_URI
+  export CONFIG_BASE_URI=$(realpath $dir)/mappings/config/metadata
+  echo "using old files:  $CONFIG_BASE_URI"
+  java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
+  if [[ $? -ne 0 ]]; then
+    echo "ERROR: unexpected error building mapping indexes"
+    exit 1
+  fi
+  export CONFIG_BASE_URI=$oldConfigBaseUri
+}
+
+
 # Reindex ncim - individual terminologies
 reindex_ncim(){
   for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V3.0; do
@@ -291,9 +310,8 @@ reindex(){
 echo "  Reindex terminologies ...`/bin/date`"
 # After this point, the log is stored in the tmp folder unless an error is hit
 echo "    see /tmp/x.$$.txt"
-src/main/bin/reindex.sh --noconfig --history "$historyFile" > /tmp/x.$$.txt 2>&1
+src/main/bin/reindex.sh --noconfig --history "$historyFile"
 if [[ $? -ne 0 ]]; then
-    cat /tmp/x.$$.txt | sed 's/^/    /'
     echo "ERROR: problem running reindex.sh script"
     exit 1
 fi
@@ -307,6 +325,7 @@ remove_elasticsearch_indexes
 reindex_ncim
 load_data
 reindex
+load_old_maps
 
 # Cleanup
 /bin/rm -f /tmp/x.$$.txt $dir/x.{sh,txt}
