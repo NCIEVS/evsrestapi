@@ -200,8 +200,9 @@ remove_elasticsearch_indexes(){
 # confirming that there are no duplicates
 load_old_maps(){
   echo "  Load old maps"
+  local="-Dspring.profiles.active=local"
+  jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
 
-  jar="./build/libs/evsrestapi-2.2.0.RELEASE.jar"
   oldConfigBaseUri=$CONFIG_BASE_URI
   export CONFIG_BASE_URI=$(realpath $dir)/mappings/config/metadata
   echo "using old files:  $CONFIG_BASE_URI"
