@@ -217,6 +217,12 @@ public class LoaderServiceImpl {
       // only add new audit if something major has actually happened
       if (termAudit.getElapsedTime() > 10000) {
         addAudit(termAudit);
+        // update the metadata with the elapsed time
+        term.getMetadata().setIndexRuntime(termAudit.getElapsedTime());
+        logger.warn(
+            "index runtime of {} ms for terminology {}",
+            term.getMetadata().getIndexRuntime(),
+            term.getTerminology());
       }
 
     } catch (Exception e) {
