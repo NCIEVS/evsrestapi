@@ -394,19 +394,23 @@ for x in `cat /tmp/y.$$.txt`; do
 
         # try to get previous version of the history file
         if [[ $success -eq 0 ]]; then
-            echo "Initial version $version failed. Fetching latest version from API..."
-
+            echo "    Initial version $version failed. Fetching latest version from API..."
+			
+            # This script runs on the same server as the API
             response=$(curl -s -X 'GET' \
-              'https://api-evsrest.nci.nih.gov/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit' \
+              'http://localhost:8080/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit' \
               -H 'accept: application/json')
-
-            prev_version=$(echo "$response" | jq -r '.[0].version')
-
-            if [[ -z "$prev_version" || "$prev_version" == "null" ]]; then
-                echo "ERROR: Failed to extract prev_version from API"
+            if [[ $? -ne 0 ]]; then
+                echo "ERROR: Failed to get latest terminology from http://localhost:8080/api/v1/metadata/terminologies"
                 exit 1
+            fi
+                  
+            prev_version=$(echo "$response" | $jq | grep '"version"' | perl -pe 's/",$//; s/.*"//; ')
+            if [[ -z "$prev_version" ]]; then
+                echo "  Unable to find a previous monthly version of ncit"
+				# done looking
             else 
-                echo "Trying again with prev_version=$prev_version"
+                echo "  Trying again with prev_version = $prev_version"
                 download_and_unpack "$prev_version"
             fi
         fi
