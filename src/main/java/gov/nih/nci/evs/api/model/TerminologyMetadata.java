@@ -170,6 +170,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The fhir publisher. */
   private String fhirPublisher;
 
+  /** The index runtime. */
+  private Long indexRuntime;
+
   /** Instantiates an empty {@link TerminologyMetadata}. */
   public TerminologyMetadata() {
     // n/a
@@ -240,6 +243,7 @@ public class TerminologyMetadata extends BaseModel {
     welcomeText = other.getWelcomeText();
     fhirUri = other.getFhirUri();
     fhirPublisher = other.getFhirPublisher();
+    indexRuntime = other.getIndexRuntime();
     extraSubsets = new HashMap<>(other.getExtraSubsets());
   }
 
@@ -1311,6 +1315,24 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setFhirPublisher(String fhirPublisher) {
     this.fhirPublisher = fhirPublisher;
+  }
+
+  /**
+   * Gets the index runtime in milliseconds.
+   *
+   * @return the index runtime
+   */
+  public Long getIndexRuntime() {
+    return indexRuntime;
+  }
+
+  /**
+   * Sets the index runtime.
+   *
+   * @param indexRuntime the new index runtime
+   */
+  public void setIndexRuntime(Long indexRuntime) {
+    this.indexRuntime = indexRuntime;
   }
 
   /**
