@@ -17,8 +17,8 @@ import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.EVSPageable;
-import gov.nih.nci.evs.api.support.es.ElasticObject;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
+import gov.nih.nci.evs.api.support.es.OpensearchObject;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PathUtils;
@@ -55,17 +55,17 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 /**
- * The implementation for {@link ElasticQueryService}}.
+ * The implementation for {@link OpensearchQueryService}}.
  *
  * @author Arun
  */
 @Service
-public class ElasticQueryServiceImpl implements ElasticQueryService {
+public class OpensearchQueryServiceImpl implements OpensearchQueryService {
 
   /** the logger *. */
-  private static final Logger logger = LoggerFactory.getLogger(ElasticQueryServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(OpensearchQueryServiceImpl.class);
 
-  /** the elasticsearch operations *. */
+  /** the Opensearch operations *. */
   @Autowired OpenSearchOperations operations;
 
   /** the term utils. */
@@ -450,7 +450,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     }
 
     return getResults(
-        queryBuilder.build(), IndexMetadata.class, ElasticOperationsService.METADATA_INDEX);
+        queryBuilder.build(), IndexMetadata.class, OpensearchOperationsService.METADATA_INDEX);
   }
 
   /**
@@ -464,7 +464,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Override
   public Optional<HierarchyUtils> getHierarchyRoots(Terminology terminology)
       throws JsonMappingException, JsonProcessingException {
-    Optional<ElasticObject> esObject = getElasticObject("hierarchy", terminology);
+    Optional<OpensearchObject> esObject = getOpensearchObject("hierarchy", terminology);
     if (!esObject.isPresent()) return Optional.empty();
 
     return Optional.of(esObject.get().getHierarchy());
@@ -488,7 +488,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   /* see superclass */
   @Override
   public Map<String, Set<String>> getQualifierValues(Terminology terminology) throws Exception {
-    Optional<ElasticObject> esObject = getElasticObject("qualifiers", terminology);
+    Optional<OpensearchObject> esObject = getOpensearchObject("qualifiers", terminology);
     if (!esObject.isPresent()) {
       return new HashMap<>();
     }
@@ -541,8 +541,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   @Override
   public Map<String, List<StatisticsEntry>> getSourceStats(Terminology terminology, String source)
       throws JsonMappingException, JsonProcessingException {
-    Optional<ElasticObject> esObject =
-        getElasticObject(terminology.getTerminology() + "-stats-" + source, terminology);
+    Optional<OpensearchObject> esObject =
+        getOpensearchObject(terminology.getTerminology() + "-stats-" + source, terminology);
     if (!esObject.isPresent()) {
       return new HashMap<String, List<StatisticsEntry>>();
     }
@@ -614,8 +614,8 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   public AssociationEntryResultList getAssociationEntries(
       String terminology, String label, int fromRecord, int pageSize) throws Exception {
     AssociationEntryResultList al = new AssociationEntryResultList();
-    Optional<ElasticObject> esObject =
-        getElasticObject(
+    Optional<OpensearchObject> esObject =
+        getOpensearchObject(
             "associationEntries_" + label, termUtils.getIndexedTerminology(terminology, this));
     // set params in object
     List<String> params =
@@ -732,9 +732,9 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   }
 
   /**
-   * Returns concept list wrapped by elasticsearch object.
+   * Returns concept list wrapped by Opensearch object.
    *
-   * @param id the id of the elasticsearch object
+   * @param id the id of The Opensearch object
    * @param terminology the terminology
    * @param ip the ip
    * @return the concept list identified by the id
@@ -743,7 +743,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   private List<Concept> getConceptList(String id, Terminology terminology, IncludeParam ip)
       throws JsonMappingException, JsonProcessingException {
-    Optional<ElasticObject> esObject = getElasticObject(id, terminology);
+    Optional<OpensearchObject> esObject = getOpensearchObject(id, terminology);
     if (!esObject.isPresent()) {
       return Collections.<Concept>emptyList();
     }
@@ -753,9 +753,9 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   }
 
   /**
-   * Returns concept minimal list wrapped by elasticsearch object.
+   * Returns concept minimal list wrapped by Opensearch object.
    *
-   * @param id the id of the elasticsearch object
+   * @param id the id of The Opensearch object
    * @param terminology the terminology
    * @return the concept minimal list identified by the id
    * @throws JsonMappingException the json mapping exception
@@ -763,7 +763,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
    */
   private List<ConceptMinimal> getConceptMinimalList(String id, Terminology terminology)
       throws JsonMappingException, JsonProcessingException {
-    Optional<ElasticObject> esObject = getElasticObject(id, terminology);
+    Optional<OpensearchObject> esObject = getOpensearchObject(id, terminology);
     if (!esObject.isPresent()) {
       return Collections.<ConceptMinimal>emptyList();
     }
@@ -772,26 +772,26 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
   }
 
   /**
-   * Returns the elasticsearch object.
+   * Returns The Opensearch object.
    *
-   * @param id the id of the elasticsearch object
+   * @param id the id of The Opensearch object
    * @param terminology the terminology
-   * @return the optional of elasticsearch object
+   * @return the optional of Opensearch object
    */
-  private Optional<ElasticObject> getElasticObject(String id, Terminology terminology) {
+  private Optional<OpensearchObject> getOpensearchObject(String id, Terminology terminology) {
 
     // if (logger.isDebugEnabled()) {
-    // logger.debug("getElasticObject({}, {})", id, terminology.getTerminology());
+    // logger.debug("getOpensearchObject({}, {})", id, terminology.getTerminology());
     // }
 
     NativeSearchQuery query =
         new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("_id", id)).build();
 
-    List<ElasticObject> objects =
-        getResults(query, ElasticObject.class, terminology.getObjectIndexName());
+    List<OpensearchObject> objects =
+        getResults(query, OpensearchObject.class, terminology.getObjectIndexName());
 
     if (CollectionUtils.isEmpty(objects)) {
-      return Optional.<ElasticObject>empty();
+      return Optional.<OpensearchObject>empty();
     }
 
     return Optional.of(objects.get(0));
@@ -814,7 +814,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
             .withPageable(PageRequest.of(0, 10000))
             .build();
 
-    return getResults(query, Concept.class, ElasticOperationsService.MAPSET_INDEX);
+    return getResults(query, Concept.class, OpensearchOperationsService.MAPSET_INDEX);
   }
 
   @Override
@@ -826,7 +826,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
             .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), ip.getExcludedFields()))
             .build();
 
-    return getResults(query, Concept.class, ElasticOperationsService.MAPSET_INDEX);
+    return getResults(query, Concept.class, OpensearchOperationsService.MAPSET_INDEX);
   }
 
   @Override
@@ -837,7 +837,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
             .withFilter(QueryBuilders.termQuery("mapsetCode.keyword", code))
             .build();
 
-    return getResults(query, Mapping.class, ElasticOperationsService.MAPPINGS_INDEX);
+    return getResults(query, Mapping.class, OpensearchOperationsService.MAPPINGS_INDEX);
   }
 
   /**
@@ -861,7 +861,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
             .withFilter(QueryBuilders.termQuery("terminology", terminology))
             .build();
 
-    return getResults(query, Audit.class, ElasticOperationsService.AUDIT_INDEX);
+    return getResults(query, Audit.class, OpensearchOperationsService.AUDIT_INDEX);
   }
 
   @Override
@@ -869,7 +869,7 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
     NativeSearchQuery query =
         new NativeSearchQueryBuilder().withFilter(QueryBuilders.termQuery("type", type)).build();
 
-    return getResults(query, Audit.class, ElasticOperationsService.AUDIT_INDEX);
+    return getResults(query, Audit.class, OpensearchOperationsService.AUDIT_INDEX);
   }
 
   @Override
@@ -887,6 +887,6 @@ public class ElasticQueryServiceImpl implements ElasticQueryService {
       }
     }
 
-    return getResults(searchQuery.build(), Audit.class, ElasticOperationsService.AUDIT_INDEX);
+    return getResults(searchQuery.build(), Audit.class, OpensearchOperationsService.AUDIT_INDEX);
   }
 }

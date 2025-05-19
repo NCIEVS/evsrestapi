@@ -15,8 +15,8 @@ import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
-import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
+import gov.nih.nci.evs.api.support.es.OpensearchObject;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
@@ -51,12 +51,12 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.stereotype.Service;
 
-/** The implementation for {@link MetaElasticLoadServiceImpl}. */
+/** The implementation for {@link MetaOpensearchLoadServiceImpl}. */
 @Service
-public class MetaElasticLoadServiceImpl extends BaseLoaderService {
+public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
 
   /** the logger *. */
-  private static final Logger logger = LoggerFactory.getLogger(MetaElasticLoadServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(MetaOpensearchLoadServiceImpl.class);
 
   /** the concepts download location *. */
   @Value("${nci.evs.bulkload.conceptsDir}")
@@ -133,11 +133,11 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   /** the environment *. */
   @Autowired Environment env;
 
-  /** The Elasticsearch operations service instance *. */
-  @Autowired ElasticOperationsService operationsService;
+  /** The Opensearch operations service instance *. */
+  @Autowired OpensearchOperationsService operationsService;
 
-  /** The elastic query service. */
-  @Autowired ElasticQueryService elasticQueryService;
+  /** The opensearch query service. */
+  @Autowired OpensearchQueryService opensearchQueryService;
 
   /** The terminology utils */
   @Autowired TerminologyUtils termUtils;
@@ -341,7 +341,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         // Handle mapsets
         if (!mapsetMap.containsKey(fields[0])) {
           List<String> terms =
-              termUtils.getIndexedTerminologies(elasticQueryService).stream()
+              termUtils.getIndexedTerminologies(opensearchQueryService).stream()
                   .map(Terminology::getTerminology)
                   .collect(Collectors.toList());
           final Concept mapset = new Concept();
@@ -351,7 +351,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           mapset.setTerminology(info.getSourceTerminology().toLowerCase());
           mapset.setVersion(info.getSourceTerminologyVersion());
           // set other fields and properties as needed (to match other mapsets and needs of ui)
-          mapset.getProperties().add(new Property("loader", "MetaElasticLoadServiceImpl"));
+          mapset.getProperties().add(new Property("loader", "MetaOpensearchLoadServiceImpl"));
           final String mapsetUri =
               applicationProperties.getConfigBaseUri()
                   + "/mapping-"
@@ -413,7 +413,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
       // current snomed mapset codes
       List<String> currentMapsetCodes =
-          elasticQueryService.getMapsets(new IncludeParam("properties")).stream()
+          opensearchQueryService.getMapsets(new IncludeParam("properties")).stream()
               .filter(
                   concept ->
                       concept.getProperties().stream()
@@ -422,11 +422,11 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
                                   property.getType().equals("loader")
                                       && property
                                           .getValue()
-                                          .contains("MetaElasticLoadServiceImpl")))
+                                          .contains("MetaOpensearchLoadServiceImpl")))
               .map(Concept::getCode)
               .collect(Collectors.toList());
       List<String> currentMapsetVersions =
-          elasticQueryService.getMapsets(new IncludeParam("properties")).stream()
+          opensearchQueryService.getMapsets(new IncludeParam("properties")).stream()
               .filter(
                   concept ->
                       concept.getProperties().stream()
@@ -435,7 +435,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
                                   property.getType().equals("loader")
                                       && property
                                           .getValue()
-                                          .contains("MetaElasticLoadServiceImpl")))
+                                          .contains("MetaOpensearchLoadServiceImpl")))
               .map(Concept::getVersion)
               .collect(Collectors.toList());
       logger.info("currentMapsetCodes = " + currentMapsetCodes.toString());
@@ -461,9 +461,9 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
       // remove old mappings by code
       for (String mapsetCode : mapsetsToRemove) {
-        operationsService.delete(ElasticOperationsService.MAPSET_INDEX, mapsetCode);
+        operationsService.delete(OpensearchOperationsService.MAPSET_INDEX, mapsetCode);
         operationsService.deleteQuery(
-            "mapsetCode:" + mapsetCode, ElasticOperationsService.MAPPINGS_INDEX);
+            "mapsetCode:" + mapsetCode, OpensearchOperationsService.MAPPINGS_INDEX);
       }
       for (final Concept mapset : mapsetMap.values()) {
         Collections.sort(
@@ -493,10 +493,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
         // Send 10k at at tim
         for (final List<Mapping> batch : ListUtils.partition(mapset.getMaps(), 10000)) {
           operationsService.bulkIndex(
-              batch, ElasticOperationsService.MAPPINGS_INDEX, Mapping.class);
+              batch, OpensearchOperationsService.MAPPINGS_INDEX, Mapping.class);
         }
         mapset.setMaps(null);
-        operationsService.index(mapset, ElasticOperationsService.MAPSET_INDEX, Concept.class);
+        operationsService.index(mapset, OpensearchOperationsService.MAPSET_INDEX, Concept.class);
       }
       // free up memory
       mapsetMap.clear();
@@ -655,7 +655,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public int loadConcepts(
-      ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+      OpensearchLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
       throws Exception {
     logger.info("Loading Concepts (index batch size = " + INDEX_BATCH_SIZE + ")");
 
@@ -953,8 +953,8 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       throws Exception {
     if (terminology.getTerminology().equals("ncim")) {
       for (String source : sourceList) {
-        // create elastic object
-        ElasticObject newStatsEntry = new ElasticObject("ncim-stats-" + source);
+        // create opensearch object
+        OpensearchObject newStatsEntry = new OpensearchObject("ncim-stats-" + source);
 
         // get source overlap stats
         String filePath = this.getFilepath() + "/stats/" + source + "/" + source + ".txt";
@@ -973,7 +973,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
           sourceStatsEntry.put("Source Overlap", statsList);
           newStatsEntry.setStatisticsMap(sourceStatsEntry);
           operationsService.index(
-              newStatsEntry, terminology.getObjectIndexName(), ElasticObject.class);
+              newStatsEntry, terminology.getObjectIndexName(), OpensearchObject.class);
         } catch (Exception e) {
           // Handle the file not found exception and log a warning
           logger.warn(source + " source overlap stats file not found for ncim");
@@ -1345,12 +1345,12 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public void loadObjects(
-      ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+      OpensearchLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
       throws Exception {
 
     final String indexName = terminology.getObjectIndexName();
 
-    logger.info("Loading Elastic Objects");
+    logger.info("Loading Opensearch Objects");
     logger.debug("object index name: {}", indexName);
 
     // Create index
@@ -1360,12 +1360,12 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     //
     // Handle associations
     //
-    final ElasticObject associations = new ElasticObject("associations");
+    final OpensearchObject associations = new OpensearchObject("associations");
     // MRSAT: association metadata for MRREL
     for (final String rel : relSet) {
       associations.getConcepts().add(buildMetadata(terminology, rel, relMap.get(rel)));
     }
-    operationsService.index(associations, indexName, ElasticObject.class);
+    operationsService.index(associations, indexName, OpensearchObject.class);
 
     // Hanlde "concept statuses" - n/a
 
@@ -1376,26 +1376,26 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     //
     // Handle definitionTypes
     //
-    final ElasticObject defTypes = new ElasticObject("definitionTypes");
+    final OpensearchObject defTypes = new OpensearchObject("definitionTypes");
     defTypes.getConcepts().add(buildMetadata(terminology, "DEFINITION", "Definition"));
-    operationsService.index(defTypes, indexName, ElasticObject.class);
+    operationsService.index(defTypes, indexName, OpensearchObject.class);
 
     //
     // Handle properties
     //
-    final ElasticObject properties = new ElasticObject("properties");
+    final OpensearchObject properties = new OpensearchObject("properties");
 
     // MRSAT: property metadata for MRSAT
     for (final String atn : atnSet) {
       properties.getConcepts().add(buildMetadata(terminology, atn, atnMap.get(atn)));
     }
 
-    operationsService.index(properties, indexName, ElasticObject.class);
+    operationsService.index(properties, indexName, OpensearchObject.class);
 
     //
     // Handle qualifiers
     //
-    final ElasticObject qualifiers = new ElasticObject("qualifiers");
+    final OpensearchObject qualifiers = new OpensearchObject("qualifiers");
 
     // qualifiers to build - from relationships
     // removed for now: "AUI1", "STYPE1", "AUI2", "STYPE2", "SUPPRESS"
@@ -1413,19 +1413,19 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
 
     // Do this after truncating because it gets turned into a String
     qualifiers.setMap(qualMap);
-    operationsService.index(qualifiers, indexName, ElasticObject.class);
+    operationsService.index(qualifiers, indexName, OpensearchObject.class);
 
     //
     // Handle roles - n/a
     //
-    final ElasticObject roles = new ElasticObject("roles");
-    operationsService.index(roles, indexName, ElasticObject.class);
+    final OpensearchObject roles = new OpensearchObject("roles");
+    operationsService.index(roles, indexName, OpensearchObject.class);
 
     //
     // Handle subsets - n/a
     //
-    final ElasticObject subsets = new ElasticObject("subsets");
-    operationsService.index(subsets, indexName, ElasticObject.class);
+    final OpensearchObject subsets = new OpensearchObject("subsets");
+    operationsService.index(subsets, indexName, OpensearchObject.class);
 
     //
     // Handle synonymSources - n/a - handled inline
@@ -1434,10 +1434,10 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     //
     // Handle synonymTypes
     //
-    final ElasticObject syTypes = new ElasticObject("synonymTypes");
+    final OpensearchObject syTypes = new OpensearchObject("synonymTypes");
     syTypes.getConcepts().add(buildMetadata(terminology, "Preferred_Name", "Preferred name"));
     syTypes.getConcepts().add(buildMetadata(terminology, "Synonym", "Synonym"));
-    operationsService.index(syTypes, indexName, ElasticObject.class);
+    operationsService.index(syTypes, indexName, OpensearchObject.class);
 
     //
     // Handle termTypes - n/a - handled inline
@@ -1473,7 +1473,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
     }
     batchSize += conceptSize;
 
-    // Send to elasticsearch if the overall batch size > 9M
+    // Send to opensearch if the overall batch size > 9M
     if (flag || batchSize > 9000000) {
       // Log the bytes and number of concepts
       logger.info("    BATCH index = " + batchSize + ", " + batch.size());
@@ -1487,7 +1487,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
   @Override
   public Terminology getTerminology(
       ApplicationContext app,
-      ElasticLoadConfig config,
+      OpensearchLoadConfig config,
       String filepath,
       String terminology,
       boolean forceDelete)
@@ -1577,7 +1577,7 @@ public class MetaElasticLoadServiceImpl extends BaseLoaderService {
       return 0;
     }
 
-    logger.debug("  STARTING HISTORY PROCESSING (wait 5 sec for elasticsearch to finish)");
+    logger.debug("  STARTING HISTORY PROCESSING (wait 5 sec for opensearch to finish)");
     Thread.sleep(5000);
 
     final List<Concept> batch = new ArrayList<>();

@@ -42,23 +42,22 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
 /**
- * Reference implementation of {@link ElasticSearchService}. Includes hibernate tags for MEME
- * database.
+ * Reference implementation of {@link OpenSearchService}. Includes hibernate tags for MEME database.
  */
 @Service
-public class ElasticSearchServiceImpl implements ElasticSearchService {
+public class OpenSearchServiceImpl implements OpenSearchService {
 
   /** The Constant log. */
-  private static final Logger logger = LoggerFactory.getLogger(ElasticSearchServiceImpl.class);
+  private static final Logger logger = LoggerFactory.getLogger(OpenSearchServiceImpl.class);
 
-  /** The Elastic operations service *. */
-  @Autowired ElasticOperationsService esOperationsService;
+  /** The Opensearch operations service *. */
+  @Autowired OpensearchOperationsService esOperationsService;
 
-  /** The Elasticsearch operations *. */
+  /** The Opensearch operations *. */
   @Autowired OpenSearchOperations operations;
 
-  /** The Elastic query service *. */
-  @Autowired ElasticQueryService esQueryService;
+  /** The Opensearch query service *. */
+  @Autowired OpensearchQueryService osQueryService;
 
   /** The term utils. */
   /* The terminology utils */
@@ -284,7 +283,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         operations.search(
             searchQuery.build(),
             Mapping.class,
-            IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
+            IndexCoordinates.of(OpensearchOperationsService.MAPPINGS_INDEX));
 
     logger.debug("result count: {}", hits.getTotalHits());
 
@@ -295,7 +294,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
           operations.count(
               searchQuery.build(),
               Concept.class,
-              IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX)));
+              IndexCoordinates.of(OpensearchOperationsService.MAPPINGS_INDEX)));
     } else {
       result.setTotal(hits.getTotalHits());
     }
@@ -379,7 +378,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
         operations.search(
             searchQuery.build(),
             Mapping.class,
-            IndexCoordinates.of(ElasticOperationsService.MAPPINGS_INDEX));
+            IndexCoordinates.of(OpensearchOperationsService.MAPPINGS_INDEX));
 
     logger.debug("result count: {}", hits.getTotalHits());
 
@@ -870,7 +869,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
       // If there is one subset code and one terminology, do the CDISC grouper thing
       if (terminologies.size() == 1) {
         final Optional<Concept> concept =
-            esQueryService.getConcept(
+            osQueryService.getConcept(
                 subsets.get(0), terminologies.get(0), new IncludeParam("synonyms"));
         // For CDISC groupers, only keep members matching CDISC in name
         if (concept.isPresent() && ConceptUtils.isCdiscGrouper(concept.get())) {
@@ -1150,7 +1149,7 @@ public class ElasticSearchServiceImpl implements ElasticSearchService {
     // TODO: add getTerminologies call to avoid looping
     for (int i = 0; i < terminologies.size(); i++) {
       indices[i] =
-          termUtils.getIndexedTerminology(terminologies.get(i), esQueryService).getIndexName();
+          termUtils.getIndexedTerminology(terminologies.get(i), osQueryService).getIndexName();
     }
     // logger.info("indices array: " + Arrays.asList(indices));
     return indices;

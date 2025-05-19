@@ -13,9 +13,9 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.GraphProperties;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.service.OpenSearchService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.service.QueryBuilderService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
@@ -70,8 +70,8 @@ public class SearchController extends BaseController {
   /** The graph db properties. */
   @Autowired GraphProperties graphProperties;
 
-  /** The elastic search service. */
-  @Autowired ElasticSearchService elasticSearchService;
+  /** The opensearch search service. */
+  @Autowired OpenSearchService openSearchService;
 
   /** The sparql query manager service. */
   @Autowired SparqlQueryManagerService sparqlQueryManagerService;
@@ -83,7 +83,7 @@ public class SearchController extends BaseController {
   @Autowired MetadataService metadataService;
 
   /** The es query service. */
-  @Autowired ElasticQueryService esQueryService;
+  @Autowired OpensearchQueryService osQueryService;
 
   /** The term utils. */
   @Autowired TerminologyUtils termUtils;
@@ -331,7 +331,7 @@ public class SearchController extends BaseController {
       BindingResult bindingResult,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
-    final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
+    final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService);
     termUtils.checkLicense(term, license);
     return search(new SearchCriteria(searchCriteria, terminology), bindingResult, license);
   }
@@ -601,14 +601,14 @@ public class SearchController extends BaseController {
     try {
       final List<Terminology> terminologies = new ArrayList<>();
       for (String terminology : searchCriteria.getTerminology()) {
-        final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
+        final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService);
         termUtils.checkLicense(term, license);
         searchCriteria.validate(term, metadataService);
         terminologies.add(term);
       }
 
       final ConceptResultList results =
-          elasticSearchService.findConcepts(terminologies, searchCriteria);
+          openSearchService.findConcepts(terminologies, searchCriteria);
 
       // Look up info for all the concepts
       for (final Concept result : results.getConcepts()) {
@@ -872,7 +872,7 @@ public class SearchController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws ResponseStatusException, Exception {
 
-    final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
+    final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService);
     String res = null;
 
     if (query == null || query.isEmpty()) {
@@ -1060,7 +1060,7 @@ public class SearchController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService);
       if (term.getSource() == null) {
         throw new ResponseStatusException(
             HttpStatus.EXPECTATION_FAILED,
@@ -1164,7 +1164,7 @@ public class SearchController extends BaseController {
       @PathVariable(value = "terminology") final String terminology) throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService);
       if (term.getSource() == null) {
         throw new ResponseStatusException(
             HttpStatus.EXPECTATION_FAILED,

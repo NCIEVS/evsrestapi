@@ -11,7 +11,7 @@ import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import java.net.URLEncoder;
 import java.util.ArrayList;
@@ -472,7 +472,7 @@ public final class ConceptUtils {
    * @throws Exception the exception
    */
   public static List<List<Concept>> convertPathsWithInclude(
-      final ElasticQueryService service,
+      final OpensearchQueryService service,
       final IncludeParam ip,
       final Terminology terminology,
       final Paths paths,

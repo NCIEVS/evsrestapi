@@ -8,22 +8,22 @@ import java.util.Map;
 import org.opensearch.data.core.OpenSearchOperations;
 
 /**
- * The service for performing index related operations on Elasticsearch/OpenSearch.
+ * The service for performing index related operations on OpenSearch.
  *
  * @author Arun
  */
-public interface ElasticOperationsService {
+public interface OpensearchOperationsService {
 
-  /** The index in ES for audit events *. */
+  /** The index in Opensearch for audit events *. */
   public static final String AUDIT_INDEX = "evs_audit";
 
-  /** The index in ES for index metadata *. */
+  /** The index in Opensearch for index metadata *. */
   public static final String METADATA_INDEX = "evs_metadata";
 
-  /** The index in ES for index mappings *. */
+  /** The index in Opensearch for index mappings *. */
   public static final String MAPPINGS_INDEX = "evs_mappings";
 
-  /** The index in ES for index mapsets *. */
+  /** The index in Opensearch for index mapsets *. */
   public static final String MAPSET_INDEX = "evs_mapsets";
 
   /**

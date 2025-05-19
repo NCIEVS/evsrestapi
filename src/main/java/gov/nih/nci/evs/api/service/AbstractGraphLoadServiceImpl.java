@@ -15,8 +15,8 @@ import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.GraphProperties;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
-import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
+import gov.nih.nci.evs.api.support.es.OpensearchObject;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.MainTypeHierarchy;
@@ -58,7 +58,7 @@ import org.springframework.data.elasticsearch.NoSuchIndexException;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.util.CollectionUtils;
 
-/** The implementation for {@link ElasticLoadService}. */
+/** The implementation for {@link OpensearchLoadService}. */
 // @Service
 public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /** the logger *. */
@@ -86,11 +86,11 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /** the environment *. */
   @Autowired Environment env;
 
-  /** The Elasticsearch operations service instance *. */
-  @Autowired ElasticOperationsService operationsService;
+  /** The Opensearch operations service instance *. */
+  @Autowired OpensearchOperationsService operationsService;
 
-  /** The Elasticsearch query service instance *. */
-  @Autowired ElasticQueryService esQueryService;
+  /** The Opensearch query service instance *. */
+  @Autowired OpensearchQueryService opensearchQueryService;
 
   /** The sparql query manager service. */
   @Autowired private SparqlQueryManagerService sparqlQueryManagerService;
@@ -125,11 +125,11 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public int loadConcepts(
-      ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+      OpensearchLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
       throws Exception {
 
     logger.debug(
-        "ElasticLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName());
+        "OpensearchLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName());
 
     boolean result =
         operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
@@ -326,10 +326,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         // TEMP FIX FOR NOSUCHINDEXERROR THROWN BY DELETING A MAPPING INDEX
         try {
           operationsService.delete(
-              ElasticOperationsService.MAPSET_INDEX, NCIT_MAPS_TO + mapset.getKey());
+              OpensearchOperationsService.MAPSET_INDEX, NCIT_MAPS_TO + mapset.getKey());
           operationsService.deleteQuery(
               "mapsetCode:" + NCIT_MAPS_TO + mapset.getKey(),
-              ElasticOperationsService.MAPPINGS_INDEX);
+              OpensearchOperationsService.MAPPINGS_INDEX);
         } catch (NoSuchIndexException e) {
           logger.warn("UNABLE TO DELETE INDEX: " + NCIT_MAPS_TO + mapset.getKey() + " NOT FOUND!");
           Audit.addAudit(
@@ -365,10 +365,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
                 + ", "
                 + mapset.getValue().getMaps().size());
         operationsService.bulkIndex(
-            mapset.getValue().getMaps(), ElasticOperationsService.MAPPINGS_INDEX, Mapping.class);
+            mapset.getValue().getMaps(), OpensearchOperationsService.MAPPINGS_INDEX, Mapping.class);
         mapset.getValue().setMaps(null);
         operationsService.index(
-            mapset.getValue(), ElasticOperationsService.MAPSET_INDEX, Concept.class);
+            mapset.getValue(), OpensearchOperationsService.MAPSET_INDEX, Concept.class);
       }
 
     } catch (Exception e) {
@@ -384,10 +384,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public void loadObjects(
-      ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+      OpensearchLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
       throws Exception {
     String indexName = terminology.getObjectIndexName();
-    logger.info("Loading Elastic Objects");
+    logger.info("Loading Opensearch Objects");
     logger.debug("object index name: {}", indexName);
     boolean result = operationsService.createIndex(indexName, config.isForceDeleteIndex());
     logger.debug("index result: {}", result);
@@ -396,28 +396,28 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     // if (result) {
     // logger.debug("put mapping");
     // operationsService.getElasticsearchOperations().putMapping(terminology.getIndexName(),
-    // ElasticOperationsService.OBJECT_TYPE, ElasticObjectMapping.class);
+    // OpensearchOperationsService.OBJECT_TYPE, OpensearchObjectMapping.class);
     // }
 
     if (terminology.getMetadata().getHierarchy() != null
         && terminology.getMetadata().getHierarchy()) {
-      ElasticObject hierarchyObject = new ElasticObject("hierarchy");
+      OpensearchObject hierarchyObject = new OpensearchObject("hierarchy");
       hierarchyObject.setHierarchy(hierarchy);
-      operationsService.index(hierarchyObject, indexName, ElasticObject.class);
+      operationsService.index(hierarchyObject, indexName, OpensearchObject.class);
       logger.info("  Hierarchy loaded = " + hierarchy.getHierarchyRoots());
     } else {
       logger.info("  Hierarchy skipped");
     }
 
     List<ConceptMinimal> synonymSources = sparqlQueryManagerService.getSynonymSources(terminology);
-    ElasticObject ssObject = new ElasticObject("synonym_sources");
+    OpensearchObject ssObject = new OpensearchObject("synonym_sources");
     ssObject.setConceptMinimals(synonymSources);
-    operationsService.index(ssObject, indexName, ElasticObject.class);
+    operationsService.index(ssObject, indexName, OpensearchObject.class);
     logger.info("  Synonym Sources loaded");
 
     List<Concept> qualifiers =
         sparqlQueryManagerService.getAllQualifiersCache(terminology, new IncludeParam("full"));
-    ElasticObject conceptsObject = new ElasticObject("qualifiers");
+    OpensearchObject conceptsObject = new OpensearchObject("qualifiers");
     conceptsObject.setConcepts(qualifiers);
     // Get qualifier values by code and by qualifier name
     final Map<String, Set<String>> qualMap = new HashMap<>();
@@ -436,44 +436,44 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     }
     ConceptUtils.limitQualMap(qualMap, 1000);
     conceptsObject.setMap(qualMap);
-    operationsService.index(conceptsObject, indexName, ElasticObject.class);
+    operationsService.index(conceptsObject, indexName, OpensearchObject.class);
     logger.info("  Qualifiers loaded");
 
     List<Concept> properties =
         sparqlQueryManagerService.getAllProperties(terminology, new IncludeParam("full"));
-    ElasticObject propertiesObject = new ElasticObject("properties");
+    OpensearchObject propertiesObject = new OpensearchObject("properties");
     propertiesObject.setConcepts(properties);
-    operationsService.index(propertiesObject, indexName, ElasticObject.class);
+    operationsService.index(propertiesObject, indexName, OpensearchObject.class);
     logger.info("  Properties loaded");
 
     List<Concept> associations =
         sparqlQueryManagerService.getAllAssociations(terminology, new IncludeParam("full"));
-    ElasticObject associationsObject = new ElasticObject("associations");
+    OpensearchObject associationsObject = new OpensearchObject("associations");
     associationsObject.setConcepts(associations);
-    operationsService.index(associationsObject, indexName, ElasticObject.class);
+    operationsService.index(associationsObject, indexName, OpensearchObject.class);
     logger.info("  Associations loaded");
 
     List<Concept> roles =
         sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("full"));
-    ElasticObject rolesObject = new ElasticObject("roles");
+    OpensearchObject rolesObject = new OpensearchObject("roles");
     rolesObject.setConcepts(roles);
-    operationsService.index(rolesObject, indexName, ElasticObject.class);
+    operationsService.index(rolesObject, indexName, OpensearchObject.class);
     logger.info("  Roles loaded");
 
     // synonymTypes
     List<Concept> synonymTypes =
         sparqlQueryManagerService.getAllSynonymTypes(terminology, new IncludeParam("full"));
-    ElasticObject synonymTypesObject = new ElasticObject("synonymTypes");
+    OpensearchObject synonymTypesObject = new OpensearchObject("synonymTypes");
     synonymTypesObject.setConcepts(synonymTypes);
-    operationsService.index(synonymTypesObject, indexName, ElasticObject.class);
+    operationsService.index(synonymTypesObject, indexName, OpensearchObject.class);
     logger.info("  Synonym Types loaded");
 
     // definitionTypes
     List<Concept> definitionTypes =
         sparqlQueryManagerService.getAllDefinitionTypes(terminology, new IncludeParam("full"));
-    ElasticObject definitionTypesObject = new ElasticObject("definitionTypes");
+    OpensearchObject definitionTypesObject = new OpensearchObject("definitionTypes");
     definitionTypesObject.setConcepts(definitionTypes);
-    operationsService.index(definitionTypesObject, indexName, ElasticObject.class);
+    operationsService.index(definitionTypesObject, indexName, OpensearchObject.class);
     logger.info("  Definition Types loaded");
 
     // subsets
@@ -482,9 +482,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     if (terminology.getTerminology().equals("ncit")) {
       this.addExtraSubsets(subsets, terminology);
     }
-    ElasticObject subsetsObject = new ElasticObject("subsets");
+    OpensearchObject subsetsObject = new OpensearchObject("subsets");
     subsetsObject.setConcepts(subsets);
-    operationsService.index(subsetsObject, indexName, ElasticObject.class);
+    operationsService.index(subsetsObject, indexName, OpensearchObject.class);
     logger.info("  Subsets loaded");
     List<AssociationEntry> entries = new ArrayList<>();
     // associationEntries
@@ -505,15 +505,15 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
           }
         }
       }
-      ElasticObject associationEntriesObject =
-          new ElasticObject("associationEntries_" + association.getName());
+      OpensearchObject associationEntriesObject =
+          new OpensearchObject("associationEntries_" + association.getName());
       logger.info("    add associationEntries_" + association.getName() + " = " + entries.size());
       associationEntriesObject.setAssociationEntries(entries);
-      operationsService.index(associationEntriesObject, indexName, ElasticObject.class);
+      operationsService.index(associationEntriesObject, indexName, OpensearchObject.class);
     }
     logger.info("  Association Entries loaded");
 
-    logger.info("Done loading Elastic Objects!");
+    logger.info("Done loading Opensearch Objects!");
   }
 
   /**
@@ -544,7 +544,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         // We can't use "full" here or we wind up losing "extensions" and "paths"
         // So we use the "everything" mode
         subsetConcept =
-            esQueryService.getConcept(subsetCode, terminology, new IncludeParam("*")).orElseThrow();
+            opensearchQueryService
+                .getConcept(subsetCode, terminology, new IncludeParam("*"))
+                .orElseThrow();
       } catch (NoSuchElementException e) {
         logger.warn("Subset " + subsetCode + " not found as a concept, skipping.");
         Audit.addAudit(
@@ -602,8 +604,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         try {
           // We can't use "full" here or we wind up losing "extensions" and "paths"
           // So we use the "everything" mode
-          subsetMember =
-              esQueryService
+          subsetConcept =
+              opensearchQueryService
                   .getConcept(
                       row.getCell(2).getStringCellValue(), terminology, new IncludeParam("*"))
                   .get();
@@ -747,7 +749,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
-   * Task to load a batch of concepts to elasticsearch.
+   * Task to load a batch of concepts to Opensearch.
    *
    * @author Arun
    */
@@ -824,7 +826,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   @Override
   public Terminology getTerminology(
       ApplicationContext app,
-      ElasticLoadConfig config,
+      OpensearchLoadConfig config,
       String filepath,
       String terminology,
       boolean forceDelete)

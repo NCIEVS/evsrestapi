@@ -9,20 +9,20 @@ import org.springframework.data.elasticsearch.annotations.Document;
 /** Used just for putting a mapping for this object */
 @Document(indexName = "default_object")
 @JsonInclude(content = Include.NON_EMPTY)
-public class ElasticObjectMapping extends BaseModel {
+public class OpensearchObjectMapping extends BaseModel {
 
   /** The name. */
   @Id private String name;
 
-  /** Instantiates an empty {@link ElasticObjectMapping}. */
-  public ElasticObjectMapping() {}
+  /** Instantiates an empty {@link OpensearchObjectMapping}. */
+  public OpensearchObjectMapping() {}
 
   /**
-   * Instantiates a {@link ElasticObjectMapping} from the specified parameters.
+   * Instantiates a {@link OpensearchObjectMapping} from the specified parameters.
    *
    * @param name the name
    */
-  public ElasticObjectMapping(String name) {
+  public OpensearchObjectMapping(String name) {
     this.name = name;
   }
 

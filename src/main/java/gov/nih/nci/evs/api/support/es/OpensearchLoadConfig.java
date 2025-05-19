@@ -1,16 +1,16 @@
 package gov.nih.nci.evs.api.support.es;
 
 /**
- * Elasticsearch index load input configuration.
+ * Opensearch index load input configuration.
  *
  * @author Arun
  */
-public class ElasticLoadConfig {
+public class OpensearchLoadConfig {
 
   /** the terminology *. */
   private String terminology;
 
-  /** force index deletion from elasticsearch, if already exists *. */
+  /** force index deletion from opensearch, if already exists *. */
   private boolean forceDeleteIndex;
 
   /** folder location where concepts are to be download, if required *. */
@@ -22,8 +22,8 @@ public class ElasticLoadConfig {
   /** tells app where concepts are located *. */
   private String conceptDir;
 
-  /** Instantiates an empty {@link ElasticLoadConfig}. */
-  public ElasticLoadConfig() {
+  /** Instantiates an empty {@link OpensearchLoadConfig}. */
+  public OpensearchLoadConfig() {
     forceDeleteIndex = true;
   }
 
