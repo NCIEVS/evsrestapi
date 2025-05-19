@@ -197,9 +197,9 @@ public class LoaderServiceImpl {
       int totalConcepts = 0;
       if (!cmd.hasOption("xl")) {
         if (!cmd.hasOption("xc")) {
-          loadService.loadHistory(term, config.getLocation());
           totalConcepts = loadService.loadConcepts(config, term, hierarchy);
           loadService.checkLoadStatus(totalConcepts, term);
+          loadService.loadHistory(term, config.getLocation());
         }
         if (!cmd.hasOption("xm")) {
           // Give load objects a chance to update terminology metadata
