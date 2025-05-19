@@ -490,7 +490,7 @@ for x in `cat /tmp/y.$$.txt`; do
         # Set the history clause for "ncit"
         historyClause=""
         if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
-        	historyClause=" -d $historyFile"
+        	historyClause=" -history $historyFile"
         fi
 
         echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"

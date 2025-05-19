@@ -508,4 +508,8 @@ public abstract class BaseLoaderService implements ElasticLoadService {
     logger.info("  get welcome text for " + terminology + " = " + uri);
     return StringUtils.join(EVSUtils.getValueFromFile(uri, "welcome text"), '\n');
   }
+
+  public void loadHistory(final Terminology terminology, final String filepath) throws Exception {
+    logger.info("Loading history from " + filepath);
+  }
 }

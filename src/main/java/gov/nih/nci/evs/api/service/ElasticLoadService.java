@@ -111,4 +111,13 @@ public interface ElasticLoadService {
    * @throws Exception the exception
    */
   HierarchyUtils getHierarchyUtils(Terminology term) throws Exception;
+
+  /**
+   * Load history.
+   *
+   * @param terminology the terminology
+   * @param filepath the filepath
+   * @throws Exception the exception
+   */
+  void loadHistory(final Terminology terminology, final String filepath) throws Exception;
 }
