@@ -183,7 +183,7 @@ public class LoaderServiceImpl {
       termAudit.setProcess(loadService.getClass().getSimpleName());
 
       loadService.initialize();
-      final OpensearchLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
+      final OpensearchLoadConfig config = buildConfig(cmd, HISTORY_DIR);
       final Terminology term =
           loadService.getTerminology(
               app,
