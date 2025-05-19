@@ -176,6 +176,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The history loaded check. */
   private Boolean historyLoaded;
 
+  /** The history file. */
+  private String historyFile;
+
   /** Instantiates an empty {@link TerminologyMetadata}. */
   public TerminologyMetadata() {
     // n/a
@@ -248,6 +251,7 @@ public class TerminologyMetadata extends BaseModel {
     fhirPublisher = other.getFhirPublisher();
     indexRuntime = other.getIndexRuntime();
     historyLoaded = other.getHistoryLoaded();
+    historyFile = other.getHistoryFile();
     extraSubsets = new HashMap<>(other.getExtraSubsets());
   }
 
@@ -1355,6 +1359,24 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setHistoryLoaded(Boolean historyLoaded) {
     this.historyLoaded = historyLoaded;
+  }
+
+  /**
+   * Gets the history file.
+   *
+   * @return the history file
+   */
+  public String getHistoryFile() {
+    return historyFile;
+  }
+
+  /**
+   * Sets the history file.
+   *
+   * @param historyFilePath the new history file
+   */
+  public void setHistoryFile(String historyFile) {
+    this.historyFile = historyFile;
   }
 
   /**
