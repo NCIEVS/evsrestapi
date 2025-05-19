@@ -206,7 +206,10 @@ public class LoaderServiceImpl {
           loadService.loadObjects(config, term, hierarchy);
           loadService.loadIndexMetadata(totalConcepts, term);
         }
-        if (!cmd.hasOption("xc") && !cmd.hasOption("xm")) {
+        // reload history during stale index reconciliation if the new version if ready
+        if (!cmd.hasOption("xc")
+            && !cmd.hasOption("xm")
+            && config.getLocation().contains(term.getVersion())) {
           loadService.loadHistory(term, config.getLocation());
         }
       }

@@ -951,14 +951,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       return;
     }
 
-    // only load history if it hasn't been loaded already
-    // or if the new version if ready
-    if (terminology.getMetadata().getHistoryLoaded()
-        && !filepath.contains(terminology.getVersion())) {
-      logger.info("History already loaded for {}", terminology.getName());
-      return;
-    }
-
     try {
       terminology.getMetadata().setHistoryLoaded(false);
       // Load the history file
