@@ -951,8 +951,17 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       return;
     }
 
-    try {
+    // only load history if it hasn't been loaded already
+    // or if the new version if ready
+    if (terminology.getMetadata().getHistoryLoaded()
+        && !filepath.contains(terminology.getVersion())) {
+      logger.info("History already loaded for {}", terminology.getName());
+      return;
+    }
 
+    try {
+      terminology.getMetadata().setHistoryLoaded(false);
+      // Load the history file
       File file = new File(filepath);
       logger.info("Load ncit history");
 
@@ -1006,14 +1015,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         }
       }
       logger.info("    count = " + historyMap.size());
-      // Add history load audit
-      Audit.addAudit(
-          operationsService,
-          "History Load",
-          "loadHistory",
-          terminology.getTerminology(),
-          "History Loaded for " + terminology.getName(),
-          "INFO");
+      terminology.getMetadata().setHistoryLoaded(true);
       logger.info("Done loading history for {}", terminology.getName());
     } catch (Exception e) {
       throw new Exception(

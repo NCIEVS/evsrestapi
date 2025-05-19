@@ -206,6 +206,9 @@ public class LoaderServiceImpl {
           loadService.loadObjects(config, term, hierarchy);
           loadService.loadIndexMetadata(totalConcepts, term);
         }
+        if (!cmd.hasOption("xc") && !cmd.hasOption("xm")) {
+          loadService.loadHistory(term, config.getLocation());
+        }
       }
       final Set<String> removed = loadService.cleanStaleIndexes(term);
       loadService.updateLatestFlag(term, removed);
