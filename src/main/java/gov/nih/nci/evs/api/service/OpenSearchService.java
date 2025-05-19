@@ -8,8 +8,8 @@ import gov.nih.nci.evs.api.model.Terminology;
 import java.util.List;
 import org.springframework.web.client.HttpClientErrorException;
 
-/** The Interface ElasticSearchService. */
-public interface ElasticSearchService {
+/** The Interface OpenSearchService. */
+public interface OpenSearchService {
 
   /**
    * Search.

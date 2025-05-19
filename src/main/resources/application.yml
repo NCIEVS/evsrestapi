@@ -100,11 +100,11 @@ nci:
       password: ${GRAPH_DB_PASSWORD:REPLACE_WITH_PASSWORD}
       readTimeout: ${GRAPH_DB_READ_TIMEOUT:60}
       connectTimeout: ${GRAPH_DB_CONNECT_TIMEOUT:60}
-    elasticsearch:
+    opensearch:
       server:
-        host: ${ES_HOST:localhost}
-        port: ${ES_PORT:9201}
-        scheme: ${ES_SCHEME:http}
+        host: ${OS_HOST:localhost}
+        port: ${OS_PORT:9201}
+        scheme: ${OS_SCHEME:http}
       timeout: 240000
     sparql:
       timeoutSeconds: 60

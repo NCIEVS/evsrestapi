@@ -2,8 +2,8 @@ package gov.nih.nci.evs.api.properties;
 
 import java.util.HashMap;
 
-/** Elasticsearch query properties. */
-public class ElasticQueryProperties {
+/** Opensearch query properties. */
+public class OpensearchQueryProperties {
 
   /** The shortsourcefields. */
   // source fields
