@@ -952,7 +952,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     }
 
     try {
-      terminology.getMetadata().setHistoryLoaded(false);
       terminology.getMetadata().setHistoryFile(null);
       // Load the history file
       File file = new File(filepath);
@@ -1008,7 +1007,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         }
       }
       logger.info("    count = " + historyMap.size());
-      terminology.getMetadata().setHistoryLoaded(true);
       terminology.getMetadata().setHistoryFile(filepath.substring(filepath.lastIndexOf('/') + 1));
       logger.info("Done loading history for {}", terminology.getName());
     } catch (Exception e) {
