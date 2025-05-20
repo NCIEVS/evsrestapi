@@ -12,16 +12,24 @@ import jakarta.servlet.http.HttpServletRequest;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import org.hl7.fhir.r5.model.BooleanType;
 import org.hl7.fhir.r5.model.CanonicalType;
 import org.hl7.fhir.r5.model.CapabilityStatement;
 import org.hl7.fhir.r5.model.CodeableConcept;
 import org.hl7.fhir.r5.model.Coding;
+import org.hl7.fhir.r5.model.Enumerations;
+import org.hl7.fhir.r5.model.Extension;
+import org.hl7.fhir.r5.model.CapabilityStatement.CapabilityStatementDocumentComponent;
+import org.hl7.fhir.r5.model.CapabilityStatement.CapabilityStatementImplementationComponent;
 import org.hl7.fhir.r5.model.CapabilityStatement.CapabilityStatementRestComponent;
+import org.hl7.fhir.r5.model.CapabilityStatement.CapabilityStatementRestResourceOperationComponent;
 import org.hl7.fhir.r5.model.CapabilityStatement.CapabilityStatementRestSecurityComponent;
-
+import org.hl7.fhir.r5.model.CodeType;
+import org.hl7.fhir.r5.model.TerminologyCapabilities.TerminologyCapabilitiesSoftwareComponent;
 import org.hl7.fhir.instance.model.api.IBaseConformance;
 import org.hl7.fhir.r5.model.UriType;
 
@@ -74,7 +82,7 @@ public class FhirTerminologyCapabilitiesProviderR5 extends ServerCapabilityState
    * @param requestDetails the request details
    * @return the metadata resource
    */
-  @Metadata
+  @Metadata(cacheMillis = 0)
   public IBaseConformance getMetadataResource(
       final HttpServletRequest request, final RequestDetails requestDetails) {
     if (request.getParameter("mode") != null
@@ -86,6 +94,40 @@ public class FhirTerminologyCapabilitiesProviderR5 extends ServerCapabilityState
       CanonicalType instantiateUri = new CanonicalType("http://hl7.org/fhir/CapabilityStatement/terminology-server");
 
       capabilityStatement.setInstantiates(Collections.singletonList(instantiateUri));
+      
+	  capabilityStatement.setSoftware(new CapabilityStatement.CapabilityStatementSoftwareComponent()
+				.setName("EVSRESTAPI FHIR Terminology Server Software").setVersion("2.2.0.RELEASE").setReleaseDate(new Date()));
+      
+	// First Extension
+      Extension featureExtension1 = new Extension("http://hl7.org/fhir/uv/application-feature/StructureDefinition/feature");
+
+      Extension definition1 = new Extension("definition", new CanonicalType("http://hl7.org/fhir/uv/tx-tests/FeatureDefinition/test-version"));
+      Extension value1 = new Extension("value", new CodeType("1.7.5"));
+
+      featureExtension1.addExtension(definition1);
+      featureExtension1.addExtension(value1);
+
+      capabilityStatement.addExtension(featureExtension1);
+      
+      Extension featureExtension2 = new Extension("http://hl7.org/fhir/uv/application-feature/StructureDefinition/feature");
+
+      Extension definition2 = new Extension("definition", new CanonicalType("http://hl7.org/fhir/uv/tx-ecosystem/FeatureDefinition/CodeSystemAsParameter"));
+      Extension value2 = new Extension("value", new BooleanType("true"));
+
+      featureExtension2.addExtension(definition2);
+      featureExtension2.addExtension(value2);
+
+      capabilityStatement.addExtension(featureExtension2);
+      
+      capabilityStatement.setUrl("https://api-evsrest.nci.nih.gov/fhir/r5/metadata");
+      capabilityStatement.setVersion("2.2.0.RELEASE");
+      capabilityStatement.setName("EVSRESTAPIFHIRTerminologyServer");
+      capabilityStatement.setTitle("EVSRESTAPI FHIR Terminology Server");
+      capabilityStatement.setStatus(Enumerations.PublicationStatus.ACTIVE);
+      capabilityStatement.setExperimental(true);
+      capabilityStatement.setPublisher("NCI EVS");
+      capabilityStatement.setDate(new Date());
+      
       
       // Find the "rest" component with mode = "server"
       Optional<CapabilityStatementRestComponent> serverRestComponent =
@@ -109,6 +151,12 @@ public class FhirTerminologyCapabilitiesProviderR5 extends ServerCapabilityState
 
         // Set the "service" property
         security.setService(Collections.singletonList(serviceCodeableConcept));
+        
+        CapabilityStatementRestResourceOperationComponent versionsOperation =
+                new CapabilityStatementRestResourceOperationComponent()
+                    .setName("versions")
+                    .setDefinition("http://hl7.org/fhir/OperationDefinition/-versions"); 
+            rest.addOperation(versionsOperation);
       }
       return capabilityStatement;
     }

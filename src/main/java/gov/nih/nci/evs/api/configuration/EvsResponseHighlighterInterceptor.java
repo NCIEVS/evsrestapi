@@ -7,6 +7,7 @@ import ca.uhn.fhir.interceptor.api.Pointcut;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
 
+/** "HAPI-1700: Unknown child name 'format' in element" error */
 public class EvsResponseHighlighterInterceptor extends ResponseHighlighterInterceptor {
 
 	/**
@@ -14,23 +15,14 @@ public class EvsResponseHighlighterInterceptor extends ResponseHighlighterInterc
 	 */
 	public EvsResponseHighlighterInterceptor() {
 		super();
-		System.out.println("in EvsResponseHighlighterInterceptor");
 	}
 	
+	// override this method in ResponseHighlighterInterceptor in order to avoid the
+	// "HAPI-1700: Unknown child name 'format' in element" error
+	// avoid the FhirTerser format assignments
 	@Hook(Pointcut.SERVER_CAPABILITY_STATEMENT_GENERATED)
 	public void capabilityStatementGenerated(
 			RequestDetails theRequestDetails, IBaseConformance theCapabilityStatement) {
-		System.out.println("EvsResponseHighligherInterceptor.capabilityStatementGenerated");
-//		FhirTerser terser = theRequestDetails.getFhirContext().newTerser();
-//
-//		Set<String> formats = terser.getValues(theCapabilityStatement, "format", IPrimitiveType.class).stream()
-//				.map(t -> t.getValueAsString())
-//				.collect(Collectors.toSet());
-//		addFormatConditionally(
-//				theCapabilityStatement, terser, formats, Constants.CT_FHIR_JSON_NEW, Constants.FORMATS_HTML_JSON);
-//		addFormatConditionally(
-//				theCapabilityStatement, terser, formats, Constants.CT_FHIR_XML_NEW, Constants.FORMATS_HTML_XML);
-//		addFormatConditionally(
-//				theCapabilityStatement, terser, formats, Constants.CT_RDF_TURTLE, Constants.FORMATS_HTML_TTL);
+		System.out.println("test2");
 	}
 }

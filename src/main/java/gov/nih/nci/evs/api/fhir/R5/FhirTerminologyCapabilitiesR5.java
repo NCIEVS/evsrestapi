@@ -13,11 +13,13 @@ import java.util.List;
 
 import org.hl7.fhir.instance.model.api.IBaseConformance;
 import org.hl7.fhir.r5.model.Meta;
+import org.hl7.fhir.r5.model.BooleanType;
 import org.hl7.fhir.r5.model.CanonicalType;
 import org.hl7.fhir.r5.model.CodeSystem;
 import org.hl7.fhir.r5.model.ContactDetail;
 import org.hl7.fhir.r5.model.ContactPoint;
 import org.hl7.fhir.r5.model.Enumerations;
+import org.hl7.fhir.r5.model.Enumerations.CapabilityStatementKind;
 import org.hl7.fhir.r5.model.TerminologyCapabilities;
 import org.springframework.beans.factory.annotation.Autowired;
 
@@ -75,8 +77,14 @@ public class FhirTerminologyCapabilitiesR5 extends TerminologyCapabilities
     setName("EVSRESTAPITerminologyCapabilities");
     setStatus(Enumerations.PublicationStatus.DRAFT);
     setTitle("EVSRESTAPI Terminology Capability Statement");
-    setVersion(getClass().getPackage().getImplementationVersion());
-    this.setExperimental(true);
+    setVersion("2.2.0.RELEASE");
+    setDate(new java.util.Date());
+    //setVersion(getClass().getPackage().getImplementationVersion());
+	setPurpose(
+			"The EVS REST API Terminology Capability Statement provides a summary of the EVS REST API's capabilities.");
+    setKind(CapabilityStatementKind.CAPABILITY);
+    setSoftware(new TerminologyCapabilitiesSoftwareComponent().setName("EVSRESTAPI FHIR Terminology Server").setVersion("2.2.0.RELEASE"));
+	this.setExperimental(true);
     this.setPublisher("NCI EVS");
     Meta meta = new Meta();
     meta.addProfile("http://hl7.org/fhir/StructureDefinition/TerminologyCapabilities");
@@ -99,7 +107,6 @@ public class FhirTerminologyCapabilitiesR5 extends TerminologyCapabilities
     // Find the matching code systems in the list of terms
     for (final Terminology terminology : terms) {
       final CodeSystem cs = FhirUtilityR5.toR5(terminology);
-      System.out.println("CodeSystem: " + cs.getName());
       TerminologyCapabilities.TerminologyCapabilitiesCodeSystemComponent tccsc =
     	        new TerminologyCapabilities.TerminologyCapabilitiesCodeSystemComponent();
       tccsc.setUri(cs.getUrl());
@@ -111,6 +118,44 @@ public class FhirTerminologyCapabilitiesR5 extends TerminologyCapabilities
       tccsc.setVersion(Collections.singletonList(vc));
       this.addCodeSystem(tccsc);
     }  
+    
+    
+    TerminologyCapabilitiesExpansionComponent expansion = new TerminologyCapabilitiesExpansionComponent();
+    expansion.setHierarchical(false);
+    expansion.setPaging(true);
+    expansion.setTextFilter("Matching is word-prefix, any-order across all designations and the code itself.\nCodes are returned in best-match-first order.");
+
+    // Add parameters
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent().setName("url"));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent().setName("valueSet"));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent().setName("valueSetVersion"));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent()
+        .setName("filter")
+        .setDocumentation("Matching is word-prefix, any-order across all designations and the code itself."));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent().setName("profile"));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent().setName("date"));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent().setName("context"));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent().setName("offset"));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent().setName("count"));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent().setName("activeOnly"));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent().setName("includeDesignations"));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent().setName("includeDefinition"));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent().setName("system-version"));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent().setName("force-system-version"));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent()
+        .setName("property")
+        .setDocumentation("Pre-adopted from R5."));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent()
+        .setName("useSupplement")
+        .setDocumentation("Pre-adopted from R5."));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent().setName("displayLanguage"));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent()
+        .setName("excludeNested")
+        .setDocumentation("Soft-defaults to true. Only returns nested results when a stored expansion is being use and there is no `filter` parameter."));
+    expansion.addParameter(new TerminologyCapabilitiesExpansionParameterComponent().setName("tx-resource"));
+
+    this.setExpansion(expansion);
+    
     return this;
   }
 
