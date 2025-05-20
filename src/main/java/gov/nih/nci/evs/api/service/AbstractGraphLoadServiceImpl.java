@@ -1079,9 +1079,13 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       Map<String, List<Map<String, String>>> historyMap,
       String newHistoryVersion)
       throws Exception {
+
+    // Update history for "ncit" monthly when it gets revisitied to double check latest versions
+    // Skip this for other terminologies, for cases where an updated cumulative history file has already been processed
+    // or in cases where the cumulative history for this version is unable to be found 
     if (!terminology.getTerminology().equals("ncit")
         || historyMap.size() == 0
-        || !newHistoryVersion.equals(terminology.getVersion())
+        || newHistoryVersion.equals(terminology.getVersion())
         || terminology.getMetadata().getHistoryVersion().equals(terminology.getVersion())) {
       return;
     }
