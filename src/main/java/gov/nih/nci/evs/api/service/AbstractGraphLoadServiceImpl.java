@@ -22,8 +22,12 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.MainTypeHierarchy;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -952,7 +956,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     }
 
     try {
-      terminology.getMetadata().setHistoryFile(null);
       // Load the history file
       File file = new File(filepath);
       logger.info("Load ncit history");
@@ -1007,7 +1010,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         }
       }
       logger.info("    count = " + historyMap.size());
-      terminology.getMetadata().setHistoryFile(filepath.substring(filepath.lastIndexOf('/') + 1));
+      terminology.getMetadata().setHistoryFile(filepath);
       logger.info("Done loading history for {}", terminology.getName());
     } catch (Exception e) {
       throw new Exception(
@@ -1057,6 +1060,126 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
 
       concept.getHistory().add(history);
     }
+  }
+
+  /**
+   * Update historyMap.
+   *
+   * @param terminology the terminology
+   * @param oldFilepath the old file path
+   * @param newFilepath the new file path
+   * @throws Exception the exception
+   */
+  public void updateHistoryMap(
+      final Terminology terminology, final String oldFilepath, final String newFilepath)
+      throws Exception {
+
+    try (BufferedReader reader =
+        new BufferedReader(
+            new InputStreamReader(
+                new FileInputStream(newHistory(oldFilepath, newFilepath)), "UTF-8")); ) {
+
+      String line = null;
+      historyMap.clear();
+
+      // CODE, NA, ACTION, DATE, REPLACEMENT CODE
+      // Loop through lines until we reach "the end"
+      while ((line = reader.readLine()) != null) {
+
+        final String[] fields = line.split("\\|", -1);
+        final String code = fields[0];
+        final String action = fields[2];
+        final String date = fields[3];
+        final String replacementCode = fields[4];
+        List<Map<String, String>> conceptHistory = new ArrayList<>();
+        final Map<String, String> historyItem = new HashMap<>();
+
+        if (historyMap.containsKey(code)) {
+          conceptHistory = historyMap.get(code);
+        }
+
+        historyItem.put("action", action);
+        historyItem.put("date", date);
+
+        if (replacementCode != null && !replacementCode.equals("null")) {
+
+          historyItem.put("replacementCode", replacementCode);
+
+          // create history entry for the replacement concept if it isn't merging with itself
+          if (!replacementCode.equals(code)) {
+
+            List<Map<String, String>> replacementConceptHistory = new ArrayList<>();
+            final Map<String, String> replacementHistoryItem = new HashMap<>(historyItem);
+
+            if (historyMap.containsKey(replacementCode)) {
+              replacementConceptHistory = historyMap.get(replacementCode);
+            }
+
+            replacementHistoryItem.put("code", code);
+            replacementConceptHistory.add(replacementHistoryItem);
+            historyMap.put(replacementCode, replacementConceptHistory);
+          }
+        }
+
+        conceptHistory.add(historyItem);
+        historyMap.put(code, conceptHistory);
+      }
+      terminology.getMetadata().setHistoryFile(newFilepath);
+    }
+  }
+
+  /**
+   * update history
+   *
+   * @param terminology the terminology
+   * @param file the file path
+   * @throws Exception the exception
+   */
+  public void updateHistory(final Terminology terminology, final String file) throws Exception {
+    historyMap.clear();
+    IncludeParam ip = new IncludeParam("history");
+    for (Map.Entry<String, List<Map<String, String>>> entry : historyMap.entrySet()) {
+      Concept concept = opensearchQueryService.getConcept(entry.getKey(), terminology, ip).get();
+      handleHistory(terminology, concept);
+      // index the concept with the history
+      operationsService.index(concept, terminology.getIndexName(), Concept.class);
+    }
+  }
+
+  /**
+   * Creates a new history file based on the original and updated files.
+   *
+   * @param originalFile the original file path
+   * @param updatedFile the updated file path
+   * @return the new history file
+   * @throws IOException if an I/O error occurs
+   */
+  public static File newHistory(String originalFile, String updatedFile) throws IOException {
+    File output = new File("historyUpdate.txt");
+
+    try (BufferedReader reader1 = new BufferedReader(new FileReader(originalFile));
+        BufferedReader reader2 = new BufferedReader(new FileReader(updatedFile));
+        BufferedWriter writer = new BufferedWriter(new FileWriter(output))) {
+      String line1, line2;
+      while (true) {
+        line1 = reader1.readLine();
+        line2 = reader2.readLine();
+
+        if (line1 == null) {
+          break;
+        }
+        if (line2 == null || !line1.equals(line2)) {
+          throw new IllegalArgumentException("Old history is not subset of new history");
+        }
+      }
+
+      while ((line2 = reader2.readLine()) != null) {
+        writer.write(line2);
+        writer.newLine();
+      }
+    }
+
+    return output;
   }
 
   /* see superclass */

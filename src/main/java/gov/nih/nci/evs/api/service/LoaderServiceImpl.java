@@ -207,12 +207,12 @@ public class LoaderServiceImpl {
           loadService.loadIndexMetadata(totalConcepts, term);
         }
         // reload history during stale index reconciliation if the new version if ready
-        String newHistoryFile =
-            config.getLocation().substring(config.getLocation().lastIndexOf("/"));
         if (!cmd.hasOption("xc")
             && !cmd.hasOption("xm")
-            && !term.getMetadata().getHistoryFile().equals(newHistoryFile)) {
-          loadService.loadHistory(term, config.getLocation());
+            && !term.getMetadata().getHistoryFile().equals(config.getLocation())) {
+          loadService.updateHistoryMap(
+              term, term.getMetadata().getHistoryFile(), config.getLocation());
+          loadService.updateHistory(term, config.getLocation());
         }
       }
       final Set<String> removed = loadService.cleanStaleIndexes(term);

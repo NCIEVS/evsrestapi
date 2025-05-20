@@ -512,4 +512,14 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
   public void loadHistory(final Terminology terminology, final String filepath) throws Exception {
     logger.info("History loading not implemented for " + terminology.getTerminology());
   }
+
+  public void updateHistoryMap(
+      final Terminology terminology, final String oldFilepath, final String newFilepath)
+      throws Exception {
+    logger.info("History map updating not implemented for " + terminology.getTerminology());
+  }
+
+  public void updateHistory(final Terminology terminology, final String filepath) throws Exception {
+    logger.info("History updating not implemented for " + terminology.getTerminology());
+  }
 }

@@ -120,4 +120,25 @@ public interface OpensearchLoadService {
    * @throws Exception the exception
    */
   void loadHistory(final Terminology terminology, final String filepath) throws Exception;
+
+  /**
+   * Update history.
+   *
+   * @param terminology the terminology
+   * @param filepath the filepath
+   * @throws Exception the exception
+   */
+  void updateHistory(final Terminology terminology, final String filepath) throws Exception;
+
+  /**
+   * Update history map.
+   *
+   * @param terminology the terminology
+   * @param oldFilepath the old history filepath
+   * @param newFilepath the new history filepath
+   * @throws Exception the exception
+   */
+  void updateHistoryMap(
+      final Terminology terminology, final String oldFilepath, final String newFilepath)
+      throws Exception;
 }
