@@ -124,10 +124,13 @@ public interface OpensearchLoadService {
    *
    * @param terminology the terminology
    * @param historyMap the history map
+   * @param newHistoryVersion the new history version
    * @throws Exception the exception
    */
   void updateHistory(
-      final Terminology terminology, Map<String, List<Map<String, String>>> historyMap)
+      final Terminology terminology,
+      Map<String, List<Map<String, String>>> historyMap,
+      String newHistoryVersion)
       throws Exception;
 
   /**

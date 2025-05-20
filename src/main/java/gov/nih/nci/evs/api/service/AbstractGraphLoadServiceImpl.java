@@ -1011,10 +1011,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       String line = null;
 
       historyMap = processHistoryMap(line, reader);
-      String historyVersion = filepath.split("cumulative_history_")[1].split("\\.txt")[0];
-      terminology.getMetadata().setHistoryVersion(historyVersion);
     }
-
+    String historyVersion = filepath.split("cumulative_history_")[1].split("\\.txt")[0];
+    terminology.getMetadata().setHistoryVersion(historyVersion);
     return historyMap;
   }
 
@@ -1076,10 +1075,13 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
    * @throws Exception the exception
    */
   public void updateHistory(
-      final Terminology terminology, Map<String, List<Map<String, String>>> historyMap)
+      final Terminology terminology,
+      Map<String, List<Map<String, String>>> historyMap,
+      String newHistoryVersion)
       throws Exception {
     if (!terminology.getTerminology().equals("ncit")
         || historyMap.size() == 0
+        || !newHistoryVersion.equals(terminology.getVersion())
         || terminology.getMetadata().getHistoryVersion().equals(terminology.getVersion())) {
       return;
     }
@@ -1106,6 +1108,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       // index the concept with the history
       operationsService.index(concept, terminology.getIndexName(), Concept.class);
     }
+    terminology.getMetadata().setHistoryVersion(newHistoryVersion);
   }
 
   public Date parseVersion(String version) {
