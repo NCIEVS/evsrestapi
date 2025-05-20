@@ -966,48 +966,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
 
         String line = null;
 
-        // CODE, NA, ACTION, DATE, REPLACEMENT CODE
-        // Loop through lines until we reach "the end"
-        while ((line = reader.readLine()) != null) {
-
-          final String[] fields = line.split("\\|", -1);
-          final String code = fields[0];
-          final String action = fields[2];
-          final String date = fields[3];
-          final String replacementCode = fields[4];
-          List<Map<String, String>> conceptHistory = new ArrayList<>();
-          final Map<String, String> historyItem = new HashMap<>();
-
-          if (historyMap.containsKey(code)) {
-            conceptHistory = historyMap.get(code);
-          }
-
-          historyItem.put("action", action);
-          historyItem.put("date", date);
-
-          if (replacementCode != null && !replacementCode.equals("null")) {
-
-            historyItem.put("replacementCode", replacementCode);
-
-            // create history entry for the replacement concept if it isn't merging with itself
-            if (!replacementCode.equals(code)) {
-
-              List<Map<String, String>> replacementConceptHistory = new ArrayList<>();
-              final Map<String, String> replacementHistoryItem = new HashMap<>(historyItem);
-
-              if (historyMap.containsKey(replacementCode)) {
-                replacementConceptHistory = historyMap.get(replacementCode);
-              }
-
-              replacementHistoryItem.put("code", code);
-              replacementConceptHistory.add(replacementHistoryItem);
-              historyMap.put(replacementCode, replacementConceptHistory);
-            }
-          }
-
-          conceptHistory.add(historyItem);
-          historyMap.put(code, conceptHistory);
-        }
+        processHistoryMap(line, reader);
       }
       logger.info("    count = " + historyMap.size());
       terminology.getMetadata().setHistoryFile(filepath);
@@ -1082,49 +1041,54 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       String line = null;
       historyMap.clear();
 
-      // CODE, NA, ACTION, DATE, REPLACEMENT CODE
-      // Loop through lines until we reach "the end"
-      while ((line = reader.readLine()) != null) {
-
-        final String[] fields = line.split("\\|", -1);
-        final String code = fields[0];
-        final String action = fields[2];
-        final String date = fields[3];
-        final String replacementCode = fields[4];
-        List<Map<String, String>> conceptHistory = new ArrayList<>();
-        final Map<String, String> historyItem = new HashMap<>();
-
-        if (historyMap.containsKey(code)) {
-          conceptHistory = historyMap.get(code);
-        }
-
-        historyItem.put("action", action);
-        historyItem.put("date", date);
-
-        if (replacementCode != null && !replacementCode.equals("null")) {
-
-          historyItem.put("replacementCode", replacementCode);
-
-          // create history entry for the replacement concept if it isn't merging with itself
-          if (!replacementCode.equals(code)) {
-
-            List<Map<String, String>> replacementConceptHistory = new ArrayList<>();
-            final Map<String, String> replacementHistoryItem = new HashMap<>(historyItem);
-
-            if (historyMap.containsKey(replacementCode)) {
-              replacementConceptHistory = historyMap.get(replacementCode);
-            }
-
-            replacementHistoryItem.put("code", code);
-            replacementConceptHistory.add(replacementHistoryItem);
-            historyMap.put(replacementCode, replacementConceptHistory);
-          }
-        }
-
-        conceptHistory.add(historyItem);
-        historyMap.put(code, conceptHistory);
-      }
+      processHistoryMap(line, reader);
       terminology.getMetadata().setHistoryFile(newFilepath);
+    }
+  }
+
+  /** process history map. */
+  public void processHistoryMap(String line, BufferedReader reader) throws Exception {
+    // CODE, NA, ACTION, DATE, REPLACEMENT CODE
+    // Loop through lines until we reach "the end"
+    while ((line = reader.readLine()) != null) {
+
+      final String[] fields = line.split("\\|", -1);
+      final String code = fields[0];
+      final String action = fields[2];
+      final String date = fields[3];
+      final String replacementCode = fields[4];
+      List<Map<String, String>> conceptHistory = new ArrayList<>();
+      final Map<String, String> historyItem = new HashMap<>();
+
+      if (historyMap.containsKey(code)) {
+        conceptHistory = historyMap.get(code);
+      }
+
+      historyItem.put("action", action);
+      historyItem.put("date", date);
+
+      if (replacementCode != null && !replacementCode.equals("null")) {
+
+        historyItem.put("replacementCode", replacementCode);
+
+        // create history entry for the replacement concept if it isn't merging with itself
+        if (!replacementCode.equals(code)) {
+
+          List<Map<String, String>> replacementConceptHistory = new ArrayList<>();
+          final Map<String, String> replacementHistoryItem = new HashMap<>(historyItem);
+
+          if (historyMap.containsKey(replacementCode)) {
+            replacementConceptHistory = historyMap.get(replacementCode);
+          }
+
+          replacementHistoryItem.put("code", code);
+          replacementConceptHistory.add(replacementHistoryItem);
+          historyMap.put(replacementCode, replacementConceptHistory);
+        }
+      }
+
+      conceptHistory.add(historyItem);
+      historyMap.put(code, conceptHistory);
     }
   }
 
