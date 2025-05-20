@@ -510,6 +510,6 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
   }
 
   public void loadHistory(final Terminology terminology, final String filepath) throws Exception {
-    logger.info("Loading history from " + filepath);
+    logger.info("History loading not implemented for " + terminology.getTerminology());
   }
 }
