@@ -608,7 +608,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         try {
           // We can't use "full" here or we wind up losing "extensions" and "paths"
           // So we use the "everything" mode
-          subsetConcept =
+          subsetMember =
               opensearchQueryService
                   .getConcept(
                       row.getCell(2).getStringCellValue(), terminology, new IncludeParam("*"))
