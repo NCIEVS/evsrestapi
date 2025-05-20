@@ -4,6 +4,8 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.springframework.context.ApplicationContext;
 
@@ -41,11 +43,16 @@ public interface OpensearchLoadService {
    * @param config the load config from command line input
    * @param terminology the terminology
    * @param hierarchy the hierarchy object
+   * @param historyMap the history map
    * @return number of concepts loaded
    * @throws IOException the io exception
    * @throws Exception
    */
-  int loadConcepts(OpensearchLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+  int loadConcepts(
+      OpensearchLoadConfig config,
+      Terminology terminology,
+      HierarchyUtils hierarchy,
+      Map<String, List<Map<String, String>>> historyMap)
       throws IOException, Exception;
 
   /**
@@ -113,32 +120,23 @@ public interface OpensearchLoadService {
   HierarchyUtils getHierarchyUtils(Terminology term) throws Exception;
 
   /**
-   * Load history.
-   *
-   * @param terminology the terminology
-   * @param filepath the filepath
-   * @throws Exception the exception
-   */
-  void loadHistory(final Terminology terminology, final String filepath) throws Exception;
-
-  /**
    * Update history.
    *
    * @param terminology the terminology
-   * @param filepath the filepath
+   * @param historyMap the history map
    * @throws Exception the exception
    */
-  void updateHistory(final Terminology terminology, final String filepath) throws Exception;
+  void updateHistory(
+      final Terminology terminology, Map<String, List<Map<String, String>>> historyMap)
+      throws Exception;
 
   /**
    * Update history map.
    *
    * @param terminology the terminology
-   * @param oldFilepath the old history filepath
-   * @param newFilepath the new history filepath
+   * @param filepath the new history filepath
    * @throws Exception the exception
    */
-  void updateHistoryMap(
-      final Terminology terminology, final String oldFilepath, final String newFilepath)
-      throws Exception;
+  public Map<String, List<Map<String, String>>> updateHistoryMap(
+      final Terminology terminology, final String filepath) throws Exception;
 }

@@ -655,7 +655,10 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public int loadConcepts(
-      OpensearchLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+      OpensearchLoadConfig config,
+      Terminology terminology,
+      HierarchyUtils hierarchy,
+      Map<String, List<Map<String, String>>> historyMap)
       throws Exception {
     logger.info("Loading Concepts (index batch size = " + INDEX_BATCH_SIZE + ")");
 

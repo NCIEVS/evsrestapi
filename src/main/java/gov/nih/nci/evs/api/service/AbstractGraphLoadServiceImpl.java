@@ -22,19 +22,16 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.MainTypeHierarchy;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -114,9 +111,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /** The name map. */
   private Map<String, String> nameMap = new HashMap<>();
 
-  /** The history map. */
-  private Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
-
   /** The simple date format. */
   private SimpleDateFormat inputDateFormat = new SimpleDateFormat("dd-MMM-yy");
 
@@ -129,7 +123,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public int loadConcepts(
-      OpensearchLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+      OpensearchLoadConfig config,
+      Terminology terminology,
+      HierarchyUtils hierarchy,
+      Map<String, List<Map<String, String>>> historyMap)
       throws Exception {
 
     logger.debug(
@@ -162,14 +159,14 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     int ct = concepts.size();
 
     logger.info("Loading concepts without codes");
-    loadConceptsRealTime(concepts, terminology, hierarchy);
+    loadConceptsRealTime(concepts, terminology, hierarchy, historyMap);
 
     concepts = sparqlQueryManagerService.getAllConceptsWithCode(terminology);
     ct += concepts.size();
 
     // download concepts and upload to es in real time
     logger.info("Loading concepts with codes");
-    loadConceptsRealTime(concepts, terminology, hierarchy);
+    loadConceptsRealTime(concepts, terminology, hierarchy, historyMap);
 
     return ct;
   }
@@ -183,7 +180,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
    * @throws Exception the exception
    */
   private void loadConceptsRealTime(
-      List<Concept> allConcepts, Terminology terminology, HierarchyUtils hierarchy)
+      List<Concept> allConcepts,
+      Terminology terminology,
+      HierarchyUtils hierarchy,
+      Map<String, List<Map<String, String>>> historyMap)
       throws Exception {
     logger.info("  download batch size = " + DOWNLOAD_BATCH_SIZE);
     logger.info("  index batch size = " + INDEX_BATCH_SIZE);
@@ -245,7 +245,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
                   // logger.info(" concept = " + c.getCode() + " " + c.getName());
                   c.setExtensions(mainTypeHierarchy.getExtensions(c));
                   try {
-                    handleHistory(terminology, c);
+                    handleHistory(terminology, c, historyMap);
                   } catch (Exception e) {
                     logger.error("Error handling history for concept " + c.getCode(), e);
                     // needs an extra try-catching because we're in a forEach
@@ -942,49 +942,16 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
-   * Load (and cache) the history info for all concepts.
-   *
-   * @param terminology the terminology
-   * @param filepath the file path
-   * @throws Exception the exception
-   */
-  public void loadHistory(final Terminology terminology, final String filepath) throws Exception {
-
-    // Only load history for NCI Thesaurus
-    if (!terminology.getTerminology().equals("ncit") || filepath == null || filepath.isEmpty()) {
-      return;
-    }
-
-    try {
-      // Load the history file
-      File file = new File(filepath);
-      logger.info("Load ncit history");
-
-      // Assume this file is checked. It's passed in by the reindex.sh
-      try (BufferedReader reader =
-          new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8")); ) {
-
-        String line = null;
-
-        processHistoryMap(line, reader);
-      }
-      logger.info("    count = " + historyMap.size());
-      terminology.getMetadata().setHistoryFile(filepath);
-      logger.info("Done loading history for {}", terminology.getName());
-    } catch (Exception e) {
-      throw new Exception(
-          "Unable to load history file for " + terminology.getName() + ": " + filepath, e);
-    }
-  }
-
-  /**
    * Handle history.
    *
    * @param terminology the terminology
    * @param concept the concept
    * @throws Exception the exception
    */
-  private void handleHistory(final Terminology terminology, final Concept concept)
+  private void handleHistory(
+      final Terminology terminology,
+      final Concept concept,
+      Map<String, List<Map<String, String>>> historyMap)
       throws Exception {
 
     List<Map<String, String>> conceptHistory = historyMap.get(concept.getCode());
@@ -1029,27 +996,35 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
    * @param newFilepath the new file path
    * @throws Exception the exception
    */
-  public void updateHistoryMap(
-      final Terminology terminology, final String oldFilepath, final String newFilepath)
-      throws Exception {
+  public Map<String, List<Map<String, String>>> updateHistoryMap(
+      final Terminology terminology, final String filepath) throws Exception {
+
+    if (!terminology.getTerminology().equals("ncit")) {
+      return new HashMap<>();
+    }
+
+    Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
 
     try (BufferedReader reader =
-        new BufferedReader(
-            new InputStreamReader(
-                new FileInputStream(newHistory(oldFilepath, newFilepath)), "UTF-8")); ) {
+        new BufferedReader(new InputStreamReader(new FileInputStream(filepath), "UTF-8")); ) {
 
       String line = null;
-      historyMap.clear();
 
-      processHistoryMap(line, reader);
-      terminology.getMetadata().setHistoryFile(newFilepath);
+      historyMap = processHistoryMap(line, reader);
+      String historyVersion = filepath.split("cumulative_history_")[1].split("\\.txt")[0];
+      terminology.getMetadata().setHistoryVersion(historyVersion);
     }
+
+    return historyMap;
   }
 
   /** process history map. */
-  public void processHistoryMap(String line, BufferedReader reader) throws Exception {
+  public Map<String, List<Map<String, String>>> processHistoryMap(
+      String line, BufferedReader reader) throws Exception {
     // CODE, NA, ACTION, DATE, REPLACEMENT CODE
     // Loop through lines until we reach "the end"
+    Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
+
     while ((line = reader.readLine()) != null) {
 
       final String[] fields = line.split("\\|", -1);
@@ -1090,6 +1065,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       conceptHistory.add(historyItem);
       historyMap.put(code, conceptHistory);
     }
+    return historyMap;
   }
 
   /**
@@ -1099,51 +1075,50 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
    * @param file the file path
    * @throws Exception the exception
    */
-  public void updateHistory(final Terminology terminology, final String file) throws Exception {
-    historyMap.clear();
-    IncludeParam ip = new IncludeParam("history");
-    for (Map.Entry<String, List<Map<String, String>>> entry : historyMap.entrySet()) {
+  public void updateHistory(
+      final Terminology terminology, Map<String, List<Map<String, String>>> historyMap)
+      throws Exception {
+    if (!terminology.getTerminology().equals("ncit")
+        || historyMap.size() == 0
+        || terminology.getMetadata().getHistoryVersion().equals(terminology.getVersion())) {
+      return;
+    }
+
+    Date startOfUpdateScope = parseVersion(terminology.getVersion());
+    Map<String, List<Map<String, String>>> historyMapUpdate = new HashMap<>();
+    SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy");
+
+    // Loop through the historyMap and check if the date is within the update scope
+    for (final String code : historyMap.keySet()) {
+      for (final Map<String, String> map : historyMap.get(code)) {
+        if (sdf.parse(map.get("date")).after(startOfUpdateScope)) {
+          // If the date is within the scope, add it to historyMapUpdate and break off
+          historyMapUpdate.put(code, historyMap.get(code));
+          break;
+        }
+      }
+    }
+
+    IncludeParam ip = new IncludeParam("*");
+    for (Map.Entry<String, List<Map<String, String>>> entry : historyMapUpdate.entrySet()) {
       Concept concept = opensearchQueryService.getConcept(entry.getKey(), terminology, ip).get();
-      handleHistory(terminology, concept);
+      handleHistory(terminology, concept, historyMap);
       // index the concept with the history
       operationsService.index(concept, terminology.getIndexName(), Concept.class);
     }
   }
 
-  /**
-   * Creates a new history file based on the original and updated files.
-   *
-   * @param originalFile the original file path
-   * @param updatedFile the updated file path
-   * @return the new history file
-   * @throws IOException if an I/O error occurs
-   */
-  public static File newHistory(String originalFile, String updatedFile) throws IOException {
-    File output = new File("historyUpdate.txt");
+  public Date parseVersion(String version) {
+    int year = 2000 + Integer.parseInt(version.substring(0, 2));
+    int month = Integer.parseInt(version.substring(3, 5));
 
-    try (BufferedReader reader1 = new BufferedReader(new FileReader(originalFile));
-        BufferedReader reader2 = new BufferedReader(new FileReader(updatedFile));
-        BufferedWriter writer = new BufferedWriter(new FileWriter(output))) {
-      String line1, line2;
-      while (true) {
-        line1 = reader1.readLine();
-        line2 = reader2.readLine();
+    Calendar cal = Calendar.getInstance();
+    // set to first of the month to ignore date
+    cal.set(year, month, 1);
+    // go back 2 months to cover everything
+    cal.add(Calendar.MONTH, -2);
 
-        if (line1 == null) {
-          break;
-        }
-        if (line2 == null || !line1.equals(line2)) {
-          throw new IllegalArgumentException("Old history is not subset of new history");
-        }
-      }
-
-      while ((line2 = reader2.readLine()) != null) {
-        writer.write(line2);
-        writer.newLine();
-      }
-    }
-
-    return output;
+    return cal.getTime();
   }
 
   /* see superclass */

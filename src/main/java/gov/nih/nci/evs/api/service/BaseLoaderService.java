@@ -19,6 +19,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.cli.CommandLine;
@@ -509,17 +510,15 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     return StringUtils.join(EVSUtils.getValueFromFile(uri, "welcome text"), '\n');
   }
 
-  public void loadHistory(final Terminology terminology, final String filepath) throws Exception {
-    logger.info("History loading not implemented for " + terminology.getTerminology());
-  }
-
-  public void updateHistoryMap(
-      final Terminology terminology, final String oldFilepath, final String newFilepath)
-      throws Exception {
+  public Map<String, List<Map<String, String>>> updateHistoryMap(
+      final Terminology terminology, final String filepath) throws Exception {
     logger.info("History map updating not implemented for " + terminology.getTerminology());
+    return Collections.emptyMap();
   }
 
-  public void updateHistory(final Terminology terminology, final String filepath) throws Exception {
+  public void updateHistory(
+      final Terminology terminology, Map<String, List<Map<String, String>>> historyMap)
+      throws Exception {
     logger.info("History updating not implemented for " + terminology.getTerminology());
   }
 }

@@ -7,6 +7,8 @@ import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import jakarta.annotation.PostConstruct;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
@@ -194,26 +196,21 @@ public class LoaderServiceImpl {
       termAudit.setTerminology(term.getTerminology());
       termAudit.setVersion(term.getVersion());
       final HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
+      final Map<String, List<Map<String, String>>> historyMap =
+          loadService.updateHistoryMap(term, config.getLocation());
       int totalConcepts = 0;
       if (!cmd.hasOption("xl")) {
         if (!cmd.hasOption("xc")) {
-          totalConcepts = loadService.loadConcepts(config, term, hierarchy);
+          totalConcepts = loadService.loadConcepts(config, term, hierarchy, historyMap);
           loadService.checkLoadStatus(totalConcepts, term);
-          loadService.loadHistory(term, config.getLocation());
         }
         if (!cmd.hasOption("xm")) {
           // Give load objects a chance to update terminology metadata
           loadService.loadObjects(config, term, hierarchy);
           loadService.loadIndexMetadata(totalConcepts, term);
         }
-        // reload history during stale index reconciliation if the new version if ready
-        if (!cmd.hasOption("xc")
-            && !cmd.hasOption("xm")
-            && !term.getMetadata().getHistoryFile().equals(config.getLocation())) {
-          loadService.updateHistoryMap(
-              term, term.getMetadata().getHistoryFile(), config.getLocation());
-          loadService.updateHistory(term, config.getLocation());
-        }
+        // reload history if the new version if ready
+        loadService.updateHistory(term, historyMap);
       }
       final Set<String> removed = loadService.cleanStaleIndexes(term);
       loadService.updateLatestFlag(term, removed);
