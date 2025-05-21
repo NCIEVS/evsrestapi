@@ -398,10 +398,10 @@ for x in `cat /tmp/y.$$.txt`; do
 			
             # This script runs on the same server as the API
             response=$(curl -s -X 'GET' \
-              'http://localhost:8080/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit' \
+              'http://localhost:8082/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit' \
               -H 'accept: application/json')
             if [[ $? -ne 0 ]]; then
-                echo "ERROR: Failed to get latest terminology from http://localhost:8080/api/v1/metadata/terminologies"
+                echo "ERROR: Failed to get latest terminology from http://localhost:8082/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
                 exit 1
             fi
                   
