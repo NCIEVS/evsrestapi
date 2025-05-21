@@ -59,8 +59,8 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
   private static final Logger logger = LoggerFactory.getLogger(MetaOpensearchLoadServiceImpl.class);
 
   /** the concepts download location *. */
-  @Value("${nci.evs.bulkload.conceptsDir}")
-  private String CONCEPTS_OUT_DIR;
+  @Value("${nci.evs.bulkload.historyDir}")
+  private String HISTORY_DIR;
 
   /** the lock file name *. */
   @Value("${nci.evs.bulkload.lockFile}")

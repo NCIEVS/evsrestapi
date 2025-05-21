@@ -1,26 +1,5 @@
 package gov.nih.nci.evs.api.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.model.Association;
-import gov.nih.nci.evs.api.model.AssociationEntry;
-import gov.nih.nci.evs.api.model.Audit;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMinimal;
-import gov.nih.nci.evs.api.model.History;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Mapping;
-import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.model.Qualifier;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.properties.GraphProperties;
-import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
-import gov.nih.nci.evs.api.support.es.OpensearchObject;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.MainTypeHierarchy;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -45,6 +24,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -59,6 +39,29 @@ import org.springframework.data.elasticsearch.NoSuchIndexException;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.util.CollectionUtils;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.AssociationEntry;
+import gov.nih.nci.evs.api.model.Audit;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.History;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.Qualifier;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.properties.GraphProperties;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
+import gov.nih.nci.evs.api.support.es.OpensearchObject;
+import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.MainTypeHierarchy;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
+
 /** The implementation for {@link OpensearchLoadService}. */
 // @Service
 public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
@@ -69,8 +72,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   public static final String NCIT_MAPS_TO = "NCIt_Maps_To_";
 
   /** the concepts download location *. */
-  @Value("${nci.evs.bulkload.conceptsDir}")
-  private String CONCEPTS_OUT_DIR;
+  @Value("${nci.evs.bulkload.historyDir}")
+  private String HISTORY_DIR;
 
   /** the lock file name *. */
   @Value("${nci.evs.bulkload.lockFile}")
@@ -1081,8 +1084,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       throws Exception {
 
     // Update history for "ncit" monthly when it gets revisitied to double check latest versions
-    // Skip this for other terminologies, for cases where an updated cumulative history file has already been processed
-    // or in cases where the cumulative history for this version is unable to be found 
+    // Skip this for other terminologies, for cases where an updated cumulative history file has
+    // already been processed
+    // or in cases where the cumulative history for this version is unable to be found
     if (!terminology.getTerminology().equals("ncit")
         || historyMap.size() == 0
         || newHistoryVersion.equals(terminology.getVersion())

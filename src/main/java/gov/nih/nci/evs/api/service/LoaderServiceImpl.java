@@ -1,15 +1,10 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.Application;
-import gov.nih.nci.evs.api.model.Audit;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import jakarta.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -25,6 +20,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+
+import gov.nih.nci.evs.api.Application;
+import gov.nih.nci.evs.api.model.Audit;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import jakarta.annotation.PostConstruct;
 
 /**
  * The implementation for {@link LoaderService}.
@@ -213,7 +215,7 @@ public class LoaderServiceImpl {
         loadService.updateHistory(
             term,
             historyMap,
-            config.getLocation().split("cumulative_history_")[1].split("\\.txt")[0]);
+            config.getLocation());
       }
       final Set<String> removed = loadService.cleanStaleIndexes(term);
       loadService.updateLatestFlag(term, removed);
