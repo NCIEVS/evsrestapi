@@ -325,7 +325,8 @@ download_and_unpack() {
     success=0
     for i in {1..5}; do 
         echo "  Download NCIt History version $ver: attempt $i"
-        url="https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/cumulative_history_$ver.zip"
+        url="https://wci1.s3.us-east-1.amazonaws.com/NCI/cumulative_history_$ver.zip"
+        #url="https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/cumulative_history_$ver.zip"
         echo "    url = $url"
         
         curl -w "\n%{http_code}" -s -o cumulative_history_$ver.zip "$url" > /tmp/x.$$ 
