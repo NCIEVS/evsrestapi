@@ -1,13 +1,8 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.Application;
-import gov.nih.nci.evs.api.model.Audit;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import jakarta.annotation.PostConstruct;
 import java.util.Date;
 import java.util.Set;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -18,11 +13,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+
+import gov.nih.nci.evs.api.Application;
+import gov.nih.nci.evs.api.model.Audit;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import jakarta.annotation.PostConstruct;
 
 /**
  * The implementation for {@link LoaderService}.
@@ -149,7 +150,7 @@ public class LoaderServiceImpl {
       return;
     }
 
-    ApplicationContext app = null;
+    ConfigurableApplicationContext app = null;
     try {
 
       app = SpringApplication.run(Application.class, args);
@@ -234,35 +235,22 @@ public class LoaderServiceImpl {
           cmd.getOptionValue("t"),
           e.getMessage(),
           "ERROR");
+
       // If app is null, initialization failed immediately, return nonzero code
-      int exitCode =
-          app == null
-              ? 1
-              : SpringApplication.exit(
-                  app,
-                  new ExitCodeGenerator() {
-                    @Override
-                    public int getExitCode() {
-                      // return the error code
-                      logger.info("Exit code 1");
-                      return 1;
-                    }
-                  });
-      System.exit(exitCode);
+      if (app == null) {
+        System.exit(1);
+      } else {
+        SpringApplication.exit(app, () -> 1);
+        app.close();
+      }
     }
 
-    int exitCode =
-        SpringApplication.exit(
-            app,
-            new ExitCodeGenerator() {
-              @Override
-              public int getExitCode() {
-                // return the error code
-                logger.info("Exit code 0");
-                return 0;
-              }
-            });
-    System.exit(exitCode);
+    if (app == null) {
+      System.exit(0);
+    } else {
+      SpringApplication.exit(app, () -> 0);
+      app.close();
+    }
   }
 
   /**
