@@ -100,7 +100,7 @@ nci:
       password: ${GRAPH_DB_PASSWORD:REPLACE_WITH_PASSWORD}
       readTimeout: ${GRAPH_DB_READ_TIMEOUT:60}
       connectTimeout: ${GRAPH_DB_CONNECT_TIMEOUT:60}
-    opensearch:
+    elasticsearch:
       server:
         host: ${OS_HOST:localhost}
         port: ${OS_PORT:9201}
