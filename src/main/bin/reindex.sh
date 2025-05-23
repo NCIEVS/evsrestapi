@@ -325,7 +325,8 @@ download_and_unpack() {
     success=0
     for i in {1..5}; do 
         echo "  Download NCIt History version $ver: attempt $i"
-        url="https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/cumulative_history_$ver.zip"
+        url="https://wci1.s3.us-east-1.amazonaws.com/NCI/cumulative_history_$ver.zip"
+        #url="https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/cumulative_history_$ver.zip"
         echo "    url = $url"
         
         curl -w "\n%{http_code}" -s -o cumulative_history_$ver.zip "$url" > /tmp/x.$$ 
@@ -398,11 +399,11 @@ for x in `cat /tmp/y.$$.txt`; do
 			
             # This script runs on the same server as the API
             response=$(curl -s -X 'GET' \
-              'http://localhost:8080/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit' \
+              'http://localhost:8082/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit' \
               -H 'accept: application/json')
             if [[ $? -ne 0 ]]; then
-                echo "ERROR: Failed to get latest terminology from http://localhost:8080/api/v1/metadata/terminologies"
-                exit 1
+                echo "ERROR: Failed to get latest terminology from http://localhost:8082/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
+                continue
             fi
                   
             prev_version=$(echo "$response" | $jq | grep '"version"' | perl -pe 's/",$//; s/.*"//; ')
@@ -490,7 +491,7 @@ for x in `cat /tmp/y.$$.txt`; do
         # Set the history clause for "ncit"
         historyClause=""
         if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
-        	historyClause=" -d $historyFile"
+        	historyClause=" -history $historyFile"
         fi
 
         echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
