@@ -154,7 +154,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           maps.add(conceptToAdd);
         }
       } else {
-        logger.info("" + mappingDataList[0].split("\t"));
+        logger.info("  line = " + Arrays.asList(mappingDataList[0].split("\t")).toString());
         throw new Exception(
             "Missing data in metadata for " + metadata[0] + " line: " + mappingDataList[0]);
       }

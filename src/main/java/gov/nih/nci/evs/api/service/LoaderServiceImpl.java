@@ -164,7 +164,13 @@ public class LoaderServiceImpl {
         loadService = app.getBean(MappingLoaderServiceImpl.class);
         loadService.initialize();
         loadService.loadObjects(null, null, null);
-        System.exit(0);
+        // Exit app here
+        if (app.isRunning()) {
+          SpringApplication.exit(app, () -> 0);
+          app.close();
+        } else {
+          System.exit(0);
+        }
       }
       if (cmd.hasOption('d')) {
         if (cmd.getOptionValue("t").equals("ncim")) {
@@ -235,19 +241,19 @@ public class LoaderServiceImpl {
           "ERROR");
 
       // If app is null, initialization failed immediately, return nonzero code
-      if (app == null) {
-        System.exit(1);
-      } else {
+      if (app != null && app.isRunning()) {
         SpringApplication.exit(app, () -> 1);
         app.close();
+      } else {
+        System.exit(1);
       }
     }
 
-    if (app == null) {
-      System.exit(0);
-    } else {
+    if (app != null && app.isRunning()) {
       SpringApplication.exit(app, () -> 0);
       app.close();
+    } else {
+      System.exit(0);
     }
   }
 
