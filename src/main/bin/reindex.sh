@@ -403,6 +403,7 @@ for x in `cat /tmp/y.$$.txt`; do
               -H 'accept: application/json')
             if [[ $? -ne 0 ]]; then
                 echo "ERROR: Failed to get latest terminology from http://localhost:8082/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
+                cd - > /dev/null 2> /dev/null
                 continue
             fi
                   
