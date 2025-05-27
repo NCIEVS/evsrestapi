@@ -31,14 +31,15 @@ public class FHIRConfig {
     final ServletRegistrationBean<HapiR4RestfulServlet> servletRegistrationBean =
         new ServletRegistrationBean<>(hapiServlet, "/fhir/r4/*");
     hapiServlet.setServerName("EVSRESTAPI R4 FHIR Terminology Server");
-    hapiServlet.setServerVersion(getClass().getPackage().getImplementationVersion());
+    hapiServlet.setServerVersion(VersionController.VERSION);
     hapiServlet.setDefaultResponseEncoding(EncodingEnum.JSON);
+    hapiServlet.setFhirContext(FhirContext.forR4());
 
     // Use apache proxy address strategy
-    hapiServlet.setServerAddressStrategy(new ApacheProxyAddressStrategy(true));
+    //hapiServlet.setServerAddressStrategy(new ApacheProxyAddressStrategy(true));
 
-    final ResponseHighlighterInterceptor interceptor = new ResponseHighlighterInterceptor();
-    hapiServlet.registerInterceptor(interceptor);
+    // workaround for "HAPI-1700: Unknown child name 'format' in element" error
+    hapiServlet.registerInterceptor(new EvsResponseHighlighterInterceptor());
 
     return servletRegistrationBean;
   }

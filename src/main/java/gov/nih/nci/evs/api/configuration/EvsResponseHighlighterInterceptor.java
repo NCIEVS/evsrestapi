@@ -3,7 +3,6 @@ package gov.nih.nci.evs.api.configuration;
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
 import org.hl7.fhir.instance.model.api.IBaseConformance;
-import org.hl7.fhir.r5.model.TerminologyCapabilities;
 
 /** "HAPI-1700: Unknown child name 'format' in element" error */
 public class EvsResponseHighlighterInterceptor extends ResponseHighlighterInterceptor {
@@ -18,7 +17,8 @@ public class EvsResponseHighlighterInterceptor extends ResponseHighlighterInterc
   // avoid the FhirTerser format assignments
   public void capabilityStatementGenerated(
       RequestDetails theRequestDetails, IBaseConformance theCapabilityStatement) {
-    if (!(theCapabilityStatement instanceof TerminologyCapabilities)) {
+		if (!(theCapabilityStatement instanceof org.hl7.fhir.r5.model.TerminologyCapabilities)
+				&& !(theCapabilityStatement instanceof org.hl7.fhir.r4.model.TerminologyCapabilities)) {
       super.capabilityStatementGenerated(theRequestDetails, theCapabilityStatement);
     }
   }
