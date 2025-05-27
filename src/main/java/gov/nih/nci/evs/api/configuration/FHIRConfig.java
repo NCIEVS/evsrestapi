@@ -2,8 +2,6 @@ package gov.nih.nci.evs.api.configuration;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.rest.api.EncodingEnum;
-import ca.uhn.fhir.rest.server.ApacheProxyAddressStrategy;
-import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
 import gov.nih.nci.evs.api.controller.VersionController;
 import gov.nih.nci.evs.api.fhir.R4.HapiR4RestfulServlet;
 import gov.nih.nci.evs.api.fhir.R5.HapiR5RestfulServlet;
@@ -36,7 +34,7 @@ public class FHIRConfig {
     hapiServlet.setFhirContext(FhirContext.forR4());
 
     // Use apache proxy address strategy
-    //hapiServlet.setServerAddressStrategy(new ApacheProxyAddressStrategy(true));
+    // hapiServlet.setServerAddressStrategy(new ApacheProxyAddressStrategy(true));
 
     // workaround for "HAPI-1700: Unknown child name 'format' in element" error
     hapiServlet.registerInterceptor(new EvsResponseHighlighterInterceptor());

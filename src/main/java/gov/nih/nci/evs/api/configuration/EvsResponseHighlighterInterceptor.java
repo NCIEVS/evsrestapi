@@ -17,8 +17,8 @@ public class EvsResponseHighlighterInterceptor extends ResponseHighlighterInterc
   // avoid the FhirTerser format assignments
   public void capabilityStatementGenerated(
       RequestDetails theRequestDetails, IBaseConformance theCapabilityStatement) {
-		if (!(theCapabilityStatement instanceof org.hl7.fhir.r5.model.TerminologyCapabilities)
-				&& !(theCapabilityStatement instanceof org.hl7.fhir.r4.model.TerminologyCapabilities)) {
+    if (!(theCapabilityStatement instanceof org.hl7.fhir.r5.model.TerminologyCapabilities)
+        && !(theCapabilityStatement instanceof org.hl7.fhir.r4.model.TerminologyCapabilities)) {
       super.capabilityStatementGenerated(theRequestDetails, theCapabilityStatement);
     }
   }
