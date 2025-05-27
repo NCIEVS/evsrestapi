@@ -357,6 +357,45 @@ download_and_unpack() {
     done
 }
 
+process_ncit() {
+  # Prep dir
+  /bin/rm -rf $DIR/NCIT_HISTORY
+  mkdir $DIR/NCIT_HISTORY
+  cd $DIR/NCIT_HISTORY
+
+  # Download file (try 5 times)
+  success=0
+  download_and_unpack "$version"
+
+  # try to get previous version of the history file
+  if [[ $success -eq 0 ]]; then
+      echo "    Initial version $version failed. Fetching latest version from API..."
+
+      # This script runs on the same server as the API
+      response=$(curl -s -X 'GET' \
+        'http://localhost:8082/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit' \
+        -H 'accept: application/json')
+      if [[ $? -ne 0 ]]; then
+          echo "ERROR: Failed to get latest terminology from http://localhost:8082/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
+          cd - > /dev/null 2> /dev/null
+          return 1
+      fi
+            
+      prev_version=$(echo "$response" | $jq | grep '"version"' | perl -pe 's/",$//; s/.*"//; ')
+      if [[ -z "$prev_version" ]]; then
+          echo "  Unable to find a previous monthly version of ncit"
+  # done looking
+      else 
+          echo "  Trying again with prev_version = $prev_version"
+          download_and_unpack "$prev_version"
+      fi
+  fi
+
+  # cd back out
+  cd - > /dev/null 2> /dev/null
+  return 0
+}
+
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
     version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
@@ -383,43 +422,8 @@ for x in `cat /tmp/y.$$.txt`; do
 
     # Otherwise, download if ncit
     elif [[ "$term" == "ncit" ]]; then
-	
-        # Prep dir
-        /bin/rm -rf $DIR/NCIT_HISTORY
-        mkdir $DIR/NCIT_HISTORY
-        cd $DIR/NCIT_HISTORY
-
-        # Download file (try 5 times)
-        success=0
-        download_and_unpack "$version"
-
-        # try to get previous version of the history file
-        if [[ $success -eq 0 ]]; then
-            echo "    Initial version $version failed. Fetching latest version from API..."
-			
-            # This script runs on the same server as the API
-            response=$(curl -s -X 'GET' \
-              'http://localhost:8082/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit' \
-              -H 'accept: application/json')
-            if [[ $? -ne 0 ]]; then
-                echo "ERROR: Failed to get latest terminology from http://localhost:8082/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
-                cd - > /dev/null 2> /dev/null
-                continue
-            fi
-                  
-            prev_version=$(echo "$response" | $jq | grep '"version"' | perl -pe 's/",$//; s/.*"//; ')
-            if [[ -z "$prev_version" ]]; then
-                echo "  Unable to find a previous monthly version of ncit"
-				# done looking
-            else 
-                echo "  Trying again with prev_version = $prev_version"
-                download_and_unpack "$prev_version"
-            fi
-        fi
-
-        # cd back out
-        cd - > /dev/null 2> /dev/null
-	fi
+        process_ncit
+	  fi
 	
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
 
