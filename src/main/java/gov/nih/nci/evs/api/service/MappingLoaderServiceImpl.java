@@ -327,6 +327,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         logger.info("  Update mapset to version = " + code + " " + version);
         // No need to delete from MAPSET_INDEX because the index call below
         // will just replace/update the mapset to the new version
+        logger.info("    delete old version maps");
         operationsService.deleteQuery(
             "mapsetCode:" + code, OpensearchOperationsService.MAPPINGS_INDEX);
       } else {
