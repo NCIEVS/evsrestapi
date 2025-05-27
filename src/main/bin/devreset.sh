@@ -337,6 +337,7 @@ reindex
 # to control exactly
 export CONFIG_BASE_URI=$(realpath $dir)/mappings/config/metadata
 load_mapping
+export CONFIG_BASE_URI=$(realpath $dir)/mappings2/config/metadata
 load_mapping2
 # NOTE: here $CONFIG_BASE_URI is pointing to the new value still
 

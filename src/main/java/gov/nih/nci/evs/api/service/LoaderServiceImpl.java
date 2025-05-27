@@ -166,9 +166,11 @@ public class LoaderServiceImpl {
         loadService.loadObjects(null, null, null);
         // Exit app here
         if (app.isRunning()) {
+          logger.info("Finished mappings (app running), exit 0");
           SpringApplication.exit(app, () -> 0);
           app.close();
         } else {
+          logger.info("Finished mappings, exit 0");
           System.exit(0);
         }
       }
@@ -242,17 +244,21 @@ public class LoaderServiceImpl {
 
       // If app is null, initialization failed immediately, return nonzero code
       if (app != null && app.isRunning()) {
+        logger.info("Finished (app running), exit 1");
         SpringApplication.exit(app, () -> 1);
         app.close();
       } else {
+        logger.info("Finished, exit 1");
         System.exit(1);
       }
     }
 
     if (app != null && app.isRunning()) {
+      logger.info("Finished (app running), exit 0");
       SpringApplication.exit(app, () -> 0);
       app.close();
     } else {
+      logger.info("Finished, exit 0");
       System.exit(0);
     }
   }
