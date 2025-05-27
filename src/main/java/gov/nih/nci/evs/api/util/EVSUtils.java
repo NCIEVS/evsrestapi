@@ -539,21 +539,16 @@ public class EVSUtils {
    * @return the value from file
    * @info the info needing to be read (mostly for error message specificity)
    */
-  public static List<String> getValueFromFile(String uri, String info) {
+  public static List<String> getValueFromFile(String uri, String info) throws Exception {
     try {
       try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
         return IOUtils.readLines(is, "UTF-8");
       }
     } catch (final Throwable t) {
-      try {
         // Try to open URI as a file
         final File file = new File(uri);
         return FileUtils.readLines(file, "UTF-8");
-      } catch (final IOException e) {
-        // Log and move on if both URL and file reading fail
-        log.warn("Error occurred when getting {} from configBaseUri", info);
-      }
     }
-    return Collections.emptyList();
+    throw new Exception("Unable to get data from = " + uri)
   }
 }

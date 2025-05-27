@@ -346,7 +346,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       map.getProperties().add(new Property("loader", "MappingLoadServiceImpl"));
 
       // Get the welcome text
-      if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) { // welcome
+      if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
 
         try (final InputStream is =
             new URL(uri + "/" + metadata[3]).openConnection().getInputStream()) {
