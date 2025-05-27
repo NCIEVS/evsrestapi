@@ -3,7 +3,7 @@ package gov.nih.nci.evs.api.service;
 import gov.nih.nci.evs.api.Application;
 import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import jakarta.annotation.PostConstruct;
 import java.util.Date;
@@ -18,9 +18,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
@@ -42,10 +41,10 @@ public class LoaderServiceImpl {
   /** the environment *. */
   @Autowired Environment env;
 
-  /** The Elasticsearch operations service instance *. */
-  @Autowired private ElasticOperationsService operationsService;
+  /** The Opensearch operations service instance *. */
+  @Autowired private OpensearchOperationsService operationsService;
 
-  private static ElasticOperationsService staticOperationsService;
+  private static OpensearchOperationsService staticOperationsService;
 
   @PostConstruct
   public void init() {
@@ -104,8 +103,8 @@ public class LoaderServiceImpl {
    * @param defaultLocation the default download location to use
    * @return the config object
    */
-  public static ElasticLoadConfig buildConfig(CommandLine cmd, String defaultLocation) {
-    ElasticLoadConfig config = new ElasticLoadConfig();
+  public static OpensearchLoadConfig buildConfig(CommandLine cmd, String defaultLocation) {
+    OpensearchLoadConfig config = new OpensearchLoadConfig();
 
     config.setTerminology(cmd.getOptionValue('t'));
     config.setForceDeleteIndex(cmd.hasOption('f'));
@@ -127,7 +126,7 @@ public class LoaderServiceImpl {
   }
 
   /**
-   * the main method to trigger elasticsearch load via command line *.
+   * the main method to trigger Opensearch load via command line *.
    *
    * @param args the command line arguments
    */
@@ -149,11 +148,11 @@ public class LoaderServiceImpl {
       return;
     }
 
-    ApplicationContext app = null;
+    ConfigurableApplicationContext app = null;
     try {
 
       app = SpringApplication.run(Application.class, args);
-      ElasticLoadService loadService = null;
+      OpensearchLoadService loadService = null;
 
       // create Audit object
       final Audit termAudit = new Audit();
@@ -169,21 +168,21 @@ public class LoaderServiceImpl {
       }
       if (cmd.hasOption('d')) {
         if (cmd.getOptionValue("t").equals("ncim")) {
-          loadService = app.getBean(MetaElasticLoadServiceImpl.class);
+          loadService = app.getBean(MetaOpensearchLoadServiceImpl.class);
         } else if (cmd.getOptionValue("t").startsWith("ncit")) {
-          loadService = app.getBean(GraphElasticLoadServiceImpl.class);
+          loadService = app.getBean(GraphOpensearchLoadServiceImpl.class);
         } else {
-          loadService = app.getBean(MetaSourceElasticLoadServiceImpl.class);
+          loadService = app.getBean(MetaSourceOpensearchLoadServiceImpl.class);
         }
       } else if (cmd.hasOption("xr")) {
         loadService = app.getBean(GraphReportLoadServiceImpl.class);
       } else {
-        loadService = app.getBean(GraphElasticLoadServiceImpl.class);
+        loadService = app.getBean(GraphOpensearchLoadServiceImpl.class);
       }
       termAudit.setProcess(loadService.getClass().getSimpleName());
 
       loadService.initialize();
-      final ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
+      final OpensearchLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
       final Terminology term =
           loadService.getTerminology(
               app,
@@ -215,8 +214,14 @@ public class LoaderServiceImpl {
       termAudit.setLogLevel("INFO");
       logger.info("Audit: {}", termAudit.toString());
       // only add new audit if something major has actually happened
-      if (termAudit.getElapsedTime() > 10000) {
+      if (termAudit.getElapsedTime() > 10000 && totalConcepts > 0) {
         addAudit(termAudit);
+        // update the metadata with the elapsed time
+        term.getMetadata().setIndexRuntime(termAudit.getElapsedTime());
+        logger.warn(
+            "index runtime of {} ms for terminology {}",
+            term.getMetadata().getIndexRuntime(),
+            term.getTerminology());
       }
 
     } catch (Exception e) {
@@ -228,35 +233,22 @@ public class LoaderServiceImpl {
           cmd.getOptionValue("t"),
           e.getMessage(),
           "ERROR");
+
       // If app is null, initialization failed immediately, return nonzero code
-      int exitCode =
-          app == null
-              ? 1
-              : SpringApplication.exit(
-                  app,
-                  new ExitCodeGenerator() {
-                    @Override
-                    public int getExitCode() {
-                      // return the error code
-                      logger.info("Exit code 1");
-                      return 1;
-                    }
-                  });
-      System.exit(exitCode);
+      if (app == null) {
+        System.exit(1);
+      } else {
+        SpringApplication.exit(app, () -> 1);
+        app.close();
+      }
     }
 
-    int exitCode =
-        SpringApplication.exit(
-            app,
-            new ExitCodeGenerator() {
-              @Override
-              public int getExitCode() {
-                // return the error code
-                logger.info("Exit code 0");
-                return 0;
-              }
-            });
-    System.exit(exitCode);
+    if (app == null) {
+      System.exit(0);
+    } else {
+      SpringApplication.exit(app, () -> 0);
+      app.close();
+    }
   }
 
   /**
@@ -268,7 +260,7 @@ public class LoaderServiceImpl {
   public static void addAudit(final Audit audit) throws Exception {
     staticOperationsService.deleteQuery(
         "terminology:" + audit.getTerminology() + " AND version:" + audit.getVersion(),
-        ElasticOperationsService.AUDIT_INDEX);
-    staticOperationsService.index(audit, ElasticOperationsService.AUDIT_INDEX, Audit.class);
+        OpensearchOperationsService.AUDIT_INDEX);
+    staticOperationsService.index(audit, OpensearchOperationsService.AUDIT_INDEX, Audit.class);
   }
 }
