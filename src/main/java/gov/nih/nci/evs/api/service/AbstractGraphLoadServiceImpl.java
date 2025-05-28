@@ -957,7 +957,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
 
     List<Map<String, String>> conceptHistory = historyMap.get(concept.getCode());
 
-    if (conceptHistory == null) {
+    if (conceptHistory == null || conceptHistory.isEmpty()) {
       return;
     }
 
