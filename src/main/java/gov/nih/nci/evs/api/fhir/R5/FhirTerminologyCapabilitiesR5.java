@@ -5,7 +5,7 @@ import ca.uhn.fhir.model.api.annotation.ResourceDef;
 import gov.nih.nci.evs.api.controller.StaticContextAccessor;
 import gov.nih.nci.evs.api.controller.VersionController;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.Collections;
 import java.util.List;
@@ -56,7 +56,7 @@ public class FhirTerminologyCapabilitiesR5 extends TerminologyCapabilities
   private static final long serialVersionUID = 1L;
 
   /** the query service. */
-  @Autowired ElasticQueryService esQueryService;
+  @Autowired OpensearchQueryService esQueryService;
 
   /** The term utils. */
   @Autowired TerminologyUtils termUtils;
@@ -162,7 +162,8 @@ public class FhirTerminologyCapabilitiesR5 extends TerminologyCapabilities
 
     List<Terminology> terms;
     try {
-      ElasticQueryService esQueryService = StaticContextAccessor.getBean(ElasticQueryService.class);
+      OpensearchQueryService esQueryService =
+          StaticContextAccessor.getBean(OpensearchQueryService.class);
       TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
 
       terms = termUtils.getIndexedTerminologies(esQueryService);
