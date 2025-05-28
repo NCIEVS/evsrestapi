@@ -11,8 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import java.io.IOException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -55,7 +54,7 @@ public class VersionController extends BaseController {
                 schema = @Schema(implementation = RestException.class)))
   })
   @RecordMetric
-  @RequestMapping(method = RequestMethod.GET, value = "/version", produces = "application/json")
+  @GetMapping(value = "/version", produces = "application/json")
   public @ResponseBody ApplicationVersion getApplicationVersion() throws IOException {
     final ApplicationVersion homePageData = new ApplicationVersion();
     homePageData.setName("NCI EVS Rest API");

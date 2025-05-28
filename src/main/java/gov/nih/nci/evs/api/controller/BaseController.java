@@ -1,7 +1,7 @@
 package gov.nih.nci.evs.api.controller;
 
 import gov.nih.nci.evs.api.model.Audit;
-import gov.nih.nci.evs.api.service.ElasticOperationsService;
+import gov.nih.nci.evs.api.service.OpensearchOperationsService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,8 +18,8 @@ public class BaseController {
   /** The Constant log. */
   private static final Logger logger = LoggerFactory.getLogger(BaseController.class);
 
-  /** The elastic operations service. */
-  @Autowired ElasticOperationsService elasticOperationsService;
+  /** The opensearch operations service. */
+  @Autowired OpensearchOperationsService opensearchOperationsService;
 
   /**
    * Handle exception.
@@ -34,7 +34,7 @@ public class BaseController {
 
     logger.error("Unexpected error", e);
     Audit.addAudit(
-        elasticOperationsService,
+        opensearchOperationsService,
         "Exception",
         e.getStackTrace()[0].getClassName(),
         terminology,
