@@ -449,7 +449,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   public int loadConcepts(
       final OpensearchLoadConfig config,
       final Terminology terminology,
-      final HierarchyUtils hierarchy)
+      final HierarchyUtils hierarchy,
+      Map<String, List<Map<String, String>>> historyMap)
       throws IOException, Exception {
     // n/a
     return 0;

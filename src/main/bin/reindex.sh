@@ -325,7 +325,8 @@ download_and_unpack() {
     success=0
     for i in {1..5}; do 
         echo "  Download NCIt History version $ver: attempt $i"
-        url="https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/cumulative_history_$ver.zip"
+        url="https://wci1.s3.us-east-1.amazonaws.com/NCI/cumulative_history_$ver.zip"
+        #url="https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/cumulative_history_$ver.zip"
         echo "    url = $url"
         
         curl -w "\n%{http_code}" -s -o cumulative_history_$ver.zip "$url" > /tmp/x.$$ 
@@ -356,6 +357,45 @@ download_and_unpack() {
     done
 }
 
+process_ncit() {
+  # Prep dir
+  /bin/rm -rf $DIR/NCIT_HISTORY
+  mkdir $DIR/NCIT_HISTORY
+  cd $DIR/NCIT_HISTORY
+
+  # Download file (try 5 times)
+  success=0
+  download_and_unpack "$version"
+
+  # try to get previous version of the history file
+  if [[ $success -eq 0 ]]; then
+      echo "    Initial version $version failed. Fetching latest version from API..."
+
+      # This script runs on the same server as the API
+      response=$(curl -s -X 'GET' \
+        'http://localhost:8082/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit' \
+        -H 'accept: application/json')
+      if [[ $? -ne 0 ]]; then
+          echo "ERROR: Failed to get latest terminology from http://localhost:8082/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
+          cd - > /dev/null 2> /dev/null
+          return 1
+      fi
+            
+      prev_version=$(echo "$response" | $jq | grep '"version"' | perl -pe 's/",$//; s/.*"//; ')
+      if [[ -z "$prev_version" ]]; then
+          echo "  Unable to find a previous monthly version of ncit"
+  # done looking
+      else 
+          echo "  Trying again with prev_version = $prev_version"
+          download_and_unpack "$prev_version"
+      fi
+  fi
+
+  # cd back out
+  cd - > /dev/null 2> /dev/null
+  return 0
+}
+
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
     version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
@@ -382,42 +422,8 @@ for x in `cat /tmp/y.$$.txt`; do
 
     # Otherwise, download if ncit
     elif [[ "$term" == "ncit" ]]; then
-	
-        # Prep dir
-        /bin/rm -rf $DIR/NCIT_HISTORY
-        mkdir $DIR/NCIT_HISTORY
-        cd $DIR/NCIT_HISTORY
-
-        # Download file (try 5 times)
-        success=0
-        download_and_unpack "$version"
-
-        # try to get previous version of the history file
-        if [[ $success -eq 0 ]]; then
-            echo "    Initial version $version failed. Fetching latest version from API..."
-			
-            # This script runs on the same server as the API
-            response=$(curl -s -X 'GET' \
-              'http://localhost:8080/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit' \
-              -H 'accept: application/json')
-            if [[ $? -ne 0 ]]; then
-                echo "ERROR: Failed to get latest terminology from http://localhost:8080/api/v1/metadata/terminologies"
-                exit 1
-            fi
-                  
-            prev_version=$(echo "$response" | $jq | grep '"version"' | perl -pe 's/",$//; s/.*"//; ')
-            if [[ -z "$prev_version" ]]; then
-                echo "  Unable to find a previous monthly version of ncit"
-				# done looking
-            else 
-                echo "  Trying again with prev_version = $prev_version"
-                download_and_unpack "$prev_version"
-            fi
-        fi
-
-        # cd back out
-        cd - > /dev/null 2> /dev/null
-	fi
+        process_ncit
+	  fi
 	
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
 
@@ -461,6 +467,8 @@ for x in `cat /tmp/y.$$.txt`; do
         # regardless of whether there was new data
         echo "    RECONCILE $term stale indexes and update flags"
         export EVS_SERVER_PORT="8083"
+        echo "java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata > /tmp/x.$$.log 2>&1"
+        pwd
         java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata > /tmp/x.$$.log 2>&1 
         if [[ $? -ne 0 ]]; then
             cat /tmp/x.$$.log | sed 's/^/    /'
@@ -490,7 +498,7 @@ for x in `cat /tmp/y.$$.txt`; do
         # Set the history clause for "ncit"
         historyClause=""
         if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
-        	historyClause=" -d $historyFile"
+        	historyClause=" -history $historyFile"
         fi
 
         echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
