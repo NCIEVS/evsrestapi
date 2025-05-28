@@ -208,7 +208,7 @@ public class LoaderServiceImpl {
           loadService.loadObjects(config, term, hierarchy);
           loadService.loadIndexMetadata(totalConcepts, term);
         }
-        // reload history if the new version if ready
+        // reload history if the new version if ready and there's a valid history map
         loadService.updateHistory(term, historyMap, config.getLocation());
       }
       final Set<String> removed = loadService.cleanStaleIndexes(term);

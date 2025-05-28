@@ -22,6 +22,7 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.MainTypeHierarchy;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -1004,7 +1005,19 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     }
 
     Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
-
+    // If the file is not found, return an empty map
+    File f = new File(filepath);
+    if (!f.isFile()) {
+      logger.warn("History file not found: " + filepath);
+      Audit.addAudit(
+          operationsService,
+          "FileNotFoundException",
+          "updateHistoryMap",
+          terminology.getTerminology(),
+          "History file not found: " + filepath,
+          "WARN");
+      return historyMap;
+    }
     try (BufferedReader reader =
         new BufferedReader(new InputStreamReader(new FileInputStream(filepath), "UTF-8")); ) {
 
@@ -1085,6 +1098,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     // already been processed
     // or in cases where the cumulative history for this version is unable to be found
     if (!terminology.getTerminology().equals("ncit")
+        || historyMap == null
         || historyMap.size() == 0
         || newHistoryVersion.equals(terminology.getVersion())
         || terminology.getMetadata().getHistoryVersion().equals(terminology.getVersion())) {
