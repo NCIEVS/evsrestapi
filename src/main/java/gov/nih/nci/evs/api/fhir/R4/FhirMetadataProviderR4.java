@@ -35,8 +35,6 @@ import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.OperationDefinition;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.StringType;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /**
  * See <a href="https://www.hl7.org/fhir/terminologycapabilities.html">terminology capabilities</a>
@@ -205,7 +203,6 @@ public class FhirMetadataProviderR4 extends ServerCapabilityStatementProvider {
       HttpServletResponse theResponse,
       RequestDetails theRequestDetails)
       throws IOException {
-
 
     // Create your version response
     Parameters parameters = new Parameters();

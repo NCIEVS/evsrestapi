@@ -37,7 +37,6 @@ import org.hl7.fhir.r5.model.IdType;
 import org.hl7.fhir.r5.model.OperationDefinition;
 import org.hl7.fhir.r5.model.Parameters;
 import org.hl7.fhir.r5.model.StringType;
-import org.springframework.beans.factory.annotation.Autowired;
 
 /**
  * See <a href="https://www.hl7.org/fhir/terminologycapabilities.html">terminology capabilities</a>
