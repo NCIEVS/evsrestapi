@@ -120,11 +120,11 @@ dependencies {
   implementation 'com.google.protobuf:protobuf-java:3.25.5'
 
   // fhir dependencies
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-base:7.4.5";
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:7.4.5"
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r5:7.4.5"
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-server:7.4.5"
-  implementation("ca.uhn.hapi.fhir:hapi-fhir-jpaserver-base:7.4.5") {
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-base:7.6.1";
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:7.6.1"
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r5:7.6.1"
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-server:7.6.1"
+  implementation("ca.uhn.hapi.fhir:hapi-fhir-jpaserver-base:7.6.1") {
     exclude group: "net.minidev", module: "json-smart"
     exclude group: "ca.uhn.hapi.fhir", module: "hapi-fhir-sql-migrate"
     exclude group: "org.elasticsearch.client", module: "elasticsearch-rest-high-level-client"
@@ -136,19 +136,19 @@ dependencies {
     exclude group: "org.glassfish", module: "javax.el"
     exclude group: "org.apache.logging.log4j", module: "log4j-to-slf4j"
   }
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-server-openapi:7.4.5"
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-server-openapi:7.6.1"
 
   // For the moment, these require explicit 6.4.0 to resolve vulnerabilities (as 7.4.5 above is current)
   implementation "org.fhir:ucum:1.0.9"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.4.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.4.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.4.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.4.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.4.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.4.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.4.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.4.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.4.0"
 
   // Lombok dependencies (avoid using lombok for now)
   //implementation "org.projectlombok:lombok:1.18.32"
