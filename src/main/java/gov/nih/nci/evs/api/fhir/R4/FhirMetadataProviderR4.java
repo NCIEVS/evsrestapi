@@ -36,6 +36,7 @@ import org.hl7.fhir.r4.model.OperationDefinition;
 import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.StringType;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /**
  * See <a href="https://www.hl7.org/fhir/terminologycapabilities.html">terminology capabilities</a>
@@ -45,8 +46,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  * href="https://github.com/jamesagnew/hapi-fhir/issues/1681">github issue 1681</a>
  */
 public class FhirMetadataProviderR4 extends ServerCapabilityStatementProvider {
-
-  @Autowired private FhirContext fhirContext;
 
   /**
    * Instantiates a new FHIR metadata provider.
@@ -200,12 +199,13 @@ public class FhirMetadataProviderR4 extends ServerCapabilityStatementProvider {
   }
 
   /** System-level $versions operation */
-  @Operation(name = "$versions", manualResponse = true, manualRequest = true)
+  @Operation(name = "$versions", manualResponse = true, manualRequest = true, idempotent = true)
   public void versions(
       HttpServletRequest theRequest,
       HttpServletResponse theResponse,
       RequestDetails theRequestDetails)
       throws IOException {
+
 
     // Create your version response
     Parameters parameters = new Parameters();
@@ -214,7 +214,7 @@ public class FhirMetadataProviderR4 extends ServerCapabilityStatementProvider {
         .setName("version")
         .setValue(new StringType(VersionController.VERSION));
     parameters.addParameter().setName("fhirVersion").setValue(new StringType("4.0.0"));
-
+    FhirContext fhirContext = theRequestDetails.getFhirContext();
     // Return the response
     IParser parser = fhirContext.newJsonParser();
     theResponse.setContentType("application/fhir+json");

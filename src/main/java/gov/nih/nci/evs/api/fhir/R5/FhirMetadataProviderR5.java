@@ -48,8 +48,6 @@ import org.springframework.beans.factory.annotation.Autowired;
  */
 public class FhirMetadataProviderR5 extends ServerCapabilityStatementProvider {
 
-  @Autowired private FhirContext fhirContext;
-
   /**
    * Instantiates a new FHIR metadata provider.
    *
@@ -202,7 +200,7 @@ public class FhirMetadataProviderR5 extends ServerCapabilityStatementProvider {
   }
 
   /** System-level $versions operation */
-  @Operation(name = "$versions", manualResponse = true, manualRequest = true)
+  @Operation(name = "$versions", manualResponse = true, manualRequest = true, idempotent = true)
   public void versions(
       HttpServletRequest theRequest,
       HttpServletResponse theResponse,
@@ -218,6 +216,7 @@ public class FhirMetadataProviderR5 extends ServerCapabilityStatementProvider {
     parameters.addParameter().setName("fhirVersion").setValue(new StringType("5.0.0"));
 
     // Return the response
+    FhirContext fhirContext = theRequestDetails.getFhirContext();
     IParser parser = fhirContext.newJsonParser();
     theResponse.setContentType("application/fhir+json");
     theResponse.getWriter().write(parser.encodeResourceToString(parameters));
