@@ -196,22 +196,28 @@ remove_elasticsearch_indexes(){
   done
 }
 
-# Load legacy  maps so we can simulate loading an old version and 
-# confirming that there are no duplicates
-load_old_maps(){
-  echo "  Load old maps"
+# Load saved maps data to ensure it aligns with testing conditions
+load_mapping(){
+  echo "  Load stock maps aligned with data verions"
   local="-Dspring.profiles.active=local"
   jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
-
-  oldConfigBaseUri=$CONFIG_BASE_URI
-  export CONFIG_BASE_URI=$(realpath $dir)/mappings/config/metadata
-  echo "using old files:  $CONFIG_BASE_URI"
   java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
   if [[ $? -ne 0 ]]; then
     echo "ERROR: unexpected error building mapping indexes"
     exit 1
   fi
-  export CONFIG_BASE_URI=$oldConfigBaseUri
+}
+
+# Load saved maps data to ensure it aligns with testing conditions
+load_mapping2(){
+  echo "  Load stock map changes"
+  local="-Dspring.profiles.active=local"
+  jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
+  java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
+  if [[ $? -ne 0 ]]; then
+    echo "ERROR: unexpected error building mapping indexes"
+    exit 1
+  fi
 }
 
 
@@ -325,8 +331,15 @@ create_databases
 remove_elasticsearch_indexes
 reindex_ncim
 load_data
+# This will load maps from github evsrestapi-operations
 reindex
-load_old_maps
+# After this, we should load "mappings" and "mappings2" from UnitTestData
+# to control exactly
+export CONFIG_BASE_URI=file://$(realpath $dir)/mappings/config/metadata
+load_mapping
+export CONFIG_BASE_URI=file://$(realpath $dir)/mappings2/config/metadata
+load_mapping2
+# NOTE: here $CONFIG_BASE_URI is pointing to the new value still
 
 # Cleanup
 /bin/rm -f /tmp/x.$$.txt $dir/x.{sh,txt}

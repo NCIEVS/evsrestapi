@@ -1,5 +1,22 @@
 package gov.nih.nci.evs.api.util;
 
+import java.io.File;
+import java.io.InputStream;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
+import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import gov.nih.nci.evs.api.model.Axiom;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Definition;
@@ -9,23 +26,6 @@ import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** Utilities for handling EVS stuff. */
 public class EVSUtils {
@@ -539,7 +539,7 @@ public class EVSUtils {
    * @return the value from file
    * @info the info needing to be read (mostly for error message specificity)
    */
-  public static List<String> getValueFromFile(String uri, String info) {
+  public static List<String> getValueFromFile(String uri, String info) throws Exception {
     try {
       try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
         return IOUtils.readLines(is, "UTF-8");
@@ -549,11 +549,9 @@ public class EVSUtils {
         // Try to open URI as a file
         final File file = new File(uri);
         return FileUtils.readLines(file, "UTF-8");
-      } catch (final IOException e) {
-        // Log and move on if both URL and file reading fail
-        log.warn("Error occurred when getting {} from configBaseUri", info);
+      } catch (Exception e2) {
+        throw new Exception("Unable to get data from = " + uri);
       }
     }
-    return Collections.emptyList();
   }
 }

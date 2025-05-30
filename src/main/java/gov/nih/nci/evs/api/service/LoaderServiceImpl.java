@@ -164,7 +164,15 @@ public class LoaderServiceImpl {
         loadService = app.getBean(MappingLoaderServiceImpl.class);
         loadService.initialize();
         loadService.loadObjects(null, null, null);
-        System.exit(0);
+        // Exit app here
+        if (app.isRunning()) {
+          logger.info("Finished mappings (app running), exit 0");
+          SpringApplication.exit(app, () -> 0);
+          System.exit(0);
+        } else {
+          logger.info("Finished mappings, exit 0");
+          System.exit(0);
+        }
       }
       if (cmd.hasOption('d')) {
         if (cmd.getOptionValue("t").equals("ncim")) {
@@ -235,19 +243,23 @@ public class LoaderServiceImpl {
           "ERROR");
 
       // If app is null, initialization failed immediately, return nonzero code
-      if (app == null) {
+      if (app != null && app.isRunning()) {
+        logger.info("Finished (app running), exit 1");
+        SpringApplication.exit(app, () -> 1);
         System.exit(1);
       } else {
-        SpringApplication.exit(app, () -> 1);
-        app.close();
+        logger.info("Finished, exit 1");
+        System.exit(1);
       }
     }
 
-    if (app == null) {
+    if (app != null && app.isRunning()) {
+      logger.info("Finished (app running), exit 0");
+      SpringApplication.exit(app, () -> 0);
       System.exit(0);
     } else {
-      SpringApplication.exit(app, () -> 0);
-      app.close();
+      logger.info("Finished, exit 0");
+      System.exit(0);
     }
   }
 

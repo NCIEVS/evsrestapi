@@ -74,6 +74,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     final String[] mappingDataList = mappingData.split("\n");
 
     if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
+      // Support for ICD10-MDR mappings and similar
       if (mappingDataList[0].split("\t").length > 2) {
         for (final String conceptMap :
             Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
@@ -105,7 +106,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           conceptToAdd.setTargetTerminologyVersion(conceptSplit[11].replace("\"", ""));
           maps.add(conceptToAdd);
         }
-      } else if (mappingDataList[0].split("\t").length == 2) {
+      }
+      // Support for NCIT-HGNC maps and others regularly updated by NCI
+      else if (mappingDataList[0].split("\t").length == 2) {
         for (final String conceptMap :
             Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
           final String[] conceptSplit = conceptMap.split("\t");
@@ -154,7 +157,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           maps.add(conceptToAdd);
         }
       } else {
-        logger.info("" + mappingDataList[0].split("\t"));
+        logger.info("  line = " + Arrays.asList(mappingDataList[0].split("\t")).toString());
         throw new Exception(
             "Missing data in metadata for " + metadata[0] + " line: " + mappingDataList[0]);
       }
@@ -324,6 +327,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         logger.info("  Update mapset to version = " + code + " " + version);
         // No need to delete from MAPSET_INDEX because the index call below
         // will just replace/update the mapset to the new version
+        logger.info("    delete old version maps");
         operationsService.deleteQuery(
             "mapsetCode:" + code, OpensearchOperationsService.MAPPINGS_INDEX);
       } else {
@@ -343,7 +347,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       map.getProperties().add(new Property("loader", "MappingLoadServiceImpl"));
 
       // Get the welcome text
-      if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) { // welcome
+      if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
 
         try (final InputStream is =
             new URL(uri + "/" + metadata[3]).openConnection().getInputStream()) {

@@ -1,5 +1,34 @@
 package gov.nih.nci.evs.api.fhir.R5;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
+import org.hl7.fhir.r5.model.BooleanType;
+import org.hl7.fhir.r5.model.Bundle;
+import org.hl7.fhir.r5.model.CodeType;
+import org.hl7.fhir.r5.model.Coding;
+import org.hl7.fhir.r5.model.IdType;
+import org.hl7.fhir.r5.model.IntegerType;
+import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r5.model.Parameters;
+import org.hl7.fhir.r5.model.StringType;
+import org.hl7.fhir.r5.model.UriType;
+import org.hl7.fhir.r5.model.ValueSet;
+import org.hl7.fhir.r5.model.ValueSet.ConceptPropertyComponent;
+import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
+import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionContainsComponent;
+import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionParameterComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.IdParam;
@@ -27,33 +56,6 @@ import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
-import org.hl7.fhir.r5.model.BooleanType;
-import org.hl7.fhir.r5.model.Bundle;
-import org.hl7.fhir.r5.model.CodeType;
-import org.hl7.fhir.r5.model.Coding;
-import org.hl7.fhir.r5.model.IdType;
-import org.hl7.fhir.r5.model.IntegerType;
-import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r5.model.Parameters;
-import org.hl7.fhir.r5.model.StringType;
-import org.hl7.fhir.r5.model.UriType;
-import org.hl7.fhir.r5.model.ValueSet;
-import org.hl7.fhir.r5.model.ValueSet.ConceptPropertyComponent;
-import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
-import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionContainsComponent;
-import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionParameterComponent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /** FHIR R5 ValueSet provider. */
 @Component
@@ -204,6 +206,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param filter the text filter applied to the restrict codes that are returned.
    * @param offset the offset for the records.
    * @param count the count for how many codes should be returned in partial page view.
+   * @param includeDesignations the include designations
+   * @param includeDefinition the include definition
    * @param activeOnly controls whether the inactive concepts are include/excluded in the expansion.
    * @param properties the properties
    * @return the value set
@@ -413,6 +417,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param filter the text filter applied to the restrict codes that are returned.
    * @param offset the offset for the records.
    * @param count the count for how many codes should be returned in partial page view.
+   * @param includeDesignations the include designations
+   * @param includeDefinition the include definition
    * @param activeOnly controls whether the inactive concepts are include/excluded in the expansion.
    * @param properties the properties
    * @return the value set
@@ -649,6 +655,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param system the system for the code that is to be validated.
    * @param systemVersion the version of the system, if one was provided.
    * @param display the display associated with the code. If provided, a code must be provided.
+   * @param coding the coding
    * @return the parameters
    * @throws Exception the exception
    */
@@ -782,6 +789,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param system the system for the code that is to be validated.
    * @param systemVersion the version of the system, if one was provided.
    * @param display the display associated with the code. If provided, a code must be provided.
+   * @param coding the coding
    * @return the parameters
    * @throws Exception the exception
    */
