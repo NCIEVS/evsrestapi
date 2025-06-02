@@ -329,15 +329,15 @@ download_and_unpack() {
         #url="https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/cumulative_history_$ver.zip"
         echo "    url = $url"
         
-        curl -w "\n%{http_code}" -s -o cumulative_history_$ver.zip "$url" > /tmp/x.$$ 
+        http_status=$(curl -w "%{http_code}" -s -o "cumulative_history_$ver.zip" "$url")
         if [[ $? -ne 0 ]]; then
             echo "ERROR: problem downloading NCIt history (trying again $i)"
-        elif [[ $(tail -1 /tmp/x.$$) -eq 404 ]]; then
+        elif [[ "$http_status" -eq 404 ]]; then
             echo "ERROR: url does not exist, bail out"
             break
         else
             echo "  Unpack NCIt history"
-            unzip cumulative_history_$ver.zip > /tmp/x.$$ 2>&1
+            unzip "cumulative_history_$ver.zip" > /tmp/x.$$ 2>&1
             if [[ $? -ne 0 ]]; then
                 cat /tmp/x.$$
                 echo "ERROR: problem unpacking cumulative_history_$ver.zip"
