@@ -409,7 +409,7 @@ public class FhirR4CodeSystemSubsumesTests {
     String activeCodeB = "271860004";
     Coding codingA = new Coding(url, activeCodeA, null);
 
-    String messageNotSupported = "Use one of 'codingA' or 'codeA' parameters.";
+    //    String messageNotSupported = "Use one of 'codingA' or 'codeA' parameters.";
     String errorCode = "invariant";
 
     UriComponentsBuilder builder =

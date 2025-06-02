@@ -1,5 +1,14 @@
 package gov.nih.nci.evs.api.util;
 
+import gov.nih.nci.evs.api.model.Axiom;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.Qualifier;
+import gov.nih.nci.evs.api.model.Synonym;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.sparql.Bindings;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
@@ -11,26 +20,16 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import gov.nih.nci.evs.api.model.Axiom;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Definition;
-import gov.nih.nci.evs.api.model.Mapping;
-import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.model.Qualifier;
-import gov.nih.nci.evs.api.model.Synonym;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.sparql.Bindings;
-
 /** Utilities for handling EVS stuff. */
 public class EVSUtils {
 
   /** The Constant log. */
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(EVSUtils.class);
 
   /**
