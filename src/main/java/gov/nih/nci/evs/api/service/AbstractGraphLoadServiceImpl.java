@@ -23,6 +23,7 @@ import gov.nih.nci.evs.api.util.MainTypeHierarchy;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
@@ -956,7 +957,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
 
     List<Map<String, String>> conceptHistory = historyMap.get(concept.getCode());
 
-    if (conceptHistory == null) {
+    if (conceptHistory == null || conceptHistory.isEmpty()) {
       return;
     }
 
@@ -1002,15 +1003,32 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     if (!terminology.getTerminology().equals("ncit")) {
       return new HashMap<>();
     }
-
+    if (filepath == null || filepath.isEmpty()) {
+      logger.warn("File path is null or empty, returning empty history map.");
+      Audit.addAudit(
+          operationsService,
+          "FilePathException",
+          "updateHistoryMap",
+          terminology.getTerminology(),
+          "File path is null or empty.",
+          "WARN");
+      return new HashMap<>();
+    }
     Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
-
     try (BufferedReader reader =
         new BufferedReader(new InputStreamReader(new FileInputStream(filepath), "UTF-8")); ) {
-
       String line = null;
-
       historyMap = processHistoryMap(line, reader);
+    } catch (IOException e) {
+      logger.error("Error reading history file: " + filepath, e);
+      Audit.addAudit(
+          operationsService,
+          "IOException",
+          "updateHistoryMap",
+          terminology.getTerminology(),
+          "Error reading history file: " + filepath,
+          "ERROR");
+      throw new Exception("Error reading history file: " + filepath, e);
     }
     String historyVersion = filepath.split("cumulative_history_")[1].split("\\.txt")[0];
     terminology.getMetadata().setHistoryVersion(historyVersion);
@@ -1085,6 +1103,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     // already been processed
     // or in cases where the cumulative history for this version is unable to be found
     if (!terminology.getTerminology().equals("ncit")
+        || historyMap == null
         || historyMap.size() == 0
         || newHistoryVersion.equals(terminology.getVersion())
         || terminology.getMetadata().getHistoryVersion().equals(terminology.getVersion())) {
