@@ -460,7 +460,6 @@ for x in `cat /tmp/y.$$.txt`; do
 
     # Set up environment
     export GRAPH_DB=$db
-    export EVS_SERVER_PORT="8083"
     
     if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
         echo "    FOUND indexes for $term $version"
@@ -474,7 +473,6 @@ for x in `cat /tmp/y.$$.txt`; do
         # It checks against graph db and reconciles everything and updates latest flags
         # regardless of whether there was new data
         echo "    RECONCILE $term stale indexes and update flags"
-        export EVS_SERVER_PORT="8083"
         echo "java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata > /tmp/x.$$.log 2>&1"
         pwd
         java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata > /tmp/x.$$.log 2>&1 
@@ -558,7 +556,6 @@ for x in `cat /tmp/y.$$.txt`; do
 done
 
 # Reconcile mappings after loading terminologies
-export EVS_SERVER_PORT="8083"
 echo "    Generate mapping indexes"
 echo "      java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology mapping"
 java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
