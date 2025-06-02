@@ -371,12 +371,20 @@ process_ncit() {
   if [[ $success -eq 0 ]]; then
       echo "    Initial version $version failed. Fetching latest version from API..."
 
+      # get server port for local vs deployed environment
+      serverPort=${EVS_SERVER_PORT:-8080}
+      if [[ $config -eq 0 ]]; then
+          local="-Dspring.profiles.active=local"
+          jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
+          serverPort=${EVS_SERVER_PORT:-8082}
+      fi
+
       # This script runs on the same server as the API
       response=$(curl -s -X 'GET' \
-        'http://localhost:8082/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit' \
+        "http://localhost:${serverPort}/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit" \
         -H 'accept: application/json')
       if [[ $? -ne 0 ]]; then
-          echo "ERROR: Failed to get latest terminology from http://localhost:8082/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
+          echo "ERROR: Failed to get latest terminology from http://localhost:${serverPort}/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
           cd - > /dev/null 2> /dev/null
           return 1
       fi
