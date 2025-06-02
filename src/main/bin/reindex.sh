@@ -372,11 +372,11 @@ process_ncit() {
       echo "    Initial version $version failed. Fetching latest version from API..."
 
       # get server port for local vs deployed environment
-      serverPort=${EVS_SERVER_PORT:-8080}
+      serverPort=8080
       if [[ $config -eq 0 ]]; then
           local="-Dspring.profiles.active=local"
           jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
-          serverPort=${EVS_SERVER_PORT:-8082}
+          serverPort=8082
       fi
 
       # This script runs on the same server as the API
