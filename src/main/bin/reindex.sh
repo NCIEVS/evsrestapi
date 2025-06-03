@@ -389,7 +389,7 @@ process_ncit() {
           return 1
       fi
             
-      prev_version=$(echo "$response" | $jq | grep '"version"' | perl -pe 's/",$//; s/.*"//; ')
+      prev_version=$(echo "$response" | jq | grep '"version"' | perl -pe 's/",$//; s/.*"//; ')
       if [[ -z "$prev_version" ]]; then
           echo "  Unable to find a previous monthly version of ncit"
   # done looking
