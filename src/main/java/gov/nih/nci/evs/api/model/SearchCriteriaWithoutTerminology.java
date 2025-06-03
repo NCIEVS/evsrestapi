@@ -1,17 +1,20 @@
 package gov.nih.nci.evs.api.model;
 
-import gov.nih.nci.evs.api.service.MetadataService;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
-import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.server.ResponseStatusException;
+
+import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 /** Search criteria object for /concept/search implementation without a terminology field. */
 @Schema(description = "Criteria for a search or find operation (except for a terminology aspect)")

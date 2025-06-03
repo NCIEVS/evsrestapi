@@ -3513,12 +3513,7 @@ public class SearchControllerTests {
 
     log.info("Testing url - " + url + "?type=contains&include=minimal");
     result =
-        mvc.perform(
-                MockMvcRequestBuilders.post(url)
-                    .content(query)
-                    .contentType("text/plain")
-                    .param("include", "minimal")
-                    .param("type", "contains"))
+        mvc.perform(MockMvcRequestBuilders.post(url).contentType("text/plain").content(query))
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
