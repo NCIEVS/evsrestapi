@@ -388,8 +388,16 @@ process_ncit() {
           cd - > /dev/null 2> /dev/null
           return 1
       fi
+      echo "  Response from API: $response"
+
+      if ! command -v jq &> /dev/null; then
+          echo "jq is not installed, using grep and perl as fallback"
+          prev_version=$(echo "$response" | grep '"version"' | perl -pe 's/.*"version":"//; s/".*//; ')
+      else
+          prev_version=$(echo "$response" | jq -r '.[] | .version')
+      fi
+      echo "  Previous monthly version of ncit: $prev_version"
             
-      prev_version=$(echo "$response" | jq | grep '"version"' | perl -pe 's/",$//; s/.*"//; ')
       if [[ -z "$prev_version" ]]; then
           echo "  Unable to find a previous monthly version of ncit"
   # done looking
