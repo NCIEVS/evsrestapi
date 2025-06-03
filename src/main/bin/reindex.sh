@@ -332,8 +332,8 @@ download_and_unpack() {
         http_status=$(curl -w "%{http_code}" -s -o "cumulative_history_$ver.zip" "$url")
         if [[ $? -ne 0 ]]; then
             echo "ERROR: problem downloading NCIt history (trying again $i)"
-        elif [[ "$http_status" -eq 404 ]]; then
-            echo "ERROR: url does not exist, bail out"
+        elif [[ "$http_status" =~ ^4 ]]; then
+            echo "ERROR: File unavailable, HTTP status $http_status"
             break
         else
             echo "  Unpack NCIt history"
