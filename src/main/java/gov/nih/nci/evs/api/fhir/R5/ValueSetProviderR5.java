@@ -204,6 +204,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param filter the text filter applied to the restrict codes that are returned.
    * @param offset the offset for the records.
    * @param count the count for how many codes should be returned in partial page view.
+   * @param includeDesignations the include designations
+   * @param includeDefinition the include definition
    * @param activeOnly controls whether the inactive concepts are include/excluded in the expansion.
    * @param properties the properties
    * @return the value set
@@ -336,7 +338,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         sc.setTerminology(
             terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
         // Add property names to search criteria if indicated
-        if (includeList != null && includeList.size() > 1) {
+        if (includeList.size() > 1) {
           sc.setInclude(String.join(",", includeList));
         }
         subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();
@@ -413,6 +415,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param filter the text filter applied to the restrict codes that are returned.
    * @param offset the offset for the records.
    * @param count the count for how many codes should be returned in partial page view.
+   * @param includeDesignations the include designations
+   * @param includeDefinition the include definition
    * @param activeOnly controls whether the inactive concepts are include/excluded in the expansion.
    * @param properties the properties
    * @return the value set
@@ -649,6 +653,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param system the system for the code that is to be validated.
    * @param systemVersion the version of the system, if one was provided.
    * @param display the display associated with the code. If provided, a code must be provided.
+   * @param coding the coding
    * @return the parameters
    * @throws Exception the exception
    */
@@ -782,6 +787,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param system the system for the code that is to be validated.
    * @param systemVersion the version of the system, if one was provided.
    * @param display the display associated with the code. If provided, a code must be provided.
+   * @param coding the coding
    * @return the parameters
    * @throws Exception the exception
    */
