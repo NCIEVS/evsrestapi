@@ -2625,7 +2625,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    *
    * @return the ignore source urls
    */
-  private List<String> getIgnoreSourceUrls() {
+  private List<String> getIgnoreSourceUrls() throws Exception {
     final String uri = applicationProperties.getConfigBaseUri() + "/ignore-source.txt";
     if (StringUtils.isNotBlank(uri)) {
       log.info("Ignore source file URL:{}", uri);

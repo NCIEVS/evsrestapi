@@ -220,7 +220,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         sc.setType("contains");
         sc.setTerminology(
             terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
-        if (includeList != null && includeList.size() >= 1) {
+        if (includeList.size() >= 1) {
           sc.setInclude(String.join(",", includeList));
         }
         subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();
@@ -416,7 +416,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         sc.setType("contains");
         sc.setTerminology(
             terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
-        if (includeList != null && includeList.size() >= 1) {
+        if (includeList.size() >= 1) {
           sc.setInclude(String.join(",", includeList));
         }
         subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();

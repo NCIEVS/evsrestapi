@@ -10,11 +10,9 @@ import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
@@ -31,6 +29,7 @@ import org.slf4j.LoggerFactory;
 public class EVSUtils {
 
   /** The Constant log. */
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(EVSUtils.class);
 
   /**
@@ -539,7 +538,7 @@ public class EVSUtils {
    * @return the value from file
    * @info the info needing to be read (mostly for error message specificity)
    */
-  public static List<String> getValueFromFile(String uri, String info) {
+  public static List<String> getValueFromFile(String uri, String info) throws Exception {
     try {
       try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
         return IOUtils.readLines(is, "UTF-8");
@@ -549,11 +548,9 @@ public class EVSUtils {
         // Try to open URI as a file
         final File file = new File(uri);
         return FileUtils.readLines(file, "UTF-8");
-      } catch (final IOException e) {
-        // Log and move on if both URL and file reading fail
-        log.warn("Error occurred when getting {} from configBaseUri", info);
+      } catch (Exception e2) {
+        throw new Exception("Unable to get data from = " + uri);
       }
     }
-    return Collections.emptyList();
   }
 }
