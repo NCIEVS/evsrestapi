@@ -473,10 +473,10 @@ for x in `cat /tmp/y.$$.txt`; do
     if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
         echo "    FOUND indexes for $term $version"
         
-        if [[ $term == $pt ]]; then
-            echo "    SKIP RECONCILE $term stale indexes and update flags"
-            continue
-        fi
+        #if [[ $term == $pt ]]; then
+        #    echo "    SKIP RECONCILE $term stale indexes and update flags"
+        #    continue
+        #fi
         
         # Stale indexes are automatically cleaned up by the indexing process
         # It checks against graph db and reconciles everything and updates latest flags
