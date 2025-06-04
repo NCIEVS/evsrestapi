@@ -1098,6 +1098,13 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       String newHistoryVersion)
       throws Exception {
 
+    logger.info(
+      "Updating history for terminology: {}, version: {}, new history version: {}",
+      terminology.getTerminology(),
+      terminology.getVersion(),
+      newHistoryVersion);
+    logger.info("Terminology history version should be {}", terminology.getMetadata().getHistoryVersion());
+
     // Update history for "ncit" monthly when it gets revisitied to double check latest versions
     // Skip this for other terminologies, for cases where an updated cumulative history file has
     // already been processed
