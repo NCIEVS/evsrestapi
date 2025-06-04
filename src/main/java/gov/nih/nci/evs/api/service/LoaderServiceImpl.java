@@ -135,6 +135,7 @@ public class LoaderServiceImpl {
   @SuppressWarnings("resource")
   public static void main(String[] args) throws Exception {
     Options options = prepareOptions();
+    logger.info("Command line options: {}", options);
     CommandLine cmd;
     try {
       cmd = new DefaultParser().parse(options, args);
@@ -207,6 +208,7 @@ public class LoaderServiceImpl {
           loadService.updateHistoryMap(term, config.getLocation());
       int totalConcepts = 0;
       if (!cmd.hasOption("xl")) {
+        logger.info("Loading terminology: {}", term.getTerminology());
         if (!cmd.hasOption("xc")) {
           totalConcepts = loadService.loadConcepts(config, term, hierarchy, historyMap);
           loadService.checkLoadStatus(totalConcepts, term);
@@ -217,6 +219,8 @@ public class LoaderServiceImpl {
           loadService.loadIndexMetadata(totalConcepts, term);
         }
         // reload history if the new version if ready and there's a valid history map
+        logger.info("Updating history for terminology: {}, from file {}", term.getTerminology(), 
+            config.getLocation());
         loadService.updateHistory(term, historyMap, config.getLocation());
       }
       final Set<String> removed = loadService.cleanStaleIndexes(term);
