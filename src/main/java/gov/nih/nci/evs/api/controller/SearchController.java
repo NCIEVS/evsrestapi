@@ -861,18 +861,16 @@ public class SearchController extends BaseController {
   })
   @RecordMetric
   @PostMapping(
-      value = "/concept/{terminology}/search",
+      value = "/concept/ncit/search",
       consumes = "text/plain",
       produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminologySparql(
-      @PathVariable(value = "terminology") final String terminology,
       @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
       BindingResult bindingResult,
-      @RequestParam(required = false, name = "prefixes") final Boolean prefixes,
       @RequestBody final String query,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws ResponseStatusException, Exception {
-
+    final String terminology = "ncit";
     final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService);
     String res = null;
 
@@ -890,7 +888,7 @@ public class SearchController extends BaseController {
     final ObjectMapper mapper = new ObjectMapper();
     try {
 
-      final String sparqlQuery = queryBuilderService.prepSparql(term, query, prefixes);
+      final String sparqlQuery = queryBuilderService.prepSparql(term, query, null);
       // The following messages up "total" - so we need to either find it another way from
       // the sparql response OR we need to not limit this but do so with paging.
       //      sparqlQuery += " LIMIT 1000";
