@@ -144,7 +144,6 @@ public class LoaderServiceImpl {
           e.getMessage());
       return;
     }
-    logger.info("Command line options: {}", cmd.getArgs().toString());
 
     if (cmd.hasOption('h')) {
       printHelp(options);
