@@ -144,7 +144,7 @@ public class LoaderServiceImpl {
           e.getMessage());
       return;
     }
-    logger.info("Command line options: {}", cmd);
+    logger.info("Command line options: {}", cmd.getArgs().toString());
 
     if (cmd.hasOption('h')) {
       printHelp(options);
@@ -203,7 +203,6 @@ public class LoaderServiceImpl {
               config.isForceDeleteIndex());
       termAudit.setTerminology(term.getTerminology());
       termAudit.setVersion(term.getVersion());
-      logger.info("Terminology info: {}", term);
       final HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
       final Map<String, List<Map<String, String>>> historyMap =
           loadService.updateHistoryMap(term, config.getLocation());
