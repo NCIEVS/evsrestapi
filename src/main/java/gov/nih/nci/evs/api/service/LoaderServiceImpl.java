@@ -222,7 +222,9 @@ public class LoaderServiceImpl {
             "Updating history for terminology: {}, from file {}",
             term.getTerminology(),
             config.getLocation());
-        loadService.updateHistory(term, historyMap, config.getLocation());
+        String newHistoryVersion =
+            config.getLocation().split("cumulative_history_")[1].split("\\.txt")[0];
+        loadService.updateHistory(term, historyMap, newHistoryVersion);
       }
       final Set<String> removed = loadService.cleanStaleIndexes(term);
       loadService.updateLatestFlag(term, removed);

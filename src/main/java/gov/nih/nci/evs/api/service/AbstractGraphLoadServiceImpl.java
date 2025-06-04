@@ -1033,8 +1033,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
           "ERROR");
       throw new Exception("Error reading history file: " + filepath, e);
     }
-    String historyVersion = filepath.split("cumulative_history_")[1].split("\\.txt")[0];
-    terminology.getMetadata().setHistoryVersion(historyVersion);
     return historyMap;
   }
 
@@ -1116,7 +1114,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     if (!terminology.getTerminology().equals("ncit")
         || historyMap == null
         || historyMap.size() == 0
-        || newHistoryVersion.equals(terminology.getVersion())
         || terminology.getMetadata().getHistoryVersion().equals(terminology.getVersion())) {
       return;
     }
@@ -1144,6 +1141,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       operationsService.index(concept, terminology.getIndexName(), Concept.class);
     }
     terminology.getMetadata().setHistoryVersion(newHistoryVersion);
+    operationsService.index(
+        terminology, OpensearchOperationsService.METADATA_INDEX, Terminology.class);
   }
 
   public Date parseVersion(String version) {
