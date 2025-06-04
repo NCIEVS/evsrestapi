@@ -1120,18 +1120,16 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     // Skip this for other terminologies, for cases where an updated cumulative history file has
     // already been processed
     // or in cases where the cumulative history for this version is unable to be found
+    logger.info("History Map Size: {}", historyMap != null ? historyMap.size() : 0);
     if (!terminology.getTerminology().equals("ncit")
         || historyMap == null
         || historyMap.size() == 0
         || terminology.getVersion().equals(terminology.getMetadata().getHistoryVersion())) {
       return;
     }
-    if (terminology.getMetadata().getHistoryVersion() == null
-        || terminology.getMetadata().getHistoryVersion().isEmpty()) {
-      return;
-    }
 
     Date startOfUpdateScope = parseVersion(terminology.getVersion());
+    logger.info("Start of update scope: {}", startOfUpdateScope);
     Map<String, List<Map<String, String>>> historyMapUpdate = new HashMap<>();
     SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy");
 
@@ -1139,6 +1137,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     for (final String code : historyMap.keySet()) {
       for (final Map<String, String> map : historyMap.get(code)) {
         if (sdf.parse(map.get("date")).after(startOfUpdateScope)) {
+          logger.info(
+              "Code {} has update to history on {}",
+              code,
+              map.get("date"));
           // If the date is within the scope, add it to historyMapUpdate and break off
           historyMapUpdate.put(code, historyMap.get(code));
           break;
