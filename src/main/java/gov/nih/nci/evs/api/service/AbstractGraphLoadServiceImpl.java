@@ -1000,6 +1000,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   public Map<String, List<Map<String, String>>> updateHistoryMap(
       final Terminology terminology, final String filepath) throws Exception {
 
+    logger.info("Current History Version: {}", terminology.getMetadata().getHistoryVersion());
+    logger.info("New History File Path: {}", filepath);
+
     if (!terminology.getTerminology().equals("ncit")) {
       return new HashMap<>();
     }

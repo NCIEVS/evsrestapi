@@ -469,6 +469,12 @@ for x in `cat /tmp/y.$$.txt`; do
     # Set up environment
     export GRAPH_DB=$db
     export EVS_SERVER_PORT="8083"
+
+    # Set the history clause for "ncit"
+    historyClause=""
+    if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
+      historyClause=" -history $historyFile"
+    fi
     
     if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
         echo "    FOUND indexes for $term $version"
@@ -509,13 +515,6 @@ for x in `cat /tmp/y.$$.txt`; do
 
         # Run reindexing process (choose a port other than the one that it runs on)
         echo "    Generate indexes for $GRAPH_DB ${term} $version"
-        
-        # Set the history clause for "ncit"
-        historyClause=""
-        if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
-        	historyClause=" -history $historyFile"
-        fi
-
         echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
         java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
         if [[ $? -ne 0 ]]; then
