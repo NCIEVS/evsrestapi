@@ -219,7 +219,9 @@ public class LoaderServiceImpl {
           loadService.loadIndexMetadata(totalConcepts, term);
         }
         // reload history if the new version if ready and there's a valid history map
-        logger.info("Updating history for terminology: {}, from file {}", term.getTerminology(), 
+        logger.info(
+            "Updating history for terminology: {}, from file {}",
+            term.getTerminology(),
             config.getLocation());
         loadService.updateHistory(term, historyMap, config.getLocation());
       }
