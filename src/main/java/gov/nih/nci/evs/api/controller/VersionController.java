@@ -24,6 +24,9 @@ public class VersionController extends BaseController {
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(VersionController.class);
 
+  // Used for FHIR metadata and other places where the version is needed
+  public static final String VERSION = "2.2.0.RELEASE";
+
   /**
    * Returns the evs concept detail.
    *
@@ -60,7 +63,7 @@ public class VersionController extends BaseController {
             + "To learn more about how to interact with this api, see the  "
             + "<a href='https://github.com/NCIEVS/evsrestapi-client-SDK' "
             + "target='_blank'>Github evsrestapi-client-SDK project</a>.<br/><br/>");
-    homePageData.setVersion("2.2.0.RELEASE");
+    homePageData.setVersion(VERSION);
     return homePageData;
   }
 }
