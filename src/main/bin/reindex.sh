@@ -489,8 +489,8 @@ for x in `cat /tmp/y.$$.txt`; do
         # regardless of whether there was new data
         echo "    RECONCILE $term stale indexes and update flags"
         export EVS_SERVER_PORT="8083"
-        echo "java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata"
-        java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata
+        echo "java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata $historyClause"
+        java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata $historyClause
         if [[ $? -ne 0 ]]; then
             cat /tmp/x.$$.log | sed 's/^/    /'
             echo "ERROR: unexpected error building indexes"
