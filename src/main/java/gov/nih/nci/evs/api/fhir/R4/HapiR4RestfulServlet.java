@@ -1,8 +1,6 @@
 package gov.nih.nci.evs.api.fhir.R4;
 
 import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.parser.LenientErrorHandler;
-import ca.uhn.fhir.parser.StrictErrorHandler;
 import ca.uhn.fhir.rest.api.EncodingEnum;
 import ca.uhn.fhir.rest.server.RestfulServer;
 import jakarta.servlet.ServletException;
@@ -26,52 +24,28 @@ public class HapiR4RestfulServlet extends RestfulServer {
    */
   @Override
   protected void initialize() throws ServletException {
-
     setDefaultResponseEncoding(EncodingEnum.JSON);
 
+    // setServerAddressStrategy(new
+    // HardcodedServerAddressStrategy("http://localhost:8082/fhir/R4"));
+
     final FhirContext fhirContext = FhirContext.forR4();
-    final LenientErrorHandler delegateHandler = new LenientErrorHandler();
-    fhirContext.setParserErrorHandler(
-        new StrictErrorHandler() {
 
-          /* see superclass */
-          @Override
-          public void unknownAttribute(
-              final IParseLocation theLocation, final String theAttributeName) {
-            delegateHandler.unknownAttribute(theLocation, theAttributeName);
-          }
-
-          /* see superclass */
-          @Override
-          public void unknownElement(
-              final IParseLocation theLocation, final String theElementName) {
-            delegateHandler.unknownElement(theLocation, theElementName);
-          }
-
-          /* see superclass */
-          @Override
-          public void unknownReference(
-              final IParseLocation theLocation, final String theReference) {
-            delegateHandler.unknownReference(theLocation, theReference);
-          }
-        });
     setFhirContext(fhirContext);
 
-    /*
-     * The servlet defines any number of resource providers, and configures itself to use them by
-     * calling setResourceProviders()
-     */
+    // Get Spring application context
     final WebApplicationContext applicationContext =
         WebApplicationContextUtils.getWebApplicationContext(this.getServletContext());
+    assert applicationContext != null;
 
+    // Set resource providers using Spring beans
     setResourceProviders(
         applicationContext.getBean(CodeSystemProviderR4.class),
         applicationContext.getBean(ValueSetProviderR4.class),
         applicationContext.getBean(ConceptMapProviderR4.class));
 
-    setServerConformanceProvider(new FHIRTerminologyCapabilitiesProviderR4(this));
+    setServerConformanceProvider(new FhirMetadataProviderR4(this));
 
-    // Register interceptors
     registerInterceptor(new OpenApiInterceptorR4());
 
     logger.debug("FHIR Resource providers and interceptors registered");
