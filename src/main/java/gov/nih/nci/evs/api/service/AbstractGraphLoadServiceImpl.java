@@ -1146,8 +1146,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       operationsService.index(concept, terminology.getIndexName(), Concept.class);
     }
     terminology.getMetadata().setHistoryVersion(newHistoryVersion);
-    operationsService.index(
-        terminology, OpensearchOperationsService.METADATA_INDEX, Terminology.class);
   }
 
   public Date parseVersion(String version) {
