@@ -331,7 +331,7 @@ public class SearchController extends BaseController {
       BindingResult bindingResult,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
-    final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService);
+    final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService, true);
     termUtils.checkLicense(term, license);
     return search(new SearchCriteria(searchCriteria, terminology), bindingResult, license);
   }
@@ -601,7 +601,7 @@ public class SearchController extends BaseController {
     try {
       final List<Terminology> terminologies = new ArrayList<>();
       for (String terminology : searchCriteria.getTerminology()) {
-        final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService);
+        final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService, true);
         termUtils.checkLicense(term, license);
         searchCriteria.validate(term, metadataService);
         terminologies.add(term);
@@ -872,7 +872,7 @@ public class SearchController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws ResponseStatusException, Exception {
 
-    final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService);
+    final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService, true);
     String res = null;
 
     if (query == null || query.isEmpty()) {
@@ -1060,7 +1060,7 @@ public class SearchController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService, true);
       if (term.getSource() == null) {
         throw new ResponseStatusException(
             HttpStatus.EXPECTATION_FAILED,
@@ -1164,7 +1164,7 @@ public class SearchController extends BaseController {
       @PathVariable(value = "terminology") final String terminology) throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService, true);
       if (term.getSource() == null) {
         throw new ResponseStatusException(
             HttpStatus.EXPECTATION_FAILED,

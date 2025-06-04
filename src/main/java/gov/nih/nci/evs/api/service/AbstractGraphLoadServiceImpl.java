@@ -837,6 +837,15 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       boolean forceDelete)
       throws Exception {
     TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
+
+    // first check to see if this terminology already exists and if so return it
+    final Terminology indexedTerm =
+        termUtils.getIndexedTerminology(terminology, opensearchQueryService, false);
+    if (indexedTerm != null) {
+      return indexedTerm;
+    }
+
+    // otherwise, build it
     final Terminology term =
         termUtils.getTerminology(config.getTerminology(), sparqlQueryManagerService);
 
