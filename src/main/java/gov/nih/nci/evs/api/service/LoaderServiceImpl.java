@@ -135,7 +135,6 @@ public class LoaderServiceImpl {
   @SuppressWarnings("resource")
   public static void main(String[] args) throws Exception {
     Options options = prepareOptions();
-    logger.info("Command line options: {}", options);
     CommandLine cmd;
     try {
       cmd = new DefaultParser().parse(options, args);
@@ -145,6 +144,7 @@ public class LoaderServiceImpl {
           e.getMessage());
       return;
     }
+    logger.info("Command line options: {}", cmd);
 
     if (cmd.hasOption('h')) {
       printHelp(options);
@@ -203,6 +203,7 @@ public class LoaderServiceImpl {
               config.isForceDeleteIndex());
       termAudit.setTerminology(term.getTerminology());
       termAudit.setVersion(term.getVersion());
+      logger.info("Terminology info: {}", term);
       final HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
       final Map<String, List<Map<String, String>>> historyMap =
           loadService.updateHistoryMap(term, config.getLocation());
