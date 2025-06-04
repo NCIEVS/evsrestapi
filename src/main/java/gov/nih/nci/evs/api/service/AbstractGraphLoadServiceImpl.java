@@ -1108,19 +1108,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       String newHistoryVersion)
       throws Exception {
 
-    logger.info(
-        "Updating history for terminology: {}, version: {}, new history version: {}",
-        terminology.getTerminology(),
-        terminology.getVersion(),
-        newHistoryVersion);
-    logger.info(
-        "Terminology history version is currently {}", terminology.getMetadata().getHistoryVersion());
-
     // Update history for "ncit" monthly when it gets revisitied to double check latest versions
     // Skip this for other terminologies, for cases where an updated cumulative history file has
     // already been processed
     // or in cases where the cumulative history for this version is unable to be found
-    logger.info("History Map Size: {}", historyMap != null ? historyMap.size() : 0);
     if (!terminology.getTerminology().equals("ncit")
         || historyMap == null
         || historyMap.size() == 0
@@ -1128,8 +1119,16 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       return;
     }
 
+    logger.info(
+        "Updating history for terminology: {}, version: {}, new history version: {}",
+        terminology.getTerminology(),
+        terminology.getVersion(),
+        newHistoryVersion);
+    logger.info(
+        "Terminology history version is currently {}",
+        terminology.getMetadata().getHistoryVersion());
+
     Date startOfUpdateScope = parseVersion(newHistoryVersion);
-    logger.info("Start of update scope: {}", startOfUpdateScope);
     Map<String, List<Map<String, String>>> historyMapUpdate = new HashMap<>();
     SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy");
 
@@ -1137,10 +1136,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     for (final String code : historyMap.keySet()) {
       for (final Map<String, String> map : historyMap.get(code)) {
         if (sdf.parse(map.get("date")).after(startOfUpdateScope)) {
-          logger.info(
-              "Code {} has update to history on {}",
-              code,
-              map.get("date"));
           // If the date is within the scope, add it to historyMapUpdate and break off
           historyMapUpdate.put(code, historyMap.get(code));
           break;
@@ -1151,6 +1146,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     IncludeParam ip = new IncludeParam("*");
     for (Map.Entry<String, List<Map<String, String>>> entry : historyMapUpdate.entrySet()) {
       Concept concept = opensearchQueryService.getConcept(entry.getKey(), terminology, ip).get();
+      logger.info("Updating history for concept: {}", concept.getCode());
+      logger.info("Updates: {}", entry.getValue());
       handleHistory(terminology, concept, historyMap);
       // index the concept with the history
       operationsService.index(concept, terminology.getIndexName(), Concept.class);
