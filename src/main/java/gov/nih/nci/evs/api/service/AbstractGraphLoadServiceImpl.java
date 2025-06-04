@@ -1124,11 +1124,11 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     if (!terminology.getTerminology().equals("ncit")
         || historyMap == null
         || historyMap.size() == 0
-        || terminology.getVersion().equals(terminology.getMetadata().getHistoryVersion())) {
+        || newHistoryVersion.equals(terminology.getMetadata().getHistoryVersion())) {
       return;
     }
 
-    Date startOfUpdateScope = parseVersion(terminology.getVersion());
+    Date startOfUpdateScope = parseVersion(newHistoryVersion);
     logger.info("Start of update scope: {}", startOfUpdateScope);
     Map<String, List<Map<String, String>>> historyMapUpdate = new HashMap<>();
     SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy");
