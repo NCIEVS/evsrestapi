@@ -1098,6 +1098,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       Map<String, List<Map<String, String>>> historyMap,
       String newHistoryVersion)
       throws Exception {
+    logger.info("Full terminology : {}", terminology);
 
     logger.info(
         "Updating history for terminology: {}, version: {}, new history version: {}",
@@ -1115,6 +1116,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         || historyMap == null
         || historyMap.size() == 0
         || terminology.getVersion().equals(terminology.getMetadata().getHistoryVersion())) {
+      return;
+    }
+    if (terminology.getMetadata().getHistoryVersion() == null
+        || terminology.getMetadata().getHistoryVersion().isEmpty()) {
       return;
     }
 
