@@ -57,9 +57,6 @@ public class SearchControllerTests {
   /** The application properties. */
   @Autowired ApplicationProperties appProperties;
 
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
-
   /** The base url. */
   private String baseUrl = "";
 
@@ -69,22 +66,17 @@ public class SearchControllerTests {
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-    /*
-     * Configure the JacksonTester object
-     */
-    this.objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/concept/search";
     baseUrlNoTerm = "/api/v1/concept";
   }
 
-  @Test
   /**
    * test get trailing slash 404
    *
    * @throws Exception
    */
+  @Test
   public void testGetTrailingSlashSearch() throws Exception {
     String url = baseUrl + "/?terminology=ncit&term=melanoma";
     log.info("Testing url - " + url);
@@ -3624,7 +3616,7 @@ public class SearchControllerTests {
             + "    ?x :P108 ?label .\n"
             + "    FILTER(STRSTARTS(?label, \"Melanoma\"))\n"
             + "  }\n"
-            + "} LIMIT 100";
+            + "} LIMIT 10";
     log.info("Testing url - " + url + "?type=contains&include=minimal&term=Theraccine");
     result =
         mvc.perform(
@@ -3633,16 +3625,22 @@ public class SearchControllerTests {
                     .contentType("text/plain")
                     .param("include", "minimal")
                     .param("type", "contains")
-                    .param("term", "Theraccine"))
+                    .param("term", "Antigen"))
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal()).isGreaterThan(0);
-    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C1830");
-    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Melanoma Theraccine");
-    assertThat(list.getParameters().getCodeList().contains("C1830"));
+    // Verify each one contains the word "melanoma" and also "antigen"
+    assertThat(
+            list.getConcepts().stream()
+                .filter(
+                    c ->
+                        c.getName().toLowerCase().contains("melanoma")
+                            && c.getName().toLowerCase().contains("antigen"))
+                .count())
+        .isEqualTo(list.getTotal());
 
     // check another query with a term
     query =

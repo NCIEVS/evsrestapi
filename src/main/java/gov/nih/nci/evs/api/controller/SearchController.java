@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.apache.jena.query.QueryException;
 import org.slf4j.Logger;
@@ -22,7 +23,6 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -329,7 +329,7 @@ public class SearchController extends BaseController {
   @RecordMetric
   @GetMapping(value = "/concept/{terminology}/search", produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminology(
-      @PathVariable("terminology") final String terminology,
+      @PathVariable(value = "terminology") final String terminology,
       @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
       BindingResult bindingResult,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
@@ -861,18 +861,19 @@ public class SearchController extends BaseController {
     // String.class)
   })
   @RecordMetric
-  @RequestMapping(
+  @PostMapping(
       value = "/concept/{terminology}/search",
       consumes = "text/plain",
-      produces = "application/json",
-      method = RequestMethod.POST)
+      produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminologySparql(
       @PathVariable(value = "terminology") final String terminology,
-      @RequestBody final String query,
+      @RequestParam(required = false, name = "prefixes") final Boolean prefixes,
+      @org.springframework.web.bind.annotation.RequestBody final String query,
       @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
       BindingResult bindingResult,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws ResponseStatusException, Exception {
+
     final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService);
     String res = null;
 
@@ -890,7 +891,7 @@ public class SearchController extends BaseController {
     final ObjectMapper mapper = new ObjectMapper();
     try {
 
-      final String sparqlQuery = queryBuilderService.prepSparql(term, query, null);
+      final String sparqlQuery = queryBuilderService.prepSparql(term, query, prefixes);
       // The following messages up "total" - so we need to either find it another way from
       // the sparql response OR we need to not limit this but do so with paging.
       //      sparqlQuery += " LIMIT 1000";
@@ -955,10 +956,6 @@ public class SearchController extends BaseController {
 
       // Otherwise, continue and perform search
       searchCriteria.setCodeList(codes);
-      if (searchCriteria.getInclude() == null) {
-        searchCriteria.setInclude("minimal");
-      }
-      // Call local REST Method
       final ConceptResultList list =
           search(new SearchCriteria(searchCriteria, terminology), bindingResult, license);
       list.getParameters().setSparql(query);

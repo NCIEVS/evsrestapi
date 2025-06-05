@@ -72,13 +72,7 @@ java {
   toolchain {
     languageVersion = JavaLanguageVersion.of(17)
   }
-  
-  compileJava {
-      options.compilerArgs << "-parameters"
-  }
-  compileTestJava {
-      options.compilerArgs << "-parameters"
-  }  
+ 
 }
 
 dependencies {
