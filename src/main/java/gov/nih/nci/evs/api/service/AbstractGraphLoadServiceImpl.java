@@ -1138,13 +1138,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     // Loop through the historyMap and check if the date is within the update scope
     for (final String code : historyMap.keySet()) {
       for (final Map<String, String> map : historyMap.get(code)) {
-        if (code.equals("C343")) {
-          logger.info("Processing history item for code: {}, map: {}", code, map.get("date"));
-          logger.info(sdf.parse(map.get("date")) + " vs. " + startOfUpdateScope);
-          logger.info(
-              "Is history item date after start of update scope? {}",
-              sdf.parse(map.get("date")).after(startOfUpdateScope));
-        }
         if (sdf.parse(map.get("date")).after(startOfUpdateScope)) {
           // If the date is within the scope, add it to historyMapUpdate and break off
           historyMapUpdate.put(code, historyMap.get(code));
@@ -1154,15 +1147,25 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     }
 
     IncludeParam ip = new IncludeParam("*");
+    Concept concept = new Concept();
     for (Map.Entry<String, List<Map<String, String>>> entry : historyMapUpdate.entrySet()) {
-      Concept concept = opensearchQueryService.getConcept(entry.getKey(), terminology, ip).get();
+      try {
+        // If the concept is not found, skip it
+        concept = opensearchQueryService.getConcept(entry.getKey(), terminology, ip).get();
+      } catch (Exception e) {
+        logger.warn("Could not retrieve concept {}", entry.getKey());
+        continue;
+      }
       logger.info("Updating history for concept: {}", concept.getCode());
-      logger.info("Updates: {}", entry.getValue());
       handleHistory(terminology, concept, historyMap);
       // index the concept with the history
       operationsService.index(concept, terminology.getIndexName(), Concept.class);
     }
     terminology.getMetadata().setHistoryVersion(newHistoryVersion);
+    logger.info(
+        "New history version for {} is now set to {}",
+        terminology.getTerminology(),
+        newHistoryVersion);
     operationsService.index(terminology, terminology.getObjectIndexName(), Terminology.class);
   }
 
