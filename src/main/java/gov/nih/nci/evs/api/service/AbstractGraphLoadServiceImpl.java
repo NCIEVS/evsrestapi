@@ -1137,12 +1137,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       for (final Map<String, String> map : historyMap.get(code)) {
         if (code.equals("C343")) {
           logger.info("Processing history item for code: {}, map: {}", code, map.get("date"));
+          logger.info(sdf.parse(map.get("date")) + " vs. " + startOfUpdateScope);
           logger.info(
-              sdf.parse(newHistoryVersion)
-                  + " vs. "
-                  + sdf.parse(map.get("date"))
-                  + " vs. "
-                  + startOfUpdateScope);
+              "Is history item date after start of update scope? {}",
+              sdf.parse(map.get("date")).after(startOfUpdateScope));
         }
         if (sdf.parse(map.get("date")).after(startOfUpdateScope)) {
           // If the date is within the scope, add it to historyMapUpdate and break off
