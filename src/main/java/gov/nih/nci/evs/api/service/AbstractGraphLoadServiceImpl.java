@@ -1158,7 +1158,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     }
     terminology.getMetadata().setHistoryVersion(newHistoryVersion);
     logger.info(
-        "History version for {} is now set to {}", terminology.getTerminology(), newHistoryVersion);
+        "History version for {} is now set to {}",
+        terminology.getTerminology(),
+        terminology.getMetadata().getHistoryVersion());
+    // Index the terminology to update the history version
     operationsService.index(terminology, terminology.getObjectIndexName(), Terminology.class);
   }
 
