@@ -1149,7 +1149,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         // If the concept is not found, skip it
         concept = opensearchQueryService.getConcept(entry.getKey(), terminology, ip).get();
       } catch (Exception e) {
-        logger.warn("Could not retrieve concept {}", entry.getKey());
+        logger.warn("Could not retrieve concept {}, skipping.", entry.getKey());
         continue;
       }
       handleHistory(terminology, concept, historyMap);
@@ -1158,9 +1158,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     }
     terminology.getMetadata().setHistoryVersion(newHistoryVersion);
     logger.info(
-        "New history version for {} is now set to {}",
-        terminology.getTerminology(),
-        newHistoryVersion);
+        "History version for {} is now set to {}", terminology.getTerminology(), newHistoryVersion);
     operationsService.index(terminology, terminology.getObjectIndexName(), Terminology.class);
   }
 
