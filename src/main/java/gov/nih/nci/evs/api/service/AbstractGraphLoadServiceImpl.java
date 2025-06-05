@@ -1012,9 +1012,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   public Map<String, List<Map<String, String>>> updateHistoryMap(
       final Terminology terminology, final String filepath) throws Exception {
 
-    logger.info("Current History Version: {}", terminology.getMetadata().getHistoryVersion());
-    logger.info("New History File Path: {}", filepath);
-
     if (!terminology.getTerminology().equals("ncit")) {
       return new HashMap<>();
     }
@@ -1123,13 +1120,12 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     }
 
     logger.info(
-        "Updating history for terminology: {}, version: {}, new history version: {}",
+        "Updating history for terminology: {}-{}, current history version:"
+            + " {}, new history version {}",
         terminology.getTerminology(),
         terminology.getVersion(),
+        terminology.getMetadata().getHistoryVersion(),
         newHistoryVersion);
-    logger.info(
-        "Terminology history version is currently {}",
-        terminology.getMetadata().getHistoryVersion());
 
     Date startOfUpdateScope = parseVersion(newHistoryVersion);
     Map<String, List<Map<String, String>>> historyMapUpdate = new HashMap<>();
@@ -1156,7 +1152,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         logger.warn("Could not retrieve concept {}", entry.getKey());
         continue;
       }
-      logger.info("Updating history for concept: {}", concept.getCode());
       handleHistory(terminology, concept, historyMap);
       // index the concept with the history
       operationsService.index(concept, terminology.getIndexName(), Concept.class);
