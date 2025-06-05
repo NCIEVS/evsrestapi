@@ -970,6 +970,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       return;
     }
 
+    // reset concept history
+    concept.setHistory(new ArrayList<>());
+
     for (final Map<String, String> historyItem : conceptHistory) {
 
       final History history = new History();
@@ -1160,10 +1163,11 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       operationsService.index(concept, terminology.getIndexName(), Concept.class);
     }
     terminology.getMetadata().setHistoryVersion(newHistoryVersion);
+    operationsService.index(terminology, terminology.getObjectIndexName(), Terminology.class);
   }
 
   public Date parseVersion(String version) {
-    int year = 2000 + Integer.parseInt(version.substring(0, 2));
+    int year = Integer.parseInt(version.substring(0, 2));
     int month = Integer.parseInt(version.substring(3, 5));
 
     Calendar cal = Calendar.getInstance();
