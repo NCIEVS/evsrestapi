@@ -1115,7 +1115,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     if (!terminology.getTerminology().equals("ncit")
         || historyMap == null
         || historyMap.size() == 0
-        || newHistoryVersion.equals(terminology.getMetadata().getHistoryVersion())) {
+        || (terminology.getMetadata().getHistoryVersion() != null
+            && terminology.getMetadata().getHistoryVersion().compareTo(newHistoryVersion) >= 0)) {
       return;
     }
 
