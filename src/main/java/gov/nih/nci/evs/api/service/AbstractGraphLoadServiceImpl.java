@@ -1162,7 +1162,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         terminology.getTerminology(),
         terminology.getMetadata().getHistoryVersion());
     // Index the terminology to update the history version
-    operationsService.index(terminology, terminology.getObjectIndexName(), Terminology.class);
+    this.loadIndexMetadata(historyMap.size(), terminology);
   }
 
   public Date parseVersion(String version) {
