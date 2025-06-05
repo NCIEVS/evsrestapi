@@ -22,6 +22,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -328,7 +329,7 @@ public class SearchController extends BaseController {
   @RecordMetric
   @GetMapping(value = "/concept/{terminology}/search", produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminology(
-      @PathVariable(value = "terminology") final String terminology,
+      @PathVariable("terminology") final String terminology,
       @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
       BindingResult bindingResult,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
@@ -860,17 +861,18 @@ public class SearchController extends BaseController {
     // String.class)
   })
   @RecordMetric
-  @PostMapping(
-      value = "/concept/ncit/search",
+  @RequestMapping(
+      value = "/concept/{terminology}/search",
       consumes = "text/plain",
-      produces = "application/json")
+      produces = "application/json",
+      method = RequestMethod.POST)
   public @ResponseBody ConceptResultList searchSingleTerminologySparql(
+      @PathVariable(value = "terminology") final String terminology,
+      @RequestBody final String query,
       @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
       BindingResult bindingResult,
-      @RequestBody final String query,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws ResponseStatusException, Exception {
-    final String terminology = "ncit";
     final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService);
     String res = null;
 
@@ -956,6 +958,7 @@ public class SearchController extends BaseController {
       if (searchCriteria.getInclude() == null) {
         searchCriteria.setInclude("minimal");
       }
+      // Call local REST Method
       final ConceptResultList list =
           search(new SearchCriteria(searchCriteria, terminology), bindingResult, license);
       list.getParameters().setSparql(query);

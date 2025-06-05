@@ -3500,6 +3500,16 @@ public class SearchControllerTests {
     String content = null;
     ConceptResultList list = null;
 
+    result =
+        mvc.perform(
+                MockMvcRequestBuilders.get(url)
+                    .param("term", "cancer")
+                    .param("include", "minimal")
+                    .param("type", "contains")
+                    .contentType("text/plain"))
+            .andExpect(status().isOk())
+            .andReturn();
+
     // check basic query
     String query =
         "SELECT ?code\n"
@@ -3513,7 +3523,12 @@ public class SearchControllerTests {
 
     log.info("Testing url - " + url + "?type=contains&include=minimal");
     result =
-        mvc.perform(MockMvcRequestBuilders.post(url).content(query).contentType("text/plain"))
+        mvc.perform(
+                MockMvcRequestBuilders.post(url)
+                    .content(query)
+                    .contentType("text/plain")
+                    .param("include", "minimal")
+                    .param("type", "contains"))
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
