@@ -2,12 +2,7 @@ package gov.nih.nci.evs.api.fhir.R5;
 
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
-import ca.uhn.fhir.rest.annotation.IdParam;
-import ca.uhn.fhir.rest.annotation.Operation;
-import ca.uhn.fhir.rest.annotation.OperationParam;
-import ca.uhn.fhir.rest.annotation.OptionalParam;
-import ca.uhn.fhir.rest.annotation.Read;
-import ca.uhn.fhir.rest.annotation.Search;
+import ca.uhn.fhir.rest.annotation.*;
 import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
@@ -24,20 +19,9 @@ import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import org.hl7.fhir.r5.model.Bundle;
-import org.hl7.fhir.r5.model.CodeSystem;
-import org.hl7.fhir.r5.model.CodeType;
-import org.hl7.fhir.r5.model.Coding;
-import org.hl7.fhir.r5.model.IdType;
-import org.hl7.fhir.r5.model.OperationOutcome;
+import java.util.*;
+import org.hl7.fhir.r5.model.*;
 import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r5.model.Parameters;
-import org.hl7.fhir.r5.model.StringType;
-import org.hl7.fhir.r5.model.UriType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -181,9 +165,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param version the version of the system, if provided.
    * @param coding the coding to look up
    * @param date the date that the information should be returned.
-   * @param displayLanguage the requested language for display.
-   * @param property the code type property that the client wished to be returned in the output. If
-   *     none provided, the server will choose the properties to return.
    * @return the parameters
    * @throws Exception exception
    */
@@ -286,9 +267,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param version the version of the system, if provided.
    * @param coding the coding to look up
    * @param date the date that the information should be returned.
-   * @param displayLanguage the requested language for display.
-   * @param property the code type property that the client wished to be returned in the output. If
-   *     none provided, the server will choose the properties to return.
    * @return the parameters
    * @throws Exception exception
    */
@@ -387,16 +365,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param response the response
    * @param details the details
    * @param url the CodeSystem URL
-   * @param codeSystem the code system
    * @param code the code to be validated
    * @param version the version of the code system, if provided
    * @param display the display associated with the code. If provided, a code must be provided.
    * @param coding the coding to validate
-   * @param date the date that the validation should be checked
-   * @param abstractt the abstract flag, a logical grouping concept that is not intended to be used
-   *     as a 'concrete' concept to in an actual patient/care/process record.
-   * @param displayLanguage the display language for the description when validating the display
-   *     property
    * @return the parameters
    * @throws Exception exception
    */
@@ -508,16 +480,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param details the details
    * @param id the id
    * @param url the CodeSystem URL
-   * @param codeSystem the code system
    * @param code the code to be validated
    * @param version the version of the code system, if provided
    * @param display the display associated with the code. If provided, a code must be provided.
-   * @param coding the coding to validate
-   * @param date the date that the validation should be checked
-   * @param abstractt the abstract flag, a logical grouping concept that is not intended to be used
-   *     as a 'concrete' concept to in an actual patient/care/process record.
-   * @param displayLanguage the display language for the description when validating the display
-   *     property
+   * @param coding the coding to validate property
    * @return the parameters
    * @throws Exception exception
    */
@@ -838,15 +804,17 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   /**
    * Returns the concept map for the specified details.
    *
-   * @param details the details
    * @param id the id
    * @return the code system concept map
    * @throws Exception exception
    */
   @Read
-  public CodeSystem getCodeSystem(final ServletRequestDetails details, @IdParam final IdType id)
-      throws Exception {
+  public CodeSystem getCodeSystem(@IdParam final IdType id) throws Exception {
     try {
+      if (id.hasVersionIdPart()) {
+        // If someone somehow passes a versioned ID to read, delegate to vread
+        return vread(id);
+      }
       final List<CodeSystem> candidates = findPossibleCodeSystems(id, null, null, null);
       for (final CodeSystem set : candidates) {
         if (id.getIdPart().equals(set.getId())) {
@@ -913,6 +881,98 @@ public class CodeSystemProviderR5 implements IResourceProvider {
     } catch (final Exception e) {
       logger.error("Unexpected error", e);
       throw FhirUtilityR5.exception("Failed to find code systems", IssueType.EXCEPTION, 500);
+    }
+  }
+
+  @History(type = CodeSystem.class)
+  public List<CodeSystem> getCodeSystemHistory(@IdParam IdType id) {
+    List<CodeSystem> history = new ArrayList<>();
+    try {
+      final List<CodeSystem> candidates = findPossibleCodeSystems(id, null, null, null);
+      for (final CodeSystem cs : candidates) {
+        if (id.getIdPart().equals(cs.getId())) {
+          history.add(cs);
+        }
+      }
+      if (history.isEmpty()) {
+        throw FhirUtilityR5.exception(
+            "Code system not found = " + (id == null ? "null" : id.getIdPart()),
+            IssueType.NOTFOUND,
+            404);
+      }
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      logger.error("Unexpected exception", e);
+      throw FhirUtilityR5.exception("Failed to get code system", IssueType.EXCEPTION, 500);
+    }
+
+    // Make sure each CodeSystem has proper metadata for history
+    for (CodeSystem cs : history) {
+      if (cs.getMeta() == null) {
+        cs.setMeta(new Meta());
+      }
+      if (cs.getMeta().getVersionId() == null) {
+        cs.getMeta().setVersionId("1"); // Set appropriate version
+      }
+      if (cs.getMeta().getLastUpdated() == null) {
+        cs.getMeta().setLastUpdated(new Date());
+      }
+    }
+
+    return history;
+  }
+
+  @Read(version = true)
+  public CodeSystem vread(@IdParam IdType versionedId) {
+    String resourceId = versionedId.getIdPart(); // "canmed_202311"
+    String versionId = versionedId.getVersionIdPart(); // "1"
+
+    logger.info("Looking for resource: {} version: {}", resourceId, versionId);
+
+    try {
+      // If no version is specified in a vread call, this shouldn't happen
+      // but if it does, delegate to regular read
+      if (!versionedId.hasVersionIdPart()) {
+        logger.warn("VRead called without version ID, delegating to regular read");
+        return getCodeSystem(new org.hl7.fhir.r5.model.IdType(versionedId.getIdPart()));
+      }
+      final List<CodeSystem> candidates = findPossibleCodeSystems(versionedId, null, null, null);
+      logger.info("Found {} candidates", candidates.size());
+
+      for (final CodeSystem cs : candidates) {
+        String csId = cs.getId();
+        String csVersionId = cs.getMeta() != null ? cs.getMeta().getVersionId() : null;
+
+        logger.info("Checking candidate: id={}, versionId={}", csId, csVersionId);
+
+        if (resourceId.equals(csId)) {
+          // If the CodeSystem doesn't have a version ID, treat it as version "1"
+          String effectiveVersionId = (csVersionId != null) ? csVersionId : "1";
+
+          if (versionId.equals(effectiveVersionId)) {
+            // Make sure the returned CodeSystem has the version ID set
+            if (cs.getMeta() == null) {
+              cs.setMeta(new Meta());
+            }
+            cs.getMeta().setVersionId("1");
+            cs.getMeta().setLastUpdated(new Date()); // Optional: set timestamp
+
+            logger.info("Found matching version!");
+            return cs;
+          }
+        }
+      }
+
+      throw FhirUtilityR5.exception(
+          "Code system version not found: " + resourceId + " version " + versionId,
+          IssueType.NOTFOUND,
+          404);
+    } catch (final FHIRServerResponseException e) {
+      throw e; // Re-throw FHIR exceptions as-is
+    } catch (final Exception e) {
+      logger.error("Unexpected exception in vread", e);
+      throw FhirUtilityR5.exception("Failed to get code system version", IssueType.EXCEPTION, 500);
     }
   }
 }
