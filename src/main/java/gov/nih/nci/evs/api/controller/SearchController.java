@@ -36,7 +36,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.apache.jena.query.QueryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -864,9 +863,8 @@ public class SearchController extends BaseController {
       produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminologySparql(
       @PathVariable(value = "terminology") final String terminology,
-      @RequestParam(required = false, name = "include") final Optional<String> include,
       @RequestParam(required = false, name = "prefixes") final Boolean prefixes,
-      @RequestBody final String query,
+      @org.springframework.web.bind.annotation.RequestBody final String query,
       @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
       BindingResult bindingResult,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
@@ -954,7 +952,6 @@ public class SearchController extends BaseController {
 
       // Otherwise, continue and perform search
       searchCriteria.setCodeList(codes);
-      searchCriteria.setInclude(include.orElse("summary"));
       final ConceptResultList list =
           search(new SearchCriteria(searchCriteria, terminology), bindingResult, license);
       list.getParameters().setSparql(query);

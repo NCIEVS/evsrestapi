@@ -29,3 +29,5 @@ log
 src/main/bin/NCIT_HISTORY/
 report.html
 gradle.lockfile
+/.apt_generated/
+/.apt_generated_tests/
