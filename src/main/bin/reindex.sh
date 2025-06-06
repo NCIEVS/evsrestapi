@@ -325,15 +325,16 @@ download_and_unpack() {
     success=0
     for i in {1..5}; do 
         echo "  Download NCIt History version $ver: attempt $i"
-        url="https://wci1.s3.us-east-1.amazonaws.com/NCI/cumulative_history_$ver.zip"
-        #url="https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/cumulative_history_$ver.zip"
+        url="https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/cumulative_history_$ver.zip"
         echo "    url = $url"
         
-        http_status=$(curl -w "%{http_code}" -s -o "cumulative_history_$ver.zip" "$url")
+        curl -w "\n%{http_code}" -s -o cumulative_history_$ver.zip "$url" > /tmp/x.$$
+        # if curl command fails then try again
         if [[ $? -ne 0 ]]; then
             echo "ERROR: problem downloading NCIt history (trying again $i)"
-        elif [[ "$http_status" =~ ^4 ]]; then
-            echo "ERROR: File unavailable, HTTP status $http_status"
+        # if status code is not 200, then bail
+        elif [[ $(tail -1 /tmp/x.$$) -ne 200 ]]; then
+            echo "ERROR: unexpected status code downloading NCIt history = "$(tail -1 /tmp/x.$$)
             break
         else
             echo "  Unpack NCIt history"
@@ -489,7 +490,7 @@ for x in `cat /tmp/y.$$.txt`; do
         # regardless of whether there was new data
         echo "    RECONCILE $term stale indexes and update flags"
         export EVS_SERVER_PORT="8083"
-        echo "java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata $historyClause"
+        echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata $historyClause"
         java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata $historyClause
         if [[ $? -ne 0 ]]; then
             cat /tmp/x.$$.log | sed 's/^/    /'
