@@ -64,7 +64,8 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
   public int loadConcepts(
       final OpensearchLoadConfig config,
       final Terminology terminology,
-      final HierarchyUtils hierarchy)
+      final HierarchyUtils hierarchy,
+      Map<String, List<Map<String, String>>> historyMap)
       throws Exception {
 
     final String resource = "metadata/" + terminology.getTerminology() + ".txt";

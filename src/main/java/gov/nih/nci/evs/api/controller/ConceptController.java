@@ -169,7 +169,8 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
@@ -329,7 +330,8 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse("summary"));
 
@@ -438,7 +440,8 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
@@ -538,7 +541,8 @@ public class ConceptController extends BaseController {
       throws Exception {
     // Get the association "label"
     final Long startTime = System.currentTimeMillis();
-    final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+    final Terminology term =
+        termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
     termUtils.checkLicense(term, license);
 
     final Optional<Concept> association =
@@ -549,7 +553,7 @@ public class ConceptController extends BaseController {
     }
     final String label = association.get().getName();
     if (termUtils
-        .getIndexedTerminology(terminology, opensearchQueryService)
+        .getIndexedTerminology(terminology, opensearchQueryService, true)
         .getMetadata()
         .getSubsetMember()
         .contains(codeOrLabel)) {
@@ -625,7 +629,8 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
@@ -735,7 +740,8 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
 
@@ -835,7 +841,8 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
@@ -906,7 +913,8 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
@@ -980,7 +988,8 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
@@ -1054,7 +1063,8 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
@@ -1163,7 +1173,8 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
 
       if (!opensearchQueryService.checkConceptExists(code, term)) {
@@ -1252,7 +1263,8 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
@@ -1323,7 +1335,8 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
@@ -1393,7 +1406,8 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
 
       final Optional<Concept> concept =
@@ -1476,7 +1490,8 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
@@ -1589,7 +1604,8 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
@@ -1691,7 +1707,8 @@ public class ConceptController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
 
       if (!opensearchQueryService.checkConceptExists(code, term)) {
@@ -1871,7 +1888,8 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
 
       if (!opensearchQueryService.checkConceptExists(code, term)) {
@@ -1994,7 +2012,8 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
@@ -2123,7 +2142,8 @@ public class ConceptController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       termUtils.checkLicense(term, license);
       final IncludeParam ip = new IncludeParam(include.orElse(null));
 
@@ -2202,7 +2222,8 @@ public class ConceptController extends BaseController {
       throws Exception {
     List<String> codes = new ArrayList<String>();
     final List<Terminology> terminologies = new ArrayList<Terminology>();
-    final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+    final Terminology term =
+        termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
     // First get root concepts
     final List<Concept> roots =
         opensearchQueryService.getRootNodes(term, new IncludeParam("children,descendants"));

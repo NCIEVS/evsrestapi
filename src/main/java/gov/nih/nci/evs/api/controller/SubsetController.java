@@ -274,7 +274,8 @@ public class SubsetController extends BaseController {
       @RequestParam("include") final Optional<String> include)
       throws Exception {
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
 
       final Optional<Concept> concept =

@@ -616,7 +616,8 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
     AssociationEntryResultList al = new AssociationEntryResultList();
     Optional<OpensearchObject> esObject =
         getOpensearchObject(
-            "associationEntries_" + label, termUtils.getIndexedTerminology(terminology, this));
+            "associationEntries_" + label,
+            termUtils.getIndexedTerminology(terminology, this, true));
     // set params in object
     List<String> params =
         Arrays.asList(terminology, label, String.valueOf(fromRecord), String.valueOf(pageSize));

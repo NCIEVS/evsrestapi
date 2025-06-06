@@ -67,7 +67,8 @@ public class DynamicMappingTest {
                     getClass().getClassLoader().getResource("conceptTestDM.json"), "UTF-8"),
                 Concept.class);
 
-    final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+    final Terminology term =
+        termUtils.getIndexedTerminology(terminology, elasticQueryService, true);
     final IncludeParam ip = new IncludeParam("full,descendants,paths");
 
     // ACT

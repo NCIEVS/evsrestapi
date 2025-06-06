@@ -194,7 +194,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
             osQueryService
                 .getConcept(
                     vs.getIdentifier().get(0).getValue(),
-                    termUtils.getIndexedTerminology(vs.getTitle(), osQueryService),
+                    termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
                     new IncludeParam("inverseAssociations"))
                 .get()
                 .getInverseAssociations();
@@ -203,7 +203,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
               osQueryService
                   .getConcept(
                       assn.getRelatedCode(),
-                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService),
+                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
                       includeParam)
                   .orElse(null);
           if (member != null) {
@@ -212,7 +212,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         }
       } else {
         final List<Terminology> terminologies = new ArrayList<>();
-        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService));
+        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true));
         final SearchCriteria sc = new SearchCriteria();
         sc.setPageSize(count != null ? count.getValue() : 10);
         sc.setFromRecord(offset != null ? offset.getValue() : 0);
@@ -390,7 +390,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
             osQueryService
                 .getConcept(
                     vs.getIdentifier().get(0).getValue(),
-                    termUtils.getIndexedTerminology(vs.getTitle(), osQueryService),
+                    termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
                     new IncludeParam("inverseAssociations"))
                 .get()
                 .getInverseAssociations();
@@ -399,7 +399,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
               osQueryService
                   .getConcept(
                       assn.getRelatedCode(),
-                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService),
+                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
                       includeParam)
                   .orElse(null);
           if (member != null) {
@@ -408,7 +408,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         }
       } else {
         final List<Terminology> terminologies = new ArrayList<>();
-        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService));
+        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true));
         final SearchCriteria sc = new SearchCriteria();
         sc.setPageSize(count != null ? count : 10);
         sc.setFromRecord(offset != null ? offset : 0);
@@ -570,7 +570,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
         if (vs.getIdentifier() != null && !vs.getIdentifier().isEmpty()) {
           sc.setSubset(Arrays.asList(vs.getIdentifier().get(0).getValue()));
         }
-        final Terminology term = termUtils.getIndexedTerminology(vs.getTitle(), osQueryService);
+        final Terminology term =
+            termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true);
         sc.setTerminology(Arrays.asList(vs.getTitle()));
         sc.validate(term, metadataService);
         final List<Terminology> terms = Arrays.asList(term);
@@ -707,7 +708,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
         if (vs.getIdentifier() != null && !vs.getIdentifier().isEmpty()) {
           sc.setSubset(Arrays.asList(vs.getIdentifier().get(0).getValue()));
         }
-        final Terminology term = termUtils.getIndexedTerminology(vs.getTitle(), osQueryService);
+        final Terminology term =
+            termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true);
         sc.validate(term, metadataService);
         final List<Terminology> terms = Arrays.asList(term);
         final List<Concept> conc = searchService.findConcepts(terms, sc).getConcepts();
@@ -818,7 +820,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
     final List<Concept> subsetsAsConcepts =
         osQueryService.getConcepts(
             codes,
-            termUtils.getIndexedTerminology("ncit", osQueryService),
+            termUtils.getIndexedTerminology("ncit", osQueryService, true),
             new IncludeParam("minimal"));
     for (final Concept subset : subsetsAsConcepts) {
       final ValueSet vs = FhirUtilityR4.toR4VS(subset);
@@ -942,7 +944,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
     final List<Concept> subsetsAsConcepts =
         osQueryService.getConcepts(
             codes,
-            termUtils.getIndexedTerminology("ncit", osQueryService),
+            termUtils.getIndexedTerminology("ncit", osQueryService, true),
             new IncludeParam("minimal"));
 
     for (final Concept subset : subsetsAsConcepts) {

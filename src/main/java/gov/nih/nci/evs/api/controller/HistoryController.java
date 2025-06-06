@@ -101,7 +101,8 @@ public class HistoryController extends BaseController {
 
     try {
 
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       return HistoryUtils.getReplacements(term, opensearchQueryService, code);
 
     } catch (final Exception e) {
@@ -170,7 +171,8 @@ public class HistoryController extends BaseController {
 
     try {
 
-      final Terminology term = termUtils.getIndexedTerminology(terminology, opensearchQueryService);
+      final Terminology term =
+          termUtils.getIndexedTerminology(terminology, opensearchQueryService, true);
       return HistoryUtils.getReplacements(
           term, opensearchQueryService, Arrays.asList(list.split(",")));
 

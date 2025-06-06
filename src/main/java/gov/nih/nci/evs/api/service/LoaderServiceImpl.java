@@ -7,6 +7,8 @@ import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import jakarta.annotation.PostConstruct;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
@@ -34,9 +36,9 @@ public class LoaderServiceImpl {
   /** the logger *. */
   private static final Logger logger = LoggerFactory.getLogger(LoaderServiceImpl.class);
 
-  /** the concepts download location *. */
-  @Value("${nci.evs.bulkload.conceptsDir}")
-  private static String CONCEPTS_OUT_DIR;
+  /** the history download location *. */
+  @Value("${nci.evs.bulkload.historyDir}")
+  private static String HISTORY_DIR;
 
   /** the environment *. */
   @Autowired Environment env;
@@ -64,7 +66,7 @@ public class LoaderServiceImpl {
     options.addOption("h", "help", false, "Show this help information and exit.");
     options.addOption("r", "realTime", false, "Keep for backwards compabitlity. No Effect.");
     options.addOption("t", "terminology", true, "The terminology (ex: ncit_20.02d) to load.");
-    options.addOption("d", "directory", true, "Load concepts from the given directory");
+    options.addOption("history", "history", true, "Load concepts history from the given directory");
     options.addOption(
         "xc",
         "skipConcepts",
@@ -108,8 +110,8 @@ public class LoaderServiceImpl {
 
     config.setTerminology(cmd.getOptionValue('t'));
     config.setForceDeleteIndex(cmd.hasOption('f'));
-    if (cmd.hasOption('d')) {
-      String location = cmd.getOptionValue('d');
+    if (cmd.hasOption("history")) {
+      String location = cmd.getOptionValue("history");
       if (StringUtils.isBlank(location)) {
         logger.error("Location is empty!");
       }
@@ -190,21 +192,24 @@ public class LoaderServiceImpl {
       termAudit.setProcess(loadService.getClass().getSimpleName());
 
       loadService.initialize();
-      final OpensearchLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
+      final OpensearchLoadConfig config = buildConfig(cmd, HISTORY_DIR);
       final Terminology term =
           loadService.getTerminology(
               app,
               config,
-              cmd.getOptionValue("d"),
+              cmd.getOptionValue("history"),
               cmd.getOptionValue("t"),
               config.isForceDeleteIndex());
       termAudit.setTerminology(term.getTerminology());
       termAudit.setVersion(term.getVersion());
       final HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
+      final Map<String, List<Map<String, String>>> historyMap =
+          loadService.updateHistoryMap(term, config.getLocation());
       int totalConcepts = 0;
       if (!cmd.hasOption("xl")) {
+        logger.info("Loading terminology: {}", term.getTerminology());
         if (!cmd.hasOption("xc")) {
-          totalConcepts = loadService.loadConcepts(config, term, hierarchy);
+          totalConcepts = loadService.loadConcepts(config, term, hierarchy, historyMap);
           loadService.checkLoadStatus(totalConcepts, term);
         }
         if (!cmd.hasOption("xm")) {
@@ -212,6 +217,10 @@ public class LoaderServiceImpl {
           loadService.loadObjects(config, term, hierarchy);
           loadService.loadIndexMetadata(totalConcepts, term);
         }
+        // reload history if the new version if ready and there's a valid history map
+        String newHistoryVersion =
+            config.getLocation().split("cumulative_history_")[1].split("\\.txt")[0];
+        loadService.updateHistory(term, historyMap, newHistoryVersion);
       }
       final Set<String> removed = loadService.cleanStaleIndexes(term);
       loadService.updateLatestFlag(term, removed);
