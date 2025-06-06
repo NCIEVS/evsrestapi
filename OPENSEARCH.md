@@ -27,7 +27,18 @@ In a terminal, run the following to have an opensearch instance running on the b
       -v "$OS_DIR":/usr/share/opensearch/data \
       -e DISABLE_SECURITY_PLUGIN=true \
       --name opensearch-node -d opensearchproject/opensearch:2.18.0
-  
+
+## Refresh settings for deployment - Too Many Requests
+
+In high volume use we have encountered "too many requests" one part of potentially
+dealing with this is to extend the refresh interval for the server.  Since it only
+changes on reindexing, this is a reasonable thing to consider and won't impact general
+read-only server performance.
+
+```
+PUT /sample_data/_settings { "index" : { "refresh_interval" : "120s" } }
+```
+
 ## References
 
 * Documentation - https://opensearch.org/docs/latest/
