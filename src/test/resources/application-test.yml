@@ -106,7 +106,7 @@ nci:
       password: admin
       readTimeout: 30000
       connectTimeout: 30000
-    elasticsearch:
+    opensearch:
       server:
         host: ${ES_HOST:localhost}
         port: ${ES_PORT:9201}

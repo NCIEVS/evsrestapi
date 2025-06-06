@@ -23,6 +23,7 @@ import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.ValueSet;
+import org.junit.Assert;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -805,5 +806,218 @@ public class FhirR4ValueSetReadSearchTests {
     } else {
       assertTrue(bundle.getEntry() == null || bundle.getEntry().isEmpty());
     }
+  }
+
+  @Test
+  public void testCodeSystemHistory() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirVSPath;
+
+    // Act - First get list of ValueSets to find a valid ID
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    String firstValueSetId = valueSets.get(0).getIdPart();
+
+    // Act - Get history for the first ValueSet
+    String historyEndpoint = endpoint + "/" + firstValueSetId + "/_history";
+    content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    Bundle historyBundle = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(historyBundle);
+    assertEquals(ResourceType.Bundle, historyBundle.getResourceType());
+    assertEquals(Bundle.BundleType.HISTORY, historyBundle.getType());
+    assertFalse(historyBundle.getEntry().isEmpty());
+
+    // Verify each entry in history is a ValueSet with the same ID
+    for (Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
+      assertNotNull(entry.getResource());
+      assertEquals(ResourceType.ValueSet, entry.getResource().getResourceType());
+
+      ValueSet historyValueSet = (ValueSet) entry.getResource();
+      assertEquals(firstValueSetId, historyValueSet.getIdPart());
+
+      // Verify metadata is properly set
+      assertNotNull(historyValueSet.getMeta());
+      assertNotNull(historyValueSet.getMeta().getVersionId());
+      assertNotNull(historyValueSet.getMeta().getLastUpdated());
+    }
+  }
+
+  @Test
+  public void testValueSetHistoryNotFound() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath;
+    String invalidId = "nonexistent-valueSet-id";
+    String historyEndpoint = endpoint + "/" + invalidId + "/_history";
+
+    String messageNotFound = "Value set not found = " + invalidId;
+    String errorCode = "not-found";
+
+    // Act
+    String content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
+  }
+
+  @Test
+  public void testValueSetVread() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirVSPath;
+
+    // Act - First get list of ValueSets to find a valid ID
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    String firstValueSetId = valueSets.get(0).getIdPart();
+
+    // Act - Get specific version (assuming version 1 exists)
+    String versionEndpoint = endpoint + "/" + firstValueSetId + "/_history/1";
+    content = this.restTemplate.getForObject(versionEndpoint, String.class);
+    ValueSet versionedValueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertNotNull(versionedValueSet);
+    assertEquals(ResourceType.ValueSet, versionedValueSet.getResourceType());
+    assertEquals(firstValueSetId, versionedValueSet.getIdPart());
+
+    // Verify metadata
+    assertNotNull(versionedValueSet.getMeta());
+    assertNotNull(versionedValueSet.getMeta().getVersionId());
+    assertNotNull(versionedValueSet.getMeta().getLastUpdated());
+
+    // Compare with original ValueSet
+    ValueSet originalValueSet = (ValueSet) valueSets.get(0);
+    assertEquals(originalValueSet.getUrl(), versionedValueSet.getUrl());
+    assertEquals(originalValueSet.getName(), versionedValueSet.getName());
+    assertEquals(originalValueSet.getPublisher(), versionedValueSet.getPublisher());
+  }
+
+  @Test
+  public void testValueSetVreadNotFound() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath;
+    String invalidId = "nonexistent-valueSet-id";
+    String versionEndpoint = endpoint + "/" + invalidId + "/_history/1";
+
+    // Act & Assert
+    String messageNotFound = "Value set version not found: nonexistent-valueSet-id version 1";
+    String errorCode = "not-found";
+
+    // Act
+    String content = this.restTemplate.getForObject(versionEndpoint, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
+  }
+
+  @Test
+  public void testValueSetVreadInvalidVersion() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirVSPath;
+
+    // Act - First get list of ValueSets to find a valid ID
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    String firstValueSetId = valueSets.get(0).getIdPart();
+
+    // Act & Assert - Try to get a version that doesn't exist
+    String invalidVersionEndpoint = endpoint + "/" + firstValueSetId + "/_history/999";
+    String messageNotFound = "Value set version not found: " + firstValueSetId + " version 999";
+    String errorCode = "not-found";
+
+    // Act
+    content = this.restTemplate.getForObject(invalidVersionEndpoint, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
+  }
+
+  @Test
+  public void testValueSetHistoryMetadataConsistency() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirVSPath;
+
+    // Act - Get a ValueSet and its history
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    String firstValueSetId = valueSets.get(0).getIdPart();
+
+    // Get history
+    String historyEndpoint = endpoint + "/" + firstValueSetId + "/_history";
+    content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    Bundle historyBundle = parser.parseResource(Bundle.class, content);
+
+    // Get current version
+    content = this.restTemplate.getForObject(endpoint + "/" + firstValueSetId, String.class);
+    ValueSet currentValueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert - Verify history contains current version
+    boolean foundCurrentVersion = false;
+    for (Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
+      ValueSet historyVersion = (ValueSet) entry.getResource();
+      if (currentValueSet.getUrl().equals(historyVersion.getUrl())
+          && currentValueSet.getName().equals(historyVersion.getName())) {
+        foundCurrentVersion = true;
+        break;
+      }
+    }
+    Assert.assertTrue("History should contain the current version", foundCurrentVersion);
+  }
+
+  @Test
+  public void testValueSetVreadMatchesHistoryEntry() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirVSPath;
+
+    // Act - Get history first
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    String firstValueSetId = valueSets.get(0).getIdPart();
+
+    String historyEndpoint = endpoint + "/" + firstValueSetId + "/_history";
+    content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    Bundle historyBundle = parser.parseResource(Bundle.class, content);
+
+    // Get first version from history
+    ValueSet firstHistoryVersion = (ValueSet) historyBundle.getEntry().get(0).getResource();
+    String versionId = firstHistoryVersion.getMeta().getVersionId();
+
+    // Act - Get the same version using vread
+    String vreadEndpoint = endpoint + "/" + firstValueSetId + "/_history/" + versionId;
+    content = this.restTemplate.getForObject(vreadEndpoint, String.class);
+    ValueSet vreadValueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert - Both should be identical
+    // assertEquals(firstHistoryVersion.getId(), vreadValueSet.getId());
+    assertEquals(firstHistoryVersion.getUrl(), vreadValueSet.getUrl());
+    assertEquals(firstHistoryVersion.getName(), vreadValueSet.getName());
+    assertEquals(firstHistoryVersion.getVersion(), vreadValueSet.getVersion());
+    assertEquals(
+        firstHistoryVersion.getMeta().getVersionId(), vreadValueSet.getMeta().getVersionId());
   }
 }
