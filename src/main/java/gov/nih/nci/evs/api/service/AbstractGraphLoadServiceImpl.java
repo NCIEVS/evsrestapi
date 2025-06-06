@@ -1122,7 +1122,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
           terminology.getVersion());
       return;
     }
-    if (newHistoryVersion.equals(terminology.getMetadata().getHistoryVersion())) {
+    if ((terminology.getMetadata().getHistoryVersion() != null
+        && terminology.getMetadata().getHistoryVersion().compareTo(newHistoryVersion) >= 0)) {
       logger.info(
           "History version for {}-{} is already set to {}, skipping update.",
           terminology.getTerminology(),
@@ -1174,7 +1175,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         terminology.getTerminology(),
         terminology.getMetadata().getHistoryVersion());
     // Index the terminology to update the history version
-    operationsService.index(terminology, terminology.getObjectIndexName(), Terminology.class);
+    loadIndexMetadata(historyMap.size(), terminology);
   }
 
   public Date parseVersion(String version) {

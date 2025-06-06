@@ -90,7 +90,7 @@ public class ConceptSampleTester {
    */
   private void lookupTerminology(final String term) throws Exception {
 
-    terminology = termUtils.getIndexedTerminology(term, osQueryService);
+    terminology = termUtils.getIndexedTerminology(term, osQueryService, true);
   }
 
   /**
