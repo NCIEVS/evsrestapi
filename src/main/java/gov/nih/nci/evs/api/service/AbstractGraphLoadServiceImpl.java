@@ -1112,10 +1112,22 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     // Skip this for other terminologies, for cases where an updated cumulative history file has
     // already been processed
     // or in cases where the cumulative history for this version is unable to be found
-    if (!terminology.getTerminology().equals("ncit")
-        || historyMap == null
-        || historyMap.size() == 0
-        || newHistoryVersion.equals(terminology.getMetadata().getHistoryVersion())) {
+    if (!terminology.getTerminology().equals("ncit")) {
+      return;
+    }
+    if (historyMap == null || historyMap.size() == 0) {
+      logger.warn(
+          "History map for {}-{} is null or empty, skipping update.",
+          terminology.getTerminology(),
+          terminology.getVersion());
+      return;
+    }
+    if (newHistoryVersion.equals(terminology.getMetadata().getHistoryVersion())) {
+      logger.info(
+          "History version for {}-{} is already set to {}, skipping update.",
+          terminology.getTerminology(),
+          terminology.getVersion(),
+          newHistoryVersion);
       return;
     }
 
