@@ -232,8 +232,9 @@ public class LoaderServiceImpl {
         }
         for (Terminology terminology : terms) {
           logger.info(
-              "Cleaning stale indexes/Updating flags for terminology: {}",
-              terminology.getTerminology());
+              "Cleaning stale indexes/Updating flags for terminology: {}-{}",
+              terminology.getTerminology(),
+              terminology.getVersion());
           final Set<String> removed = loadService.cleanStaleIndexes(terminology);
           loadService.updateLatestFlag(terminology, removed);
         }
