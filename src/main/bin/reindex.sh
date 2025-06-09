@@ -417,8 +417,8 @@ for x in `cat /tmp/y.$$.txt`; do
 
         # cd back out
         cd - > /dev/null 2> /dev/null
-	fi
-	
+	  fi
+
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
 
         # Check for index
@@ -448,68 +448,47 @@ for x in `cat /tmp/y.$$.txt`; do
     export GRAPH_DB=$db
     export EVS_SERVER_PORT="8083"
     
-    if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
-        echo "    FOUND indexes for $term $version"
-        
-        if [[ $term == $pt ]]; then
-            echo "    SKIP RECONCILE $term stale indexes and update flags"
-            continue
-        fi
-        
-        # Stale indexes are automatically cleaned up by the indexing process
-        # It checks against graph db and reconciles everything and updates latest flags
-        # regardless of whether there was new data
-        echo "    RECONCILE $term stale indexes and update flags"
-        export EVS_SERVER_PORT="8083"
-        java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata > /tmp/x.$$.log 2>&1 
+if [[ $exists -eq 0 ]] || [[ $force -eq 1 ]]; then
+    if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
+        echo "    FOUND indexes for $term $version, force reindex anyway"        
+
+        # Remove if this already exists
+        version=`echo $cv | perl -pe 's/.*_//;'`
+        echo "    Remove indexes for $term $version"
+        $DIR/remove.sh $term $version > /tmp/x.$$ 2>&1
         if [[ $? -ne 0 ]]; then
-            cat /tmp/x.$$.log | sed 's/^/    /'
-            echo "ERROR: unexpected error building indexes"
+            cat /tmp/x.$$ | sed 's/^/    /'
+            echo "ERROR: removing $term $version indexes"
             exit 1
         fi
-        /bin/rm -rf /tmp/x.$$.log
-        
-    else
-        if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
-            echo "    FOUND indexes for $term $version, force reindex anyway"        
+    fi
 
-            # Remove if this already exists
-            version=`echo $cv | perl -pe 's/.*_//;'`
-            echo "    Remove indexes for $term $version"
-            $DIR/remove.sh $term $version > /tmp/x.$$ 2>&1
-            if [[ $? -ne 0 ]]; then
-                cat /tmp/x.$$ | sed 's/^/    /'
-                echo "ERROR: removing $term $version indexes"
-                exit 1
-            fi
-        fi
+    # Run reindexing process (choose a port other than the one that it runs on)
+    echo "    Generate indexes for $GRAPH_DB ${term} $version"
+    
+    # Set the history clause for "ncit"
+    historyClause=""
+    if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
+      historyClause=" -d $historyFile"
+    fi
 
-        # Run reindexing process (choose a port other than the one that it runs on)
-        echo "    Generate indexes for $GRAPH_DB ${term} $version"
-        
-        # Set the history clause for "ncit"
-        historyClause=""
-        if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
-        	historyClause=" -d $historyFile"
-        fi
+    echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
+    java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: unexpected error building indexes"
+        exit 1
+    fi
 
-        echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
-        java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
-        if [[ $? -ne 0 ]]; then
-            echo "ERROR: unexpected error building indexes"
-            exit 1
-        fi
- 
-        # Unset history file once done being used
+    # Unset history file once done being used
 
-        # Set the indexes to have a larger max_result_window
-        echo "    Set max result window to 250000 for concept_${term}_$cv"
-        curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_${term}_$cv/_settings" \
-             -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 250000 } }' >> /dev/null
-        if [[ $? -ne 0 ]]; then
-            echo "ERROR: unexpected error setting max_result_window"
-            exit 1
-        fi
+    # Set the indexes to have a larger max_result_window
+    echo "    Set max result window to 250000 for concept_${term}_$cv"
+    curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_${term}_$cv/_settings" \
+          -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 250000 } }' >> /dev/null
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: unexpected error setting max_result_window"
+        exit 1
+    fi
 
 		### This needs more work to run in local, dev, qa, stage, prod
 		### main issues are API_URL setting and the requirement to use npm
@@ -540,6 +519,19 @@ for x in `cat /tmp/y.$$.txt`; do
     pv=$cv
     pt=$term
 done
+
+# Stale indexes are automatically cleaned up by the indexing process
+# It checks against graph db and reconciles everything and updates latest flags
+# regardless of whether there was new data
+echo "    RECONCILE ALL stale indexes and update flags"
+export EVS_SERVER_PORT="8083"
+java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --skipLoad > /tmp/x.$$.log 2>&1 
+if [[ $? -ne 0 ]]; then
+    cat /tmp/x.$$.log | sed 's/^/    /'
+    echo "ERROR: unexpected error reconciling indexes"
+    exit 1
+fi
+/bin/rm -rf /tmp/x.$$.log
 
 # Reconcile mappings after loading terminologies
 export EVS_SERVER_PORT="8083"

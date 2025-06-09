@@ -5,8 +5,10 @@ import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.annotation.PostConstruct;
 import java.util.Date;
+import java.util.List;
 import java.util.Set;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
@@ -44,7 +46,13 @@ public class LoaderServiceImpl {
   /** The Opensearch operations service instance *. */
   @Autowired private OpensearchOperationsService operationsService;
 
+  /** The opensearch service. */
+  @Autowired OpensearchQueryService osQueryService;
+
   private static OpensearchOperationsService staticOperationsService;
+
+  /* The terminology utils */
+  @Autowired TerminologyUtils termUtils;
 
   @PostConstruct
   public void init() {
@@ -213,8 +221,20 @@ public class LoaderServiceImpl {
           loadService.loadIndexMetadata(totalConcepts, term);
         }
       }
-      final Set<String> removed = loadService.cleanStaleIndexes(term);
-      loadService.updateLatestFlag(term, removed);
+      else {
+        List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+        if (terms.isEmpty()) {
+          logger.warn("No indexed terminologies found, nothing to do.");
+          return;
+        }
+        for (Terminology terminology : terms) {
+          logger.info("Cleaning stale indexes/Updating flags for terminology: {}", terminology.getTerminology());
+          final Set<String> removed = loadService.cleanStaleIndexes(terminology);
+          loadService.updateLatestFlag(terminology, removed);
+        }
+        final Set<String> removed = loadService.cleanStaleIndexes(term);
+        loadService.updateLatestFlag(term, removed);
+      }
       termAudit.setCount(totalConcepts);
       Date endDate = new Date();
       termAudit.setEndDate(endDate);
