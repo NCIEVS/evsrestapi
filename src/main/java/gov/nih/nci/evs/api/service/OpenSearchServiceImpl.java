@@ -1149,7 +1149,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     // TODO: add getTerminologies call to avoid looping
     for (int i = 0; i < terminologies.size(); i++) {
       indices[i] =
-          termUtils.getIndexedTerminology(terminologies.get(i), osQueryService).getIndexName();
+          termUtils
+              .getIndexedTerminology(terminologies.get(i), osQueryService, true)
+              .getIndexName();
     }
     // logger.info("indices array: " + Arrays.asList(indices));
     return indices;

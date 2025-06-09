@@ -4,6 +4,8 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import java.io.IOException;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.springframework.context.ApplicationContext;
 
@@ -41,11 +43,16 @@ public interface OpensearchLoadService {
    * @param config the load config from command line input
    * @param terminology the terminology
    * @param hierarchy the hierarchy object
+   * @param historyMap the history map
    * @return number of concepts loaded
    * @throws IOException the io exception
    * @throws Exception
    */
-  int loadConcepts(OpensearchLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+  int loadConcepts(
+      OpensearchLoadConfig config,
+      Terminology terminology,
+      HierarchyUtils hierarchy,
+      Map<String, List<Map<String, String>>> historyMap)
       throws IOException, Exception;
 
   /**
@@ -111,4 +118,28 @@ public interface OpensearchLoadService {
    * @throws Exception the exception
    */
   HierarchyUtils getHierarchyUtils(Terminology term) throws Exception;
+
+  /**
+   * Update history.
+   *
+   * @param terminology the terminology
+   * @param historyMap the history map
+   * @param newHistoryVersion the new history version
+   * @throws Exception the exception
+   */
+  void updateHistory(
+      final Terminology terminology,
+      Map<String, List<Map<String, String>>> historyMap,
+      String newHistoryVersion)
+      throws Exception;
+
+  /**
+   * Update history map.
+   *
+   * @param terminology the terminology
+   * @param filepath the new history filepath
+   * @throws Exception the exception
+   */
+  public Map<String, List<Map<String, String>>> updateHistoryMap(
+      final Terminology terminology, final String filepath) throws Exception;
 }

@@ -116,7 +116,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           // Determine "source"
           final String source = metadata[0].split("_")[0];
           final Terminology sourceTerminology =
-              termUtils.getIndexedTerminology(source.toLowerCase(), osQueryService);
+              termUtils.getIndexedTerminology(source.toLowerCase(), osQueryService, true);
           final Concept sourceConcept =
               osQueryService
                   .getConcept(conceptSplit[0].strip(), sourceTerminology, new IncludeParam())
@@ -129,7 +129,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           // Determine "target" terminology
           final String target = metadata[0].split("_")[2];
           final Terminology targetTerminology =
-              termUtils.getIndexedTerminology(target.toLowerCase(), osQueryService);
+              termUtils.getIndexedTerminology(target.toLowerCase(), osQueryService, true);
           final Concept targetConcept =
               osQueryService
                   .getConcept(conceptSplit[1].strip(), targetTerminology, new IncludeParam())
@@ -453,7 +453,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   public int loadConcepts(
       final OpensearchLoadConfig config,
       final Terminology terminology,
-      final HierarchyUtils hierarchy)
+      final HierarchyUtils hierarchy,
+      Map<String, List<Map<String, String>>> historyMap)
       throws IOException, Exception {
     // n/a
     return 0;

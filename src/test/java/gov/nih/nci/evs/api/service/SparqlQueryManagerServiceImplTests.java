@@ -51,7 +51,7 @@ public class SparqlQueryManagerServiceImplTests {
    */
   @Test
   public void testGetDefinitionSources() throws Exception {
-    final Terminology term = termUtils.getIndexedTerminology("ncit", osQueryService);
+    final Terminology term = termUtils.getIndexedTerminology("ncit", osQueryService, true);
     final List<ConceptMinimal> list = sparqlQueryService.getDefinitionSources(term);
 
     assertTrue(list.stream().filter(c -> c.getCode().equals("BRIDG")).count() > 0);
@@ -66,7 +66,7 @@ public class SparqlQueryManagerServiceImplTests {
   @Test
   public void testGetSynonymSources() throws Exception {
 
-    final Terminology term = termUtils.getIndexedTerminology("ncit", osQueryService);
+    final Terminology term = termUtils.getIndexedTerminology("ncit", osQueryService, true);
     final List<ConceptMinimal> list = sparqlQueryService.getSynonymSources(term);
     assertTrue(list.stream().filter(c -> c.getCode().equals("BRIDG")).count() > 0);
   }

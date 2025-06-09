@@ -53,7 +53,7 @@ public class MainTypeHierarchyTest {
 
     log.info("  Get terminology = ncit");
     // Use true to get the metadata
-    final Terminology terminology = termUtils.getIndexedTerminology("ncit", osQueryService);
+    final Terminology terminology = termUtils.getIndexedTerminology("ncit", osQueryService, true);
     log.info("    terminology = " + terminology);
     log.info("  Get hierarchy");
     final HierarchyUtils hierarchy = sparqlQueryService.getHierarchyUtilsCache(terminology);

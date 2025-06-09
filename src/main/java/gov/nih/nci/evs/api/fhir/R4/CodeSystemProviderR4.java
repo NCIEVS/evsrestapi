@@ -143,7 +143,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
         final Concept conc =
             osQueryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
         // required in the specification
@@ -250,7 +250,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
         final Concept conc =
             osQueryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
         // required in the specification
@@ -360,7 +360,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
         final Optional<Concept> check =
             osQueryService.getConcept(codeToValidate, term, new IncludeParam("children"));
         if (check.isPresent()) {
@@ -480,7 +480,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
         final Optional<Concept> check =
             osQueryService.getConcept(codeToValidate, term, new IncludeParam("children"));
         if (check.isPresent()) {
@@ -594,7 +594,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
         final Optional<Concept> checkA =
             osQueryService.getConcept(code1, term, new IncludeParam("minimal"));
         final Optional<Concept> checkB =
@@ -698,7 +698,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
         final Optional<Concept> checkA =
             osQueryService.getConcept(code1, term, new IncludeParam("minimal"));
         final Optional<Concept> checkB =
