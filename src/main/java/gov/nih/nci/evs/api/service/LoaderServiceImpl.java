@@ -201,7 +201,7 @@ public class LoaderServiceImpl {
       termAudit.setProcess(loadService.getClass().getSimpleName());
 
       loadService.initialize();
-      if (cmd.hasOption("xl")) {
+      if (cmd.hasOption("xl") && cmd.getOptionValue("t").equals("reconcile")) {
         // The logging info in its current state does not log in the console, but instead into a
         // temp file (/tmp/x.$$.log) that the reconciliation output is redirected to.
         // This can be changed to show the logs in the console by removing that redirect.
