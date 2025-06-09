@@ -49,14 +49,18 @@ public class LoaderServiceImpl {
   /** The opensearch service. */
   @Autowired OpensearchQueryService osQueryService;
 
-  private static OpensearchOperationsService staticOperationsService;
-
   /* The terminology utils */
   @Autowired TerminologyUtils termUtils;
+
+  private static OpensearchOperationsService staticOperationsService;
+  private static OpensearchQueryService staticOsQueryService;
+  private static TerminologyUtils staticTermUtils;
 
   @PostConstruct
   public void init() {
     staticOperationsService = this.operationsService;
+    staticOsQueryService = this.osQueryService;
+    staticTermUtils = this.termUtils;
   }
 
   /**
@@ -220,20 +224,19 @@ public class LoaderServiceImpl {
           loadService.loadObjects(config, term, hierarchy);
           loadService.loadIndexMetadata(totalConcepts, term);
         }
-      }
-      else {
-        List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+      } else {
+        List<Terminology> terms = staticTermUtils.getIndexedTerminologies(staticOsQueryService);
         if (terms.isEmpty()) {
           logger.warn("No indexed terminologies found, nothing to do.");
           return;
         }
         for (Terminology terminology : terms) {
-          logger.info("Cleaning stale indexes/Updating flags for terminology: {}", terminology.getTerminology());
+          logger.info(
+              "Cleaning stale indexes/Updating flags for terminology: {}",
+              terminology.getTerminology());
           final Set<String> removed = loadService.cleanStaleIndexes(terminology);
           loadService.updateLatestFlag(terminology, removed);
         }
-        final Set<String> removed = loadService.cleanStaleIndexes(term);
-        loadService.updateLatestFlag(term, removed);
       }
       termAudit.setCount(totalConcepts);
       Date endDate = new Date();
