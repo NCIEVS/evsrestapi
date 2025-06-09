@@ -448,76 +448,77 @@ for x in `cat /tmp/y.$$.txt`; do
     export GRAPH_DB=$db
     export EVS_SERVER_PORT="8083"
     
-if [[ $exists -eq 0 ]] || [[ $force -eq 1 ]]; then
-    if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
-        echo "    FOUND indexes for $term $version, force reindex anyway"        
+    if [[ $exists -eq 0 ]] || [[ $force -eq 1 ]]; then
+        if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
+            echo "    FOUND indexes for $term $version, force reindex anyway"        
 
-        # Remove if this already exists
-        version=`echo $cv | perl -pe 's/.*_//;'`
-        echo "    Remove indexes for $term $version"
-        $DIR/remove.sh $term $version > /tmp/x.$$ 2>&1
+            # Remove if this already exists
+            version=`echo $cv | perl -pe 's/.*_//;'`
+            echo "    Remove indexes for $term $version"
+            $DIR/remove.sh $term $version > /tmp/x.$$ 2>&1
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$ | sed 's/^/    /'
+                echo "ERROR: removing $term $version indexes"
+                exit 1
+            fi
+        fi
+
+        # Run reindexing process (choose a port other than the one that it runs on)
+        echo "    Generate indexes for $GRAPH_DB ${term} $version"
+        
+        # Set the history clause for "ncit"
+        historyClause=""
+        if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
+          historyClause=" -d $historyFile"
+        fi
+
+        echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
+        java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
         if [[ $? -ne 0 ]]; then
-            cat /tmp/x.$$ | sed 's/^/    /'
-            echo "ERROR: removing $term $version indexes"
+            echo "ERROR: unexpected error building indexes"
             exit 1
         fi
-    fi
 
-    # Run reindexing process (choose a port other than the one that it runs on)
-    echo "    Generate indexes for $GRAPH_DB ${term} $version"
+        # Unset history file once done being used
+
+        # Set the indexes to have a larger max_result_window
+        echo "    Set max result window to 250000 for concept_${term}_$cv"
+        curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_${term}_$cv/_settings" \
+              -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 250000 } }' >> /dev/null
+        if [[ $? -ne 0 ]]; then
+            echo "ERROR: unexpected error setting max_result_window"
+            exit 1
+        fi
+
+        ### This needs more work to run in local, dev, qa, stage, prod
+        ### main issues are API_URL setting and the requirement to use npm
+        ### which may not be installed or configured
+            ## get directory of reindex.sh
+            #ORIG_DIR=$(pwd)
+            #REINDEX_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+            #cd "$REINDEX_DIR"
+            #mkdir -p "$REINDEX_DIR/postman_content_qa"
+            #"$REINDEX_DIR/postman.sh" "${term}" > "$REINDEX_DIR/postman_content_qa/${term}_postman_content_qa.txt"
+            #POSTMAN_EXIT=$?
+            #if [ $POSTMAN_EXIT -ne 0 ]; then
+            #    echo "Error: postman.sh failed with exit code $POSTMAN_EXIT"
+            #    exit $POSTMAN_EXIT
+            #fi
+            #cd "$ORIG_DIR"
     
-    # Set the history clause for "ncit"
-    historyClause=""
-    if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
-      historyClause=" -d $historyFile"
+        fi
+      
+        # Delete download directory for history file if it exists
+        if [[ -e $DIR/NCIT_HISTORY ]]; then
+              /bin/rm -rf $DIR/NCIT_HISTORY
+        fi
+        
+        
+        
+        # track previous version, if next one is the same, don't index again.
+        pv=$cv
+        pt=$term
     fi
-
-    echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
-    java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
-    if [[ $? -ne 0 ]]; then
-        echo "ERROR: unexpected error building indexes"
-        exit 1
-    fi
-
-    # Unset history file once done being used
-
-    # Set the indexes to have a larger max_result_window
-    echo "    Set max result window to 250000 for concept_${term}_$cv"
-    curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_${term}_$cv/_settings" \
-          -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 250000 } }' >> /dev/null
-    if [[ $? -ne 0 ]]; then
-        echo "ERROR: unexpected error setting max_result_window"
-        exit 1
-    fi
-
-		### This needs more work to run in local, dev, qa, stage, prod
-		### main issues are API_URL setting and the requirement to use npm
-		### which may not be installed or configured
-        ## get directory of reindex.sh
-        #ORIG_DIR=$(pwd)
-        #REINDEX_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-        #cd "$REINDEX_DIR"
-        #mkdir -p "$REINDEX_DIR/postman_content_qa"
-        #"$REINDEX_DIR/postman.sh" "${term}" > "$REINDEX_DIR/postman_content_qa/${term}_postman_content_qa.txt"
-        #POSTMAN_EXIT=$?
-        #if [ $POSTMAN_EXIT -ne 0 ]; then
-        #    echo "Error: postman.sh failed with exit code $POSTMAN_EXIT"
-        #    exit $POSTMAN_EXIT
-        #fi
-        #cd "$ORIG_DIR"
- 
-    fi
-	
-	# Delete download directory for history file if it exists
-	if [[ -e $DIR/NCIT_HISTORY ]]; then
-        /bin/rm -rf $DIR/NCIT_HISTORY
-	fi
-    
-    
-    
-    # track previous version, if next one is the same, don't index again.
-    pv=$cv
-    pt=$term
 done
 
 # Stale indexes are automatically cleaned up by the indexing process
