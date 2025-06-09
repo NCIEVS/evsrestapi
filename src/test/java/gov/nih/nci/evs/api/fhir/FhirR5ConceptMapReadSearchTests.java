@@ -169,7 +169,7 @@ class FhirR5ConceptMapReadSearchTests {
   public void testConceptMapReadStaticId() throws Exception {
     // Arrange
     String endpoint = localHost + port + fhirCMPath;
-    String conceptMapId = "icd10_to_meddra_mapping_july2023";
+    String conceptMapId = "icd10_to_meddra_mapping_july2021";
 
     // Act
     String content = this.restTemplate.getForObject(endpoint + "/" + conceptMapId, String.class);
@@ -182,7 +182,7 @@ class FhirR5ConceptMapReadSearchTests {
     assertEquals(
         conceptMap.getUrl(), "http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping");
     assertEquals(conceptMap.getName(), "ICD10_to_MedDRA_Mapping");
-    assertEquals(conceptMap.getVersion(), "July2023");
+    assertEquals(conceptMap.getVersion(), "July2021");
     assertEquals(conceptMap.getPublisher(), "World Health Organization");
     assertEquals(conceptMap.getStatus().toCode(), "active");
     assertEquals(conceptMap.getExperimental(), false);
@@ -435,7 +435,7 @@ class FhirR5ConceptMapReadSearchTests {
     log.info(" concept map = " + parser.encodeResourceToString(cm));
 
     // Verify specific IDs and URLs if needed
-    if (cm.getIdPart().equals("icd10_to_meddra_mapping_july2023")) {
+    if (cm.getIdPart().equals("icd10_to_meddra_mapping_july2021")) {
       assertEquals("http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping", cm.getUrl());
     }
   }

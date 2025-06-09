@@ -173,6 +173,9 @@ public class TerminologyMetadata extends BaseModel {
   /** The index runtime. */
   private Long indexRuntime;
 
+  /** The history version. */
+  private String historyVersion;
+
   /** Instantiates an empty {@link TerminologyMetadata}. */
   public TerminologyMetadata() {
     // n/a
@@ -244,6 +247,7 @@ public class TerminologyMetadata extends BaseModel {
     fhirUri = other.getFhirUri();
     fhirPublisher = other.getFhirPublisher();
     indexRuntime = other.getIndexRuntime();
+    historyVersion = other.getHistoryVersion();
     extraSubsets = new HashMap<>(other.getExtraSubsets());
   }
 
@@ -1333,6 +1337,24 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setIndexRuntime(Long indexRuntime) {
     this.indexRuntime = indexRuntime;
+  }
+
+  /**
+   * Gets the history version.
+   *
+   * @return the history version
+   */
+  public String getHistoryVersion() {
+    return historyVersion;
+  }
+
+  /**
+   * Sets the history version.
+   *
+   * @param historyVersion the new history version
+   */
+  public void setHistoryVersion(String historyVersion) {
+    this.historyVersion = historyVersion;
   }
 
   /**
