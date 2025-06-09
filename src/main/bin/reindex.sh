@@ -469,7 +469,7 @@ for x in `cat /tmp/y.$$.txt`; do
         # Set the history clause for "ncit"
         historyClause=""
         if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
-          historyClause=" -d $historyFile"
+            historyClause=" -d $historyFile"
         fi
 
         echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
@@ -510,7 +510,7 @@ for x in `cat /tmp/y.$$.txt`; do
       
         # Delete download directory for history file if it exists
         if [[ -e $DIR/NCIT_HISTORY ]]; then
-              /bin/rm -rf $DIR/NCIT_HISTORY
+            /bin/rm -rf $DIR/NCIT_HISTORY
         fi
         
         
