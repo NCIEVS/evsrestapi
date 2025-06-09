@@ -505,9 +505,7 @@ for x in `cat /tmp/y.$$.txt`; do
             #    exit $POSTMAN_EXIT
             #fi
             #cd "$ORIG_DIR"
-    
-        fi
-      
+          
         # Delete download directory for history file if it exists
         if [[ -e $DIR/NCIT_HISTORY ]]; then
             /bin/rm -rf $DIR/NCIT_HISTORY
@@ -526,7 +524,7 @@ done
 # regardless of whether there was new data
 echo "    RECONCILE ALL stale indexes and update flags"
 export EVS_SERVER_PORT="8083"
-java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --skipLoad > /tmp/x.$$.log 2>&1 
+java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology reconcile --skipLoad > /tmp/x.$$.log 2>&1 
 if [[ $? -ne 0 ]]; then
     cat /tmp/x.$$.log | sed 's/^/    /'
     echo "ERROR: unexpected error reconciling indexes"
