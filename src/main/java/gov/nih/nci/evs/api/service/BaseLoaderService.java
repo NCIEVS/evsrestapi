@@ -112,9 +112,9 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
   }
 
   /**
-   * Initialize the service to ensure indexes are created before getting Terminologies
+   * Initialize the service to ensure indexes are created before getting Terminologies.
    *
-   * @throws Exception
+   * @throws Exception the exception
    */
   @Override
   public void initialize() throws Exception {
@@ -233,6 +233,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
    * Update latest flag.
    *
    * @param terminology the terminology
+   * @param removed the removed
    * @throws Exception the exception
    */
   @Override
@@ -336,7 +337,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
    *
    * @param total the iMeta.getTerminology().setLatest(true); total
    * @param term the terminology object
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception the exception
    */
   @Override
   public void checkLoadStatus(int total, Terminology term) throws Exception {
@@ -370,6 +371,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
    * @param total the total
    * @param term the terminology object
    * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception the exception
    */
   @Override
   public void loadIndexMetadata(int total, Terminology term) throws IOException, Exception {
@@ -510,12 +512,16 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     return StringUtils.join(EVSUtils.getValueFromFile(uri, "welcome text"), '\n');
   }
 
+  /* see superclass */
+  @Override
   public Map<String, List<Map<String, String>>> updateHistoryMap(
       final Terminology terminology, final String filepath) throws Exception {
     logger.info("History map updating not implemented for " + terminology.getTerminology());
     return Collections.emptyMap();
   }
 
+  /* see superclass */
+  @Override
   public void updateHistory(
       final Terminology terminology,
       Map<String, List<Map<String, String>>> historyMap,

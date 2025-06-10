@@ -16,9 +16,6 @@ import org.hl7.fhir.r4.model.ContactPoint;
 import org.hl7.fhir.r4.model.Enumerations;
 import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.TerminologyCapabilities;
-import org.hl7.fhir.r4.model.TerminologyCapabilities.TerminologyCapabilitiesExpansionComponent;
-import org.hl7.fhir.r4.model.TerminologyCapabilities.TerminologyCapabilitiesExpansionParameterComponent;
-import org.hl7.fhir.r4.model.TerminologyCapabilities.TerminologyCapabilitiesSoftwareComponent;
 
 /** Specification of the FHIR TerminologyCapabilities. */
 @ResourceDef(

@@ -69,14 +69,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /** constant value for mapping string. */
   public static final String NCIT_MAPS_TO = "NCIt_Maps_To_";
 
-  /** the concepts download location *. */
-  @Value("${nci.evs.bulkload.historyDir}")
-  private String HISTORY_DIR;
-
-  /** the lock file name *. */
-  @Value("${nci.evs.bulkload.lockFile}")
-  private String LOCK_FILE;
-
   /** download batch size *. */
   @Value("${nci.evs.bulkload.downloadBatchSize}")
   private int DOWNLOAD_BATCH_SIZE;
@@ -178,6 +170,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
    * @param allConcepts all concepts to load
    * @param terminology the terminology
    * @param hierarchy the hierarchy
+   * @param historyMap the history map
    * @throws Exception the exception
    */
   private void loadConceptsRealTime(
@@ -956,6 +949,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
    *
    * @param terminology the terminology
    * @param concept the concept
+   * @param historyMap the history map
    * @throws Exception the exception
    */
   private void handleHistory(
@@ -1005,10 +999,11 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
    * Update historyMap.
    *
    * @param terminology the terminology
-   * @param oldFilepath the old file path
-   * @param newFilepath the new file path
+   * @param filepath the filepath
+   * @return the map
    * @throws Exception the exception
    */
+  @Override
   public Map<String, List<Map<String, String>>> updateHistoryMap(
       final Terminology terminology, final String filepath) throws Exception {
 
@@ -1029,8 +1024,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
     try (BufferedReader reader =
         new BufferedReader(new InputStreamReader(new FileInputStream(filepath), "UTF-8")); ) {
-      String line = null;
-      historyMap = processHistoryMap(line, reader);
+      historyMap = processHistoryMap(reader);
     } catch (IOException e) {
       logger.error("Error reading history file: " + filepath, e);
       Audit.addAudit(
@@ -1045,13 +1039,19 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     return historyMap;
   }
 
-  /** process history map. */
-  public Map<String, List<Map<String, String>>> processHistoryMap(
-      String line, BufferedReader reader) throws Exception {
+  /**
+   * process history map.
+   *
+   * @param reader the reader
+   * @return the map
+   * @throws Exception the exception
+   */
+  public Map<String, List<Map<String, String>>> processHistoryMap(BufferedReader reader)
+      throws Exception {
     // CODE, NA, ACTION, DATE, REPLACEMENT CODE
     // Loop through lines until we reach "the end"
     Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
-
+    String line = null;
     while ((line = reader.readLine()) != null) {
 
       final String[] fields = line.split("\\|", -1);
@@ -1096,12 +1096,14 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
-   * update history
+   * update history.
    *
    * @param terminology the terminology
-   * @param file the file path
+   * @param historyMap the history map
+   * @param newHistoryVersion the new history version
    * @throws Exception the exception
    */
+  @Override
   public void updateHistory(
       final Terminology terminology,
       Map<String, List<Map<String, String>>> historyMap,
@@ -1178,6 +1180,12 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     loadIndexMetadata(historyMap.size(), terminology);
   }
 
+  /**
+   * Parses the version.
+   *
+   * @param version the version
+   * @return the date
+   */
   public Date parseVersion(String version) {
     int year = Integer.parseInt(version.substring(0, 2));
     int month = Integer.parseInt(version.substring(3, 5));
