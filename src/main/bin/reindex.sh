@@ -328,15 +328,17 @@ download_and_unpack() {
         url="https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/cumulative_history_$ver.zip"
         echo "    url = $url"
         
-        curl -w "\n%{http_code}" -s -o cumulative_history_$ver.zip "$url" > /tmp/x.$$ 
+        curl -w "\n%{http_code}" -s -o cumulative_history_$ver.zip "$url" > /tmp/x.$$
+        # if curl command fails then try again
         if [[ $? -ne 0 ]]; then
             echo "ERROR: problem downloading NCIt history (trying again $i)"
-        elif [[ $(tail -1 /tmp/x.$$) -eq 404 ]]; then
-            echo "ERROR: url does not exist, bail out"
+        # if status code is not 200, then bail
+        elif [[ $(tail -1 /tmp/x.$$) -ne 200 ]]; then
+            echo "ERROR: unexpected status code downloading NCIt history = "$(tail -1 /tmp/x.$$)
             break
         else
             echo "  Unpack NCIt history"
-            unzip cumulative_history_$ver.zip > /tmp/x.$$ 2>&1
+            unzip "cumulative_history_$ver.zip" > /tmp/x.$$ 2>&1
             if [[ $? -ne 0 ]]; then
                 cat /tmp/x.$$
                 echo "ERROR: problem unpacking cumulative_history_$ver.zip"
@@ -354,6 +356,61 @@ download_and_unpack() {
             break
         fi
     done
+}
+
+process_ncit() {
+  # Prep dir
+  /bin/rm -rf $DIR/NCIT_HISTORY
+  mkdir $DIR/NCIT_HISTORY
+  cd $DIR/NCIT_HISTORY
+
+  # Download file (try 5 times)
+  success=0
+  download_and_unpack "$version"
+
+  # try to get previous version of the history file
+  if [[ $success -eq 0 ]]; then
+      echo "    Initial version $version failed. Fetching latest version from API..."
+
+      # get server port for local vs deployed environment
+      serverPort=8080
+      if [[ $config -eq 0 ]]; then
+          local="-Dspring.profiles.active=local"
+          jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
+          serverPort=8082
+      fi
+
+      # This script runs on the same server as the API
+      response=$(curl -s -X 'GET' \
+        "http://localhost:${serverPort}/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit" \
+        -H 'accept: application/json')
+      if [[ $? -ne 0 ]]; then
+          echo "ERROR: Failed to get latest terminology from http://localhost:${serverPort}/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
+          cd - > /dev/null 2> /dev/null
+          return 1
+      fi
+      echo "  Response from API: $response"
+
+      if ! command -v jq &> /dev/null; then
+          echo "jq is not installed, using grep and perl as fallback"
+          prev_version=$(echo "$response" | grep '"version"' | perl -pe 's/.*"version":"//; s/".*//; ')
+      else
+          prev_version=$(echo "$response" | jq -r '.[] | .version')
+      fi
+      echo "  Previous monthly version of ncit: $prev_version"
+            
+      if [[ -z "$prev_version" ]]; then
+          echo "  Unable to find a previous monthly version of ncit"
+  # done looking
+      else 
+          echo "  Trying again with prev_version = $prev_version"
+          download_and_unpack "$prev_version"
+      fi
+  fi
+
+  # cd back out
+  cd - > /dev/null 2> /dev/null
+  return 0
 }
 
 for x in `cat /tmp/y.$$.txt`; do
@@ -377,48 +434,13 @@ for x in `cat /tmp/y.$$.txt`; do
     # Use override history file if specified
     historyFile=""
     if [[ "$term" == "ncit" ]] && [[ $historyFileOverride ]]; then
-
         historyFile=$historyFileOverride
 
     # Otherwise, download if ncit
     elif [[ "$term" == "ncit" ]]; then
-	
-        # Prep dir
-        /bin/rm -rf $DIR/NCIT_HISTORY
-        mkdir $DIR/NCIT_HISTORY
-        cd $DIR/NCIT_HISTORY
-
-        # Download file (try 5 times)
-        success=0
-        download_and_unpack "$version"
-
-        # try to get previous version of the history file
-        if [[ $success -eq 0 ]]; then
-            echo "    Initial version $version failed. Fetching latest version from API..."
-			
-            # This script runs on the same server as the API
-            response=$(curl -s -X 'GET' \
-              'http://localhost:8080/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit' \
-              -H 'accept: application/json')
-            if [[ $? -ne 0 ]]; then
-                echo "ERROR: Failed to get latest terminology from http://localhost:8080/api/v1/metadata/terminologies"
-                exit 1
-            fi
-                  
-            prev_version=$(echo "$response" | $jq | grep '"version"' | perl -pe 's/",$//; s/.*"//; ')
-            if [[ -z "$prev_version" ]]; then
-                echo "  Unable to find a previous monthly version of ncit"
-				# done looking
-            else 
-                echo "  Trying again with prev_version = $prev_version"
-                download_and_unpack "$prev_version"
-            fi
-        fi
-
-        # cd back out
-        cd - > /dev/null 2> /dev/null
+        process_ncit
 	  fi
-
+	
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
 
         # Check for index
@@ -447,6 +469,12 @@ for x in `cat /tmp/y.$$.txt`; do
     # Set up environment
     export GRAPH_DB=$db
     export EVS_SERVER_PORT="8083"
+
+    # Set the history clause for "ncit"
+    historyClause=""
+    if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
+      historyClause=" -history $historyFile"
+    fi
     
     if [[ $exists -eq 0 ]] || [[ $force -eq 1 ]]; then
         if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
@@ -535,7 +563,7 @@ fi
 # Reconcile mappings after loading terminologies
 export EVS_SERVER_PORT="8083"
 echo "    Generate mapping indexes"
-echo "      java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology mapping"
+echo "      java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -jar $jar --terminology mapping"
 java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
 if [[ $? -ne 0 ]]; then
     echo "ERROR: unexpected error building mapping indexes"

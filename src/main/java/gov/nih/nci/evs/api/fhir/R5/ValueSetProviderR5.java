@@ -2,12 +2,7 @@ package gov.nih.nci.evs.api.fhir.R5;
 
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
-import ca.uhn.fhir.rest.annotation.IdParam;
-import ca.uhn.fhir.rest.annotation.Operation;
-import ca.uhn.fhir.rest.annotation.OperationParam;
-import ca.uhn.fhir.rest.annotation.OptionalParam;
-import ca.uhn.fhir.rest.annotation.Read;
-import ca.uhn.fhir.rest.annotation.Search;
+import ca.uhn.fhir.rest.annotation.*;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
@@ -35,17 +30,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hl7.fhir.r5.model.BooleanType;
-import org.hl7.fhir.r5.model.Bundle;
-import org.hl7.fhir.r5.model.CodeType;
-import org.hl7.fhir.r5.model.Coding;
-import org.hl7.fhir.r5.model.IdType;
-import org.hl7.fhir.r5.model.IntegerType;
+import org.hl7.fhir.r5.model.*;
 import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r5.model.Parameters;
-import org.hl7.fhir.r5.model.StringType;
-import org.hl7.fhir.r5.model.UriType;
-import org.hl7.fhir.r5.model.ValueSet;
 import org.hl7.fhir.r5.model.ValueSet.ConceptPropertyComponent;
 import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionContainsComponent;
@@ -156,7 +142,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
     final List<Concept> subsetsAsConcepts =
         osQueryService.getConcepts(
             codes,
-            termUtils.getIndexedTerminology("ncit", osQueryService),
+            termUtils.getIndexedTerminology("ncit", osQueryService, true),
             new IncludeParam("minimal"));
 
     for (final Concept subset : subsetsAsConcepts) {
@@ -311,7 +297,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
             osQueryService
                 .getConcept(
                     vs.getIdentifier().get(0).getValue(),
-                    termUtils.getIndexedTerminology(vs.getTitle(), osQueryService),
+                    termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
                     new IncludeParam("inverseAssociations"))
                 .get()
                 .getInverseAssociations();
@@ -320,7 +306,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
               osQueryService
                   .getConcept(
                       assn.getRelatedCode(),
-                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService),
+                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
                       includeParam)
                   .orElse(null);
           if (member != null) {
@@ -329,7 +315,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         }
       } else {
         final List<Terminology> terminologies = new ArrayList<>();
-        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService));
+        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true));
         final SearchCriteria sc = new SearchCriteria();
         sc.setPageSize(count != null ? count.getValue() : 10);
         sc.setFromRecord(offset != null ? offset.getValue() : 0);
@@ -529,7 +515,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
             osQueryService
                 .getConcept(
                     vs.getIdentifier().get(0).getValue(),
-                    termUtils.getIndexedTerminology(vs.getTitle(), osQueryService),
+                    termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
                     new IncludeParam("inverseAssociations"))
                 .get()
                 .getInverseAssociations();
@@ -538,7 +524,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
               osQueryService
                   .getConcept(
                       assn.getRelatedCode(),
-                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService),
+                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
                       includeParam)
                   .orElse(null);
           if (member != null) {
@@ -547,7 +533,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         }
       } else {
         final List<Terminology> terminologies = new ArrayList<>();
-        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService));
+        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true));
         final SearchCriteria sc = new SearchCriteria();
         sc.setPageSize(count != null ? count.getValue() : 10);
         sc.setFromRecord(offset != null ? offset.getValue() : 0);
@@ -732,7 +718,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
         if (vs.getIdentifier() != null && !vs.getIdentifier().isEmpty()) {
           sc.setSubset(Arrays.asList(vs.getIdentifier().get(0).getValue()));
         }
-        final Terminology term = termUtils.getIndexedTerminology(vs.getTitle(), osQueryService);
+        final Terminology term =
+            termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true);
         sc.setTerminology(Arrays.asList(vs.getTitle()));
         sc.validate(term, metadataService);
         final List<Terminology> terms = Arrays.asList(term);
@@ -865,7 +852,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
           sc.setSubset(Arrays.asList(vs.getIdentifier().get(0).getValue()));
         }
 
-        final Terminology term = termUtils.getIndexedTerminology(vs.getTitle(), osQueryService);
+        final Terminology term =
+            termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true);
         sc.validate(term, metadataService);
         final List<Terminology> terms = Arrays.asList(term);
         final List<Concept> conc = searchService.findConcepts(terms, sc).getConcepts();
@@ -906,15 +894,17 @@ public class ValueSetProviderR5 implements IResourceProvider {
   /**
    * Returns the value set.
    *
-   * @param details the details
    * @param id the id
    * @return the value set
    * @throws Exception the exception
    */
   @Read
-  public ValueSet getValueSet(final ServletRequestDetails details, @IdParam final IdType id)
-      throws Exception {
+  public ValueSet getValueSet(@IdParam final IdType id) throws Exception {
     try {
+      if (id.hasVersionIdPart()) {
+        // If someone somehow passes a versioned ID to read, delegate to vread
+        return vread(id);
+      }
       final List<ValueSet> candidates = findPossibleValueSets(id, null, null, null);
       for (final ValueSet set : candidates) {
         if (id.getIdPart().equals(set.getId())) {
@@ -989,7 +979,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
     final List<Concept> subsetsAsConcepts =
         osQueryService.getConcepts(
             codes,
-            termUtils.getIndexedTerminology("ncit", osQueryService),
+            termUtils.getIndexedTerminology("ncit", osQueryService, true),
             new IncludeParam("minimal"));
 
     for (final Concept subset : subsetsAsConcepts) {
@@ -1064,6 +1054,99 @@ public class ValueSetProviderR5 implements IResourceProvider {
       logger.warn("Requested property not found = " + propertyName);
       // notFoundSeen.add(property);
       // }
+    }
+  }
+
+  @History(type = ValueSet.class)
+  public List<ValueSet> getValueSetHistory(@IdParam IdType id) {
+    List<ValueSet> history = new ArrayList<>();
+    try {
+      final List<ValueSet> candidates = findPossibleValueSets(id, null, null, null);
+      for (final ValueSet cs : candidates) {
+        if (id.getIdPart().equals(cs.getId())) {
+          history.add(cs);
+        }
+      }
+      if (history.isEmpty()) {
+        throw FhirUtilityR5.exception(
+            "Value set not found = " + (id == null ? "null" : id.getIdPart()),
+            IssueType.NOTFOUND,
+            404);
+      }
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      logger.error("Unexpected exception", e);
+      throw FhirUtilityR5.exception("Failed to get value set", IssueType.EXCEPTION, 500);
+    }
+
+    // Make sure each ValueSet has proper metadata for history
+    for (ValueSet cs : history) {
+      if (cs.getMeta() == null) {
+        cs.setMeta(new Meta());
+      }
+      if (cs.getMeta().getVersionId() == null) {
+        cs.getMeta().setVersionId("1"); // Set appropriate version
+      }
+      if (cs.getMeta().getLastUpdated() == null) {
+        cs.getMeta().setLastUpdated(new Date());
+      }
+    }
+
+    return history;
+  }
+
+  @Read(version = true)
+  public ValueSet vread(@IdParam IdType versionedId) {
+    String resourceId = versionedId.getIdPart();
+    String versionId = versionedId.getVersionIdPart(); // "1"
+
+    logger.info("Looking for resource: {} version: {}", resourceId, versionId);
+
+    try {
+      // If no version is specified in a vread call, this shouldn't happen
+      // but if it does, delegate to regular read
+      if (!versionedId.hasVersionIdPart()) {
+        logger.warn("VRead called without version ID, delegating to regular read");
+        return getValueSet(new org.hl7.fhir.r5.model.IdType(versionedId.getIdPart()));
+      }
+
+      final List<ValueSet> candidates = findPossibleValueSets(versionedId, null, null, null);
+      logger.info("Found {} candidates", candidates.size());
+
+      for (final ValueSet cs : candidates) {
+        String csId = cs.getId();
+        String csVersionId = cs.getMeta() != null ? cs.getMeta().getVersionId() : null;
+
+        logger.info("Checking candidate: id={}, versionId={}", csId, csVersionId);
+
+        if (resourceId.equals(csId)) {
+          // If the ValueSet doesn't have a version ID, treat it as version "1"
+          String effectiveVersionId = (csVersionId != null) ? csVersionId : "1";
+
+          if (versionId.equals(effectiveVersionId)) {
+            // Make sure the returned ValueSet has the version ID set
+            if (cs.getMeta() == null) {
+              cs.setMeta(new Meta());
+            }
+            cs.getMeta().setVersionId("1");
+            cs.getMeta().setLastUpdated(new Date()); // Optional: set timestamp
+
+            logger.info("Found matching version!");
+            return cs;
+          }
+        }
+      }
+
+      throw FhirUtilityR5.exception(
+          "Value set version not found: " + resourceId + " version " + versionId,
+          IssueType.NOTFOUND,
+          404);
+    } catch (final FHIRServerResponseException e) {
+      throw e; // Re-throw FHIR exceptions as-is
+    } catch (final Exception e) {
+      logger.error("Unexpected exception in vread", e);
+      throw FhirUtilityR5.exception("Failed to get value set version", IssueType.EXCEPTION, 500);
     }
   }
 }
