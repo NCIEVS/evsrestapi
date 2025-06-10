@@ -139,7 +139,7 @@ public final class TerminologyUtils {
       final String terminology, SparqlQueryManagerService sparqlQueryManagerService)
       throws Exception {
     List<Terminology> terminologies = getTerminologies(sparqlQueryManagerService);
-    return findTerminology(terminology, terminologies);
+    return findTerminology(terminology, terminologies, true);
   }
 
   /**
@@ -151,9 +151,10 @@ public final class TerminologyUtils {
    * @throws Exception the exception
    */
   public Terminology getIndexedTerminology(
-      final String terminology, OpensearchQueryService osQueryService) throws Exception {
+      final String terminology, OpensearchQueryService osQueryService, boolean requireFlag)
+      throws Exception {
     List<Terminology> terminologies = getIndexedTerminologies(osQueryService);
-    return findTerminology(terminology, terminologies);
+    return findTerminology(terminology, terminologies, requireFlag);
   }
 
   /**
@@ -163,7 +164,8 @@ public final class TerminologyUtils {
    * @param terminologies list of terminologies to search through
    * @return the Terminology
    */
-  private Terminology findTerminology(final String terminology, List<Terminology> terminologies) {
+  private Terminology findTerminology(
+      final String terminology, List<Terminology> terminologies, boolean requireFlag) {
     // Find latest monthly match
     final Terminology latestMonthly =
         terminologies.stream()
@@ -214,10 +216,15 @@ public final class TerminologyUtils {
       return first;
     }
 
-    // IF we get this far, something is weird, show all terminologies
-    terminologies.stream().forEach(t -> logger.info("  " + t.getTerminologyVersion() + " = " + t));
-    throw new ResponseStatusException(
-        HttpStatus.NOT_FOUND, "Terminology not found = " + terminology);
+    if (requireFlag) {
+      // IF we get this far, something is weird, show all terminologies
+      terminologies.stream()
+          .forEach(t -> logger.info("  " + t.getTerminologyVersion() + " = " + t));
+      throw new ResponseStatusException(
+          HttpStatus.NOT_FOUND, "Terminology not found = " + terminology);
+    } else {
+      return null;
+    }
   }
 
   /**

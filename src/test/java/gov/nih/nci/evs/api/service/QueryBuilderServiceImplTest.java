@@ -66,7 +66,7 @@ public class QueryBuilderServiceImplTest {
   public void testPrepSparql() throws Exception {
 
     log.info("  get ncit terminology");
-    Terminology ncit = termUtils.getIndexedTerminology("ncit", osQueryService);
+    Terminology ncit = termUtils.getIndexedTerminology("ncit", osQueryService, true);
     log.info("    terminology = " + ncit);
 
     for (final String query :
@@ -122,7 +122,7 @@ public class QueryBuilderServiceImplTest {
   public void testPrepBadSparql() throws Exception {
 
     log.info("  get ncit terminology");
-    Terminology ncit = termUtils.getIndexedTerminology("ncit", osQueryService);
+    Terminology ncit = termUtils.getIndexedTerminology("ncit", osQueryService, true);
     log.info("    terminology = " + ncit);
 
     for (final String query :
