@@ -1,9 +1,8 @@
 package gov.nih.nci.evs.api.configuration;
 
-import org.hl7.fhir.instance.model.api.IBaseConformance;
-
 import ca.uhn.fhir.rest.api.server.RequestDetails;
 import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
+import org.hl7.fhir.instance.model.api.IBaseConformance;
 
 /** "HAPI-1700: Unknown child name 'format' in element" error. */
 public class EvsResponseHighlighterInterceptor extends ResponseHighlighterInterceptor {

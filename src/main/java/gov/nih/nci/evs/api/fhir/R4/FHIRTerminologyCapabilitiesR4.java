@@ -1,16 +1,5 @@
 package gov.nih.nci.evs.api.fhir.R4;
 
-import java.util.Collections;
-import java.util.List;
-
-import org.hl7.fhir.instance.model.api.IBaseConformance;
-import org.hl7.fhir.r4.model.CodeSystem;
-import org.hl7.fhir.r4.model.ContactDetail;
-import org.hl7.fhir.r4.model.ContactPoint;
-import org.hl7.fhir.r4.model.Enumerations;
-import org.hl7.fhir.r4.model.Meta;
-import org.hl7.fhir.r4.model.TerminologyCapabilities;
-
 import ca.uhn.fhir.model.api.annotation.ChildOrder;
 import ca.uhn.fhir.model.api.annotation.ResourceDef;
 import gov.nih.nci.evs.api.controller.StaticContextAccessor;
@@ -18,6 +7,15 @@ import gov.nih.nci.evs.api.controller.VersionController;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import java.util.Collections;
+import java.util.List;
+import org.hl7.fhir.instance.model.api.IBaseConformance;
+import org.hl7.fhir.r4.model.CodeSystem;
+import org.hl7.fhir.r4.model.ContactDetail;
+import org.hl7.fhir.r4.model.ContactPoint;
+import org.hl7.fhir.r4.model.Enumerations;
+import org.hl7.fhir.r4.model.Meta;
+import org.hl7.fhir.r4.model.TerminologyCapabilities;
 
 /** Specification of the FHIR TerminologyCapabilities. */
 @ResourceDef(
