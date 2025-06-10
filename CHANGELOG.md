@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
-## [2.2.0.RELEASE] - 2025-06-06
+## [2.2.0.RELEASE] - 2025-06-10
 ### Changed
 - FHIR improvements (improved param support, improved swagger, improved metadata, more tests)
 - Improvements to computed childhood neoplasm subsets
