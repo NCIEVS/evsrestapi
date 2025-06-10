@@ -72,14 +72,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /** constant value for mapping string. */
   public static final String NCIT_MAPS_TO = "NCIt_Maps_To_";
 
-  /** the concepts download location *. */
-  @Value("${nci.evs.bulkload.historyDir}")
-  private String HISTORY_DIR;
-
-  /** the lock file name *. */
-  @Value("${nci.evs.bulkload.lockFile}")
-  private String LOCK_FILE;
-
   /** download batch size *. */
   @Value("${nci.evs.bulkload.downloadBatchSize}")
   private int DOWNLOAD_BATCH_SIZE;

@@ -523,7 +523,7 @@ public class FhirR4CodeSystemValidateTests {
     String activeCode = "T100";
 
     String messageNotSupported =
-        "Input parameter 'code' can only be used in conjunction with parameter 'system'.";
+        "Input parameter 'code' can only be used in conjunction with parameter 'url'.";
     String errorCode = "invariant";
 
     UriComponentsBuilder builder =
