@@ -349,33 +349,33 @@ public class ValueSetProviderR5 implements IResourceProvider {
       vsExpansion.setOffset(offset != null ? offset.getValue() : 0);
       vsExpansion.setTotal(subsetMembers.size());
       if (!subsetMembers.isEmpty()) {
-        for (final Concept subset : subsetMembers) {
-          if (activeOnly != null && activeOnly.getValue() && !subset.getActive()) {
+        for (final Concept member : subsetMembers) {
+          if (activeOnly != null && activeOnly.getValue() && !member.getActive()) {
             continue;
           }
           final ValueSet.ValueSetExpansionContainsComponent vsContains =
               new ValueSet.ValueSetExpansionContainsComponent();
-          vsContains.setSystem(url.getValue());
-          vsContains.setCode(subset.getCode());
-          vsContains.setDisplay(subset.getName());
+          vsContains.setSystem(vs.getUrl());
+          vsContains.setCode(member.getCode());
+          vsContains.setDisplay(member.getName());
 
           // Add properties to the contains component if they were requested
           if (propertyNames != null && !propertyNames.isEmpty()) {
             for (String propertyName : propertyNames) {
-              addConceptProperty(vsContains, subset, propertyName);
+              addConceptProperty(vsContains, member, propertyName);
             }
           }
           // Add definitions to the contains component if they were requested
           if (includeDefinition != null
               && includeDefinition.booleanValue()
-              && subset.getDefinitions() != null) {
-            addConceptProperty(vsContains, subset, "definition");
+              && member.getDefinitions() != null) {
+            addConceptProperty(vsContains, member, "definition");
           }
           // Add synonyms to the contains component if they were requested
           if (includeDesignations != null
               && includeDesignations.booleanValue()
-              && subset.getSynonyms() != null) {
-            for (Synonym term : subset.getSynonyms()) {
+              && member.getSynonyms() != null) {
+            for (Synonym term : member.getSynonyms()) {
               ConceptReferenceDesignationComponent designation =
                   new ConceptReferenceDesignationComponent()
                       .setLanguage("en")
@@ -524,7 +524,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
-      if (url.getValue().contains("?fhir_vs=")) {
+      if (url != null && url.getValue().contains("?fhir_vs=")) {
         final List<Association> invAssoc =
             osQueryService
                 .getConcept(
@@ -567,33 +567,33 @@ public class ValueSetProviderR5 implements IResourceProvider {
       vsExpansion.setOffset(offset != null ? offset.getValue() : 0);
       vsExpansion.setTotal(subsetMembers.size());
       if (!subsetMembers.isEmpty()) {
-        for (final Concept subset : subsetMembers) {
-          if (activeOnly != null && activeOnly.getValue() && !subset.getActive()) {
+        for (final Concept member : subsetMembers) {
+          if (activeOnly != null && activeOnly.getValue() && !member.getActive()) {
             continue;
           }
           final ValueSet.ValueSetExpansionContainsComponent vsContains =
               new ValueSet.ValueSetExpansionContainsComponent();
-          vsContains.setSystem(url.getValue());
-          vsContains.setCode(subset.getCode());
-          vsContains.setDisplay(subset.getName());
+          vsContains.setSystem(vs.getUrl());
+          vsContains.setCode(member.getCode());
+          vsContains.setDisplay(member.getName());
 
           // Add properties to the contains component if they were requested
           if (propertyNames != null && !propertyNames.isEmpty()) {
             for (String propertyName : propertyNames) {
-              addConceptProperty(vsContains, subset, propertyName);
+              addConceptProperty(vsContains, member, propertyName);
             }
           }
           // Add definitions to the contains component if they were requested
           if (includeDefinition != null
               && includeDefinition.booleanValue()
-              && subset.getDefinitions() != null) {
-            addConceptProperty(vsContains, subset, "definition");
+              && member.getDefinitions() != null) {
+            addConceptProperty(vsContains, member, "definition");
           }
           // Add synonyms to the contains component if they were requested
           if (includeDesignations != null
               && includeDesignations.booleanValue()
-              && subset.getSynonyms() != null) {
-            for (Synonym term : subset.getSynonyms()) {
+              && member.getSynonyms() != null) {
+            for (Synonym term : member.getSynonyms()) {
               ConceptReferenceDesignationComponent designation =
                   new ConceptReferenceDesignationComponent()
                       .setLanguage("en")

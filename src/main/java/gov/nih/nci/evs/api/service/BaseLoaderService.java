@@ -1,17 +1,5 @@
 package gov.nih.nci.evs.api.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.model.Audit;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Mapping;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.support.es.IndexMetadata;
-import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
-import gov.nih.nci.evs.api.util.EVSUtils;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -22,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.lang3.StringUtils;
 import org.opensearch.action.delete.DeleteRequest;
@@ -33,6 +22,20 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.util.CollectionUtils;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.model.Audit;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.support.es.IndexMetadata;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
+import gov.nih.nci.evs.api.util.EVSUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * The service to load concepts to Opensearch
@@ -112,9 +115,9 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
   }
 
   /**
-   * Initialize the service to ensure indexes are created before getting Terminologies
+   * Initialize the service to ensure indexes are created before getting Terminologies.
    *
-   * @throws Exception
+   * @throws Exception the exception
    */
   @Override
   public void initialize() throws Exception {
@@ -233,6 +236,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
    * Update latest flag.
    *
    * @param terminology the terminology
+   * @param removed the removed
    * @throws Exception the exception
    */
   @Override
@@ -336,7 +340,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
    *
    * @param total the iMeta.getTerminology().setLatest(true); total
    * @param term the terminology object
-   * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception the exception
    */
   @Override
   public void checkLoadStatus(int total, Terminology term) throws Exception {
@@ -370,6 +374,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
    * @param total the total
    * @param term the terminology object
    * @throws IOException Signals that an I/O exception has occurred.
+   * @throws Exception the exception
    */
   @Override
   public void loadIndexMetadata(int total, Terminology term) throws IOException, Exception {
@@ -510,12 +515,16 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     return StringUtils.join(EVSUtils.getValueFromFile(uri, "welcome text"), '\n');
   }
 
+  /* see superclass */
+  @Override
   public Map<String, List<Map<String, String>>> updateHistoryMap(
       final Terminology terminology, final String filepath) throws Exception {
     logger.info("History map updating not implemented for " + terminology.getTerminology());
     return Collections.emptyMap();
   }
 
+  /* see superclass */
+  @Override
   public void updateHistory(
       final Terminology terminology,
       Map<String, List<Map<String, String>>> historyMap,

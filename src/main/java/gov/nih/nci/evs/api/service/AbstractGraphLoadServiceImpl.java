@@ -1,26 +1,5 @@
 package gov.nih.nci.evs.api.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.model.Association;
-import gov.nih.nci.evs.api.model.AssociationEntry;
-import gov.nih.nci.evs.api.model.Audit;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMinimal;
-import gov.nih.nci.evs.api.model.History;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Mapping;
-import gov.nih.nci.evs.api.model.Property;
-import gov.nih.nci.evs.api.model.Qualifier;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.properties.GraphProperties;
-import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
-import gov.nih.nci.evs.api.support.es.OpensearchObject;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.MainTypeHierarchy;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -46,6 +25,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
 import org.apache.poi.hssf.usermodel.HSSFWorkbook;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -59,6 +39,29 @@ import org.springframework.core.env.Environment;
 import org.springframework.data.elasticsearch.NoSuchIndexException;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.util.CollectionUtils;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.AssociationEntry;
+import gov.nih.nci.evs.api.model.Audit;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.History;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.Property;
+import gov.nih.nci.evs.api.model.Qualifier;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.properties.GraphProperties;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
+import gov.nih.nci.evs.api.support.es.OpensearchObject;
+import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.MainTypeHierarchy;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /** The implementation for {@link OpensearchLoadService}. */
 // @Service
@@ -178,6 +181,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
    * @param allConcepts all concepts to load
    * @param terminology the terminology
    * @param hierarchy the hierarchy
+   * @param historyMap the history map
    * @throws Exception the exception
    */
   private void loadConceptsRealTime(
@@ -956,6 +960,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
    *
    * @param terminology the terminology
    * @param concept the concept
+   * @param historyMap the history map
    * @throws Exception the exception
    */
   private void handleHistory(
@@ -1005,10 +1010,11 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
    * Update historyMap.
    *
    * @param terminology the terminology
-   * @param oldFilepath the old file path
-   * @param newFilepath the new file path
+   * @param filepath the filepath
+   * @return the map
    * @throws Exception the exception
    */
+  @Override
   public Map<String, List<Map<String, String>>> updateHistoryMap(
       final Terminology terminology, final String filepath) throws Exception {
 
@@ -1029,8 +1035,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
     try (BufferedReader reader =
         new BufferedReader(new InputStreamReader(new FileInputStream(filepath), "UTF-8")); ) {
-      String line = null;
-      historyMap = processHistoryMap(line, reader);
+      historyMap = processHistoryMap(reader);
     } catch (IOException e) {
       logger.error("Error reading history file: " + filepath, e);
       Audit.addAudit(
@@ -1045,13 +1050,19 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     return historyMap;
   }
 
-  /** process history map. */
-  public Map<String, List<Map<String, String>>> processHistoryMap(
-      String line, BufferedReader reader) throws Exception {
+  /**
+   * process history map.
+   *
+   * @param reader the reader
+   * @return the map
+   * @throws Exception the exception
+   */
+  public Map<String, List<Map<String, String>>> processHistoryMap(BufferedReader reader)
+      throws Exception {
     // CODE, NA, ACTION, DATE, REPLACEMENT CODE
     // Loop through lines until we reach "the end"
     Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
-
+    String line = null;
     while ((line = reader.readLine()) != null) {
 
       final String[] fields = line.split("\\|", -1);
@@ -1096,12 +1107,14 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
-   * update history
+   * update history.
    *
    * @param terminology the terminology
-   * @param file the file path
+   * @param historyMap the history map
+   * @param newHistoryVersion the new history version
    * @throws Exception the exception
    */
+  @Override
   public void updateHistory(
       final Terminology terminology,
       Map<String, List<Map<String, String>>> historyMap,
@@ -1178,6 +1191,12 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     loadIndexMetadata(historyMap.size(), terminology);
   }
 
+  /**
+   * Parses the version.
+   *
+   * @param version the version
+   * @return the date
+   */
   public Date parseVersion(String version) {
     int year = Integer.parseInt(version.substring(0, 2));
     int month = Integer.parseInt(version.substring(3, 5));

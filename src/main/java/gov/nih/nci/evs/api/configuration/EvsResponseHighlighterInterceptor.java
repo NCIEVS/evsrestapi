@@ -1,13 +1,14 @@
 package gov.nih.nci.evs.api.configuration;
 
-import ca.uhn.fhir.rest.api.server.RequestDetails;
-import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
 import org.hl7.fhir.instance.model.api.IBaseConformance;
 
-/** "HAPI-1700: Unknown child name 'format' in element" error */
+import ca.uhn.fhir.rest.api.server.RequestDetails;
+import ca.uhn.fhir.rest.server.interceptor.ResponseHighlighterInterceptor;
+
+/** "HAPI-1700: Unknown child name 'format' in element" error. */
 public class EvsResponseHighlighterInterceptor extends ResponseHighlighterInterceptor {
 
-  /** Constructor */
+  /** Constructor. */
   public EvsResponseHighlighterInterceptor() {
     super();
   }
@@ -15,6 +16,8 @@ public class EvsResponseHighlighterInterceptor extends ResponseHighlighterInterc
   // override this method in ResponseHighlighterInterceptor in order to avoid the
   // "HAPI-1700: Unknown child name 'format' in element" error
   // avoid the FhirTerser format assignments
+  /* see superclass */
+  @Override
   public void capabilityStatementGenerated(
       RequestDetails theRequestDetails, IBaseConformance theCapabilityStatement) {
     if (!(theCapabilityStatement instanceof org.hl7.fhir.r5.model.TerminologyCapabilities)

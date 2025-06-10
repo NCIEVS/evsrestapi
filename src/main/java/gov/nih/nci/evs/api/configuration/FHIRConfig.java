@@ -1,21 +1,29 @@
 package gov.nih.nci.evs.api.configuration;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.rest.api.EncodingEnum;
-import gov.nih.nci.evs.api.controller.VersionController;
-import gov.nih.nci.evs.api.fhir.R4.HapiR4RestfulServlet;
-import gov.nih.nci.evs.api.fhir.R5.HapiR5RestfulServlet;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.info.BuildProperties;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.rest.api.EncodingEnum;
+import gov.nih.nci.evs.api.controller.VersionController;
+import gov.nih.nci.evs.api.fhir.R4.HapiR4RestfulServlet;
+import gov.nih.nci.evs.api.fhir.R5.HapiR5RestfulServlet;
+
 /** Servlet registration bean. */
 @Configuration
 public class FHIRConfig {
 
-  public FHIRConfig(@Autowired(required = false) BuildProperties buildProperties) {}
+  /**
+   * Instantiates a {@link FHIRConfig} from the specified parameters.
+   *
+   * @param buildProperties the build properties
+   */
+  public FHIRConfig(@Autowired(required = false) BuildProperties buildProperties) {
+    // n/a
+  }
 
   /**
    * Hapi R4.
@@ -43,7 +51,7 @@ public class FHIRConfig {
   }
 
   /**
-   * Hapi R5 servlet registration
+   * Hapi R5 servlet registration.
    *
    * @return the servlet registration bean
    */

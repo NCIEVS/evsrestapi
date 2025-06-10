@@ -1,5 +1,26 @@
 package gov.nih.nci.evs.api.fhir.R4;
 
+import java.io.IOException;
+import java.util.Collections;
+import java.util.Date;
+import java.util.Optional;
+
+import org.hl7.fhir.instance.model.api.IBaseConformance;
+import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.CanonicalType;
+import org.hl7.fhir.r4.model.CapabilityStatement;
+import org.hl7.fhir.r4.model.CapabilityStatement.CapabilityStatementRestComponent;
+import org.hl7.fhir.r4.model.CapabilityStatement.CapabilityStatementRestSecurityComponent;
+import org.hl7.fhir.r4.model.CodeType;
+import org.hl7.fhir.r4.model.CodeableConcept;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.Enumerations;
+import org.hl7.fhir.r4.model.Extension;
+import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.OperationDefinition;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.StringType;
+
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.context.support.IValidationSupport;
 import ca.uhn.fhir.parser.IParser;
@@ -16,25 +37,6 @@ import ca.uhn.fhir.rest.server.util.ISearchParamRegistry;
 import gov.nih.nci.evs.api.controller.VersionController;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Optional;
-import org.hl7.fhir.instance.model.api.IBaseConformance;
-import org.hl7.fhir.r4.model.BooleanType;
-import org.hl7.fhir.r4.model.CanonicalType;
-import org.hl7.fhir.r4.model.CapabilityStatement;
-import org.hl7.fhir.r4.model.CapabilityStatement.CapabilityStatementRestComponent;
-import org.hl7.fhir.r4.model.CapabilityStatement.CapabilityStatementRestSecurityComponent;
-import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.CodeableConcept;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.Enumerations;
-import org.hl7.fhir.r4.model.Extension;
-import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.OperationDefinition;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.StringType;
 
 /**
  * See <a href="https://www.hl7.org/fhir/terminologycapabilities.html">terminology capabilities</a>
@@ -150,6 +152,11 @@ public class FhirMetadataProviderR4 extends ServerCapabilityStatementProvider {
     }
   }
 
+  /**
+   * Adds the extensions.
+   *
+   * @param capabilityStatement the capability statement
+   */
   private void addExtensions(CapabilityStatement capabilityStatement) {
     // First Extension
     Extension featureExtension1 =
@@ -182,7 +189,12 @@ public class FhirMetadataProviderR4 extends ServerCapabilityStatementProvider {
     capabilityStatement.addExtension(featureExtension2);
   }
 
-  /** Read OperationDefinition resources */
+  /**
+   * Read OperationDefinition resources.
+   *
+   * @param theId the the id
+   * @return the operation definition
+   */
   @Read(type = OperationDefinition.class)
   public OperationDefinition readOperationDefinition(@IdParam IdType theId) {
     if ("versions".equals(theId.getIdPart()) || "-versions".equals(theId.getIdPart())) {
@@ -196,7 +208,15 @@ public class FhirMetadataProviderR4 extends ServerCapabilityStatementProvider {
     throw new ResourceNotFoundException("OperationDefinition/" + theId.getIdPart());
   }
 
-  /** System-level $versions operation */
+  /**
+   * System-level $versions operation.
+   *
+   * @param theRequest the the request
+   * @param theResponse the the response
+   * @param theRequestDetails the the request details
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  @SuppressWarnings("resource")
   @Operation(name = "$versions", manualResponse = true, manualRequest = true, idempotent = true)
   public void versions(
       HttpServletRequest theRequest,
@@ -218,6 +238,11 @@ public class FhirMetadataProviderR4 extends ServerCapabilityStatementProvider {
     theResponse.getWriter().write(parser.encodeResourceToString(parameters));
   }
 
+  /**
+   * Creates the versions operation definition.
+   *
+   * @return the operation definition
+   */
   private OperationDefinition createVersionsOperationDefinition() {
     OperationDefinition opDef = new OperationDefinition();
     opDef.setId("versions");
