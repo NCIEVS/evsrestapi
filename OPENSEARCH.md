@@ -33,11 +33,27 @@ In a terminal, run the following to have an opensearch instance running on the b
 To prevent "too many requests" issue from happening while loader is running, it may be useful
 to set the refresh interval higher.  Making it higher than 5s requires review of loader
 code to ensure it is not trying to read back data earlier than 5s after a required prior
-indexing operation completes (Review `Thread.sleep` calls in the code).
+indexing operation completes (Review `Thread.sleep` calls in the code). 
 
 ```
-curl -X PUT "$ES/_settings" -H 'Content-Type: application/json' \
-  -d '{ "index": { "refresh_interval": "5s" } }'
+curl -X PUT $ES/_cluster/settings -H "Content-type: application/json" \
+  -d '{  "persistent": { "index.refresh_interval": "60s" } }
+```
+
+A call like this in AWS needs to be done from a machine with an IAM role l
+
+```
+{
+  "Effect": "Allow",
+  "Principal": {
+    "AWS": "arn:aws:iam::<YOUR_AWS_ACCOUNT_ID>:user/<YOUR_IAM_USERNAME>"
+  },
+  "Action": [
+    "es:ESHttpPut",
+    "es:admin/cluster/settings/update"
+  ],
+  "Resource": "arn:aws:es:<YOUR_AWS_REGION>:<YOUR_AWS_ACCOUNT_ID>:domain/<YOUR_DOMAIN_NAME>/*"
+}
 ```
 
 ## References
