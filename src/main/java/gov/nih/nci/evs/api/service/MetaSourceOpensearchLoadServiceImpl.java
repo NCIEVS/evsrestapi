@@ -47,18 +47,6 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
   private static final Logger logger =
       LoggerFactory.getLogger(MetaSourceOpensearchLoadServiceImpl.class);
 
-  /** the concepts download location *. */
-  @Value("${nci.evs.bulkload.historyDir}")
-  private String HISTORY_DIR;
-
-  /** the lock file name *. */
-  @Value("${nci.evs.bulkload.lockFile}")
-  private String LOCK_FILE;
-
-  /** download batch size *. */
-  @Value("${nci.evs.bulkload.downloadBatchSize}")
-  private int DOWNLOAD_BATCH_SIZE;
-
   /** index batch size *. */
   @Value("${nci.evs.bulkload.indexBatchSize}")
   private int INDEX_BATCH_SIZE;

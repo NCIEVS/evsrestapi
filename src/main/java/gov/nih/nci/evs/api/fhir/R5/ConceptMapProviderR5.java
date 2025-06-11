@@ -196,7 +196,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
 
     try {
       FhirUtilityR5.mutuallyRequired("sourceCode", sourceCode, "system", system);
-      FhirUtilityR5.mutuallyRequired("targetCode", targetCode, "system", system);
+      FhirUtilityR5.mutuallyRequired("targetCode", targetCode, "targetSystem", targetSystem);
       FhirUtilityR5.mutuallyExclusive("targetScope", targetScope, "targetSystem", targetSystem);
       for (final String param :
           new String[] {"sourceCodableConcept", "targetCodableConcept", "dependency"}) {

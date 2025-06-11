@@ -150,6 +150,11 @@ public class FhirMetadataProviderR4 extends ServerCapabilityStatementProvider {
     }
   }
 
+  /**
+   * Adds the extensions.
+   *
+   * @param capabilityStatement the capability statement
+   */
   private void addExtensions(CapabilityStatement capabilityStatement) {
     // First Extension
     Extension featureExtension1 =
@@ -182,7 +187,12 @@ public class FhirMetadataProviderR4 extends ServerCapabilityStatementProvider {
     capabilityStatement.addExtension(featureExtension2);
   }
 
-  /** Read OperationDefinition resources */
+  /**
+   * Read OperationDefinition resources.
+   *
+   * @param theId the the id
+   * @return the operation definition
+   */
   @Read(type = OperationDefinition.class)
   public OperationDefinition readOperationDefinition(@IdParam IdType theId) {
     if ("versions".equals(theId.getIdPart()) || "-versions".equals(theId.getIdPart())) {
@@ -196,7 +206,15 @@ public class FhirMetadataProviderR4 extends ServerCapabilityStatementProvider {
     throw new ResourceNotFoundException("OperationDefinition/" + theId.getIdPart());
   }
 
-  /** System-level $versions operation */
+  /**
+   * System-level $versions operation.
+   *
+   * @param theRequest the the request
+   * @param theResponse the the response
+   * @param theRequestDetails the the request details
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
+  @SuppressWarnings("resource")
   @Operation(name = "$versions", manualResponse = true, manualRequest = true, idempotent = true)
   public void versions(
       HttpServletRequest theRequest,
@@ -218,6 +236,11 @@ public class FhirMetadataProviderR4 extends ServerCapabilityStatementProvider {
     theResponse.getWriter().write(parser.encodeResourceToString(parameters));
   }
 
+  /**
+   * Creates the versions operation definition.
+   *
+   * @return the operation definition
+   */
   private OperationDefinition createVersionsOperationDefinition() {
     OperationDefinition opDef = new OperationDefinition();
     opDef.setId("versions");
