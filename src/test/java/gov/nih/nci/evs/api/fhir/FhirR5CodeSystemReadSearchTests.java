@@ -23,7 +23,7 @@ import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r5.model.Resource;
 import org.hl7.fhir.r5.model.ResourceType;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -785,7 +785,7 @@ class FhirR5CodeSystemReadSearchTests {
         break;
       }
     }
-    Assert.assertTrue("History should contain the current version", foundCurrentVersion);
+    Assertions.assertTrue(foundCurrentVersion, "History should contain the current version");
   }
 
   @Test

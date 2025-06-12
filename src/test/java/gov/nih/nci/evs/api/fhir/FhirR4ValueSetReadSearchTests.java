@@ -23,7 +23,7 @@ import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ResourceType;
 import org.hl7.fhir.r4.model.ValueSet;
-import org.junit.Assert;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -983,7 +983,7 @@ public class FhirR4ValueSetReadSearchTests {
         break;
       }
     }
-    Assert.assertTrue("History should contain the current version", foundCurrentVersion);
+    Assertions.assertTrue(foundCurrentVersion, "History should contain the current version");
   }
 
   @Test
