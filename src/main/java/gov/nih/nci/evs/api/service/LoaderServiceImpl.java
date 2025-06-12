@@ -219,8 +219,9 @@ public class LoaderServiceImpl {
         }
         // reload history if the new version if ready and there's a valid history map
         String newHistoryVersion =
-            config.getLocation() != null && config.getLocation().contains("cumulative_history_")
-                && config.getLocation().contains(".txt")
+            config.getLocation() != null
+                    && config.getLocation().contains("cumulative_history_")
+                    && config.getLocation().contains(".txt")
                 ? config.getLocation().split("cumulative_history_")[1].split("\\.txt")[0]
                 : null;
         loadService.updateHistory(term, historyMap, newHistoryVersion);
