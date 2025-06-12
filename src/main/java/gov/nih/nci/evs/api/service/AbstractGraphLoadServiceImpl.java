@@ -1114,7 +1114,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     // Skip this for other terminologies, for cases where an updated cumulative history file has
     // already been processed
     // or in cases where the cumulative history for this version is unable to be found
-    if (!terminology.getTerminology().equals("ncit")) {
+    if (!terminology.getTerminology().equals("ncit")
+        || newHistoryVersion == null
+        || newHistoryVersion.isEmpty()) {
       return;
     }
     if (historyMap == null || historyMap.size() == 0) {

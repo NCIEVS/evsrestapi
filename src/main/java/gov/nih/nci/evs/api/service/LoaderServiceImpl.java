@@ -219,7 +219,9 @@ public class LoaderServiceImpl {
         }
         // reload history if the new version if ready and there's a valid history map
         String newHistoryVersion =
-            config.getLocation().split("cumulative_history_")[1].split("\\.txt")[0];
+            config.getLocation() != null
+                ? config.getLocation().split("cumulative_history_")[1].split("\\.txt")[0]
+                : null;
         loadService.updateHistory(term, historyMap, newHistoryVersion);
       }
       final Set<String> removed = loadService.cleanStaleIndexes(term);
