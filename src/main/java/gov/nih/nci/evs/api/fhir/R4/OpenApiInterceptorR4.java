@@ -1014,10 +1014,9 @@ public class OpenApiInterceptorR4 {
             populateOperation(
                 theFhirContext, theOpenApi, null, operationDefinition, operation, true);
             operation.setSummary(
-                unCamelCase(theResourceType)
+                unCamelCase(theResourceType == null ? "" : theResourceType)
                     + " operation to perform "
-                    + operationDefinition.getCode()
-                    + ". ");
+                    + operationDefinition.getCode());
           }
         }
       }
