@@ -37,8 +37,13 @@ public class LoaderServiceImpl {
   private static final Logger logger = LoggerFactory.getLogger(LoaderServiceImpl.class);
 
   /** the history download location *. */
-  @Value("${nci.evs.bulkload.historyDir}")
+  // @Value("${nci.evs.bulkload.historyDir}")
   private static String HISTORY_DIR;
+
+  @Value("${nci.evs.bulkload.historyDir}")
+  public void setHistoryDir(String historyDir) {
+    HISTORY_DIR = historyDir;
+  }
 
   /** the environment *. */
   @Autowired Environment env;
@@ -218,9 +223,9 @@ public class LoaderServiceImpl {
           loadService.loadIndexMetadata(totalConcepts, term);
         }
         // reload history if the new version if ready and there's a valid history map
-        String newHistoryVersion =
-            config.getLocation().split("cumulative_history_")[1].split("\\.txt")[0];
-        loadService.updateHistory(term, historyMap, newHistoryVersion);
+        //        String newHistoryVersion =
+        //            config.getLocation().split("cumulative_history_")[1].split("\\.txt")[0];
+        //        loadService.updateHistory(term, historyMap, newHistoryVersion);
       }
       final Set<String> removed = loadService.cleanStaleIndexes(term);
       loadService.updateLatestFlag(term, removed);

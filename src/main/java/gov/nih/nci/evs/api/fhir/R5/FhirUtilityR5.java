@@ -10,6 +10,7 @@ import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
@@ -193,6 +194,12 @@ public class FhirUtilityR5 {
     cs.setName(term.getName());
     cs.setTitle(term.getTerminology());
     cs.setExperimental(false);
+    try {
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+      cs.setDate(sdf.parse(term.getDate()));
+    } catch (Exception e) {
+      cs.setDate(null);
+    }
     cs.setStatus(Enumerations.PublicationStatus.ACTIVE);
     cs.setHierarchyMeaning(CodeSystem.CodeSystemHierarchyMeaning.ISA);
     cs.setVersion(term.getVersion());

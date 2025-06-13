@@ -841,7 +841,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     // otherwise, build it
     final Terminology term =
         termUtils.getTerminology(config.getTerminology(), sparqlQueryManagerService);
-
+    System.out.println("    DSS AbstractGraphLoadServiceImpl:getTerminology() 2" + term.toString());
     // Attempt to read the config, if anything goes wrong
     // the config file is probably not there
     try {
@@ -861,7 +861,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       if (node.get("description") != null) {
         term.setDescription(node.get("description").asText());
       }
-
+      System.out.println("    DSS AbstractGraphLoadServiceImpl:getTerminology()2");
       // Set some flags
       metadata.setLoader("rdf");
       metadata.setSourceCt(metadata.getSources().size());

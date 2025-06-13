@@ -1392,8 +1392,8 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
           // HL7V3.0 -> hl7v30
           term.setTerminology(terminology.toLowerCase().replaceFirst("\\.", ""));
           term.setVersion(fields[6]);
-          // No info about the date
-          term.setDate(null);
+          // Date will be null if not an accepted format
+          term.setDate(convertToYYYYMMDD(fields[6]));
           // term.setName(line.split("\\|", -1)[4]);
           term.setDescription(line.split("\\|", -1)[24]);
 
@@ -1488,5 +1488,131 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
    */
   private boolean sabMatch(final String sab1, final String sab2) {
     return sab1.toLowerCase().equals(sab2) || (sab1.equals("HL7V3.0") && sab2.equals("hl7v30"));
+  }
+
+  /**
+   * Converts date string to YYYYMMDD format if it matches specific patterns. Supported formats: -
+   * YYYY_MM_DD -> YYYYMMDD - YYYY -> YYYY0101 - YYYY_MM -> YYYYMM01 - YYYYMM -> YYYYMM01 - YYYYMMDD
+   * -> YYYYMMDD (unchanged) - dd:MM:yyyy -> YYYYMMDD (e.g., "14:11:2014" -> "20141114") -
+   * yyyy.MM.dd -> YYYYMMDD (e.g., "2018.02.05" -> "20180205") - yyyy-MM-dd -> YYYYMMDD (e.g.,
+   * "2021-02-23" -> "20210223") - MMMM d, yyyy -> YYYYMMDD (e.g., "February 9, 2007" -> "20070209")
+   * - dd:MM:yyyy HH:mm -> YYYYMMDD (e.g., "09:09:2022 07:26" -> "20220909")
+   *
+   * @param sdate the input date string
+   * @return formatted date as YYYYMMDD or original input string if no pattern matches
+   */
+  public static String convertToYYYYMMDD(String sdate) {
+    if (sdate == null || sdate.trim().isEmpty()) {
+      return null;
+    }
+
+    String cleaned = sdate.trim();
+
+    // YYYY_MM_DD pattern (e.g., "2008_12_19")
+    if (cleaned.matches("\\d{4}_\\d{1,2}_\\d{1,2}")) {
+      String[] parts = cleaned.split("_");
+      String year = parts[0];
+      String month = String.format("%02d", Integer.parseInt(parts[1]));
+      String day = String.format("%02d", Integer.parseInt(parts[2]));
+      return year + month + day;
+    }
+
+    // YYYY pattern (e.g., "2008")
+    if (cleaned.matches("\\d{4}")) {
+      return cleaned + "0101";
+    }
+
+    // YYYY_MM pattern (e.g., "2011_02")
+    if (cleaned.matches("\\d{4}_\\d{1,2}")) {
+      String[] parts = cleaned.split("_");
+      String year = parts[0];
+      String month = String.format("%02d", Integer.parseInt(parts[1]));
+      return year + month + "01";
+    }
+
+    // YYYYMM pattern (e.g., "202311")
+    if (cleaned.matches("\\d{6}")) {
+      String year = cleaned.substring(0, 4);
+      String month = cleaned.substring(4, 6);
+      return year + month + "01";
+    }
+
+    // YYYYMMDD pattern (e.g., "20231101") - already correct format
+    if (cleaned.matches("\\d{8}")) {
+      return cleaned;
+    }
+
+    // dd:MM:yyyy pattern (e.g., "14:11:2014")
+    if (cleaned.matches("\\d{1,2}:\\d{1,2}:\\d{4}")) {
+      String[] parts = cleaned.split(":");
+      String day = String.format("%02d", Integer.parseInt(parts[0]));
+      String month = String.format("%02d", Integer.parseInt(parts[1]));
+      String year = parts[2];
+      return year + month + day;
+    }
+
+    // yyyy.MM.dd pattern (e.g., "2018.02.05")
+    if (cleaned.matches("\\d{4}\\.\\d{1,2}\\.\\d{1,2}")) {
+      String[] parts = cleaned.split("\\.");
+      String year = parts[0];
+      String month = String.format("%02d", Integer.parseInt(parts[1]));
+      String day = String.format("%02d", Integer.parseInt(parts[2]));
+      return year + month + day;
+    }
+
+    // dd:MM:yyyy HH:mm pattern (e.g., "09:09:2022 07:26") - extract date part only
+    if (cleaned.matches("\\d{1,2}:\\d{1,2}:\\d{4}\\s+\\d{1,2}:\\d{1,2}")) {
+      String datePart = cleaned.split("\\s+")[0]; // Get the date part before space
+      String[] parts = datePart.split(":");
+      String day = String.format("%02d", Integer.parseInt(parts[0]));
+      String month = String.format("%02d", Integer.parseInt(parts[1]));
+      String year = parts[2];
+      return year + month + day;
+    }
+
+    // yyyy-MM-dd pattern (e.g., "2021-02-23")
+    if (cleaned.matches("\\d{4}-\\d{1,2}-\\d{1,2}")) {
+      String[] parts = cleaned.split("-");
+      String year = parts[0];
+      String month = String.format("%02d", Integer.parseInt(parts[1]));
+      String day = String.format("%02d", Integer.parseInt(parts[2]));
+      return year + month + day;
+    }
+
+    // MMMM d, yyyy pattern (e.g., "February 9, 2007")
+    if (cleaned.matches("(?i)[a-z]+\\s+\\d{1,2},\\s*\\d{4}")) {
+      try {
+        // Create month name mapping
+        Map<String, String> monthMap = new HashMap<>();
+        monthMap.put("january", "01");
+        monthMap.put("february", "02");
+        monthMap.put("march", "03");
+        monthMap.put("april", "04");
+        monthMap.put("may", "05");
+        monthMap.put("june", "06");
+        monthMap.put("july", "07");
+        monthMap.put("august", "08");
+        monthMap.put("september", "09");
+        monthMap.put("october", "10");
+        monthMap.put("november", "11");
+        monthMap.put("december", "12");
+
+        // Parse the parts
+        String[] parts = cleaned.toLowerCase().replaceAll(",", "").split("\\s+");
+        String monthName = parts[0];
+        String day = String.format("%02d", Integer.parseInt(parts[1]));
+        String year = parts[2];
+
+        String monthNum = monthMap.get(monthName);
+        if (monthNum != null) {
+          return year + monthNum + day;
+        }
+      } catch (Exception e) {
+        // Fall through to return null
+      }
+    }
+
+    // No pattern matched
+    return null;
   }
 }
