@@ -150,7 +150,7 @@ EOF
   #    "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/\$/datasets" 2> /dev/null > /tmp/x.$$
   #check_status $? "GET /admin/databases failed to list databases"
   #check_http_status 200 "GET /admin/databases expecting 200"
-  #head -n -1 /tmp/x.$$ | $jq | grep 'ds.name' | perl -pe 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
+  #perl -lane 'print if not eof()' /tmp/x.$$ | $jq | grep 'ds.name' | perl -pe 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
   #echo "  databases = " `cat /tmp/db.$$.txt`
   #ct=`cat /tmp/db.$$.txt | wc -l`
   #if [[ $ct -eq 0 ]]; then
@@ -255,7 +255,7 @@ get_graphs(){
           --data-urlencode "$query" -H "Accept: application/sparql-results+json" 2> /dev/null > /tmp/x.$$
       check_status $? "GET /$db/query failed to get graphs"
       check_http_status 200 "GET /$db/query expecting 200"
-      head -n -1 /tmp/x.$$ | $jq | perl -ne '
+      perl -lane 'print if not eof()' /tmp/x.$$ | $jq | perl -ne '
             chop; $x="version" if /"version"/; 
             $x="source" if /"source"/; 
             $x=0 if /\}/; 
@@ -434,7 +434,6 @@ for x in `cat /tmp/y.$$.txt`; do
     # Use override history file if specified
     historyFile=""
     if [[ "$term" == "ncit" ]] && [[ $historyFileOverride ]]; then
-
         historyFile=$historyFileOverride
 
     # Otherwise, download if ncit
@@ -477,29 +476,7 @@ for x in `cat /tmp/y.$$.txt`; do
       historyClause=" -history $historyFile"
     fi
     
-    if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
-        echo "    FOUND indexes for $term $version"
-        
-        #if [[ $term == $pt ]]; then
-        #    echo "    SKIP RECONCILE $term stale indexes and update flags"
-        #    continue
-        #fi
-        
-        # Stale indexes are automatically cleaned up by the indexing process
-        # It checks against graph db and reconciles everything and updates latest flags
-        # regardless of whether there was new data
-        echo "    RECONCILE $term stale indexes and update flags"
-        export EVS_SERVER_PORT="8083"
-        echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata $historyClause"
-        java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata $historyClause
-        if [[ $? -ne 0 ]]; then
-            cat /tmp/x.$$.log | sed 's/^/    /'
-            echo "ERROR: unexpected error building indexes"
-            exit 1
-        fi
-        /bin/rm -rf /tmp/x.$$.log
-        
-    else
+    if [[ $exists -eq 0 ]] || [[ $force -eq 1 ]]; then
         if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
             echo "    FOUND indexes for $term $version, force reindex anyway"        
 
@@ -516,53 +493,72 @@ for x in `cat /tmp/y.$$.txt`; do
 
         # Run reindexing process (choose a port other than the one that it runs on)
         echo "    Generate indexes for $GRAPH_DB ${term} $version"
+        
+        # Set the history clause for "ncit"
+        historyClause=""
+        if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
+            historyClause=" -d $historyFile"
+        fi
+
         echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
         java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error building indexes"
             exit 1
         fi
- 
+
         # Unset history file once done being used
 
         # Set the indexes to have a larger max_result_window
         echo "    Set max result window to 250000 for concept_${term}_$cv"
         curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_${term}_$cv/_settings" \
-             -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 250000 } }' >> /dev/null
+              -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 250000 } }' >> /dev/null
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error setting max_result_window"
             exit 1
         fi
 
-		### This needs more work to run in local, dev, qa, stage, prod
-		### main issues are API_URL setting and the requirement to use npm
-		### which may not be installed or configured
-        ## get directory of reindex.sh
-        #ORIG_DIR=$(pwd)
-        #REINDEX_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-        #cd "$REINDEX_DIR"
-        #mkdir -p "$REINDEX_DIR/postman_content_qa"
-        #"$REINDEX_DIR/postman.sh" "${term}" > "$REINDEX_DIR/postman_content_qa/${term}_postman_content_qa.txt"
-        #POSTMAN_EXIT=$?
-        #if [ $POSTMAN_EXIT -ne 0 ]; then
-        #    echo "Error: postman.sh failed with exit code $POSTMAN_EXIT"
-        #    exit $POSTMAN_EXIT
-        #fi
-        #cd "$ORIG_DIR"
- 
+        ### This needs more work to run in local, dev, qa, stage, prod
+        ### main issues are API_URL setting and the requirement to use npm
+        ### which may not be installed or configured
+            ## get directory of reindex.sh
+            #ORIG_DIR=$(pwd)
+            #REINDEX_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+            #cd "$REINDEX_DIR"
+            #mkdir -p "$REINDEX_DIR/postman_content_qa"
+            #"$REINDEX_DIR/postman.sh" "${term}" > "$REINDEX_DIR/postman_content_qa/${term}_postman_content_qa.txt"
+            #POSTMAN_EXIT=$?
+            #if [ $POSTMAN_EXIT -ne 0 ]; then
+            #    echo "Error: postman.sh failed with exit code $POSTMAN_EXIT"
+            #    exit $POSTMAN_EXIT
+            #fi
+            #cd "$ORIG_DIR"
+          
+        # Delete download directory for history file if it exists
+        if [[ -e $DIR/NCIT_HISTORY ]]; then
+            /bin/rm -rf $DIR/NCIT_HISTORY
+        fi
+        
+        
+        
+        # track previous version, if next one is the same, don't index again.
+        pv=$cv
+        pt=$term
     fi
-	
-	# Delete download directory for history file if it exists
-	if [[ -e $DIR/NCIT_HISTORY ]]; then
-        /bin/rm -rf $DIR/NCIT_HISTORY
-	fi
-    
-    
-    
-    # track previous version, if next one is the same, don't index again.
-    pv=$cv
-    pt=$term
 done
+
+# Stale indexes are automatically cleaned up by the indexing process
+# It checks against graph db and reconciles everything and updates latest flags
+# regardless of whether there was new data
+echo "    RECONCILE ALL stale indexes and update flags"
+export EVS_SERVER_PORT="8083"
+java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology reconcile --skipLoad > /tmp/x.$$.log 2>&1 
+if [[ $? -ne 0 ]]; then
+    cat /tmp/x.$$.log | sed 's/^/    /'
+    echo "ERROR: unexpected error reconciling indexes"
+    exit 1
+fi
+/bin/rm -rf /tmp/x.$$.log
 
 # Reconcile mappings after loading terminologies
 export EVS_SERVER_PORT="8083"
