@@ -150,7 +150,7 @@ EOF
   #    "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/\$/datasets" 2> /dev/null > /tmp/x.$$
   #check_status $? "GET /admin/databases failed to list databases"
   #check_http_status 200 "GET /admin/databases expecting 200"
-  #head -n -1 /tmp/x.$$ | $jq | grep 'ds.name' | perl -pe 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
+  #perl -lane 'print if not eof()' /tmp/x.$$ | $jq | grep 'ds.name' | perl -pe 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
   #echo "  databases = " `cat /tmp/db.$$.txt`
   #ct=`cat /tmp/db.$$.txt | wc -l`
   #if [[ $ct -eq 0 ]]; then
@@ -255,7 +255,7 @@ get_graphs(){
           --data-urlencode "$query" -H "Accept: application/sparql-results+json" 2> /dev/null > /tmp/x.$$
       check_status $? "GET /$db/query failed to get graphs"
       check_http_status 200 "GET /$db/query expecting 200"
-      head -n -1 /tmp/x.$$ | $jq | perl -ne '
+      perl -lane 'print if not eof()' /tmp/x.$$ | $jq | perl -ne '
             chop; $x="version" if /"version"/; 
             $x="source" if /"source"/; 
             $x=0 if /\}/; 
