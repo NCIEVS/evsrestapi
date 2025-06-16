@@ -835,24 +835,25 @@ class FhirR5CodeSystemReadSearchTests {
 
     // Test 1: All valid parameters
     UriComponentsBuilder builder =
-            UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
-                    // "ge2021-06")
-                    .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
-                    .queryParam("version", "202311")
-                    .queryParam("title", "canmed");
+        UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+            // "ge2021-06")
+            .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+            .queryParam("version", "202311")
+            .queryParam("title", "canmed");
 
     // Test successful case with all parameters
     String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
-    org.hl7.fhir.r5.model.Bundle data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
+    org.hl7.fhir.r5.model.Bundle data =
+        parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
     validateCanmedCodeSystemResults(data, true); // Expecting results
 
     // Test 2: Invalid date
     builder =
-            UriComponentsBuilder.fromUriString(endpoint)
-                    .queryParam("date", "ge2030-01") // Future date
-                    .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
-                    .queryParam("version", "202311")
-                    .queryParam("title", "canmed");
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2030-01") // Future date
+            .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+            .queryParam("version", "202311")
+            .queryParam("title", "canmed");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
@@ -860,11 +861,11 @@ class FhirR5CodeSystemReadSearchTests {
 
     // Test 3: Valid date
     builder =
-            UriComponentsBuilder.fromUriString(endpoint)
-                    .queryParam("date", "2023-11-01")
-                    .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
-                    .queryParam("version", "202311")
-                    .queryParam("title", "canmed");
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "2023-11-01")
+            .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+            .queryParam("version", "202311")
+            .queryParam("title", "canmed");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
@@ -872,11 +873,11 @@ class FhirR5CodeSystemReadSearchTests {
 
     // Test 4: Valid date range
     builder =
-            UriComponentsBuilder.fromUriString(endpoint)
-                    .queryParam("date", "ge2023-11-01")
-                    .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
-                    .queryParam("version", "202311")
-                    .queryParam("title", "canmed");
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2023-11-01")
+            .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+            .queryParam("version", "202311")
+            .queryParam("title", "canmed");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
@@ -884,28 +885,29 @@ class FhirR5CodeSystemReadSearchTests {
 
     // Test 5: Valid date range
     builder =
-            UriComponentsBuilder.fromUriString(endpoint)
-                    .queryParam("date", "ge2023-11-01")
-                    .queryParam("date", "lt2030-11-01")
-                    .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
-                    .queryParam("version", "202311")
-                    .queryParam("title", "canmed");
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2023-11-01")
+            .queryParam("date", "lt2030-11-01")
+            .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+            .queryParam("version", "202311")
+            .queryParam("title", "canmed");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
     validateCanmedCodeSystemResults(data, true);
   }
 
-
-  private void validateCanmedCodeSystemResults(org.hl7.fhir.r5.model.Bundle data, boolean expectResults) {
+  private void validateCanmedCodeSystemResults(
+      org.hl7.fhir.r5.model.Bundle data, boolean expectResults) {
     List<org.hl7.fhir.r5.model.Resource> codeSystems =
-            data.getEntry().stream().map(org.hl7.fhir.r5.model.Bundle.BundleEntryComponent::getResource).toList();
+        data.getEntry().stream()
+            .map(org.hl7.fhir.r5.model.Bundle.BundleEntryComponent::getResource)
+            .toList();
 
     if (expectResults) {
       assertFalse(codeSystems.isEmpty());
       final Set<String> ids = new HashSet<>(Set.of("canmed_202311"));
-      final Set<String> urls =
-              new HashSet<>(Set.of("http://seer.nci.nih.gov/CanMED.owl"));
+      final Set<String> urls = new HashSet<>(Set.of("http://seer.nci.nih.gov/CanMED.owl"));
 
       for (org.hl7.fhir.r5.model.Resource cs : codeSystems) {
         log.info(" code system = " + parser.encodeResourceToString(cs));
