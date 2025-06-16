@@ -81,7 +81,7 @@ nci:
       childhoodNeoplasmSubsetsXls: ${CHILDHOOD_NEOPLASM_SUBSETS_XLS:Childhood_Neoplasm_Subsets.xls}
       ftpNeoplasmUrl: ${FTP_NEOPLASM_URL:https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/Neoplasm/}
     bulkload:
-      historyDir: ${NCI_EVS_HISTORY_DIR:/tmp/}
+      historyDir: ${NCI_EVS_HISTORY_DIR:/tmp}
       lockFile: ${NCI_EVS_BULK_LOAD_LOCK_FILE_NAME:DownloadSuccessfull.lck}
       downloadBatchSize: ${NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE:250}
       indexBatchSize: ${NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE:250}

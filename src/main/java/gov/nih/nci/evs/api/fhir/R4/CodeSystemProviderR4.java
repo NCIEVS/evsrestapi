@@ -310,7 +310,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     try {
 
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
-      FhirUtilityR4.mutuallyRequired("code", code, "system", url);
+      FhirUtilityR4.mutuallyRequired("code", code, "url", url);
       for (final String param :
           new String[] {"codeSystem", "date", "abstract", "displayLanguage"}) {
         FhirUtilityR4.notSupported(request, param);
@@ -421,7 +421,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           405);
     }
 
-    FhirUtilityR4.mutuallyRequired("code", code, "system", url);
+    // This is an instance call so the url is unnecessary
+    // FhirUtilityR4.mutuallyRequired("code", code, "url", url);
     FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
     try {
       for (final String param :

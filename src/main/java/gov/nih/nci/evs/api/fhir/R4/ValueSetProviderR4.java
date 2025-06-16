@@ -215,15 +215,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
       vsExpansion.setOffset(offset != null ? offset.getValue() : 0);
       vsExpansion.setTotal(subsetMembers.size());
       if (subsetMembers.size() > 0) {
-        for (final Concept subset : subsetMembers) {
-          if (activeOnly != null && activeOnly.getValue() && !subset.getActive()) {
+        for (final Concept member : subsetMembers) {
+          if (activeOnly != null && activeOnly.getValue() && !member.getActive()) {
             continue;
           }
           final ValueSetExpansionContainsComponent vsContains =
               new ValueSetExpansionContainsComponent();
-          vsContains.setSystem(url.getValue());
-          vsContains.setCode(subset.getCode());
-          vsContains.setDisplay(subset.getName());
+          vsContains.setSystem(vs.getUrl());
+          vsContains.setCode(member.getCode());
+          vsContains.setDisplay(member.getName());
           vsExpansion.addContains(vsContains);
           ValueSetExpansionParameterComponent vsParameter =
               new ValueSetExpansionParameterComponent();
@@ -238,8 +238,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
           // Add synonyms to the contains component if they were requested
           if (includeDesignations != null
               && includeDesignations.booleanValue()
-              && subset.getSynonyms() != null) {
-            for (Synonym term : subset.getSynonyms()) {
+              && member.getSynonyms() != null) {
+            for (Synonym term : member.getSynonyms()) {
               ConceptReferenceDesignationComponent designation =
                   new ConceptReferenceDesignationComponent()
                       .setLanguage("en")
@@ -370,7 +370,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
 
-      if (url.getValue().contains("?fhir_vs=")) {
+      if (url != null && url.getValue().contains("?fhir_vs=")) {
         final List<Association> invAssoc =
             osQueryService
                 .getConcept(
@@ -411,15 +411,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
       vsExpansion.setOffset(offset != null ? offset : 0);
       vsExpansion.setTotal(subsetMembers.size());
       if (subsetMembers.size() > 0) {
-        for (final Concept subset : subsetMembers) {
-          if (activeOnly != null && activeOnly.getValue() && !subset.getActive()) {
+        for (final Concept member : subsetMembers) {
+          if (activeOnly != null && activeOnly.getValue() && !member.getActive()) {
             continue;
           }
           final ValueSetExpansionContainsComponent vsContains =
               new ValueSetExpansionContainsComponent();
-          vsContains.setSystem(url.getValue());
-          vsContains.setCode(subset.getCode());
-          vsContains.setDisplay(subset.getName());
+          vsContains.setSystem(vs.getUrl());
+          vsContains.setCode(member.getCode());
+          vsContains.setDisplay(member.getName());
           vsExpansion.addContains(vsContains);
           ValueSetExpansionParameterComponent vsParameter =
               new ValueSetExpansionParameterComponent();
@@ -434,8 +434,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
           // Add synonyms to the contains component if they were requested
           if (includeDesignations != null
               && includeDesignations.booleanValue()
-              && subset.getSynonyms() != null) {
-            for (Synonym term : subset.getSynonyms()) {
+              && member.getSynonyms() != null) {
+            for (Synonym term : member.getSynonyms()) {
               ConceptReferenceDesignationComponent designation =
                   new ConceptReferenceDesignationComponent()
                       .setLanguage("en")
@@ -452,6 +452,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
+      e.printStackTrace();
       throw FhirUtilityR4.exception(
           "Failed to load value set", OperationOutcome.IssueType.EXCEPTION, 500);
     }

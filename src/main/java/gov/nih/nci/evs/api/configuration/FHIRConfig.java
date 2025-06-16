@@ -15,7 +15,14 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class FHIRConfig {
 
-  public FHIRConfig(@Autowired(required = false) BuildProperties buildProperties) {}
+  /**
+   * Instantiates a {@link FHIRConfig} from the specified parameters.
+   *
+   * @param buildProperties the build properties
+   */
+  public FHIRConfig(@Autowired(required = false) BuildProperties buildProperties) {
+    // n/a
+  }
 
   /**
    * Hapi R4.
@@ -43,7 +50,7 @@ public class FHIRConfig {
   }
 
   /**
-   * Hapi R5 servlet registration
+   * Hapi R5 servlet registration.
    *
    * @return the servlet registration bean
    */

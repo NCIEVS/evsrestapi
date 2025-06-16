@@ -183,7 +183,7 @@ public class FhirR5ConceptMapTranslateTests {
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
     String endpoint =
         localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
-    String parameters = "?targetCode=" + code + "&system=" + system;
+    String parameters = "?targetCode=" + code + "&targetSystem=" + system;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
