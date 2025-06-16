@@ -269,11 +269,84 @@ public class FhirR4CodeSystemReadSearchTests {
   }
 
   /**
-   * Validate code system results.
+   * Test code system search with parameters - date related tests.
    *
-   * @param data the data
-   * @param expectResults the expect results
+   * @throws Exception the exception
    */
+  @Test
+  public void testCodeSystemSearchWithDateFocus() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCSPath;
+
+    // Test 1: All valid parameters
+    UriComponentsBuilder builder =
+            UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+                    // "ge2021-06")
+                    .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+                    .queryParam("version", "202311")
+                    .queryParam("title", "canmed");
+
+    // Test successful case with all parameters
+      String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    validateCanmedCodeSystemResults(data, true); // Expecting results
+
+    // Test 2: Invalid date
+    builder =
+            UriComponentsBuilder.fromUriString(endpoint)
+                    .queryParam("date", "ge2030-01") // Future date
+                    .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+                    .queryParam("version", "202311")
+                    .queryParam("title", "canmed");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(Bundle.class, content);
+    validateCanmedCodeSystemResults(data, false); // Expecting no results
+
+    // Test 3: Valid date
+    builder =
+            UriComponentsBuilder.fromUriString(endpoint)
+                    .queryParam("date", "2023-11-01")
+                    .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+                    .queryParam("version", "202311")
+                    .queryParam("title", "canmed");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(Bundle.class, content);
+    validateCanmedCodeSystemResults(data, true);
+
+    // Test 4: Valid date range
+    builder =
+            UriComponentsBuilder.fromUriString(endpoint)
+                    .queryParam("date", "ge2023-11-01")
+                    .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+                    .queryParam("version", "202311")
+                    .queryParam("title", "canmed");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(Bundle.class, content);
+    validateCanmedCodeSystemResults(data, true);
+
+    // Test 5: Valid date range
+    builder =
+            UriComponentsBuilder.fromUriString(endpoint)
+                    .queryParam("date", "ge2023-11-01")
+                    .queryParam("date", "lt2030-11-01")
+                    .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+                    .queryParam("version", "202311")
+                    .queryParam("title", "canmed");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(Bundle.class, content);
+    validateCanmedCodeSystemResults(data, true);
+  }
+
+    /**
+     * Validate code system results.
+     *
+     * @param data the data
+     * @param expectResults the expect results
+     */
   private void validateCodeSystemResults(Bundle data, boolean expectResults) {
     List<Resource> codeSystems =
         data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
@@ -283,6 +356,34 @@ public class FhirR4CodeSystemReadSearchTests {
       final Set<String> ids = new HashSet<>(Set.of("ncit_21.06e"));
       final Set<String> urls =
           new HashSet<>(Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl"));
+
+      for (Resource cs : codeSystems) {
+        log.info(" code system = " + parser.encodeResourceToString(cs));
+        CodeSystem css = (CodeSystem) cs;
+        assertNotNull(css);
+        assertEquals(ResourceType.CodeSystem, css.getResourceType());
+        assertNotNull(css.getIdPart());
+        assertNotNull(css.getPublisher());
+        assertNotNull(css.getUrl());
+        ids.remove(css.getIdPart());
+        urls.remove(css.getUrl());
+      }
+      assertThat(ids).isEmpty();
+      assertThat(urls).isEmpty();
+    } else {
+      assertTrue(data.getEntry().isEmpty() || codeSystems.isEmpty());
+    }
+  }
+
+  private void validateCanmedCodeSystemResults(Bundle data, boolean expectResults) {
+    List<Resource> codeSystems =
+            data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
+
+    if (expectResults) {
+      assertFalse(codeSystems.isEmpty());
+      final Set<String> ids = new HashSet<>(Set.of("canmed_202311"));
+      final Set<String> urls =
+              new HashSet<>(Set.of("http://seer.nci.nih.gov/CanMED.owl"));
 
       for (Resource cs : codeSystems) {
         log.info(" code system = " + parser.encodeResourceToString(cs));
