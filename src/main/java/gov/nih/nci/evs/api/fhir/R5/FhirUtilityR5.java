@@ -195,7 +195,7 @@ public class FhirUtilityR5 {
     cs.setTitle(term.getTerminology());
     cs.setExperimental(false);
     try {
-      SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
       cs.setDate(sdf.parse(term.getDate()));
     } catch (Exception e) {
       cs.setDate(null);
@@ -276,6 +276,12 @@ public class FhirUtilityR5 {
     vs.setVersion(term.getVersion());
     vs.setTitle(term.getTerminology());
     vs.setUrl(getUri(term.getTerminology()) + "?fhir_vs");
+    try {
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+      vs.setDate(sdf.parse(term.getDate()));
+    } catch (Exception e) {
+      vs.setDate(null);
+    }
     vs.setPublisher(getPublisher(term.getTerminology()));
     vs.setExperimental(false);
     vs.setStatus(Enumerations.PublicationStatus.ACTIVE);

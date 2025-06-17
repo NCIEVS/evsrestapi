@@ -277,7 +277,7 @@ public final class FhirUtility {
       }
     }
 
-    // No pattern matched - return input unchanged
-    return sdate;
+    // No pattern matched
+    return "";
   }
 }
