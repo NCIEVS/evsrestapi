@@ -429,16 +429,34 @@ public class OpenApiInterceptorR4 {
       throws IOException {
     final CapabilityStatement cs = getCapabilityStatement(theRequestDetails);
 
-    logger.info("XXX baseUrl2 = " + theRequestDetails.getFhirServerBase());
-    final String baseUrl2 = removeTrailingSlash(cs.getImplementation().getUrl());
-    logger.info("XXX baseUrl2 = " + baseUrl2);
     final IServerAddressStrategy addressStrategy =
         theRequestDetails.getServer().getServerAddressStrategy();
     final String baseUrl =
         addressStrategy.determineServerBase(
             theRequestDetails.getServletRequest().getServletContext(),
             theRequestDetails.getServletRequest());
-    logger.info("XXX baseUrl  = " + baseUrl2);
+    logger.info("XXX baseUrl  = " + baseUrl);
+
+
+    HttpServletRequest request = theRequestDetails.getServletRequest();
+    String scheme = request.getScheme(); 
+    String serverName = request.getServerName();
+    int serverPort = request.getServerPort();
+    String contextPath = request.getContextPath();
+
+    // Construct the base URL from the browser's perspective
+    StringBuilder baseUrlBuilder = new StringBuilder();
+    baseUrlBuilder.append(scheme).append("://").append(serverName);
+
+    // Append port only if it's not the default for the scheme
+    if ((scheme.equals("http") && serverPort != 80) || (scheme.equals("https") && serverPort != 443)) {
+        baseUrlBuilder.append(":").append(serverPort);
+    }
+    baseUrlBuilder.append(contextPath);
+    String baseUrl2 = baseUrlBuilder.toString();    
+    logger.info("XXX baseUrl2  = " + baseUrl2);
+
+    
 
     theResponse.setStatus(200);
     theResponse.setContentType(Constants.CT_HTML);
