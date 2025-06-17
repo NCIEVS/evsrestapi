@@ -387,6 +387,10 @@ public class ValueSetProviderR5 implements IResourceProvider {
           }
           vsExpansion.addContains(vsContains);
         }
+        ValueSetExpansionParameterComponent vsParameter = new ValueSetExpansionParameterComponent();
+        vsParameter.setName("url");
+        vsParameter.setValue(url);
+        vsExpansion.addParameter(vsParameter);
       }
       vs.setExpansion(vsExpansion);
       return vs;
@@ -613,8 +617,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
       vsExpansion.addParameter(vsParameter);
 
       vsParameter = new ValueSetExpansionParameterComponent();
-      vsParameter.setName("version");
-      vsParameter.setValue(version);
+      vsParameter.setName("id");
+      vsParameter.setValue(id);
       vsExpansion.addParameter(vsParameter);
 
       // Add property parameter if properties were specified

@@ -240,15 +240,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
           vsContains.setCode(member.getCode());
           vsContains.setDisplay(member.getName());
           vsExpansion.addContains(vsContains);
-          ValueSetExpansionParameterComponent vsParameter =
-              new ValueSetExpansionParameterComponent();
-          vsParameter.setName("url");
-          vsParameter.setValue(url);
-          vsExpansion.addParameter(vsParameter);
-          vsParameter = new ValueSetExpansionParameterComponent();
-          vsParameter.setName("version");
-          vsParameter.setValue(version);
-          vsExpansion.addParameter(vsParameter);
 
           // Add synonyms to the contains component if they were requested
           if (includeDesignations != null
@@ -265,6 +256,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
             }
           }
         }
+        ValueSetExpansionParameterComponent vsParameter = new ValueSetExpansionParameterComponent();
+        vsParameter.setName("url");
+        vsParameter.setValue(url);
+        vsExpansion.addParameter(vsParameter);
       }
       vs.setExpansion(vsExpansion);
       return vs;
@@ -436,15 +431,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
           vsContains.setCode(member.getCode());
           vsContains.setDisplay(member.getName());
           vsExpansion.addContains(vsContains);
-          ValueSetExpansionParameterComponent vsParameter =
-              new ValueSetExpansionParameterComponent();
-          vsParameter.setName("url");
-          vsParameter.setValue(url);
-          vsExpansion.addParameter(vsParameter);
-          vsParameter = new ValueSetExpansionParameterComponent();
-          vsParameter.setName("version");
-          vsParameter.setValue(version);
-          vsExpansion.addParameter(vsParameter);
 
           // Add synonyms to the contains component if they were requested
           if (includeDesignations != null
@@ -461,6 +447,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
             }
           }
         }
+        ValueSetExpansionParameterComponent vsParameter = new ValueSetExpansionParameterComponent();
+        vsParameter.setName("url");
+        vsParameter.setValue(url);
+        vsExpansion.addParameter(vsParameter);
+
+        vsParameter = new ValueSetExpansionParameterComponent();
+        vsParameter.setName("id");
+        vsParameter.setValue(id);
+        vsExpansion.addParameter(vsParameter);
       }
       vs.setExpansion(vsExpansion);
       return vs;
