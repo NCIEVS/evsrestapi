@@ -429,13 +429,15 @@ public class OpenApiInterceptorR4 {
       throws IOException {
     final CapabilityStatement cs = getCapabilityStatement(theRequestDetails);
 
-    // final String baseUrl = removeTrailingSlash(cs.getImplementation().getUrl());
+    final String baseUrl2 = removeTrailingSlash(cs.getImplementation().getUrl());
+    logger.info("XXX baseUrl2 = " + baseUrl2);
     final IServerAddressStrategy addressStrategy =
         theRequestDetails.getServer().getServerAddressStrategy();
     final String baseUrl =
         addressStrategy.determineServerBase(
             theRequestDetails.getServletRequest().getServletContext(),
             theRequestDetails.getServletRequest());
+    logger.info("XXX baseUrl  = " + baseUrl2);
 
     theResponse.setStatus(200);
     theResponse.setContentType(Constants.CT_HTML);
