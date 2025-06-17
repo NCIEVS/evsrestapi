@@ -429,6 +429,7 @@ public class OpenApiInterceptorR4 {
       throws IOException {
     final CapabilityStatement cs = getCapabilityStatement(theRequestDetails);
 
+    logger.info("XXX baseUrl2 = " + theRequestDetails.getFhirServerBase());
     final String baseUrl2 = removeTrailingSlash(cs.getImplementation().getUrl());
     logger.info("XXX baseUrl2 = " + baseUrl2);
     final IServerAddressStrategy addressStrategy =
