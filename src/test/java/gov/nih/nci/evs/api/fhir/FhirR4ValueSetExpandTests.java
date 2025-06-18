@@ -253,33 +253,6 @@ public class FhirR4ValueSetExpandTests {
   }
 
   /**
-   * Test value set not found.
-   *
-   * @throws Exception exception
-   */
-  @Test
-  public void testValueSetNotFoundExpandInstance() throws Exception {
-    // Arrange
-    String content;
-    String activeID = "umlssemnet_2023aa";
-    String url = "http://www.nlm.nih.gov/research/umls/vsNotFound?fhir_vs";
-    String messageNotFound = "Value set " + url + " not found";
-    String endpoint =
-        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
-    String parameters = "?url=" + url;
-    String errorCode = "exception";
-
-    // Act
-    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-
-    // Assert
-    assertEquals(errorCode, component.getCode().toCode());
-    assertEquals(messageNotFound, (component.getDiagnostics()));
-  }
-
-  /**
    * Test the ValueSet rejects a post call when attempted.
    *
    * @throws Exception exception

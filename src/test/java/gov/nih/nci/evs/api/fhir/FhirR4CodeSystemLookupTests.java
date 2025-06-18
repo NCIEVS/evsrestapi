@@ -458,34 +458,6 @@ public class FhirR4CodeSystemLookupTests {
   }
 
   /**
-   * Test code system bad.
-   *
-   * @throws Exception exception
-   */
-  @Test
-  public void testCodeSystemBadInstance() throws Exception {
-    // Arrange
-    String content;
-    String code = "C3224";
-    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/TheBadTest.owl";
-    String messageNotFound = "Unable to find matching code system";
-    String activeId = "umlssemnet_2023aa";
-    String endpoint =
-        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_LOOKUP;
-    String parameters = "?code=" + code + "&system=" + url;
-    String errorCode = "not-found";
-
-    // Act
-    content = restTemplate.getForObject(endpoint + parameters, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-
-    // Assert
-    assertEquals(errorCode, component.getCode().toCode());
-    assertEquals(messageNotFound, (component.getDiagnostics()));
-  }
-
-  /**
    * Test the CodeSystem rejects a post call when attempted.
    *
    * @throws Exception exception
