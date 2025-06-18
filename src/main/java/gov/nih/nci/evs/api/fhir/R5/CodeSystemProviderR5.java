@@ -181,9 +181,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param version the version of the system, if provided.
    * @param coding the coding to look up
    * @param date the date that the information should be returned.
-   * @param displayLanguage the requested language for display.
-   * @param property the code type property that the client wished to be returned in the output. If
-   *     none provided, the server will choose the properties to return.
    * @return the parameters
    * @throws Exception exception
    */
@@ -286,9 +283,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param version the version of the system, if provided.
    * @param coding the coding to look up
    * @param date the date that the information should be returned.
-   * @param displayLanguage the requested language for display.
-   * @param property the code type property that the client wished to be returned in the output. If
-   *     none provided, the server will choose the properties to return.
    * @return the parameters
    * @throws Exception exception
    */
@@ -387,16 +381,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param response the response
    * @param details the details
    * @param url the CodeSystem URL
-   * @param codeSystem the code system
    * @param code the code to be validated
    * @param version the version of the code system, if provided
    * @param display the display associated with the code. If provided, a code must be provided.
    * @param coding the coding to validate
-   * @param date the date that the validation should be checked
-   * @param abstractt the abstract flag, a logical grouping concept that is not intended to be used
-   *     as a 'concrete' concept to in an actual patient/care/process record.
-   * @param displayLanguage the display language for the description when validating the display
-   *     property
    * @return the parameters
    * @throws Exception exception
    */
@@ -508,16 +496,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param details the details
    * @param id the id
    * @param url the CodeSystem URL
-   * @param codeSystem the code system
    * @param code the code to be validated
    * @param version the version of the code system, if provided
    * @param display the display associated with the code. If provided, a code must be provided.
    * @param coding the coding to validate
-   * @param date the date that the validation should be checked
-   * @param abstractt the abstract flag, a logical grouping concept that is not intended to be used
-   *     as a 'concrete' concept to in an actual patient/care/process record.
-   * @param displayLanguage the display language for the description when validating the display
-   *     property
    * @return the parameters
    * @throws Exception exception
    */
@@ -565,7 +547,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         systemToLookup = coding.getSystemElement();
       }
 
-      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, systemToLookup, version);
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, null, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String codeToValidate = "";
@@ -575,6 +557,12 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           codeToValidate = coding.getCode();
         }
         final CodeSystem codeSys = cs.get(0);
+        if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
+          throw FhirUtilityR5.exception(
+                  "Supplied url or system " + systemToLookup + " doesn't match the CodeSystem retrieved by the id " + id + " " + codeSys.getUrl(),
+                  OperationOutcome.IssueType.EXCEPTION,
+                  400);
+        }
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
         final Optional<Concept> check =

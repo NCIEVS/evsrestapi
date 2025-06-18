@@ -35,17 +35,9 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hl7.fhir.r5.model.BooleanType;
-import org.hl7.fhir.r5.model.Bundle;
-import org.hl7.fhir.r5.model.CodeType;
-import org.hl7.fhir.r5.model.Coding;
-import org.hl7.fhir.r5.model.IdType;
-import org.hl7.fhir.r5.model.IntegerType;
+
+import org.hl7.fhir.r5.model.*;
 import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r5.model.Parameters;
-import org.hl7.fhir.r5.model.StringType;
-import org.hl7.fhir.r5.model.UriType;
-import org.hl7.fhir.r5.model.ValueSet;
 import org.hl7.fhir.r5.model.ValueSet.ConceptPropertyComponent;
 import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionContainsComponent;
@@ -822,7 +814,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
     try {
       FhirUtilityR5.requireAtLeastOneOf(
-          "code", code, "system", system, "coding", coding, "url", url);
+          "id", id, "code", code, "system", system, "coding", coding);
       FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
 
@@ -848,7 +840,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         urlToLookup = coding.getSystemElement();
       }
 
-      final List<ValueSet> list = findPossibleValueSets(id, system, urlToLookup, systemVersion);
+      final List<ValueSet> list = findPossibleValueSets(id, system, null, systemVersion);
       final Parameters params = new Parameters();
       if (!list.isEmpty()) {
         String codeToLookup = "";
@@ -858,6 +850,12 @@ public class ValueSetProviderR5 implements IResourceProvider {
           codeToLookup = coding.getCode();
         }
         final ValueSet vs = list.get(0);
+        if ((urlToLookup != null) && !vs.getUrl().equals(urlToLookup.getValue())) {
+          throw FhirUtilityR5.exception(
+                  "Supplied url " + urlToLookup + " doesn't match the ValueSet retrieved by the id " + id + " " + vs.getUrl(),
+                  OperationOutcome.IssueType.EXCEPTION,
+                  400);
+        }
         final SearchCriteria sc = new SearchCriteria();
         sc.setTerm(codeToLookup);
         sc.setInclude("minimal");

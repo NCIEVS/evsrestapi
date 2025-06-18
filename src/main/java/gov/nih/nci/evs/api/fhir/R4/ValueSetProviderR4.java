@@ -692,7 +692,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         urlToLookup = coding.getSystemElement();
       }
 
-      final List<ValueSet> list = findPossibleValueSets(id, system, urlToLookup, systemVersion);
+      final List<ValueSet> list = findPossibleValueSets(id, system, null, systemVersion);
       final Parameters params = new Parameters();
       if (list.size() > 0) {
         String codeToLookup = "";
@@ -702,6 +702,12 @@ public class ValueSetProviderR4 implements IResourceProvider {
           codeToLookup = coding.getCode();
         }
         final ValueSet vs = list.get(0);
+        if ((urlToLookup != null) && !vs.getUrl().equals(urlToLookup.getValue())) {
+          throw FhirUtilityR5.exception(
+                  "Supplied url " + urlToLookup + " doesn't match the ValueSet retrieved by the id " + id + " " + vs.getUrl(),
+                  org.hl7.fhir.r5.model.OperationOutcome.IssueType.EXCEPTION,
+                  400);
+        }
         final SearchCriteria sc = new SearchCriteria();
         sc.setTerm(codeToLookup);
         sc.setInclude("minimal");
