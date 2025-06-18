@@ -261,6 +261,39 @@ public class FhirR4CodeSystemLookupTests {
         ((BooleanType) params.getParameter("property").getPart().get(1).getValue()).getValue());
     assertEquals(name, ((StringType) params.getParameter("name").getValue()).getValue());
     assertEquals(version, ((StringType) params.getParameter("version").getValue()).getValue());
+
+    parameters = "?code=" + activeCode + "&display" + displayString;
+
+    // Act - Test 2 no url
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+    // confirm code is active
+    assertTrue(
+        ((BooleanType) params.getParameter("property").getPart().get(1).getValue()).getValue());
+    assertEquals(name, ((StringType) params.getParameter("name").getValue()).getValue());
+    assertEquals(version, ((StringType) params.getParameter("version").getValue()).getValue());
+
+    url = "invalid_url";
+    parameters = "?system=" + url + "&code=" + activeCode + "&display" + displayString;
+    String messageNotFound =
+        "Supplied url or system UriType[invalid_url] doesn't match the CodeSystem retrieved by the"
+            + " id CodeSystem/umlssemnet_2023aa"
+            + " http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    String errorCode = "exception";
+
+    // Act - Test 3 with invalid url
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
   /**

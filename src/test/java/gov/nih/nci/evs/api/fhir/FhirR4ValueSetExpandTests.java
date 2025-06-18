@@ -109,6 +109,38 @@ public class FhirR4ValueSetExpandTests {
             .collect(Collectors.toList())
             .get(0)
             .getDisplay());
+
+    // Act - Test 2 no url
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertTrue(valueSet.hasExpansion());
+    assertEquals(
+        displayString,
+        valueSet.getExpansion().getContains().stream()
+            .filter(comp -> comp.getCode().equals(activeCode))
+            .collect(Collectors.toList())
+            .get(0)
+            .getDisplay());
+
+    url = "invalid_url";
+    parameters = "?url=" + url;
+    String messageNotFound =
+        "Supplied url invalid_url doesn't match the ValueSet retrieved by the id"
+            + " ValueSet/umlssemnet_2023aa"
+            + " http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String errorCode = "exception";
+
+    // Act - Test 3 with invalid url
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
   /**

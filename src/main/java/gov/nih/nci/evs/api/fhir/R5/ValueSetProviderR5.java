@@ -480,10 +480,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
     try {
 
-      final List<ValueSet> vsList = findPossibleValueSets(id, null, url, version);
+      final List<ValueSet> vsList = findPossibleValueSets(id, null, null, version);
       if (vsList.isEmpty()) {
-        throw FhirUtilityR5.exception(
-            "Value set " + url.asStringValue() + " not found", IssueType.EXCEPTION, 500);
+        throw FhirUtilityR5.exception("Value set " + id + " not found", IssueType.EXCEPTION, 500);
       }
 
       // Convert list of StringType properties to list of String property names
@@ -515,7 +514,19 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
-      if (url != null && url.getValue().contains("?fhir_vs=")) {
+      if ((url != null) && !vs.getUrl().equals(url.getValue())) {
+        throw FhirUtilityR5.exception(
+            "Supplied url "
+                + url.getValue()
+                + " doesn't match the ValueSet retrieved by the id "
+                + id
+                + " "
+                + vs.getUrl(),
+            OperationOutcome.IssueType.EXCEPTION,
+            400);
+      }
+
+      if (vs.getUrl() != null && vs.getUrl().contains("?fhir_vs=")) {
         final List<Association> invAssoc =
             osQueryService
                 .getConcept(

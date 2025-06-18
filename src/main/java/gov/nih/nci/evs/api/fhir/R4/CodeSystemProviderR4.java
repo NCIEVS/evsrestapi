@@ -213,7 +213,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
       //      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
       //      FhirUtilityR4.notSupported("property", property);
@@ -234,7 +233,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         systemToLookup = coding.getSystemElement();
       }
 
-      final List<CodeSystem> cs = findPossibleCodeSystems(id, date, systemToLookup, version);
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, date, null, version);
       final Parameters params = new Parameters();
       if (cs.size() > 0) {
         String codeToLookup = "";
@@ -244,6 +243,18 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           codeToLookup = coding.getCode();
         }
         final CodeSystem codeSys = cs.get(0);
+        // if system is supplied, ensure it matches the url returned on the codeSys found by id
+        if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
+          throw FhirUtilityR5.exception(
+              "Supplied url or system "
+                  + systemToLookup
+                  + " doesn't match the CodeSystem retrieved by the id "
+                  + id
+                  + " "
+                  + codeSys.getUrl(),
+              org.hl7.fhir.r5.model.OperationOutcome.IssueType.EXCEPTION,
+              400);
+        }
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
         final Concept conc =
