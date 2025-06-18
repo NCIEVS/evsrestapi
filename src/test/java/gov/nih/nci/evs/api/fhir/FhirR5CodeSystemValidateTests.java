@@ -272,12 +272,15 @@ public class FhirR5CodeSystemValidateTests {
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
     assertEquals(activeCode, ((StringType) params.getParameter("code").getValue()).getValue());
     assertEquals(
-            displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
     assertTrue(((BooleanType) params.getParameter("active").getValue()).getValue());
 
     url = "invalid_url";
     parameters = "?url=" + url + "&code=" + activeCode + "&display" + displayString;
-    String messageNotFound = "Supplied url or system UriType[invalid_url] doesn't match the CodeSystem retrieved by the id CodeSystem/umlssemnet_2023aa http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    String messageNotFound =
+        "Supplied url or system UriType[invalid_url] doesn't match the CodeSystem retrieved by the"
+            + " id CodeSystem/umlssemnet_2023aa"
+            + " http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String errorCode = "exception";
 
     // Act - Test 3 with invalid url
@@ -317,9 +320,7 @@ public class FhirR5CodeSystemValidateTests {
         messageNotFound, ((StringType) params.getParameter("message").getValue()).getValue());
   }
 
-  /**
-   * Test code system code not found and display string.
-   */
+  /** Test code system code not found and display string. */
   @Test
   public void testCodeSystemCodeNotFoundAndDisplayString() {
     // Arrange

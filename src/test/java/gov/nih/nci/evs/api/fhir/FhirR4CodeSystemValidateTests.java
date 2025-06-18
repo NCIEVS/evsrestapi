@@ -249,7 +249,7 @@ public class FhirR4CodeSystemValidateTests {
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String displayString = "Age Group";
     String endpoint =
-            localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?url=" + url + "&code=" + activeCode + "&display" + displayString;
 
     // Act - Test 1 with appropriate URL
@@ -260,7 +260,7 @@ public class FhirR4CodeSystemValidateTests {
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
     assertEquals(activeCode, ((StringType) params.getParameter("code").getValue()).getValue());
     assertEquals(
-            displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
     assertTrue(((BooleanType) params.getParameter("active").getValue()).getValue());
     parameters = "?code=" + activeCode + "&display" + displayString;
 
@@ -272,12 +272,15 @@ public class FhirR4CodeSystemValidateTests {
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
     assertEquals(activeCode, ((StringType) params.getParameter("code").getValue()).getValue());
     assertEquals(
-            displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
     assertTrue(((BooleanType) params.getParameter("active").getValue()).getValue());
 
     url = "invalid_url";
     parameters = "?url=" + url + "&code=" + activeCode + "&display" + displayString;
-    String messageNotFound = "Supplied url or system UriType[invalid_url] doesn't match the CodeSystem retrieved by the id CodeSystem/umlssemnet_2023aa http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    String messageNotFound =
+        "Supplied url or system UriType[invalid_url] doesn't match the CodeSystem retrieved by the"
+            + " id CodeSystem/umlssemnet_2023aa"
+            + " http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     String errorCode = "exception";
 
     // Act - Test 3 with invalid url

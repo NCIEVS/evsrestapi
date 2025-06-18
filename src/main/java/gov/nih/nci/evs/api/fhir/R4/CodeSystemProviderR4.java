@@ -464,9 +464,14 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         // if url is supplied, ensure it matches the url returned on the codeSys found by id
         if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
           throw FhirUtilityR5.exception(
-                  "Supplied url or system " + systemToLookup + " doesn't match the CodeSystem retrieved by the id " + id + " " + codeSys.getUrl(),
-                  org.hl7.fhir.r5.model.OperationOutcome.IssueType.EXCEPTION,
-                  400);
+              "Supplied url or system "
+                  + systemToLookup
+                  + " doesn't match the CodeSystem retrieved by the id "
+                  + id
+                  + " "
+                  + codeSys.getUrl(),
+              org.hl7.fhir.r5.model.OperationOutcome.IssueType.EXCEPTION,
+              400);
         }
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);

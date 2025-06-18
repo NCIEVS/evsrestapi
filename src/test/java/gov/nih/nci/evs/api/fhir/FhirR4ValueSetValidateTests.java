@@ -242,7 +242,6 @@ public class FhirR4ValueSetValidateTests {
     assertEquals(
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
 
-
     parameters = "?code=" + activeCode + "&display" + displayString;
 
     // Act - Test 2 with no url
@@ -252,11 +251,14 @@ public class FhirR4ValueSetValidateTests {
     // Assert
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
     assertEquals(
-            displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
 
     url = "invalid_url";
     parameters = "?url=" + url + "&code=" + activeCode + "&display" + displayString;
-    String messageNotFound = "Supplied url UriType[invalid_url] doesn't match the ValueSet retrieved by the id ValueSet/umlssemnet_2023aa http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String messageNotFound =
+        "Supplied url UriType[invalid_url] doesn't match the ValueSet retrieved by the id"
+            + " ValueSet/umlssemnet_2023aa"
+            + " http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     String errorCode = "exception";
 
     // Act - Test 3 with invalid url

@@ -704,9 +704,14 @@ public class ValueSetProviderR4 implements IResourceProvider {
         final ValueSet vs = list.get(0);
         if ((urlToLookup != null) && !vs.getUrl().equals(urlToLookup.getValue())) {
           throw FhirUtilityR5.exception(
-                  "Supplied url " + urlToLookup + " doesn't match the ValueSet retrieved by the id " + id + " " + vs.getUrl(),
-                  org.hl7.fhir.r5.model.OperationOutcome.IssueType.EXCEPTION,
-                  400);
+              "Supplied url "
+                  + urlToLookup
+                  + " doesn't match the ValueSet retrieved by the id "
+                  + id
+                  + " "
+                  + vs.getUrl(),
+              org.hl7.fhir.r5.model.OperationOutcome.IssueType.EXCEPTION,
+              400);
         }
         final SearchCriteria sc = new SearchCriteria();
         sc.setTerm(codeToLookup);

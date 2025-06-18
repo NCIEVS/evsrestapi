@@ -35,7 +35,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hl7.fhir.r5.model.*;
 import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r5.model.ValueSet.ConceptPropertyComponent;
@@ -813,8 +812,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR5.requireAtLeastOneOf(
-          "id", id, "code", code, "system", system, "coding", coding);
+      FhirUtilityR5.requireAtLeastOneOf("id", id, "code", code, "system", system, "coding", coding);
       FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
 
@@ -852,9 +850,14 @@ public class ValueSetProviderR5 implements IResourceProvider {
         final ValueSet vs = list.get(0);
         if ((urlToLookup != null) && !vs.getUrl().equals(urlToLookup.getValue())) {
           throw FhirUtilityR5.exception(
-                  "Supplied url " + urlToLookup + " doesn't match the ValueSet retrieved by the id " + id + " " + vs.getUrl(),
-                  OperationOutcome.IssueType.EXCEPTION,
-                  400);
+              "Supplied url "
+                  + urlToLookup
+                  + " doesn't match the ValueSet retrieved by the id "
+                  + id
+                  + " "
+                  + vs.getUrl(),
+              OperationOutcome.IssueType.EXCEPTION,
+              400);
         }
         final SearchCriteria sc = new SearchCriteria();
         sc.setTerm(codeToLookup);
