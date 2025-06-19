@@ -435,29 +435,7 @@ public class OpenApiInterceptorR4 {
         addressStrategy.determineServerBase(
             theRequestDetails.getServletRequest().getServletContext(),
             theRequestDetails.getServletRequest());
-    logger.info("XXX baseUrl  = " + baseUrl);
-
-
-    HttpServletRequest request = theRequestDetails.getServletRequest();
-    String scheme = request.getScheme(); 
-    String serverName = request.getServerName();
-    int serverPort = request.getServerPort();
-    String contextPath = request.getContextPath();
-
-    // Construct the base URL from the browser's perspective
-    StringBuilder baseUrlBuilder = new StringBuilder();
-    baseUrlBuilder.append(scheme).append("://").append(serverName);
-
-    // Append port only if it's not the default for the scheme
-    if ((scheme.equals("http") && serverPort != 80) || (scheme.equals("https") && serverPort != 443)) {
-        baseUrlBuilder.append(":").append(serverPort);
-    }
-    baseUrlBuilder.append(contextPath);
-    String baseUrl2 = baseUrlBuilder.toString();    
-    logger.info("XXX baseUrl2  = " + baseUrl2);
-
     
-
     theResponse.setStatus(200);
     theResponse.setContentType(Constants.CT_HTML);
 
