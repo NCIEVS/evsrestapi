@@ -429,7 +429,6 @@ public class OpenApiInterceptorR4 {
       throws IOException {
     final CapabilityStatement cs = getCapabilityStatement(theRequestDetails);
 
-    // final String baseUrl = removeTrailingSlash(cs.getImplementation().getUrl());
     final IServerAddressStrategy addressStrategy =
         theRequestDetails.getServer().getServerAddressStrategy();
     final String baseUrl =
@@ -930,6 +929,7 @@ public class OpenApiInterceptorR4 {
    * @param theResourceType the the resource type
    * @param theOperation the the operation
    */
+  @SuppressWarnings("null")
   private void addFhirOperation(
       final FhirContext theFhirContext,
       final OpenAPI theOpenApi,
