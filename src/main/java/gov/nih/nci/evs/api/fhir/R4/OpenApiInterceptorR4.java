@@ -435,7 +435,7 @@ public class OpenApiInterceptorR4 {
         addressStrategy.determineServerBase(
             theRequestDetails.getServletRequest().getServletContext(),
             theRequestDetails.getServletRequest());
-    
+
     theResponse.setStatus(200);
     theResponse.setContentType(Constants.CT_HTML);
 
@@ -929,6 +929,7 @@ public class OpenApiInterceptorR4 {
    * @param theResourceType the the resource type
    * @param theOperation the the operation
    */
+  @SuppressWarnings("null")
   private void addFhirOperation(
       final FhirContext theFhirContext,
       final OpenAPI theOpenApi,
