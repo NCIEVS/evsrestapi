@@ -83,9 +83,12 @@
 	</script>
 	<script>
 		window.onload = function() {
+            // Ensure we are using the browser URL as an entry point
+            // to avoid crossing to internal domains which the server knows about
+			var apiDocs = window.location.href.replace(/\/swagger-ui.*/,"")+ "[['/api-docs?page=' + ${PAGE}]]";
 			// Begin Swagger UI call region
 			const ui = SwaggerUIBundle({
-				url : "[[${OPENAPI_DOCS} + '?page=' + ${PAGE}]]",
+				url : apiDocs ,
 				dom_id : '#swagger-ui',
 				deepLinking : true,
 				presets : [ SwaggerUIBundle.presets.apis,
