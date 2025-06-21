@@ -429,12 +429,13 @@ public class OpenApiInterceptorR4 {
       throws IOException {
     final CapabilityStatement cs = getCapabilityStatement(theRequestDetails);
 
-    final IServerAddressStrategy addressStrategy =
-        theRequestDetails.getServer().getServerAddressStrategy();
-    final String baseUrl =
-        addressStrategy.determineServerBase(
-            theRequestDetails.getServletRequest().getServletContext(),
-            theRequestDetails.getServletRequest());
+    final String baseUrl = theRequestDetails.getServletRequest().getParameter("baseUrl");
+    //  final IServerAddressStrategy addressStrategy =
+    //      theRequestDetails.getServer().getServerAddressStrategy();
+    //  final String baseUrl =
+    //      addressStrategy.determineServerBase(
+    //          theRequestDetails.getServletRequest().getServletContext(),
+    //          theRequestDetails.getServletRequest());
 
     theResponse.setStatus(200);
     theResponse.setContentType(Constants.CT_HTML);
@@ -588,13 +589,13 @@ public class OpenApiInterceptorR4 {
     final Server server = new Server();
     openApi.addServersItem(server);
 
-    // final String baseUrl = removeTrailingSlash(cs.getImplementation().getUrl());
-    final IServerAddressStrategy addressStrategy =
-        theRequestDetails.getServer().getServerAddressStrategy();
-    final String baseUrl =
-        addressStrategy.determineServerBase(
-            theRequestDetails.getServletRequest().getServletContext(),
-            theRequestDetails.getServletRequest());
+    final String baseUrl = theRequestDetails.getServletRequest().getParameter("baseUrl");
+    //    final IServerAddressStrategy addressStrategy =
+    //        theRequestDetails.getServer().getServerAddressStrategy();
+    //    final String baseUrl =
+    //        addressStrategy.determineServerBase(
+    //            theRequestDetails.getServletRequest().getServletContext(),
+    //            theRequestDetails.getServletRequest());
 
     server.setUrl(baseUrl);
     server.setDescription(cs.getSoftware().getName());
@@ -1620,12 +1621,13 @@ public class OpenApiInterceptorR4 {
       final ServletRequestDetails requestDetails =
           (ServletRequestDetails) theExpressionContext.getVariable(REQUEST_DETAILS);
 
-      final IServerAddressStrategy addressStrategy =
-          requestDetails.getServer().getServerAddressStrategy();
-      final String baseUrl =
-          addressStrategy.determineServerBase(
-              requestDetails.getServletRequest().getServletContext(),
-              requestDetails.getServletRequest());
+      final String baseUrl = requestDetails.getServletRequest().getParameter("baseUrl");
+      //    final IServerAddressStrategy addressStrategy =
+      //        theRequestDetails.getServer().getServerAddressStrategy();
+      //    final String baseUrl =
+      //        addressStrategy.determineServerBase(
+      //            theRequestDetails.getServletRequest().getServletContext(),
+      //            theRequestDetails.getServletRequest());
 
       final StringBuilder builder = new StringBuilder();
       builder.append(baseUrl);

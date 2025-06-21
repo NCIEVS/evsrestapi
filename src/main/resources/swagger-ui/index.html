@@ -7,6 +7,26 @@
 <link rel="stylesheet" type="text/css" href="./index.css" />
 <link rel="stylesheet" type="text/css" href="./swagger-ui-custom.css"
 	th:if="${ADDITIONAL_CSS_TEXT} != null" />
+ <script type="text/javascript">
+        // Function to get a URL parameter by name
+        function getUrlParameter(name) {
+            name = name.replace(/[\[]/, '\\[').replace(/[\]]/, '\\]');
+            var regex = new RegExp('[\\?&]' + name + '=([^&#]*)');
+            var results = regex.exec(location.search);
+            return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '));
+        };
+
+        // Get the value of the 'baseUrl' parameter
+        const baseUrl = getUrlParameter('baseUrl');
+
+        // If not set
+        if (baseUrl === '') {
+            // compute it and redirect
+        	const baseUrl = window.location.href.replace(/\/swagger-ui.*/,"");
+            const newUrl = window.location.href + '?baseUrl=' + encodeURIComponent(baseUrl);
+            window.location.replace(newUrl);
+        }
+    </script>
 </head>
 
 <body>
@@ -65,7 +85,7 @@
 		<div class="pageButtons" id="pageButtons">
 			<a class="pageButton" th:each="pageName : ${PAGE_NAMES}"
 				th:classappend="${pageName} == ${PAGE} ? 'pageButtonSelected' : ''"
-				th:href="@{/swagger-ui/(page=${pageName})}"> [[${pageName}]] <span
+				th:href="@{/swagger-ui/(page=${pageName},baseUrl=${BASE_URL})}"> [[${pageName}]] <span
 				th:if="${PAGE_NAME_TO_COUNT.containsKey(pageName)}"
 				th:text="${PAGE_NAME_TO_COUNT.get(pageName)}"
 				class="resourceCountBadge"></span>
@@ -85,7 +105,8 @@
 		window.onload = function() {
             // Ensure we are using the browser URL as an entry point
             // to avoid crossing to internal domains which the server knows about
-			var apiDocs = window.location.href.replace(/\/swagger-ui.*/,"")+ "[['/api-docs?page=' + ${PAGE}]]";
+            var baseUrl = window.location.href.replace(/\/swagger-ui.*/,"");
+			var apiDocs = baseUrl + "[['/api-docs?page=' + ${PAGE}]]&baseUrl="+encodeURIComponent(baseUrl);
 			// Begin Swagger UI call region
 			const ui = SwaggerUIBundle({
 				url : apiDocs ,
