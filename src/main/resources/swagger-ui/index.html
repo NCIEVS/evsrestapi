@@ -85,7 +85,8 @@
 		window.onload = function() {
             // Ensure we are using the browser URL as an entry point
             // to avoid crossing to internal domains which the server knows about
-			var apiDocs = window.location.href.replace(/\/swagger-ui.*/,"")+ "[['/api-docs?page=' + ${PAGE}]]";
+            var baseUrl = window.location.href.replace(/\/swagger-ui.*/,"");
+			var apiDocs = baseUrl + "[['/api-docs?page=' + ${PAGE}]]&baseUrl="+encodeURIComponent(baseUrl);
 			// Begin Swagger UI call region
 			const ui = SwaggerUIBundle({
 				url : apiDocs ,
