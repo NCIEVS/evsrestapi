@@ -24,7 +24,7 @@ clean:
 # Build the library without tests
 # On Windows use: git config core.eol lf
 build:
-	./gradlew clean spotlessApply build -x test
+	./gradlew clean spotlessApply build -x test -x zipFile
 
 test:
 	./gradlew spotlessCheck -x test 
