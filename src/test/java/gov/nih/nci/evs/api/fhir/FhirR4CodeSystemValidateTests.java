@@ -252,7 +252,7 @@ public class FhirR4CodeSystemValidateTests {
         localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?url=" + url + "&code=" + activeCode + "&display" + displayString;
 
-    // Act
+    // Act - Test 1 with appropriate URL
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
@@ -262,6 +262,36 @@ public class FhirR4CodeSystemValidateTests {
     assertEquals(
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
     assertTrue(((BooleanType) params.getParameter("active").getValue()).getValue());
+    parameters = "?code=" + activeCode + "&display" + displayString;
+
+    // Act - Test 2 with no url
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(activeCode, ((StringType) params.getParameter("code").getValue()).getValue());
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+    assertTrue(((BooleanType) params.getParameter("active").getValue()).getValue());
+
+    url = "invalid_url";
+    parameters = "?url=" + url + "&code=" + activeCode + "&display" + displayString;
+    String messageNotFound =
+        "Supplied url or system UriType[invalid_url] doesn't match the CodeSystem retrieved by the"
+            + " id CodeSystem/umlssemnet_2023aa"
+            + " http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    String errorCode = "exception";
+
+    // Act - Test 3 with invalid url
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
   /**
@@ -389,34 +419,6 @@ public class FhirR4CodeSystemValidateTests {
     String code = "C3224";
     String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/TheBadTest.owl";
     String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
-    String parameters = "?code=" + code + "&url=" + url;
-    String messageNotFound = "Unable to find matching code system";
-    String errorCode = "not-found";
-
-    // Act
-    content = restTemplate.getForObject(endpoint + parameters, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-
-    // Assert
-    assertEquals(errorCode, component.getCode().toCode());
-    assertEquals(messageNotFound, (component.getDiagnostics()));
-  }
-
-  /**
-   * Test code system bad.
-   *
-   * @throws Exception exception
-   */
-  @Test
-  public void testCodeSystemBadInstance() throws Exception {
-    // Arrange
-    String content;
-    String code = "C3224";
-    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/TheBadTest.owl";
-    String activeId = "umlssemnet_2023aa";
-    String endpoint =
-        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?code=" + code + "&url=" + url;
     String messageNotFound = "Unable to find matching code system";
     String errorCode = "not-found";

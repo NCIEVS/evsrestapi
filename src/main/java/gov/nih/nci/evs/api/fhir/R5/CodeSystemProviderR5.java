@@ -293,7 +293,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR5.mutuallyRequired("code", code, "system", system);
       FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       for (final String param : new String[] {"displayLanguage", "property"}) {
         FhirUtilityR5.notSupported(request, param);
@@ -312,7 +311,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         systemToLookup = coding.getSystemElement();
       }
 
-      final List<CodeSystem> cs = findPossibleCodeSystems(id, date, systemToLookup, version);
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, date, null, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String codeToLookup = "";
@@ -322,6 +321,17 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           codeToLookup = coding.getCode();
         }
         final CodeSystem codeSys = cs.get(0);
+        if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
+          throw FhirUtilityR5.exception(
+              "Supplied url or system "
+                  + systemToLookup
+                  + " doesn't match the CodeSystem retrieved by the id "
+                  + id
+                  + " "
+                  + codeSys.getUrl(),
+              OperationOutcome.IssueType.EXCEPTION,
+              400);
+        }
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
         final Concept concept =
@@ -483,7 +493,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param code the code to be validated
    * @param version the version of the code system, if provided
    * @param display the display associated with the code. If provided, a code must be provided.
-   * @param coding the coding to validate property
+   * @param coding the coding to validate
    * @return the parameters
    * @throws Exception exception
    */
@@ -531,7 +541,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         systemToLookup = coding.getSystemElement();
       }
 
-      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, systemToLookup, version);
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, null, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String codeToValidate = "";
@@ -541,6 +551,17 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           codeToValidate = coding.getCode();
         }
         final CodeSystem codeSys = cs.get(0);
+        if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
+          throw FhirUtilityR5.exception(
+              "Supplied url or system "
+                  + systemToLookup
+                  + " doesn't match the CodeSystem retrieved by the id "
+                  + id
+                  + " "
+                  + codeSys.getUrl(),
+              OperationOutcome.IssueType.EXCEPTION,
+              400);
+        }
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
         final Optional<Concept> check =
