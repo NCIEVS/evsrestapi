@@ -15,12 +15,7 @@ import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.controller.SubsetController;
 import gov.nih.nci.evs.api.fhir.R5.FhirUtilityR5;
-import gov.nih.nci.evs.api.model.Association;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.SearchCriteria;
-import gov.nih.nci.evs.api.model.Synonym;
-import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.*;
 import gov.nih.nci.evs.api.service.MetadataService;
 import gov.nih.nci.evs.api.service.OpenSearchService;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
@@ -188,6 +183,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       includeParam = new IncludeParam(String.join(",", includeList));
 
       final ValueSet vs = vsList.get(0);
+      final ValueSetExpansionComponent vsExpansion = new ValueSetExpansionComponent();
       List<Concept> subsetMembers = new ArrayList<Concept>();
       if (url.getValue().contains("?fhir_vs=")) {
         final List<Association> invAssoc =
@@ -210,6 +206,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
             subsetMembers.add(member);
           }
         }
+        vsExpansion.setTotal(subsetMembers.size());
       } else {
         final List<Terminology> terminologies = new ArrayList<>();
         terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true));
@@ -223,12 +220,14 @@ public class ValueSetProviderR4 implements IResourceProvider {
         if (includeList.size() >= 1) {
           sc.setInclude(String.join(",", includeList));
         }
-        subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();
+
+        ConceptResultList subsetMembersList = searchService.findConcepts(terminologies, sc);
+        subsetMembers = subsetMembersList.getConcepts();
+        vsExpansion.setTotal(Math.toIntExact(subsetMembersList.getTotal()));
       }
-      final ValueSetExpansionComponent vsExpansion = new ValueSetExpansionComponent();
+      ValueSetExpansionParameterComponent vsParameter;
       vsExpansion.setTimestamp(new Date());
       vsExpansion.setOffset(offset != null ? offset.getValue() : 0);
-      vsExpansion.setTotal(subsetMembers.size());
       if (subsetMembers.size() > 0) {
         for (final Concept member : subsetMembers) {
           if (activeOnly != null && activeOnly.getValue() && !member.getActive()) {
@@ -256,10 +255,34 @@ public class ValueSetProviderR4 implements IResourceProvider {
             }
           }
         }
-        ValueSetExpansionParameterComponent vsParameter = new ValueSetExpansionParameterComponent();
-        vsParameter.setName("url");
-        vsParameter.setValue(url);
-        vsExpansion.addParameter(vsParameter);
+
+        if (filter != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("filter");
+          vsParameter.setValue(filter);
+          vsExpansion.addParameter(vsParameter);
+        }
+
+        if (count != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("count");
+          vsParameter.setValue(count);
+          vsExpansion.addParameter(vsParameter);
+        }
+
+        if (includeDesignations != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("includeDesignations");
+          vsParameter.setValue(includeDesignations);
+          vsExpansion.addParameter(vsParameter);
+        }
+
+        if (activeOnly != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("activeOnly");
+          vsParameter.setValue(activeOnly);
+          vsExpansion.addParameter(vsParameter);
+        }
       }
       vs.setExpansion(vsExpansion);
       return vs;
@@ -378,6 +401,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       includeParam = new IncludeParam(String.join(",", includeList));
 
       final ValueSet vs = vsList.get(0);
+      final ValueSetExpansionComponent vsExpansion = new ValueSetExpansionComponent();
       List<Concept> subsetMembers = new ArrayList<Concept>();
 
       if (url != null && url.getValue().contains("?fhir_vs=")) {
@@ -401,6 +425,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
             subsetMembers.add(member);
           }
         }
+        vsExpansion.setTotal(subsetMembers.size());
       } else {
         final List<Terminology> terminologies = new ArrayList<>();
         terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true));
@@ -414,12 +439,14 @@ public class ValueSetProviderR4 implements IResourceProvider {
         if (includeList.size() >= 1) {
           sc.setInclude(String.join(",", includeList));
         }
-        subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();
+
+        ConceptResultList subsetMembersList = searchService.findConcepts(terminologies, sc);
+        subsetMembers = subsetMembersList.getConcepts();
+        vsExpansion.setTotal(Math.toIntExact(subsetMembersList.getTotal()));
       }
-      final ValueSetExpansionComponent vsExpansion = new ValueSetExpansionComponent();
+      ValueSetExpansionParameterComponent vsParameter;
       vsExpansion.setTimestamp(new Date());
       vsExpansion.setOffset(offset != null ? offset : 0);
-      vsExpansion.setTotal(subsetMembers.size());
       if (subsetMembers.size() > 0) {
         for (final Concept member : subsetMembers) {
           if (activeOnly != null && activeOnly.getValue() && !member.getActive()) {
@@ -447,15 +474,34 @@ public class ValueSetProviderR4 implements IResourceProvider {
             }
           }
         }
-        ValueSetExpansionParameterComponent vsParameter = new ValueSetExpansionParameterComponent();
-        vsParameter.setName("url");
-        vsParameter.setValue(url);
-        vsExpansion.addParameter(vsParameter);
 
-        vsParameter = new ValueSetExpansionParameterComponent();
-        vsParameter.setName("id");
-        vsParameter.setValue(id);
-        vsExpansion.addParameter(vsParameter);
+        if (filter != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("filter");
+          vsParameter.setValue(filter);
+          vsExpansion.addParameter(vsParameter);
+        }
+
+        if (count != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("count");
+          vsParameter.setValue(new IntegerType(count));
+          vsExpansion.addParameter(vsParameter);
+        }
+
+        if (includeDesignations != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("includeDesignations");
+          vsParameter.setValue(includeDesignations);
+          vsExpansion.addParameter(vsParameter);
+        }
+
+        if (activeOnly != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("activeOnly");
+          vsParameter.setValue(activeOnly);
+          vsExpansion.addParameter(vsParameter);
+        }
       }
       vs.setExpansion(vsExpansion);
       return vs;
