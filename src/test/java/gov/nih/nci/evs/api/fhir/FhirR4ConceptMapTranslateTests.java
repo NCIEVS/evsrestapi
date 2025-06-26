@@ -173,6 +173,7 @@ public class FhirR4ConceptMapTranslateTests {
     // Arrange
     String content;
     String code = "GO:0016887";
+    String targetCode = "C19939";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
     String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
     String parameters = "?code=" + code + "&system=" + system;
@@ -185,6 +186,17 @@ public class FhirR4ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    Parameters.ParametersParameterComponent matchParam = params.getParameter("match");
+    assertNotNull(matchParam, "Match parameter should be present");
+
+    Coding coding = (Coding) matchParam.getPart()
+            .stream()
+            .filter(part -> "concept".equals(part.getName()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Concept part not found"))
+            .getValue();
+
+    assertEquals(targetCode, coding.getCode());
   }
 
   /**
@@ -224,6 +236,7 @@ public class FhirR4ConceptMapTranslateTests {
     // Arrange
     String content;
     String code = "C19939";
+    String sourceCode = "GO:0016887";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
     String reverse = "true";
     String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
@@ -236,6 +249,17 @@ public class FhirR4ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    Parameters.ParametersParameterComponent matchParam = params.getParameter("match");
+    assertNotNull(matchParam, "Match parameter should be present");
+
+    Coding coding = (Coding) matchParam.getPart()
+            .stream()
+            .filter(part -> "concept".equals(part.getName()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Concept part not found"))
+            .getValue();
+
+    assertEquals(sourceCode, coding.getCode());
   }
 
   /**
@@ -328,6 +352,7 @@ public class FhirR4ConceptMapTranslateTests {
   public void testConceptMapTranslateImplicitWithSourceCoding() throws Exception {
     // Arrange
     String code = "GO:0016887";
+    String targetCode = "C19939";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
     String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
 
@@ -347,6 +372,17 @@ public class FhirR4ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    Parameters.ParametersParameterComponent matchParam = params.getParameter("match");
+    assertNotNull(matchParam, "Match parameter should be present");
+
+    Coding coding = (Coding) matchParam.getPart()
+            .stream()
+            .filter(part -> "concept".equals(part.getName()))
+            .findFirst()
+            .orElseThrow(() -> new AssertionError("Concept part not found"))
+            .getValue();
+
+    assertEquals(targetCode, coding.getCode());
   }
 
   @Test

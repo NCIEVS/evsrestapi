@@ -19,7 +19,6 @@ import java.util.stream.Stream;
 import org.hl7.fhir.r5.model.*;
 import org.hl7.fhir.r5.model.Bundle.BundleEntryComponent;
 import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
-import org.junit.Assert;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -1008,7 +1007,7 @@ class FhirR5ValueSetReadSearchTests {
         break;
       }
     }
-    Assert.assertTrue("History should contain the current version", foundCurrentVersion);
+    assertTrue(foundCurrentVersion, "History should contain the current version");
   }
 
   @Test
