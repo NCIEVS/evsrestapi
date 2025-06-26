@@ -204,7 +204,15 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyExclusive("sourceCoding", sourceCoding, "targetCoding", targetCoding);
       FhirUtilityR5.mutuallyExclusive("sourceCoding", sourceCoding, "system", system);
       FhirUtilityR5.mutuallyExclusive("targetCoding", targetCoding, "system", system);
-      FhirUtilityR5.requireAtLeastOneOf("sourceCode", sourceCode,"targetCode", targetCode,"sourceCoding", sourceCoding,"targetCoding", targetCoding);
+      FhirUtilityR5.requireAtLeastOneOf(
+          "sourceCode",
+          sourceCode,
+          "targetCode",
+          targetCode,
+          "sourceCoding",
+          sourceCoding,
+          "targetCoding",
+          targetCoding);
       for (final String param :
           new String[] {"sourceCodableConcept", "targetCodableConcept", "dependency"}) {
         FhirUtilityR5.notSupported(request, param);
@@ -220,14 +228,15 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       CodeType targetCodeToLookup = null;
       if (system != null) {
         systemToLookup = system;
-      }
-      else if (sourceCoding != null) {
+      } else if (sourceCoding != null) {
         systemToLookup = sourceCoding.getSystemElement();
       }
       // targetCoding sent in as a UriType, so needs to be parsed to extract targetCode and system
       else if (targetCoding != null) {
         String urlPart = targetCoding.getValue().substring(0, targetCoding.getValue().indexOf("|"));
-        targetCodeToLookup = new CodeType(targetCoding.getValue().substring(targetCoding.getValue().indexOf("|") + 1));
+        targetCodeToLookup =
+            new CodeType(
+                targetCoding.getValue().substring(targetCoding.getValue().indexOf("|") + 1));
         systemToLookup = new UriType(urlPart);
       }
 
@@ -246,7 +255,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       }
 
       if (targetCode != null) {
-        targetCodeToLookup = new CodeType(targetCode.getValue());  // Convert UriType to CodeType
+        targetCodeToLookup = new CodeType(targetCode.getValue()); // Convert UriType to CodeType
       }
       String query =
           buildFhirQueryString(sourceCodeToLookup, targetCodeToLookup, mapsetCodes, "AND");
@@ -267,7 +276,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
         final Mapping map = conceptMaps.get(0);
         params.addParameter("result", true);
         final Parameters.ParametersParameterComponent property =
-                new Parameters.ParametersParameterComponent().setName("match");
+            new Parameters.ParametersParameterComponent().setName("match");
         property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
         params.addParameter(property);
 
@@ -275,17 +284,17 @@ public class ConceptMapProviderR5 implements IResourceProvider {
         if (sourceCodeToLookup != null) {
           // User provided source code, return target code
           property
-                  .addPart()
-                  .setName("concept")
-                  .setValue(
-                          new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
         } else if (targetCodeToLookup != null) {
           // User provided target code, return source code (reverse mapping)
           property
-                  .addPart()
-                  .setName("concept")
-                  .setValue(
-                          new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
         }
       }
       if (!params.hasParameter()) {
@@ -374,7 +383,15 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyExclusive("sourceCoding", sourceCoding, "targetCoding", targetCoding);
       FhirUtilityR5.mutuallyExclusive("sourceCoding", sourceCoding, "system", system);
       FhirUtilityR5.mutuallyExclusive("targetCoding", targetCoding, "system", system);
-      FhirUtilityR5.requireAtLeastOneOf("sourceCode", sourceCode,"targetCode", targetCode,"sourceCoding", sourceCoding,"targetCoding", targetCoding);
+      FhirUtilityR5.requireAtLeastOneOf(
+          "sourceCode",
+          sourceCode,
+          "targetCode",
+          targetCode,
+          "sourceCoding",
+          sourceCoding,
+          "targetCoding",
+          targetCoding);
 
       for (final String param :
           new String[] {"sourceCodableConcept", "targetCodableConcept", "dependency"}) {
@@ -397,7 +414,9 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       // targetCoding sent in as a UriType, so needs to be parsed to extract targetCode and system
       else if (targetCoding != null) {
         String urlPart = targetCoding.getValue().substring(0, targetCoding.getValue().indexOf("|"));
-        targetCodeToLookup = new CodeType(targetCoding.getValue().substring(targetCoding.getValue().indexOf("|") + 1));
+        targetCodeToLookup =
+            new CodeType(
+                targetCoding.getValue().substring(targetCoding.getValue().indexOf("|") + 1));
         systemToLookup = new UriType(urlPart);
       }
 
@@ -415,7 +434,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       }
 
       if (targetCode != null) {
-        targetCodeToLookup = new CodeType(targetCode.getValue());  // Convert UriType to CodeType
+        targetCodeToLookup = new CodeType(targetCode.getValue()); // Convert UriType to CodeType
       }
 
       String query =
@@ -444,17 +463,17 @@ public class ConceptMapProviderR5 implements IResourceProvider {
         if (sourceCodeToLookup != null) {
           // User provided source code, return target code
           property
-                  .addPart()
-                  .setName("concept")
-                  .setValue(
-                          new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
         } else if (targetCodeToLookup != null) {
           // User provided target code, return source code (reverse mapping)
           property
-                  .addPart()
-                  .setName("concept")
-                  .setValue(
-                          new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
         }
       }
       if (!params.hasParameter()) {

@@ -105,13 +105,13 @@ public class FhirR5ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
-    Coding coding = (Coding) params.getParameter("match")
-            .getPart()
-            .stream()
-            .filter(part -> "concept".equals(part.getName()))
-            .findFirst()
-            .get()
-            .getValue();
+    Coding coding =
+        (Coding)
+            params.getParameter("match").getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .get()
+                .getValue();
     assertEquals(targetCode, coding.getCode());
   }
 
@@ -146,13 +146,13 @@ public class FhirR5ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
-    Coding coding = (Coding) params.getParameter("match")
-            .getPart()
-            .stream()
-            .filter(part -> "concept".equals(part.getName()))
-            .findFirst()
-            .get()
-            .getValue();
+    Coding coding =
+        (Coding)
+            params.getParameter("match").getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .get()
+                .getValue();
     assertEquals(targetCode, coding.getCode());
   }
 
@@ -169,7 +169,7 @@ public class FhirR5ConceptMapTranslateTests {
     String id = "go_to_ncit_mapping_february2020";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
     String endpoint =
-            localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
+        localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
 
     // Create the Coding object
     Coding targetCoding = new Coding(system, targetCode, null);
@@ -187,16 +187,15 @@ public class FhirR5ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
-    Coding coding = (Coding) params.getParameter("match")
-            .getPart()
-            .stream()
-            .filter(part -> "concept".equals(part.getName()))
-            .findFirst()
-            .get()
-            .getValue();
+    Coding coding =
+        (Coding)
+            params.getParameter("match").getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .get()
+                .getValue();
     assertEquals(code, coding.getCode());
   }
-
 
   /**
    * Test concept map translate instance with target coding.
@@ -209,8 +208,7 @@ public class FhirR5ConceptMapTranslateTests {
     String code = "GO:0016887";
     String targetCode = "C19939";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
-    String endpoint =
-            localHost + port + fhirCMPath  + "/" + JpaConstants.OPERATION_TRANSLATE;
+    String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
 
     // Create the Coding object
     Coding targetCoding = new Coding(system, targetCode, null);
@@ -228,13 +226,13 @@ public class FhirR5ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
-    Coding coding = (Coding) params.getParameter("match")
-            .getPart()
-            .stream()
-            .filter(part -> "concept".equals(part.getName()))
-            .findFirst()
-            .get()
-            .getValue();
+    Coding coding =
+        (Coding)
+            params.getParameter("match").getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .get()
+                .getValue();
     assertEquals(code, coding.getCode());
   }
 
@@ -267,13 +265,13 @@ public class FhirR5ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
-    Coding coding = (Coding) params.getParameter("match")
-            .getPart()
-            .stream()
-            .filter(part -> "concept".equals(part.getName()))
-            .findFirst()
-            .get()
-            .getValue();
+    Coding coding =
+        (Coding)
+            params.getParameter("match").getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .get()
+                .getValue();
     assertEquals(targetCode, coding.getCode());
   }
 
@@ -303,13 +301,13 @@ public class FhirR5ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
-    Coding coding = (Coding) params.getParameter("match")
-            .getPart()
-            .stream()
-            .filter(part -> "concept".equals(part.getName()))
-            .findFirst()
-            .get()
-            .getValue();
+    Coding coding =
+        (Coding)
+            params.getParameter("match").getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .get()
+                .getValue();
     assertEquals(sourceCode, coding.getCode());
   }
 
@@ -336,13 +334,13 @@ public class FhirR5ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
-    Coding coding = (Coding) params.getParameter("match")
-            .getPart()
-            .stream()
-            .filter(part -> "concept".equals(part.getName()))
-            .findFirst()
-            .get()
-            .getValue();
+    Coding coding =
+        (Coding)
+            params.getParameter("match").getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .get()
+                .getValue();
     assertEquals(targetCode, coding.getCode());
   }
 
@@ -368,13 +366,13 @@ public class FhirR5ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
-    Coding coding = (Coding) params.getParameter("match")
-            .getPart()
-            .stream()
-            .filter(part -> "concept".equals(part.getName()))
-            .findFirst()
-            .get()
-            .getValue();
+    Coding coding =
+        (Coding)
+            params.getParameter("match").getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .get()
+                .getValue();
     assertEquals(sourceCode, coding.getCode());
   }
 
@@ -441,7 +439,8 @@ public class FhirR5ConceptMapTranslateTests {
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
     String endpoint =
         localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
-    String parameters = "?sourceCode=" + code + "&system=" + system + "&sourceCodableConcept=notfound";
+    String parameters =
+        "?sourceCode=" + code + "&system=" + system + "&sourceCodableConcept=notfound";
 
     String messageNotSupported = "Input parameter 'sourceCodableConcept' is not supported.";
     String errorCode = "not-supported";
@@ -468,7 +467,8 @@ public class FhirR5ConceptMapTranslateTests {
     String code = "GO:0016887";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
     String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
-    String parameters = "?sourceCode=" + code + "&system=" + system + "&sourceCodableConcept=notfound";
+    String parameters =
+        "?sourceCode=" + code + "&system=" + system + "&sourceCodableConcept=notfound";
 
     String messageNotSupported = "Input parameter 'sourceCodableConcept' is not supported.";
     String errorCode = "not-supported";
@@ -497,7 +497,9 @@ public class FhirR5ConceptMapTranslateTests {
     String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
     String parameters = "?code=" + code + "&system=" + system;
 
-    String messageNotSupported = "Must supply at least one of 'sourceCode', 'targetCode', 'sourceCoding', or 'targetCoding' parameters.";
+    String messageNotSupported =
+        "Must supply at least one of 'sourceCode', 'targetCode', 'sourceCoding', or 'targetCoding'"
+            + " parameters.";
     String errorCode = "invariant";
 
     // Act

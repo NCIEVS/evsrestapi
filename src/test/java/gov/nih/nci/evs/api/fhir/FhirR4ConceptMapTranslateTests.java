@@ -189,12 +189,13 @@ public class FhirR4ConceptMapTranslateTests {
     Parameters.ParametersParameterComponent matchParam = params.getParameter("match");
     assertNotNull(matchParam, "Match parameter should be present");
 
-    Coding coding = (Coding) matchParam.getPart()
-            .stream()
-            .filter(part -> "concept".equals(part.getName()))
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("Concept part not found"))
-            .getValue();
+    Coding coding =
+        (Coding)
+            matchParam.getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Concept part not found"))
+                .getValue();
 
     assertEquals(targetCode, coding.getCode());
   }
@@ -252,12 +253,13 @@ public class FhirR4ConceptMapTranslateTests {
     Parameters.ParametersParameterComponent matchParam = params.getParameter("match");
     assertNotNull(matchParam, "Match parameter should be present");
 
-    Coding coding = (Coding) matchParam.getPart()
-            .stream()
-            .filter(part -> "concept".equals(part.getName()))
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("Concept part not found"))
-            .getValue();
+    Coding coding =
+        (Coding)
+            matchParam.getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Concept part not found"))
+                .getValue();
 
     assertEquals(sourceCode, coding.getCode());
   }
@@ -375,12 +377,13 @@ public class FhirR4ConceptMapTranslateTests {
     Parameters.ParametersParameterComponent matchParam = params.getParameter("match");
     assertNotNull(matchParam, "Match parameter should be present");
 
-    Coding coding = (Coding) matchParam.getPart()
-            .stream()
-            .filter(part -> "concept".equals(part.getName()))
-            .findFirst()
-            .orElseThrow(() -> new AssertionError("Concept part not found"))
-            .getValue();
+    Coding coding =
+        (Coding)
+            matchParam.getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .orElseThrow(() -> new AssertionError("Concept part not found"))
+                .getValue();
 
     assertEquals(targetCode, coding.getCode());
   }

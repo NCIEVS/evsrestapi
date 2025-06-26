@@ -784,7 +784,7 @@ class FhirR5CodeSystemReadSearchTests {
         break;
       }
     }
-    assertTrue( foundCurrentVersion, "History should contain the current version");
+    assertTrue(foundCurrentVersion, "History should contain the current version");
   }
 
   @Test
