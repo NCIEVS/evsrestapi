@@ -459,9 +459,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       }
 
       throw FhirUtilityR5.exception(
-          "Concept map not found = " + (id == null ? "null" : id.getIdPart()),
-          IssueType.NOTFOUND,
-          404);
+          "Concept map not found = " + (id.getIdPart()), IssueType.NOTFOUND, 404);
 
     } catch (final FHIRServerResponseException e) {
       throw e;
