@@ -2,12 +2,7 @@ package gov.nih.nci.evs.api.fhir.R4;
 
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
-import ca.uhn.fhir.rest.annotation.IdParam;
-import ca.uhn.fhir.rest.annotation.Operation;
-import ca.uhn.fhir.rest.annotation.OperationParam;
-import ca.uhn.fhir.rest.annotation.OptionalParam;
-import ca.uhn.fhir.rest.annotation.Read;
-import ca.uhn.fhir.rest.annotation.Search;
+import ca.uhn.fhir.rest.annotation.*;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
@@ -31,18 +26,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hl7.fhir.r4.model.BooleanType;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.IntegerType;
-import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.UriType;
-import org.hl7.fhir.r4.model.ValueSet;
 import org.hl7.fhir.r4.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionContainsComponent;
@@ -78,9 +63,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Expand implicit.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/valueset-operation-expand.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R4/valueset-operation-expand.html
    *
    * @param request the request
    * @param details the details
@@ -298,9 +281,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Expand instance.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/valueset-operation-expand.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R4/valueset-operation-expand.html
    *
    * @param request the request
    * @param details the details
@@ -380,12 +361,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
           > 0) {
         FhirUtilityR4.notSupported(request, "_has");
       }
-      final List<ValueSet> vsList = findPossibleValueSets(id, null, url, version);
+      final List<ValueSet> vsList = findPossibleValueSets(id, null, null, version);
       if (vsList.size() == 0) {
         throw FhirUtilityR4.exception(
-            "Value set " + url.getValueAsString() + " not found",
-            OperationOutcome.IssueType.EXCEPTION,
-            500);
+            "Value set " + id + " not found", OperationOutcome.IssueType.EXCEPTION, 500);
       }
 
       // If properties are indicated, retrieve the concept with all potentially
@@ -404,7 +383,19 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final ValueSetExpansionComponent vsExpansion = new ValueSetExpansionComponent();
       List<Concept> subsetMembers = new ArrayList<Concept>();
 
-      if (url != null && url.getValue().contains("?fhir_vs=")) {
+      if ((url != null) && !vs.getUrl().equals(url.getValue())) {
+        throw FhirUtilityR4.exception(
+            "Supplied url "
+                + url.getValue()
+                + " doesn't match the ValueSet retrieved by the id "
+                + id
+                + " "
+                + vs.getUrl(),
+            OperationOutcome.IssueType.EXCEPTION,
+            400);
+      }
+
+      if (vs.getUrl() != null && vs.getUrl().contains("?fhir_vs=")) {
         final List<Association> invAssoc =
             osQueryService
                 .getConcept(
@@ -517,9 +508,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Validate code implicit.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/valueset-operation-validate-code.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R4/valueset-operation-validate-code.html
    *
    * @param request the request
    * @param details the details
@@ -656,9 +645,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Validate code instance.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/valueset-operation-validate-code.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R4/valueset-operation-validate-code.html
    *
    * @param request the request
    * @param details the details
@@ -733,7 +720,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         urlToLookup = coding.getSystemElement();
       }
 
-      final List<ValueSet> list = findPossibleValueSets(id, system, urlToLookup, systemVersion);
+      final List<ValueSet> list = findPossibleValueSets(id, system, null, systemVersion);
       final Parameters params = new Parameters();
       if (list.size() > 0) {
         String codeToLookup = "";
@@ -743,6 +730,17 @@ public class ValueSetProviderR4 implements IResourceProvider {
           codeToLookup = coding.getCode();
         }
         final ValueSet vs = list.get(0);
+        if ((urlToLookup != null) && !vs.getUrl().equals(urlToLookup.getValue())) {
+          throw FhirUtilityR5.exception(
+              "Supplied url "
+                  + urlToLookup
+                  + " doesn't match the ValueSet retrieved by the id "
+                  + id
+                  + " "
+                  + vs.getUrl(),
+              org.hl7.fhir.r5.model.OperationOutcome.IssueType.EXCEPTION,
+              400);
+        }
         final SearchCriteria sc = new SearchCriteria();
         sc.setTerm(codeToLookup);
         sc.setInclude("minimal");
@@ -792,6 +790,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
   /**
    * Find value sets.
+   *
+   * <p>See https://hl7.org/fhir/R4/valueset.html (find "search parameters")
    *
    * @param request the request
    * @param id the id
@@ -900,15 +900,20 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Returns the value set.
    *
+   * <p>See https://hl7.org/fhir/R4/valueset.html
+   *
    * @param details the details
    * @param id the id
    * @return the value set
    * @throws Exception the exception
    */
   @Read
-  public ValueSet getValueSet(final ServletRequestDetails details, @IdParam final IdType id)
-      throws Exception {
+  public ValueSet getValueSet(@IdParam final IdType id) throws Exception {
     try {
+      if (id.hasVersionIdPart()) {
+        // If someone somehow passes a versioned ID to read, delegate to vread
+        return vread(id);
+      }
       final List<ValueSet> candidates = findPossibleValueSets(id, null, null, null);
       for (final ValueSet set : candidates) {
         if (id.getIdPart().equals(set.getId())) {
@@ -1015,5 +1020,100 @@ public class ValueSetProviderR4 implements IResourceProvider {
   @Override
   public Class<ValueSet> getResourceType() {
     return ValueSet.class;
+  }
+
+  @History(type = ValueSet.class)
+  public List<ValueSet> getValueSetHistory(@IdParam IdType id) {
+    List<ValueSet> history = new ArrayList<>();
+    try {
+      final List<ValueSet> candidates = findPossibleValueSets(id, null, null, null);
+      for (final ValueSet cs : candidates) {
+        if (id.getIdPart().equals(cs.getId())) {
+          history.add(cs);
+        }
+      }
+      if (history.isEmpty()) {
+        throw FhirUtilityR4.exception(
+            "Value set not found = " + (id == null ? "null" : id.getIdPart()),
+            OperationOutcome.IssueType.NOTFOUND,
+            404);
+      }
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      logger.error("Unexpected exception", e);
+      throw FhirUtilityR4.exception(
+          "Failed to get value set", OperationOutcome.IssueType.EXCEPTION, 500);
+    }
+
+    // Make sure each ValueSet has proper metadata for history
+    for (ValueSet cs : history) {
+      if (cs.getMeta() == null) {
+        cs.setMeta(new Meta());
+      }
+      if (cs.getMeta().getVersionId() == null) {
+        cs.getMeta().setVersionId("1"); // Set appropriate version
+      }
+      if (cs.getMeta().getLastUpdated() == null) {
+        cs.getMeta().setLastUpdated(new Date());
+      }
+    }
+
+    return history;
+  }
+
+  @Read(version = true)
+  public ValueSet vread(@IdParam IdType versionedId) {
+    String resourceId = versionedId.getIdPart();
+    String versionId = versionedId.getVersionIdPart(); // "1"
+
+    logger.info("Looking for resource: {} version: {}", resourceId, versionId);
+
+    try {
+      // If no version is specified in a vread call, this shouldn't happen
+      // but if it does, delegate to regular read
+      if (!versionedId.hasVersionIdPart()) {
+        logger.warn("VRead called without version ID, delegating to regular read");
+        return getValueSet(new org.hl7.fhir.r4.model.IdType(versionedId.getIdPart()));
+      }
+
+      final List<ValueSet> candidates = findPossibleValueSets(versionedId, null, null, null);
+      logger.info("Found {} candidates", candidates.size());
+
+      for (final ValueSet cs : candidates) {
+        String csId = cs.getId();
+        String csVersionId = cs.getMeta() != null ? cs.getMeta().getVersionId() : null;
+
+        logger.info("Checking candidate: id={}, versionId={}", csId, csVersionId);
+
+        if (resourceId.equals(csId)) {
+          // If the ValueSet doesn't have a version ID, treat it as version "1"
+          String effectiveVersionId = (csVersionId != null) ? csVersionId : "1";
+
+          if (versionId.equals(effectiveVersionId)) {
+            // Make sure the returned ValueSet has the version ID set
+            if (cs.getMeta() == null) {
+              cs.setMeta(new Meta());
+            }
+            cs.getMeta().setVersionId("1");
+            cs.getMeta().setLastUpdated(new Date()); // Optional: set timestamp
+
+            logger.info("Found matching version!");
+            return cs;
+          }
+        }
+      }
+
+      throw FhirUtilityR4.exception(
+          "Value set version not found: " + resourceId + " version " + versionId,
+          OperationOutcome.IssueType.NOTFOUND,
+          404);
+    } catch (final FHIRServerResponseException e) {
+      throw e; // Re-throw FHIR exceptions as-is
+    } catch (final Exception e) {
+      logger.error("Unexpected exception in vread", e);
+      throw FhirUtilityR4.exception(
+          "Failed to get value set version", OperationOutcome.IssueType.EXCEPTION, 500);
+    }
   }
 }

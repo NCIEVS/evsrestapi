@@ -4,12 +4,7 @@ import static gov.nih.nci.evs.api.service.OpenSearchServiceImpl.escape;
 
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
-import ca.uhn.fhir.rest.annotation.IdParam;
-import ca.uhn.fhir.rest.annotation.Operation;
-import ca.uhn.fhir.rest.annotation.OperationParam;
-import ca.uhn.fhir.rest.annotation.OptionalParam;
-import ca.uhn.fhir.rest.annotation.Read;
-import ca.uhn.fhir.rest.annotation.Search;
+import ca.uhn.fhir.rest.annotation.*;
 import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
@@ -31,18 +26,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
-import org.hl7.fhir.r4.model.BooleanType;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.ConceptMap;
-import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.UriType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,7 +73,6 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    *     specified, the server should return all known translations, along with their source
    * @param targetSystem identifies a target code system in which a mapping is sought. This
    *     parameter is an alternative to the target parameter.
-   * @param dependency the element for the dependency, may help produce the correct mapping
    * @param reverse This parameter reverses the meaning of the source and target parameters
    * @return the parameters
    * @throws Exception the exception
@@ -207,6 +193,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   /**
    * Perform the lookup in the implicit map.
    *
+   * <p>see https://hl7.org/fhir/R4/conceptmap-operation-translate.html
+   *
    * @param request the request
    * @param response the response
    * @param details the details
@@ -223,7 +211,6 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    *     specified, the server should return all known translations, along with their source
    * @param targetSystem identifies a target code system in which a mapping is sought. This
    *     parameter is an alternative to the target parameter.
-   * @param dependency the element for the dependency, may help produce the correct mapping
    * @param reverse This parameter reverses the meaning of the source and target parameters
    * @return the parameters
    * @throws Exception the exception
@@ -354,6 +341,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
 
   /**
    * Find concept maps.
+   *
+   * <p>see https://hl7.org/fhir/R4/conceptmap.html (find "search parameters")
    *
    * @param request the request
    * @param id the id
@@ -522,16 +511,19 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   /**
    * Returns the concept map.
    *
-   * @param details the details
+   * <p>see https://hl7.org/fhir/R4/conceptmap.html
+   *
    * @param id the id
    * @return the concept map
    * @throws Exception the exception
    */
   @Read
-  public ConceptMap getConceptMap(final ServletRequestDetails details, @IdParam final IdType id)
-      throws Exception {
+  public ConceptMap getConceptMap(@IdParam final IdType id) throws Exception {
     try {
-
+      if (id.hasVersionIdPart()) {
+        // If someone somehow passes a versioned ID to read, delegate to vread
+        return vread(id);
+      }
       final List<ConceptMap> candidates =
           findPossibleConceptMaps(id, null, null, null, null, null, null, null);
       for (final ConceptMap set : candidates) {
@@ -585,6 +577,102 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       // compose query for target code
       clauses.add("sourceCode:\"" + escape(code.getValue()) + "\"");
       return ConceptUtils.composeQuery(operator, clauses);
+    }
+  }
+
+  @History(type = ConceptMap.class)
+  public List<ConceptMap> getConceptMapHistory(@IdParam IdType id) {
+    List<ConceptMap> history = new ArrayList<>();
+    try {
+      final List<ConceptMap> candidates =
+          findPossibleConceptMaps(id, null, null, null, null, null, null, null);
+      for (final ConceptMap cs : candidates) {
+        if (id.getIdPart().equals(cs.getId())) {
+          history.add(cs);
+        }
+      }
+      if (history.isEmpty()) {
+        throw FhirUtilityR4.exception(
+            "Concept map not found = " + (id == null ? "null" : id.getIdPart()),
+            OperationOutcome.IssueType.NOTFOUND,
+            404);
+      }
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      logger.error("Unexpected exception", e);
+      throw FhirUtilityR4.exception(
+          "Failed to get concept map", OperationOutcome.IssueType.EXCEPTION, 500);
+    }
+
+    // Make sure each ConceptMap has proper metadata for history
+    for (ConceptMap cs : history) {
+      if (cs.getMeta() == null) {
+        cs.setMeta(new Meta());
+      }
+      if (cs.getMeta().getVersionId() == null) {
+        cs.getMeta().setVersionId("1"); // Set appropriate version
+      }
+      if (cs.getMeta().getLastUpdated() == null) {
+        cs.getMeta().setLastUpdated(new Date());
+      }
+    }
+
+    return history;
+  }
+
+  @Read(version = true)
+  public ConceptMap vread(@IdParam IdType versionedId) {
+    String resourceId = versionedId.getIdPart();
+    String versionId = versionedId.getVersionIdPart(); // "1"
+
+    logger.info("Looking for resource: {} version: {}", resourceId, versionId);
+
+    try {
+      // If no version is specified in a vread call, this shouldn't happen
+      // but if it does, delegate to regular read
+      if (!versionedId.hasVersionIdPart()) {
+        logger.warn("VRead called without version ID, delegating to regular read");
+        return getConceptMap(new org.hl7.fhir.r4.model.IdType(versionedId.getIdPart()));
+      }
+      final List<ConceptMap> candidates =
+          findPossibleConceptMaps(versionedId, null, null, null, null, null, null, null);
+      logger.info("Found {} candidates", candidates.size());
+
+      for (final ConceptMap cs : candidates) {
+        String csId = cs.getId();
+        String csVersionId = cs.getMeta() != null ? cs.getMeta().getVersionId() : null;
+
+        logger.info("Checking candidate: id={}, versionId={}", csId, csVersionId);
+
+        if (resourceId.equals(csId)) {
+          // If the ConceptMap doesn't have a version ID, treat it as version "1"
+          String effectiveVersionId = (csVersionId != null) ? csVersionId : "1";
+
+          if (versionId.equals(effectiveVersionId)) {
+            // Make sure the returned ConceptMap has the version ID set
+            if (cs.getMeta() == null) {
+              cs.setMeta(new Meta());
+            }
+            cs.getMeta().setVersionId("1");
+            cs.getMeta().setLastUpdated(new Date()); // Optional: set timestamp
+
+            logger.info("Found matching version!");
+            return cs;
+          }
+        }
+      }
+
+      throw FhirUtilityR4.exception(
+          "Concept map version not found: " + resourceId + " version " + versionId,
+          OperationOutcome.IssueType.NOTFOUND,
+          404);
+    } catch (final FHIRServerResponseException e) {
+      throw e; // Re-throw FHIR exceptions as-is
+    } catch (final Exception e) {
+      logger.error("Unexpected exception in vread", e);
+      throw FhirUtilityR4.exception(
+          "Failed to get concept map version", OperationOutcome.IssueType.EXCEPTION, 500);
     }
   }
 }
