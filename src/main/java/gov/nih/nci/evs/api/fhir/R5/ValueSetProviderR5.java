@@ -86,6 +86,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
   /**
    * Find value sets.
+   * 
+   * See https://hl7.org/fhir/R5/valueset.html (find "search parameters")
    *
    * @param request the request
    * @param id the id
@@ -191,10 +193,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
   /**
    * Expand implicit.
    *
-   * <pre>
-   * <a href=
-   * "https://hl7.org/fhir/R5/valueset-operation-expand.html">valueset operation expand</a>
-   * </pre>
+   * See https://hl7.org/fhir/R5/valueset-operation-expand.html
    *
    * @param request the request
    * @param details the details
@@ -401,10 +400,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
   /**
    * Expand instance.
    *
-   * <pre>
-   * <a href=
-   * "https://hl7.org/fhir/R5/valueset-operation-expand.html">valueset operation expand</a>
-   * </pre>
+   * See https://hl7.org/fhir/R5/valueset-operation-expand.html
    *
    * @param request the request
    * @param details the details
@@ -640,10 +636,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
   /**
    * Validate code implicit.
    *
-   * <pre>
-   * <a href=
-   * "https://hl7.org/fhir/R5/valueset-operation-validate-code.html">valueset operation validate code</a>
-   * </pre>
+   * See https://hl7.org/fhir/R5/valueset-operation-validate-code.html
    *
    * @param request the request
    * @param details the details
@@ -774,10 +767,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
   /**
    * Validate code instance.
    *
-   * <pre>
-   * <a href=
-   * "https://hl7.org/fhir/R5/valueset-operation-validate-code.html">valueset operation validate code</a>
-   * </pre>
+   * See https://hl7.org/fhir/R5/valueset-operation-validate-code.html
    *
    * @param request the request
    * @param details the details
@@ -907,6 +897,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
   /**
    * Returns the value set.
+   * 
+   * See https://hl7.org/fhir/R5/valueset.html
    *
    * @param details the details
    * @param id the id
