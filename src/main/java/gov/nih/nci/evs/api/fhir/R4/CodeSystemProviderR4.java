@@ -66,9 +66,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Lookup implicit.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-lookup.html
-   * </pre>
+   * See https://hl7.org/fhir/R4/codesystem-operation-lookup.html
    *
    * @param request the request
    * @param response the response
@@ -168,9 +166,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Lookup instance.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-lookup.html
-   * </pre>
+   * See https://hl7.org/fhir/R4/codesystem-operation-lookup.html
    *
    * @param request the request
    * @param response the response
@@ -282,9 +278,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Validate code implicit.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-validate-code.html
-   * </pre>
+   * See https://hl7.org/fhir/R4/codesystem-operation-validate-code.html
    *
    * @param request the request
    * @param response the response
@@ -397,6 +391,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Validate code implicit.
    *
+   * See https://hl7.org/fhir/R4/codesystem-operation-validate-code.html
+   * 
    * @param request the request
    * @param response the response
    * @param details the details
@@ -523,9 +519,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Subsumes implicit.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
-   * </pre>
+   * See https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
    *
    * @param request the request
    * @param response the response
@@ -625,9 +619,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Subsumes instance.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
-   * </pre>
+   * See https://hl7.org/fhir/R5/codesystem-operation-subsumes.html
    *
    * @param request the request
    * @param response the response
@@ -728,6 +720,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
 
   /**
    * Find code systems.
+   * 
+   * See https://hl7.org/fhir/R4/codesystem.html (find "search parameters")
    *
    * @param request the request
    * @param id the id
@@ -857,6 +851,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
 
   /**
    * Returns the concept map for the specified details.
+   * 
+   * See https://hl7.org/fhir/R4/codesystem.html
    *
    * @param id the id
    * @return the concept map
