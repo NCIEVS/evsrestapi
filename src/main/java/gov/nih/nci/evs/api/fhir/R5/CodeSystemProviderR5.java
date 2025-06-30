@@ -2,7 +2,13 @@ package gov.nih.nci.evs.api.fhir.R5;
 
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
-import ca.uhn.fhir.rest.annotation.*;
+import ca.uhn.fhir.rest.annotation.History;
+import ca.uhn.fhir.rest.annotation.IdParam;
+import ca.uhn.fhir.rest.annotation.Operation;
+import ca.uhn.fhir.rest.annotation.OperationParam;
+import ca.uhn.fhir.rest.annotation.OptionalParam;
+import ca.uhn.fhir.rest.annotation.Read;
+import ca.uhn.fhir.rest.annotation.Search;
 import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
@@ -19,9 +25,22 @@ import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.*;
-import org.hl7.fhir.r5.model.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+import org.hl7.fhir.r5.model.Bundle;
+import org.hl7.fhir.r5.model.CodeSystem;
+import org.hl7.fhir.r5.model.CodeType;
+import org.hl7.fhir.r5.model.Coding;
+import org.hl7.fhir.r5.model.IdType;
+import org.hl7.fhir.r5.model.Meta;
+import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r5.model.Parameters;
+import org.hl7.fhir.r5.model.StringType;
+import org.hl7.fhir.r5.model.UriType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -52,6 +71,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
 
   /**
    * Find code systems.
+   *
+   * <p>See https://hl7.org/fhir/R5/codesystem.html (find "search parameters")
    *
    * @param request the request
    * @param details the details
@@ -153,9 +174,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   /**
    * Look up implicit
    *
-   * <pre>
-   * <a href="https://hl7.org/fhir/R5/codesystem-operation-lookup.html">...</a>
-   * </pre>
+   * <p>See https://hl7.org/fhir/R5/codesystem-operation-lookup.html
    *
    * @param request the request
    * @param response the response
@@ -178,8 +197,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "coding") final Coding coding,
       @OperationParam(name = "date") final DateRangeParam date
-      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      //      @OperationParam(name = "property") final CodeType property
+      // @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      // @OperationParam(name = "property") final CodeType property
       ) throws Exception {
     // Check if the request is a POST, throw exception as we don't support post calls
     // exception for coding parameter
@@ -192,8 +211,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
     try {
       FhirUtilityR5.mutuallyRequired("code", code, "system", system);
       FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
-      //      FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
-      //      FhirUtilityR5.notSupported(property, "property");
+      // FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
+      // FhirUtilityR5.notSupported(property, "property");
       for (final String param : new String[] {"displayLanguage", "property"}) {
         FhirUtilityR5.notSupported(request, param);
       }
@@ -254,9 +273,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   /**
    * Lookup instance.
    *
-   * <pre>
-   *     <a href="https://hl7.org/fhir/R5/codesystem-operation-lookup.html">...</a>
-   * </pre>
+   * <p>See https://hl7.org/fhir/R5/codesystem-operation-lookup.html
    *
    * @param request the request
    * @param response the response
@@ -281,8 +298,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "coding") final Coding coding,
       @OperationParam(name = "date") final DateRangeParam date
-      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      //      @OperationParam(name = "property") final CodeType property
+      // @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      // @OperationParam(name = "property") final CodeType property
       ) throws Exception {
     // Check if the request is a POST, throw exception as we don't support post calls
     // exception for coding parameter
@@ -367,9 +384,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   /**
    * Validate code implicit
    *
-   * <pre>
-   * <a href="https://hl7.org/fhir/R5/codesystem-operation-validate-code.html">...</a>
-   * </pre>
+   * <p>See https://hl7.org/fhir/R5/codesystem-operation-validate-code.html
    *
    * @param request the request
    * @param response the response
@@ -388,14 +403,14 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       final HttpServletResponse response,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-      //      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
+      // @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display,
       @OperationParam(name = "coding") final Coding coding
-      //      @OperationParam(name = "date") final DateRangeParam date,
-      //      @OperationParam(name = "abstract") final BooleanType abstractt,
-      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      // @OperationParam(name = "date") final DateRangeParam date,
+      // @OperationParam(name = "abstract") final BooleanType abstractt,
+      // @OperationParam(name = "displayLanguage") final StringType displayLanguage
       ) throws Exception {
     // Check if the request is a POST, throw exception as we don't support post calls
     if (request.getMethod().equals("POST")) {
@@ -481,9 +496,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   /**
    * Validate the code instance
    *
-   * <pre>
-   * <a href="https://hl7.org/fhir/R5/codesystem-operation-validate-code.html">...</a>
-   * </pre>
+   * <p>See https://hl7.org/fhir/R5/codesystem-operation-validate-code.html
    *
    * @param request the request
    * @param response the response
@@ -504,14 +517,14 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-      //      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
+      // @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display,
       @OperationParam(name = "coding") final Coding coding
-      //      @OperationParam(name = "date") final DateTimeType date,
-      //      @OperationParam(name = "abstract") final BooleanType abstractt,
-      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      // @OperationParam(name = "date") final DateTimeType date,
+      // @OperationParam(name = "abstract") final BooleanType abstractt,
+      // @OperationParam(name = "displayLanguage") final StringType displayLanguage
       ) throws Exception {
     // Check if the request is a post, throw exception as we don't support post requests
     if (request.getMethod().equals("POST")) {
@@ -607,9 +620,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   /**
    * Subsumes implicit
    *
-   * <pre>
-   * <a href="https://hl7.org/fhir/R5/codesystem-operation-subsumes.html">...</a>
-   * </pre>
+   * <p>See https://hl7.org/fhir/R5/codesystem-operation-subsumes.html
    *
    * @param request the request
    * @param response the response
@@ -715,9 +726,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   /**
    * Subsumes instance
    *
-   * <pre>
-   * <a href="https://hl7.org/fhir/R5/codesystem-operation-subsumes.html">...</a>
-   * </pre>
+   * <p>See https://hl7.org/fhir/R5/codesystem-operation-subsumes.html
    *
    * @param request the request
    * @param response the response
@@ -825,6 +834,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   /**
    * Returns the concept map for the specified details.
    *
+   * <p>See https://hl7.org/fhir/R5/codesystem.html
+   *
    * @param id the id
    * @return the code system concept map
    * @throws Exception exception
@@ -843,9 +854,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         }
       }
       throw FhirUtilityR5.exception(
-          "Code system not found = " + (id == null ? "null" : id.getIdPart()),
-          IssueType.NOTFOUND,
-          404);
+          "Code system not found = " + (id.getIdPart()), IssueType.NOTFOUND, 404);
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
@@ -934,7 +943,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         cs.setMeta(new Meta());
       }
       if (cs.getMeta().getVersionId() == null) {
-        cs.getMeta().setVersionId("1"); // Set appropriate version
+        // Set appropriate version
+        cs.getMeta().setVersionId("1");
       }
       if (cs.getMeta().getLastUpdated() == null) {
         cs.getMeta().setLastUpdated(new Date());
@@ -944,10 +954,18 @@ public class CodeSystemProviderR5 implements IResourceProvider {
     return history;
   }
 
+  /**
+   * Vread.
+   *
+   * @param versionedId the versioned id
+   * @return the code system
+   */
   @Read(version = true)
   public CodeSystem vread(@IdParam IdType versionedId) {
-    String resourceId = versionedId.getIdPart(); // "canmed_202311"
-    String versionId = versionedId.getVersionIdPart(); // "1"
+    // "canmed_202311"
+    String resourceId = versionedId.getIdPart();
+    // "1"
+    String versionId = versionedId.getVersionIdPart();
 
     logger.info("Looking for resource: {} version: {}", resourceId, versionId);
 
@@ -977,7 +995,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
               cs.setMeta(new Meta());
             }
             cs.getMeta().setVersionId("1");
-            cs.getMeta().setLastUpdated(new Date()); // Optional: set timestamp
+            // Optional: set timestamp
+            cs.getMeta().setLastUpdated(new Date());
 
             logger.info("Found matching version!");
             return cs;

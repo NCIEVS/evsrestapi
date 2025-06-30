@@ -68,9 +68,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Expand implicit.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/valueset-operation-expand.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R4/valueset-operation-expand.html
    *
    * @param request the request
    * @param details the details
@@ -265,9 +263,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Expand instance.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/valueset-operation-expand.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R4/valueset-operation-expand.html
    *
    * @param request the request
    * @param details the details
@@ -471,9 +467,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Validate code implicit.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/valueset-operation-validate-code.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R4/valueset-operation-validate-code.html
    *
    * @param request the request
    * @param details the details
@@ -610,9 +604,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Validate code instance.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/valueset-operation-validate-code.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R4/valueset-operation-validate-code.html
    *
    * @param request the request
    * @param details the details
@@ -758,6 +750,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Find value sets.
    *
+   * <p>See https://hl7.org/fhir/R4/valueset.html (find "search parameters")
+   *
    * @param request the request
    * @param id the id
    * @param code the code
@@ -864,6 +858,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
   /**
    * Returns the value set.
+   *
+   * <p>See https://hl7.org/fhir/R4/valueset.html
    *
    * @param details the details
    * @param id the id

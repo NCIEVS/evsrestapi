@@ -193,6 +193,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   /**
    * Perform the lookup in the implicit map.
    *
+   * <p>see https://hl7.org/fhir/R4/conceptmap-operation-translate.html
+   *
    * @param request the request
    * @param response the response
    * @param details the details
@@ -339,6 +341,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
 
   /**
    * Find concept maps.
+   *
+   * <p>see https://hl7.org/fhir/R4/conceptmap.html (find "search parameters")
    *
    * @param request the request
    * @param id the id
@@ -506,6 +510,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
 
   /**
    * Returns the concept map.
+   *
+   * <p>see https://hl7.org/fhir/R4/conceptmap.html
    *
    * @param id the id
    * @return the concept map

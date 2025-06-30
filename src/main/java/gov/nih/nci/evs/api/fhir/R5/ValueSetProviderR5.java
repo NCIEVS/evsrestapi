@@ -73,6 +73,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
   /**
    * Find value sets.
    *
+   * <p>See https://hl7.org/fhir/R5/valueset.html (find "search parameters")
+   *
    * @param request the request
    * @param id the id
    * @param code the code
@@ -177,10 +179,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
   /**
    * Expand implicit.
    *
-   * <pre>
-   * <a href=
-   * "https://hl7.org/fhir/R5/valueset-operation-expand.html">valueset operation expand</a>
-   * </pre>
+   * <p>See https://hl7.org/fhir/R5/valueset-operation-expand.html
    *
    * @param request the request
    * @param details the details
@@ -202,27 +201,27 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final HttpServletRequest request,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-      //      @OperationParam(name = "valueSet") final ValueSet valueSet,
+      // @OperationParam(name = "valueSet") final ValueSet valueSet,
       @OperationParam(name = "valueSetVersion") final StringType version,
-      //      @OperationParam(name = "context") final UriType context,
-      //      @OperationParam(name = "contextDirection") final CodeType contextDirection,
+      // @OperationParam(name = "context") final UriType context,
+      // @OperationParam(name = "contextDirection") final CodeType contextDirection,
       @OperationParam(name = "filter") final StringType filter,
-      //      @OperationParam(name = "date") final DateTimeType date,
+      // @OperationParam(name = "date") final DateTimeType date,
       @OperationParam(name = "offset") final IntegerType offset,
       @OperationParam(name = "count") final IntegerType count,
       @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
-      //      @OperationParam(name = "designation") final StringType designation,
+      // @OperationParam(name = "designation") final StringType designation,
       @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
       @OperationParam(name = "activeOnly") final BooleanType activeOnly,
-      //      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
-      //      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
-      //      @OperationParam(name = "excludePostCoordinated") final BooleanType
+      // @OperationParam(name = "excludeNested") final BooleanType excludeNested,
+      // @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
+      // @OperationParam(name = "excludePostCoordinated") final BooleanType
       // excludePostCoordinated,
-      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      //      @OperationParam(name = "exclude-system") final StringType exclude_system,
-      //      @OperationParam(name = "system-version") final StringType system_version,
-      //      @OperationParam(name = "check-system-version") final StringType check_system_version,
-      //      @OperationParam(name = "force-system-version") final StringType force_system_version,
+      // @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      // @OperationParam(name = "exclude-system") final StringType exclude_system,
+      // @OperationParam(name = "system-version") final StringType system_version,
+      // @OperationParam(name = "check-system-version") final StringType check_system_version,
+      // @OperationParam(name = "force-system-version") final StringType force_system_version,
       @OperationParam(name = "property") final List<StringType> properties)
       throws Exception {
     // check if request is a post, throw exception as we don't support post
@@ -387,10 +386,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
   /**
    * Expand instance.
    *
-   * <pre>
-   * <a href=
-   * "https://hl7.org/fhir/R5/valueset-operation-expand.html">valueset operation expand</a>
-   * </pre>
+   * <p>See https://hl7.org/fhir/R5/valueset-operation-expand.html
    *
    * @param request the request
    * @param details the details
@@ -414,27 +410,27 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-      //      @OperationParam(name = "valueSet") final ValueSet valueSet,
+      // @OperationParam(name = "valueSet") final ValueSet valueSet,
       @OperationParam(name = "valueSetVersion") final StringType version,
-      //      @OperationParam(name = "context") final UriType context,
-      //      @OperationParam(name = "contextDirection") final CodeType contextDirection,
+      // @OperationParam(name = "context") final UriType context,
+      // @OperationParam(name = "contextDirection") final CodeType contextDirection,
       @OperationParam(name = "filter") final StringType filter,
-      //      @OperationParam(name = "date") final DateTimeType date,
+      // @OperationParam(name = "date") final DateTimeType date,
       @OperationParam(name = "offset") final IntegerType offset,
       @OperationParam(name = "count") final IntegerType count,
       @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
-      //      @OperationParam(name = "designation") final StringType designation,
+      // @OperationParam(name = "designation") final StringType designation,
       @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
       @OperationParam(name = "activeOnly") final BooleanType activeOnly,
-      //      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
-      //      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
-      //      @OperationParam(name = "excludePostCoordinated") final BooleanType
+      // @OperationParam(name = "excludeNested") final BooleanType excludeNested,
+      // @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
+      // @OperationParam(name = "excludePostCoordinated") final BooleanType
       // excludePostCoordinated,
-      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      //      @OperationParam(name = "exclude-system") final StringType exclude_system,
-      //      @OperationParam(name = "system-version") final StringType system_version,
-      //      @OperationParam(name = "check-system-version") final StringType check_system_version,
-      //      @OperationParam(name = "force-system-version") final StringType force_system_version,
+      // @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      // @OperationParam(name = "exclude-system") final StringType exclude_system,
+      // @OperationParam(name = "system-version") final StringType system_version,
+      // @OperationParam(name = "check-system-version") final StringType check_system_version,
+      // @OperationParam(name = "force-system-version") final StringType force_system_version,
       @OperationParam(name = "property") final List<StringType> properties)
       throws Exception {
     // check if request is a post, throw exception as we don't support post
@@ -637,10 +633,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
   /**
    * Validate code implicit.
    *
-   * <pre>
-   * <a href=
-   * "https://hl7.org/fhir/R5/valueset-operation-validate-code.html">valueset operation validate code</a>
-   * </pre>
+   * <p>See https://hl7.org/fhir/R5/valueset-operation-validate-code.html
    *
    * @param request the request
    * @param details the details
@@ -659,19 +652,19 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final HttpServletRequest request,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-      //      @OperationParam(name = "context") final UriType context,
-      //      @OperationParam(name = "valueSet") final ValueSet valueSet,
-      //      @OperationParam(name = "valueSetVersion") final StringType valueSetVersion,
+      // @OperationParam(name = "context") final UriType context,
+      // @OperationParam(name = "valueSet") final ValueSet valueSet,
+      // @OperationParam(name = "valueSetVersion") final StringType valueSetVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "systemVersion") final StringType systemVersion,
-      //      @OperationParam(name = "version") final StringType version,
+      // @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display,
       @OperationParam(name = "coding") final Coding coding
-      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-      //      @OperationParam(name = "date") final DateTimeType date,
-      //      @OperationParam(name = "abstract") final BooleanType abstractt,
-      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      // @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      // @OperationParam(name = "date") final DateTimeType date,
+      // @OperationParam(name = "abstract") final BooleanType abstractt,
+      // @OperationParam(name = "displayLanguage") final StringType displayLanguage
       ) throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls except for coding parameter
@@ -757,7 +750,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         params.addParameter("result", false);
         params.addParameter("message", "Unable to find matching value set");
         params.addParameter("url", (url == null ? new UriType("<null>") : url));
-        //        params.addParameter("version", version);
+        // params.addParameter("version", version);
       }
       return params;
     } catch (final FHIRServerResponseException e) {
@@ -771,10 +764,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
   /**
    * Validate code instance.
    *
-   * <pre>
-   * <a href=
-   * "https://hl7.org/fhir/R5/valueset-operation-validate-code.html">valueset operation validate code</a>
-   * </pre>
+   * <p>See https://hl7.org/fhir/R5/valueset-operation-validate-code.html
    *
    * @param request the request
    * @param details the details
@@ -795,19 +785,19 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-      //      @OperationParam(name = "context") final UriType context,
-      //      @OperationParam(name = "valueSet") final ValueSet valueSet,
-      //      @OperationParam(name = "valueSetVersion") final StringType valueSetVersion,
+      // @OperationParam(name = "context") final UriType context,
+      // @OperationParam(name = "valueSet") final ValueSet valueSet,
+      // @OperationParam(name = "valueSetVersion") final StringType valueSetVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "systemVersion") final StringType systemVersion,
-      //      @OperationParam(name = "version") final StringType version,
+      // @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display,
       @OperationParam(name = "coding") final Coding coding
-      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-      //      @OperationParam(name = "date") final DateTimeType date,
-      //      @OperationParam(name = "abstract") final BooleanType abstractt,
-      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      // @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      // @OperationParam(name = "date") final DateTimeType date,
+      // @OperationParam(name = "abstract") final BooleanType abstractt,
+      // @OperationParam(name = "displayLanguage") final StringType displayLanguage
       ) throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls
@@ -901,7 +891,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         params.addParameter("result", false);
         params.addParameter("message", "Unable to find matching value set");
         params.addParameter("url", (url == null ? new UriType("<null>") : url));
-        //        params.addParameter("version", version);
+        // params.addParameter("version", version);
       }
       return params;
     } catch (final FHIRServerResponseException e) {
@@ -914,6 +904,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
   /**
    * Returns the value set.
+   *
+   * <p>See https://hl7.org/fhir/R5/valueset.html
    *
    * @param id the id
    * @return the value set
@@ -933,9 +925,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         }
       }
       throw FhirUtilityR5.exception(
-          "Value set not found = " + (id == null ? "null" : id.getIdPart()),
-          IssueType.NOTFOUND,
-          404);
+          "Value set not found = " + (id.getIdPart()), IssueType.NOTFOUND, 404);
 
     } catch (final FHIRServerResponseException e) {
       throw e;
