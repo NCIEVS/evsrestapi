@@ -297,7 +297,7 @@ load_data(){
     load_terminology_data NCIT2 http://HGNC_monthly HGNC/HGNC_202209.owl
     load_terminology_data NCIT2 http://ChEBI_monthly ChEBI/chebi_213.owl
     load_terminology_data NCIT2 http://UmlsSemNet UmlsSemNet/umlssemnet.owl
-    load_terminology_data NCIT2 http://MEDRT MED-RT/medrt.owl
+    load_terminology_data NCIT2 http://MEDRT MED-RT/MEDRT.2025-06-02.owl
     load_terminology_data NCIT2 http://Canmed CanMed/canmed.owl
     load_terminology_data NCIT2 http://CTCAE CTCAE/ctcae5.owl
     load_terminology_data NCIT2 http://DUO_monthly DUO/duo_Feb21.owl
