@@ -1,10 +1,19 @@
 package gov.nih.nci.evs.api.fhir;
 
+import static org.junit.jupiter.api.Assertions.*;
+
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import java.io.IOException;
+import java.net.URL;
+import java.net.URLConnection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Stream;
 import org.hl7.fhir.r4.model.*;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -18,17 +27,6 @@ import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * Unit FhirR4Tests. Tests the functionality of the FHIR R4 endpoint ValueSet specifically the
@@ -84,13 +82,8 @@ class FhirR4ClientSDKTests {
   private void parsePostmanCollectionAndExtractRawUrlValues(ObjectMapper objectMapper)
       throws IOException {
     try {
-      InputStream inputStream = null;
-      String sourceLocation = "unknown";
       // Load the Postman collection JSON file from evsrestapi-client-SDK
       final String uri = applicationProperties.getSdkBaseUri();
-      // String githubRawUrl =
-      // "https://raw.githubusercontent.com/NCIEVS/evsrestapi-client-SDK/main/fhir-examples/EVSRESTAPI-FHIR-R4.postman_collection.json";
-
       URL url = new URL(uri + "/fhir-examples/EVSRESTAPI-FHIR-R4.postman_collection.json");
       URLConnection connection = url.openConnection();
 
@@ -512,13 +505,11 @@ class FhirR4ClientSDKTests {
                   conceptMap.getStatus(), "ConceptMap status should not be null for " + testName);
               if (conceptMap.hasSource()) {
                 assertNotNull(
-                    conceptMap.getSource(),
-                    "Source should not be null if present for " + testName);
+                    conceptMap.getSource(), "Source should not be null if present for " + testName);
               }
               if (conceptMap.hasTarget()) {
                 assertNotNull(
-                    conceptMap.getTarget(),
-                    "Target should not be null if present for " + testName);
+                    conceptMap.getTarget(), "Target should not be null if present for " + testName);
               }
               if (conceptMap.hasGroup()) {
                 conceptMap
