@@ -91,6 +91,7 @@ public class FhirR5ConceptMapTranslateTests {
     // Arrange
     String content;
     String code = "GO:0016887";
+    String targetCode = "C19939";
     String id = "go_to_ncit_mapping_february2020";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
     String endpoint =
@@ -104,6 +105,14 @@ public class FhirR5ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    Coding coding =
+        (Coding)
+            params.getParameter("match").getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .get()
+                .getValue();
+    assertEquals(targetCode, coding.getCode());
   }
 
   /**
@@ -115,6 +124,7 @@ public class FhirR5ConceptMapTranslateTests {
   public void testConceptMapTranslateInstanceWithSourceCoding() throws Exception {
     // Arrange
     String code = "GO:0016887";
+    String targetCode = "C19939";
     String id = "go_to_ncit_mapping_february2020";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
     String endpoint =
@@ -136,6 +146,94 @@ public class FhirR5ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    Coding coding =
+        (Coding)
+            params.getParameter("match").getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .get()
+                .getValue();
+    assertEquals(targetCode, coding.getCode());
+  }
+
+  /**
+   * Test concept map translate instance with target coding.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testConceptMapTranslateInstanceWithTargetCoding() throws Exception {
+    // Arrange
+    String code = "GO:0016887";
+    String targetCode = "C19939";
+    String id = "go_to_ncit_mapping_february2020";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint =
+        localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
+
+    // Create the Coding object
+    Coding targetCoding = new Coding(system, targetCode, null);
+
+    // Construct the GET request URI with the sourceCoding parameter
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    builder.queryParam("targetCoding", targetCoding.getSystem() + "|" + targetCoding.getCode());
+
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    Coding coding =
+        (Coding)
+            params.getParameter("match").getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .get()
+                .getValue();
+    assertEquals(code, coding.getCode());
+  }
+
+  /**
+   * Test concept map translate instance with target coding.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testConceptMapTranslateImplicitWithTargetCoding() throws Exception {
+    // Arrange
+    String code = "GO:0016887";
+    String targetCode = "C19939";
+    String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
+    String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
+
+    // Create the Coding object
+    Coding targetCoding = new Coding(system, targetCode, null);
+
+    // Construct the GET request URI with the sourceCoding parameter
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    builder.queryParam("targetCoding", targetCoding.getSystem() + "|" + targetCoding.getCode());
+
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertNotNull(params);
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    Coding coding =
+        (Coding)
+            params.getParameter("match").getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .get()
+                .getValue();
+    assertEquals(code, coding.getCode());
   }
 
   /**
@@ -147,6 +245,7 @@ public class FhirR5ConceptMapTranslateTests {
   public void testConceptMapTranslateImplicitWithSourceCoding() throws Exception {
     // Arrange
     String code = "GO:0016887";
+    String targetCode = "C19939";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
     String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
 
@@ -166,6 +265,14 @@ public class FhirR5ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    Coding coding =
+        (Coding)
+            params.getParameter("match").getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .get()
+                .getValue();
+    assertEquals(targetCode, coding.getCode());
   }
 
   /**
@@ -178,12 +285,13 @@ public class FhirR5ConceptMapTranslateTests {
   public void testConceptMapTranslateInstanceWithTarget() throws Exception {
     // Arrange
     String content;
-    String code = "C19939";
+    String targetCode = "C19939";
+    String sourceCode = "GO:0016887";
     String id = "go_to_ncit_mapping_february2020";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
     String endpoint =
         localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
-    String parameters = "?targetCode=" + code + "&targetSystem=" + system;
+    String parameters = "?targetCode=" + targetCode + "&system=" + system;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -193,6 +301,14 @@ public class FhirR5ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    Coding coding =
+        (Coding)
+            params.getParameter("match").getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .get()
+                .getValue();
+    assertEquals(sourceCode, coding.getCode());
   }
 
   /**
@@ -205,6 +321,7 @@ public class FhirR5ConceptMapTranslateTests {
     // Arrange
     String content;
     String code = "GO:0016887";
+    String targetCode = "C19939";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
     String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
     String parameters = "?sourceCode=" + code + "&system=" + system;
@@ -217,6 +334,14 @@ public class FhirR5ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    Coding coding =
+        (Coding)
+            params.getParameter("match").getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .get()
+                .getValue();
+    assertEquals(targetCode, coding.getCode());
   }
 
   /**
@@ -228,10 +353,11 @@ public class FhirR5ConceptMapTranslateTests {
   public void testConceptMapTranslateImplicitWithTarget() throws Exception {
     // Arrange
     String content;
-    String code = "C19939";
+    String targetCode = "C19939";
+    String sourceCode = "GO:0016887";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
     String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
-    String parameters = "?targetCode=" + code + "&system=" + system;
+    String parameters = "?targetCode=" + targetCode + "&system=" + system;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -240,6 +366,14 @@ public class FhirR5ConceptMapTranslateTests {
     // Assert
     assertNotNull(params);
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    Coding coding =
+        (Coding)
+            params.getParameter("match").getPart().stream()
+                .filter(part -> "concept".equals(part.getName()))
+                .findFirst()
+                .get()
+                .getValue();
+    assertEquals(sourceCode, coding.getCode());
   }
 
   /**
@@ -305,7 +439,8 @@ public class FhirR5ConceptMapTranslateTests {
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
     String endpoint =
         localHost + port + fhirCMPath + "/" + id + "/" + JpaConstants.OPERATION_TRANSLATE;
-    String parameters = "?code=" + code + "&system=" + system + "&sourceCodableConcept=notfound";
+    String parameters =
+        "?sourceCode=" + code + "&system=" + system + "&sourceCodableConcept=notfound";
 
     String messageNotSupported = "Input parameter 'sourceCodableConcept' is not supported.";
     String errorCode = "not-supported";
@@ -332,7 +467,8 @@ public class FhirR5ConceptMapTranslateTests {
     String code = "GO:0016887";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
     String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
-    String parameters = "?code=" + code + "&system=" + system + "&sourceCodableConcept=notfound";
+    String parameters =
+        "?sourceCode=" + code + "&system=" + system + "&sourceCodableConcept=notfound";
 
     String messageNotSupported = "Input parameter 'sourceCodableConcept' is not supported.";
     String errorCode = "not-supported";
@@ -359,10 +495,12 @@ public class FhirR5ConceptMapTranslateTests {
     String code = "GO:0016887";
     String system = "http://purl.obolibrary.org/obo/go.owl?fhir_cm=GO_to_NCIt_Mapping";
     String endpoint = localHost + port + fhirCMPath + "/" + JpaConstants.OPERATION_TRANSLATE;
-    String parameters = "?code=" + code + "&system=" + system + "&codableConcept=invalid";
+    String parameters = "?code=" + code + "&system=" + system;
 
-    String messageNotSupported = "Either sourceCode or targetCode must be provided";
-    String errorCode = "invalid";
+    String messageNotSupported =
+        "Must supply at least one of 'sourceCode', 'targetCode', 'sourceCoding', or 'targetCoding'"
+            + " parameters.";
+    String errorCode = "invariant";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
