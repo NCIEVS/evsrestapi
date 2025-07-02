@@ -20,6 +20,8 @@ public class ApplicationProperties {
   /** The config base Uri. */
   private String configBaseUri;
 
+  private String sdkBaseUri;
+
   /** The ui license - passed by UI to the backend via X-EVSRESAPI-License-Key. */
   private String uiLicense;
 
@@ -126,6 +128,14 @@ public class ApplicationProperties {
     this.configBaseUri = configBaseUri;
   }
 
+  public String getSdkBaseUri() {
+    return sdkBaseUri;
+  }
+
+  public void setSdkBaseUri(final String sdkBaseUri) {
+    this.sdkBaseUri = sdkBaseUri;
+  }
+
   /**
    * Returns the pediatricSubsetsXls.
    *
@@ -135,11 +145,7 @@ public class ApplicationProperties {
     return childhoodNeoplasmSubsetsXls;
   }
 
-  /**
-   * Sets the pediatricSubsetsXls.
-   *
-   * @param uiLicense the pediatricSubsetsXls
-   */
+  /** Sets the pediatricSubsetsXls. */
   public void setChildhoodNeoplasmSubsetsXls(final String childhoodNeoplasmSubsetsXls) {
     this.childhoodNeoplasmSubsetsXls = childhoodNeoplasmSubsetsXls;
   }
@@ -171,11 +177,7 @@ public class ApplicationProperties {
     return ftpNeoplasmUrl;
   }
 
-  /**
-   * Sets the ftpNeoplasmUrl.
-   *
-   * @param uiLicense the ftpNeoplasmUrl
-   */
+  /** Sets the ftpNeoplasmUrl. */
   public void setFtpNeoplasmUrl(final String ftpNeoplasmUrl) {
     this.ftpNeoplasmUrl = ftpNeoplasmUrl;
   }

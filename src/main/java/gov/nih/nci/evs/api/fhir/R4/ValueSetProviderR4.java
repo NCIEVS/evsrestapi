@@ -29,7 +29,6 @@ import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 import java.util.stream.Collectors;
 import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
@@ -40,6 +39,7 @@ import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionParameterComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 /** FHIR R4 ValueSet provider. */
@@ -811,18 +811,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
         list.add(vs);
       }
     }
-    final List<Concept> subsets =
-        metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.ofNullable(null));
-    final Set<String> codes =
-        subsets.stream()
-            .flatMap(Concept::streamSelfAndChildren)
-            .map(c -> c.getCode())
-            .collect(Collectors.toSet());
+    final List<Concept> subsets = getNcitSubsets();
     final List<Concept> subsetsAsConcepts =
-        osQueryService.getConcepts(
-            codes,
-            termUtils.getIndexedTerminology("ncit", osQueryService, true),
-            new IncludeParam("minimal"));
+        subsets.stream().flatMap(Concept::streamSelfAndChildren).toList();
     for (final Concept subset : subsetsAsConcepts) {
       final ValueSet vs = FhirUtilityR4.toR4VS(subset);
       // Skip non-matching
@@ -861,7 +852,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
    *
    * <p>See https://hl7.org/fhir/R4/valueset.html
    *
-   * @param details the details
    * @param id the id
    * @return the value set
    * @throws Exception the exception
@@ -940,18 +930,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
       list.add(vs);
     }
-    final List<Concept> subsets =
-        metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.ofNullable(null));
-    final Set<String> codes =
-        subsets.stream()
-            .flatMap(Concept::streamSelfAndChildren)
-            .map(c -> c.getCode())
-            .collect(Collectors.toSet());
+    final List<Concept> subsets = getNcitSubsets();
     final List<Concept> subsetsAsConcepts =
-        osQueryService.getConcepts(
-            codes,
-            termUtils.getIndexedTerminology("ncit", osQueryService, true),
-            new IncludeParam("minimal"));
+        subsets.stream().flatMap(Concept::streamSelfAndChildren).toList();
 
     for (final Concept subset : subsetsAsConcepts) {
       final ValueSet vs = FhirUtilityR4.toR4VS(subset);
@@ -973,6 +954,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
     }
 
     return list;
+  }
+
+  @Cacheable("ncitsubsets")
+  public List<Concept> getNcitSubsets() throws Exception {
+    return metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.empty());
   }
 
   /* see superclass */
