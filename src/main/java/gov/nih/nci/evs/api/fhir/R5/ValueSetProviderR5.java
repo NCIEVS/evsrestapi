@@ -39,6 +39,7 @@ import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionParameterComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 /** FHIR R5 ValueSet provider. */
@@ -133,19 +134,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
         list.add(vs);
       }
     }
-
-    final List<Concept> subsets =
-        metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.empty());
-    final Set<String> codes =
-        subsets.stream()
-            .flatMap(Concept::streamSelfAndChildren)
-            .map(c -> c.getCode())
-            .collect(Collectors.toSet());
-    final List<Concept> subsetsAsConcepts =
-        osQueryService.getConcepts(
-            codes,
-            termUtils.getIndexedTerminology("ncit", osQueryService, true),
-            new IncludeParam("minimal"));
+    final List<Concept> subsets = getNcitSubsets();
+    final Set<Concept> subsetsAsConcepts =
+        subsets.stream().flatMap(Concept::streamSelfAndChildren).collect(Collectors.toSet());
 
     for (final Concept subset : subsetsAsConcepts) {
       final ValueSet vs = FhirUtilityR5.toR5VS(subset);
@@ -174,6 +165,11 @@ public class ValueSetProviderR5 implements IResourceProvider {
       list.add(vs);
     }
     return FhirUtilityR5.makeBundle(request, list, count, offset);
+  }
+
+  @Cacheable("ncitsubsets")
+  public List<Concept> getNcitSubsets() throws Exception {
+    return metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.empty());
   }
 
   /**
@@ -980,18 +976,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
       }
       list.add(vs);
     }
-    final List<Concept> subsets =
-        metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.empty());
-    final Set<String> codes =
-        subsets.stream()
-            .flatMap(Concept::streamSelfAndChildren)
-            .map(c -> c.getCode())
-            .collect(Collectors.toSet());
-    final List<Concept> subsetsAsConcepts =
-        osQueryService.getConcepts(
-            codes,
-            termUtils.getIndexedTerminology("ncit", osQueryService, true),
-            new IncludeParam("minimal"));
+    final List<Concept> subsets = getNcitSubsets();
+    final Set<Concept> subsetsAsConcepts =
+        subsets.stream().flatMap(Concept::streamSelfAndChildren).collect(Collectors.toSet());
 
     for (final Concept subset : subsetsAsConcepts) {
       final ValueSet vs = FhirUtilityR5.toR5VS(subset);
