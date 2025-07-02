@@ -2,28 +2,6 @@ package gov.nih.nci.evs.api.fhir.R4;
 
 import static gov.nih.nci.evs.api.service.OpenSearchServiceImpl.escape;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-
-import org.hl7.fhir.r4.model.BooleanType;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.ConceptMap;
-import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.Meta;
-import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.UriType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
-
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.History;
@@ -52,6 +30,26 @@ import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.CodeType;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.ConceptMap;
+import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.Meta;
+import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.UriType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 /** FHIR R4 ConceptMap provider. */
 @Component
@@ -61,12 +59,10 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   private static Logger logger = LoggerFactory.getLogger(ConceptMapProviderR4.class);
 
   /** the query service. */
-  @Autowired
-  OpensearchQueryService osQueryService;
+  @Autowired OpensearchQueryService osQueryService;
 
   /** the opensearch search service. */
-  @Autowired
-  OpenSearchService osSearchService;
+  @Autowired OpenSearchService osSearchService;
 
   /** The code to translate. */
   String codeToTranslate = "";
@@ -74,8 +70,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   /**
    * Perform the lookup in the instance map.
    *
-   * <p>
-   * see https://hl7.org/fhir/R4/conceptmap-operation-translate.html
+   * <p>see https://hl7.org/fhir/R4/conceptmap-operation-translate.html
    *
    * @param request the request
    * @param response the response
@@ -83,58 +78,61 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @param id the id
    * @param url A canonical URL for a concept map. The server must know the concept map (
    * @param conceptMapVersion The identifier that is used to identify a specific version of the
-   *          concept map to be used for the translation.
+   *     concept map to be used for the translation.
    * @param code The code that is to be translated. If a code is provided, a system must be provided
    * @param system The system for the code that is to be translated
    * @param version The version of the system, if one was provided in the source data
    * @param source Identifies the value set used when the concept (system/code pair) was chosen.
-   *          Optional because user may not always know it
+   *     Optional because user may not always know it
    * @param coding A coding to translate
    * @param target Identifies the value set in which a translation is sought. If there's no target
-   *          specified, the server should return all known translations, along with their source
+   *     specified, the server should return all known translations, along with their source
    * @param targetSystem identifies a target code system in which a mapping is sought. This
-   *          parameter is an alternative to the target parameter.
+   *     parameter is an alternative to the target parameter.
    * @param reverse This parameter reverses the meaning of the source and target parameters
    * @return the parameters
    * @throws Exception the exception
-   *           <p>
-   *           no support for dependency parameter
+   *     <p>no support for dependency parameter
    */
   @Operation(name = JpaConstants.OPERATION_TRANSLATE, idempotent = true)
-  public Parameters translateInstance(final HttpServletRequest request,
-    final HttpServletResponse response, final ServletRequestDetails details,
-    @IdParam final IdType id, @OperationParam(name = "url") final UriType url,
-    @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
-    @OperationParam(name = "code") final CodeType code,
-    @OperationParam(name = "system") final UriType system,
-    @OperationParam(name = "version") final StringType version,
-    @OperationParam(name = "source") final UriType source,
-    @OperationParam(name = "coding") final Coding coding,
-    // @OperationParam(name = "codeableConcept") final CodeableConcept
-    // codeableConcept,
-    @OperationParam(name = "target") final UriType target,
-    @OperationParam(name = "targetSystem") final UriType targetSystem,
-    // @OperationParam(name = "dependency") final UriType dependency,
-    @OperationParam(name = "reverse", type = BooleanType.class) final BooleanType reverse)
-    throws Exception {
+  public Parameters translateInstance(
+      final HttpServletRequest request,
+      final HttpServletResponse response,
+      final ServletRequestDetails details,
+      @IdParam final IdType id,
+      @OperationParam(name = "url") final UriType url,
+      @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
+      @OperationParam(name = "code") final CodeType code,
+      @OperationParam(name = "system") final UriType system,
+      @OperationParam(name = "version") final StringType version,
+      @OperationParam(name = "source") final UriType source,
+      @OperationParam(name = "coding") final Coding coding,
+      // @OperationParam(name = "codeableConcept") final CodeableConcept
+      // codeableConcept,
+      @OperationParam(name = "target") final UriType target,
+      @OperationParam(name = "targetSystem") final UriType targetSystem,
+      // @OperationParam(name = "dependency") final UriType dependency,
+      @OperationParam(name = "reverse", type = BooleanType.class) final BooleanType reverse)
+      throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
           "POST method not supported for " + JpaConstants.OPERATION_TRANSLATE,
-          IssueType.NOTSUPPORTED, 405);
+          IssueType.NOTSUPPORTED,
+          405);
     }
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR4.mutuallyExclusive("target", target, "targetSystem", targetSystem);
-      for (final String param : new String[] {
-          "codableConcept", "dependency"
-      }) {
+      for (final String param : new String[] {"codableConcept", "dependency"}) {
         FhirUtilityR4.notSupported(request, param);
       }
-      if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
-          .count() > 0) {
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
         FhirUtilityR4.notSupported(request, "_has");
       }
 
@@ -146,8 +144,9 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       }
 
       final Parameters params = new Parameters();
-      final List<ConceptMap> cm = findPossibleConceptMaps(null, null, systemToLookup, url, version,
-          source, target, targetSystem);
+      final List<ConceptMap> cm =
+          findPossibleConceptMaps(
+              null, null, systemToLookup, url, version, source, target, targetSystem);
       // Extract the mapsetcode from cm build the query
       final List<String> mapsetCodes = cm.stream().map(m -> m.getTitle()).toList();
 
@@ -179,11 +178,17 @@ public class ConceptMapProviderR4 implements IResourceProvider {
             new Parameters.ParametersParameterComponent().setName("match");
         property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
         if (reverse != null && reverse.getValue()) {
-          property.addPart().setName("concept").setValue(
-              new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
         } else {
-          property.addPart().setName("concept").setValue(
-              new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
         }
         params.addParameter(property);
       }
@@ -196,76 +201,77 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
-      throw FhirUtilityR4.exception("Failed to translate concept map",
-          OperationOutcome.IssueType.EXCEPTION, 500);
+      throw FhirUtilityR4.exception(
+          "Failed to translate concept map", OperationOutcome.IssueType.EXCEPTION, 500);
     }
   }
 
   /**
    * Perform the lookup in the implicit map.
    *
-   * <p>
-   * see https://hl7.org/fhir/R4/conceptmap-operation-translate.html
+   * <p>see https://hl7.org/fhir/R4/conceptmap-operation-translate.html
    *
    * @param request the request
    * @param response the response
    * @param details the details
    * @param url A canonical URL for a concept map. The server must know the concept map.
    * @param conceptMapVersion The identifier that is used to identify a specific version of the
-   *          concept map to be used for the translation.
+   *     concept map to be used for the translation.
    * @param code The code that is to be translated. If a code is provided, a system must be provided
    * @param system The system for the code that is to be translated
    * @param version The version of the system, if one was provided in the source data
    * @param source Identifies the value set used when the concept (system/code pair) was chosen.
-   *          Optional because user may not always know it
+   *     Optional because user may not always know it
    * @param coding A coding to translate
    * @param target Identifies the value set in which a translation is sought. If there's no target
-   *          specified, the server should return all known translations, along with their source
+   *     specified, the server should return all known translations, along with their source
    * @param targetSystem identifies a target code system in which a mapping is sought. This
-   *          parameter is an alternative to the target parameter.
+   *     parameter is an alternative to the target parameter.
    * @param reverse This parameter reverses the meaning of the source and target parameters
    * @return the parameters
    * @throws Exception the exception
-   *           <p>
-   *           no support for dependency parameter
+   *     <p>no support for dependency parameter
    * @see <a href= "https://hl7.org/fhir/R4/conceptmap-operation-translate.html">conceptmap
-   *      operation translate</a>
+   *     operation translate</a>
    */
   @Operation(name = JpaConstants.OPERATION_TRANSLATE, idempotent = true)
-  public Parameters translateImplicit(final HttpServletRequest request,
-    final HttpServletResponse response, final ServletRequestDetails details,
-    @OperationParam(name = "url") final UriType url,
-    @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
-    @OperationParam(name = "code") final CodeType code,
-    @OperationParam(name = "system") final UriType system,
-    @OperationParam(name = "version") final StringType version,
-    @OperationParam(name = "source") final UriType source,
-    @OperationParam(name = "coding") final Coding coding,
-    // @OperationParam(name = "codeableConcept") final CodeableConcept
-    // codeableConcept,
-    @OperationParam(name = "target") final UriType target,
-    @OperationParam(name = "targetSystem") final UriType targetSystem,
-    // @OperationParam(name = "dependency") final UriType dependency,
-    @OperationParam(name = "reverse", type = BooleanType.class) final BooleanType reverse)
-    throws Exception {
+  public Parameters translateImplicit(
+      final HttpServletRequest request,
+      final HttpServletResponse response,
+      final ServletRequestDetails details,
+      @OperationParam(name = "url") final UriType url,
+      @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
+      @OperationParam(name = "code") final CodeType code,
+      @OperationParam(name = "system") final UriType system,
+      @OperationParam(name = "version") final StringType version,
+      @OperationParam(name = "source") final UriType source,
+      @OperationParam(name = "coding") final Coding coding,
+      // @OperationParam(name = "codeableConcept") final CodeableConcept
+      // codeableConcept,
+      @OperationParam(name = "target") final UriType target,
+      @OperationParam(name = "targetSystem") final UriType targetSystem,
+      // @OperationParam(name = "dependency") final UriType dependency,
+      @OperationParam(name = "reverse", type = BooleanType.class) final BooleanType reverse)
+      throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
           "POST method not supported for " + JpaConstants.OPERATION_TRANSLATE,
-          IssueType.NOTSUPPORTED, 405);
+          IssueType.NOTSUPPORTED,
+          405);
     }
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR4.mutuallyExclusive("target", target, "targetSystem", targetSystem);
-      for (final String param : new String[] {
-          "codableConcept", "dependency"
-      }) {
+      for (final String param : new String[] {"codableConcept", "dependency"}) {
         FhirUtilityR4.notSupported(request, param);
       }
-      if (Collections.list(request.getParameterNames()).stream().filter(k -> k.startsWith("_has"))
-          .count() > 0) {
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
         FhirUtilityR4.notSupported(request, "_has");
       }
 
@@ -277,8 +283,9 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       }
 
       final Parameters params = new Parameters();
-      final List<ConceptMap> cm = findPossibleConceptMaps(null, null, systemToLookup, url, version,
-          source, target, targetSystem);
+      final List<ConceptMap> cm =
+          findPossibleConceptMaps(
+              null, null, systemToLookup, url, version, source, target, targetSystem);
       // Extract the mapsetcode from cm build the query
       final List<String> mapsetCodes = cm.stream().map(m -> m.getTitle()).toList();
 
@@ -313,11 +320,17 @@ public class ConceptMapProviderR4 implements IResourceProvider {
             new Parameters.ParametersParameterComponent().setName("match");
         property.addPart().setName("equivalence").setValue(new StringType("equivalent"));
         if (reverse != null && reverse.getValue()) {
-          property.addPart().setName("concept").setValue(
-              new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getSourceTerminology(), map.getSourceCode(), map.getSourceName()));
         } else {
-          property.addPart().setName("concept").setValue(
-              new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
+          property
+              .addPart()
+              .setName("concept")
+              .setValue(
+                  new Coding(map.getTargetTerminology(), map.getTargetCode(), map.getTargetName()));
         }
 
         params.addParameter(property);
@@ -331,8 +344,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
-      throw FhirUtilityR4.exception("Failed to translate concept map",
-          OperationOutcome.IssueType.EXCEPTION, 500);
+      throw FhirUtilityR4.exception(
+          "Failed to translate concept map", OperationOutcome.IssueType.EXCEPTION, 500);
     }
   }
 
@@ -350,8 +363,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   /**
    * Find concept maps.
    *
-   * <p>
-   * see https://hl7.org/fhir/R4/conceptmap.html (find "search parameters")
+   * <p>see https://hl7.org/fhir/R4/conceptmap.html (find "search parameters")
    *
    * @param request the request
    * @param id the id
@@ -365,16 +377,19 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Search
-  public Bundle findConceptMaps(final HttpServletRequest request,
-    @OptionalParam(name = "_id") final TokenParam id,
-    @OptionalParam(name = "date") final DateRangeParam date,
-    @OptionalParam(name = "name") final StringParam name,
-    @OptionalParam(name = "url") final StringParam url,
-    @OptionalParam(name = "version") final StringParam version,
-    @Description(shortDefinition = "Number of entries to return")
-    @OptionalParam(name = "_count") final NumberParam count,
-    @Description(shortDefinition = "Start offset, used when reading a next page")
-    @OptionalParam(name = "_offset") final NumberParam offset) throws Exception {
+  public Bundle findConceptMaps(
+      final HttpServletRequest request,
+      @OptionalParam(name = "_id") final TokenParam id,
+      @OptionalParam(name = "date") final DateRangeParam date,
+      @OptionalParam(name = "name") final StringParam name,
+      @OptionalParam(name = "url") final StringParam url,
+      @OptionalParam(name = "version") final StringParam version,
+      @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
+          final NumberParam count,
+      @Description(shortDefinition = "Start offset, used when reading a next page")
+          @OptionalParam(name = "_offset")
+          final NumberParam offset)
+      throws Exception {
     try {
       FhirUtilityR4.notSupportedSearchParams(request);
 
@@ -419,8 +434,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       throw e;
     } catch (final Exception e) {
       logger.error("Unexpected error", e);
-      throw FhirUtilityR4.exception("Failed to find concept maps",
-          OperationOutcome.IssueType.EXCEPTION, 500);
+      throw FhirUtilityR4.exception(
+          "Failed to find concept maps", OperationOutcome.IssueType.EXCEPTION, 500);
     }
   }
 
@@ -438,9 +453,16 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @return the list
    * @throws Exception the exception
    */
-  private List<ConceptMap> findPossibleConceptMaps(final IdType id, final DateRangeParam date,
-    final UriType system, final UriType url, final StringType version, final UriType source,
-    final UriType target, final UriType targetSystem) throws Exception {
+  private List<ConceptMap> findPossibleConceptMaps(
+      final IdType id,
+      final DateRangeParam date,
+      final UriType system,
+      final UriType url,
+      final StringType version,
+      final UriType source,
+      final UriType target,
+      final UriType targetSystem)
+      throws Exception {
     try {
       // FhirUtilityR4.notSupportedSearchParams(request);
 
@@ -503,16 +525,15 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       throw e;
     } catch (final Exception e) {
       logger.error("Unexpected error", e);
-      throw FhirUtilityR4.exception("Failed to find concept maps",
-          OperationOutcome.IssueType.EXCEPTION, 500);
+      throw FhirUtilityR4.exception(
+          "Failed to find concept maps", OperationOutcome.IssueType.EXCEPTION, 500);
     }
   }
 
   /**
    * Returns the concept map.
    *
-   * <p>
-   * see https://hl7.org/fhir/R4/conceptmap.html
+   * <p>see https://hl7.org/fhir/R4/conceptmap.html
    *
    * @param id the id
    * @return the concept map
@@ -533,15 +554,15 @@ public class ConceptMapProviderR4 implements IResourceProvider {
         }
       }
 
-      throw FhirUtilityR4.exception("Concept map not found = " + id.getIdPart(), IssueType.NOTFOUND,
-          404);
+      throw FhirUtilityR4.exception(
+          "Concept map not found = " + id.getIdPart(), IssueType.NOTFOUND, 404);
 
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
       logger.error("Unexpected exception", e);
-      throw FhirUtilityR4.exception("Failed to get concept map",
-          OperationOutcome.IssueType.EXCEPTION, 500);
+      throw FhirUtilityR4.exception(
+          "Failed to get concept map", OperationOutcome.IssueType.EXCEPTION, 500);
     }
   }
 
@@ -555,17 +576,20 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @return the string
    * @throws Exception the exception
    */
-  private String buildFhirQueryString(CodeType code, List<String> mapsetCodes, BooleanType reverse,
-    String operator) throws Exception {
+  private String buildFhirQueryString(
+      CodeType code, List<String> mapsetCodes, BooleanType reverse, String operator)
+      throws Exception {
     // Check the required parameter is provided
     if (code == null) {
-      throw FhirUtilityR4.exception("Either code or target parameter is required",
-          OperationOutcome.IssueType.REQUIRED, 400);
+      throw FhirUtilityR4.exception(
+          "Either code or target parameter is required", OperationOutcome.IssueType.REQUIRED, 400);
     }
     List<String> clauses = new ArrayList<>();
     if (!mapsetCodes.isEmpty()) {
-      clauses.add("mapsetCode:("
-          + String.join(" ", mapsetCodes.stream().map(c -> escape(c)).toList()) + ")");
+      clauses.add(
+          "mapsetCode:("
+              + String.join(" ", mapsetCodes.stream().map(c -> escape(c)).toList())
+              + ")");
     }
     if (reverse != null && reverse.booleanValue()) {
       // compose query string for source code and system uri
@@ -598,14 +622,15 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       if (history.isEmpty()) {
         throw FhirUtilityR4.exception(
             "Concept map not found = " + (id == null ? "null" : id.getIdPart()),
-            OperationOutcome.IssueType.NOTFOUND, 404);
+            OperationOutcome.IssueType.NOTFOUND,
+            404);
       }
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
       logger.error("Unexpected exception", e);
-      throw FhirUtilityR4.exception("Failed to get concept map",
-          OperationOutcome.IssueType.EXCEPTION, 500);
+      throw FhirUtilityR4.exception(
+          "Failed to get concept map", OperationOutcome.IssueType.EXCEPTION, 500);
     }
 
     // Make sure each ConceptMap has proper metadata for history
@@ -674,13 +699,14 @@ public class ConceptMapProviderR4 implements IResourceProvider {
 
       throw FhirUtilityR4.exception(
           "Concept map version not found: " + resourceId + " version " + versionId,
-          OperationOutcome.IssueType.NOTFOUND, 404);
+          OperationOutcome.IssueType.NOTFOUND,
+          404);
     } catch (final FHIRServerResponseException e) {
       throw e; // Re-throw FHIR exceptions as-is
     } catch (final Exception e) {
       logger.error("Unexpected exception in vread", e);
-      throw FhirUtilityR4.exception("Failed to get concept map version",
-          OperationOutcome.IssueType.EXCEPTION, 500);
+      throw FhirUtilityR4.exception(
+          "Failed to get concept map version", OperationOutcome.IssueType.EXCEPTION, 500);
     }
   }
 }
