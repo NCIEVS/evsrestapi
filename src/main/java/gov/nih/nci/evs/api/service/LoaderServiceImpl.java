@@ -38,8 +38,13 @@ public class LoaderServiceImpl {
   private static final Logger logger = LoggerFactory.getLogger(LoaderServiceImpl.class);
 
   /** the history download location *. */
-  @Value("${nci.evs.bulkload.historyDir}")
+  // @Value("${nci.evs.bulkload.historyDir}")
   private static String HISTORY_DIR;
+
+  @Value("${nci.evs.bulkload.historyDir}")
+  public void setHistoryDir(String historyDir) {
+    HISTORY_DIR = historyDir;
+  }
 
   /** the environment *. */
   @Autowired Environment env;

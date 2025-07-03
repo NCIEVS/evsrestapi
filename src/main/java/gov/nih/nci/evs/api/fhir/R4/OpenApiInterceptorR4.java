@@ -430,12 +430,12 @@ public class OpenApiInterceptorR4 {
     final CapabilityStatement cs = getCapabilityStatement(theRequestDetails);
 
     final String baseUrl = theRequestDetails.getServletRequest().getParameter("baseUrl");
-    //  final IServerAddressStrategy addressStrategy =
-    //      theRequestDetails.getServer().getServerAddressStrategy();
-    //  final String baseUrl =
-    //      addressStrategy.determineServerBase(
-    //          theRequestDetails.getServletRequest().getServletContext(),
-    //          theRequestDetails.getServletRequest());
+    // final IServerAddressStrategy addressStrategy =
+    // theRequestDetails.getServer().getServerAddressStrategy();
+    // final String baseUrl =
+    // addressStrategy.determineServerBase(
+    // theRequestDetails.getServletRequest().getServletContext(),
+    // theRequestDetails.getServletRequest());
 
     theResponse.setStatus(200);
     theResponse.setContentType(Constants.CT_HTML);
@@ -590,12 +590,12 @@ public class OpenApiInterceptorR4 {
     openApi.addServersItem(server);
 
     final String baseUrl = theRequestDetails.getServletRequest().getParameter("baseUrl");
-    //    final IServerAddressStrategy addressStrategy =
-    //        theRequestDetails.getServer().getServerAddressStrategy();
-    //    final String baseUrl =
-    //        addressStrategy.determineServerBase(
-    //            theRequestDetails.getServletRequest().getServletContext(),
-    //            theRequestDetails.getServletRequest());
+    // final IServerAddressStrategy addressStrategy =
+    // theRequestDetails.getServer().getServerAddressStrategy();
+    // final String baseUrl =
+    // addressStrategy.determineServerBase(
+    // theRequestDetails.getServletRequest().getServletContext(),
+    // theRequestDetails.getServletRequest());
 
     server.setUrl(baseUrl);
     server.setDescription(cs.getSoftware().getName());
@@ -834,7 +834,7 @@ public class OpenApiInterceptorR4 {
       final String resourceType,
       final CapabilityStatement.CapabilityStatementRestResourceComponent nextResource) {
     operation.addTagsItem(resourceType);
-    //    operation.setDescription("This is a search type");
+    // operation.setDescription("This is a search type");
     operation.setSummary("Search for " + unCamelCase(resourceType) + " instances.");
     addFhirResourceResponse(ctx, openApi, operation, null);
 
@@ -1024,71 +1024,71 @@ public class OpenApiInterceptorR4 {
 
       // HIDE POST FORMS of operations
       //
-      //      // POST form for all operations
-      //      if (theResourceType != null) {
-      //        if (operationDefinition.getType()) {
-      //          final Operation operation =
-      //              getPathItem(
-      //                  thePaths,
-      //                  "/" + theResourceType + "/$" + operationDefinition.getCode(),
-      //                  PathItem.HttpMethod.POST);
-      //          populateOperation(
-      //              theFhirContext, theOpenApi, theResourceType, operationDefinition, operation,
-      // false);
-      //          operation.setSummary(operationDefinition.getCode());
-      //          operation.setSummary(
-      //              unCamelCase(theResourceType)
-      //                  + " operation to perform "
-      //                  + operationDefinition.getCode()
-      //                  + ". For more information on this operation, see the R4 spec at"
-      //                  + " https://hl7.org/fhir/R4/"
-      //                  + theResourceType
-      //                  + "-operation-"
-      //                  + operationDefinition.getCode()
-      //                  + ".html");
-      //        }
-      //        if (operationDefinition.getInstance()) {
-      //          final Operation operation =
-      //              getPathItem(
-      //                  thePaths,
-      //                  "/" + theResourceType + "/{id}/$" + operationDefinition.getCode(),
-      //                  PathItem.HttpMethod.POST);
-      //          addResourceIdParameter(operation);
-      //          populateOperation(
-      //              theFhirContext, theOpenApi, theResourceType, operationDefinition, operation,
-      // false);
-      //          operation.setSummary(operationDefinition.getCode());
-      //          operation.setSummary(
-      //              unCamelCase(theResourceType)
-      //                  + " operation to perform "
-      //                  + operationDefinition.getCode()
-      //                  + ". For more information on this operation, see the R4 spec at"
-      //                  + " https://hl7.org/fhir/R4/"
-      //                  + theResourceType
-      //                  + "-operation-"
-      //                  + operationDefinition.getCode()
-      //                  + ".html");
-      //        }
-      //      } else {
-      //        if (operationDefinition.getSystem()) {
-      //          final Operation operation =
-      //              getPathItem(thePaths, "/$" + operationDefinition.getCode(),
+      // // POST form for all operations
+      // if (theResourceType != null) {
+      // if (operationDefinition.getType()) {
+      // final Operation operation =
+      // getPathItem(
+      // thePaths,
+      // "/" + theResourceType + "/$" + operationDefinition.getCode(),
       // PathItem.HttpMethod.POST);
-      //          populateOperation(
-      //              theFhirContext, theOpenApi, null, operationDefinition, operation, false);
-      //          operation.setSummary(operationDefinition.getCode());
-      //          operation.setSummary(
-      //              unCamelCase(theResourceType)
-      //                  + " operation to perform "
-      //                  + operationDefinition.getCode()
-      //                  + ". For more information on this operation, see the R4 spec at"
-      //                  + " https://hl7.org/fhir/R4/"
-      //                  + theResourceType
-      //                  + "-operation-"
-      //                  + operationDefinition.getCode()
-      //                  + ".html");
-      //        }
-      //      }
+      // populateOperation(
+      // theFhirContext, theOpenApi, theResourceType, operationDefinition, operation,
+      // false);
+      // operation.setSummary(operationDefinition.getCode());
+      // operation.setSummary(
+      // unCamelCase(theResourceType)
+      // + " operation to perform "
+      // + operationDefinition.getCode()
+      // + ". For more information on this operation, see the R4 spec at"
+      // + " https://hl7.org/fhir/R4/"
+      // + theResourceType
+      // + "-operation-"
+      // + operationDefinition.getCode()
+      // + ".html");
+      // }
+      // if (operationDefinition.getInstance()) {
+      // final Operation operation =
+      // getPathItem(
+      // thePaths,
+      // "/" + theResourceType + "/{id}/$" + operationDefinition.getCode(),
+      // PathItem.HttpMethod.POST);
+      // addResourceIdParameter(operation);
+      // populateOperation(
+      // theFhirContext, theOpenApi, theResourceType, operationDefinition, operation,
+      // false);
+      // operation.setSummary(operationDefinition.getCode());
+      // operation.setSummary(
+      // unCamelCase(theResourceType)
+      // + " operation to perform "
+      // + operationDefinition.getCode()
+      // + ". For more information on this operation, see the R4 spec at"
+      // + " https://hl7.org/fhir/R4/"
+      // + theResourceType
+      // + "-operation-"
+      // + operationDefinition.getCode()
+      // + ".html");
+      // }
+      // } else {
+      // if (operationDefinition.getSystem()) {
+      // final Operation operation =
+      // getPathItem(thePaths, "/$" + operationDefinition.getCode(),
+      // PathItem.HttpMethod.POST);
+      // populateOperation(
+      // theFhirContext, theOpenApi, null, operationDefinition, operation, false);
+      // operation.setSummary(operationDefinition.getCode());
+      // operation.setSummary(
+      // unCamelCase(theResourceType)
+      // + " operation to perform "
+      // + operationDefinition.getCode()
+      // + ". For more information on this operation, see the R4 spec at"
+      // + " https://hl7.org/fhir/R4/"
+      // + theResourceType
+      // + "-operation-"
+      // + operationDefinition.getCode()
+      // + ".html");
+      // }
+      // }
     }
   }
 
@@ -1608,7 +1608,7 @@ public class OpenApiInterceptorR4 {
     }
   }
 
-  /** The Class TemplateLinkBuilder. */
+  /** Template link builder. */
   private static class TemplateLinkBuilder extends AbstractLinkBuilder {
 
     /* see superclass */
@@ -1622,12 +1622,12 @@ public class OpenApiInterceptorR4 {
           (ServletRequestDetails) theExpressionContext.getVariable(REQUEST_DETAILS);
 
       final String baseUrl = requestDetails.getServletRequest().getParameter("baseUrl");
-      //    final IServerAddressStrategy addressStrategy =
-      //        theRequestDetails.getServer().getServerAddressStrategy();
-      //    final String baseUrl =
-      //        addressStrategy.determineServerBase(
-      //            theRequestDetails.getServletRequest().getServletContext(),
-      //            theRequestDetails.getServletRequest());
+      // final IServerAddressStrategy addressStrategy =
+      // theRequestDetails.getServer().getServerAddressStrategy();
+      // final String baseUrl =
+      // addressStrategy.determineServerBase(
+      // theRequestDetails.getServletRequest().getServletContext(),
+      // theRequestDetails.getServletRequest());
 
       final StringBuilder builder = new StringBuilder();
       builder.append(baseUrl);
