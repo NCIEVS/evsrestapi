@@ -26,11 +26,7 @@ import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.GraphProperties;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.EVSUtils;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.RESTUtils;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
+import gov.nih.nci.evs.api.util.*;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.text.ParseException;
@@ -199,7 +195,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // Extract a version if a owl:versionIRI was used
       term.setVersion(b.getVersion().getValue().replaceFirst(".*/([\\d-]+)/[a-zA-Z]+.owl", "$1"));
       // term.setName(TerminologyUtils.constructName(comment, version));
-      term.setDate((b.getDate() == null) ? term.getVersion() : b.getDate().getValue());
+      System.out.println(
+          "setting date in Sparql from "
+              + ((b.getDate() == null) ? term.getVersion() : b.getDate().getValue()));
+      System.out.println(
+          "setting date in Sparql to "
+              + FhirUtility.convertToYYYYMMDD(
+                  (b.getDate() == null) ? term.getVersion() : b.getDate().getValue()));
+      term.setDate(
+          FhirUtility.convertToYYYYMMDD(
+              (b.getDate() == null) ? term.getVersion() : b.getDate().getValue()));
       term.setGraph(graphName);
       term.setSource(b.getSource().getValue());
       term.setTerminology(getTerm(term.getSource()));

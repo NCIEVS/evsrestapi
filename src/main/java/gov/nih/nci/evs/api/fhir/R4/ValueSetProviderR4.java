@@ -2,6 +2,7 @@ package gov.nih.nci.evs.api.fhir.R4;
 
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
+import ca.uhn.fhir.rest.annotation.*;
 import ca.uhn.fhir.rest.annotation.History;
 import ca.uhn.fhir.rest.annotation.IdParam;
 import ca.uhn.fhir.rest.annotation.Operation;
@@ -9,6 +10,7 @@ import ca.uhn.fhir.rest.annotation.OperationParam;
 import ca.uhn.fhir.rest.annotation.OptionalParam;
 import ca.uhn.fhir.rest.annotation.Read;
 import ca.uhn.fhir.rest.annotation.Search;
+import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
@@ -836,6 +838,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
   public Bundle findValueSets(
       final HttpServletRequest request,
       @OptionalParam(name = "_id") final TokenParam id,
+      @OptionalParam(name = "date") final DateRangeParam date,
       @OptionalParam(name = "code") final StringParam code,
       @OptionalParam(name = "name") final StringParam name,
       @OptionalParam(name = "title") final StringParam title,
@@ -857,6 +860,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
         // Skip non-matching
         if (id != null && !id.getValue().equals(vs.getId())) {
           logger.debug("  SKIP id mismatch = " + vs.getId());
+          continue;
+        }
+        if (date != null && !FhirUtility.compareDateRange(date, vs.getDate())) {
+          logger.debug("  SKIP date mismatch = " + vs.getDate());
           continue;
         }
         if (url != null && !url.getValue().equals(vs.getUrl())) {
@@ -887,6 +894,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
       // Skip non-matching
       if (id != null && !id.getValue().equals(vs.getId())) {
         logger.debug("  SKIP id mismatch = " + vs.getUrl());
+        continue;
+      }
+      if (date != null && !FhirUtility.compareDateRange(date, vs.getDate())) {
+        logger.debug("  SKIP date mismatch = " + vs.getDate());
         continue;
       }
       if (url != null && !url.getValue().equals(vs.getUrl())) {

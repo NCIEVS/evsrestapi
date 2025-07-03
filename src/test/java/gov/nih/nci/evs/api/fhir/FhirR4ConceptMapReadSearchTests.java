@@ -24,6 +24,7 @@ import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ResourceType;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -740,7 +741,7 @@ public class FhirR4ConceptMapReadSearchTests {
         break;
       }
     }
-    assertTrue(foundCurrentVersion, "History should contain the current version");
+    Assertions.assertTrue(foundCurrentVersion, "History should contain the current version");
   }
 
   @Test
