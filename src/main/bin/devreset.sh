@@ -104,8 +104,8 @@ fi
 
 # Check HGNC monthly
 echo "    check HGNC monthly"
-if [[ ! -e "$dir/HGNC/HGNC_202209.owl" ]]; then
-    echo "ERROR: unexpectedly missing HGNC/HGNC_202209.owl file"
+if [[ ! -e "$dir/HGNC/HGNC.202507.owl" ]]; then
+    echo "ERROR: unexpectedly missing HGNC/HGNC.202507.owl file"
     exit 1
 fi
 
