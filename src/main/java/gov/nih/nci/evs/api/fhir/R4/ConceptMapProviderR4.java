@@ -4,7 +4,13 @@ import static gov.nih.nci.evs.api.service.OpenSearchServiceImpl.escape;
 
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
-import ca.uhn.fhir.rest.annotation.*;
+import ca.uhn.fhir.rest.annotation.History;
+import ca.uhn.fhir.rest.annotation.IdParam;
+import ca.uhn.fhir.rest.annotation.Operation;
+import ca.uhn.fhir.rest.annotation.OperationParam;
+import ca.uhn.fhir.rest.annotation.OptionalParam;
+import ca.uhn.fhir.rest.annotation.Read;
+import ca.uhn.fhir.rest.annotation.Search;
 import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
@@ -28,8 +34,18 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import org.hl7.fhir.r4.model.*;
+import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.CodeType;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.ConceptMap;
+import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.Meta;
+import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.UriType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -193,6 +209,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   /**
    * Perform the lookup in the implicit map.
    *
+   * <p>see https://hl7.org/fhir/R4/conceptmap-operation-translate.html
+   *
    * @param request the request
    * @param response the response
    * @param details the details
@@ -331,6 +349,11 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     }
   }
 
+  /**
+   * Gets the resource type.
+   *
+   * @return the resource type
+   */
   /* see superclass */
   @Override
   public Class<ConceptMap> getResourceType() {
@@ -339,6 +362,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
 
   /**
    * Find concept maps.
+   *
+   * <p>see https://hl7.org/fhir/R4/conceptmap.html (find "search parameters")
    *
    * @param request the request
    * @param id the id
@@ -424,6 +449,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @param version the version
    * @param source the source
    * @param target the target
+   * @param targetSystem the target system
    * @return the list
    * @throws Exception the exception
    */
@@ -507,6 +533,8 @@ public class ConceptMapProviderR4 implements IResourceProvider {
   /**
    * Returns the concept map.
    *
+   * <p>see https://hl7.org/fhir/R4/conceptmap.html
+   *
    * @param id the id
    * @return the concept map
    * @throws Exception the exception
@@ -527,9 +555,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       }
 
       throw FhirUtilityR4.exception(
-          "Concept map not found = " + (id == null ? "null" : id.getIdPart()),
-          IssueType.NOTFOUND,
-          404);
+          "Concept map not found = " + id.getIdPart(), IssueType.NOTFOUND, 404);
 
     } catch (final FHIRServerResponseException e) {
       throw e;
@@ -545,8 +571,10 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    *
    * @param code the code being translated
    * @param mapsetCodes target value set to be used for translations. Extracted from system uri
+   * @param reverse the reverse
    * @param operator the operator to use for the query
-   * @return
+   * @return the string
+   * @throws Exception the exception
    */
   private String buildFhirQueryString(
       CodeType code, List<String> mapsetCodes, BooleanType reverse, String operator)
@@ -574,6 +602,12 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     }
   }
 
+  /**
+   * Gets the concept map history.
+   *
+   * @param id the id
+   * @return the concept map history
+   */
   @History(type = ConceptMap.class)
   public List<ConceptMap> getConceptMapHistory(@IdParam IdType id) {
     List<ConceptMap> history = new ArrayList<>();
@@ -615,6 +649,12 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     return history;
   }
 
+  /**
+   * Vread.
+   *
+   * @param versionedId the versioned id
+   * @return the concept map
+   */
   @Read(version = true)
   public ConceptMap vread(@IdParam IdType versionedId) {
     String resourceId = versionedId.getIdPart();

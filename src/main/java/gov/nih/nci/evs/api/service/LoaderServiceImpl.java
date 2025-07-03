@@ -5,6 +5,7 @@ import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
@@ -51,11 +52,21 @@ public class LoaderServiceImpl {
   /** The Opensearch operations service instance *. */
   @Autowired private OpensearchOperationsService operationsService;
 
+  /** The opensearch service. */
+  @Autowired OpensearchQueryService osQueryService;
+
+  /* The terminology utils */
+  @Autowired TerminologyUtils termUtils;
+
   private static OpensearchOperationsService staticOperationsService;
+  private static OpensearchQueryService staticOsQueryService;
+  private static TerminologyUtils staticTermUtils;
 
   @PostConstruct
   public void init() {
     staticOperationsService = this.operationsService;
+    staticOsQueryService = this.osQueryService;
+    staticTermUtils = this.termUtils;
   }
 
   /**
@@ -157,7 +168,6 @@ public class LoaderServiceImpl {
 
     ConfigurableApplicationContext app = null;
     try {
-
       app = SpringApplication.run(Application.class, args);
       OpensearchLoadService loadService = null;
 
@@ -197,6 +207,28 @@ public class LoaderServiceImpl {
       termAudit.setProcess(loadService.getClass().getSimpleName());
 
       loadService.initialize();
+      if (cmd.hasOption("xl") && cmd.getOptionValue("t").equals("reconcile")) {
+        // The logging info in its current state does not log in the console, but instead into a
+        // temp file (/tmp/x.$$.log) that the reconciliation output is redirected to.
+        // This can be changed to show the logs in the console by removing that redirect.
+        // Check reindex.sh for more information.
+        logger.info(
+            "Cleaning stale terminologies and updating latest flags for all found terminologies.");
+        List<Terminology> terms = staticTermUtils.getIndexedTerminologies(staticOsQueryService);
+        if (terms.isEmpty()) {
+          logger.warn("No indexed terminologies found, nothing to do.");
+          return;
+        }
+        for (Terminology terminology : terms) {
+          logger.info(
+              "Cleaning stale indexes/Updating flags for terminology: {}-{}",
+              terminology.getTerminology(),
+              terminology.getVersion());
+          final Set<String> removed = loadService.cleanStaleIndexes(terminology);
+          loadService.updateLatestFlag(terminology, removed);
+        }
+        System.exit(0);
+      }
       final OpensearchLoadConfig config = buildConfig(cmd, HISTORY_DIR);
       final Terminology term =
           loadService.getTerminology(
@@ -223,12 +255,14 @@ public class LoaderServiceImpl {
           loadService.loadIndexMetadata(totalConcepts, term);
         }
         // reload history if the new version if ready and there's a valid history map
-        //        String newHistoryVersion =
-        //            config.getLocation().split("cumulative_history_")[1].split("\\.txt")[0];
-        //        loadService.updateHistory(term, historyMap, newHistoryVersion);
+        String newHistoryVersion =
+            config.getLocation() != null
+                    && config.getLocation().contains("cumulative_history_")
+                    && config.getLocation().contains(".txt")
+                ? config.getLocation().split("cumulative_history_")[1].split("\\.txt")[0]
+                : null;
+        loadService.updateHistory(term, historyMap, newHistoryVersion);
       }
-      final Set<String> removed = loadService.cleanStaleIndexes(term);
-      loadService.updateLatestFlag(term, removed);
       termAudit.setCount(totalConcepts);
       Date endDate = new Date();
       termAudit.setEndDate(endDate);

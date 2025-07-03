@@ -546,10 +546,10 @@ public class EVSUtils {
     } catch (final Throwable t) {
       try {
         // Try to open URI as a file
-        final File file = new File(uri);
+        final File file = new File(uri.replaceFirst("file://", ""));
         return FileUtils.readLines(file, "UTF-8");
       } catch (Exception e2) {
-        throw new Exception("Unable to get data from = " + uri);
+        throw new Exception("Unable to get data from = " + uri, e2);
       }
     }
   }

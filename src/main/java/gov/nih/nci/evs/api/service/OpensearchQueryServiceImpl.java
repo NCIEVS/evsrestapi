@@ -113,18 +113,17 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
   @Override
   public List<Concept> getConcepts(
       Collection<String> codes, Terminology terminology, IncludeParam ip) {
-    if (codes == null || codes.size() == 0) {
+    if (codes == null || codes.isEmpty()) {
       return new ArrayList<>();
     }
     NativeSearchQuery query =
         new NativeSearchQueryBuilder()
-            .withFilter(QueryBuilders.termsQuery("_id", codes))
+            .withFilter(QueryBuilders.idsQuery().addIds(codes.toArray(new String[0])))
             .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), ip.getExcludedFields()))
             .withPageable(new EVSPageable(0, codes.size(), 0))
             .build();
 
-    List<Concept> concepts = getResults(query, Concept.class, terminology.getIndexName());
-    return concepts;
+    return getResults(query, Concept.class, terminology.getIndexName());
   }
 
   /**

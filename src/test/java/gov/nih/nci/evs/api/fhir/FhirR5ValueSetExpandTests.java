@@ -97,7 +97,7 @@ public class FhirR5ValueSetExpandTests {
     String activeCode = "T001";
     String displayString = "Organism";
 
-    // Act
+    // Act - Test 1 with valid url
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     ValueSet valueSet = parser.parseResource(ValueSet.class, content);
 
@@ -110,6 +110,38 @@ public class FhirR5ValueSetExpandTests {
             .collect(Collectors.toList())
             .get(0)
             .getDisplay());
+
+    // Act - Test 2 no url
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertTrue(valueSet.hasExpansion());
+    assertEquals(
+        displayString,
+        valueSet.getExpansion().getContains().stream()
+            .filter(comp -> comp.getCode().equals(activeCode))
+            .collect(Collectors.toList())
+            .get(0)
+            .getDisplay());
+
+    url = "invalid_url";
+    parameters = "?url=" + url;
+    String messageNotFound =
+        "Supplied url invalid_url doesn't match the ValueSet retrieved by the id"
+            + " ValueSet/umlssemnet_2023aa"
+            + " http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String errorCode = "exception";
+
+    // Act - Test 3 with invalid url
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
   /**
@@ -540,34 +572,6 @@ public class FhirR5ValueSetExpandTests {
     String messageNotFound = "Value set " + url + " not found";
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
     String parameters = "?url=" + url;
-    String errorCode = "exception";
-
-    // Act
-    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-
-    // Assert
-    assertEquals(errorCode, component.getCode().toCode());
-    assertEquals(messageNotFound, (component.getDiagnostics()));
-  }
-
-  /**
-   * Test value set not found.
-   *
-   * @throws Exception exception
-   */
-  @Test
-  public void testValueSetNotFoundExpandInstance() throws Exception {
-    // Arrange
-    String content;
-    String activeID = "umlssemnet_2023aa";
-    String url = "http://www.nlm.nih.gov/research/umls/vsNotFound?fhir_vs";
-    String endpoint =
-        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
-    String parameters = "?url=" + url;
-
-    String messageNotFound = "Value set " + url + " not found";
     String errorCode = "exception";
 
     // Act

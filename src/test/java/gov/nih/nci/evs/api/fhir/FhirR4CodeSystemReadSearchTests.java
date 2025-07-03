@@ -878,7 +878,8 @@ public class FhirR4CodeSystemReadSearchTests {
         break;
       }
     }
-    Assertions.assertTrue(foundCurrentVersion, "History should contain the current version");
+
+    assertTrue(foundCurrentVersion, "History should contain the current version");
   }
 
   @Test

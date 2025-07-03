@@ -1,27 +1,27 @@
-http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Preferred_Name	Mercaptopurine 50.0 mg/1
-http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Status	In Use
-http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Effective_Date	07/01/2005 00:00:00
-http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Description	250 TABLET in 1 BOTTLE, PLASTIC (0378-3547-25)
-http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Brand_Name	Mercaptopurine
-http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	NDC_Package_Code	00378-3547-25
-http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Administration_Route	Oral
-http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Strength	50.0 mg/1
-http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	Generic_Name	Mercaptopurine
-http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	NDC_Product_Code	00378-3547
-http://seer.nci.nih.gov/CanMED.owl#NDC_55289-0603-07	NDC_55289-0603-07	Discontinue_Date	11/23/2021 00:00:00
-http://seer.nci.nih.gov/CanMED.owl#NDC_55289-0603-07	NDC_55289-0603-07	owl:deprecated	true
-http://seer.nci.nih.gov/CanMED.owl#J9034	J9034	CMS_Effective_Date	01/01/2017 00:00:00
-http://seer.nci.nih.gov/CanMED.owl#J9034	J9034	Oral	No
-http://seer.nci.nih.gov/CanMED.owl#J9034	J9034	FDA_Approval_Year	2008
-http://seer.nci.nih.gov/CanMED.owl#J9034	J9034	HCPCS_Code	J9034
-http://seer.nci.nih.gov/CanMED.owl#C9235	C9235	CMS_Discontinuation_Date	12/31/2007 00:00:00
-http://seer.nci.nih.gov/CanMED.owl#S0087	S0087	FDA_Discontinuation_Year	2012
-http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	parent-style1	NDC_00378-3547
-http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547	child-style1	NDC_00378-3547-25
-http://seer.nci.nih.gov/CanMED.owl#NDC_PREDNISONE	NDC_PREDNISONE	max-children	487
-http://seer.nci.nih.gov/CanMED.owl#NDC_00378-3547-25	NDC_00378-3547-25	parent-count1
-http://seer.nci.nih.gov/CanMED.owl#HCPCS_BCMA	HCPCS_BCMA	parent-count2
-http://seer.nci.nih.gov/CanMED.owl#NDC_DRONABINOL	NDC_DRONABINOL	parent-count3
-http://seer.nci.nih.gov/CanMED.owl#HCPCS_GRANULOCYTE_COLONY_STIMULATING_FACTOR	HCPCS_GRANULOCYTE_COLONY_STIMULATING_FACTOR	parent-count4
+http://seer.nci.nih.gov/CanMED.owl#NDC_63629-5073-01	NDC_63629-5073-01	Preferred_Name	Ondansetron 4.0 mg/1
+http://seer.nci.nih.gov/CanMED.owl#NDC_63629-5073-01	NDC_63629-5073-01	Strength	4.0 mg/1
+http://seer.nci.nih.gov/CanMED.owl#NDC_63629-5073-01	NDC_63629-5073-01	Status	In Use
+http://seer.nci.nih.gov/CanMED.owl#NDC_63629-5073-01	NDC_63629-5073-01	Effective_Date	06/25/2007
+http://seer.nci.nih.gov/CanMED.owl#NDC_63629-5073-01	NDC_63629-5073-01	NDC_Package_Code	63629-5073-01
+http://seer.nci.nih.gov/CanMED.owl#NDC_63629-5073-01	NDC_63629-5073-01	Brand_Name	Ondansetron
+http://seer.nci.nih.gov/CanMED.owl#NDC_63629-5073-01	NDC_63629-5073-01	Generic_Name	Ondansetron
+http://seer.nci.nih.gov/CanMED.owl#NDC_63629-5073-01	NDC_63629-5073-01	NDC_Product_Code	63629-5073
+http://seer.nci.nih.gov/CanMED.owl#NDC_63629-5073-01	NDC_63629-5073-01	Administration_Route	Oral
+http://seer.nci.nih.gov/CanMED.owl#NDC_70771-1185-04	NDC_70771-1185-04	Discontinue_Date	12/05/2019
+http://seer.nci.nih.gov/CanMED.owl#C9440	C9440	owl:deprecated	true
+http://seer.nci.nih.gov/CanMED.owl#C9440	C9440	FDA_Approval_Year	1994
+http://seer.nci.nih.gov/CanMED.owl#C9440	C9440	CMS_Effective_Date	01/01/2005
+http://seer.nci.nih.gov/CanMED.owl#C9440	C9440	Oral	No
+http://seer.nci.nih.gov/CanMED.owl#C9440	C9440	CMS_Discontinuation_Date	12/31/2005
+http://seer.nci.nih.gov/CanMED.owl#C9440	C9440	HCPCS_Code	C9440
+http://seer.nci.nih.gov/CanMED.owl#J1326	J1326	FDA_Discontinuation_Year	2024
+http://seer.nci.nih.gov/CanMED.owl#NDC_63629-5073-01	NDC_63629-5073-01	parent-style1	NDC_63629-5073
+http://seer.nci.nih.gov/CanMED.owl#NDC_63629-5073-01	NDC_63629-5073	child-style1	NDC_63629-5073-01
+http://seer.nci.nih.gov/CanMED.owl#NDC_PREDNISONE	NDC_PREDNISONE	max-children	624
+http://seer.nci.nih.gov/CanMED.owl#NDC_63629-5073-01	NDC_63629-5073-01	parent-count1
+http://seer.nci.nih.gov/CanMED.owl#HCPCS_AVELUMAB	HCPCS_AVELUMAB	parent-count2
+http://seer.nci.nih.gov/CanMED.owl#NDC_CD19	NDC_CD19	parent-count3
+http://seer.nci.nih.gov/CanMED.owl#HCPCS_BRAF	HCPCS_BRAF	parent-count4
 http://seer.nci.nih.gov/CanMED.owl#HCPCS	HCPCS	root
 http://seer.nci.nih.gov/CanMED.owl#NDC	NDC	root
+http://seer.nci.nih.gov/CanMED.owl#NDC_FINASTERIDE_AND_TADALAFIL	NDC_FINASTERIDE_AND_TADALAFIL	root
