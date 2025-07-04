@@ -81,7 +81,7 @@ public class MedrtSampleTest extends SampleTest {
         terminologies.stream().filter(t -> t.getTerminology().equals("medrt")).findFirst().get();
     assertThat(terminology.getTerminology()).isEqualTo("medrt");
     assertThat(terminology.getMetadata().getUiLabel()).isEqualTo("MED-RT");
-    assertThat(terminology.getName()).isEqualTo("MED-RT 2023.07.03");
+    assertThat(terminology.getName()).isEqualTo("MED-RT 2025.06.02");
     assertThat(terminology.getDescription()).isNotEmpty();
 
     assertThat(terminology.getMetadata().getLoader()).isEqualTo("rdf");

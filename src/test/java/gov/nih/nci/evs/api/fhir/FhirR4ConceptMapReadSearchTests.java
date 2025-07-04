@@ -24,6 +24,7 @@ import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r4.model.Resource;
 import org.hl7.fhir.r4.model.ResourceType;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -563,5 +564,218 @@ public class FhirR4ConceptMapReadSearchTests {
     } else {
       assertTrue(bundle.getEntry() == null || bundle.getEntry().isEmpty());
     }
+  }
+
+  @Test
+  public void testConceptMapHistory() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirCMPath;
+
+    // Act - First get list of ConceptMaps to find a valid ID
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> conceptMaps =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    String firstConceptMapId = conceptMaps.get(0).getIdPart();
+
+    // Act - Get history for the first ConceptMap
+    String historyEndpoint = endpoint + "/" + firstConceptMapId + "/_history";
+    content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    Bundle historyBundle = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(historyBundle);
+    assertEquals(ResourceType.Bundle, historyBundle.getResourceType());
+    assertEquals(Bundle.BundleType.HISTORY, historyBundle.getType());
+    assertFalse(historyBundle.getEntry().isEmpty());
+
+    // Verify each entry in history is a ConceptMap with the same ID
+    for (Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
+      assertNotNull(entry.getResource());
+      assertEquals(ResourceType.ConceptMap, entry.getResource().getResourceType());
+
+      ConceptMap historyConceptMap = (ConceptMap) entry.getResource();
+      assertEquals(firstConceptMapId, historyConceptMap.getIdPart());
+
+      // Verify metadata is properly set
+      assertNotNull(historyConceptMap.getMeta());
+      assertNotNull(historyConceptMap.getMeta().getVersionId());
+      assertNotNull(historyConceptMap.getMeta().getLastUpdated());
+    }
+  }
+
+  @Test
+  public void testConceptMapHistoryNotFound() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCMPath;
+    String invalidId = "nonexistent-conceptMap-id";
+    String historyEndpoint = endpoint + "/" + invalidId + "/_history";
+
+    String messageNotFound = "Concept map not found = " + invalidId;
+    String errorCode = "not-found";
+
+    // Act
+    String content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
+  }
+
+  @Test
+  public void testConceptMapVread() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirCMPath;
+
+    // Act - First get list of ConceptMaps to find a valid ID
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> conceptMaps =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    String firstConceptMapId = conceptMaps.get(0).getIdPart();
+
+    // Act - Get specific version (assuming version 1 exists)
+    String versionEndpoint = endpoint + "/" + firstConceptMapId + "/_history/1";
+    content = this.restTemplate.getForObject(versionEndpoint, String.class);
+    ConceptMap versionedConceptMap = parser.parseResource(ConceptMap.class, content);
+
+    // Assert
+    assertNotNull(versionedConceptMap);
+    assertEquals(ResourceType.ConceptMap, versionedConceptMap.getResourceType());
+    assertEquals(firstConceptMapId, versionedConceptMap.getIdPart());
+
+    // Verify metadata
+    assertNotNull(versionedConceptMap.getMeta());
+    assertNotNull(versionedConceptMap.getMeta().getVersionId());
+    assertNotNull(versionedConceptMap.getMeta().getLastUpdated());
+
+    // Compare with original ConceptMap
+    ConceptMap originalConceptMap = (ConceptMap) conceptMaps.get(0);
+    assertEquals(originalConceptMap.getUrl(), versionedConceptMap.getUrl());
+    assertEquals(originalConceptMap.getName(), versionedConceptMap.getName());
+    assertEquals(originalConceptMap.getPublisher(), versionedConceptMap.getPublisher());
+  }
+
+  @Test
+  public void testConceptMapVreadNotFound() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCMPath;
+    String invalidId = "nonexistent-conceptMap-id";
+    String versionEndpoint = endpoint + "/" + invalidId + "/_history/1";
+
+    // Act & Assert
+    String messageNotFound = "Concept map version not found: nonexistent-conceptMap-id version 1";
+    String errorCode = "not-found";
+
+    // Act
+    String content = this.restTemplate.getForObject(versionEndpoint, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
+  }
+
+  @Test
+  public void testConceptMapVreadInvalidVersion() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirCMPath;
+
+    // Act - First get list of ConceptMaps to find a valid ID
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> conceptMaps =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    String firstConceptMapId = conceptMaps.get(0).getIdPart();
+
+    // Act & Assert - Try to get a version that doesn't exist
+    String invalidVersionEndpoint = endpoint + "/" + firstConceptMapId + "/_history/999";
+    String messageNotFound = "Concept map version not found: " + firstConceptMapId + " version 999";
+    String errorCode = "not-found";
+
+    // Act
+    content = this.restTemplate.getForObject(invalidVersionEndpoint, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
+  }
+
+  @Test
+  public void testConceptMapHistoryMetadataConsistency() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirCMPath;
+
+    // Act - Get a ConceptMap and its history
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> conceptMaps =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    String firstConceptMapId = conceptMaps.get(0).getIdPart();
+
+    // Get history
+    String historyEndpoint = endpoint + "/" + firstConceptMapId + "/_history";
+    content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    Bundle historyBundle = parser.parseResource(Bundle.class, content);
+
+    // Get current version
+    content = this.restTemplate.getForObject(endpoint + "/" + firstConceptMapId, String.class);
+    ConceptMap currentConceptMap = parser.parseResource(ConceptMap.class, content);
+
+    // Assert - Verify history contains current version
+    boolean foundCurrentVersion = false;
+    for (Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
+      ConceptMap historyVersion = (ConceptMap) entry.getResource();
+      if (currentConceptMap.getUrl().equals(historyVersion.getUrl())
+          && currentConceptMap.getName().equals(historyVersion.getName())) {
+        foundCurrentVersion = true;
+        break;
+      }
+    }
+    Assertions.assertTrue(foundCurrentVersion, "History should contain the current version");
+  }
+
+  @Test
+  public void testConceptMapVreadMatchesHistoryEntry() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirCMPath;
+
+    // Act - Get history first
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> conceptMaps =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    String firstConceptMapId = conceptMaps.get(0).getIdPart();
+
+    String historyEndpoint = endpoint + "/" + firstConceptMapId + "/_history";
+    content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    Bundle historyBundle = parser.parseResource(Bundle.class, content);
+
+    // Get first version from history
+    ConceptMap firstHistoryVersion = (ConceptMap) historyBundle.getEntry().get(0).getResource();
+    String versionId = firstHistoryVersion.getMeta().getVersionId();
+
+    // Act - Get the same version using vread
+    String vreadEndpoint = endpoint + "/" + firstConceptMapId + "/_history/" + versionId;
+    content = this.restTemplate.getForObject(vreadEndpoint, String.class);
+    ConceptMap vreadConceptMap = parser.parseResource(ConceptMap.class, content);
+
+    // Assert - Both should be identical
+    // assertEquals(firstHistoryVersion.getId(), vreadConceptMap.getId());
+    assertEquals(firstHistoryVersion.getUrl(), vreadConceptMap.getUrl());
+    assertEquals(firstHistoryVersion.getName(), vreadConceptMap.getName());
+    assertEquals(firstHistoryVersion.getVersion(), vreadConceptMap.getVersion());
+    assertEquals(
+        firstHistoryVersion.getMeta().getVersionId(), vreadConceptMap.getMeta().getVersionId());
   }
 }

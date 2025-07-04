@@ -2,12 +2,15 @@ package gov.nih.nci.evs.api.fhir.R5;
 
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
+import ca.uhn.fhir.rest.annotation.*;
+import ca.uhn.fhir.rest.annotation.History;
 import ca.uhn.fhir.rest.annotation.IdParam;
 import ca.uhn.fhir.rest.annotation.Operation;
 import ca.uhn.fhir.rest.annotation.OperationParam;
 import ca.uhn.fhir.rest.annotation.OptionalParam;
 import ca.uhn.fhir.rest.annotation.Read;
 import ca.uhn.fhir.rest.annotation.Search;
+import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
@@ -15,6 +18,7 @@ import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.SearchCriteria;
@@ -41,6 +45,8 @@ import org.hl7.fhir.r5.model.CodeType;
 import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.IdType;
 import org.hl7.fhir.r5.model.IntegerType;
+import org.hl7.fhir.r5.model.Meta;
+import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r5.model.Parameters;
 import org.hl7.fhir.r5.model.StringType;
@@ -53,6 +59,7 @@ import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionParameterComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 /** FHIR R5 ValueSet provider. */
@@ -86,8 +93,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
   /**
    * Find value sets.
-   * 
-   * See https://hl7.org/fhir/R5/valueset.html (find "search parameters")
+   *
+   * <p>See https://hl7.org/fhir/R5/valueset.html (find "search parameters")
    *
    * @param request the request
    * @param id the id
@@ -105,6 +112,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
   public Bundle findValueSets(
       final HttpServletRequest request,
       @OptionalParam(name = "_id") final TokenParam id,
+      @OptionalParam(name = "date") final DateRangeParam date,
       @OptionalParam(name = "code") final StringParam code,
       @OptionalParam(name = "name") final StringParam name,
       @OptionalParam(name = "title") final StringParam title,
@@ -128,6 +136,10 @@ public class ValueSetProviderR5 implements IResourceProvider {
           logger.debug("  SKIP id mismatch = " + vs.getId());
           continue;
         }
+        if (date != null && !FhirUtility.compareDateRange(date, vs.getDate())) {
+          logger.debug("  SKIP date mismatch = " + vs.getDate());
+          continue;
+        }
         if (url != null && !url.getValue().equals(vs.getUrl())) {
           logger.debug("  SKIP url mismatch = " + vs.getUrl());
           continue;
@@ -147,25 +159,19 @@ public class ValueSetProviderR5 implements IResourceProvider {
         list.add(vs);
       }
     }
-
-    final List<Concept> subsets =
-        metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.empty());
-    final Set<String> codes =
-        subsets.stream()
-            .flatMap(Concept::streamSelfAndChildren)
-            .map(c -> c.getCode())
-            .collect(Collectors.toSet());
-    final List<Concept> subsetsAsConcepts =
-        osQueryService.getConcepts(
-            codes,
-            termUtils.getIndexedTerminology("ncit", osQueryService, true),
-            new IncludeParam("minimal"));
+    final List<Concept> subsets = getNcitSubsets();
+    final Set<Concept> subsetsAsConcepts =
+        subsets.stream().flatMap(Concept::streamSelfAndChildren).collect(Collectors.toSet());
 
     for (final Concept subset : subsetsAsConcepts) {
       final ValueSet vs = FhirUtilityR5.toR5VS(subset);
       // Skip non-matching
       if (id != null && !id.getValue().equals(vs.getId())) {
         logger.debug("  SKIP id mismatch = " + vs.getUrl());
+        continue;
+      }
+      if (date != null && !FhirUtility.compareDateRange(date, vs.getDate())) {
+        logger.debug("  SKIP date mismatch = " + vs.getDate());
         continue;
       }
       if (url != null && !url.getValue().equals(vs.getUrl())) {
@@ -190,10 +196,15 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return FhirUtilityR5.makeBundle(request, list, count, offset);
   }
 
+  @Cacheable("ncitsubsets")
+  public List<Concept> getNcitSubsets() throws Exception {
+    return metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.empty());
+  }
+
   /**
    * Expand implicit.
    *
-   * See https://hl7.org/fhir/R5/valueset-operation-expand.html
+   * <p>See https://hl7.org/fhir/R5/valueset-operation-expand.html
    *
    * @param request the request
    * @param details the details
@@ -215,27 +226,27 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final HttpServletRequest request,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-      //      @OperationParam(name = "valueSet") final ValueSet valueSet,
+      // @OperationParam(name = "valueSet") final ValueSet valueSet,
       @OperationParam(name = "valueSetVersion") final StringType version,
-      //      @OperationParam(name = "context") final UriType context,
-      //      @OperationParam(name = "contextDirection") final CodeType contextDirection,
+      // @OperationParam(name = "context") final UriType context,
+      // @OperationParam(name = "contextDirection") final CodeType contextDirection,
       @OperationParam(name = "filter") final StringType filter,
-      //      @OperationParam(name = "date") final DateTimeType date,
+      // @OperationParam(name = "date") final DateTimeType date,
       @OperationParam(name = "offset") final IntegerType offset,
       @OperationParam(name = "count") final IntegerType count,
       @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
-      //      @OperationParam(name = "designation") final StringType designation,
+      // @OperationParam(name = "designation") final StringType designation,
       @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
       @OperationParam(name = "activeOnly") final BooleanType activeOnly,
-      //      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
-      //      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
-      //      @OperationParam(name = "excludePostCoordinated") final BooleanType
+      // @OperationParam(name = "excludeNested") final BooleanType excludeNested,
+      // @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
+      // @OperationParam(name = "excludePostCoordinated") final BooleanType
       // excludePostCoordinated,
-      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      //      @OperationParam(name = "exclude-system") final StringType exclude_system,
-      //      @OperationParam(name = "system-version") final StringType system_version,
-      //      @OperationParam(name = "check-system-version") final StringType check_system_version,
-      //      @OperationParam(name = "force-system-version") final StringType force_system_version,
+      // @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      // @OperationParam(name = "exclude-system") final StringType exclude_system,
+      // @OperationParam(name = "system-version") final StringType system_version,
+      // @OperationParam(name = "check-system-version") final StringType check_system_version,
+      // @OperationParam(name = "force-system-version") final StringType force_system_version,
       @OperationParam(name = "property") final List<StringType> properties)
       throws Exception {
     // check if request is a post, throw exception as we don't support post
@@ -305,6 +316,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
+      final ValueSet.ValueSetExpansionComponent vsExpansion =
+          new ValueSet.ValueSetExpansionComponent();
       if (url.getValue().contains("?fhir_vs=")) {
         final List<Association> invAssoc =
             osQueryService
@@ -326,6 +339,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
             subsetMembers.add(member);
           }
         }
+        vsExpansion.setTotal(subsetMembers.size());
       } else {
         final List<Terminology> terminologies = new ArrayList<>();
         terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true));
@@ -340,13 +354,14 @@ public class ValueSetProviderR5 implements IResourceProvider {
         if (includeList.size() > 1) {
           sc.setInclude(String.join(",", includeList));
         }
-        subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();
+        ConceptResultList subsetMembersList = searchService.findConcepts(terminologies, sc);
+        subsetMembers = subsetMembersList.getConcepts();
+        vsExpansion.setTotal(Math.toIntExact(subsetMembersList.getTotal()));
       }
-      final ValueSet.ValueSetExpansionComponent vsExpansion =
-          new ValueSet.ValueSetExpansionComponent();
+
+      ValueSetExpansionParameterComponent vsParameter;
       vsExpansion.setTimestamp(new Date());
       vsExpansion.setOffset(offset != null ? offset.getValue() : 0);
-      vsExpansion.setTotal(subsetMembers.size());
       if (!subsetMembers.isEmpty()) {
         for (final Concept member : subsetMembers) {
           if (activeOnly != null && activeOnly.getValue() && !member.getActive()) {
@@ -386,6 +401,51 @@ public class ValueSetProviderR5 implements IResourceProvider {
           }
           vsExpansion.addContains(vsContains);
         }
+
+        if (filter != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("filter");
+          vsParameter.setValue(filter);
+          vsExpansion.addParameter(vsParameter);
+        }
+
+        if (count != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("count");
+          vsParameter.setValue(count);
+          vsExpansion.addParameter(vsParameter);
+        }
+
+        if (includeDefinition != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("includeDefinition");
+          vsParameter.setValue(includeDefinition);
+          vsExpansion.addParameter(vsParameter);
+        }
+
+        if (includeDesignations != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("includeDesignations");
+          vsParameter.setValue(includeDesignations);
+          vsExpansion.addParameter(vsParameter);
+        }
+
+        if (activeOnly != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("activeOnly");
+          vsParameter.setValue(activeOnly);
+          vsExpansion.addParameter(vsParameter);
+        }
+
+        if (propertyNames != null && !propertyNames.isEmpty()) {
+          for (String propertyName : propertyNames) {
+
+            vsParameter = new ValueSetExpansionParameterComponent();
+            vsParameter.setName("property");
+            vsParameter.setValue(new StringType(propertyName));
+            vsExpansion.addParameter(vsParameter);
+          }
+        }
       }
       vs.setExpansion(vsExpansion);
       return vs;
@@ -400,7 +460,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
   /**
    * Expand instance.
    *
-   * See https://hl7.org/fhir/R5/valueset-operation-expand.html
+   * <p>See https://hl7.org/fhir/R5/valueset-operation-expand.html
    *
    * @param request the request
    * @param details the details
@@ -424,27 +484,27 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-      //      @OperationParam(name = "valueSet") final ValueSet valueSet,
+      // @OperationParam(name = "valueSet") final ValueSet valueSet,
       @OperationParam(name = "valueSetVersion") final StringType version,
-      //      @OperationParam(name = "context") final UriType context,
-      //      @OperationParam(name = "contextDirection") final CodeType contextDirection,
+      // @OperationParam(name = "context") final UriType context,
+      // @OperationParam(name = "contextDirection") final CodeType contextDirection,
       @OperationParam(name = "filter") final StringType filter,
-      //      @OperationParam(name = "date") final DateTimeType date,
+      // @OperationParam(name = "date") final DateTimeType date,
       @OperationParam(name = "offset") final IntegerType offset,
       @OperationParam(name = "count") final IntegerType count,
       @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
-      //      @OperationParam(name = "designation") final StringType designation,
+      // @OperationParam(name = "designation") final StringType designation,
       @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
       @OperationParam(name = "activeOnly") final BooleanType activeOnly,
-      //      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
-      //      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
-      //      @OperationParam(name = "excludePostCoordinated") final BooleanType
+      // @OperationParam(name = "excludeNested") final BooleanType excludeNested,
+      // @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
+      // @OperationParam(name = "excludePostCoordinated") final BooleanType
       // excludePostCoordinated,
-      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      //      @OperationParam(name = "exclude-system") final StringType exclude_system,
-      //      @OperationParam(name = "system-version") final StringType system_version,
-      //      @OperationParam(name = "check-system-version") final StringType check_system_version,
-      //      @OperationParam(name = "force-system-version") final StringType force_system_version,
+      // @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      // @OperationParam(name = "exclude-system") final StringType exclude_system,
+      // @OperationParam(name = "system-version") final StringType system_version,
+      // @OperationParam(name = "check-system-version") final StringType check_system_version,
+      // @OperationParam(name = "force-system-version") final StringType force_system_version,
       @OperationParam(name = "property") final List<StringType> properties)
       throws Exception {
     // check if request is a post, throw exception as we don't support post
@@ -485,10 +545,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
     try {
 
-      final List<ValueSet> vsList = findPossibleValueSets(id, null, url, version);
+      final List<ValueSet> vsList = findPossibleValueSets(id, null, null, version);
       if (vsList.isEmpty()) {
-        throw FhirUtilityR5.exception(
-            "Value set " + url.asStringValue() + " not found", IssueType.EXCEPTION, 500);
+        throw FhirUtilityR5.exception("Value set " + id + " not found", IssueType.EXCEPTION, 500);
       }
 
       // Convert list of StringType properties to list of String property names
@@ -519,8 +578,22 @@ public class ValueSetProviderR5 implements IResourceProvider {
       includeParam = new IncludeParam(String.join(",", includeList));
 
       final ValueSet vs = vsList.get(0);
+      final ValueSet.ValueSetExpansionComponent vsExpansion =
+          new ValueSet.ValueSetExpansionComponent();
       List<Concept> subsetMembers = new ArrayList<Concept>();
-      if (url != null && url.getValue().contains("?fhir_vs=")) {
+      if ((url != null) && !vs.getUrl().equals(url.getValue())) {
+        throw FhirUtilityR5.exception(
+            "Supplied url "
+                + url.getValue()
+                + " doesn't match the ValueSet retrieved by the id "
+                + id
+                + " "
+                + vs.getUrl(),
+            OperationOutcome.IssueType.EXCEPTION,
+            400);
+      }
+
+      if (vs.getUrl() != null && vs.getUrl().contains("?fhir_vs=")) {
         final List<Association> invAssoc =
             osQueryService
                 .getConcept(
@@ -541,6 +614,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
             subsetMembers.add(member);
           }
         }
+        vsExpansion.setTotal(subsetMembers.size());
       } else {
         final List<Terminology> terminologies = new ArrayList<>();
         terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true));
@@ -555,13 +629,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
         if (propertyNames != null && !propertyNames.isEmpty()) {
           sc.setInclude(String.join(",", includeList));
         }
-        subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();
+        ConceptResultList subsetMembersList = searchService.findConcepts(terminologies, sc);
+        subsetMembers = subsetMembersList.getConcepts();
+        vsExpansion.setTotal(Math.toIntExact(subsetMembersList.getTotal()));
       }
-      final ValueSet.ValueSetExpansionComponent vsExpansion =
-          new ValueSet.ValueSetExpansionComponent();
+      ValueSetExpansionParameterComponent vsParameter;
       vsExpansion.setTimestamp(new Date());
       vsExpansion.setOffset(offset != null ? offset.getValue() : 0);
-      vsExpansion.setTotal(subsetMembers.size());
       if (!subsetMembers.isEmpty()) {
         for (final Concept member : subsetMembers) {
           if (activeOnly != null && activeOnly.getValue() && !member.getActive()) {
@@ -603,15 +677,41 @@ public class ValueSetProviderR5 implements IResourceProvider {
         }
       }
       // Add expansion parameters
-      ValueSetExpansionParameterComponent vsParameter = new ValueSetExpansionParameterComponent();
-      vsParameter.setName("url");
-      vsParameter.setValue(url);
-      vsExpansion.addParameter(vsParameter);
 
-      vsParameter = new ValueSetExpansionParameterComponent();
-      vsParameter.setName("version");
-      vsParameter.setValue(version);
-      vsExpansion.addParameter(vsParameter);
+      if (filter != null) {
+        vsParameter = new ValueSetExpansionParameterComponent();
+        vsParameter.setName("filter");
+        vsParameter.setValue(filter);
+        vsExpansion.addParameter(vsParameter);
+      }
+
+      if (count != null) {
+        vsParameter = new ValueSetExpansionParameterComponent();
+        vsParameter.setName("count");
+        vsParameter.setValue(count);
+        vsExpansion.addParameter(vsParameter);
+      }
+
+      if (includeDefinition != null) {
+        vsParameter = new ValueSetExpansionParameterComponent();
+        vsParameter.setName("includeDefinition");
+        vsParameter.setValue(includeDefinition);
+        vsExpansion.addParameter(vsParameter);
+      }
+
+      if (includeDesignations != null) {
+        vsParameter = new ValueSetExpansionParameterComponent();
+        vsParameter.setName("includeDesignations");
+        vsParameter.setValue(includeDesignations);
+        vsExpansion.addParameter(vsParameter);
+      }
+
+      if (activeOnly != null) {
+        vsParameter = new ValueSetExpansionParameterComponent();
+        vsParameter.setName("activeOnly");
+        vsParameter.setValue(activeOnly);
+        vsExpansion.addParameter(vsParameter);
+      }
 
       // Add property parameter if properties were specified
       if (properties != null && !properties.isEmpty()) {
@@ -636,7 +736,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
   /**
    * Validate code implicit.
    *
-   * See https://hl7.org/fhir/R5/valueset-operation-validate-code.html
+   * <p>See https://hl7.org/fhir/R5/valueset-operation-validate-code.html
    *
    * @param request the request
    * @param details the details
@@ -655,19 +755,19 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final HttpServletRequest request,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-      //      @OperationParam(name = "context") final UriType context,
-      //      @OperationParam(name = "valueSet") final ValueSet valueSet,
-      //      @OperationParam(name = "valueSetVersion") final StringType valueSetVersion,
+      // @OperationParam(name = "context") final UriType context,
+      // @OperationParam(name = "valueSet") final ValueSet valueSet,
+      // @OperationParam(name = "valueSetVersion") final StringType valueSetVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "systemVersion") final StringType systemVersion,
-      //      @OperationParam(name = "version") final StringType version,
+      // @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display,
       @OperationParam(name = "coding") final Coding coding
-      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-      //      @OperationParam(name = "date") final DateTimeType date,
-      //      @OperationParam(name = "abstract") final BooleanType abstractt,
-      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      // @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      // @OperationParam(name = "date") final DateTimeType date,
+      // @OperationParam(name = "abstract") final BooleanType abstractt,
+      // @OperationParam(name = "displayLanguage") final StringType displayLanguage
       ) throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls except for coding parameter
@@ -753,7 +853,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         params.addParameter("result", false);
         params.addParameter("message", "Unable to find matching value set");
         params.addParameter("url", (url == null ? new UriType("<null>") : url));
-        //        params.addParameter("version", version);
+        // params.addParameter("version", version);
       }
       return params;
     } catch (final FHIRServerResponseException e) {
@@ -767,7 +867,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
   /**
    * Validate code instance.
    *
-   * See https://hl7.org/fhir/R5/valueset-operation-validate-code.html
+   * <p>See https://hl7.org/fhir/R5/valueset-operation-validate-code.html
    *
    * @param request the request
    * @param details the details
@@ -788,19 +888,19 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-      //      @OperationParam(name = "context") final UriType context,
-      //      @OperationParam(name = "valueSet") final ValueSet valueSet,
-      //      @OperationParam(name = "valueSetVersion") final StringType valueSetVersion,
+      // @OperationParam(name = "context") final UriType context,
+      // @OperationParam(name = "valueSet") final ValueSet valueSet,
+      // @OperationParam(name = "valueSetVersion") final StringType valueSetVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "systemVersion") final StringType systemVersion,
-      //      @OperationParam(name = "version") final StringType version,
+      // @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display,
       @OperationParam(name = "coding") final Coding coding
-      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-      //      @OperationParam(name = "date") final DateTimeType date,
-      //      @OperationParam(name = "abstract") final BooleanType abstractt,
-      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      // @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      // @OperationParam(name = "date") final DateTimeType date,
+      // @OperationParam(name = "abstract") final BooleanType abstractt,
+      // @OperationParam(name = "displayLanguage") final StringType displayLanguage
       ) throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls
@@ -811,8 +911,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR5.requireAtLeastOneOf(
-          "code", code, "system", system, "coding", coding, "url", url);
+      FhirUtilityR5.requireAtLeastOneOf("id", id, "code", code, "system", system, "coding", coding);
       FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
 
@@ -838,7 +937,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         urlToLookup = coding.getSystemElement();
       }
 
-      final List<ValueSet> list = findPossibleValueSets(id, system, urlToLookup, systemVersion);
+      final List<ValueSet> list = findPossibleValueSets(id, system, null, systemVersion);
       final Parameters params = new Parameters();
       if (!list.isEmpty()) {
         String codeToLookup = "";
@@ -848,6 +947,17 @@ public class ValueSetProviderR5 implements IResourceProvider {
           codeToLookup = coding.getCode();
         }
         final ValueSet vs = list.get(0);
+        if ((urlToLookup != null) && !vs.getUrl().equals(urlToLookup.getValue())) {
+          throw FhirUtilityR5.exception(
+              "Supplied url "
+                  + urlToLookup
+                  + " doesn't match the ValueSet retrieved by the id "
+                  + id
+                  + " "
+                  + vs.getUrl(),
+              OperationOutcome.IssueType.EXCEPTION,
+              400);
+        }
         final SearchCriteria sc = new SearchCriteria();
         sc.setTerm(codeToLookup);
         sc.setInclude("minimal");
@@ -884,7 +994,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         params.addParameter("result", false);
         params.addParameter("message", "Unable to find matching value set");
         params.addParameter("url", (url == null ? new UriType("<null>") : url));
-        //        params.addParameter("version", version);
+        // params.addParameter("version", version);
       }
       return params;
     } catch (final FHIRServerResponseException e) {
@@ -897,18 +1007,20 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
   /**
    * Returns the value set.
-   * 
-   * See https://hl7.org/fhir/R5/valueset.html
    *
-   * @param details the details
+   * <p>See https://hl7.org/fhir/R5/valueset.html
+   *
    * @param id the id
    * @return the value set
    * @throws Exception the exception
    */
   @Read
-  public ValueSet getValueSet(final ServletRequestDetails details, @IdParam final IdType id)
-      throws Exception {
+  public ValueSet getValueSet(@IdParam final IdType id) throws Exception {
     try {
+      if (id.hasVersionIdPart()) {
+        // If someone somehow passes a versioned ID to read, delegate to vread
+        return vread(id);
+      }
       final List<ValueSet> candidates = findPossibleValueSets(id, null, null, null);
       for (final ValueSet set : candidates) {
         if (id.getIdPart().equals(set.getId())) {
@@ -916,9 +1028,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         }
       }
       throw FhirUtilityR5.exception(
-          "Value set not found = " + (id == null ? "null" : id.getIdPart()),
-          IssueType.NOTFOUND,
-          404);
+          "Value set not found = " + (id.getIdPart()), IssueType.NOTFOUND, 404);
 
     } catch (final FHIRServerResponseException e) {
       throw e;
@@ -973,18 +1083,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
       }
       list.add(vs);
     }
-    final List<Concept> subsets =
-        metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.empty());
-    final Set<String> codes =
-        subsets.stream()
-            .flatMap(Concept::streamSelfAndChildren)
-            .map(c -> c.getCode())
-            .collect(Collectors.toSet());
-    final List<Concept> subsetsAsConcepts =
-        osQueryService.getConcepts(
-            codes,
-            termUtils.getIndexedTerminology("ncit", osQueryService, true),
-            new IncludeParam("minimal"));
+    final List<Concept> subsets = getNcitSubsets();
+    final Set<Concept> subsetsAsConcepts =
+        subsets.stream().flatMap(Concept::streamSelfAndChildren).collect(Collectors.toSet());
 
     for (final Concept subset : subsetsAsConcepts) {
       final ValueSet vs = FhirUtilityR5.toR5VS(subset);
@@ -1058,6 +1159,111 @@ public class ValueSetProviderR5 implements IResourceProvider {
       logger.warn("Requested property not found = " + propertyName);
       // notFoundSeen.add(property);
       // }
+    }
+  }
+
+  /**
+   * Gets the value set history.
+   *
+   * @param id the id
+   * @return the value set history
+   */
+  @History(type = ValueSet.class)
+  public List<ValueSet> getValueSetHistory(@IdParam IdType id) {
+    List<ValueSet> history = new ArrayList<>();
+    try {
+      final List<ValueSet> candidates = findPossibleValueSets(id, null, null, null);
+      for (final ValueSet cs : candidates) {
+        if (id.getIdPart().equals(cs.getId())) {
+          history.add(cs);
+        }
+      }
+      if (history.isEmpty()) {
+        throw FhirUtilityR5.exception(
+            "Value set not found = " + (id == null ? "null" : id.getIdPart()),
+            IssueType.NOTFOUND,
+            404);
+      }
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      logger.error("Unexpected exception", e);
+      throw FhirUtilityR5.exception("Failed to get value set", IssueType.EXCEPTION, 500);
+    }
+
+    // Make sure each ValueSet has proper metadata for history
+    for (ValueSet cs : history) {
+      if (cs.getMeta() == null) {
+        cs.setMeta(new Meta());
+      }
+      if (cs.getMeta().getVersionId() == null) {
+        cs.getMeta().setVersionId("1"); // Set appropriate version
+      }
+      if (cs.getMeta().getLastUpdated() == null) {
+        cs.getMeta().setLastUpdated(new Date());
+      }
+    }
+
+    return history;
+  }
+
+  /**
+   * Vread.
+   *
+   * @param versionedId the versioned id
+   * @return the value set
+   */
+  @Read(version = true)
+  public ValueSet vread(@IdParam IdType versionedId) {
+    String resourceId = versionedId.getIdPart();
+    String versionId = versionedId.getVersionIdPart(); // "1"
+
+    logger.info("Looking for resource: {} version: {}", resourceId, versionId);
+
+    try {
+      // If no version is specified in a vread call, this shouldn't happen
+      // but if it does, delegate to regular read
+      if (!versionedId.hasVersionIdPart()) {
+        logger.warn("VRead called without version ID, delegating to regular read");
+        return getValueSet(new org.hl7.fhir.r5.model.IdType(versionedId.getIdPart()));
+      }
+
+      final List<ValueSet> candidates = findPossibleValueSets(versionedId, null, null, null);
+      logger.info("Found {} candidates", candidates.size());
+
+      for (final ValueSet cs : candidates) {
+        String csId = cs.getId();
+        String csVersionId = cs.getMeta() != null ? cs.getMeta().getVersionId() : null;
+
+        logger.info("Checking candidate: id={}, versionId={}", csId, csVersionId);
+
+        if (resourceId.equals(csId)) {
+          // If the ValueSet doesn't have a version ID, treat it as version "1"
+          String effectiveVersionId = (csVersionId != null) ? csVersionId : "1";
+
+          if (versionId.equals(effectiveVersionId)) {
+            // Make sure the returned ValueSet has the version ID set
+            if (cs.getMeta() == null) {
+              cs.setMeta(new Meta());
+            }
+            cs.getMeta().setVersionId("1");
+            cs.getMeta().setLastUpdated(new Date()); // Optional: set timestamp
+
+            logger.info("Found matching version!");
+            return cs;
+          }
+        }
+      }
+
+      throw FhirUtilityR5.exception(
+          "Value set version not found: " + resourceId + " version " + versionId,
+          IssueType.NOTFOUND,
+          404);
+    } catch (final FHIRServerResponseException e) {
+      throw e; // Re-throw FHIR exceptions as-is
+    } catch (final Exception e) {
+      logger.error("Unexpected exception in vread", e);
+      throw FhirUtilityR5.exception("Failed to get value set version", IssueType.EXCEPTION, 500);
     }
   }
 }

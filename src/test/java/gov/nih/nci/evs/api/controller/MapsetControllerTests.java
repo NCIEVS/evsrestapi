@@ -95,6 +95,26 @@ public class MapsetControllerTests {
   }
 
   /**
+   * Test MA_to_NCIt has been removed properly
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testMapsetsMAtoNCItMappingRemoved() throws Exception {
+    // Arrange
+    String mapping = "MA_to_NCIt_Mapping";
+
+    // Act
+    MvcResult result =
+        mvc.perform(get(baseUrl + "/" + mapping)).andExpect(status().isNotFound()).andReturn();
+
+    String content = result.getResponse().getContentAsString();
+
+    // Assert
+    assertEquals(0, content.length());
+  }
+
+  /**
    * Test mapsets with include params
    *
    * @throws Exception the exception
@@ -180,7 +200,7 @@ public class MapsetControllerTests {
   public void testMapsetsWithCodeDownloadTrueIncludeParams() throws Exception {
     // Arrange
     String params = "maps,properties";
-    String terminology = "ICDO_TO_NCI_TOPOGRAPHY";
+    String terminology = "NCIT_TO_SWISSPROT";
 
     // Act
     MvcResult result =
