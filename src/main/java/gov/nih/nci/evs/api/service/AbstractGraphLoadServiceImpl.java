@@ -17,10 +17,7 @@ import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.support.es.OpensearchObject;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.MainTypeHierarchy;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
+import gov.nih.nci.evs.api.util.*;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -895,12 +892,12 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
           && graphProperties.getDb().equals(term.getMetadata().getMonthlyDb())) {
 
         // setup mappings
-        Concept ncitMapsToGdc = setupMap("GDC", term.getVersion());
-        Concept ncitMapsToIcd10 = setupMap("ICD10", term.getVersion());
-        Concept ncitMapsToIcd10cm = setupMap("ICD10CM", term.getVersion());
-        Concept ncitMapsToIcd9cm = setupMap("ICD9CM", term.getVersion());
-        Concept ncitMapsToIcdo3 = setupMap("ICDO3", term.getVersion());
-        Concept ncitMapsToMeddra = setupMap("MedDRA", term.getVersion());
+        Concept ncitMapsToGdc = setupMap("GDC", term);
+        Concept ncitMapsToIcd10 = setupMap("ICD10", term);
+        Concept ncitMapsToIcd10cm = setupMap("ICD10CM", term);
+        Concept ncitMapsToIcd9cm = setupMap("ICD9CM", term);
+        Concept ncitMapsToIcdo3 = setupMap("ICDO3", term);
+        Concept ncitMapsToMeddra = setupMap("MedDRA", term);
         mapsets.put("GDC", ncitMapsToGdc);
         mapsets.put("ICD10", ncitMapsToIcd10);
         mapsets.put("ICD10CM", ncitMapsToIcd10cm);
@@ -932,12 +929,14 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
    * @param version the version
    * @return the concept
    */
-  private Concept setupMap(String term, String version) {
+  private Concept setupMap(String term, Terminology terminology) {
     Concept map = new Concept();
     map.setCode(NCIT_MAPS_TO + term);
     map.setName(NCIT_MAPS_TO + term);
-    map.setVersion(version);
+    map.setVersion(terminology.getVersion());
     map.setActive(true);
+    map.getProperties()
+        .add(new Property("date", FhirUtility.convertToYYYYMMDD(terminology.getDate())));
     map.getProperties().add(new Property("downloadOnly", "true"));
     map.getProperties().add(new Property("mapsetLink", null));
     map.getProperties().add(new Property("loader", "AbstractGraphLoadServiceImpl"));

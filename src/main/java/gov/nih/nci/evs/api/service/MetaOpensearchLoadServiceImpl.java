@@ -17,12 +17,7 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.support.es.OpensearchObject;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.EVSUtils;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.PushBackReader;
-import gov.nih.nci.evs.api.util.RrfReaders;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
+import gov.nih.nci.evs.api.util.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -338,6 +333,11 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
           mapset.setName(codeNameMap.get(fields[0]));
           mapset.setTerminology(info.getSourceTerminology().toLowerCase());
           mapset.setVersion(info.getSourceTerminologyVersion());
+          mapset
+              .getProperties()
+              .add(
+                  new Property(
+                      "date", FhirUtility.convertToYYYYMMDD(info.getSourceTerminologyVersion())));
           // set other fields and properties as needed (to match other mapsets and needs of ui)
           mapset.getProperties().add(new Property("loader", "MetaOpensearchLoadServiceImpl"));
           final String mapsetUri =
@@ -959,7 +959,7 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
             String[] parts = line.split("\\|");
             StatisticsEntry statisticsEntry = new StatisticsEntry(parts[0], parts[1], parts[2]);
             statsList.add(statisticsEntry);
-            System.out.println(line);
+            logger.debug(line);
           }
           sourceStatsEntry.put("Source Overlap", statsList);
           newStatsEntry.setStatisticsMap(sourceStatsEntry);

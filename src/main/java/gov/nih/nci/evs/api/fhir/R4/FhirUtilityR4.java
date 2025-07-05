@@ -11,11 +11,8 @@ import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
-import java.util.Collections;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
@@ -231,6 +228,18 @@ public final class FhirUtilityR4 {
                 .findFirst()
                 .orElse(null)
                 .getValue()));
+    try {
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+      cm.setDate(sdf.parse(
+              Objects.requireNonNull(
+                              mapset.getProperties().stream()
+                                      .filter(m -> m.getType().equals("date"))
+                                      .findFirst()
+                                      .orElse(null))
+                      .getValue()));
+    } catch (Exception e) {
+      cm.setDate(null);
+    }
     cm.setSource(
         new UriType(
             getUri(
