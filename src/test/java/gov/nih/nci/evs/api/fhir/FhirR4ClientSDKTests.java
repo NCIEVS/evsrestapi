@@ -52,6 +52,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 class FhirR4ClientSDKTests {
 
   /** The logger. */
+  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(FhirR4ClientSDKTests.class);
 
   /** The port. */
