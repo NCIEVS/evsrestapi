@@ -104,8 +104,8 @@ fi
 
 # Check HGNC monthly
 echo "    check HGNC monthly"
-if [[ ! -e "$dir/HGNC/HGNC_202209.owl" ]]; then
-    echo "ERROR: unexpectedly missing HGNC/HGNC_202209.owl file"
+if [[ ! -e "$dir/HGNC/HGNC.202507.owl" ]]; then
+    echo "ERROR: unexpectedly missing HGNC/HGNC.202507.owl file"
     exit 1
 fi
 
@@ -294,10 +294,10 @@ load_data(){
     load_terminology_data CTRP http://NCI_T_monthly ThesaurusInferred_monthly.owl
     load_terminology_data NCIT2 http://NCI_T_monthly ThesaurusInferred_monthly.owl
     load_terminology_data NCIT2 http://GO_monthly GO/go.2022-07-01.owl
-    load_terminology_data NCIT2 http://HGNC_monthly HGNC/HGNC_202209.owl
+    load_terminology_data NCIT2 http://HGNC_monthly HGNC/HGNC.202507.owl
     load_terminology_data NCIT2 http://ChEBI_monthly ChEBI/chebi_213.owl
     load_terminology_data NCIT2 http://UmlsSemNet UmlsSemNet/umlssemnet.owl
-    load_terminology_data NCIT2 http://Canmed CanMed/CANMED.2025-06.owl
+    load_terminology_data NCIT2 http://Canmed CanMed/CANMED.202506.owl
     load_terminology_data NCIT2 http://MEDRT MED-RT/MEDRT.2025-06-02.owl
     load_terminology_data NCIT2 http://CTCAE CTCAE/ctcae5.owl
     load_terminology_data NCIT2 http://DUO_monthly DUO/duo_Feb21.owl
