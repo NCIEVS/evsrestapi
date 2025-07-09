@@ -82,7 +82,7 @@ public class ChebiSampleTest extends SampleTest {
     assertThat(chebi.getTerminology()).isEqualTo("chebi");
     assertThat(chebi.getMetadata().getUiLabel())
         .isEqualTo("ChEBI: Chemical Entities of Biological Interest");
-    assertThat(chebi.getName()).isEqualTo("ChEBI: Chemical Entities of Biological Interest 213");
+    assertThat(chebi.getName()).isEqualTo("ChEBI: Chemical Entities of Biological Interest 241");
     assertThat(chebi.getDescription()).isNotEmpty();
 
     assertThat(chebi.getMetadata().getLoader()).isEqualTo("rdf");

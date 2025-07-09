@@ -82,6 +82,7 @@ public class LoaderServiceImpl {
     options.addOption("h", "help", false, "Show this help information and exit.");
     options.addOption("r", "realTime", false, "Keep for backwards compabitlity. No Effect.");
     options.addOption("t", "terminology", true, "The terminology (ex: ncit_20.02d) to load.");
+    options.addOption("d", "directory", true, "Load concepts from the given directory");
     options.addOption("history", "history", true, "Load concepts history from the given directory");
     options.addOption(
         "xc",
@@ -234,7 +235,7 @@ public class LoaderServiceImpl {
           loadService.getTerminology(
               app,
               config,
-              cmd.getOptionValue("history"),
+              cmd.hasOption("d") ? cmd.getOptionValue("d") : cmd.getOptionValue("history"),
               cmd.getOptionValue("t"),
               config.isForceDeleteIndex());
       termAudit.setTerminology(term.getTerminology());
