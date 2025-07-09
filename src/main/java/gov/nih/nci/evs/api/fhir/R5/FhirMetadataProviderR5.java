@@ -88,6 +88,7 @@ public class FhirMetadataProviderR5 extends ServerCapabilityStatementProvider {
    * @param requestDetails the request details
    * @return the metadata resource
    */
+  // cacheMills is to ensure the results of this callar
   @Metadata(cacheMillis = 0)
   public IBaseConformance getMetadataResource(
       final HttpServletRequest request, final RequestDetails requestDetails) {
