@@ -1,12 +1,16 @@
 package gov.nih.nci.evs.api.fhir;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.util.EVSUtils;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -14,12 +18,22 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import org.hl7.fhir.r4.model.*;
+import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.CodeSystem;
+import org.hl7.fhir.r4.model.ConceptMap;
+import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.ResourceType;
+import org.hl7.fhir.r4.model.ValueSet;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
 import org.junit.jupiter.api.TestFactory;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -36,6 +50,10 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 class FhirR4ClientSDKTests {
+
+  /** The logger. */
+  @SuppressWarnings("unused")
+  private static final Logger log = LoggerFactory.getLogger(FhirR4ClientSDKTests.class);
 
   /** The port. */
   @LocalServerPort private int port;
@@ -59,9 +77,13 @@ class FhirR4ClientSDKTests {
     parser = FhirContext.forR4().newJsonParser();
   }
 
-  /** Sets the up. */
+  /**
+   * Sets the up.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @BeforeEach
-  public void setUp() throws IOException {
+  public void setUp() throws Exception {
     // the object mapper
     ObjectMapper objectMapper = new ObjectMapper();
     JacksonTester.initFields(this, objectMapper);
@@ -80,39 +102,37 @@ class FhirR4ClientSDKTests {
    * @throws IOException if file reading fails
    */
   private void parsePostmanCollectionAndExtractRawUrlValues(ObjectMapper objectMapper)
-      throws IOException {
-    try {
-      // Load the Postman collection JSON file from evsrestapi-client-SDK
-      final String uri = applicationProperties.getSdkBaseUri();
-      URL url = new URL(uri + "/fhir-examples/EVSRESTAPI-FHIR-R4.postman_collection.json");
-      URLConnection connection = url.openConnection();
+      throws Exception {
+    // Load the Postman collection JSON file from evsrestapi-client-SDK
+    final String uri = applicationProperties.getSdkBaseUri();
+    URL url = new URL(uri + "/fhir-examples/EVSRESTAPI-FHIR-R4.postman_collection.json");
+    EVSUtils.getValueFromFile(
+        uri + "/fhir-examples/EVSRESTAPI-FHIR-R4.postman_collection.json", "postman");
+    URLConnection connection = url.openConnection();
 
-      // Optional: Set User-Agent header (some servers require this)
-      connection.setRequestProperty("User-Agent", "Java Application");
+    // Optional: Set User-Agent header (some servers require this)
+    connection.setRequestProperty("User-Agent", "Java Application");
 
-      JsonNode rootNode = objectMapper.readTree(connection.getInputStream());
+    @SuppressWarnings("resource")
+    JsonNode rootNode = objectMapper.readTree(connection.getInputStream());
 
-      // Extract all name-raw pairs
-      extractNameRawPairs(rootNode);
+    // Extract all name-raw pairs
+    extractNameRawPairs(rootNode);
 
-      // Print all extracted name-raw pairs to console
-      System.out.println("=== Extracted Name-Raw Pairs from Postman Collection ===");
-      System.out.println("Total name-raw pairs found: " + postmanNameToRawMap.size());
+    // Print all extracted name-raw pairs to console
+    System.out.println("=== Extracted Name-Raw Pairs from Postman Collection ===");
+    System.out.println("Total name-raw pairs found: " + postmanNameToRawMap.size());
+    System.out.println();
+
+    int counter = 1;
+    for (Map.Entry<String, String> entry : postmanNameToRawMap.entrySet()) {
+      System.out.println(counter + ". Name: \"" + entry.getKey() + "\"");
+      System.out.println("   Raw:  \"" + entry.getValue() + "\"");
       System.out.println();
-
-      int counter = 1;
-      for (Map.Entry<String, String> entry : postmanNameToRawMap.entrySet()) {
-        System.out.println(counter + ". Name: \"" + entry.getKey() + "\"");
-        System.out.println("   Raw:  \"" + entry.getValue() + "\"");
-        System.out.println();
-        counter++;
-      }
-
-      System.out.println("=== End of Name-Raw Pairs ===");
-    } catch (IOException e) {
-      System.err.println("Failed to load or parse Postman collection file: " + e.getMessage());
-      throw e;
+      counter++;
     }
+
+    System.out.println("=== End of Name-Raw Pairs ===");
   }
 
   /**

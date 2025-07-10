@@ -1,6 +1,9 @@
 package gov.nih.nci.evs.api.fhir;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
@@ -14,8 +17,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
-import org.hl7.fhir.r5.model.*;
+import org.hl7.fhir.r5.model.BooleanType;
+import org.hl7.fhir.r5.model.Bundle;
+import org.hl7.fhir.r5.model.CodeSystem;
+import org.hl7.fhir.r5.model.ConceptMap;
+import org.hl7.fhir.r5.model.OperationOutcome;
+import org.hl7.fhir.r5.model.Parameters;
+import org.hl7.fhir.r5.model.Resource;
 import org.hl7.fhir.r5.model.ResourceType;
+import org.hl7.fhir.r5.model.ValueSet;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DynamicTest;
@@ -60,7 +70,11 @@ class FhirR5ClientSDKTests {
     parser = FhirContext.forR5().newJsonParser();
   }
 
-  /** Sets the up. */
+  /**
+   * Sets the up.
+   *
+   * @throws IOException Signals that an I/O exception has occurred.
+   */
   @BeforeEach
   public void setUp() throws IOException {
     // the object mapper
@@ -91,6 +105,7 @@ class FhirR5ClientSDKTests {
       // Optional: Set User-Agent header (some servers require this)
       connection.setRequestProperty("User-Agent", "Java Application");
 
+      @SuppressWarnings("resource")
       JsonNode rootNode = objectMapper.readTree(connection.getInputStream());
 
       // Extract all name-raw pairs
