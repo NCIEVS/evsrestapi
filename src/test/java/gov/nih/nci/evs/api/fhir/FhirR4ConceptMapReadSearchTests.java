@@ -779,7 +779,6 @@ public class FhirR4ConceptMapReadSearchTests {
         firstHistoryVersion.getMeta().getVersionId(), vreadConceptMap.getMeta().getVersionId());
   }
 
-
   @Test
   public void testConceptMapSearchWithDateFocus() throws Exception {
     // Arrange
@@ -787,25 +786,25 @@ public class FhirR4ConceptMapReadSearchTests {
 
     // Test 1: All valid parameters
     UriComponentsBuilder builder =
-            UriComponentsBuilder.fromUriString(endpoint)
-                    // .queryParam("_id", "ma_to_ncit_mapping_november2011")
-                    .queryParam("name", "MA_to_NCIt_Mapping")
-                    .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-                    .queryParam("version", "November2011");
+        UriComponentsBuilder.fromUriString(endpoint)
+            // .queryParam("_id", "ma_to_ncit_mapping_november2011")
+            .queryParam("name", "MA_to_NCIt_Mapping")
+            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
+            .queryParam("version", "November2011");
 
     // Test successful case with all parameters
     String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     org.hl7.fhir.r4.model.Bundle data =
-            parser.parseResource(org.hl7.fhir.r4.model.Bundle.class, content);
+        parser.parseResource(org.hl7.fhir.r4.model.Bundle.class, content);
     validateMaToNcitConceptMapResults(data, true); // Expecting results
 
     // Test 2: Invalid date
     builder =
-            UriComponentsBuilder.fromUriString(endpoint)
-                    .queryParam("date", "ge2030-01") // Future date
-                    .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-                    .queryParam("version", "November2011")
-                    .queryParam("name", "MA_to_NCIt_Mapping");
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2030-01") // Future date
+            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
+            .queryParam("version", "November2011")
+            .queryParam("name", "MA_to_NCIt_Mapping");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(org.hl7.fhir.r4.model.Bundle.class, content);
@@ -813,11 +812,11 @@ public class FhirR4ConceptMapReadSearchTests {
 
     // Test 3: Valid date
     builder =
-            UriComponentsBuilder.fromUriString(endpoint)
-                    .queryParam("date", "2011-11-01")
-                    .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-                    .queryParam("version", "November2011")
-                    .queryParam("name", "MA_to_NCIt_Mapping");
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "2011-11-01")
+            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
+            .queryParam("version", "November2011")
+            .queryParam("name", "MA_to_NCIt_Mapping");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(org.hl7.fhir.r4.model.Bundle.class, content);
@@ -825,11 +824,11 @@ public class FhirR4ConceptMapReadSearchTests {
 
     // Test 4: Valid date range
     builder =
-            UriComponentsBuilder.fromUriString(endpoint)
-                    .queryParam("date", "ge2011-11-01")
-                    .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-                    .queryParam("version", "November2011")
-                    .queryParam("name", "MA_to_NCIt_Mapping");
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2011-11-01")
+            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
+            .queryParam("version", "November2011")
+            .queryParam("name", "MA_to_NCIt_Mapping");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(org.hl7.fhir.r4.model.Bundle.class, content);
@@ -837,31 +836,28 @@ public class FhirR4ConceptMapReadSearchTests {
 
     // Test 5: Valid date range
     builder =
-            UriComponentsBuilder.fromUriString(endpoint)
-                    .queryParam("date", "ge2011-11-01")
-                    .queryParam("date", "lt2030-08-01")
-                    .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-                    .queryParam("version", "November2011")
-                    .queryParam("name", "MA_to_NCIt_Mapping");
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2011-11-01")
+            .queryParam("date", "lt2030-08-01")
+            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
+            .queryParam("version", "November2011")
+            .queryParam("name", "MA_to_NCIt_Mapping");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
     validateMaToNcitConceptMapResults(data, true);
   }
 
-  private void validateMaToNcitConceptMapResults(
-          Bundle data, boolean expectResults) {
+  private void validateMaToNcitConceptMapResults(Bundle data, boolean expectResults) {
     List<Resource> conceptMaps =
-            data.getEntry().stream()
-                    .map(Bundle.BundleEntryComponent::getResource)
-                    .toList();
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     if (expectResults) {
       assertFalse(conceptMaps.isEmpty());
       final Set<String> ids = new HashSet<>(Set.of("ma_to_ncit_mapping_november2011"));
       final Set<String> urls =
-              new HashSet<>(
-                      Set.of("http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping"));
+          new HashSet<>(
+              Set.of("http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping"));
 
       for (Resource cm : conceptMaps) {
         log.info(" concept map = " + parser.encodeResourceToString(cm));

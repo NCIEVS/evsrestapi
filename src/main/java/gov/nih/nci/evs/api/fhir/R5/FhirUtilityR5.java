@@ -234,13 +234,14 @@ public class FhirUtilityR5 {
                 .getValue()));
     try {
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-      cm.setDate(sdf.parse(
+      cm.setDate(
+          sdf.parse(
               Objects.requireNonNull(
-                              mapset.getProperties().stream()
-                                      .filter(m -> m.getType().equals("date"))
-                                      .findFirst()
-                                      .orElse(null))
-                      .getValue()));
+                      mapset.getProperties().stream()
+                          .filter(m -> m.getType().equals("date"))
+                          .findFirst()
+                          .orElse(null))
+                  .getValue()));
     } catch (Exception e) {
       cm.setDate(null);
     }

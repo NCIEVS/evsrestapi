@@ -12,7 +12,6 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
 import java.util.*;
-
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.Bundle.BundleEntryComponent;
@@ -230,13 +229,14 @@ public final class FhirUtilityR4 {
                 .getValue()));
     try {
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-      cm.setDate(sdf.parse(
+      cm.setDate(
+          sdf.parse(
               Objects.requireNonNull(
-                              mapset.getProperties().stream()
-                                      .filter(m -> m.getType().equals("date"))
-                                      .findFirst()
-                                      .orElse(null))
-                      .getValue()));
+                      mapset.getProperties().stream()
+                          .filter(m -> m.getType().equals("date"))
+                          .findFirst()
+                          .orElse(null))
+                  .getValue()));
     } catch (Exception e) {
       cm.setDate(null);
     }

@@ -113,12 +113,11 @@ public class SparqlQueryCacheService {
       final RESTUtils restUtils,
       final SparqlQueryManagerService sparqlQueryManagerService)
       throws Exception {
-    
+
     // Bail if no metadata is defined for this
     if (terminology.getMetadata().getHierarchyRoles().isEmpty()) {
       logger.debug("  no hierarchy roles defined");
       return new ArrayList<>(0);
-
     }
     final List<String> parentchild = new ArrayList<>();
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
