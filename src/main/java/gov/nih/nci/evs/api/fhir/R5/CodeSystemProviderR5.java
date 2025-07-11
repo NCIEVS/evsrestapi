@@ -183,7 +183,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param system the system for the code being looked up
    * @param version the version of the system, if provided.
    * @param coding the coding to look up
-   * @param date the date that the information should be returned.
    * @return the parameters
    * @throws Exception exception
    */
@@ -195,8 +194,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
-      @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "date") final DateRangeParam date
+      @OperationParam(name = "coding") final Coding coding
+      // @OperationParam(name = "date") final DateRangeParam date
       // @OperationParam(name = "displayLanguage") final StringType displayLanguage,
       // @OperationParam(name = "property") final CodeType property
       ) throws Exception {
@@ -213,7 +212,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       // FhirUtilityR5.notSupported(displayLanguage, "displayLanguage");
       // FhirUtilityR5.notSupported(property, "property");
-      for (final String param : new String[] {"displayLanguage", "property"}) {
+      for (final String param : new String[] {"displayLanguage", "date", "property"}) {
         FhirUtilityR5.notSupported(request, param);
       }
       if (Collections.list(request.getParameterNames()).stream()
@@ -230,7 +229,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         systemToLookup = coding.getSystemElement();
       }
 
-      final List<CodeSystem> cs = findPossibleCodeSystems(null, date, systemToLookup, version);
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String codeToLookup = "";
@@ -283,7 +282,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param system the system for the code being looked up
    * @param version the version of the system, if provided.
    * @param coding the coding to look up
-   * @param date the date that the information should be returned.
    * @return the parameters
    * @throws Exception exception
    */
@@ -296,8 +294,8 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
-      @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "date") final DateRangeParam date
+      @OperationParam(name = "coding") final Coding coding
+      // @OperationParam(name = "date") final DateRangeParam date
       // @OperationParam(name = "displayLanguage") final StringType displayLanguage,
       // @OperationParam(name = "property") final CodeType property
       ) throws Exception {
@@ -311,7 +309,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
     }
     try {
       FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
-      for (final String param : new String[] {"displayLanguage", "property"}) {
+      for (final String param : new String[] {"displayLanguage", "property", "date"}) {
         FhirUtilityR5.notSupported(request, param);
       }
       if (Collections.list(request.getParameterNames()).stream()
@@ -328,7 +326,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         systemToLookup = coding.getSystemElement();
       }
 
-      final List<CodeSystem> cs = findPossibleCodeSystems(id, date, null, version);
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String codeToLookup = "";
@@ -441,7 +439,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         systemToLookup = coding.getSystemElement();
       }
 
-      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, systemToLookup, version);
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String codeToValidate = "";
@@ -554,7 +552,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         systemToLookup = coding.getSystemElement();
       }
 
-      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, null, version);
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String codeToValidate = "";
@@ -673,7 +671,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
               400);
         }
       }
-      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, systemToLookup, version);
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String code1 = "";
@@ -782,7 +780,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         }
       }
 
-      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, systemToLookup, version);
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (!cs.isEmpty()) {
         String code1 = "";
@@ -847,7 +845,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         // If someone somehow passes a versioned ID to read, delegate to vread
         return vread(id);
       }
-      final List<CodeSystem> candidates = findPossibleCodeSystems(id, null, null, null);
+      final List<CodeSystem> candidates = findPossibleCodeSystems(id, null, null);
       for (final CodeSystem set : candidates) {
         if (id.getIdPart().equals(set.getId())) {
           return set;
@@ -867,7 +865,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * Helper method to find possible code systems.
    *
    * @param id the id type
-   * @param date the date range
    * @param url the uri type
    * @param version the string type version
    * @return the list of code systems
@@ -875,7 +872,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    */
   private List<CodeSystem> findPossibleCodeSystems(
       @OperationParam(name = "_id") final IdType id,
-      @OperationParam(name = "date") final DateRangeParam date,
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "version") final StringType version)
       throws Exception {
@@ -893,10 +889,6 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         if ((id != null && !id.getIdPart().equals(cs.getIdPart()))
             || (url != null && !url.getValue().equals(cs.getUrl()))) {
           logger.debug("  SKIP url mismatch = " + cs.getUrl());
-          continue;
-        }
-        if (date != null && !FhirUtility.compareDateRange(date, cs.getDate())) {
-          logger.debug("  SKIP date mismatch = " + cs.getDate());
           continue;
         }
         if (version != null && !version.getValue().equals(cs.getVersion())) {
@@ -918,7 +910,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   public List<CodeSystem> getCodeSystemHistory(@IdParam IdType id) {
     List<CodeSystem> history = new ArrayList<>();
     try {
-      final List<CodeSystem> candidates = findPossibleCodeSystems(id, null, null, null);
+      final List<CodeSystem> candidates = findPossibleCodeSystems(id, null, null);
       for (final CodeSystem cs : candidates) {
         if (id.getIdPart().equals(cs.getId())) {
           history.add(cs);
@@ -976,7 +968,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         logger.warn("VRead called without version ID, delegating to regular read");
         return getCodeSystem(new org.hl7.fhir.r5.model.IdType(versionedId.getIdPart()));
       }
-      final List<CodeSystem> candidates = findPossibleCodeSystems(versionedId, null, null, null);
+      final List<CodeSystem> candidates = findPossibleCodeSystems(versionedId, null, null);
       logger.info("Found {} candidates", candidates.size());
 
       for (final CodeSystem cs : candidates) {

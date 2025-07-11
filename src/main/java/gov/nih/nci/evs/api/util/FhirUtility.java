@@ -277,6 +277,73 @@ public final class FhirUtility {
       }
     }
 
+    // Full month name + year pattern (e.g., "November2011", "DECEMBER2020")
+    if (cleaned.matches(
+        "(?i)(January|February|March|April|May|June|July|August|September|October|November|December)\\d{4}")) {
+      try {
+        // Create month name mapping
+        Map<String, String> monthMap = new HashMap<>();
+        monthMap.put("january", "01");
+        monthMap.put("february", "02");
+        monthMap.put("march", "03");
+        monthMap.put("april", "04");
+        monthMap.put("may", "05");
+        monthMap.put("june", "06");
+        monthMap.put("july", "07");
+        monthMap.put("august", "08");
+        monthMap.put("september", "09");
+        monthMap.put("october", "10");
+        monthMap.put("november", "11");
+        monthMap.put("december", "12");
+
+        // Extract month name and year
+        String lowerCleaned = cleaned.toLowerCase();
+        String year = cleaned.substring(cleaned.length() - 4); // Last 4 digits
+        String monthName =
+            lowerCleaned.substring(0, lowerCleaned.length() - 4); // Everything except last 4 digits
+
+        String monthNum = monthMap.get(monthName);
+        if (monthNum != null) {
+          return year + "-" + monthNum + "-01";
+        }
+      } catch (Exception e) {
+        // Fall through to return input unchanged
+      }
+    }
+
+    // Abbreviated month name + year pattern (e.g., "Nov2011", "DEC2020")
+    if (cleaned.matches("(?i)(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\d{4}")) {
+      try {
+        // Create abbreviated month name mapping
+        Map<String, String> monthMap = new HashMap<>();
+        monthMap.put("jan", "01");
+        monthMap.put("feb", "02");
+        monthMap.put("mar", "03");
+        monthMap.put("apr", "04");
+        monthMap.put("may", "05");
+        monthMap.put("jun", "06");
+        monthMap.put("jul", "07");
+        monthMap.put("aug", "08");
+        monthMap.put("sep", "09");
+        monthMap.put("oct", "10");
+        monthMap.put("nov", "11");
+        monthMap.put("dec", "12");
+
+        // Extract month abbreviation and year
+        String lowerCleaned = cleaned.toLowerCase();
+        String year = cleaned.substring(cleaned.length() - 4); // Last 4 digits
+        String monthAbbr =
+            lowerCleaned.substring(0, lowerCleaned.length() - 4); // Everything except last 4 digits
+
+        String monthNum = monthMap.get(monthAbbr);
+        if (monthNum != null) {
+          return year + "-" + monthNum + "-01";
+        }
+      } catch (Exception e) {
+        // Fall through to return input unchanged
+      }
+    }
+
     // No pattern matched
     return "";
   }

@@ -232,6 +232,19 @@ public class FhirUtilityR5 {
                         .findFirst()
                         .orElse(null))
                 .getValue()));
+    try {
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+      cm.setDate(
+          sdf.parse(
+              Objects.requireNonNull(
+                      mapset.getProperties().stream()
+                          .filter(m -> m.getType().equals("date"))
+                          .findFirst()
+                          .orElse(null))
+                  .getValue()));
+    } catch (Exception e) {
+      cm.setDate(null);
+    }
     cm.setSourceScope(
         new UriType(
             getUri(
