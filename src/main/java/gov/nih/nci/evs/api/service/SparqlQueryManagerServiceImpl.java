@@ -195,10 +195,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // Extract a version if a owl:versionIRI was used
       term.setVersion(b.getVersion().getValue().replaceFirst(".*/([\\d-]+)/[a-zA-Z]+.owl", "$1"));
       // term.setName(TerminologyUtils.constructName(comment, version));
-      System.out.println(
+      log.debug(
           "setting date in Sparql from "
               + ((b.getDate() == null) ? term.getVersion() : b.getDate().getValue()));
-      System.out.println(
+      log.debug(
           "setting date in Sparql to "
               + FhirUtility.convertToYYYYMMDD(
                   (b.getDate() == null) ? term.getVersion() : b.getDate().getValue()));

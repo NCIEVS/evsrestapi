@@ -8,6 +8,7 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.EVSUtils;
+import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.IOException;
@@ -335,6 +336,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       // version numbers
       if (version != null && !version.isEmpty()) {
         map.setVersion(version);
+        map.getProperties().add(new Property("date", FhirUtility.convertToYYYYMMDD(version)));
       } else {
         map.setVersion(null);
       }
