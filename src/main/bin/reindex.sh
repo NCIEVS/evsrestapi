@@ -547,6 +547,51 @@ for x in `cat /tmp/y.$$.txt`; do
     fi
 done
 
+# Get all currently indexed terminology keys (e.g., concept_ncit_20240601)
+all_indexes=$(curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices?h=index" | grep '^concept_' | cut -d' ' -f1)
+
+# Get all valid terminology keys from the currently loaded graph db triples
+valid_keys=$(cut -d'|' -f1,3 /tmp/y.$$.txt | while IFS='|' read -r version iri; do
+  term=$(get_terminology "$iri")
+
+  # Handle cases where version is actually a URI containing the real version
+  if [[ "$version" =~ chebi/([0-9]+)/ ]]; then
+    version_compact=${BASH_REMATCH[1]}
+  elif [[ "$version" =~ releases/([0-9]{4}-[0-9]{2}-[0-9]{2})/ ]]; then
+    version_compact=$(echo ${BASH_REMATCH[1]} | sed 's/-//g')
+  else
+    version_compact=$(echo "$version" | tr '[:upper:]' '[:lower:]' | sed 's/[.-]//g')
+  fi
+
+  echo "concept_${term}_${version_compact}"
+done)
+
+# Add additional NCIM terms to valid keys
+ncim_terms="MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V30 NCIM"
+for t in $ncim_terms; do
+  t_lc=$(echo "$t" | tr '[:upper:]' '[:lower:]')
+  valid_keys="$valid_keys
+concept_${t_lc}_"
+done
+
+echo "  Valid keys: $valid_keys"
+
+# Remove indexes not found in triple store
+echo "  Remove unused indexes"
+for idx in $all_indexes; do
+  keep=0
+  for v in $valid_keys; do
+    if [[ "$idx" == "$v"* ]]; then
+      keep=1
+      break
+    fi
+  done
+  if [[ $keep -eq 0 ]]; then
+    echo "      Removing unused index: $idx"
+  #   curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$idx" > /dev/null
+  fi
+done
+
 # Stale indexes are automatically cleaned up by the indexing process
 # It checks against graph db and reconciles everything and updates latest flags
 # regardless of whether there was new data
