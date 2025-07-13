@@ -387,15 +387,26 @@ process_ncit() {
       if [[ $? -ne 0 ]]; then
           echo "ERROR: Failed to get latest terminology from http://localhost:${serverPort}/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
           cd - > /dev/null 2> /dev/null
+          if [[ serverPort -eq 8082 ]]; then
+              echo "  Setting default history version on local to 21.06e"
+              prev_version="21.06e"
+          else
+              echo "  Failed to find terminology version on non-local server, exiting"
+              return 1
+          fi
           return 1
       fi
       echo "  Response from API: $response"
 
-      if ! command -v jq &> /dev/null; then
-          echo "jq is not installed, using grep and perl as fallback"
-          prev_version=$(echo "$response" | grep '"version"' | perl -pe 's/.*"version":"//; s/".*//; ')
-      else
-          prev_version=$(echo "$response" | jq -r '.[] | .version')
+      if [[ -z "${prev_version}" ]]; then
+          echo "  prev_version is not set to a default, trying to parse response"
+          # Parse the response to get the previous version
+          if ! command -v jq &> /dev/null; then
+              echo "jq is not installed, using grep and perl as fallback"
+              prev_version=$(echo "$response" | grep '"version"' | perl -pe 's/.*"version":"//; s/".*//; ')
+          else
+              prev_version=$(echo "$response" | jq -r '.[] | .version')
+          fi
       fi
       echo "  Previous monthly version of ncit: $prev_version"
             
