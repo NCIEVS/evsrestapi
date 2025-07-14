@@ -547,7 +547,7 @@ for x in `cat /tmp/y.$$.txt`; do
     fi
 done
 
-# Get all currently indexed terminology keys (e.g., concept_ncit_20240601)
+# Get all currently indexed terminologies
 all_indexes=$(curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices?h=index" | grep '^concept_' | cut -d' ' -f1)
 
 # Get all valid terminology keys from the currently loaded graph db triples
@@ -566,7 +566,7 @@ valid_keys=$(cut -d'|' -f1,3 /tmp/y.$$.txt | while IFS='|' read -r version iri; 
   echo "concept_${term}_${version_compact}"
 done)
 
-# Add additional NCIM terms to valid keys
+# combine ncim terms with known terminologies
 ncim_terms="MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V30 NCIM"
 for t in $ncim_terms; do
   t_lc=$(echo "$t" | tr '[:upper:]' '[:lower:]')
@@ -588,7 +588,7 @@ for idx in $all_indexes; do
   done
   if [[ $keep -eq 0 ]]; then
     echo "      Removing unused index: $idx"
-  #   curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$idx" > /dev/null
+    curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$idx" > /dev/null
   fi
 done
 
