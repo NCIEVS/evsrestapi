@@ -388,8 +388,8 @@ process_ncit() {
           echo "ERROR: Failed to get latest terminology from http://localhost:${serverPort}/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
           cd - > /dev/null 2> /dev/null
           if [[ serverPort -eq 8082 ]]; then
-              echo "  Setting default history version on local to 21.06e"
-              prev_version="21.06e"
+              echo "  Setting default history version on local to 25.06e"
+              prev_version="25.06e"
           else
               echo "  Failed to find terminology version on non-local server, exiting"
               return 1
