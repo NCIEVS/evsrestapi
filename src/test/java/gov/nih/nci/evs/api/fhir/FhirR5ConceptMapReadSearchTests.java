@@ -319,8 +319,7 @@ class FhirR5ConceptMapReadSearchTests {
       assertFalse(conceptMaps.isEmpty());
       final Set<String> ids = new HashSet<>(Set.of("icd10_to_meddra_mapping_july2021"));
       final Set<String> urls =
-          new HashSet<>(
-              Set.of("http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping"));
+          new HashSet<>(Set.of("http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping"));
 
       for (Resource cm : conceptMaps) {
         log.info(" concept map = " + parser.encodeResourceToString(cm));
@@ -794,7 +793,6 @@ class FhirR5ConceptMapReadSearchTests {
             .queryParam("url", "http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping")
             .queryParam("version", "July2021");
 
-
     // Test successful case with all parameters
     String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     org.hl7.fhir.r5.model.Bundle data =
@@ -862,8 +860,7 @@ class FhirR5ConceptMapReadSearchTests {
       assertFalse(conceptMaps.isEmpty());
       final Set<String> ids = new HashSet<>(Set.of("icd10_to_meddra_mapping_july2021"));
       final Set<String> urls =
-          new HashSet<>(
-              Set.of("http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping"));
+          new HashSet<>(Set.of("http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping"));
 
       for (org.hl7.fhir.r5.model.Resource cm : conceptMaps) {
         log.info(" concept map = " + parser.encodeResourceToString(cm));
