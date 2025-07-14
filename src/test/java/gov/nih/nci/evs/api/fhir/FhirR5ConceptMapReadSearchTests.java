@@ -92,10 +92,10 @@ class FhirR5ConceptMapReadSearchTests {
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     // Verify things about this one
-    // {"resourceType":"ConceptMap","id":"ma_to_ncit_mapping_november2011","url":"http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping","version":"Aug2024","name":"NCIt_to_HGNC_Mapping","title":"NCIt_to_HGNC_Mapping","status":"active","experimental":false,"publisher":"NCI","group":[{"source":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","target":"http://www.genenames.org"}]}
-    final Set<String> ids = new HashSet<>(Set.of("ma_to_ncit_mapping_november2011"));
+    // {"resourceType":"ConceptMap","id":"icd10_to_meddra_mapping_july2021","url":"http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping","version":"Aug2024","name":"NCIt_to_HGNC_Mapping","title":"NCIt_to_HGNC_Mapping","status":"active","experimental":false,"publisher":"NCI","group":[{"source":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","target":"http://www.genenames.org"}]}
+    final Set<String> ids = new HashSet<>(Set.of("icd10_to_meddra_mapping_july2021"));
     final Set<String> urls =
-        new HashSet<>(Set.of("http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping"));
+        new HashSet<>(Set.of("http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping"));
 
     // Assert
     assertFalse(conceptMaps.isEmpty());
@@ -227,11 +227,11 @@ class FhirR5ConceptMapReadSearchTests {
     // Test 1: All valid parameters
     UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(endpoint)
-            .queryParam("_id", "ma_to_ncit_mapping_november2011") // .queryParam("date",
+            .queryParam("_id", "icd10_to_meddra_mapping_july2021") // .queryParam("date",
             // "2024-08")
-            .queryParam("name", "MA_to_NCIt_Mapping")
-            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-            .queryParam("version", "November2011");
+            .queryParam("name", "ICD10_to_MedDRA_Mapping")
+            .queryParam("url", "http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping")
+            .queryParam("version", "July2021");
 
     // Test successful case with all parameters
     String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -243,9 +243,9 @@ class FhirR5ConceptMapReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_id", "invalid_id")
             // .queryParam("date", "2024-08")
-            .queryParam("name", "MA_to_NCIt_Mapping")
-            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-            .queryParam("version", "November2011");
+            .queryParam("name", "ICD10_to_MedDRA_Mapping")
+            .queryParam("url", "http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping")
+            .queryParam("version", "July2021");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -254,11 +254,11 @@ class FhirR5ConceptMapReadSearchTests {
     // Test 3: Invalid date
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
-            .queryParam("_id", "ma_to_ncit_mapping_november2011")
+            .queryParam("_id", "icd10_to_meddra_mapping_july2021")
             .queryParam("date", "2028-08")
-            .queryParam("name", "MA_to_NCIt_Mapping")
-            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-            .queryParam("version", "November2011");
+            .queryParam("name", "ICD10_to_MedDRA_Mapping")
+            .queryParam("url", "http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping")
+            .queryParam("version", "July2021");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -267,11 +267,11 @@ class FhirR5ConceptMapReadSearchTests {
     // Test 4: Invalid name
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
-            .queryParam("_id", "ma_to_ncit_mapping_november2011")
+            .queryParam("_id", "icd10_to_meddra_mapping_july2021")
             // .queryParam("date", "2024-08")
             .queryParam("name", "Invalid_Name")
-            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-            .queryParam("version", "November2011");
+            .queryParam("url", "http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping")
+            .queryParam("version", "July2021");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -280,11 +280,11 @@ class FhirR5ConceptMapReadSearchTests {
     // Test 5: Invalid URL
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
-            .queryParam("_id", "ma_to_ncit_mapping_november2011")
+            .queryParam("_id", "icd10_to_meddra_mapping_july2021")
             // .queryParam("date", "2024-08")
-            .queryParam("name", "MA_to_NCIt_Mapping")
+            .queryParam("name", "ICD10_to_MedDRA_Mapping")
             .queryParam("url", "http://invalid.url")
-            .queryParam("version", "November2011");
+            .queryParam("version", "July2021");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -293,10 +293,10 @@ class FhirR5ConceptMapReadSearchTests {
     // Test 6: Invalid version
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
-            .queryParam("_id", "ma_to_ncit_mapping_november2011")
+            .queryParam("_id", "icd10_to_meddra_mapping_july2021")
             // .queryParam("date", "2024-08")
-            .queryParam("name", "MA_to_NCIt_Mapping")
-            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
+            .queryParam("name", "ICD10_to_MedDRA_Mapping")
+            .queryParam("url", "http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping")
             .queryParam("version", "invalid_version");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -317,10 +317,9 @@ class FhirR5ConceptMapReadSearchTests {
 
     if (expectResults) {
       assertFalse(conceptMaps.isEmpty());
-      final Set<String> ids = new HashSet<>(Set.of("ma_to_ncit_mapping_november2011"));
+      final Set<String> ids = new HashSet<>(Set.of("icd10_to_meddra_mapping_july2021"));
       final Set<String> urls =
-          new HashSet<>(
-              Set.of("http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping"));
+          new HashSet<>(Set.of("http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping"));
 
       for (Resource cm : conceptMaps) {
         log.info(" concept map = " + parser.encodeResourceToString(cm));
@@ -535,10 +534,10 @@ class FhirR5ConceptMapReadSearchTests {
     // Test 8: All parameters test (original test case)
     UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(endpoint)
-            .queryParam("_id", "ma_to_ncit_mapping_november2011")
-            .queryParam("name", "MA_to_NCIt_Mapping")
-            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-            .queryParam("version", "November2011");
+            .queryParam("_id", "icd10_to_meddra_mapping_july2021")
+            .queryParam("name", "ICD10_to_MedDRA_Mapping")
+            .queryParam("url", "http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping")
+            .queryParam("version", "July2021");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     Bundle allParamsData = parser.parseResource(Bundle.class, content);
@@ -789,10 +788,10 @@ class FhirR5ConceptMapReadSearchTests {
     // Test 1: All valid parameters
     UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(endpoint)
-            // .queryParam("_id", "ma_to_ncit_mapping_november2011")
-            .queryParam("name", "MA_to_NCIt_Mapping")
-            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-            .queryParam("version", "November2011");
+            // .queryParam("_id", "icd10_to_meddra_mapping_july2021")
+            .queryParam("name", "ICD10_to_MedDRA_Mapping")
+            .queryParam("url", "http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping")
+            .queryParam("version", "July2021");
 
     // Test successful case with all parameters
     String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -804,9 +803,9 @@ class FhirR5ConceptMapReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("date", "ge2030-01") // Future date
-            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-            .queryParam("version", "November2011")
-            .queryParam("name", "MA_to_NCIt_Mapping");
+            .queryParam("url", "http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping")
+            .queryParam("version", "July2021")
+            .queryParam("name", "ICD10_to_MedDRA_Mapping");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
@@ -815,10 +814,10 @@ class FhirR5ConceptMapReadSearchTests {
     // Test 3: Valid date
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
-            .queryParam("date", "2011-11-01")
-            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-            .queryParam("version", "November2011")
-            .queryParam("name", "MA_to_NCIt_Mapping");
+            .queryParam("date", "2021-07-01")
+            .queryParam("url", "http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping")
+            .queryParam("version", "July2021")
+            .queryParam("name", "ICD10_to_MedDRA_Mapping");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
@@ -828,9 +827,9 @@ class FhirR5ConceptMapReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("date", "ge2011-11-01")
-            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-            .queryParam("version", "November2011")
-            .queryParam("name", "MA_to_NCIt_Mapping");
+            .queryParam("url", "http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping")
+            .queryParam("version", "July2021")
+            .queryParam("name", "ICD10_to_MedDRA_Mapping");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
@@ -841,9 +840,9 @@ class FhirR5ConceptMapReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("date", "ge2011-11-01")
             .queryParam("date", "lt2030-08-01")
-            .queryParam("url", "http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping")
-            .queryParam("version", "November2011")
-            .queryParam("name", "MA_to_NCIt_Mapping");
+            .queryParam("url", "http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping")
+            .queryParam("version", "July2021")
+            .queryParam("name", "ICD10_to_MedDRA_Mapping");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
@@ -859,10 +858,9 @@ class FhirR5ConceptMapReadSearchTests {
 
     if (expectResults) {
       assertFalse(conceptMaps.isEmpty());
-      final Set<String> ids = new HashSet<>(Set.of("ma_to_ncit_mapping_november2011"));
+      final Set<String> ids = new HashSet<>(Set.of("icd10_to_meddra_mapping_july2021"));
       final Set<String> urls =
-          new HashSet<>(
-              Set.of("http://purl.obolibrary.org/obo/emap.owl?fhir_cm=MA_to_NCIt_Mapping"));
+          new HashSet<>(Set.of("http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping"));
 
       for (org.hl7.fhir.r5.model.Resource cm : conceptMaps) {
         log.info(" concept map = " + parser.encodeResourceToString(cm));
