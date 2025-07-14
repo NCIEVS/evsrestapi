@@ -22,7 +22,7 @@ if [ $help == 1 ] || [ ${#arr[@]} -ne 1 ]; then
 fi
 dir=${arr[0]}
 # Hardcode the history file
-historyFile=$dir/cumulative_history_21.06e.txt
+historyFile=$dir/NCIT/cumulative_history_25.06e.txt
 
 
 databases=("NCIT2" "CTRP")
@@ -85,13 +85,13 @@ if [[ $ct -le 20 ]]; then
 fi
 # Check NCIt weekly
 echo "    check NCIt weekly"
-if [[ ! -e "$dir/ThesaurusInferred_+1weekly.owl" ]]; then
+if [[ ! -e "$dir/NCIT/ThesaurusInferred_+1weekly.owl" ]]; then
     echo "ERROR: unexpectedly ThesaurusInferred_+1weekly.owl file"
     exit 1
 fi
 # Check NCIt monthly
 echo "    check NCIt monthly"
-if [[ ! -e "$dir/ThesaurusInferred_monthly.owl" ]]; then
+if [[ ! -e "$dir/NCIT/ThesaurusInferred_monthly.owl" ]]; then
     echo "ERROR: unexpectedly ThesaurusInferred_monthly.owl file"
     exit 1
 fi
