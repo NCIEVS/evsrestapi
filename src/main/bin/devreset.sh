@@ -290,9 +290,9 @@ load_terminology_data(){
 }
 
 load_data(){
-    load_terminology_data CTRP http://NCI_T_weekly ThesaurusInferred_+1weekly.owl
-    load_terminology_data CTRP http://NCI_T_monthly ThesaurusInferred_monthly.owl
-    load_terminology_data NCIT2 http://NCI_T_monthly ThesaurusInferred_monthly.owl
+    load_terminology_data CTRP http://NCI_T_weekly NCIT/ThesaurusInferred_+1weekly.owl
+    load_terminology_data CTRP http://NCI_T_monthly NCIT/ThesaurusInferred_monthly.owl
+    load_terminology_data NCIT2 http://NCI_T_monthly NCIT/ThesaurusInferred_monthly.owl
     load_terminology_data NCIT2 http://GO_monthly GO/GO.20250601.owl
     load_terminology_data NCIT2 http://HGNC_monthly HGNC/HGNC.202507.owl
     load_terminology_data NCIT2 http://ChEBI_monthly ChEBI/chebi_241.owl
