@@ -209,7 +209,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     Double taskSize = Math.ceil(total / INDEX_BATCH_SIZE);
 
     // build up a map of concept codes and names to use for history
-    if (historyMap.size() > 0) {
+    if (!historyMap.isEmpty()) {
 
       for (final Concept concept : allConcepts) {
         nameMap.put(concept.getCode(), concept.getName());
@@ -253,7 +253,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
                     }
                   }
                   // Collect maps for NCIt mapsets
-                  if (c.getMaps().size() > 0 && c.getActive()) {
+                  if (!c.getMaps().isEmpty() && c.getActive()) {
                     for (final Mapping map : c.getMaps()) {
                       final String mapterm = map.getTargetTerminology().split(" ")[0];
                       if (mapsets.containsKey(mapterm)) {
@@ -888,7 +888,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
 
       // Setup maps if this is a "monthly" version
       // Determine by checking against the graph db we are loading from
-      if (term.getTerminology() == "ncit"
+      if ("ncit".equals(term.getTerminology())
           && graphProperties.getDb().equals(term.getMetadata().getMonthlyDb())) {
 
         // setup mappings
@@ -937,7 +937,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     map.setActive(true);
     map.getProperties()
         .add(new Property("date", FhirUtility.convertToYYYYMMDD(terminology.getDate())));
-    map.getProperties().add(new Property("downloadOnly", "true"));
+    map.getProperties().add(new Property("downloadOnly", "false"));
     map.getProperties().add(new Property("mapsetLink", null));
     map.getProperties().add(new Property("loader", "AbstractGraphLoadServiceImpl"));
     return map;
