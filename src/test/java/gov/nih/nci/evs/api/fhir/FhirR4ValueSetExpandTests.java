@@ -227,7 +227,7 @@ public class FhirR4ValueSetExpandTests {
     assertEquals(activeOnly, ((BooleanType) paramMap.get("activeOnly")).getValue().booleanValue());
 
     // Verify no extraneous parameters are present - only the ones we sent should be returned
-    Set<String> expectedParamNames = Set.of("filter", "count", "includeDesignations", "activeOnly");
+    Set<String> expectedParamNames = Set.of("filter", "count", "includeDesignations", "activeOnly", "offset");
     Set<String> actualParamNames = paramMap.keySet();
     assertEquals(expectedParamNames, actualParamNames);
 
@@ -275,8 +275,8 @@ public class FhirR4ValueSetExpandTests {
 
     String parameters = "?url=" + url
             + "&filter=" + filter
-            + "&_count=" + count      // R4 instance uses _count
-            + "&_offset=" + offset    // R4 instance uses _offset
+            + "&count=" + count
+            + "&offset=" + offset
             + "&includeDesignations=" + includeDesignations
             + "&activeOnly=" + activeOnly;
 
@@ -301,7 +301,6 @@ public class FhirR4ValueSetExpandTests {
     assertTrue(paramMap.containsKey("filter"));
     assertEquals(filter, ((StringType) paramMap.get("filter")).getValue());
 
-    // Verify count parameter (should be stored as "count" in parameters, not "_count")
     assertTrue(paramMap.containsKey("count"));
     assertEquals(count, ((IntegerType) paramMap.get("count")).getValue().intValue());
 
@@ -314,7 +313,7 @@ public class FhirR4ValueSetExpandTests {
     assertEquals(activeOnly, ((BooleanType) paramMap.get("activeOnly")).getValue().booleanValue());
 
     // Verify no extraneous parameters are present
-    Set<String> expectedParamNames = Set.of("filter", "count", "includeDesignations", "activeOnly");
+    Set<String> expectedParamNames = Set.of("filter", "count", "includeDesignations", "activeOnly", "offset");
     Set<String> actualParamNames = paramMap.keySet();
     assertEquals(expectedParamNames, actualParamNames);
 
@@ -517,13 +516,11 @@ public class FhirR4ValueSetExpandTests {
     assertEquals("exception", component.getCode().toCode());
     assertTrue(component.getDiagnostics().contains("Supplied url " + invalidUrl + " doesn't match"));
 
-    // Test with valid URL and minimal parameters using _count (R4 specific)
-    parameters = "?url=" + validUrl + "&_count=1";
+    parameters = "?url=" + validUrl + "&count=1";
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     ValueSet valueSet = parser.parseResource(ValueSet.class, content);
 
     assertTrue(valueSet.hasExpansion());
-    // Should have count parameter in expansion (stored as "count" not "_count")
     assertTrue(valueSet.getExpansion().getParameter().stream().anyMatch(p ->
             p.getName().equals("count") &&
                     ((IntegerType) p.getValue()).getValue().intValue() == 1));
