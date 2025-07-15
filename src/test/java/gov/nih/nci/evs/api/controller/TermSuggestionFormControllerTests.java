@@ -38,6 +38,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -74,6 +76,9 @@ public class TermSuggestionFormControllerTests {
   /** The term suggestion form controller. */
   // create an instance of the controller and inject service
   @Autowired private TermSuggestionFormController termSuggestionFormController;
+
+  /** The mail sender. */
+  @Autowired private JavaMailSender mailSender;
 
   /** The request. */
   // mock request servlet
@@ -164,7 +169,7 @@ public class TermSuggestionFormControllerTests {
    *
    * @throws Exception exception
    */
-  //  @Test
+  @Test
   public void testSubmitForm() throws Exception {
     // SET UP - create our form data JsonNode
     final String formPath = "formSamples/submissionFormTest.json";
@@ -174,13 +179,23 @@ public class TermSuggestionFormControllerTests {
 
     // Mock the RecaptchaService to always return true for verifyRecaptcha
     when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
-    doNothing().when(termFormService).sendEmail(any(EmailDetails.class));
 
-    // ACT - stub the void method to do nothing when called
+    boolean smtpConfigured = hasSmtpConfig();
+
+    if (!smtpConfigured) {
+      // If no configuration, either not on local or not configured, so mock email sending
+      doNothing().when(termFormService).sendEmail(any(EmailDetails.class));
+    }
+
+    // ACT
     termSuggestionFormController.submitForm(formData, null, recaptchaToken);
 
     // ASSERT
-    verify(termFormService, times(1)).sendEmail(expectedEmailDetails);
+    if (smtpConfigured) {
+      // Check that no exception occurred (email actually sent)
+    } else {
+      verify(termFormService, times(1)).sendEmail(expectedEmailDetails);
+    }
   }
 
   /**
@@ -386,5 +401,20 @@ public class TermSuggestionFormControllerTests {
       // Set our expected response to the form from the formPath
       return mapper.readTree(input);
     }
+  }
+
+  private boolean hasSmtpConfig() {
+    if (!(mailSender instanceof JavaMailSenderImpl)) {
+      return false;
+    }
+    JavaMailSenderImpl impl = (JavaMailSenderImpl) mailSender;
+
+    return impl.getHost() != null
+        && impl.getPort() > 0
+        && impl.getUsername() != null
+        && impl.getPassword() != null
+        && !"false"
+            .equalsIgnoreCase(
+                impl.getJavaMailProperties().getProperty("mail.smtp.starttls.enable"));
   }
 }
