@@ -387,15 +387,26 @@ process_ncit() {
       if [[ $? -ne 0 ]]; then
           echo "ERROR: Failed to get latest terminology from http://localhost:${serverPort}/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
           cd - > /dev/null 2> /dev/null
+          if [[ serverPort -eq 8082 ]]; then
+              echo "  Setting default history version on local to 21.06e"
+              prev_version="21.06e"
+          else
+              echo "  Failed to find terminology version on non-local server, exiting"
+              return 1
+          fi
           return 1
       fi
       echo "  Response from API: $response"
 
-      if ! command -v jq &> /dev/null; then
-          echo "jq is not installed, using grep and perl as fallback"
-          prev_version=$(echo "$response" | grep '"version"' | perl -pe 's/.*"version":"//; s/".*//; ')
-      else
-          prev_version=$(echo "$response" | jq -r '.[] | .version')
+      if [[ -z "${prev_version}" ]]; then
+          echo "  prev_version is not set to a default, trying to parse response"
+          # Parse the response to get the previous version
+          if ! command -v jq &> /dev/null; then
+              echo "jq is not installed, using grep and perl as fallback"
+              prev_version=$(echo "$response" | grep '"version"' | perl -pe 's/.*"version":"//; s/".*//; ')
+          else
+              prev_version=$(echo "$response" | jq -r '.[] | .version')
+          fi
       fi
       echo "  Previous monthly version of ncit: $prev_version"
             
@@ -545,6 +556,51 @@ for x in `cat /tmp/y.$$.txt`; do
         pv=$cv
         pt=$term
     fi
+done
+
+# Get all currently indexed terminologies
+all_indexes=$(curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices?h=index" | grep '^concept_' | cut -d' ' -f1)
+
+# Get all valid terminology keys from the currently loaded graph db triples
+valid_keys=$(cut -d'|' -f1,3 /tmp/y.$$.txt | while IFS='|' read -r version iri; do
+  term=$(get_terminology "$iri")
+
+  # Handle cases where version is actually a URI containing the real version
+  if [[ "$version" =~ chebi/([0-9]+)/ ]]; then
+    version_compact=${BASH_REMATCH[1]}
+  elif [[ "$version" =~ releases/([0-9]{4}-[0-9]{2}-[0-9]{2})/ ]]; then
+    version_compact=$(echo ${BASH_REMATCH[1]} | sed 's/-//g')
+  else
+    version_compact=$(echo "$version" | tr '[:upper:]' '[:lower:]' | sed 's/[.-]//g')
+  fi
+
+  echo "concept_${term}_${version_compact}"
+done)
+
+# combine ncim terms with known terminologies
+ncim_terms="MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V30 NCIM"
+for t in $ncim_terms; do
+  t_lc=$(echo "$t" | tr '[:upper:]' '[:lower:]')
+  valid_keys="$valid_keys
+concept_${t_lc}_"
+done
+
+echo "  Valid keys: $valid_keys"
+
+# Remove indexes not found in triple store
+echo "  Remove unused indexes"
+for idx in $all_indexes; do
+  keep=0
+  for v in $valid_keys; do
+    if [[ "$idx" == "$v"* ]]; then
+      keep=1
+      break
+    fi
+  done
+  if [[ $keep -eq 0 ]]; then
+    echo "      Removing unused index: $idx"
+    curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$idx" > /dev/null
+  fi
 done
 
 # Stale indexes are automatically cleaned up by the indexing process
