@@ -235,16 +235,15 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets with code params, download = true, mapsetLink = null, and include param maps +
-   * properties
+   * Test mapsets with code params, download = true, and include param maps + properties
    *
    * @throws Exception the exception
    */
   @Test
-  public void testMapsetsWithCodeDownloadTrueMapsetLinkNull() throws Exception {
+  public void testMapsetsWithCodeDownloadTrue() throws Exception {
     // Arrange
     String params = "maps,properties";
-    String terminology = "NCIt_Maps_To_GDC";
+    String terminology = "NCIT_TO_SWISSPROT";
 
     // Act
     MvcResult result =
@@ -273,7 +272,7 @@ public class MapsetControllerTests {
         singleMetadataMap.getProperties().stream()
             .anyMatch(
                 property ->
-                    property.getType().equals("mapsetLink") && property.getValue() == null));
+                    property.getType().equals("mapsetLink") && property.getValue() != null));
   }
 
   /**

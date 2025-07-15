@@ -1138,7 +1138,7 @@ public class SearchControllerTests {
         mvc.perform(
                 get(url)
                     .param("terminology", "ncit")
-                    .param("term", "Lymphoid")
+                    .param("term", "Refractory Hairy Cell Leukemia Variant")
                     .param("conceptStatus", "Provisional_Concept")
                     .param("include", "properties"))
             .andExpect(status().isOk())
