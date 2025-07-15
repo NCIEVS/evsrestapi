@@ -585,8 +585,6 @@ for t in $ncim_terms; do
 concept_${t_lc}_"
 done
 
-echo "  Valid keys: $valid_keys"
-
 # Remove indexes not found in triple store
 echo "  Remove unused indexes"
 for idx in $all_indexes; do
