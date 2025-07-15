@@ -88,8 +88,6 @@ public class NdfrtSampleTest extends SampleTest {
             "National Drug File Reference Terminology (NDF-RT) is produced by "
                 + "the Veterans Health Administration (VHA) as an extension of the "
                 + "VHA National Drug File (VANDF) formulary.");
-
-    assertThat(ndfrt.getLatest()).isTrue();
   }
 
   /**

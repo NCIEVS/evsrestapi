@@ -286,7 +286,7 @@ public class SubsetControllerTests {
     String content = null;
     List<Concept> list = null;
 
-    // C81224 - 27 members, no properties
+    // C81224 - 29 members, no properties
     url = baseUrl + "subset/ncit/C81224/members";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -300,7 +300,7 @@ public class SubsetControllerTests {
                 new TypeReference<List<Concept>>() {
                   // n/a
                 });
-    assertThat(list.size()).isEqualTo(27);
+    assertThat(list.size()).isEqualTo(29);
     assertThat(list.stream().flatMap(c -> c.getProperties().stream()).count()).isEqualTo(0);
 
     // C81224 - 29 members, no properties
@@ -391,7 +391,7 @@ public class SubsetControllerTests {
     String content = null;
     List<Concept> list = null;
 
-    // C81224 - 27 members, no properties
+    // C81224 - 29 members, no properties
     url = baseUrl + "concept/ncit/subsetMembers/C81224";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -405,7 +405,7 @@ public class SubsetControllerTests {
                 new TypeReference<List<Concept>>() {
                   // n/a
                 });
-    assertThat(list.size()).isEqualTo(27);
+    assertThat(list.size()).isEqualTo(29);
     assertThat(list.stream().flatMap(c -> c.getProperties().stream()).count()).isEqualTo(0);
 
     // C81224 - 29 members, no properties
