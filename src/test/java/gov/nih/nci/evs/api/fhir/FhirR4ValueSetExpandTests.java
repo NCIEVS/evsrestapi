@@ -10,10 +10,8 @@ import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
-
 import java.util.*;
 import java.util.stream.Collectors;
-
 import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r4.model.ValueSet.ConceptReferenceDesignationComponent;
@@ -186,12 +184,19 @@ public class FhirR4ValueSetExpandTests {
     boolean includeDesignations = true;
     boolean activeOnly = true;
 
-    String parameters = "?url=" + url
-            + "&filter=" + filter
-            + "&count=" + count
-            + "&offset=" + offset
-            + "&includeDesignations=" + includeDesignations
-            + "&activeOnly=" + activeOnly;
+    String parameters =
+        "?url="
+            + url
+            + "&filter="
+            + filter
+            + "&count="
+            + count
+            + "&offset="
+            + offset
+            + "&includeDesignations="
+            + includeDesignations
+            + "&activeOnly="
+            + activeOnly;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -202,7 +207,8 @@ public class FhirR4ValueSetExpandTests {
 
     // Verify expansion has parameters
     assertTrue(valueSet.getExpansion().hasParameter());
-    List<ValueSet.ValueSetExpansionParameterComponent> params = valueSet.getExpansion().getParameter();
+    List<ValueSet.ValueSetExpansionParameterComponent> params =
+        valueSet.getExpansion().getParameter();
 
     // Create a map for easier parameter lookup
     Map<String, Object> paramMap = new HashMap<>();
@@ -220,14 +226,17 @@ public class FhirR4ValueSetExpandTests {
 
     // Verify includeDesignations parameter
     assertTrue(paramMap.containsKey("includeDesignations"));
-    assertEquals(includeDesignations, ((BooleanType) paramMap.get("includeDesignations")).getValue().booleanValue());
+    assertEquals(
+        includeDesignations,
+        ((BooleanType) paramMap.get("includeDesignations")).getValue().booleanValue());
 
     // Verify activeOnly parameter
     assertTrue(paramMap.containsKey("activeOnly"));
     assertEquals(activeOnly, ((BooleanType) paramMap.get("activeOnly")).getValue().booleanValue());
 
     // Verify no extraneous parameters are present - only the ones we sent should be returned
-    Set<String> expectedParamNames = Set.of("filter", "count", "includeDesignations", "activeOnly", "offset");
+    Set<String> expectedParamNames =
+        Set.of("filter", "count", "includeDesignations", "activeOnly", "offset");
     Set<String> actualParamNames = paramMap.keySet();
     assertEquals(expectedParamNames, actualParamNames);
 
@@ -238,7 +247,8 @@ public class FhirR4ValueSetExpandTests {
 
     // Verify that contains components have the requested designations if data exists
     if (valueSet.getExpansion().hasContains()) {
-      ValueSet.ValueSetExpansionContainsComponent firstContains = valueSet.getExpansion().getContains().get(0);
+      ValueSet.ValueSetExpansionContainsComponent firstContains =
+          valueSet.getExpansion().getContains().get(0);
 
       // Check basic required fields
       assertNotNull(firstContains.getCode());
@@ -264,7 +274,7 @@ public class FhirR4ValueSetExpandTests {
     String activeID = "umlssemnet_2023aa";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     String endpoint =
-            localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
 
     // Test parameters for R4 instance method
     String filter = "Organism";
@@ -273,12 +283,19 @@ public class FhirR4ValueSetExpandTests {
     boolean includeDesignations = true;
     boolean activeOnly = true;
 
-    String parameters = "?url=" + url
-            + "&filter=" + filter
-            + "&count=" + count
-            + "&offset=" + offset
-            + "&includeDesignations=" + includeDesignations
-            + "&activeOnly=" + activeOnly;
+    String parameters =
+        "?url="
+            + url
+            + "&filter="
+            + filter
+            + "&count="
+            + count
+            + "&offset="
+            + offset
+            + "&includeDesignations="
+            + includeDesignations
+            + "&activeOnly="
+            + activeOnly;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -289,7 +306,8 @@ public class FhirR4ValueSetExpandTests {
 
     // Verify expansion has parameters
     assertTrue(valueSet.getExpansion().hasParameter());
-    List<ValueSet.ValueSetExpansionParameterComponent> params = valueSet.getExpansion().getParameter();
+    List<ValueSet.ValueSetExpansionParameterComponent> params =
+        valueSet.getExpansion().getParameter();
 
     // Create a map for easier parameter lookup
     Map<String, Object> paramMap = new HashMap<>();
@@ -306,14 +324,17 @@ public class FhirR4ValueSetExpandTests {
 
     // Verify includeDesignations parameter
     assertTrue(paramMap.containsKey("includeDesignations"));
-    assertEquals(includeDesignations, ((BooleanType) paramMap.get("includeDesignations")).getValue().booleanValue());
+    assertEquals(
+        includeDesignations,
+        ((BooleanType) paramMap.get("includeDesignations")).getValue().booleanValue());
 
     // Verify activeOnly parameter
     assertTrue(paramMap.containsKey("activeOnly"));
     assertEquals(activeOnly, ((BooleanType) paramMap.get("activeOnly")).getValue().booleanValue());
 
     // Verify no extraneous parameters are present
-    Set<String> expectedParamNames = Set.of("filter", "count", "includeDesignations", "activeOnly", "offset");
+    Set<String> expectedParamNames =
+        Set.of("filter", "count", "includeDesignations", "activeOnly", "offset");
     Set<String> actualParamNames = paramMap.keySet();
     assertEquals(expectedParamNames, actualParamNames);
 
@@ -324,7 +345,8 @@ public class FhirR4ValueSetExpandTests {
 
     // Verify that contains components have the requested designations if data exists
     if (valueSet.getExpansion().hasContains()) {
-      ValueSet.ValueSetExpansionContainsComponent firstContains = valueSet.getExpansion().getContains().get(0);
+      ValueSet.ValueSetExpansionContainsComponent firstContains =
+          valueSet.getExpansion().getContains().get(0);
 
       // Check basic required fields
       assertNotNull(firstContains.getCode());
@@ -348,20 +370,20 @@ public class FhirR4ValueSetExpandTests {
 
   @Test
   public void testValueSetExpandInstanceWithParametersNoUrl() throws Exception {
-    // Test the same parameters but without the url parameter (since it's optional in instance calls)
+    // Test the same parameters but without the url parameter (since it's optional in instance
+    // calls)
     String content;
     String activeID = "umlssemnet_2023aa";
     String endpoint =
-            localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
 
     // Test parameters without url
     String filter = "Organism";
     int count = 3;
     boolean includeDesignations = true;
 
-    String parameters = "?filter=" + filter
-            + "&count=" + count
-            + "&includeDesignations=" + includeDesignations;
+    String parameters =
+        "?filter=" + filter + "&count=" + count + "&includeDesignations=" + includeDesignations;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -372,26 +394,38 @@ public class FhirR4ValueSetExpandTests {
     assertTrue(valueSet.getExpansion().hasParameter());
 
     // Verify specific parameters are present
-    List<ValueSet.ValueSetExpansionParameterComponent> params = valueSet.getExpansion().getParameter();
+    List<ValueSet.ValueSetExpansionParameterComponent> params =
+        valueSet.getExpansion().getParameter();
 
     // Check that filter parameter is present
-    assertTrue(params.stream().anyMatch(p ->
-            p.getName().equals("filter") &&
-                    ((StringType) p.getValue()).getValue().equals(filter)));
+    assertTrue(
+        params.stream()
+            .anyMatch(
+                p ->
+                    p.getName().equals("filter")
+                        && ((StringType) p.getValue()).getValue().equals(filter)));
 
     // Check that count parameter is present
-    assertTrue(params.stream().anyMatch(p ->
-            p.getName().equals("count") &&
-                    ((IntegerType) p.getValue()).getValue().intValue() == count));
+    assertTrue(
+        params.stream()
+            .anyMatch(
+                p ->
+                    p.getName().equals("count")
+                        && ((IntegerType) p.getValue()).getValue().intValue() == count));
 
     // Check that includeDesignations parameter is present
-    assertTrue(params.stream().anyMatch(p ->
-            p.getName().equals("includeDesignations") &&
-                    ((BooleanType) p.getValue()).getValue().booleanValue() == includeDesignations));
+    assertTrue(
+        params.stream()
+            .anyMatch(
+                p ->
+                    p.getName().equals("includeDesignations")
+                        && ((BooleanType) p.getValue()).getValue().booleanValue()
+                            == includeDesignations));
 
     // Verify no extraneous parameters - only the ones we sent should be returned
     Set<String> expectedParamNames = Set.of("filter", "count", "includeDesignations");
-    Set<String> actualParamNames = params.stream()
+    Set<String> actualParamNames =
+        params.stream()
             .map(ValueSet.ValueSetExpansionParameterComponent::getName)
             .collect(Collectors.toSet());
     assertEquals(expectedParamNames, actualParamNames);
@@ -424,7 +458,8 @@ public class FhirR4ValueSetExpandTests {
     assertTrue(valueSet.hasExpansion());
     assertEquals(1, valueSet.getExpansion().getParameter().size());
     assertEquals("filter", valueSet.getExpansion().getParameter().get(0).getName());
-    assertEquals("test", ((StringType) valueSet.getExpansion().getParameter().get(0).getValue()).getValue());
+    assertEquals(
+        "test", ((StringType) valueSet.getExpansion().getParameter().get(0).getValue()).getValue());
 
     // Test 3: Multiple specific parameters - should return exactly those parameters
     parameters = "?url=" + url + "&includeDesignations=true&activeOnly=false";
@@ -435,18 +470,25 @@ public class FhirR4ValueSetExpandTests {
     assertEquals(2, valueSet.getExpansion().getParameter().size());
 
     Set<String> expectedParams = Set.of("includeDesignations", "activeOnly");
-    Set<String> actualParams = valueSet.getExpansion().getParameter().stream()
+    Set<String> actualParams =
+        valueSet.getExpansion().getParameter().stream()
             .map(ValueSet.ValueSetExpansionParameterComponent::getName)
             .collect(Collectors.toSet());
     assertEquals(expectedParams, actualParams);
 
     // Verify the values are correct
-    assertTrue(valueSet.getExpansion().getParameter().stream().anyMatch(p ->
-            p.getName().equals("includeDesignations") &&
-                    ((BooleanType) p.getValue()).getValue().booleanValue() == true));
-    assertTrue(valueSet.getExpansion().getParameter().stream().anyMatch(p ->
-            p.getName().equals("activeOnly") &&
-                    ((BooleanType) p.getValue()).getValue().booleanValue() == false));
+    assertTrue(
+        valueSet.getExpansion().getParameter().stream()
+            .anyMatch(
+                p ->
+                    p.getName().equals("includeDesignations")
+                        && ((BooleanType) p.getValue()).getValue().booleanValue() == true));
+    assertTrue(
+        valueSet.getExpansion().getParameter().stream()
+            .anyMatch(
+                p ->
+                    p.getName().equals("activeOnly")
+                        && ((BooleanType) p.getValue()).getValue().booleanValue() == false));
   }
 
   @Test
@@ -454,7 +496,7 @@ public class FhirR4ValueSetExpandTests {
     // Test that ensures only the parameters we send are returned, nothing extra
     String activeID = "umlssemnet_2023aa";
     String endpoint =
-            localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
 
     // Test 1: No parameters at all - should return empty parameter list
     String content = this.restTemplate.getForObject(endpoint, String.class);
@@ -472,7 +514,8 @@ public class FhirR4ValueSetExpandTests {
     assertTrue(valueSet.hasExpansion());
     assertEquals(1, valueSet.getExpansion().getParameter().size());
     assertEquals("filter", valueSet.getExpansion().getParameter().get(0).getName());
-    assertEquals("test", ((StringType) valueSet.getExpansion().getParameter().get(0).getValue()).getValue());
+    assertEquals(
+        "test", ((StringType) valueSet.getExpansion().getParameter().get(0).getValue()).getValue());
 
     // Test 3: Multiple specific parameters - should return exactly those parameters
     parameters = "?includeDesignations=true&activeOnly=false";
@@ -483,18 +526,25 @@ public class FhirR4ValueSetExpandTests {
     assertEquals(2, valueSet.getExpansion().getParameter().size());
 
     Set<String> expectedParams = Set.of("includeDesignations", "activeOnly");
-    Set<String> actualParams = valueSet.getExpansion().getParameter().stream()
+    Set<String> actualParams =
+        valueSet.getExpansion().getParameter().stream()
             .map(ValueSet.ValueSetExpansionParameterComponent::getName)
             .collect(Collectors.toSet());
     assertEquals(expectedParams, actualParams);
 
     // Verify the values are correct
-    assertTrue(valueSet.getExpansion().getParameter().stream().anyMatch(p ->
-            p.getName().equals("includeDesignations") &&
-                    ((BooleanType) p.getValue()).getValue().booleanValue() == true));
-    assertTrue(valueSet.getExpansion().getParameter().stream().anyMatch(p ->
-            p.getName().equals("activeOnly") &&
-                    ((BooleanType) p.getValue()).getValue().booleanValue() == false));
+    assertTrue(
+        valueSet.getExpansion().getParameter().stream()
+            .anyMatch(
+                p ->
+                    p.getName().equals("includeDesignations")
+                        && ((BooleanType) p.getValue()).getValue().booleanValue() == true));
+    assertTrue(
+        valueSet.getExpansion().getParameter().stream()
+            .anyMatch(
+                p ->
+                    p.getName().equals("activeOnly")
+                        && ((BooleanType) p.getValue()).getValue().booleanValue() == false));
   }
 
   @Test
@@ -504,7 +554,7 @@ public class FhirR4ValueSetExpandTests {
     String validUrl = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     String invalidUrl = "invalid_url";
     String endpoint =
-            localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
 
     // Test with mismatched URL (should return error)
     String parameters = "?url=" + invalidUrl;
@@ -514,24 +564,30 @@ public class FhirR4ValueSetExpandTests {
     OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     assertEquals("exception", component.getCode().toCode());
-    assertTrue(component.getDiagnostics().contains("Supplied url " + invalidUrl + " doesn't match"));
+    assertTrue(
+        component.getDiagnostics().contains("Supplied url " + invalidUrl + " doesn't match"));
 
     parameters = "?url=" + validUrl + "&count=1";
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     ValueSet valueSet = parser.parseResource(ValueSet.class, content);
 
     assertTrue(valueSet.hasExpansion());
-    assertTrue(valueSet.getExpansion().getParameter().stream().anyMatch(p ->
-            p.getName().equals("count") &&
-                    ((IntegerType) p.getValue()).getValue().intValue() == 1));
+    assertTrue(
+        valueSet.getExpansion().getParameter().stream()
+            .anyMatch(
+                p ->
+                    p.getName().equals("count")
+                        && ((IntegerType) p.getValue()).getValue().intValue() == 1));
 
     // Verify no extraneous parameters - only count should be returned since that's all we sent
     Set<String> expectedParamNames = Set.of("count");
-    Set<String> actualParamNames = valueSet.getExpansion().getParameter().stream()
+    Set<String> actualParamNames =
+        valueSet.getExpansion().getParameter().stream()
             .map(ValueSet.ValueSetExpansionParameterComponent::getName)
             .collect(Collectors.toSet());
     assertEquals(expectedParamNames, actualParamNames);
   }
+
   /**
    * Test value set expand implicit parameter not supported.
    *
