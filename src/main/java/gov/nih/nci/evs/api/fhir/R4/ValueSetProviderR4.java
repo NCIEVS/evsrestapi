@@ -114,8 +114,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       // @OperationParam(name = "contextDirection") final CodeType contextDirection,
       @OperationParam(name = "filter") final StringType filter,
       // @OperationParam(name = "date") final DateTimeType date,
-      @OperationParam(name = "offset") final IntegerType offset,
-      @OperationParam(name = "count") final IntegerType count,
+      @ca.uhn.fhir.rest.annotation.Offset final Integer offset,
+      @ca.uhn.fhir.rest.annotation.Count final Integer count,
       @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
       // @OperationParam(name = "designation") final StringType designation,
       // @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
@@ -219,8 +219,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
         final List<Terminology> terminologies = new ArrayList<>();
         terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true));
         final SearchCriteria sc = new SearchCriteria();
-        sc.setPageSize(count != null ? count.getValue() : 10);
-        sc.setFromRecord(offset != null ? offset.getValue() : 0);
+        sc.setPageSize(count != null ? count : 10);
+        sc.setFromRecord(offset != null ? offset : 0);
         sc.setTerm(filter != null ? filter.getValue() : null);
         sc.setType("contains");
         sc.setTerminology(
@@ -235,7 +235,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       }
       ValueSetExpansionParameterComponent vsParameter;
       vsExpansion.setTimestamp(new Date());
-      vsExpansion.setOffset(offset != null ? offset.getValue() : 0);
+      vsExpansion.setOffset(offset != null ? offset : 0);
       if (subsetMembers.size() > 0) {
         for (final Concept member : subsetMembers) {
           if (activeOnly != null && activeOnly.getValue() && !member.getActive()) {
@@ -274,7 +274,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         if (count != null) {
           vsParameter = new ValueSetExpansionParameterComponent();
           vsParameter.setName("count");
-          vsParameter.setValue(count);
+          vsParameter.setValue(new IntegerType(count));
           vsExpansion.addParameter(vsParameter);
         }
 
