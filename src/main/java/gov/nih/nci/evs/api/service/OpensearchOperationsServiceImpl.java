@@ -19,6 +19,7 @@ import org.springframework.data.elasticsearch.core.query.BulkOptions;
 import org.springframework.data.elasticsearch.core.query.DeleteQuery;
 import org.springframework.data.elasticsearch.core.query.IndexQuery;
 import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
+import org.springframework.data.elasticsearch.core.query.UpdateQuery;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
 
@@ -130,6 +131,17 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
     IndexQuery query = new IndexQueryBuilder().withObject(clazz.cast(object)).build();
 
     operations.index(query, IndexCoordinates.of(index));
+  }
+
+  public void update(
+      String id, Object object, String index, @SuppressWarnings("rawtypes") Class clazz)
+      throws IOException {
+    UpdateQuery query =
+        UpdateQuery.builder(id)
+            .withDocument(operations.getElasticsearchConverter().mapObject(object))
+            .build();
+
+    operations.update(query, IndexCoordinates.of(index));
   }
 
   /* see superclass */
