@@ -79,6 +79,18 @@ public interface OpensearchOperationsService {
       throws IOException;
 
   /**
+   * update object.
+   *
+   * @param id the id of the object
+   * @param object the object
+   * @param index the index name
+   * @param clazz the clazz
+   * @throws IOException the io exception
+   */
+  void update(String id, Object object, String index, @SuppressWarnings("rawtypes") Class clazz)
+      throws IOException;
+
+  /**
    * load metrics.
    *
    * @param metric the metric to load

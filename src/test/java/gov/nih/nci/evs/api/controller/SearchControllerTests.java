@@ -12,11 +12,17 @@ import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.MapResultList;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Synonym;
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.service.OpensearchOperationsService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
+import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -55,6 +61,15 @@ public class SearchControllerTests {
 
   /** The application properties. */
   @Autowired ApplicationProperties appProperties;
+
+  /** The Opensearch operations service instance *. */
+  @Autowired OpensearchOperationsService opensearchOperationsService;
+
+  /** The Opensearch wuery service instance *. */
+  @Autowired OpensearchQueryService opensearchQueryService;
+
+  /** The terminology utils. */
+  @Autowired TerminologyUtils terminologyUtils;
 
   /** The base url. */
   private String baseUrl = "";
@@ -2097,6 +2112,27 @@ public class SearchControllerTests {
       log.info(conc.getName());
     }
     assertTrue(conceptList.get(0).getName().equalsIgnoreCase("malignant neoplasm"));
+
+    log.info("Testing url - " + url + "?include=minimal&term=childhood%20neoplasm&type=startsWith");
+    result =
+        mvc.perform(
+                get(url)
+                    .param("terminology", "ncit")
+                    .param("term", "childhood neoplasm")
+                    .param("type", "startsWith")
+                    .param("pageSize", "100")
+                    .param("fromRecord", "0")
+                    .param("include", "minimal"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    for (Concept conc : conceptList) {
+      log.info(conc.getName());
+    }
+    assertTrue(conceptList.get(0).getName().equalsIgnoreCase("childhood neoplasm"));
   }
 
   /**
@@ -4302,6 +4338,46 @@ public class SearchControllerTests {
                 .param("prefixes", "true"))
         .andExpect(status().isOk())
         .andReturn();
+  }
+
+  @Test
+  public void testAddConceptAndUpdate() throws Exception {
+    Terminology term =
+        terminologyUtils.getIndexedTerminology("ncit", opensearchQueryService, false);
+    opensearchOperationsService.deleteQuery("code:C999999", term.getIndexName());
+
+    Thread.sleep(2000);
+
+    Concept tempConcept = new Concept();
+    tempConcept.setCode("C999999");
+    tempConcept.setName("Test Concept");
+    tempConcept.setNormName(ConceptUtils.normalize(tempConcept.getName()));
+    tempConcept.setStemName(ConceptUtils.normalizeWithStemming(tempConcept.getName()));
+    Synonym syn = new Synonym();
+    syn.setName("Test Synonym");
+    syn.setNormName(ConceptUtils.normalize(syn.getName()));
+    tempConcept.getSynonyms().add(syn);
+    opensearchOperationsService.index(tempConcept, term.getIndexName(), Concept.class);
+
+    log.info("Added concept C999999 to index");
+
+    Thread.sleep(2000);
+
+    IncludeParam ip = new IncludeParam("*");
+    tempConcept = opensearchQueryService.getConcept(tempConcept.getCode(), term, ip).get();
+    assertThat(tempConcept).isNotNull();
+    log.info(tempConcept.toString());
+    tempConcept.setTerminology("ncit");
+    opensearchOperationsService.update(
+        tempConcept.getCode(), tempConcept, term.getIndexName(), Concept.class);
+
+    log.info("Updated concept C999999 to index");
+
+    Thread.sleep(2000);
+
+    tempConcept = opensearchQueryService.getConcept(tempConcept.getCode(), term, ip).get();
+    assertThat(tempConcept).isNotNull();
+    assertThat(tempConcept.getTerminology()).isEqualTo("ncit");
   }
 
   /**
