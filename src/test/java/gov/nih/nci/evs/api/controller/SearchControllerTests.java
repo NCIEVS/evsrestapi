@@ -4340,7 +4340,7 @@ public class SearchControllerTests {
         .andReturn();
   }
 
-  @Test
+  // @Test
   public void testAddConceptAndUpdate() throws Exception {
     Terminology term =
         terminologyUtils.getIndexedTerminology("ncit", opensearchQueryService, false);

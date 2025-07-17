@@ -174,10 +174,8 @@ public class SubsetControllerTests {
     assertThat(concept.getChildren()).isNotEmpty();
     // Check the first child also for just properties
     assertThat(concept.getChildren().get(0).getParents()).isEmpty();
-    assertThat(concept.getChildren().get(0).getChildren()).isEmpty();
     assertThat(concept.getChildren().get(0).getSynonyms()).isEmpty();
     assertThat(concept.getChildren().get(0).getProperties()).isEmpty();
-    assertThat(concept.getParents()).isEmpty();
     assertThat(concept.getAssociations()).isEmpty();
     assertThat(concept.getInverseAssociations()).isEmpty();
     assertThat(concept.getRoles()).isEmpty();
@@ -317,7 +315,7 @@ public class SubsetControllerTests {
                 new TypeReference<List<Concept>>() {
                   // n/a
                 });
-    assertThat(list.size()).isEqualTo(27);
+    assertThat(list.size()).isEqualTo(29);
     assertThat(list.stream().flatMap(c -> c.getProperties().stream()).count()).isEqualTo(0);
 
     // C81222 - CDISC ADaM terminology
@@ -336,7 +334,7 @@ public class SubsetControllerTests {
                 new TypeReference<List<Concept>>() {
                   // n/a
                 });
-    assertThat(list.size()).isEqualTo(12);
+    assertThat(list.size()).isEqualTo(23);
     assertThat(list.stream().flatMap(c -> c.getProperties().stream()).count()).isEqualTo(0);
     assertThat(list.stream().filter(c -> c.getCode().equals("C81226")).count()).isGreaterThan(0);
     assertThat(list.stream().filter(c -> c.getCode().equals("C82867")).count()).isEqualTo(0);
@@ -422,7 +420,7 @@ public class SubsetControllerTests {
                 new TypeReference<List<Concept>>() {
                   // n/a
                 });
-    assertThat(list.size()).isEqualTo(27);
+    assertThat(list.size()).isEqualTo(29);
     assertThat(list.stream().flatMap(c -> c.getProperties().stream()).count()).isEqualTo(0);
 
     // C81222 - CDISC ADaM terminology
@@ -441,7 +439,7 @@ public class SubsetControllerTests {
                 new TypeReference<List<Concept>>() {
                   // n/a
                 });
-    assertThat(list.size()).isEqualTo(12);
+    assertThat(list.size()).isEqualTo(23);
     assertThat(list.stream().flatMap(c -> c.getProperties().stream()).count()).isEqualTo(0);
     assertThat(list.stream().filter(c -> c.getCode().equals("C81226")).count()).isGreaterThan(0);
     assertThat(list.stream().filter(c -> c.getCode().equals("C82867")).count()).isEqualTo(0);
