@@ -4344,7 +4344,6 @@ public class SearchControllerTests {
   public void testAddConceptAndUpdate() throws Exception {
     Terminology term =
         terminologyUtils.getIndexedTerminology("ncit", opensearchQueryService, false);
-    opensearchOperationsService.deleteQuery("code:C999999", term.getIndexName());
 
     Thread.sleep(2000);
 
@@ -4378,6 +4377,8 @@ public class SearchControllerTests {
     tempConcept = opensearchQueryService.getConcept(tempConcept.getCode(), term, ip).get();
     assertThat(tempConcept).isNotNull();
     assertThat(tempConcept.getTerminology()).isEqualTo("ncit");
+
+    opensearchOperationsService.deleteQuery("code:C999999", term.getIndexName());
   }
 
   /**
