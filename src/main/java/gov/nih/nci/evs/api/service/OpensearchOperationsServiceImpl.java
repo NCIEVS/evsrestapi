@@ -3,8 +3,6 @@ package gov.nih.nci.evs.api.service;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Metric;
-import gov.nih.nci.evs.api.model.Synonym;
-import gov.nih.nci.evs.api.util.ConceptUtils;
 import java.io.IOException;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -141,11 +139,12 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
   public void update(
       String id, Object object, String index, @SuppressWarnings("rawtypes") Class clazz)
       throws IOException {
-    // keep synonym.normname
+    // don't lose @WriteOnlyProperty on update
     if (object instanceof Concept concept) {
-      for (Synonym s : concept.getSynonyms()) {
-        s.setNormName(ConceptUtils.normalize(s.getName()));
-      }
+      concept.setSynonyms(null);
+      concept.setDefinitions(null);
+      concept.setProperties(null);
+      concept.setQualifiers(null);
     }
 
     // don't let update add empty lists
