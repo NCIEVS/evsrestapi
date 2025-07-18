@@ -1,8 +1,10 @@
 package gov.nih.nci.evs.api.service;
 
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Metric;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -14,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.elasticsearch.core.RefreshPolicy;
+import org.springframework.data.elasticsearch.core.document.Document;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.BulkOptions;
 import org.springframework.data.elasticsearch.core.query.DeleteQuery;
@@ -133,15 +136,36 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
     operations.index(query, IndexCoordinates.of(index));
   }
 
+  @Override
   public void update(
       String id, Object object, String index, @SuppressWarnings("rawtypes") Class clazz)
       throws IOException {
-    UpdateQuery query =
-        UpdateQuery.builder(id)
-            .withDocument(operations.getElasticsearchConverter().mapObject(object))
-            .build();
+    // don't lose @WriteOnlyProperty on update
+    if (object instanceof Concept concept) {
+      concept.setSynonyms(null);
+      concept.setDefinitions(null);
+    }
+
+    // don't let update add empty lists
+    nullifyEmptyLists(object);
+    Document doc = operations.getElasticsearchConverter().mapObject(object);
+
+    UpdateQuery query = UpdateQuery.builder(id).withDocument(doc).build();
 
     operations.update(query, IndexCoordinates.of(index));
+  }
+
+  private void nullifyEmptyLists(Object obj) {
+    for (Field field : obj.getClass().getDeclaredFields()) {
+      field.setAccessible(true);
+      try {
+        Object value = field.get(obj);
+        if (value instanceof List && ((List<?>) value).isEmpty()) {
+          field.set(obj, null);
+        }
+      } catch (IllegalAccessException ignored) {
+      }
+    }
   }
 
   /* see superclass */

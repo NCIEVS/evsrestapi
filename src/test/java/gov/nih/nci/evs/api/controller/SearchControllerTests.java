@@ -4374,10 +4374,17 @@ public class SearchControllerTests {
     tempConcept.setName("Test Concept");
     tempConcept.setNormName(ConceptUtils.normalize(tempConcept.getName()));
     tempConcept.setStemName(ConceptUtils.normalizeWithStemming(tempConcept.getName()));
+
     Synonym syn = new Synonym();
     syn.setName("Test Synonym");
     syn.setNormName(ConceptUtils.normalize(syn.getName()));
     tempConcept.getSynonyms().add(syn);
+
+    Definition def = new Definition();
+    def.setDefinition("Test Definition");
+    def.setCode("TestDefinitionCode");
+    def.setSource("TestSource");
+    tempConcept.getDefinitions().add(def);
     opensearchOperationsService.index(tempConcept, term.getIndexName(), Concept.class);
 
     log.info("Added concept C999999 to index");
@@ -4398,6 +4405,7 @@ public class SearchControllerTests {
 
     tempConcept = opensearchQueryService.getConcept(tempConcept.getCode(), term, ip).get();
     assertThat(tempConcept).isNotNull();
+    assertThat(tempConcept.getSynonyms()).isNotNull();
     assertThat(tempConcept.getTerminology()).isEqualTo("ncit");
   }
 
