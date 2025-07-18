@@ -136,6 +136,7 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
     operations.index(query, IndexCoordinates.of(index));
   }
 
+  @Override
   public void update(
       String id, Object object, String index, @SuppressWarnings("rawtypes") Class clazz)
       throws IOException {
@@ -143,8 +144,6 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
     if (object instanceof Concept concept) {
       concept.setSynonyms(null);
       concept.setDefinitions(null);
-      concept.setProperties(null);
-      concept.setQualifiers(null);
     }
 
     // don't let update add empty lists
