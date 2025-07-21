@@ -358,7 +358,7 @@ download_and_unpack() {
     done
 }
 
-process_ncit() {
+download_ncit_history() {
   # Prep dir
   /bin/rm -rf $DIR/NCIT_HISTORY
   mkdir $DIR/NCIT_HISTORY
@@ -449,8 +449,8 @@ for x in `cat /tmp/y.$$.txt`; do
 
     # Otherwise, download if ncit
     elif [[ "$term" == "ncit" ]]; then
-        process_ncit
-	  fi
+        download_ncit_history
+	fi
 	
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
 
@@ -484,7 +484,7 @@ for x in `cat /tmp/y.$$.txt`; do
     # Set the history clause for "ncit"
     historyClause=""
     if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
-      historyClause=" -history $historyFile"
+      historyClause=" -d $historyFile"
     fi
     
     if [[ $exists -eq 0 ]] || [[ $force -eq 1 ]]; then

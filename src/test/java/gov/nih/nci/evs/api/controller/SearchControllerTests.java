@@ -2071,6 +2071,27 @@ public class SearchControllerTests {
     conceptList = list.getConcepts();
     assertTrue(conceptList.get(0).getName().equalsIgnoreCase("cold"));
 
+    log.info("Testing url - " + url + "?include=minimal&term=childhood%20neoplasm&type=startsWith");
+    result =
+        mvc.perform(
+                get(url)
+                    .param("terminology", "ncit")
+                    .param("term", "childhood neoplasm")
+                    .param("type", "startsWith")
+                    .param("pageSize", "100")
+                    .param("fromRecord", "0")
+                    .param("include", "minimal"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    content = result.getResponse().getContentAsString();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    for (Concept conc : conceptList) {
+      log.info(conc.getName());
+    }
+    assertTrue(conceptList.get(0).getName().equalsIgnoreCase("childhood neoplasm"));
+
     log.info("Testing url - " + url + "?include=minimal&term=malignant%20neoplasm&type=startsWith");
     result =
         mvc.perform(
@@ -4383,9 +4404,9 @@ public class SearchControllerTests {
 
     tempConcept = opensearchQueryService.getConcept(tempConcept.getCode(), term, ip).get();
     assertThat(tempConcept).isNotNull();
+    assertThat(tempConcept.getSynonyms()).isNotNull();
     assertThat(tempConcept.getTerminology()).isEqualTo("ncit");
     assertThat(tempConcept.getSynonyms()).isNotNull();
-
     opensearchOperationsService.deleteQuery("code:C999999", term.getIndexName());
   }
 
