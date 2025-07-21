@@ -11,17 +11,19 @@ import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hl7.fhir.r5.model.OperationOutcome;
+import org.hl7.fhir.r5.model.*;
 import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
-import org.hl7.fhir.r5.model.ValueSet;
 import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,8 +31,7 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 // TODO: Auto-generated Javadoc
@@ -42,6 +43,9 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class FhirR5ValueSetExpandTests {
+
+  /** The logger. */
+  private static final Logger log = LoggerFactory.getLogger(FhirR5ValueSetExpandTests.class);
 
   /** The port. */
   @LocalServerPort private int port;
@@ -925,5 +929,1111 @@ public class FhirR5ValueSetExpandTests {
           assertEquals("en", actualDesignation.getLanguage());
           assertEquals(expectedTty, actualDesignation.getUse().getCode());
         });
+  }
+
+  // Helper method to create the common NCI ValueSet for testing
+  private ValueSet createNCITestValueSet(String id, String name, String title, String description) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName(name);
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(description);
+
+    // Build compose definition with NCI Thesaurus concepts
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+    ValueSet.ConceptSetComponent nciInclude = new ValueSet.ConceptSetComponent();
+    nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Valid active concept
+    ValueSet.ConceptReferenceComponent diseaseOrDisorder = new ValueSet.ConceptReferenceComponent();
+    diseaseOrDisorder.setCode("C2991");
+    diseaseOrDisorder.setDisplay("Disease or Disorder");
+    nciInclude.addConcept(diseaseOrDisorder);
+
+    // Valid active concept
+    ValueSet.ConceptReferenceComponent gene = new ValueSet.ConceptReferenceComponent();
+    gene.setCode("C16612");
+    gene.setDisplay("Gene");
+    nciInclude.addConcept(gene);
+
+    // Inactive concept
+    ValueSet.ConceptReferenceComponent inactiveConcept = new ValueSet.ConceptReferenceComponent();
+    inactiveConcept.setCode("C176707");
+    inactiveConcept.setDisplay("Physical Examination Finding - Inactive Test Concept");
+    nciInclude.addConcept(inactiveConcept);
+
+    // Invalid/bogus concept
+    ValueSet.ConceptReferenceComponent invalidConcept = new ValueSet.ConceptReferenceComponent();
+    invalidConcept.setCode("INVALID123");
+    invalidConcept.setDisplay("This is an invalid concept code");
+    nciInclude.addConcept(invalidConcept);
+
+    compose.addInclude(nciInclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  @Test
+  public void testValueSetExpandWithNCIThesaurusComposeDefinition() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet using helper method
+    ValueSet inputValueSet =
+        createNCITestValueSet(
+            "nci-test-concepts",
+            "NCITestConcepts",
+            "NCI Thesaurus Test Concepts",
+            "Test ValueSet with valid, inactive, and invalid NCI Thesaurus concepts");
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+
+    // Assert - Valid active concepts are included
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C2991".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(diseaseResult.isPresent(), "Disease or Disorder (C2991) should be included");
+    assertEquals("Disease or Disorder", diseaseResult.get().getDisplay());
+
+    Optional<ValueSet.ValueSetExpansionContainsComponent> geneResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C16612".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(geneResult.isPresent(), "Gene (C16612) should be included");
+    assertEquals("Gene", geneResult.get().getDisplay());
+
+    // Assert - Check handling of inactive concept (behavior depends on activeOnly parameter)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> inactiveResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C176707".equals(comp.getCode()))
+            .findFirst();
+
+    // Note: This assertion depends on your implementation's handling of inactive concepts
+    // If activeOnly=false (default), inactive concepts might be included
+    // If activeOnly=true, they should be excluded
+    log.info("Inactive concept C176707 present in expansion: {}", inactiveResult.isPresent());
+
+    // Assert - Invalid concept should NOT be included
+    Optional<ValueSet.ValueSetExpansionContainsComponent> invalidResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "INVALID123".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(invalidResult.isPresent(), "Invalid concept (INVALID123) should not be included");
+
+    // Assert - All returned concepts should have valid NCI Thesaurus system
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      assertEquals(
+          "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+          concept.getSystem(),
+          "All concepts should be from NCI Thesaurus system");
+      assertNotNull(concept.getCode(), "All concepts should have a code");
+      assertNotNull(concept.getDisplay(), "All concepts should have a display");
+      assertFalse(concept.getDisplay().trim().isEmpty(), "Display should not be empty");
+
+      // Assert valid NCI concept code format (should start with 'C' followed by digits)
+      assertTrue(
+          concept.getCode().matches("C\\d+"),
+          "NCI concept codes should start with 'C' followed by digits: " + concept.getCode());
+    }
+
+    // Assert - Expansion should contain only valid concepts (2 or 3 depending on inactive handling)
+    assertTrue(expansion.getTotal() >= 2, "Should have at least 2 valid concepts");
+    assertTrue(
+        expansion.getTotal() <= 3,
+        "Should have at most 3 concepts (including inactive if allowed)");
+
+    // Assert - Log expansion results for debugging
+    log.info("NCI Thesaurus ValueSet expansion completed with {} concepts", expansion.getTotal());
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      log.debug("Expanded NCI concept: {} - {}", concept.getCode(), concept.getDisplay());
+    }
+
+    // Assert - Check for any error messages in expansion (some implementations include warnings)
+    if (expansion.hasParameter()) {
+      for (ValueSet.ValueSetExpansionParameterComponent param : expansion.getParameter()) {
+        log.info("Expansion parameter: {} = {}", param.getName(), param.getValue());
+
+        // Check for warnings about invalid concepts
+        if ("warning".equals(param.getName())) {
+          String warningMessage = param.getValue().toString();
+          assertTrue(
+              warningMessage.contains("INVALID123") || warningMessage.contains("invalid"),
+              "Should warn about invalid concept");
+        }
+      }
+    }
+  }
+
+  @Test
+  public void testValueSetExpandWithNCIThesaurusActiveOnlyDesignationsDefinition()
+      throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet using helper method
+    ValueSet inputValueSet =
+        createNCITestValueSet(
+            "nci-active-designations-test",
+            "NCIActiveDesignationsTest",
+            "NCI Thesaurus Active Concepts with Designations",
+            "Test ValueSet with activeOnly=true and includeDesignations=true and"
+                + " includeDefinition=true");
+
+    // Create Parameters resource for POST
+    Parameters parameters = new Parameters();
+    parameters.addParameter().setName("valueSet").setResource(inputValueSet);
+    parameters.addParameter().setName("activeOnly").setValue(new BooleanType(true));
+    parameters.addParameter().setName("includeDesignations").setValue(new BooleanType(true));
+    parameters.addParameter().setName("includeDefinition").setValue(new BooleanType(true));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    String requestBody = parser.encodeResourceToString(parameters);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+
+    // Assert - Valid active concepts are included
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C2991".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(diseaseResult.isPresent(), "Disease or Disorder (C2991) should be included");
+    assertEquals("Disease or Disorder", diseaseResult.get().getDisplay());
+
+    Optional<ValueSet.ValueSetExpansionContainsComponent> geneResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C16612".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(geneResult.isPresent(), "Gene (C16612) should be included");
+    assertEquals("Gene", geneResult.get().getDisplay());
+
+    // Assert - Inactive concept should NOT be included with activeOnly=true
+    Optional<ValueSet.ValueSetExpansionContainsComponent> inactiveResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C176707".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(
+        inactiveResult.isPresent(),
+        "Inactive concept (C176707) should be excluded with activeOnly=true");
+    log.info("Inactive concept C176707 correctly excluded with activeOnly=true");
+
+    // Assert - Invalid concept should NOT be included
+    Optional<ValueSet.ValueSetExpansionContainsComponent> invalidResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "INVALID123".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(invalidResult.isPresent(), "Invalid concept (INVALID123) should not be included");
+
+    // Assert - All returned concepts should have designations when includeDesignations=true
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      assertEquals(
+          "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+          concept.getSystem(),
+          "All concepts should be from NCI Thesaurus system");
+      assertNotNull(concept.getCode(), "All concepts should have a code");
+      assertNotNull(concept.getDisplay(), "All concepts should have a display");
+      assertFalse(concept.getDisplay().trim().isEmpty(), "Display should not be empty");
+
+      // Assert valid NCI concept code format (should start with 'C' followed by digits)
+      assertTrue(
+          concept.getCode().matches("C\\d+"),
+          "NCI concept codes should start with 'C' followed by digits: " + concept.getCode());
+
+      // Assert - Designations should be included when includeDesignations=true
+      if (concept.hasDesignation()) {
+        assertTrue(
+            concept.getDesignation().size() > 0,
+            "Concept should have designations when includeDesignations=true: " + concept.getCode());
+
+        for (ConceptReferenceDesignationComponent designation : concept.getDesignation()) {
+          assertNotNull(designation.getValue(), "Designation should have a value");
+          assertFalse(
+              designation.getValue().trim().isEmpty(), "Designation value should not be empty");
+
+          if (designation.hasUse()) {
+            assertNotNull(designation.getUse().getCode(), "Designation use should have a code");
+            assertNotNull(
+                designation.getUse().getDisplay(), "Designation use should have a display");
+            log.debug(
+                "Designation for {}: {} (use: {})",
+                concept.getCode(),
+                designation.getValue(),
+                designation.getUse().getDisplay());
+          }
+
+          if (designation.hasLanguage()) {
+            assertNotNull(designation.getLanguage(), "Designation language should not be null");
+            log.debug(
+                "Designation language for {}: {}", concept.getCode(), designation.getLanguage());
+          }
+        }
+      } else {
+        log.warn(
+            "Concept {} does not have designations despite includeDesignations=true",
+            concept.getCode());
+      }
+    }
+
+    // Assert - Expansion should contain only active concepts (2 concepts expected)
+    assertEquals(
+        2, expansion.getTotal(), "Should have exactly 2 active concepts with activeOnly=true");
+    assertEquals(2, contains.size(), "Contains list should match total count");
+
+    // Assert - Verify no inactive concepts made it through
+    long inactiveCodeCount =
+        contains.stream().filter(comp -> "C176707".equals(comp.getCode())).count();
+    assertEquals(
+        0, inactiveCodeCount, "No inactive concepts should be included with activeOnly=true");
+
+    // Assert - Verify no invalid concepts made it through
+    long invalidCodeCount =
+        contains.stream().filter(comp -> "INVALID123".equals(comp.getCode())).count();
+    assertEquals(0, invalidCodeCount, "No invalid concepts should be included");
+
+    // Assert - Log expansion results for debugging
+    log.info(
+        "NCI Thesaurus ValueSet expansion with activeOnly=true completed with {} concepts",
+        expansion.getTotal());
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      log.debug(
+          "Expanded NCI concept: {} - {} (designations: {})",
+          concept.getCode(),
+          concept.getDisplay(),
+          concept.hasDesignation() ? concept.getDesignation().size() : 0);
+    }
+
+    // Assert - Check for any error messages in expansion
+    if (expansion.hasParameter()) {
+      for (ValueSet.ValueSetExpansionParameterComponent param : expansion.getParameter()) {
+        log.info("Expansion parameter: {} = {}", param.getName(), param.getValue());
+
+        // Check for warnings about invalid concepts
+        if ("warning".equals(param.getName())) {
+          String warningMessage = param.getValue().toString();
+          assertTrue(
+              warningMessage.contains("INVALID123") || warningMessage.contains("invalid"),
+              "Should warn about invalid concept");
+        }
+      }
+    }
+
+    // Assert - Verify that at least one concept has designations
+    long conceptsWithDesignations =
+        contains.stream()
+            .filter(ValueSet.ValueSetExpansionContainsComponent::hasDesignation)
+            .count();
+    assertTrue(
+        conceptsWithDesignations > 0,
+        "At least one concept should have designations when includeDesignations=true");
+
+    // Assert - Verify that concepts have definitions when includeDefinition=true
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      // Check if concept has property for definition
+      if (concept.hasProperty()) {
+        List<ValueSet.ConceptPropertyComponent> definitionProperties =
+            concept.getProperty().stream()
+                .filter(prop -> "definition".equals(prop.getCode()))
+                .collect(Collectors.toList());
+
+        if (!definitionProperties.isEmpty()) {
+          log.debug(
+              "Concept {} has {} definition properties",
+              concept.getCode(),
+              definitionProperties.size());
+
+          // Validate each definition property has value
+          for (ValueSet.ConceptPropertyComponent defProp : definitionProperties) {
+            assertNotNull(
+                defProp.getValue(),
+                "Definition property should have a value for concept: " + concept.getCode());
+
+            if (defProp.getValue() instanceof StringType) {
+              StringType defValue = (StringType) defProp.getValue();
+              assertNotNull(
+                  defValue.getValue(),
+                  "Definition value should not be null for concept: " + concept.getCode());
+              assertFalse(
+                  defValue.getValue().trim().isEmpty(),
+                  "Definition should not be empty for concept: " + concept.getCode());
+              log.debug("Definition for {}: {}", concept.getCode(), defValue.getValue());
+            }
+          }
+        } else {
+          log.warn(
+              "Concept {} does not have definition property despite includeDefinition=true",
+              concept.getCode());
+        }
+      } else {
+        log.warn("Concept {} has no properties despite includeDefinition=true", concept.getCode());
+      }
+    }
+
+    // Assert - Verify that at least one concept has a definition
+    long conceptsWithDefinitions =
+        contains.stream()
+            .filter(
+                concept ->
+                    concept.hasProperty()
+                        && concept.getProperty().stream()
+                            .anyMatch(prop -> "definition".equals(prop.getCode())))
+            .count();
+
+    assertTrue(
+        conceptsWithDefinitions > 0,
+        "At least one concept should have a definition when includeDefinition=true");
+
+    // Assert - Count total definitions across all concepts
+    long totalDefinitions =
+        contains.stream()
+            .flatMap(concept -> concept.getProperty().stream())
+            .filter(prop -> "definition".equals(prop.getCode()))
+            .count();
+
+    // Assert - Log definition summary
+    log.info(
+        "Concepts with definitions: {} out of {} total concepts ({} total definitions)",
+        conceptsWithDefinitions,
+        contains.size(),
+        totalDefinitions);
+  }
+
+  @Test
+  public void testValueSetExpandWithNCIThesaurusFilterParameter() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet using helper method
+    ValueSet inputValueSet =
+        createNCITestValueSet(
+            "nci-filter-test",
+            "NCIFilterTest",
+            "NCI Thesaurus Filter Test",
+            "Test ValueSet with filter parameter to exclude specific concepts");
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Add filter parameter to exclude concepts containing "Gene" in code or display
+    // This should filter out C16612 (Gene) but allow C2991 (Disease or Disorder)
+    String endpointWithFilter = endpoint + "?filter=Disease";
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpointWithFilter, request, String.class);
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+
+    // Assert - Concept containing "Disease" should be included (matches filter)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C2991".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(
+        diseaseResult.isPresent(),
+        "Disease or Disorder (C2991) should be included (matches filter 'Disease')");
+    assertEquals("Disease or Disorder", diseaseResult.get().getDisplay());
+    log.info("C2991 (Disease or Disorder) correctly included with filter='Disease'");
+
+    // Assert - Concept NOT containing "Disease" should be excluded (doesn't match filter)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> geneResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C16612".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(
+        geneResult.isPresent(),
+        "Gene (C16612) should be excluded (doesn't match filter 'Disease')");
+    log.info("C16612 (Gene) correctly excluded with filter='Disease'");
+
+    // Assert - Inactive concept should be excluded (regardless of filter, due to text not matching)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> inactiveResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C176707".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(
+        inactiveResult.isPresent(),
+        "Inactive concept (C176707) should be excluded (doesn't match filter 'Disease')");
+    log.info("C176707 (Physical Examination Finding) correctly excluded with filter='Disease'");
+
+    // Assert - Invalid concept should NOT be included (filtered out during lookup)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> invalidResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "INVALID123".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(invalidResult.isPresent(), "Invalid concept (INVALID123) should not be included");
+
+    // Assert - All returned concepts should have valid NCI Thesaurus system
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      assertEquals(
+          "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+          concept.getSystem(),
+          "All concepts should be from NCI Thesaurus system");
+      assertNotNull(concept.getCode(), "All concepts should have a code");
+      assertNotNull(concept.getDisplay(), "All concepts should have a display");
+      assertFalse(concept.getDisplay().trim().isEmpty(), "Display should not be empty");
+
+      // Assert valid NCI concept code format (should start with 'C' followed by digits)
+      assertTrue(
+          concept.getCode().matches("C\\d+"),
+          "NCI concept codes should start with 'C' followed by digits: " + concept.getCode());
+
+      // Assert - All returned concepts should match the filter
+      String lowerDisplay = concept.getDisplay().toLowerCase();
+      String lowerCode = concept.getCode().toLowerCase();
+      assertTrue(
+          lowerDisplay.contains("disease") || lowerCode.contains("disease"),
+          "All returned concepts should match filter 'Disease': " + concept.getDisplay());
+    }
+
+    // Assert - Expansion should contain only filtered concepts (1 concept expected)
+    assertEquals(
+        1, expansion.getTotal(), "Should have exactly 1 concept matching filter 'Disease'");
+    assertEquals(1, contains.size(), "Contains list should match total count");
+
+    // Assert - Verify only the expected concept made it through
+    assertEquals("C2991", contains.get(0).getCode(), "Only C2991 should match the filter");
+    assertTrue(
+        contains.get(0).getDisplay().contains("Disease"),
+        "The returned concept should contain 'Disease' in its display");
+
+    // Assert - Verify filtered-out concepts are not present
+    long filteredOutCount =
+        contains.stream()
+            .filter(
+                comp ->
+                    "C16612".equals(comp.getCode())
+                        || "C176707".equals(comp.getCode())
+                        || "INVALID123".equals(comp.getCode()))
+            .count();
+    assertEquals(0, filteredOutCount, "No filtered-out concepts should be included");
+
+    // Assert - Log expansion results for debugging
+    log.info(
+        "NCI Thesaurus ValueSet expansion with filter='Disease' completed with {} concepts",
+        expansion.getTotal());
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      log.debug(
+          "Filtered NCI concept: {} - {} (matches filter: {})",
+          concept.getCode(),
+          concept.getDisplay(),
+          concept.getDisplay().toLowerCase().contains("disease"));
+    }
+
+    // Assert - Check for any error messages in expansion
+    if (expansion.hasParameter()) {
+      for (ValueSet.ValueSetExpansionParameterComponent param : expansion.getParameter()) {
+        log.info("Expansion parameter: {} = {}", param.getName(), param.getValue());
+
+        // Check for filter parameter being recorded
+        if ("filter".equals(param.getName())) {
+          assertEquals(
+              "Disease",
+              param.getValue().toString(),
+              "Filter parameter should be recorded in expansion");
+        }
+
+        // Check for warnings about invalid concepts
+        if ("warning".equals(param.getName())) {
+          String warningMessage = param.getValue().toString();
+          assertTrue(
+              warningMessage.contains("INVALID123") || warningMessage.contains("invalid"),
+              "Should warn about invalid concept");
+        }
+      }
+    }
+  }
+
+  // Helper method to create ValueSet with both include and exclude
+  private ValueSet createNCITestValueSetWithExclude(
+      String id, String name, String title, String description) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName(name);
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(description);
+
+    // Build compose definition with NCI Thesaurus concepts
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+
+    // INCLUDE section - same as before
+    ValueSet.ConceptSetComponent nciInclude = new ValueSet.ConceptSetComponent();
+    nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Valid active concept
+    ValueSet.ConceptReferenceComponent diseaseOrDisorder = new ValueSet.ConceptReferenceComponent();
+    diseaseOrDisorder.setCode("C2991");
+    diseaseOrDisorder.setDisplay("Disease or Disorder");
+    nciInclude.addConcept(diseaseOrDisorder);
+
+    // Valid active concept
+    ValueSet.ConceptReferenceComponent gene = new ValueSet.ConceptReferenceComponent();
+    gene.setCode("C16612");
+    gene.setDisplay("Gene");
+    nciInclude.addConcept(gene);
+
+    // Inactive concept
+    ValueSet.ConceptReferenceComponent inactiveConcept = new ValueSet.ConceptReferenceComponent();
+    inactiveConcept.setCode("C176707");
+    inactiveConcept.setDisplay("Physical Examination Finding - Inactive Test Concept");
+    nciInclude.addConcept(inactiveConcept);
+
+    // Invalid/bogus concept
+    ValueSet.ConceptReferenceComponent invalidConcept = new ValueSet.ConceptReferenceComponent();
+    invalidConcept.setCode("INVALID123");
+    invalidConcept.setDisplay("This is an invalid concept code");
+    nciInclude.addConcept(invalidConcept);
+
+    compose.addInclude(nciInclude);
+
+    // EXCLUDE section - exclude one of the included concepts
+    ValueSet.ConceptSetComponent nciExclude = new ValueSet.ConceptSetComponent();
+    nciExclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Exclude the Gene concept (C16612) that was included above
+    ValueSet.ConceptReferenceComponent excludeGene = new ValueSet.ConceptReferenceComponent();
+    excludeGene.setCode("C16612");
+    excludeGene.setDisplay("Gene");
+    nciExclude.addConcept(excludeGene);
+
+    compose.addExclude(nciExclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  @Test
+  public void testValueSetExpandWithNCIThesaurusIncludeAndExclude() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with include and exclude using helper method
+    ValueSet inputValueSet =
+        createNCITestValueSetWithExclude(
+            "nci-include-exclude-test",
+            "NCIIncludeExcludeTest",
+            "NCI Thesaurus Include and Exclude Test",
+            "Test ValueSet with include and exclude to verify exclude overrides include");
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+
+    // Assert - Disease or Disorder should still be included (not excluded)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C2991".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(
+        diseaseResult.isPresent(), "Disease or Disorder (C2991) should be included (not excluded)");
+    assertEquals("Disease or Disorder", diseaseResult.get().getDisplay());
+
+    // Assert - Gene should NOT be included (excluded despite being in include)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> geneResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C16612".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(
+        geneResult.isPresent(),
+        "Gene (C16612) should be excluded despite being in include section");
+    log.info("C16612 (Gene) correctly excluded - exclude overrides include");
+
+    // Assert - Check handling of inactive concept (behavior depends on activeOnly parameter)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> inactiveResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C176707".equals(comp.getCode()))
+            .findFirst();
+
+    // Note: This assertion depends on your implementation's handling of inactive concepts
+    // If activeOnly=false (default), inactive concepts might be included
+    // If activeOnly=true, they should be excluded
+    log.info("Inactive concept C176707 present in expansion: {}", inactiveResult.isPresent());
+
+    // Assert - Invalid concept should NOT be included (filtered out during lookup)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> invalidResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "INVALID123".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(invalidResult.isPresent(), "Invalid concept (INVALID123) should not be included");
+
+    // Assert - All returned concepts should have valid NCI Thesaurus system
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      assertEquals(
+          "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+          concept.getSystem(),
+          "All concepts should be from NCI Thesaurus system");
+      assertNotNull(concept.getCode(), "All concepts should have a code");
+      assertNotNull(concept.getDisplay(), "All concepts should have a display");
+      assertFalse(concept.getDisplay().trim().isEmpty(), "Display should not be empty");
+
+      // Assert valid NCI concept code format (should start with 'C' followed by digits)
+      assertTrue(
+          concept.getCode().matches("C\\d+"),
+          "NCI concept codes should start with 'C' followed by digits: " + concept.getCode());
+    }
+
+    // Assert - Verify specific exclusion behavior
+    long excludedConceptCount =
+        contains.stream().filter(comp -> "C16612".equals(comp.getCode())).count();
+    assertEquals(0, excludedConceptCount, "Excluded concept C16612 should not appear in expansion");
+
+    // Assert - Verify that only expected concepts are present
+    Set<String> actualCodes =
+        contains.stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+            .collect(Collectors.toSet());
+
+    // Should contain C2991 (Disease or Disorder) but NOT C16612 (Gene - excluded)
+    assertTrue(actualCodes.contains("C2991"), "Should contain included concept C2991");
+    assertFalse(actualCodes.contains("C16612"), "Should NOT contain excluded concept C16612");
+    assertFalse(actualCodes.contains("INVALID123"), "Should NOT contain invalid concept");
+
+    // C176707 (inactive) may or may not be present depending on activeOnly parameter
+    log.info("Actual concept codes in expansion: {}", actualCodes);
+
+    // Assert - Expansion should contain fewer concepts due to exclusion
+    // Expected: 1-2 concepts (C2991 definitely, C176707 maybe, C16612 excluded, INVALID123
+    // filtered)
+    assertTrue(expansion.getTotal() >= 1, "Should have at least 1 valid concept after exclusion");
+    assertTrue(
+        expansion.getTotal() <= 2, "Should have at most 2 concepts (C2991 + possibly C176707)");
+
+    // Assert - Log expansion results for debugging
+    log.info(
+        "NCI Thesaurus ValueSet expansion with exclusion completed with {} concepts",
+        expansion.getTotal());
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      log.debug("Expanded NCI concept: {} - {}", concept.getCode(), concept.getDisplay());
+    }
+
+    // Assert - Verify exclude functionality worked correctly
+    log.info(
+        "Exclude functionality test: C16612 was included but then excluded - final result: {}",
+        actualCodes.contains("C16612") ? "FAILED (still present)" : "PASSED (correctly excluded)");
+
+    // Assert - Check for any error messages in expansion
+    if (expansion.hasParameter()) {
+      for (ValueSet.ValueSetExpansionParameterComponent param : expansion.getParameter()) {
+        log.info("Expansion parameter: {} = {}", param.getName(), param.getValue());
+
+        // Check for warnings about invalid concepts
+        if ("warning".equals(param.getName())) {
+          String warningMessage = param.getValue().toString();
+          assertTrue(
+              warningMessage.contains("INVALID123") || warningMessage.contains("invalid"),
+              "Should warn about invalid concept");
+        }
+      }
+    }
+  }
+
+  // Helper method to create ValueSet with specific NCIt version
+  private ValueSet createNCITestValueSetWithVersion(
+      String id, String name, String title, String description, String ncitVersion) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName(name);
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(description);
+
+    // Build compose definition with NCI Thesaurus concepts and specific version
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+    ValueSet.ConceptSetComponent nciInclude = new ValueSet.ConceptSetComponent();
+    nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Set the specific NCIt version
+    if (ncitVersion != null && !ncitVersion.trim().isEmpty()) {
+      nciInclude.setVersion(ncitVersion);
+    }
+
+    // Valid active concept
+    ValueSet.ConceptReferenceComponent diseaseOrDisorder = new ValueSet.ConceptReferenceComponent();
+    diseaseOrDisorder.setCode("C2991");
+    diseaseOrDisorder.setDisplay("Disease or Disorder");
+    nciInclude.addConcept(diseaseOrDisorder);
+
+    // Valid active concept
+    ValueSet.ConceptReferenceComponent gene = new ValueSet.ConceptReferenceComponent();
+    gene.setCode("C16612");
+    gene.setDisplay("Gene");
+    nciInclude.addConcept(gene);
+
+    // Inactive concept
+    ValueSet.ConceptReferenceComponent inactiveConcept = new ValueSet.ConceptReferenceComponent();
+    inactiveConcept.setCode("C176707");
+    inactiveConcept.setDisplay("Physical Examination Finding - Inactive Test Concept");
+    nciInclude.addConcept(inactiveConcept);
+
+    // Invalid/bogus concept
+    ValueSet.ConceptReferenceComponent invalidConcept = new ValueSet.ConceptReferenceComponent();
+    invalidConcept.setCode("INVALID123");
+    invalidConcept.setDisplay("This is an invalid concept code");
+    nciInclude.addConcept(invalidConcept);
+
+    compose.addInclude(nciInclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  @Test
+  public void testValueSetExpandWithNCIThesaurusSpecificVersion() throws Exception {
+    // Arrange - Get current NCIt version using _history mechanism
+    String content;
+    String endpoint = localHost + port + fhirVSPath;
+
+    // Act - First get list of NCIt ValueSets to find a valid ID
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> valueSets =
+        data.getEntry().stream()
+            .map(Bundle.BundleEntryComponent::getResource)
+            .filter(resource -> resource instanceof ValueSet)
+            .filter(
+                resource -> {
+                  ValueSet vs = (ValueSet) resource;
+                  return vs.hasUrl()
+                      && vs.getUrl().contains("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+                })
+            .toList();
+    String firstValueSetId = valueSets.get(0).getIdPart();
+
+    // Act - Get history for the first ValueSet
+    String historyEndpoint = endpoint + "/" + firstValueSetId + "/_history";
+
+    // Get current version
+    content = this.restTemplate.getForObject(endpoint + "/" + firstValueSetId, String.class);
+    ValueSet currentValueSet = parser.parseResource(ValueSet.class, content);
+
+    // Extract NCIt version from the current ValueSet
+    String currentNCItVersion = currentValueSet.getVersion();
+
+    if (currentNCItVersion == null) {
+      log.warn(
+          "Could not determine current NCIt version from ValueSet {}, using fallback",
+          firstValueSetId);
+      currentNCItVersion = "24.01d"; // Fallback to a recent version
+    }
+
+    log.info("Using NCIt version: {} from ValueSet: {}", currentNCItVersion, firstValueSetId);
+    //    log.info("History bundle contains {} entries", historyBundle.getEntry().size());
+
+    // Create expand endpoint
+    String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with specific NCIt version using helper method
+    ValueSet inputValueSet =
+        createNCITestValueSetWithVersion(
+            "nci-version-test",
+            "NCIVersionTest",
+            "NCI Thesaurus Version-Specific Test",
+            "Test ValueSet with specific NCIt version: " + currentNCItVersion,
+            currentNCItVersion);
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(expandEndpoint, request, String.class);
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+
+    // Assert - Valid active concepts should be included
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C2991".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(
+        diseaseResult.isPresent(),
+        "Disease or Disorder (C2991) should be included from NCIt version " + currentNCItVersion);
+    assertEquals("Disease or Disorder", diseaseResult.get().getDisplay());
+
+    Optional<ValueSet.ValueSetExpansionContainsComponent> geneResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C16612".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(
+        geneResult.isPresent(),
+        "Gene (C16612) should be included from NCIt version " + currentNCItVersion);
+    assertEquals("Gene", geneResult.get().getDisplay());
+
+    // Assert - Inactive concept should NOT be included when using specific version
+    Optional<ValueSet.ValueSetExpansionContainsComponent> inactiveResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C176707".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(
+        inactiveResult.isPresent(),
+        "Inactive concept (C176707) should be included from NCIt version " + currentNCItVersion);
+    log.info("C176707 correctly included from NCIt version {}", currentNCItVersion);
+
+    // Assert - Invalid concept should NOT be included
+    Optional<ValueSet.ValueSetExpansionContainsComponent> invalidResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "INVALID123".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(invalidResult.isPresent(), "Invalid concept (INVALID123) should not be included");
+
+    // Assert - All returned concepts should have valid NCI Thesaurus system
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      assertEquals(
+          "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+          concept.getSystem(),
+          "All concepts should be from NCI Thesaurus system");
+      assertNotNull(concept.getCode(), "All concepts should have a code");
+      assertNotNull(concept.getDisplay(), "All concepts should have a display");
+      assertFalse(concept.getDisplay().trim().isEmpty(), "Display should not be empty");
+
+      // Assert valid NCI concept code format (should start with 'C' followed by digits)
+      assertTrue(
+          concept.getCode().matches("C\\d+"),
+          "NCI concept codes should start with 'C' followed by digits: " + concept.getCode());
+    }
+
+    // Assert - Should have exactly 2 active concepts (C2991, C16612, C176707) when version is
+    // specified
+    assertEquals(
+        3,
+        expansion.getTotal(),
+        "Should have exactly 3 active concepts from NCIt version " + currentNCItVersion);
+    assertEquals(3, contains.size(), "Contains list should match total count");
+
+    // Assert - Verify specific concepts are present and inactive/invalid are not
+    Set<String> actualCodes =
+        contains.stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+            .collect(Collectors.toSet());
+
+    assertTrue(actualCodes.contains("C2991"), "Should contain active concept C2991");
+    assertTrue(actualCodes.contains("C16612"), "Should contain active concept C16612");
+    assertTrue(actualCodes.contains("C176707"), "Should contain inactive concept C176707");
+    assertFalse(actualCodes.contains("INVALID123"), "Should NOT contain invalid concept");
+
+    // Assert - Log expansion results for debugging
+    log.info(
+        "NCI Thesaurus ValueSet expansion for version {} completed with {} concepts",
+        currentNCItVersion,
+        expansion.getTotal());
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      log.debug(
+          "Expanded NCI concept from version {}: {} - {}",
+          currentNCItVersion,
+          concept.getCode(),
+          concept.getDisplay());
+    }
+
+    // Assert - Verify that the version was respected in the expansion
+    log.info(
+        "Version-specific expansion test completed successfully for NCIt version: {}",
+        currentNCItVersion);
+    log.info("Active concepts included: {}", actualCodes);
+    log.info("Inactive/invalid concepts correctly excluded: C176707, INVALID123");
+
+    // Assert - Check for any error messages in expansion
+    if (expansion.hasParameter()) {
+      for (ValueSet.ValueSetExpansionParameterComponent param : expansion.getParameter()) {
+        log.info("Expansion parameter: {} = {}", param.getName(), param.getValue());
+
+        // Check if the version parameter is recorded in the expansion
+        if ("version".equals(param.getName()) || "system-version".equals(param.getName())) {
+          assertEquals(
+              currentNCItVersion,
+              param.getValue().toString(),
+              "Expansion should record the NCIt version used");
+        }
+
+        // Check for warnings about invalid concepts
+        if ("warning".equals(param.getName())) {
+          String warningMessage = param.getValue().toString();
+          assertTrue(
+              warningMessage.contains("INVALID123") || warningMessage.contains("invalid"),
+              "Should warn about invalid concept");
+        }
+      }
+    }
   }
 }

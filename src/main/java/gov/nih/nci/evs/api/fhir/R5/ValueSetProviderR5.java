@@ -2,18 +2,14 @@ package gov.nih.nci.evs.api.fhir.R5;
 
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
-import ca.uhn.fhir.rest.annotation.History;
-import ca.uhn.fhir.rest.annotation.IdParam;
-import ca.uhn.fhir.rest.annotation.Operation;
-import ca.uhn.fhir.rest.annotation.OperationParam;
-import ca.uhn.fhir.rest.annotation.OptionalParam;
-import ca.uhn.fhir.rest.annotation.Read;
-import ca.uhn.fhir.rest.annotation.Search;
+import ca.uhn.fhir.rest.annotation.*;
 import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
+import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
+import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
@@ -30,27 +26,10 @@ import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
-import org.hl7.fhir.r5.model.BooleanType;
-import org.hl7.fhir.r5.model.Bundle;
-import org.hl7.fhir.r5.model.CodeType;
-import org.hl7.fhir.r5.model.Coding;
-import org.hl7.fhir.r5.model.IdType;
-import org.hl7.fhir.r5.model.IntegerType;
-import org.hl7.fhir.r5.model.Meta;
-import org.hl7.fhir.r5.model.OperationOutcome;
+import org.hl7.fhir.r5.model.*;
 import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r5.model.Parameters;
-import org.hl7.fhir.r5.model.StringType;
-import org.hl7.fhir.r5.model.UriType;
-import org.hl7.fhir.r5.model.ValueSet;
 import org.hl7.fhir.r5.model.ValueSet.ConceptPropertyComponent;
 import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionContainsComponent;
@@ -225,11 +204,11 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final HttpServletRequest request,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-      // @OperationParam(name = "valueSet") final ValueSet valueSet,
+      @OperationParam(name = "valueSet") final ValueSet valueSet,
       @OperationParam(name = "valueSetVersion") final StringType version,
       // @OperationParam(name = "context") final UriType context,
       // @OperationParam(name = "contextDirection") final CodeType contextDirection,
-      @OperationParam(name = "filter") final StringType filter,
+      @OperationParam(name = "filter") StringType filter,
       // @OperationParam(name = "date") final DateTimeType date,
       @OperationParam(name = "offset") final IntegerType offset,
       @OperationParam(name = "count") final IntegerType count,
@@ -248,6 +227,29 @@ public class ValueSetProviderR5 implements IResourceProvider {
       // @OperationParam(name = "force-system-version") final StringType force_system_version,
       @OperationParam(name = "property") final List<StringType> properties)
       throws Exception {
+
+    if (request.getParameter("filter") != null) {
+      filter = new StringType(request.getParameter("filter"));
+    }
+
+    // TODO: ensure url and POST request not both sent
+    if (valueSet != null) {
+      return expandValueSet(
+          request,
+          valueSet,
+          version,
+          filter,
+          count,
+          offset,
+          includeDesignations,
+          includeDefinition,
+          activeOnly);
+    }
+
+    // TODO add more test cases for exclude, after adding filter is-a
+    // TODO add remainder of parameters to expandValueSet
+    // TODO add include.version processing (use latest if not specified)
+
     // check if request is a post, throw exception as we don't support post
     // calls
     if (request.getMethod().equals("POST")) {
@@ -404,7 +406,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         if (filter != null) {
           vsParameter = new ValueSetExpansionParameterComponent();
           vsParameter.setName("filter");
-          vsParameter.setValue(filter);
+          vsParameter.setValue(new StringType(filter.getValue()));
           vsExpansion.addParameter(vsParameter);
         }
 
@@ -1264,5 +1266,481 @@ public class ValueSetProviderR5 implements IResourceProvider {
       logger.error("Unexpected exception in vread", e);
       throw FhirUtilityR5.exception("Failed to get value set version", IssueType.EXCEPTION, 500);
     }
+  }
+
+  private ValueSet expandValueSet(
+      final HttpServletRequest request,
+      final ValueSet valueSet,
+      final StringType version,
+      final StringType filter,
+      final IntegerType count,
+      final IntegerType offset,
+      final BooleanType includeDesignations,
+      final BooleanType includeDefinition,
+      final BooleanType activeOnly)
+      throws Exception {
+
+    FhirUtilityR5.notSupportedSearchParams(request);
+
+    // Validate input ValueSet
+    if (valueSet == null) {
+      throw new InvalidRequestException("ValueSet resource is required for expansion");
+    }
+
+    if (valueSet.getCompose() == null || valueSet.getCompose().isEmpty()) {
+      throw new InvalidRequestException("ValueSet must contain a compose definition for expansion");
+    }
+
+    try {
+      // Create the expanded ValueSet
+      ValueSet expandedValueSet = new ValueSet();
+      expandedValueSet.setId(valueSet.getId());
+      expandedValueSet.setUrl(valueSet.getUrl());
+      expandedValueSet.setVersion(valueSet.getVersion());
+      expandedValueSet.setName(valueSet.getName());
+      expandedValueSet.setTitle(valueSet.getTitle());
+      expandedValueSet.setStatus(valueSet.getStatus());
+      expandedValueSet.setDescription(valueSet.getDescription());
+
+      // Process expansion
+      List<ValueSetExpansionContainsComponent> expandedConcepts =
+          expandCompose(
+              valueSet.getCompose(),
+              filter != null ? filter.getValue() : null,
+              activeOnly != null ? activeOnly.getValue() : false,
+              includeDesignations != null ? includeDesignations.getValue() : false,
+              includeDefinition != null ? includeDefinition.getValue() : false);
+
+      // Apply pagination
+      int startIndex = offset != null ? offset.getValue() : 0;
+      int maxResults = count != null ? count.getValue() : 1000;
+
+      List<ValueSetExpansionContainsComponent> paginatedConcepts =
+          applyPagination(expandedConcepts, startIndex, maxResults);
+
+      // Build expansion
+      ValueSet.ValueSetExpansionComponent expansion = new ValueSet.ValueSetExpansionComponent();
+      expansion.setIdentifier(generateExpansionId());
+      expansion.setTimestamp(new Date());
+      expansion.setTotal(expandedConcepts.size());
+      expansion.setContains(paginatedConcepts);
+
+      expandedValueSet.setExpansion(expansion);
+
+      logger.info(
+          "Expanded ValueSet {} with {} concepts", valueSet.getUrl(), expandedConcepts.size());
+
+      return expandedValueSet;
+
+    } catch (Exception e) {
+      logger.error("Error expanding ValueSet: " + valueSet.getUrl(), e);
+      throw new InternalErrorException("Error during ValueSet expansion: " + e.getMessage());
+    }
+  }
+
+  private List<ValueSetExpansionContainsComponent> expandCompose(
+      ValueSet.ValueSetComposeComponent compose,
+      String textFilter,
+      boolean activeOnly,
+      boolean includeDesignations,
+      boolean includeDefinitions)
+      throws Exception {
+
+    List<ValueSetExpansionContainsComponent> allConcepts = new ArrayList<>();
+
+    // Process includes
+    if (compose.hasInclude()) {
+      for (ValueSet.ConceptSetComponent include : compose.getInclude()) {
+        List<ValueSetExpansionContainsComponent> includedConcepts =
+            processInclude(
+                include, textFilter, activeOnly, includeDesignations, includeDefinitions);
+        allConcepts.addAll(includedConcepts);
+      }
+    }
+
+    // Process excludes
+    if (compose.hasExclude()) {
+      for (ValueSet.ConceptSetComponent exclude : compose.getExclude()) {
+        List<ValueSetExpansionContainsComponent> excludedConcepts =
+            processExclude(exclude, activeOnly);
+        allConcepts = filterOutExcludedConcepts(allConcepts, excludedConcepts);
+      }
+    }
+
+    // Remove duplicates and sort
+    return deduplicateAndSort(allConcepts);
+  }
+
+  private List<ValueSetExpansionContainsComponent> processInclude(
+      ValueSet.ConceptSetComponent include,
+      String textFilter,
+      boolean activeOnly,
+      boolean includeDesignations,
+      boolean includeDefinitions)
+      throws Exception {
+
+    List<ValueSetExpansionContainsComponent> concepts = new ArrayList<>();
+
+    // Handle direct concept inclusion
+    if (include.hasConcept()) {
+      // TODO consider version field on the include and match concepts accordingly
+      for (ValueSet.ConceptReferenceComponent concept : include.getConcept()) {
+        // Always look up the concept in the terminology service first
+        String authoritativeDisplay = lookupConceptDisplay(include.getSystem(), concept.getCode());
+
+        if (authoritativeDisplay == null) {
+          logger.warn("Skipping invalid concept: {}#{}", include.getSystem(), concept.getCode());
+          continue; // Skip invalid concepts - they don't exist in the terminology
+        }
+
+        // Check if input display matches authoritative display
+        if (concept.hasDisplay() && !concept.getDisplay().equals(authoritativeDisplay)) {
+          logger.warn(
+              "Display mismatch for {}#{}: input='{}', authoritative='{}'",
+              include.getSystem(),
+              concept.getCode(),
+              concept.getDisplay(),
+              authoritativeDisplay);
+          // Continue with authoritative display, but log the mismatch
+        }
+
+        ValueSetExpansionContainsComponent contains = new ValueSetExpansionContainsComponent();
+        contains.setSystem(include.getSystem());
+        contains.setCode(concept.getCode());
+        contains.setDisplay(authoritativeDisplay); // Always use authoritative display
+
+        // Apply filters
+        if (passesTextFilter(contains, textFilter)
+            && passesActiveFilter(contains, activeOnly)
+            && passesVersion(contains, include.getVersion())) {
+          // Add designations if requested
+          if (includeDesignations || includeDefinitions) {
+            addDesignationsAndDefinitions(
+                contains,
+                include.getSystem(),
+                concept.getCode(),
+                includeDesignations,
+                includeDefinitions);
+          }
+          concepts.add(contains);
+        }
+      }
+    }
+
+    // Handle filter-based inclusion
+    //      if (include.hasFilter()) {
+    //        for (ValueSet.ConceptSetFilterComponent filter : include.getFilter()) {
+    //          List<ValueSetExpansionContainsComponent> filteredConcepts =
+    //                  applyConceptFilter(include.getSystem(), filter, textFilter, activeOnly,
+    // includeDesignations);
+    //          concepts.addAll(filteredConcepts);
+    //        }
+    //      }
+
+    // Handle value set inclusion
+    //      if (include.hasValueSet()) {
+    //        for (CanonicalType valueSetUrl : include.getValueSet()) {
+    //          List<ValueSetExpansionContainsComponent> referencedConcepts =
+    //                  expandReferencedValueSet(valueSetUrl.getValue(), textFilter, activeOnly,
+    // includeDesignations);
+    //          concepts.addAll(referencedConcepts);
+    //        }
+    //      }
+
+    return concepts;
+  }
+
+  private List<ValueSetExpansionContainsComponent> processExclude(
+      ValueSet.ConceptSetComponent exclude, boolean activeOnly) throws Exception {
+
+    List<ValueSetExpansionContainsComponent> concepts = new ArrayList<>();
+
+    if (exclude.hasConcept()) {
+      for (ValueSet.ConceptReferenceComponent concept : exclude.getConcept()) {
+        ValueSetExpansionContainsComponent contains = new ValueSetExpansionContainsComponent();
+        contains.setSystem(exclude.getSystem());
+        contains.setCode(concept.getCode());
+        contains.setDisplay(
+            concept.hasDisplay()
+                ? concept.getDisplay()
+                : lookupConceptDisplay(exclude.getSystem(), concept.getCode()));
+
+        if (passesActiveFilter(contains, activeOnly)) {
+          concepts.add(contains);
+        }
+      }
+    }
+
+    //      if (exclude.hasFilter()) {
+    //        for (ValueSet.ConceptSetFilterComponent filter : exclude.getFilter()) {
+    //          List<ValueSetExpansionContainsComponent> filteredConcepts =
+    //                  applyConceptFilter(exclude.getSystem(), filter, null, activeOnly, false);
+    //          concepts.addAll(filteredConcepts);
+    //        }
+    //      }
+
+    return concepts;
+  }
+
+  private String lookupConceptDisplay(String system, String code) throws Exception {
+    Terminology selectedTerminology =
+        termUtils.getIndexedTerminologies(osQueryService).stream()
+            .filter(term -> term.getMetadata().getFhirUri().equals(system))
+            .findFirst()
+            .orElse(null);
+
+    if (selectedTerminology == null) {
+      logger.warn("No terminology found for system: {}", system);
+      return null; // This will cause the concept to be filtered out
+    }
+
+    Optional<Concept> conceptOpt =
+        osQueryService.getConcept(code, selectedTerminology, new IncludeParam("minimal"));
+
+    if (!conceptOpt.isPresent()) {
+      logger.warn("Concept not found: {}#{}", system, code);
+      return null; // This will cause the concept to be filtered out
+    }
+
+    Concept concept = conceptOpt.get();
+    logger.debug("Looking up display for {}#{}", system, code);
+    return concept.getName();
+  }
+
+  //    private List<ValueSetExpansionContainsComponent> applyConceptFilter(
+  //            String system,
+  //            ValueSet.ConceptSetFilterComponent filter,
+  //            String textFilter,
+  //    boolean activeOnly,
+  //    boolean includeDesignations) throws Exception {
+  //
+  //
+  //      // TODO: Implement filter logic based on your terminology service
+  //    List<ValueSetExpansionContainsComponent> compList = new ArrayList<>();
+  //
+  //    Terminology selectedTerminology = termUtils.getIndexedTerminologies(osQueryService)
+  //   .stream()
+  //   .filter(term -> term.getMetadata().getFhirUri().equals(system))
+  //   .findFirst()
+  //   .orElse(null);
+  //      Concept concept = osQueryService
+  //              .getConcept(
+  //                      filter.getValue(),
+  //                      selectedTerminology,
+  //                      new IncludeParam("descendants"))
+  //              .get();
+  //      for (Concept desc : concept.getDescendants()) {
+  //          if (desc.getActive() != null && !desc.getActive()) {
+  //            continue;
+  //          }
+  //          final ValueSet.ValueSetExpansionContainsComponent vsContains =
+  //                  new ValueSet.ValueSetExpansionContainsComponent();
+  //          vsContains.setSystem(system);
+  //          vsContains.setCode(desc.getCode());
+  //          vsContains.setDisplay(desc.getName());
+  //
+  //          compList.add(vsContains);
+  //      }
+  //      // Example for SNOMED CT "is-a" filter:
+  //      // if ("concept".equals(filter.getProperty()) && "is-a".equals(filter.getOp())) {
+  //      //     return snomedService.getDescendants(filter.getValue(), textFilter, activeOnly);
+  //      // }
+  //
+  //      logger.debug("Applying filter: {} {} {} on {}",
+  //              filter.getProperty(), filter.getOp(), filter.getValue(), system);
+  //
+  //      return compList;
+  //    }
+
+  //    private List<ValueSetExpansionContainsComponent> expandReferencedValueSet(
+  //            String valueSetUrl,
+  //            String textFilter,
+  //    boolean activeOnly,
+  //    boolean includeDesignations) throws Exception {
+  //
+  //      // TODO: Implement recursive ValueSet expansion
+  //      // Example: return valueSetService.expand(valueSetUrl, textFilter, activeOnly,
+  // includeDesignations);
+  //      logger.debug("Expanding referenced ValueSet: {}", valueSetUrl);
+  //      return new ArrayList<>();
+  //    }
+
+  private void addDesignationsAndDefinitions(
+      ValueSetExpansionContainsComponent contains,
+      String system,
+      String code,
+      boolean includeDesignations,
+      boolean includeDefinition)
+      throws Exception {
+    Terminology selectedTerminology =
+        termUtils.getIndexedTerminologies(osQueryService).stream()
+            .filter(term -> term.getMetadata().getFhirUri().equals(system))
+            .findFirst()
+            .orElse(null);
+    IncludeParam includeParam = new IncludeParam();
+    if (includeDesignations) {
+      includeParam.setSynonyms(true);
+    }
+    if (includeDefinition) {
+      includeParam.setDefinitions(true);
+    }
+
+    Concept concept = osQueryService.getConcept(code, selectedTerminology, includeParam).get();
+    for (Synonym term : concept.getSynonyms()) {
+      if (term.getTermType() != null && term.getName() != null) {
+        ConceptReferenceDesignationComponent designation =
+            new ConceptReferenceDesignationComponent()
+                .setLanguage("en")
+                .setUse(new Coding(term.getUri(), term.getTermType(), term.getName()))
+                .setValue(term.getName());
+
+        contains.addDesignation(designation);
+      }
+    }
+    if (includeDefinition) {
+      addConceptProperty(contains, concept, "definition");
+    }
+    logger.debug("Adding designations for {}#{}", system, code);
+  }
+
+  // Utility methods
+
+  private boolean passesTextFilter(ValueSetExpansionContainsComponent contains, String textFilter) {
+    if (textFilter == null || textFilter.trim().isEmpty()) {
+      return true;
+    }
+
+    String lowerFilter = textFilter.toLowerCase();
+    return (contains.getCode() != null && contains.getCode().toLowerCase().contains(lowerFilter))
+        || (contains.getDisplay() != null
+            && contains.getDisplay().toLowerCase().contains(lowerFilter));
+  }
+
+  private boolean passesActiveFilter(
+      ValueSetExpansionContainsComponent contains, boolean activeOnly) throws Exception {
+    if (!activeOnly) {
+      return true;
+    }
+
+    Terminology selectedTerminology =
+        termUtils.getIndexedTerminologies(osQueryService).stream()
+            .filter(term -> term.getMetadata().getFhirUri().equals(contains.getSystem()))
+            .findFirst()
+            .orElse(null);
+
+    if (selectedTerminology == null) {
+      logger.warn("No terminology found for system: {}", contains.getSystem());
+      return false; // Filter out concepts from unknown systems
+    }
+
+    Optional<Concept> conceptOpt =
+        osQueryService.getConcept(
+            contains.getCode(), selectedTerminology, new IncludeParam("minimal"));
+
+    if (!conceptOpt.isPresent()) {
+      logger.warn(
+          "Concept not found during active filter: {}#{}",
+          contains.getSystem(),
+          contains.getCode());
+      return false; // Filter out non-existent concepts
+    }
+
+    Concept concept = conceptOpt.get();
+    Boolean active = concept.getActive();
+
+    // If active status is null, treat as inactive when activeOnly is true
+    return active != null && active;
+  }
+
+  private boolean passesVersion(ValueSetExpansionContainsComponent contains, String version)
+      throws Exception {
+
+    if (version != null && version.isEmpty()) {
+      return true;
+    }
+    Terminology selectedTerminology =
+        termUtils.getIndexedTerminologies(osQueryService).stream()
+            .filter(term -> term.getMetadata().getFhirUri().equals(contains.getSystem()))
+            .findFirst()
+            .orElse(null);
+
+    if (selectedTerminology == null) {
+      logger.warn("No terminology found for system: {}", contains.getSystem());
+      return false; // Filter out concepts from unknown systems
+    }
+
+    Optional<Concept> conceptOpt =
+        osQueryService.getConcept(
+            contains.getCode(), selectedTerminology, new IncludeParam("minimal"));
+
+    if (!conceptOpt.isPresent()) {
+      logger.warn(
+          "Concept not found during active filter: {}#{}",
+          contains.getSystem(),
+          contains.getCode());
+      return false; // Filter out non-existent concepts
+    }
+
+    Concept concept = conceptOpt.get();
+    String cptVersion = concept.getVersion();
+
+    // If active status is null, treat as inactive when activeOnly is true
+    return version != null && version.compareTo(cptVersion) >= 0;
+  }
+
+  private List<ValueSetExpansionContainsComponent> filterOutExcludedConcepts(
+      List<ValueSetExpansionContainsComponent> allConcepts,
+      List<ValueSetExpansionContainsComponent> excludedConcepts) {
+
+    Set<String> excludeSet =
+        excludedConcepts.stream()
+            .map(c -> c.getSystem() + "|" + c.getCode())
+            .collect(Collectors.toSet());
+
+    return allConcepts.stream()
+        .filter(concept -> !excludeSet.contains(concept.getSystem() + "|" + concept.getCode()))
+        .collect(Collectors.toList());
+  }
+
+  private List<ValueSetExpansionContainsComponent> deduplicateAndSort(
+      List<ValueSetExpansionContainsComponent> concepts) {
+
+    Map<String, ValueSetExpansionContainsComponent> uniqueConcepts = new LinkedHashMap<>();
+
+    for (ValueSetExpansionContainsComponent concept : concepts) {
+      String key = concept.getSystem() + "|" + concept.getCode();
+      if (!uniqueConcepts.containsKey(key)) {
+        uniqueConcepts.put(key, concept);
+      }
+    }
+
+    return uniqueConcepts.values().stream()
+        .sorted(
+            (a, b) -> {
+              int systemCompare = a.getSystem().compareTo(b.getSystem());
+              if (systemCompare != 0) {
+                return systemCompare;
+              }
+              return a.getCode().compareTo(b.getCode());
+            })
+        .collect(Collectors.toList());
+  }
+
+  private List<ValueSetExpansionContainsComponent> applyPagination(
+      List<ValueSetExpansionContainsComponent> concepts, int startIndex, int maxResults) {
+
+    int endIndex = Math.min(startIndex + maxResults, concepts.size());
+    if (startIndex >= concepts.size()) {
+      return new ArrayList<>();
+    }
+
+    return concepts.subList(startIndex, endIndex);
+  }
+
+  private String generateExpansionId() {
+    return "expansion-"
+        + System.currentTimeMillis()
+        + "-"
+        + UUID.randomUUID().toString().substring(0, 8);
   }
 }
