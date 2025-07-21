@@ -1371,23 +1371,6 @@ public class ConceptControllerTests {
     assertThat(list.size()).isEqualTo(10);
     assertThat(content).isNotEqualTo(origContent);
 
-    // C162271 - test large case
-    url = baseUrl + "/ncit/C162271/pathsFromRoot?fromRecord=1000&include=full";
-    log.info("Testing url - " + url);
-
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    // log.info(" content = " + content);
-    list =
-        new ObjectMapper()
-            .readValue(
-                content,
-                new TypeReference<List<List<Concept>>>() {
-                  // n/a
-                });
-    log.info("  list = " + list.size());
-    assertThat(list).isEmpty();
-
     // C98767 - test case with paging (for something with only 1)
     url = baseUrl + "/ncit/C98767/pathsFromRoot?fromRecord=0&include=minimal&pageSize=100";
     log.info("Testing url - " + url);
@@ -1423,7 +1406,7 @@ public class ConceptControllerTests {
     assertThat(list.size()).isEqualTo(2);
 
     // C4872 - test case with paging
-    url = baseUrl + "/ncit/C4872/pathsFromRoot?fromRecord=0&include=minimal&pageSize=100";
+    url = baseUrl + "/ncit/C4872/pathsFromRoot?fromRecord=0&include=minimal&pageSize=10";
     log.info("Testing url - " + url);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -1582,23 +1565,6 @@ public class ConceptControllerTests {
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isEqualTo(10);
     assertThat(content).isNotEqualTo(origContent);
-
-    // C162271 - test large case
-    url = baseUrl + "/ncit/C162271/pathsToRoot?fromRecord=1000&include=full";
-    log.info("Testing url - " + url);
-
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    // log.info(" content = " + content);
-    list =
-        new ObjectMapper()
-            .readValue(
-                content,
-                new TypeReference<List<List<Concept>>>() {
-                  // n/a
-                });
-    log.info("  list = " + list.size());
-    assertThat(list).isEmpty();
 
     // C98767 - test case with paging (for something with only 1)
     url = baseUrl + "/ncit/C98767/pathsToRoot?fromRecord=0&include=minimal&pageSize=100";

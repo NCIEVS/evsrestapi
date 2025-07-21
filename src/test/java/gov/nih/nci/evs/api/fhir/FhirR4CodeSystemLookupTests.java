@@ -400,10 +400,10 @@ public class FhirR4CodeSystemLookupTests {
     String content;
     String retiredCode = "C45683";
     String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
-    String retiredId = "ncit_21.06e";
+    String retiredId = "ncit_25.06e";
     String retiredName = "ABCB1 1 Allele";
-    String sourceName = "NCI Thesaurus 21.06e";
-    String sourceVersion = "21.06e";
+    String sourceName = "NCI Thesaurus 25.06e";
+    String sourceVersion = "25.06e";
     String endpoint =
         localHost + port + fhirCSPath + "/" + retiredId + "/" + JpaConstants.OPERATION_LOOKUP;
     String parameters =

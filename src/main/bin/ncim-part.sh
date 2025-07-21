@@ -214,6 +214,7 @@ if [[ $ct -lt 0 ]]; then
 fi
 
 # Remove the top $ct versions (which may be zero)
+if [[ $ct -ne 0 ]]; then
 for i in `cat /tmp/x.$$ | head -$ct`; do
     lv=`echo $i | perl -pe 's/.*'${lcterm}'_//i;'`
     # string compare versions
@@ -248,6 +249,7 @@ for i in `cat /tmp/x.$$ | head -$ct`; do
     fi
 
 done
+fi
 
 echo "  Cleanup"
 /bin/rm -rf /tmp/x.$$ $DOWNLOAD_DIR/Metathesaurus.RRF.zip

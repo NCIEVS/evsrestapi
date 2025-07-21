@@ -380,7 +380,7 @@ public class FhirR5CodeSystemValidateTests {
     String content;
     String retiredCode = "C45683";
     String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
-    String retiredId = "ncit_21.06e";
+    String retiredId = "ncit_25.06e";
     String retiredName = "ABCB1 1 Allele";
     String endpoint =
         localHost

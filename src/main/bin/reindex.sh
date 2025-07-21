@@ -20,7 +20,7 @@ if [ ${#arr[@]} -ne 0 ]; then
   echo "  e.g. $0"
   echo "  e.g. $0 --noconfig"
   echo "  e.g. $0 --force"
-  echo "  e.g. $0 --noconfig --history ../data/UnitTestData/cumulative_history_21.06e.txt"
+  echo "  e.g. $0 --noconfig --history ../data/UnitTestData/cumulative_history_25.06e.txt"
   exit 1
 fi
 
@@ -358,7 +358,7 @@ download_and_unpack() {
     done
 }
 
-process_ncit() {
+download_ncit_history() {
   # Prep dir
   /bin/rm -rf $DIR/NCIT_HISTORY
   mkdir $DIR/NCIT_HISTORY
@@ -388,8 +388,8 @@ process_ncit() {
           echo "ERROR: Failed to get latest terminology from http://localhost:${serverPort}/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
           cd - > /dev/null 2> /dev/null
           if [[ serverPort -eq 8082 ]]; then
-              echo "  Setting default history version on local to 21.06e"
-              prev_version="21.06e"
+              echo "  Setting default history version on local to 25.06e"
+              prev_version="25.06e"
           else
               echo "  Failed to find terminology version on non-local server, exiting"
               return 1
@@ -449,8 +449,8 @@ for x in `cat /tmp/y.$$.txt`; do
 
     # Otherwise, download if ncit
     elif [[ "$term" == "ncit" ]]; then
-        process_ncit
-	  fi
+        download_ncit_history
+	fi
 	
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
 
@@ -484,7 +484,7 @@ for x in `cat /tmp/y.$$.txt`; do
     # Set the history clause for "ncit"
     historyClause=""
     if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
-      historyClause=" -history $historyFile"
+      historyClause=" -d $historyFile"
     fi
     
     if [[ $exists -eq 0 ]] || [[ $force -eq 1 ]]; then
@@ -584,8 +584,6 @@ for t in $ncim_terms; do
   valid_keys="$valid_keys
 concept_${t_lc}_"
 done
-
-echo "  Valid keys: $valid_keys"
 
 # Remove indexes not found in triple store
 echo "  Remove unused indexes"
