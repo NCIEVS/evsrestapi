@@ -642,7 +642,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         subsetConcept.getInverseAssociations().add(inverseAssoc);
         // index subsetMember (but only if the member is not also the subset concept itself)
         if (!subsetMember.getCode().equals(subsetConcept.getCode())) {
-          operationsService.index(subsetMember, terminology.getIndexName(), Concept.class);
+          operationsService.update(
+              subsetMember.getCode(), subsetMember, terminology.getIndexName(), Concept.class);
         }
       }
       if (missingConcepts.size() > 0) {
@@ -662,7 +663,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       subsetConcept.setSubsetLink(url);
 
       // index subsetConcept
-      operationsService.index(subsetConcept, terminology.getIndexName(), Concept.class);
+      operationsService.update(
+          subsetConcept.getCode(), subsetConcept, terminology.getIndexName(), Concept.class);
       // create new subset for parentSubset to add as child of existing subset
       Concept parentSubsetChild = new Concept(subsetConcept);
       // strip out everything the subset tree doesn't need
@@ -1171,7 +1173,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       }
       handleHistory(terminology, concept, historyMap);
       // index the concept with the history
-      operationsService.index(concept, terminology.getIndexName(), Concept.class);
+      operationsService.update(
+          concept.getCode(), concept, terminology.getIndexName(), Concept.class);
     }
     terminology.getMetadata().setHistoryVersion(newHistoryVersion);
     logger.info(
