@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -45,10 +46,10 @@ public class TermSuggestionFormServiceTest {
   @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(TermSuggestionFormServiceTest.class);
 
-  // Mock JavaMailSender & app properties
-  @Mock private JavaMailSender javaMailSender;
+  // Mock app properties
   @Mock private ApplicationProperties applicationProperties;
   @Mock private ObjectMapper objectMapper;
+  @MockBean private JavaMailSender javaMailSender;
 
   // Inject mocks automatically into FormEmailServiceImpl
   private TermSuggestionFormServiceImpl termFormService;
@@ -109,11 +110,8 @@ public class TermSuggestionFormServiceTest {
     String formType = "none-form";
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
-    // check smtpConfig and mock if not set
-    if (!hasSmtpConfig()) {
-      when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json")))
-          .thenThrow(IOException.class);
-    }
+    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json")))
+        .thenThrow(IOException.class);
 
     // ACT & ASSERT
     assertThrows(
@@ -176,10 +174,8 @@ public class TermSuggestionFormServiceTest {
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
     // check smtpConfig and mock if not set
-    if (!hasSmtpConfig()) {
-      when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json")))
-          .thenThrow(FileNotFoundException.class);
-    }
+    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json")))
+        .thenThrow(FileNotFoundException.class);
 
     // ACT & ASSERT
     assertThrows(
@@ -277,9 +273,6 @@ public class TermSuggestionFormServiceTest {
   }
 
   private boolean hasSmtpConfig() {
-    if (!(javaMailSender instanceof JavaMailSenderImpl)) {
-      return false;
-    }
     // escape hatch env var so we can easily toggle full email sending in tests
     if (System.getenv("TEST_EMAIL_DISABLED") != null
         && System.getenv("TEST_EMAIL_DISABLED").equalsIgnoreCase("true")) {
