@@ -173,8 +173,9 @@ public class ConceptControllerTests {
         .isEqualTo(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
         .isEqualTo(0);
+    // We are now allowing property codes to exist
     assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
-        .isEqualTo(0);
+        .isGreaterThan(1);
     assertThat(concept.getAssociations().size()).isGreaterThan(0);
     assertThat(concept.getAssociations().stream().filter(p -> p.getCode() != null).count())
         .isEqualTo(0);
@@ -1113,7 +1114,8 @@ public class ConceptControllerTests {
     // is intended
     assertThat(list.get(0).getNormName()).isNull();
     assertThat(list.get(0).getSynonyms().get(0).getNormName()).isNull();
-    assertThat(list.get(0).getProperties().get(0).getCode()).isNull();
+    // We are keeping codes, no longer removing them
+    assertThat(list.get(0).getProperties().get(0).getCode()).isEqualTo("P366");
 
     // check for a couple things that should only show up in full
     assertThat(list.get(0).getInverseAssociations().get(0)).isNotNull();
