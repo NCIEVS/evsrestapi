@@ -25,11 +25,9 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.core.env.Environment;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -46,12 +44,10 @@ public class TermSuggestionFormServiceTest {
   @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(TermSuggestionFormServiceTest.class);
 
-  // Mock app properties
+  // Mock JavaMailSender & app properties
+  @Mock private JavaMailSender javaMailSender;
   @Mock private ApplicationProperties applicationProperties;
   @Mock private ObjectMapper objectMapper;
-  @Mock private JavaMailSender javaMailSender;
-
-  @Autowired private Environment env;
 
   // Inject mocks automatically into FormEmailServiceImpl
   private TermSuggestionFormServiceImpl termFormService;
@@ -175,7 +171,6 @@ public class TermSuggestionFormServiceTest {
     //    JsonNode termForm = new ObjectMapper().createArrayNode();
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
-    // check smtpConfig and mock if not set
     when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json")))
         .thenThrow(FileNotFoundException.class);
 
