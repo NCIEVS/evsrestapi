@@ -17,6 +17,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.service.CaptchaService;
 import gov.nih.nci.evs.api.service.TermSuggestionFormServiceImpl;
@@ -173,7 +174,7 @@ public class TermSuggestionFormControllerTests {
   public void testSubmitForm() throws Exception {
     // SET UP - create our form data JsonNode
     final String formPath = "formSamples/submissionFormTest.json";
-    final JsonNode formData = createForm(formPath);
+    JsonNode formData = createForm(formPath);
     // Create expected EmailDetails
     EmailDetails expectedEmailDetails = EmailDetails.generateEmailDetails(formData);
 
@@ -185,6 +186,11 @@ public class TermSuggestionFormControllerTests {
     if (!smtpConfigured) {
       // If no configuration, either not on local or not configured, so mock email sending
       doNothing().when(termFormService).sendEmail(any(EmailDetails.class));
+    } else {
+      // If smtp is configured, we will actually send the email
+      log.info("SMTP is configured, will send email to: {}", expectedEmailDetails.getToEmail());
+      formData = setCredentials(formData, false);
+      expectedEmailDetails = EmailDetails.generateEmailDetails(formData);
     }
 
     // ACT
@@ -256,23 +262,34 @@ public class TermSuggestionFormControllerTests {
   public void testSubmitFormThrowsExceptionWhenSendEmailFails() throws Exception {
     // SET UP - create our form data JsonNode
     final String formPath = "formSamples/submissionFormTest.json";
-    final JsonNode formData = createForm(formPath);
+    JsonNode formData = createForm(formPath);
     final String expectedResponse = "500 INTERNAL_SERVER_ERROR";
 
     // Mock the RecaptchaService to always return true for verifyRecaptcha
     when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
 
     // ACT - stub the void method to do throw an exception when called
-    doThrow(new RuntimeException("Email failed to send"))
-        .when(termFormService)
-        .sendEmail(any(EmailDetails.class));
+    if (!hasSmtpConfig()) {
+      // If no configuration, either not on local or not configured, so mock email sending
+      doNothing().when(termFormService).sendEmail(any(EmailDetails.class));
+      doThrow(new RuntimeException("Email failed to send"))
+          .when(termFormService)
+          .sendEmail(any(EmailDetails.class));
+    } else {
+      // If smtp is configured, we will actually attempt to send the email
+      // but we will give it bad credentials so it will fail
+      log.info(
+          "SMTP is configured, will send email to: {}", formData.get("recipientEmail").asText());
+      formData = setCredentials(formData, true);
+    }
 
     // ASSERT
+    final JsonNode formDataFinal = formData;
     final Exception exception =
         assertThrows(
             Exception.class,
             () -> {
-              termSuggestionFormController.submitForm(formData, null, recaptchaToken);
+              termSuggestionFormController.submitForm(formDataFinal, null, recaptchaToken);
             });
     assertTrue(exception.getMessage().contains(expectedResponse));
   }
@@ -284,15 +301,24 @@ public class TermSuggestionFormControllerTests {
    *
    * @throws Exception the exception
    */
-  // @Test
+  @Test
   public void testSubmitFormRecaptchaVerificationPasses() throws Exception {
     // SET UP
     final String formPath = "formSamples/submissionFormTest.json";
-    final JsonNode formData = createForm(formPath);
+    JsonNode formData = createForm(formPath);
 
     // Mock the RecaptchaService to always return true for verifyRecaptcha
     when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
-    doNothing().when(termFormService).sendEmail(any(EmailDetails.class));
+    // Mock the email service to do nothing if not configured
+    if (!hasSmtpConfig()) {
+      // If no configuration, either not on local or not configured, so mock email sending
+      doNothing().when(termFormService).sendEmail(any(EmailDetails.class));
+    } else {
+      // If smtp is configured, we will actually send the email
+      log.info(
+          "SMTP is configured, will send email to: {}", formData.get("recipientEmail").asText());
+      formData = setCredentials(formData, false);
+    }
 
     // ACT & ASSERT
     try {
@@ -363,17 +389,28 @@ public class TermSuggestionFormControllerTests {
    *
    * @throws Exception exception
    */
-  // @Test
+  @Test
   public void integrationTestSubmitForm() throws Exception {
     // SET UP
+    baseUrl = "/api/v1/suggest";
     final String formPath = "formSamples/submissionFormTest.json";
-    final JsonNode formData = createForm(formPath);
-    final String requestBody = objectMapper.writeValueAsString(formData);
+    JsonNode formData = createForm(formPath);
 
     // Mock the RecaptchaService to always return true for verifyRecaptcha
     when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
 
     // ACT & ASSERT - Verify the email was sent to the receiver in the form
+    if (!hasSmtpConfig()) {
+      // If no configuration, either not on local or not configured, so mock email sending
+      doNothing().when(termFormService).sendEmail(any(EmailDetails.class));
+    } else {
+      // If smtp is configured, we will actually send the email
+      log.info(
+          "SMTP is configured, will send email to: {}", formData.get("recipientEmail").asText());
+      // Set credentials in the form data
+      formData = setCredentials(formData, false);
+    }
+    final String requestBody = objectMapper.writeValueAsString(formData);
     log.info("Form data = {}", formData);
     @SuppressWarnings("unused")
     final MvcResult result =
@@ -416,5 +453,35 @@ public class TermSuggestionFormControllerTests {
         && !"false"
             .equalsIgnoreCase(
                 impl.getJavaMailProperties().getProperty("mail.smtp.starttls.enable"));
+  }
+
+  /**
+   * Set credentials in the form data to test email sending.
+   *
+   * @param formData the form data
+   * @return JsonNode with bad credentials
+   */
+  private JsonNode setCredentials(JsonNode formData, boolean badCredentials) {
+    if (!(mailSender instanceof JavaMailSenderImpl)) {
+      throw new IllegalStateException("Mail sender is not configured correctly.");
+    }
+    JavaMailSenderImpl impl = (JavaMailSenderImpl) mailSender;
+
+    ObjectNode o = (ObjectNode) formData;
+    o.put("businessEmail", impl.getUsername());
+
+    if (badCredentials) {
+      // Set bad recipient email
+      o.put("recipientEmail", "invalid@@westcoastinformatics.com");
+
+    } else {
+      // Set real credentials
+      o.put("mail.smtp.auth", "true");
+      o.put("mail.smtp.starttls.enable", "true");
+      o.put("recipientEmail", impl.getUsername());
+      o.put("MAIL_USERNAME", impl.getUsername());
+      o.put("MAIL_PASSWORD", impl.getPassword());
+    }
+    return o;
   }
 }
