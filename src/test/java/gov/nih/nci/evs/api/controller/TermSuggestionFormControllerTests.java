@@ -337,12 +337,21 @@ public class TermSuggestionFormControllerTests {
   public void testSubmitFormRecaptchaVerificationFails() throws Exception {
     // SET UP
     final String formPath = "formSamples/submissionFormTest.json";
-    final JsonNode formData = createForm(formPath);
+    JsonNode formData = createForm(formPath);
     // Create expected EmailDetails
 
     // Mock the RecaptchaService to always return true for verifyRecaptcha
     when(captchaService.verifyRecaptcha(anyString())).thenReturn(false);
-    doNothing().when(termFormService).sendEmail(any(EmailDetails.class));
+    if (!hasSmtpConfig()) {
+      // If no configuration, either not on local or not configured, so mock email sending failure
+      doNothing().when(termFormService).sendEmail(any(EmailDetails.class));
+    } else {
+      // If smtp is configured, we will actually attempt send the email
+      // but we will fail because fo the recaptcha failure
+      log.info(
+          "SMTP is configured, will send email to: {}", formData.get("recipientEmail").asText());
+      formData = setCredentials(formData, false);
+    }
 
     // ACT & ASSERT
     try {
@@ -377,7 +386,6 @@ public class TermSuggestionFormControllerTests {
     assertNotNull(form);
     assertFalse(form.isEmpty());
     assertEquals("NCIt Term Suggestion Request", form.get("formName").asText());
-    // TODO: Update this to ncithesaurus@mail.nih.gov after the form is updated
     assertEquals("ncithesaurus@mail.nih.gov", form.get("recipientEmail").asText());
   }
 
