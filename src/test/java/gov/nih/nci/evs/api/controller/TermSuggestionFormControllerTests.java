@@ -444,6 +444,11 @@ public class TermSuggestionFormControllerTests {
     if (!(mailSender instanceof JavaMailSenderImpl)) {
       return false;
     }
+    // escape hatch env var so we can easily toggle full email sending in tests
+    if (System.getenv("TEST_EMAIL_DISABLED") != null
+        && System.getenv("TEST_EMAIL_DISABLED").equalsIgnoreCase("true")) {
+      return false;
+    }
     JavaMailSenderImpl impl = (JavaMailSenderImpl) mailSender;
 
     return impl.getHost() != null
