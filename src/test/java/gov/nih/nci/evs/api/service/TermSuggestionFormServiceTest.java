@@ -31,6 +31,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -108,8 +109,11 @@ public class TermSuggestionFormServiceTest {
     String formType = "none-form";
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
-    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json")))
-        .thenThrow(IOException.class);
+    // check smtpConfig and mock if not set
+    if (!hasSmtpConfig()) {
+      when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json")))
+          .thenThrow(IOException.class);
+    }
 
     // ACT & ASSERT
     assertThrows(
@@ -171,8 +175,11 @@ public class TermSuggestionFormServiceTest {
     //    JsonNode termForm = new ObjectMapper().createArrayNode();
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
-    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json")))
-        .thenThrow(FileNotFoundException.class);
+    // check smtpConfig and mock if not set
+    if (!hasSmtpConfig()) {
+      when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json")))
+          .thenThrow(FileNotFoundException.class);
+    }
 
     // ACT & ASSERT
     assertThrows(
@@ -211,9 +218,13 @@ public class TermSuggestionFormServiceTest {
   @Test
   public void testSendEmail() throws Exception {
     // SET UP
-    testEmailDetails = createEmail();
-    when(javaMailSender.createMimeMessage()).thenReturn(mock(MimeMessage.class));
-    doNothing().when(javaMailSender).send(any(MimeMessage.class));
+    if (hasSmtpConfig()) {
+      testEmailDetails = createEmail(true);
+    } else {
+      testEmailDetails = createEmail(false);
+      when(javaMailSender.createMimeMessage()).thenReturn(mock(MimeMessage.class));
+      doNothing().when(javaMailSender).send(any(SimpleMailMessage.class));
+    }
 
     // ACT
     termFormService.sendEmail(testEmailDetails);
@@ -226,8 +237,13 @@ public class TermSuggestionFormServiceTest {
   @Test
   public void testSendEmailThrowsException() throws Exception {
     // SETUP
-    testEmailDetails = createEmail();
-    when(javaMailSender.createMimeMessage()).thenReturn(mock(MimeMessage.class));
+
+    if (hasSmtpConfig()) {
+      testEmailDetails = createEmail(true);
+    } else {
+      testEmailDetails = createEmail(false);
+      when(javaMailSender.createMimeMessage()).thenReturn(mock(MimeMessage.class));
+    }
 
     // ACT
     try {
@@ -243,13 +259,40 @@ public class TermSuggestionFormServiceTest {
    *
    * @return EmailDetails object
    */
-  private EmailDetails createEmail() {
+  private EmailDetails createEmail(boolean hasSmtpConfig) {
     testEmailDetails.setSource(source);
-    testEmailDetails.setToEmail(toEmail);
-    testEmailDetails.setFromEmail(fromEmail);
     testEmailDetails.setSubject(subject);
     testEmailDetails.setMsgBody(msgBody);
+    if (hasSmtpConfig) {
+      JavaMailSenderImpl impl = (JavaMailSenderImpl) javaMailSender;
+      // Set the SMTP properties
+      testEmailDetails.setToEmail(impl.getUsername());
+      testEmailDetails.setFromEmail(impl.getUsername());
+    } else {
+      testEmailDetails.setToEmail(toEmail);
+      testEmailDetails.setFromEmail(fromEmail);
+    }
 
     return testEmailDetails;
+  }
+
+  private boolean hasSmtpConfig() {
+    if (!(javaMailSender instanceof JavaMailSenderImpl)) {
+      return false;
+    }
+    // escape hatch env var so we can easily toggle full email sending in tests
+    if (System.getenv("TEST_EMAIL_DISABLED") != null
+        && System.getenv("TEST_EMAIL_DISABLED").equalsIgnoreCase("true")) {
+      return false;
+    }
+    JavaMailSenderImpl impl = (JavaMailSenderImpl) javaMailSender;
+
+    return impl.getHost() != null
+        && impl.getPort() > 0
+        && impl.getUsername() != null
+        && impl.getPassword() != null
+        && !"false"
+            .equalsIgnoreCase(
+                impl.getJavaMailProperties().getProperty("mail.smtp.starttls.enable"));
   }
 }
