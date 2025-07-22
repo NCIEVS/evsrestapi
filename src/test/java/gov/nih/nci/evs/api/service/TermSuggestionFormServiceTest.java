@@ -25,14 +25,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.core.env.Environment;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -49,7 +49,9 @@ public class TermSuggestionFormServiceTest {
   // Mock app properties
   @Mock private ApplicationProperties applicationProperties;
   @Mock private ObjectMapper objectMapper;
-  @MockBean private JavaMailSender javaMailSender;
+  @Mock private JavaMailSender javaMailSender;
+
+  @Autowired private Environment env;
 
   // Inject mocks automatically into FormEmailServiceImpl
   private TermSuggestionFormServiceImpl termFormService;
@@ -214,13 +216,9 @@ public class TermSuggestionFormServiceTest {
   @Test
   public void testSendEmail() throws Exception {
     // SET UP
-    if (hasSmtpConfig()) {
-      testEmailDetails = createEmail(true);
-    } else {
-      testEmailDetails = createEmail(false);
-      when(javaMailSender.createMimeMessage()).thenReturn(mock(MimeMessage.class));
-      doNothing().when(javaMailSender).send(any(SimpleMailMessage.class));
-    }
+    testEmailDetails = createEmail();
+    when(javaMailSender.createMimeMessage()).thenReturn(mock(MimeMessage.class));
+    doNothing().when(javaMailSender).send(any(MimeMessage.class));
 
     // ACT
     termFormService.sendEmail(testEmailDetails);
@@ -233,13 +231,8 @@ public class TermSuggestionFormServiceTest {
   @Test
   public void testSendEmailThrowsException() throws Exception {
     // SETUP
-
-    if (hasSmtpConfig()) {
-      testEmailDetails = createEmail(true);
-    } else {
-      testEmailDetails = createEmail(false);
-      when(javaMailSender.createMimeMessage()).thenReturn(mock(MimeMessage.class));
-    }
+    testEmailDetails = createEmail();
+    when(javaMailSender.createMimeMessage()).thenReturn(mock(MimeMessage.class));
 
     // ACT
     try {
@@ -255,37 +248,13 @@ public class TermSuggestionFormServiceTest {
    *
    * @return EmailDetails object
    */
-  private EmailDetails createEmail(boolean hasSmtpConfig) {
+  private EmailDetails createEmail() {
     testEmailDetails.setSource(source);
+    testEmailDetails.setToEmail(toEmail);
+    testEmailDetails.setFromEmail(fromEmail);
     testEmailDetails.setSubject(subject);
     testEmailDetails.setMsgBody(msgBody);
-    if (hasSmtpConfig) {
-      JavaMailSenderImpl impl = (JavaMailSenderImpl) javaMailSender;
-      // Set the SMTP properties
-      testEmailDetails.setToEmail(impl.getUsername());
-      testEmailDetails.setFromEmail(impl.getUsername());
-    } else {
-      testEmailDetails.setToEmail(toEmail);
-      testEmailDetails.setFromEmail(fromEmail);
-    }
 
     return testEmailDetails;
-  }
-
-  private boolean hasSmtpConfig() {
-    // escape hatch env var so we can easily toggle full email sending in tests
-    if (System.getenv("TEST_EMAIL_DISABLED") != null
-        && System.getenv("TEST_EMAIL_DISABLED").equalsIgnoreCase("true")) {
-      return false;
-    }
-    JavaMailSenderImpl impl = (JavaMailSenderImpl) javaMailSender;
-
-    return impl.getHost() != null
-        && impl.getPort() > 0
-        && impl.getUsername() != null
-        && impl.getPassword() != null
-        && !"false"
-            .equalsIgnoreCase(
-                impl.getJavaMailProperties().getProperty("mail.smtp.starttls.enable"));
   }
 }
