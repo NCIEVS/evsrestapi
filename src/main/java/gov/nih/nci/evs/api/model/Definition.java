@@ -117,6 +117,7 @@ public class Definition extends BaseModel implements Comparable<Definition> {
    *
    * @return the code
    */
+  @Schema(description = "Definition code")
   public String getCode() {
     return code;
   }

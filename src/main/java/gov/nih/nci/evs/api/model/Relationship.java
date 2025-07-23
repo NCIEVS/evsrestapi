@@ -80,6 +80,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
    *
    * @return the code
    */
+  @Schema(description = "Relationship code")
   public String getCode() {
     return code;
   }

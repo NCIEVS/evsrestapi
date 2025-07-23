@@ -79,6 +79,7 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
    *
    * @param code the code
    */
+  @Schema(description = "Qualifier code")
   public void setCode(String code) {
     this.code = code;
   }

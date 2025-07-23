@@ -48,6 +48,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   private String type;
 
   /** The "code" of the synonym type, so it can be searched by. */
+  @Field(type = FieldType.Keyword)
   private String typeCode;
 
   /** The source. */
@@ -228,6 +229,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    *
    * @return the type code
    */
+  @Schema(description = "Synonym Type code")
   public String getTypeCode() {
     return typeCode;
   }
