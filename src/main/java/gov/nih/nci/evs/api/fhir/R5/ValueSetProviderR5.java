@@ -2,7 +2,13 @@ package gov.nih.nci.evs.api.fhir.R5;
 
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
-import ca.uhn.fhir.rest.annotation.*;
+import ca.uhn.fhir.rest.annotation.History;
+import ca.uhn.fhir.rest.annotation.IdParam;
+import ca.uhn.fhir.rest.annotation.Operation;
+import ca.uhn.fhir.rest.annotation.OperationParam;
+import ca.uhn.fhir.rest.annotation.OptionalParam;
+import ca.uhn.fhir.rest.annotation.Read;
+import ca.uhn.fhir.rest.annotation.Search;
 import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
@@ -26,10 +32,30 @@ import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
-import org.hl7.fhir.r5.model.*;
+import org.hl7.fhir.r5.model.BooleanType;
+import org.hl7.fhir.r5.model.Bundle;
+import org.hl7.fhir.r5.model.CodeType;
+import org.hl7.fhir.r5.model.Coding;
+import org.hl7.fhir.r5.model.IdType;
+import org.hl7.fhir.r5.model.IntegerType;
+import org.hl7.fhir.r5.model.Meta;
+import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r5.model.Parameters;
+import org.hl7.fhir.r5.model.StringType;
+import org.hl7.fhir.r5.model.UriType;
+import org.hl7.fhir.r5.model.ValueSet;
 import org.hl7.fhir.r5.model.ValueSet.ConceptPropertyComponent;
 import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionContainsComponent;
@@ -76,6 +102,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
    *
    * @param request the request
    * @param id the id
+   * @param date the date
    * @param code the code
    * @param name the name
    * @param title the title
@@ -174,6 +201,12 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return FhirUtilityR5.makeBundle(request, list, count, offset);
   }
 
+  /**
+   * Gets the ncit subsets.
+   *
+   * @return the ncit subsets
+   * @throws Exception the exception
+   */
   @Cacheable("ncitsubsets")
   public List<Concept> getNcitSubsets() throws Exception {
     return metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.empty());
@@ -187,6 +220,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param request the request
    * @param details the details
    * @param url a canonical reference to the value set.
+   * @param valueSet the value set
    * @param version the identifier used to identify the specific version of the value set to be used
    *     to generate expansion.
    * @param filter the text filter applied to the restrict codes that are returned.
@@ -228,9 +262,10 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OperationParam(name = "property") final List<StringType> properties)
       throws Exception {
 
-    if (request.getParameter("filter") != null) {
-      filter = new StringType(request.getParameter("filter"));
-    }
+    // BAC: This doesn't make sense, it should be passed in
+    // if (request.getParameter("filter") != null) {
+    // filter = new StringType(request.getParameter("filter"));
+    // }
 
     // TODO: ensure url and POST request not both sent
     if (valueSet != null) {
@@ -1268,6 +1303,21 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
   }
 
+  /**
+   * Expand value set.
+   *
+   * @param request the request
+   * @param valueSet the value set
+   * @param version the version
+   * @param filter the filter
+   * @param count the count
+   * @param offset the offset
+   * @param includeDesignations the include designations
+   * @param includeDefinition the include definition
+   * @param activeOnly the active only
+   * @return the value set
+   * @throws Exception the exception
+   */
   private ValueSet expandValueSet(
       final HttpServletRequest request,
       final ValueSet valueSet,
@@ -1338,6 +1388,17 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
   }
 
+  /**
+   * Expand compose.
+   *
+   * @param compose the compose
+   * @param textFilter the text filter
+   * @param activeOnly the active only
+   * @param includeDesignations the include designations
+   * @param includeDefinitions the include definitions
+   * @return the list
+   * @throws Exception the exception
+   */
   private List<ValueSetExpansionContainsComponent> expandCompose(
       ValueSet.ValueSetComposeComponent compose,
       String textFilter,
@@ -1371,6 +1432,17 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return deduplicateAndSort(allConcepts);
   }
 
+  /**
+   * Process include.
+   *
+   * @param include the include
+   * @param textFilter the text filter
+   * @param activeOnly the active only
+   * @param includeDesignations the include designations
+   * @param includeDefinitions the include definitions
+   * @return the list
+   * @throws Exception the exception
+   */
   private List<ValueSetExpansionContainsComponent> processInclude(
       ValueSet.ConceptSetComponent include,
       String textFilter,
@@ -1428,28 +1500,36 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
 
     // Handle filter-based inclusion
-    //      if (include.hasFilter()) {
-    //        for (ValueSet.ConceptSetFilterComponent filter : include.getFilter()) {
-    //          List<ValueSetExpansionContainsComponent> filteredConcepts =
-    //                  applyConceptFilter(include.getSystem(), filter, textFilter, activeOnly,
+    // if (include.hasFilter()) {
+    // for (ValueSet.ConceptSetFilterComponent filter : include.getFilter()) {
+    // List<ValueSetExpansionContainsComponent> filteredConcepts =
+    // applyConceptFilter(include.getSystem(), filter, textFilter, activeOnly,
     // includeDesignations);
-    //          concepts.addAll(filteredConcepts);
-    //        }
-    //      }
+    // concepts.addAll(filteredConcepts);
+    // }
+    // }
 
     // Handle value set inclusion
-    //      if (include.hasValueSet()) {
-    //        for (CanonicalType valueSetUrl : include.getValueSet()) {
-    //          List<ValueSetExpansionContainsComponent> referencedConcepts =
-    //                  expandReferencedValueSet(valueSetUrl.getValue(), textFilter, activeOnly,
+    // if (include.hasValueSet()) {
+    // for (CanonicalType valueSetUrl : include.getValueSet()) {
+    // List<ValueSetExpansionContainsComponent> referencedConcepts =
+    // expandReferencedValueSet(valueSetUrl.getValue(), textFilter, activeOnly,
     // includeDesignations);
-    //          concepts.addAll(referencedConcepts);
-    //        }
-    //      }
+    // concepts.addAll(referencedConcepts);
+    // }
+    // }
 
     return concepts;
   }
 
+  /**
+   * Process exclude.
+   *
+   * @param exclude the exclude
+   * @param activeOnly the active only
+   * @return the list
+   * @throws Exception the exception
+   */
   private List<ValueSetExpansionContainsComponent> processExclude(
       ValueSet.ConceptSetComponent exclude, boolean activeOnly) throws Exception {
 
@@ -1471,17 +1551,25 @@ public class ValueSetProviderR5 implements IResourceProvider {
       }
     }
 
-    //      if (exclude.hasFilter()) {
-    //        for (ValueSet.ConceptSetFilterComponent filter : exclude.getFilter()) {
-    //          List<ValueSetExpansionContainsComponent> filteredConcepts =
-    //                  applyConceptFilter(exclude.getSystem(), filter, null, activeOnly, false);
-    //          concepts.addAll(filteredConcepts);
-    //        }
-    //      }
+    // if (exclude.hasFilter()) {
+    // for (ValueSet.ConceptSetFilterComponent filter : exclude.getFilter()) {
+    // List<ValueSetExpansionContainsComponent> filteredConcepts =
+    // applyConceptFilter(exclude.getSystem(), filter, null, activeOnly, false);
+    // concepts.addAll(filteredConcepts);
+    // }
+    // }
 
     return concepts;
   }
 
+  /**
+   * Lookup concept display.
+   *
+   * @param system the system
+   * @param code the code
+   * @return the string
+   * @throws Exception the exception
+   */
   private String lookupConceptDisplay(String system, String code) throws Exception {
     Terminology selectedTerminology =
         termUtils.getIndexedTerminologies(osQueryService).stream()
@@ -1507,64 +1595,74 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return concept.getName();
   }
 
-  //    private List<ValueSetExpansionContainsComponent> applyConceptFilter(
-  //            String system,
-  //            ValueSet.ConceptSetFilterComponent filter,
-  //            String textFilter,
-  //    boolean activeOnly,
-  //    boolean includeDesignations) throws Exception {
+  // private List<ValueSetExpansionContainsComponent> applyConceptFilter(
+  // String system,
+  // ValueSet.ConceptSetFilterComponent filter,
+  // String textFilter,
+  // boolean activeOnly,
+  // boolean includeDesignations) throws Exception {
   //
   //
-  //      // TODO: Implement filter logic based on your terminology service
-  //    List<ValueSetExpansionContainsComponent> compList = new ArrayList<>();
+  // // TODO: Implement filter logic based on your terminology service
+  // List<ValueSetExpansionContainsComponent> compList = new ArrayList<>();
   //
-  //    Terminology selectedTerminology = termUtils.getIndexedTerminologies(osQueryService)
-  //   .stream()
-  //   .filter(term -> term.getMetadata().getFhirUri().equals(system))
-  //   .findFirst()
-  //   .orElse(null);
-  //      Concept concept = osQueryService
-  //              .getConcept(
-  //                      filter.getValue(),
-  //                      selectedTerminology,
-  //                      new IncludeParam("descendants"))
-  //              .get();
-  //      for (Concept desc : concept.getDescendants()) {
-  //          if (desc.getActive() != null && !desc.getActive()) {
-  //            continue;
-  //          }
-  //          final ValueSet.ValueSetExpansionContainsComponent vsContains =
-  //                  new ValueSet.ValueSetExpansionContainsComponent();
-  //          vsContains.setSystem(system);
-  //          vsContains.setCode(desc.getCode());
-  //          vsContains.setDisplay(desc.getName());
+  // Terminology selectedTerminology = termUtils.getIndexedTerminologies(osQueryService)
+  // .stream()
+  // .filter(term -> term.getMetadata().getFhirUri().equals(system))
+  // .findFirst()
+  // .orElse(null);
+  // Concept concept = osQueryService
+  // .getConcept(
+  // filter.getValue(),
+  // selectedTerminology,
+  // new IncludeParam("descendants"))
+  // .get();
+  // for (Concept desc : concept.getDescendants()) {
+  // if (desc.getActive() != null && !desc.getActive()) {
+  // continue;
+  // }
+  // final ValueSet.ValueSetExpansionContainsComponent vsContains =
+  // new ValueSet.ValueSetExpansionContainsComponent();
+  // vsContains.setSystem(system);
+  // vsContains.setCode(desc.getCode());
+  // vsContains.setDisplay(desc.getName());
   //
-  //          compList.add(vsContains);
-  //      }
-  //      // Example for SNOMED CT "is-a" filter:
-  //      // if ("concept".equals(filter.getProperty()) && "is-a".equals(filter.getOp())) {
-  //      //     return snomedService.getDescendants(filter.getValue(), textFilter, activeOnly);
-  //      // }
+  // compList.add(vsContains);
+  // }
+  // // Example for SNOMED CT "is-a" filter:
+  // // if ("concept".equals(filter.getProperty()) && "is-a".equals(filter.getOp())) {
+  // // return snomedService.getDescendants(filter.getValue(), textFilter, activeOnly);
+  // // }
   //
-  //      logger.debug("Applying filter: {} {} {} on {}",
-  //              filter.getProperty(), filter.getOp(), filter.getValue(), system);
+  // logger.debug("Applying filter: {} {} {} on {}",
+  // filter.getProperty(), filter.getOp(), filter.getValue(), system);
   //
-  //      return compList;
-  //    }
+  // return compList;
+  // }
 
-  //    private List<ValueSetExpansionContainsComponent> expandReferencedValueSet(
-  //            String valueSetUrl,
-  //            String textFilter,
-  //    boolean activeOnly,
-  //    boolean includeDesignations) throws Exception {
+  // private List<ValueSetExpansionContainsComponent> expandReferencedValueSet(
+  // String valueSetUrl,
+  // String textFilter,
+  // boolean activeOnly,
+  // boolean includeDesignations) throws Exception {
   //
-  //      // TODO: Implement recursive ValueSet expansion
-  //      // Example: return valueSetService.expand(valueSetUrl, textFilter, activeOnly,
+  // // TODO: Implement recursive ValueSet expansion
+  // // Example: return valueSetService.expand(valueSetUrl, textFilter, activeOnly,
   // includeDesignations);
-  //      logger.debug("Expanding referenced ValueSet: {}", valueSetUrl);
-  //      return new ArrayList<>();
-  //    }
+  // logger.debug("Expanding referenced ValueSet: {}", valueSetUrl);
+  // return new ArrayList<>();
+  // }
 
+  /**
+   * Adds the designations and definitions.
+   *
+   * @param contains the contains
+   * @param system the system
+   * @param code the code
+   * @param includeDesignations the include designations
+   * @param includeDefinition the include definition
+   * @throws Exception the exception
+   */
   private void addDesignationsAndDefinitions(
       ValueSetExpansionContainsComponent contains,
       String system,
@@ -1605,6 +1703,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
   // Utility methods
 
+  /**
+   * Passes text filter.
+   *
+   * @param contains the contains
+   * @param textFilter the text filter
+   * @return true, if successful
+   */
   private boolean passesTextFilter(ValueSetExpansionContainsComponent contains, String textFilter) {
     if (textFilter == null || textFilter.trim().isEmpty()) {
       return true;
@@ -1616,6 +1721,14 @@ public class ValueSetProviderR5 implements IResourceProvider {
             && contains.getDisplay().toLowerCase().contains(lowerFilter));
   }
 
+  /**
+   * Passes active filter.
+   *
+   * @param contains the contains
+   * @param activeOnly the active only
+   * @return true, if successful
+   * @throws Exception the exception
+   */
   private boolean passesActiveFilter(
       ValueSetExpansionContainsComponent contains, boolean activeOnly) throws Exception {
     if (!activeOnly) {
@@ -1652,6 +1765,14 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return active != null && active;
   }
 
+  /**
+   * Passes version.
+   *
+   * @param contains the contains
+   * @param version the version
+   * @return true, if successful
+   * @throws Exception the exception
+   */
   private boolean passesVersion(ValueSetExpansionContainsComponent contains, String version)
       throws Exception {
 
@@ -1688,6 +1809,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return version != null && version.compareTo(cptVersion) >= 0;
   }
 
+  /**
+   * Filter out excluded concepts.
+   *
+   * @param allConcepts the all concepts
+   * @param excludedConcepts the excluded concepts
+   * @return the list
+   */
   private List<ValueSetExpansionContainsComponent> filterOutExcludedConcepts(
       List<ValueSetExpansionContainsComponent> allConcepts,
       List<ValueSetExpansionContainsComponent> excludedConcepts) {
@@ -1702,6 +1830,12 @@ public class ValueSetProviderR5 implements IResourceProvider {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Deduplicate and sort.
+   *
+   * @param concepts the concepts
+   * @return the list
+   */
   private List<ValueSetExpansionContainsComponent> deduplicateAndSort(
       List<ValueSetExpansionContainsComponent> concepts) {
 
@@ -1726,6 +1860,14 @@ public class ValueSetProviderR5 implements IResourceProvider {
         .collect(Collectors.toList());
   }
 
+  /**
+   * Apply pagination.
+   *
+   * @param concepts the concepts
+   * @param startIndex the start index
+   * @param maxResults the max results
+   * @return the list
+   */
   private List<ValueSetExpansionContainsComponent> applyPagination(
       List<ValueSetExpansionContainsComponent> concepts, int startIndex, int maxResults) {
 
@@ -1737,6 +1879,11 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return concepts.subList(startIndex, endIndex);
   }
 
+  /**
+   * Generate expansion id.
+   *
+   * @return the string
+   */
   private String generateExpansionId() {
     return "expansion-"
         + System.currentTimeMillis()
