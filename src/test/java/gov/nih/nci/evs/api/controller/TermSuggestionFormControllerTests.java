@@ -449,12 +449,22 @@ public class TermSuggestionFormControllerTests {
   }
 
   private boolean hasSmtpConfig() {
-    if (!(mailSender instanceof JavaMailSenderImpl)) {
+    // check that MAIL_USERNAME and MAIL_PASSWORD are set
+    // as environment variables
+    if (System.getenv("MAIL_USERNAME") == null) {
+      log.info(" MAIL_USERNAME not set, skipping test");
       return false;
     }
-    // escape hatch env var so we can easily toggle full email sending in tests
-    if (System.getenv("TEST_EMAIL_DISABLED") != null
-        && System.getenv("TEST_EMAIL_DISABLED").equalsIgnoreCase("true")) {
+    // to generate a valid MAIL_PASSWORD, you need to set up an App Password
+    // for your email account, e.g., Gmail, and set it in your environment variables.
+    // See https://support.google.com/mail/answer/185833?hl=en
+    // for more information on how to set up App Passwords
+    if (System.getenv("MAIL_PASSWORD") == null) {
+      log.info(" MAIL_PASSWORD not set, skipping test");
+      return false;
+    }
+
+    if (mailSender == null || !(mailSender instanceof JavaMailSenderImpl)) {
       return false;
     }
     JavaMailSenderImpl impl = (JavaMailSenderImpl) mailSender;
