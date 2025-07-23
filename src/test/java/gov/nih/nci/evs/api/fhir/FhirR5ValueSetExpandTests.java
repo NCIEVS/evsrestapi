@@ -1430,21 +1430,29 @@ public class FhirR5ValueSetExpandTests {
             "NCI Thesaurus Filter Test",
             "Test ValueSet with filter parameter to exclude specific concepts");
 
-    // Convert to JSON for POST request
-    String requestBody = parser.encodeResourceToString(inputValueSet);
-    log.info("  value set = " + requestBody);
+    // Create Parameters resource with both ValueSet and other parameters
+    Parameters parameters = new Parameters();
+    parameters
+        .addParameter()
+        .setName("valueSet")
+        .setResource(inputValueSet); // Add your ValueSet here
+    // Add filter parameter to exclude concepts containing "Gene" in code or display
+    // This should filter out C16612 (Gene) but allow C2991 (Disease or Disorder)
+    parameters.addParameter().setName("filter").setValue(new StringType("Disease"));
+    // Add any other parameters you need
+    parameters.addParameter().setName("activeOnly").setValue(new BooleanType(true));
+    parameters.addParameter().setName("includeDesignations").setValue(new BooleanType(false));
+
+    // Encode the Parameters resource instead of the ValueSet directly
+    String requestBody = parser.encodeResourceToString(parameters);
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
 
-    // Add filter parameter to exclude concepts containing "Gene" in code or display
-    // This should filter out C16612 (Gene) but allow C2991 (Disease or Disorder)
-    String endpointWithFilter = endpoint + "?filter=Disease";
-
     // Act
     ResponseEntity<String> response =
-        this.restTemplate.postForEntity(endpointWithFilter, request, String.class);
+        this.restTemplate.postForEntity(endpoint, request, String.class);
     log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
     ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
 

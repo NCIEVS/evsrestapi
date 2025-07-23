@@ -242,7 +242,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OperationParam(name = "valueSetVersion") final StringType version,
       // @OperationParam(name = "context") final UriType context,
       // @OperationParam(name = "contextDirection") final CodeType contextDirection,
-      @OperationParam(name = "filter") StringType filter,
+      @OperationParam(name = "filter") final StringType filter,
       // @OperationParam(name = "date") final DateTimeType date,
       @OperationParam(name = "offset") final IntegerType offset,
       @OperationParam(name = "count") final IntegerType count,
@@ -261,11 +261,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
       // @OperationParam(name = "force-system-version") final StringType force_system_version,
       @OperationParam(name = "property") final List<StringType> properties)
       throws Exception {
-
-    // BAC: This doesn't make sense, it should be passed in
-    // if (request.getParameter("filter") != null) {
-    // filter = new StringType(request.getParameter("filter"));
-    // }
 
     // TODO: ensure url and POST request not both sent
     if (valueSet != null) {
