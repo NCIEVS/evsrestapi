@@ -10,17 +10,26 @@ import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.JsonUtils;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hl7.fhir.r5.model.*;
+import org.hl7.fhir.r5.model.BooleanType;
+import org.hl7.fhir.r5.model.Bundle;
+import org.hl7.fhir.r5.model.Enumerations;
+import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
+import org.hl7.fhir.r5.model.Parameters;
+import org.hl7.fhir.r5.model.Resource;
+import org.hl7.fhir.r5.model.StringType;
+import org.hl7.fhir.r5.model.ValueSet;
 import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,14 +40,14 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
-import org.springframework.http.*;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-// TODO: Auto-generated Javadoc
-/**
- * Class tests for FhirR5Tests. Tests the functionality of the FHIR R5 endpoints, CodeSystem,
- * ValueSet, and ConceptMap. All passed ids MUST be lowercase, so they match our internally set id's
- */
+/** Tests for R5 value set expand calls. */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
@@ -72,15 +81,20 @@ public class FhirR5ValueSetExpandTests {
   @BeforeAll
   public static void setUpOnce() {
     // Instantiate parser
-    parser = FhirContext.forR5().newJsonParser();
+    parser = FhirContext.forR5().newJsonParser().setPrettyPrint(true);
   }
 
-  /** Sets the up. */
+  /**
+   * Sets the up.
+   *
+   * @param testInfo the new up
+   */
   @BeforeEach
-  public void setUp() {
+  public void setUp(final TestInfo testInfo) {
     // The object mapper
     objectMapper = new ObjectMapper();
     JacksonTester.initFields(this, objectMapper);
+    log.info("Running test = " + testInfo.getDisplayName());
   }
 
   /**
@@ -604,6 +618,7 @@ public class FhirR5ValueSetExpandTests {
 
     // Act
     content = this.restTemplate.postForEntity(endpoint + parameters, null, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(content));
 
     // Assert
     assertEquals(HttpStatus.METHOD_NOT_ALLOWED, content.getStatusCode());
@@ -931,6 +946,15 @@ public class FhirR5ValueSetExpandTests {
         });
   }
 
+  /**
+   * Creates the NCI test value set.
+   *
+   * @param id the id
+   * @param name the name
+   * @param title the title
+   * @param description the description
+   * @return the value set
+   */
   // Helper method to create the common NCI ValueSet for testing
   private ValueSet createNCITestValueSet(String id, String name, String title, String description) {
     ValueSet inputValueSet = new ValueSet();
@@ -977,6 +1001,11 @@ public class FhirR5ValueSetExpandTests {
     return inputValueSet;
   }
 
+  /**
+   * Test value set expand with NCI thesaurus compose definition.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetExpandWithNCIThesaurusComposeDefinition() throws Exception {
     // Arrange
@@ -992,6 +1021,7 @@ public class FhirR5ValueSetExpandTests {
 
     // Convert to JSON for POST request
     String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + requestBody);
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -1000,6 +1030,7 @@ public class FhirR5ValueSetExpandTests {
     // Act
     ResponseEntity<String> response =
         this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
     ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
 
     // Assert - Basic structure validation
@@ -1051,7 +1082,7 @@ public class FhirR5ValueSetExpandTests {
     // Note: This assertion depends on your implementation's handling of inactive concepts
     // If activeOnly=false (default), inactive concepts might be included
     // If activeOnly=true, they should be excluded
-    log.info("Inactive concept C176707 present in expansion: {}", inactiveResult.isPresent());
+    log.info("  Inactive concept C176707 present in expansion: {}", inactiveResult.isPresent());
 
     // Assert - Invalid concept should NOT be included
     Optional<ValueSet.ValueSetExpansionContainsComponent> invalidResult =
@@ -1087,15 +1118,15 @@ public class FhirR5ValueSetExpandTests {
         "Should have at most 3 concepts (including inactive if allowed)");
 
     // Assert - Log expansion results for debugging
-    log.info("NCI Thesaurus ValueSet expansion completed with {} concepts", expansion.getTotal());
+    log.info("  NCI Thesaurus ValueSet expansion completed with {} concepts", expansion.getTotal());
     for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
-      log.debug("Expanded NCI concept: {} - {}", concept.getCode(), concept.getDisplay());
+      log.debug("    Expanded NCI concept: {} - {}", concept.getCode(), concept.getDisplay());
     }
 
     // Assert - Check for any error messages in expansion (some implementations include warnings)
     if (expansion.hasParameter()) {
       for (ValueSet.ValueSetExpansionParameterComponent param : expansion.getParameter()) {
-        log.info("Expansion parameter: {} = {}", param.getName(), param.getValue());
+        log.info("  Expansion parameter: {} = {}", param.getName(), param.getValue());
 
         // Check for warnings about invalid concepts
         if ("warning".equals(param.getName())) {
@@ -1108,6 +1139,11 @@ public class FhirR5ValueSetExpandTests {
     }
   }
 
+  /**
+   * Test value set expand with NCI thesaurus active only designations definition.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetExpandWithNCIThesaurusActiveOnlyDesignationsDefinition()
       throws Exception {
@@ -1133,9 +1169,12 @@ public class FhirR5ValueSetExpandTests {
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
     String requestBody = parser.encodeResourceToString(parameters);
+    log.info("  parameters = " + requestBody);
+
     HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
     ResponseEntity<String> response =
         this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
     ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
 
     // Assert - Basic structure validation
@@ -1187,7 +1226,7 @@ public class FhirR5ValueSetExpandTests {
     assertFalse(
         inactiveResult.isPresent(),
         "Inactive concept (C176707) should be excluded with activeOnly=true");
-    log.info("Inactive concept C176707 correctly excluded with activeOnly=true");
+    log.info("  Inactive concept C176707 correctly excluded with activeOnly=true");
 
     // Assert - Invalid concept should NOT be included
     Optional<ValueSet.ValueSetExpansionContainsComponent> invalidResult =
@@ -1268,11 +1307,11 @@ public class FhirR5ValueSetExpandTests {
 
     // Assert - Log expansion results for debugging
     log.info(
-        "NCI Thesaurus ValueSet expansion with activeOnly=true completed with {} concepts",
+        "  NCI Thesaurus ValueSet expansion with activeOnly=true completed with {} concepts",
         expansion.getTotal());
     for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
       log.debug(
-          "Expanded NCI concept: {} - {} (designations: {})",
+          "    Expanded NCI concept: {} - {} (designations: {})",
           concept.getCode(),
           concept.getDisplay(),
           concept.hasDesignation() ? concept.getDesignation().size() : 0);
@@ -1281,7 +1320,7 @@ public class FhirR5ValueSetExpandTests {
     // Assert - Check for any error messages in expansion
     if (expansion.hasParameter()) {
       for (ValueSet.ValueSetExpansionParameterComponent param : expansion.getParameter()) {
-        log.info("Expansion parameter: {} = {}", param.getName(), param.getValue());
+        log.info("  Expansion parameter: {} = {}", param.getName(), param.getValue());
 
         // Check for warnings about invalid concepts
         if ("warning".equals(param.getName())) {
@@ -1367,12 +1406,17 @@ public class FhirR5ValueSetExpandTests {
 
     // Assert - Log definition summary
     log.info(
-        "Concepts with definitions: {} out of {} total concepts ({} total definitions)",
+        "  Concepts with definitions: {} out of {} total concepts ({} total definitions)",
         conceptsWithDefinitions,
         contains.size(),
         totalDefinitions);
   }
 
+  /**
+   * Test value set expand with NCI thesaurus filter parameter.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetExpandWithNCIThesaurusFilterParameter() throws Exception {
     // Arrange
@@ -1388,6 +1432,7 @@ public class FhirR5ValueSetExpandTests {
 
     // Convert to JSON for POST request
     String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + requestBody);
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -1400,6 +1445,7 @@ public class FhirR5ValueSetExpandTests {
     // Act
     ResponseEntity<String> response =
         this.restTemplate.postForEntity(endpointWithFilter, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
     ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
 
     // Assert - Basic structure validation
@@ -1429,7 +1475,7 @@ public class FhirR5ValueSetExpandTests {
         diseaseResult.isPresent(),
         "Disease or Disorder (C2991) should be included (matches filter 'Disease')");
     assertEquals("Disease or Disorder", diseaseResult.get().getDisplay());
-    log.info("C2991 (Disease or Disorder) correctly included with filter='Disease'");
+    log.info("  C2991 (Disease or Disorder) correctly included with filter='Disease'");
 
     // Assert - Concept NOT containing "Disease" should be excluded (doesn't match filter)
     Optional<ValueSet.ValueSetExpansionContainsComponent> geneResult =
@@ -1443,7 +1489,7 @@ public class FhirR5ValueSetExpandTests {
     assertFalse(
         geneResult.isPresent(),
         "Gene (C16612) should be excluded (doesn't match filter 'Disease')");
-    log.info("C16612 (Gene) correctly excluded with filter='Disease'");
+    log.info("  C16612 (Gene) correctly excluded with filter='Disease'");
 
     // Assert - Inactive concept should be excluded (regardless of filter, due to text not matching)
     Optional<ValueSet.ValueSetExpansionContainsComponent> inactiveResult =
@@ -1457,7 +1503,7 @@ public class FhirR5ValueSetExpandTests {
     assertFalse(
         inactiveResult.isPresent(),
         "Inactive concept (C176707) should be excluded (doesn't match filter 'Disease')");
-    log.info("C176707 (Physical Examination Finding) correctly excluded with filter='Disease'");
+    log.info("  C176707 (Physical Examination Finding) correctly excluded with filter='Disease'");
 
     // Assert - Invalid concept should NOT be included (filtered out during lookup)
     Optional<ValueSet.ValueSetExpansionContainsComponent> invalidResult =
@@ -1517,7 +1563,7 @@ public class FhirR5ValueSetExpandTests {
 
     // Assert - Log expansion results for debugging
     log.info(
-        "NCI Thesaurus ValueSet expansion with filter='Disease' completed with {} concepts",
+        "  NCI Thesaurus ValueSet expansion with filter='Disease' completed with {} concepts",
         expansion.getTotal());
     for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
       log.debug(
@@ -1530,7 +1576,7 @@ public class FhirR5ValueSetExpandTests {
     // Assert - Check for any error messages in expansion
     if (expansion.hasParameter()) {
       for (ValueSet.ValueSetExpansionParameterComponent param : expansion.getParameter()) {
-        log.info("Expansion parameter: {} = {}", param.getName(), param.getValue());
+        log.info("  Expansion parameter: {} = {}", param.getName(), param.getValue());
 
         // Check for filter parameter being recorded
         if ("filter".equals(param.getName())) {
@@ -1551,6 +1597,15 @@ public class FhirR5ValueSetExpandTests {
     }
   }
 
+  /**
+   * Creates the NCI test value set with exclude.
+   *
+   * @param id the id
+   * @param name the name
+   * @param title the title
+   * @param description the description
+   * @return the value set
+   */
   // Helper method to create ValueSet with both include and exclude
   private ValueSet createNCITestValueSetWithExclude(
       String id, String name, String title, String description) {
@@ -1612,6 +1667,11 @@ public class FhirR5ValueSetExpandTests {
     return inputValueSet;
   }
 
+  /**
+   * Test value set expand with NCI thesaurus include and exclude.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetExpandWithNCIThesaurusIncludeAndExclude() throws Exception {
     // Arrange
@@ -1627,6 +1687,7 @@ public class FhirR5ValueSetExpandTests {
 
     // Convert to JSON for POST request
     String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + requestBody);
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -1635,6 +1696,7 @@ public class FhirR5ValueSetExpandTests {
     // Act
     ResponseEntity<String> response =
         this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
     ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
 
     // Assert - Basic structure validation
@@ -1676,7 +1738,7 @@ public class FhirR5ValueSetExpandTests {
     assertFalse(
         geneResult.isPresent(),
         "Gene (C16612) should be excluded despite being in include section");
-    log.info("C16612 (Gene) correctly excluded - exclude overrides include");
+    log.info("  C16612 (Gene) correctly excluded - exclude overrides include");
 
     // Assert - Check handling of inactive concept (behavior depends on activeOnly parameter)
     Optional<ValueSet.ValueSetExpansionContainsComponent> inactiveResult =
@@ -1690,7 +1752,7 @@ public class FhirR5ValueSetExpandTests {
     // Note: This assertion depends on your implementation's handling of inactive concepts
     // If activeOnly=false (default), inactive concepts might be included
     // If activeOnly=true, they should be excluded
-    log.info("Inactive concept C176707 present in expansion: {}", inactiveResult.isPresent());
+    log.info("  Inactive concept C176707 present in expansion: {}", inactiveResult.isPresent());
 
     // Assert - Invalid concept should NOT be included (filtered out during lookup)
     Optional<ValueSet.ValueSetExpansionContainsComponent> invalidResult =
@@ -1736,7 +1798,7 @@ public class FhirR5ValueSetExpandTests {
     assertFalse(actualCodes.contains("INVALID123"), "Should NOT contain invalid concept");
 
     // C176707 (inactive) may or may not be present depending on activeOnly parameter
-    log.info("Actual concept codes in expansion: {}", actualCodes);
+    log.info("  Actual concept codes in expansion: {}", actualCodes);
 
     // Assert - Expansion should contain fewer concepts due to exclusion
     // Expected: 1-2 concepts (C2991 definitely, C176707 maybe, C16612 excluded, INVALID123
@@ -1747,7 +1809,7 @@ public class FhirR5ValueSetExpandTests {
 
     // Assert - Log expansion results for debugging
     log.info(
-        "NCI Thesaurus ValueSet expansion with exclusion completed with {} concepts",
+        "  NCI Thesaurus ValueSet expansion with exclusion completed with {} concepts",
         expansion.getTotal());
     for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
       log.debug("Expanded NCI concept: {} - {}", concept.getCode(), concept.getDisplay());
@@ -1755,13 +1817,13 @@ public class FhirR5ValueSetExpandTests {
 
     // Assert - Verify exclude functionality worked correctly
     log.info(
-        "Exclude functionality test: C16612 was included but then excluded - final result: {}",
+        "  Exclude functionality test: C16612 was included but then excluded - final result: {}",
         actualCodes.contains("C16612") ? "FAILED (still present)" : "PASSED (correctly excluded)");
 
     // Assert - Check for any error messages in expansion
     if (expansion.hasParameter()) {
       for (ValueSet.ValueSetExpansionParameterComponent param : expansion.getParameter()) {
-        log.info("Expansion parameter: {} = {}", param.getName(), param.getValue());
+        log.info("  Expansion parameter: {} = {}", param.getName(), param.getValue());
 
         // Check for warnings about invalid concepts
         if ("warning".equals(param.getName())) {
@@ -1774,6 +1836,16 @@ public class FhirR5ValueSetExpandTests {
     }
   }
 
+  /**
+   * Creates the NCI test value set with version.
+   *
+   * @param id the id
+   * @param name the name
+   * @param title the title
+   * @param description the description
+   * @param ncitVersion the ncit version
+   * @return the value set
+   */
   // Helper method to create ValueSet with specific NCIt version
   private ValueSet createNCITestValueSetWithVersion(
       String id, String name, String title, String description, String ncitVersion) {
@@ -1826,6 +1898,11 @@ public class FhirR5ValueSetExpandTests {
     return inputValueSet;
   }
 
+  /**
+   * Test value set expand with NCI thesaurus specific version.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetExpandWithNCIThesaurusSpecificVersion() throws Exception {
     // Arrange - Get current NCIt version using _history mechanism
@@ -1849,7 +1926,7 @@ public class FhirR5ValueSetExpandTests {
     String firstValueSetId = valueSets.get(0).getIdPart();
 
     // Act - Get history for the first ValueSet
-    String historyEndpoint = endpoint + "/" + firstValueSetId + "/_history";
+    // String historyEndpoint = endpoint + "/" + firstValueSetId + "/_history";
 
     // Get current version
     content = this.restTemplate.getForObject(endpoint + "/" + firstValueSetId, String.class);
@@ -1865,8 +1942,8 @@ public class FhirR5ValueSetExpandTests {
       currentNCItVersion = "24.01d"; // Fallback to a recent version
     }
 
-    log.info("Using NCIt version: {} from ValueSet: {}", currentNCItVersion, firstValueSetId);
-    //    log.info("History bundle contains {} entries", historyBundle.getEntry().size());
+    log.info("  Using NCIt version: {} from ValueSet: {}", currentNCItVersion, firstValueSetId);
+    // log.info("History bundle contains {} entries", historyBundle.getEntry().size());
 
     // Create expand endpoint
     String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
@@ -1882,6 +1959,7 @@ public class FhirR5ValueSetExpandTests {
 
     // Convert to JSON for POST request
     String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + requestBody);
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -1890,6 +1968,7 @@ public class FhirR5ValueSetExpandTests {
     // Act
     ResponseEntity<String> response =
         this.restTemplate.postForEntity(expandEndpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
     ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
 
     // Assert - Basic structure validation
@@ -1945,7 +2024,7 @@ public class FhirR5ValueSetExpandTests {
     assertTrue(
         inactiveResult.isPresent(),
         "Inactive concept (C176707) should be included from NCIt version " + currentNCItVersion);
-    log.info("C176707 correctly included from NCIt version {}", currentNCItVersion);
+    log.info("  C176707 correctly included from NCIt version {}", currentNCItVersion);
 
     // Assert - Invalid concept should NOT be included
     Optional<ValueSet.ValueSetExpansionContainsComponent> invalidResult =
@@ -1995,12 +2074,12 @@ public class FhirR5ValueSetExpandTests {
 
     // Assert - Log expansion results for debugging
     log.info(
-        "NCI Thesaurus ValueSet expansion for version {} completed with {} concepts",
+        "  NCI Thesaurus ValueSet expansion for version {} completed with {} concepts",
         currentNCItVersion,
         expansion.getTotal());
     for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
       log.debug(
-          "Expanded NCI concept from version {}: {} - {}",
+          "    Expanded NCI concept from version {}: {} - {}",
           currentNCItVersion,
           concept.getCode(),
           concept.getDisplay());
@@ -2008,15 +2087,15 @@ public class FhirR5ValueSetExpandTests {
 
     // Assert - Verify that the version was respected in the expansion
     log.info(
-        "Version-specific expansion test completed successfully for NCIt version: {}",
+        "  Version-specific expansion test completed successfully for NCIt version: {}",
         currentNCItVersion);
-    log.info("Active concepts included: {}", actualCodes);
-    log.info("Inactive/invalid concepts correctly excluded: C176707, INVALID123");
+    log.info("  Active concepts included: {}", actualCodes);
+    log.info("  Inactive/invalid concepts correctly excluded: C176707, INVALID123");
 
     // Assert - Check for any error messages in expansion
     if (expansion.hasParameter()) {
       for (ValueSet.ValueSetExpansionParameterComponent param : expansion.getParameter()) {
-        log.info("Expansion parameter: {} = {}", param.getName(), param.getValue());
+        log.info("  Expansion parameter: {} = {}", param.getName(), param.getValue());
 
         // Check if the version parameter is recorded in the expansion
         if ("version".equals(param.getName()) || "system-version".equals(param.getName())) {
