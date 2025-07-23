@@ -450,7 +450,7 @@ for x in `cat /tmp/y.$$.txt`; do
     # Otherwise, download if ncit
     elif [[ "$term" == "ncit" ]]; then
         download_ncit_history
-	fi
+	  fi
 	
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
 
