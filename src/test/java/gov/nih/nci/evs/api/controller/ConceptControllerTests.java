@@ -5,31 +5,8 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.function.Predicate;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.json.JacksonTester;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.util.CollectionUtils;
-
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
@@ -45,6 +22,26 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Predicate;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.json.JacksonTester;
+import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.util.CollectionUtils;
 
 /** Integration tests for ConceptController. */
 @ExtendWith(SpringExtension.class)
@@ -165,6 +162,9 @@ public class ConceptControllerTests {
         .isEqualTo(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
         .isEqualTo(0);
+    // We are now allowing property codes to exist
+    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
+        .isGreaterThan(1);
     assertThat(concept.getAssociations().size()).isGreaterThan(0);
     assertThat(concept.getRoles().size()).isGreaterThan(0);
   }
@@ -1099,6 +1099,8 @@ public class ConceptControllerTests {
     // is intended
     assertThat(list.get(0).getNormName()).isNull();
     assertThat(list.get(0).getSynonyms().get(0).getNormName()).isNull();
+    // We are keeping codes, no longer removing them
+    assertThat(list.get(0).getProperties().get(0).getCode()).isEqualTo("P366");
 
     // check for a couple things that should only show up in full
     assertThat(list.get(0).getInverseAssociations().get(0)).isNotNull();
@@ -2121,7 +2123,6 @@ public class ConceptControllerTests {
     assertThat(concept.getRoles().get(0).getCode() != null).isTrue();
     assertThat(concept.getInverseRoles().get(0).getCode() != null).isTrue();
     assertThat(concept.getAssociations().get(0).getCode() != null).isTrue();
-    assertThat(concept.getInverseAssociations().get(0).getCode() != null)
-        .isTrue();
+    assertThat(concept.getInverseAssociations().get(0).getCode() != null).isTrue();
   }
 }
