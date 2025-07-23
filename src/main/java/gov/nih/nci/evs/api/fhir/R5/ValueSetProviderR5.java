@@ -1655,7 +1655,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
   private boolean passesVersion(ValueSetExpansionContainsComponent contains, String version)
       throws Exception {
 
-    if (version != null && version.isEmpty()) {
+    if (version == null || (version != null && version.isEmpty())) {
       return true;
     }
     Terminology selectedTerminology =
