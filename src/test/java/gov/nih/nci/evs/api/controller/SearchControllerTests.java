@@ -194,8 +194,9 @@ public class SearchControllerTests {
         .isEqualTo(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
         .isEqualTo(0);
+    // Property codes are now retained and shown
     assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
-        .isEqualTo(0);
+        .isGreaterThan(1);
     assertThat(concept.getAssociations().size()).isGreaterThan(0);
     assertThat(concept.getAssociations().stream().filter(p -> p.getCode() != null).count())
         .isEqualTo(0);
