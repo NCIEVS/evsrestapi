@@ -11,7 +11,6 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.annotations.Mapping;
-import org.springframework.data.elasticsearch.annotations.WriteOnlyProperty;
 
 /** Represents a synonym of a concept. */
 @Schema(description = "Represents a text definition for a concept")
@@ -28,7 +27,6 @@ public class Definition extends BaseModel implements Comparable<Definition> {
   /** The "code" of the definition type. */
   // In the future we can use @WriteOnlyProperty
   // this does not work: @JsonProperty(access = Access.READ_ONLY)
-  @WriteOnlyProperty
   @Field(type = FieldType.Keyword)
   private String code;
 
@@ -119,7 +117,6 @@ public class Definition extends BaseModel implements Comparable<Definition> {
    *
    * @return the code
    */
-  @Schema(hidden = true)
   public String getCode() {
     return code;
   }

@@ -5,28 +5,12 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.model.Association;
-import gov.nih.nci.evs.api.model.AssociationEntry;
-import gov.nih.nci.evs.api.model.AssociationEntryResultList;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Definition;
-import gov.nih.nci.evs.api.model.DisjointWith;
-import gov.nih.nci.evs.api.model.HierarchyNode;
-import gov.nih.nci.evs.api.model.History;
-import gov.nih.nci.evs.api.model.Mapping;
-import gov.nih.nci.evs.api.model.Role;
-import gov.nih.nci.evs.api.model.Synonym;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.properties.TestProperties;
-import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
@@ -42,6 +26,25 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.util.CollectionUtils;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.AssociationEntry;
+import gov.nih.nci.evs.api.model.AssociationEntryResultList;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Definition;
+import gov.nih.nci.evs.api.model.DisjointWith;
+import gov.nih.nci.evs.api.model.HierarchyNode;
+import gov.nih.nci.evs.api.model.History;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.Role;
+import gov.nih.nci.evs.api.model.Synonym;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 
 /** Integration tests for ConceptController. */
 @ExtendWith(SpringExtension.class)
@@ -123,17 +126,6 @@ public class ConceptControllerTests {
         .isEqualTo(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
         .isEqualTo(0);
-    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getDefinitions().stream().filter(s -> s.getCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getAssociations().stream().filter(s -> s.getCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getInverseAssociations().stream().filter(s -> s.getCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getRoles().stream().filter(s -> s.getCode() != null).count()).isEqualTo(0);
-    assertThat(concept.getInverseRoles().stream().filter(s -> s.getCode() != null).count())
-        .isEqualTo(0);
   }
 
   /**
@@ -173,13 +165,8 @@ public class ConceptControllerTests {
         .isEqualTo(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
         .isEqualTo(0);
-    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
-        .isEqualTo(0);
     assertThat(concept.getAssociations().size()).isGreaterThan(0);
-    assertThat(concept.getAssociations().stream().filter(p -> p.getCode() != null).count())
-        .isEqualTo(0);
     assertThat(concept.getRoles().size()).isGreaterThan(0);
-    assertThat(concept.getRoles().stream().filter(p -> p.getCode() != null).count()).isEqualTo(0);
   }
 
   /**
@@ -414,7 +401,6 @@ public class ConceptControllerTests {
                 });
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
-    assertThat(list.stream().filter(a -> a.getCode() != null).count()).isEqualTo(0);
 
     // Test case without associations
     url = baseUrl + "/ncit/C2291/associations";
@@ -1113,7 +1099,6 @@ public class ConceptControllerTests {
     // is intended
     assertThat(list.get(0).getNormName()).isNull();
     assertThat(list.get(0).getSynonyms().get(0).getNormName()).isNull();
-    assertThat(list.get(0).getProperties().get(0).getCode()).isNull();
 
     // check for a couple things that should only show up in full
     assertThat(list.get(0).getInverseAssociations().get(0)).isNotNull();
@@ -2098,5 +2083,45 @@ public class ConceptControllerTests {
                 });
 
     assertThat(terminologyCodes.size()).isGreaterThan(150000);
+  }
+
+  /**
+   * Test that code values are present for Synonym, Definition, Property, Role/inverse,
+   * Association/inverse, and Qualifier with include=full.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeValuesPresentInFullInclude() throws Exception {
+    String url;
+    MvcResult result;
+    String content;
+    Concept concept;
+
+    // C101669 has synonyms, definitions
+    url = baseUrl + "/ncit/C101669?include=full";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    concept = new ObjectMapper().readValue(content, Concept.class);
+
+    assertThat(concept.getSynonyms().get(0).getTypeCode() != null).isTrue();
+    assertThat(concept.getDefinitions().get(0).getCode() != null).isTrue();
+    assertThat(concept.getProperties().get(0).getCode() != null).isTrue();
+    assertThat(concept.getAssociations().get(0).getCode() != null).isTrue();
+
+    // C3224 lacks qualifiers, but should have code for other types
+    url = baseUrl + "/ncit/C3224?include=full";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    concept = new ObjectMapper().readValue(content, Concept.class);
+
+    assertThat(concept.getSynonyms().get(0).getTypeCode() != null).isTrue();
+    assertThat(concept.getDefinitions().get(0).getCode() != null).isTrue();
+    assertThat(concept.getProperties().get(0).getCode() != null).isTrue();
+    assertThat(concept.getRoles().get(0).getCode() != null).isTrue();
+    assertThat(concept.getInverseRoles().get(0).getCode() != null).isTrue();
+    assertThat(concept.getAssociations().get(0).getCode() != null).isTrue();
+    assertThat(concept.getInverseAssociations().get(0).getCode() != null)
+        .isTrue();
   }
 }
