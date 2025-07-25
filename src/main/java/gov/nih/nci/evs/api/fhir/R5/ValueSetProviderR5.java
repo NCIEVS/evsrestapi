@@ -415,6 +415,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
           vsExpansion.addParameter(vsParameter);
         }
 
+        if (offset != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("offset");
+          vsParameter.setValue(offset);
+          vsExpansion.addParameter(vsParameter);
+        }
+
         if (includeDefinition != null) {
           vsParameter = new ValueSetExpansionParameterComponent();
           vsParameter.setName("includeDefinition");
@@ -688,6 +695,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
         vsParameter = new ValueSetExpansionParameterComponent();
         vsParameter.setName("count");
         vsParameter.setValue(count);
+        vsExpansion.addParameter(vsParameter);
+      }
+
+      if (offset != null) {
+        vsParameter = new ValueSetExpansionParameterComponent();
+        vsParameter.setName("offset");
+        vsParameter.setValue(offset);
         vsExpansion.addParameter(vsParameter);
       }
 
