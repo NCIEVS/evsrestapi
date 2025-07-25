@@ -506,7 +506,7 @@ public class FhirR4ValueSetReadSearchTests {
 
     if (expectResults) {
       assertFalse(valueSets.isEmpty());
-      final Set<String> ids = new HashSet<>(Set.of("canmed_202311"));
+      final Set<String> ids = new HashSet<>(Set.of("canmed_202506"));
       final Set<String> urls = new HashSet<>(Set.of("http://seer.nci.nih.gov/CanMED.owl?fhir_vs"));
 
       for (Resource vs : valueSets) {
@@ -1063,7 +1063,7 @@ public class FhirR4ValueSetReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
             // "ge2021-06")
             .queryParam("url", "http://seer.nci.nih.gov/CanMED.owl?fhir_vs")
-            .queryParam("version", "202311")
+            .queryParam("version", "202506")
             .queryParam("title", "canmed");
 
     // Test successful case with all parameters
@@ -1076,7 +1076,7 @@ public class FhirR4ValueSetReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("date", "ge2030-01") // Future date
             .queryParam("url", "http://seer.nci.nih.gov/CanMED.owl?fhir_vs")
-            .queryParam("version", "202311")
+            .queryParam("version", "202506")
             .queryParam("title", "canmed");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -1086,9 +1086,9 @@ public class FhirR4ValueSetReadSearchTests {
     // Test 3: Valid date
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
-            .queryParam("date", "2023-11-01")
+            .queryParam("date", "2025-06-01")
             .queryParam("url", "http://seer.nci.nih.gov/CanMED.owl?fhir_vs")
-            .queryParam("version", "202311")
+            .queryParam("version", "202506")
             .queryParam("title", "canmed");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -1100,7 +1100,7 @@ public class FhirR4ValueSetReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("date", "ge2023-11-01")
             .queryParam("url", "http://seer.nci.nih.gov/CanMED.owl?fhir_vs")
-            .queryParam("version", "202311")
+            .queryParam("version", "202506")
             .queryParam("title", "canmed");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -1113,7 +1113,7 @@ public class FhirR4ValueSetReadSearchTests {
             .queryParam("date", "ge2023-11-01")
             .queryParam("date", "lt2030-11-01")
             .queryParam("url", "http://seer.nci.nih.gov/CanMED.owl?fhir_vs")
-            .queryParam("version", "202311")
+            .queryParam("version", "202506")
             .queryParam("title", "canmed");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
