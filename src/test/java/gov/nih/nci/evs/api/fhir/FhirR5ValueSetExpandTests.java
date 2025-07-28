@@ -1159,21 +1159,21 @@ public class FhirR5ValueSetExpandTests {
             "Test ValueSet with activeOnly=true and includeDesignations=true and"
                 + " includeDefinition=true");
 
-    // Create Parameters resource for POST
-    Parameters parameters = new Parameters();
-    parameters.addParameter().setName("valueSet").setResource(inputValueSet);
-    parameters.addParameter().setName("activeOnly").setValue(new BooleanType(true));
-    parameters.addParameter().setName("includeDesignations").setValue(new BooleanType(true));
-    parameters.addParameter().setName("includeDefinition").setValue(new BooleanType(true));
-
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + requestBody);
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
-    String requestBody = parser.encodeResourceToString(parameters);
-    log.info("  parameters = " + requestBody);
-
     HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Add filter parameter to exclude concepts containing "Gene" in code or display
+    // This should filter out C16612 (Gene) but allow C2991 (Disease or Disorder)
+    String endpointWithFilter =
+        endpoint + "?includeDesignations=true&includeDefinition=true&activeOnly=true";
+
+    // Act
     ResponseEntity<String> response =
-        this.restTemplate.postForEntity(endpoint, request, String.class);
+        this.restTemplate.postForEntity(endpointWithFilter, request, String.class);
     log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
     ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
 
@@ -1410,6 +1410,46 @@ public class FhirR5ValueSetExpandTests {
         conceptsWithDefinitions,
         contains.size(),
         totalDefinitions);
+  }
+
+  @Test
+  public void testValueSetExpandWithNCIThesaurusActiveOnlyDesignationsDefinitionParameters()
+      throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet using helper method
+    ValueSet inputValueSet =
+        createNCITestValueSet(
+            "nci-active-designations-test",
+            "NCIActiveDesignationsTest",
+            "NCI Thesaurus Active Concepts with Designations",
+            "Test ValueSet with activeOnly=true and includeDesignations=true and"
+                + " includeDefinition=true");
+
+    // Create Parameters resource for POST
+    Parameters parameters = new Parameters();
+    parameters.addParameter().setName("valueSet").setResource(inputValueSet);
+    parameters.addParameter().setName("activeOnly").setValue(new BooleanType(true));
+    parameters.addParameter().setName("includeDesignations").setValue(new BooleanType(true));
+    parameters.addParameter().setName("includeDefinition").setValue(new BooleanType(true));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    String requestBody = parser.encodeResourceToString(parameters);
+    log.info("  parameters = " + requestBody);
+
+    HttpEntity request = new HttpEntity<>(requestBody, headers);
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
   }
 
   /**

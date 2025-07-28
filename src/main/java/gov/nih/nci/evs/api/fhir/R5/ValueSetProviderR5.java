@@ -2,13 +2,7 @@ package gov.nih.nci.evs.api.fhir.R5;
 
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
-import ca.uhn.fhir.rest.annotation.History;
-import ca.uhn.fhir.rest.annotation.IdParam;
-import ca.uhn.fhir.rest.annotation.Operation;
-import ca.uhn.fhir.rest.annotation.OperationParam;
-import ca.uhn.fhir.rest.annotation.OptionalParam;
-import ca.uhn.fhir.rest.annotation.Read;
-import ca.uhn.fhir.rest.annotation.Search;
+import ca.uhn.fhir.rest.annotation.*;
 import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
@@ -50,7 +44,6 @@ import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.IdType;
 import org.hl7.fhir.r5.model.IntegerType;
 import org.hl7.fhir.r5.model.Meta;
-import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r5.model.Parameters;
 import org.hl7.fhir.r5.model.StringType;
@@ -212,6 +205,33 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.empty());
   }
 
+  // Helper methods to extract parameters reliably
+  private String getParameterValue(
+      StringParam param, HttpServletRequest request, String paramName) {
+    if (param != null && param.getValue() != null) {
+      return param.getValue();
+    }
+    return request.getParameter(paramName);
+  }
+
+  private boolean getBooleanParameterValue(
+      BooleanType param, HttpServletRequest request, String paramName, boolean defaultValue) {
+    if (param != null && param.getValue() != null) {
+      return param.getValue();
+    }
+    String requestValue = request.getParameter(paramName);
+    return requestValue != null ? "true".equalsIgnoreCase(requestValue) : defaultValue;
+  }
+
+  private int getIntParameterValue(
+      IntegerType param, HttpServletRequest request, String paramName, int defaultValue) {
+    if (param != null && param.getValue() != null) {
+      return param.getValue();
+    }
+    String requestValue = request.getParameter(paramName);
+    return requestValue != null ? Integer.parseInt(requestValue) : defaultValue;
+  }
+
   /**
    * Expand implicit.
    *
@@ -237,12 +257,12 @@ public class ValueSetProviderR5 implements IResourceProvider {
   public ValueSet expandImplicit(
       final HttpServletRequest request,
       final ServletRequestDetails details,
-      @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "valueSet") final ValueSet valueSet,
+      @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "valueSetVersion") final StringType version,
       // @OperationParam(name = "context") final UriType context,
       // @OperationParam(name = "contextDirection") final CodeType contextDirection,
-      @OperationParam(name = "filter") final StringType filter,
+      @OperationParam(name = "filter") final StringParam filter,
       // @OperationParam(name = "date") final DateTimeType date,
       @OperationParam(name = "offset") final IntegerType offset,
       @OperationParam(name = "count") final IntegerType count,
@@ -261,19 +281,29 @@ public class ValueSetProviderR5 implements IResourceProvider {
       // @OperationParam(name = "force-system-version") final StringType force_system_version,
       @OperationParam(name = "property") final List<StringType> properties)
       throws Exception {
+    // Extract actual values - use @OperationParam if available, fallback to manual extraction
+    String filterValue = getParameterValue(filter, request, "filter");
+    boolean activeOnlyValue = getBooleanParameterValue(activeOnly, request, "activeOnly", false);
+    boolean includeDesignationsValue =
+        getBooleanParameterValue(includeDesignations, request, "includeDesignations", false);
+    boolean includeDefinitionValue =
+        getBooleanParameterValue(includeDefinition, request, "includeDefinition", false);
+    int countValue = getIntParameterValue(count, request, "count", 1000);
+    int offsetValue = getIntParameterValue(offset, request, "offset", 0);
 
-    // TODO: ensure url and POST request not both sent
+    FhirUtilityR5.mutuallyExclusive("url", url, "valueSet", valueSet);
+
     if (valueSet != null) {
       return expandValueSet(
           request,
           valueSet,
           version,
-          filter,
-          count,
-          offset,
-          includeDesignations,
-          includeDefinition,
-          activeOnly);
+          filterValue,
+          countValue,
+          offsetValue,
+          includeDesignationsValue,
+          includeDefinitionValue,
+          activeOnlyValue);
     }
 
     // TODO add more test cases for exclude, after adding filter is-a
@@ -398,8 +428,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
           if (activeOnly != null && activeOnly.getValue() && !member.getActive()) {
             continue;
           }
-          final ValueSet.ValueSetExpansionContainsComponent vsContains =
-              new ValueSet.ValueSetExpansionContainsComponent();
+          final ValueSetExpansionContainsComponent vsContains =
+              new ValueSetExpansionContainsComponent();
           vsContains.setSystem(vs.getUrl());
           vsContains.setCode(member.getCode());
           vsContains.setDisplay(member.getName());
@@ -620,7 +650,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
                 + id
                 + " "
                 + vs.getUrl(),
-            OperationOutcome.IssueType.EXCEPTION,
+            IssueType.EXCEPTION,
             400);
       }
 
@@ -672,8 +702,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
           if (activeOnly != null && activeOnly.getValue() && !member.getActive()) {
             continue;
           }
-          final ValueSet.ValueSetExpansionContainsComponent vsContains =
-              new ValueSet.ValueSetExpansionContainsComponent();
+          final ValueSetExpansionContainsComponent vsContains =
+              new ValueSetExpansionContainsComponent();
           vsContains.setSystem(vs.getUrl());
           vsContains.setCode(member.getCode());
           vsContains.setDisplay(member.getName());
@@ -986,7 +1016,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
                   + id
                   + " "
                   + vs.getUrl(),
-              OperationOutcome.IssueType.EXCEPTION,
+              IssueType.EXCEPTION,
               400);
         }
         final SearchCriteria sc = new SearchCriteria();
@@ -1256,7 +1286,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
       // but if it does, delegate to regular read
       if (!versionedId.hasVersionIdPart()) {
         logger.warn("VRead called without version ID, delegating to regular read");
-        return getValueSet(new org.hl7.fhir.r5.model.IdType(versionedId.getIdPart()));
+        return getValueSet(new IdType(versionedId.getIdPart()));
       }
 
       final List<ValueSet> candidates = findPossibleValueSets(versionedId, null, null, null);
@@ -1317,12 +1347,12 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final HttpServletRequest request,
       final ValueSet valueSet,
       final StringType version,
-      final StringType filter,
-      final IntegerType count,
-      final IntegerType offset,
-      final BooleanType includeDesignations,
-      final BooleanType includeDefinition,
-      final BooleanType activeOnly)
+      final String filter,
+      final int count,
+      final int offset,
+      final boolean includeDesignations,
+      final boolean includeDefinition,
+      final boolean activeOnly)
       throws Exception {
 
     FhirUtilityR5.notSupportedSearchParams(request);
@@ -1350,15 +1380,11 @@ public class ValueSetProviderR5 implements IResourceProvider {
       // Process expansion
       List<ValueSetExpansionContainsComponent> expandedConcepts =
           expandCompose(
-              valueSet.getCompose(),
-              filter != null ? filter.getValue() : null,
-              activeOnly != null ? activeOnly.getValue() : false,
-              includeDesignations != null ? includeDesignations.getValue() : false,
-              includeDefinition != null ? includeDefinition.getValue() : false);
+              valueSet.getCompose(), filter, activeOnly, includeDesignations, includeDefinition);
 
       // Apply pagination
-      int startIndex = offset != null ? offset.getValue() : 0;
-      int maxResults = count != null ? count.getValue() : 1000;
+      int startIndex = offset;
+      int maxResults = count;
 
       List<ValueSetExpansionContainsComponent> paginatedConcepts =
           applyPagination(expandedConcepts, startIndex, maxResults);
