@@ -20,7 +20,7 @@ if [ ${#arr[@]} -ne 0 ]; then
   echo "  e.g. $0"
   echo "  e.g. $0 --noconfig"
   echo "  e.g. $0 --force"
-  echo "  e.g. $0 --noconfig --history ../data/UnitTestData/cumulative_history_25.06e.txt"
+  echo "  e.g. $0 --noconfig --history ../data/UnitTestData/NCIT/cumulative_history_25.06e.txt"
   exit 1
 fi
 
@@ -450,7 +450,7 @@ for x in `cat /tmp/y.$$.txt`; do
     # Otherwise, download if ncit
     elif [[ "$term" == "ncit" ]]; then
         download_ncit_history
-	fi
+	  fi
 	
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
 

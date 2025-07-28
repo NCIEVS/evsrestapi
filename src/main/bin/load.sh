@@ -23,7 +23,7 @@ fi
 dir=${arr[0]}
 
 # Hardcode the history file
-historyFile=$dir/cumulative_history_25.06e.txt
+historyFile=$dir/NCIT/cumulative_history_25.06e.txt
 
 
 databases=("NCIT2" "CTRP")

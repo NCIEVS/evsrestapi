@@ -11,7 +11,6 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.annotations.Mapping;
-import org.springframework.data.elasticsearch.annotations.WriteOnlyProperty;
 
 /** Represents a connection between two concepts. */
 @Schema(description = "Represents a connection between two concepts")
@@ -19,9 +18,6 @@ import org.springframework.data.elasticsearch.annotations.WriteOnlyProperty;
 public class Relationship extends BaseModel implements Comparable<Relationship> {
 
   /** The code. */
-  // In the future we can use @WriteOnlyProperty
-  // this does not work: @JsonProperty(access = Access.READ_ONLY)
-  @WriteOnlyProperty
   @Field(type = FieldType.Keyword)
   private String code;
 
@@ -84,7 +80,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
    *
    * @return the code
    */
-  @Schema(hidden = true)
+  @Schema(description = "Relationship code")
   public String getCode() {
     return code;
   }

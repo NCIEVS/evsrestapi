@@ -123,17 +123,6 @@ public class ConceptControllerTests {
         .isEqualTo(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
         .isEqualTo(0);
-    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getDefinitions().stream().filter(s -> s.getCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getAssociations().stream().filter(s -> s.getCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getInverseAssociations().stream().filter(s -> s.getCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getRoles().stream().filter(s -> s.getCode() != null).count()).isEqualTo(0);
-    assertThat(concept.getInverseRoles().stream().filter(s -> s.getCode() != null).count())
-        .isEqualTo(0);
   }
 
   /**
@@ -177,10 +166,7 @@ public class ConceptControllerTests {
     assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
         .isGreaterThan(1);
     assertThat(concept.getAssociations().size()).isGreaterThan(0);
-    assertThat(concept.getAssociations().stream().filter(p -> p.getCode() != null).count())
-        .isEqualTo(0);
     assertThat(concept.getRoles().size()).isGreaterThan(0);
-    assertThat(concept.getRoles().stream().filter(p -> p.getCode() != null).count()).isEqualTo(0);
   }
 
   /**
@@ -415,7 +401,6 @@ public class ConceptControllerTests {
                 });
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
-    assertThat(list.stream().filter(a -> a.getCode() != null).count()).isEqualTo(0);
 
     // Test case without associations
     url = baseUrl + "/ncit/C2291/associations";
@@ -2100,5 +2085,44 @@ public class ConceptControllerTests {
                 });
 
     assertThat(terminologyCodes.size()).isGreaterThan(150000);
+  }
+
+  /**
+   * Test that code values are present for Synonym, Definition, Property, Role/inverse,
+   * Association/inverse, and Qualifier with include=full.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeValuesPresentInFullInclude() throws Exception {
+    String url;
+    MvcResult result;
+    String content;
+    Concept concept;
+
+    // C101669 has synonyms, definitions
+    url = baseUrl + "/ncit/C101669?include=full";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    concept = new ObjectMapper().readValue(content, Concept.class);
+
+    assertThat(concept.getSynonyms().get(0).getTypeCode() != null).isTrue();
+    assertThat(concept.getDefinitions().get(0).getCode() != null).isTrue();
+    assertThat(concept.getProperties().get(0).getCode() != null).isTrue();
+    assertThat(concept.getAssociations().get(0).getCode() != null).isTrue();
+
+    // C3224 lacks qualifiers, but should have code for other types
+    url = baseUrl + "/ncit/C3224?include=full";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    concept = new ObjectMapper().readValue(content, Concept.class);
+
+    assertThat(concept.getSynonyms().get(0).getTypeCode() != null).isTrue();
+    assertThat(concept.getDefinitions().get(0).getCode() != null).isTrue();
+    assertThat(concept.getProperties().get(0).getCode() != null).isTrue();
+    assertThat(concept.getRoles().get(0).getCode() != null).isTrue();
+    assertThat(concept.getInverseRoles().get(0).getCode() != null).isTrue();
+    assertThat(concept.getAssociations().get(0).getCode() != null).isTrue();
+    assertThat(concept.getInverseAssociations().get(0).getCode() != null).isTrue();
   }
 }
