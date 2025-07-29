@@ -959,8 +959,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     map.getProperties()
         .add(new Property("date", FhirUtility.convertToYYYYMMDD(sourceTerminology.getDate())));
     map.getProperties().add(new Property("downloadOnly", "false"));
-    // map.getProperties().add(new Property("welcomeText", "NCIt_maps_to_" + targetTermName +
-    // ".html"));
+    map.getProperties()
+        .add(new Property("welcomeText", "mapping_nci_" + targetTermName.toLowerCase() + ".html"));
     map.getProperties().add(new Property("sourceTerminology", "NCIt"));
     map.getProperties()
         .add(new Property("sourceTerminologyVersion", sourceTerminology.getVersion()));
