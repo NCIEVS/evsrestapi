@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hl7.fhir.r5.model.*;
 import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
@@ -193,24 +192,22 @@ public class FhirR5ValueSetExpandTests {
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
 
-
     String message = "POST method not supported for " + JpaConstants.OPERATION_EXPAND;
 
+    // Create Parameters resource for POST
+    Parameters parameters = new Parameters();
+    parameters.addParameter().setName("url").setValue(new UriType(url));
 
-      // Create Parameters resource for POST
-      Parameters parameters = new Parameters();
-      parameters.addParameter().setName("url").setValue(new UriType(url));
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    String requestBody = parser.encodeResourceToString(parameters);
+    log.info("  parameters = " + requestBody);
 
-      HttpHeaders headers = new HttpHeaders();
-      headers.setContentType(MediaType.APPLICATION_JSON);
-      String requestBody = parser.encodeResourceToString(parameters);
-      log.info("  parameters = " + requestBody);
-
-      HttpEntity request = new HttpEntity<>(requestBody, headers);
-
+    HttpEntity request = new HttpEntity<>(requestBody, headers);
 
     // Act
-    ResponseEntity<String> content = this.restTemplate.postForEntity(endpoint, request, String.class);
+    ResponseEntity<String> content =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
     log.info("  response = " + JsonUtils.prettyPrint(content));
 
     // Assert
@@ -1447,12 +1444,12 @@ public class FhirR5ValueSetExpandTests {
 
     // Create the ValueSet using helper method
     ValueSet inputValueSet =
-            createNCITestValueSet(
-                    "nci-active-designations-test",
-                    "NCIActiveDesignationsTest",
-                    "NCI Thesaurus Active Concepts with Designations",
-                    "Test ValueSet with activeOnly=true and includeDesignations=true and"
-                            + " includeDefinition=true");
+        createNCITestValueSet(
+            "nci-active-designations-test",
+            "NCIActiveDesignationsTest",
+            "NCI Thesaurus Active Concepts with Designations",
+            "Test ValueSet with activeOnly=true and includeDesignations=true and"
+                + " includeDefinition=true");
 
     // Create Parameters resource for POST
     Parameters parameters = new Parameters();
@@ -1468,7 +1465,7 @@ public class FhirR5ValueSetExpandTests {
 
     HttpEntity request = new HttpEntity<>(requestBody, headers);
     ResponseEntity<String> response =
-            this.restTemplate.postForEntity(endpoint, request, String.class);
+        this.restTemplate.postForEntity(endpoint, request, String.class);
 
     log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
     ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
@@ -1489,128 +1486,128 @@ public class FhirR5ValueSetExpandTests {
 
     // Assert - Valid active concepts are included
     Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
-            contains.stream()
-                    .filter(
-                            comp ->
-                                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
-                    .filter(comp -> "C2991".equals(comp.getCode()))
-                    .findFirst();
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C2991".equals(comp.getCode()))
+            .findFirst();
 
     assertTrue(diseaseResult.isPresent(), "Disease or Disorder (C2991) should be included");
     assertEquals("Disease or Disorder", diseaseResult.get().getDisplay());
 
     Optional<ValueSet.ValueSetExpansionContainsComponent> geneResult =
-            contains.stream()
-                    .filter(
-                            comp ->
-                                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
-                    .filter(comp -> "C16612".equals(comp.getCode()))
-                    .findFirst();
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C16612".equals(comp.getCode()))
+            .findFirst();
 
     assertTrue(geneResult.isPresent(), "Gene (C16612) should be included");
     assertEquals("Gene", geneResult.get().getDisplay());
 
     // Assert - Inactive concept should NOT be included with activeOnly=true
     Optional<ValueSet.ValueSetExpansionContainsComponent> inactiveResult =
-            contains.stream()
-                    .filter(
-                            comp ->
-                                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
-                    .filter(comp -> "C176707".equals(comp.getCode()))
-                    .findFirst();
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C176707".equals(comp.getCode()))
+            .findFirst();
 
     assertFalse(
-            inactiveResult.isPresent(),
-            "Inactive concept (C176707) should be excluded with activeOnly=true");
+        inactiveResult.isPresent(),
+        "Inactive concept (C176707) should be excluded with activeOnly=true");
     log.info("  Inactive concept C176707 correctly excluded with activeOnly=true");
 
     // Assert - Invalid concept should NOT be included
     Optional<ValueSet.ValueSetExpansionContainsComponent> invalidResult =
-            contains.stream()
-                    .filter(
-                            comp ->
-                                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
-                    .filter(comp -> "INVALID123".equals(comp.getCode()))
-                    .findFirst();
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "INVALID123".equals(comp.getCode()))
+            .findFirst();
 
     assertFalse(invalidResult.isPresent(), "Invalid concept (INVALID123) should not be included");
 
     // Assert - All returned concepts should have designations when includeDesignations=true
     for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
       assertEquals(
-              "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
-              concept.getSystem(),
-              "All concepts should be from NCI Thesaurus system");
+          "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+          concept.getSystem(),
+          "All concepts should be from NCI Thesaurus system");
       assertNotNull(concept.getCode(), "All concepts should have a code");
       assertNotNull(concept.getDisplay(), "All concepts should have a display");
       assertFalse(concept.getDisplay().trim().isEmpty(), "Display should not be empty");
 
       // Assert valid NCI concept code format (should start with 'C' followed by digits)
       assertTrue(
-              concept.getCode().matches("C\\d+"),
-              "NCI concept codes should start with 'C' followed by digits: " + concept.getCode());
+          concept.getCode().matches("C\\d+"),
+          "NCI concept codes should start with 'C' followed by digits: " + concept.getCode());
 
       // Assert - Designations should be included when includeDesignations=true
       if (concept.hasDesignation()) {
         assertTrue(
-                concept.getDesignation().size() > 0,
-                "Concept should have designations when includeDesignations=true: " + concept.getCode());
+            concept.getDesignation().size() > 0,
+            "Concept should have designations when includeDesignations=true: " + concept.getCode());
 
         for (ConceptReferenceDesignationComponent designation : concept.getDesignation()) {
           assertNotNull(designation.getValue(), "Designation should have a value");
           assertFalse(
-                  designation.getValue().trim().isEmpty(), "Designation value should not be empty");
+              designation.getValue().trim().isEmpty(), "Designation value should not be empty");
 
           if (designation.hasUse()) {
             assertNotNull(designation.getUse().getCode(), "Designation use should have a code");
             assertNotNull(
-                    designation.getUse().getDisplay(), "Designation use should have a display");
+                designation.getUse().getDisplay(), "Designation use should have a display");
             log.debug(
-                    "Designation for {}: {} (use: {})",
-                    concept.getCode(),
-                    designation.getValue(),
-                    designation.getUse().getDisplay());
+                "Designation for {}: {} (use: {})",
+                concept.getCode(),
+                designation.getValue(),
+                designation.getUse().getDisplay());
           }
 
           if (designation.hasLanguage()) {
             assertNotNull(designation.getLanguage(), "Designation language should not be null");
             log.debug(
-                    "Designation language for {}: {}", concept.getCode(), designation.getLanguage());
+                "Designation language for {}: {}", concept.getCode(), designation.getLanguage());
           }
         }
       } else {
         log.warn(
-                "Concept {} does not have designations despite includeDesignations=true",
-                concept.getCode());
+            "Concept {} does not have designations despite includeDesignations=true",
+            concept.getCode());
       }
     }
 
     // Assert - Expansion should contain only active concepts (2 concepts expected)
     assertEquals(
-            2, expansion.getTotal(), "Should have exactly 2 active concepts with activeOnly=true");
+        2, expansion.getTotal(), "Should have exactly 2 active concepts with activeOnly=true");
     assertEquals(2, contains.size(), "Contains list should match total count");
 
     // Assert - Verify no inactive concepts made it through
     long inactiveCodeCount =
-            contains.stream().filter(comp -> "C176707".equals(comp.getCode())).count();
+        contains.stream().filter(comp -> "C176707".equals(comp.getCode())).count();
     assertEquals(
-            0, inactiveCodeCount, "No inactive concepts should be included with activeOnly=true");
+        0, inactiveCodeCount, "No inactive concepts should be included with activeOnly=true");
 
     // Assert - Verify no invalid concepts made it through
     long invalidCodeCount =
-            contains.stream().filter(comp -> "INVALID123".equals(comp.getCode())).count();
+        contains.stream().filter(comp -> "INVALID123".equals(comp.getCode())).count();
     assertEquals(0, invalidCodeCount, "No invalid concepts should be included");
 
     // Assert - Log expansion results for debugging
     log.info(
-            "  NCI Thesaurus ValueSet expansion with activeOnly=true completed with {} concepts",
-            expansion.getTotal());
+        "  NCI Thesaurus ValueSet expansion with activeOnly=true completed with {} concepts",
+        expansion.getTotal());
     for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
       log.debug(
-              "    Expanded NCI concept: {} - {} (designations: {})",
-              concept.getCode(),
-              concept.getDisplay(),
-              concept.hasDesignation() ? concept.getDesignation().size() : 0);
+          "    Expanded NCI concept: {} - {} (designations: {})",
+          concept.getCode(),
+          concept.getDisplay(),
+          concept.hasDesignation() ? concept.getDesignation().size() : 0);
     }
 
     // Assert - Check for any error messages in expansion
@@ -1622,57 +1619,57 @@ public class FhirR5ValueSetExpandTests {
         if ("warning".equals(param.getName())) {
           String warningMessage = param.getValue().toString();
           assertTrue(
-                  warningMessage.contains("INVALID123") || warningMessage.contains("invalid"),
-                  "Should warn about invalid concept");
+              warningMessage.contains("INVALID123") || warningMessage.contains("invalid"),
+              "Should warn about invalid concept");
         }
       }
     }
 
     // Assert - Verify that at least one concept has designations
     long conceptsWithDesignations =
-            contains.stream()
-                    .filter(ValueSet.ValueSetExpansionContainsComponent::hasDesignation)
-                    .count();
+        contains.stream()
+            .filter(ValueSet.ValueSetExpansionContainsComponent::hasDesignation)
+            .count();
     assertTrue(
-            conceptsWithDesignations > 0,
-            "At least one concept should have designations when includeDesignations=true");
+        conceptsWithDesignations > 0,
+        "At least one concept should have designations when includeDesignations=true");
 
     // Assert - Verify that concepts have definitions when includeDefinition=true
     for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
       // Check if concept has property for definition
       if (concept.hasProperty()) {
         List<ValueSet.ConceptPropertyComponent> definitionProperties =
-                concept.getProperty().stream()
-                        .filter(prop -> "definition".equals(prop.getCode()))
-                        .collect(Collectors.toList());
+            concept.getProperty().stream()
+                .filter(prop -> "definition".equals(prop.getCode()))
+                .collect(Collectors.toList());
 
         if (!definitionProperties.isEmpty()) {
           log.debug(
-                  "Concept {} has {} definition properties",
-                  concept.getCode(),
-                  definitionProperties.size());
+              "Concept {} has {} definition properties",
+              concept.getCode(),
+              definitionProperties.size());
 
           // Validate each definition property has value
           for (ValueSet.ConceptPropertyComponent defProp : definitionProperties) {
             assertNotNull(
-                    defProp.getValue(),
-                    "Definition property should have a value for concept: " + concept.getCode());
+                defProp.getValue(),
+                "Definition property should have a value for concept: " + concept.getCode());
 
             if (defProp.getValue() instanceof StringType) {
               StringType defValue = (StringType) defProp.getValue();
               assertNotNull(
-                      defValue.getValue(),
-                      "Definition value should not be null for concept: " + concept.getCode());
+                  defValue.getValue(),
+                  "Definition value should not be null for concept: " + concept.getCode());
               assertFalse(
-                      defValue.getValue().trim().isEmpty(),
-                      "Definition should not be empty for concept: " + concept.getCode());
+                  defValue.getValue().trim().isEmpty(),
+                  "Definition should not be empty for concept: " + concept.getCode());
               log.debug("Definition for {}: {}", concept.getCode(), defValue.getValue());
             }
           }
         } else {
           log.warn(
-                  "Concept {} does not have definition property despite includeDefinition=true",
-                  concept.getCode());
+              "Concept {} does not have definition property despite includeDefinition=true",
+              concept.getCode());
         }
       } else {
         log.warn("Concept {} has no properties despite includeDefinition=true", concept.getCode());
