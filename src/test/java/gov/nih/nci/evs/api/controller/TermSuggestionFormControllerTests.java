@@ -51,7 +51,22 @@ import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 import org.springframework.web.server.ResponseStatusException;
 
-/** Test class for the Term Form Controller. */
+/** 
+ * Test class for the Term Form Controller. To run this you need to set some stuff up.
+ * <pre>
+ * Uses the following env vars (if not set, tests do not run):
+ *
+ * MAIL_USERNAME
+ * MAIL_PASSWORD
+ *
+ * as well as the following yml properties:
+ *
+ * mail.host
+ * mail.port
+ * mail.smtp.auth
+ * mail.smtp.starttls.enable
+ * </pre>
+ */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc
