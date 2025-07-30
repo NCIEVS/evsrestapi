@@ -58,6 +58,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
 
 /** FHIR R5 ValueSet provider. */
 @Component
@@ -254,10 +256,12 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @throws Exception the exception
    */
   @Operation(name = JpaConstants.OPERATION_EXPAND, idempotent = true)
+  @RequestMapping(method = {RequestMethod.GET, RequestMethod.POST})
   public ValueSet expandImplicit(
       final HttpServletRequest request,
       final ServletRequestDetails details,
       @OperationParam(name = "valueSet") final ValueSet valueSet,
+      //@ResourceParam final ValueSet valueSet,
       @OperationParam(name = "url") final UriType url,
       @OperationParam(name = "valueSetVersion") final StringType version,
       // @OperationParam(name = "context") final UriType context,
