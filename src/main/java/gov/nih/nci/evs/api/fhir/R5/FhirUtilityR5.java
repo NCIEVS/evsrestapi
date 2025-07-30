@@ -3,17 +3,13 @@ package gov.nih.nci.evs.api.fhir.R5;
 import static java.lang.String.format;
 
 import ca.uhn.fhir.rest.param.NumberParam;
-import gov.nih.nci.evs.api.controller.StaticContextAccessor;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -48,12 +44,6 @@ public class FhirUtilityR5 {
   @SuppressWarnings("unused")
   private static Logger logger = LoggerFactory.getLogger(FhirUtilityR5.class);
 
-  /** The publishers. */
-  private static HashMap<String, String> publishers = generatePublishers();
-
-  /** The uris. */
-  private static HashMap<String, String> uris = generateUris();
-
   /** The unsupported params list for search. */
   private static final String[] unsupportedParams =
       new String[] {
@@ -79,84 +69,27 @@ public class FhirUtilityR5 {
   }
 
   /**
-   * Generate uris from the terminology metadata.
-   *
-   * @return the hash map
-   */
-  private static HashMap<String, String> generateUris() {
-    final HashMap<String, String> uri = new HashMap<>();
-    List<Terminology> terms;
-    try {
-      OpensearchQueryService osQueryService =
-          StaticContextAccessor.getBean(OpensearchQueryService.class);
-      TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
-
-      terms = termUtils.getIndexedTerminologies(osQueryService);
-
-      terms.forEach(
-          terminology -> {
-            if (terminology.getMetadata().getFhirUri() != null) {
-              uri.put(terminology.getTerminology(), terminology.getMetadata().getFhirUri());
-            }
-          });
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-
-    return uri;
-  }
-
-  /**
-   * Generate publishers from the terminology metadata.
-   *
-   * @return the hash map
-   */
-  private static HashMap<String, String> generatePublishers() {
-    final HashMap<String, String> publish = new HashMap<>();
-    List<Terminology> terms;
-    try {
-      OpensearchQueryService osQueryService =
-          StaticContextAccessor.getBean(OpensearchQueryService.class);
-      TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
-
-      terms = termUtils.getIndexedTerminologies(osQueryService);
-
-      terms.forEach(
-          terminology -> {
-            if (terminology.getMetadata().getFhirPublisher() != null) {
-              publish.put(
-                  terminology.getTerminology(), terminology.getMetadata().getFhirPublisher());
-            }
-          });
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-
-    return publish;
-  }
-
-  /**
-   * Gets the publisher.
+   * Returns the publisher.
    *
    * @param terminology the terminology
-   * @return the publisher for a given terminology
+   * @return the publisher
    */
-  private static String getPublisher(final String terminology) {
-    return publishers.containsKey(terminology)
-        ? publishers.get(terminology)
+  private static String getPublisher(final Terminology terminology) {
+    return terminology != null && terminology.getMetadata().getFhirPublisher() != null
+        ? terminology.getMetadata().getFhirPublisher()
         : "publisher not specified";
   }
 
   /**
-   * Gets the uri.
+   * Returns the uri.
    *
    * @param terminology the terminology
-   * @return the uri for a given terminology
+   * @return the uri
    */
-  private static String getUri(final String terminology) {
-    return uris.containsKey(terminology.toLowerCase())
-        ? uris.get(terminology.toLowerCase())
-        : "uri not specified";
+  private static String getUri(final Terminology terminology) {
+    return terminology != null && terminology.getMetadata().getFhirUri() != null
+        ? terminology.getMetadata().getFhirUri()
+        : "url not specified";
   }
 
   /**
@@ -203,18 +136,23 @@ public class FhirUtilityR5 {
     cs.setStatus(Enumerations.PublicationStatus.ACTIVE);
     cs.setHierarchyMeaning(CodeSystem.CodeSystemHierarchyMeaning.ISA);
     cs.setVersion(term.getVersion());
-    cs.setPublisher(getPublisher(term.getTerminology()));
-    cs.setUrl(getUri(term.getTerminology()));
+    cs.setPublisher(getPublisher(term));
+    cs.setUrl(getUri(term));
     return cs;
   }
 
   /**
    * Convert a Concept to r5 concept map. since setXXXXVersion doesn't doesn't exist
    *
+   * @param sourceTerminology the source terminology
+   * @param targetTerminology the target terminology
    * @param mapset the concept mapset
    * @return the concept map
    */
-  public static ConceptMap toR5(final Concept mapset) {
+  public static ConceptMap toR5(
+      final Terminology sourceTerminology,
+      final Terminology targetTerminology,
+      final Concept mapset) {
     final ConceptMap cm = new ConceptMap();
     // populate the r5 concept map
     // This ensures our id values set internally are always lowercase.
@@ -224,14 +162,7 @@ public class FhirUtilityR5 {
     cm.setExperimental(false);
     cm.setStatus(Enumerations.PublicationStatus.ACTIVE);
     cm.setVersion(mapset.getVersion());
-    cm.setPublisher(
-        getPublisher(
-            Objects.requireNonNull(
-                    mapset.getProperties().stream()
-                        .filter(m -> m.getType().equals("sourceTerminology"))
-                        .findFirst()
-                        .orElse(null))
-                .getValue()));
+    cm.setPublisher(getPublisher(sourceTerminology));
     try {
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
       cm.setDate(
@@ -245,33 +176,9 @@ public class FhirUtilityR5 {
     } catch (Exception e) {
       cm.setDate(null);
     }
-    cm.setSourceScope(
-        new UriType(
-            getUri(
-                    mapset.getProperties().stream()
-                        .filter(m -> m.getType().equals("sourceTerminology"))
-                        .findFirst()
-                        .get()
-                        .getValue())
-                + "?fhir_vs"));
-    cm.setTargetScope(
-        new UriType(
-            getUri(
-                    mapset.getProperties().stream()
-                        .filter(m -> m.getType().equals("targetTerminology"))
-                        .findFirst()
-                        .get()
-                        .getValue())
-                + "?fhir_vs"));
-    cm.setUrl(
-        getUri(
-                mapset.getProperties().stream()
-                    .filter(m -> m.getType().equals("sourceTerminology"))
-                    .findFirst()
-                    .get()
-                    .getValue())
-            + "?fhir_cm="
-            + mapset.getCode());
+    cm.setSourceScope(new UriType(getUri(targetTerminology) + "?fhir_vs"));
+    cm.setTargetScope(new UriType(getUri(targetTerminology) + "?fhir_vs"));
+    cm.setUrl(getUri(sourceTerminology) + "?fhir_cm=" + mapset.getCode());
     return cm;
   }
 
@@ -288,14 +195,14 @@ public class FhirUtilityR5 {
     vs.setName(term.getName());
     vs.setVersion(term.getVersion());
     vs.setTitle(term.getTerminology());
-    vs.setUrl(getUri(term.getTerminology()) + "?fhir_vs");
+    vs.setUrl(getUri(term) + "?fhir_vs");
     try {
       SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
       vs.setDate(sdf.parse(term.getDate()));
     } catch (Exception e) {
       vs.setDate(null);
     }
-    vs.setPublisher(getPublisher(term.getTerminology()));
+    vs.setPublisher(getPublisher(term));
     vs.setExperimental(false);
     vs.setStatus(Enumerations.PublicationStatus.ACTIVE);
     vs.setDescription(term.getDescription());
@@ -305,18 +212,19 @@ public class FhirUtilityR5 {
   /**
    * Convert a Concept subset to r5 value set.
    *
+   * @param terminology the terminology
    * @param subset the Concept subset to convert
    * @return the value set
    */
-  public static ValueSet toR5VS(final Concept subset) {
+  public static ValueSet toR5VS(final Terminology terminology, final Concept subset) {
     final ValueSet vs = new ValueSet();
     // This ensures our id values set internally are always lowercase.
     vs.setId((subset.getTerminology() + "_" + subset.getCode()).toLowerCase());
-    vs.setUrl(getUri(subset.getTerminology()) + "?fhir_vs=" + subset.getCode());
+    vs.setUrl(getUri(terminology) + "?fhir_vs=" + subset.getCode());
     vs.setName(subset.getName());
     vs.setVersion(subset.getVersion());
     vs.setTitle(subset.getTerminology());
-    vs.setPublisher(getPublisher(subset.getTerminology()));
+    vs.setPublisher(getPublisher(terminology));
     vs.setDescription(
         "Value set representing the " + subset.getTerminology() + "subset" + subset.getCode());
     vs.addIdentifier(new Identifier().setValue(subset.getCode()));
@@ -328,8 +236,8 @@ public class FhirUtilityR5 {
   /**
    * Check if the required object is valid.
    *
-   * @param param the required object
    * @param paramName the string name of the object
+   * @param param the required object
    */
   public static void required(final String paramName, final Object param) {
     if (param == null) {
@@ -358,8 +266,8 @@ public class FhirUtilityR5 {
   /**
    * Check if the object is not supported.
    *
-   * @param obj the object
    * @param paramName the string name of the object
+   * @param obj the object
    */
   public static void notSupported(final String paramName, final Object obj) {
     notSupported(paramName, obj, null);
@@ -368,8 +276,8 @@ public class FhirUtilityR5 {
   /**
    * Check if the object is not supported with additional detail param.
    *
-   * @param obj the object
    * @param paramName the string name of the object
+   * @param obj the object
    * @param additionalDetail additional information and details
    */
   public static void notSupported(
@@ -477,14 +385,14 @@ public class FhirUtilityR5 {
   /**
    * Check we have at least one required object for 4 objects.
    *
-   * @param param1 first object
    * @param param1Name first object name
-   * @param param2 second object
+   * @param param1 first object
    * @param param2Name second object name
-   * @param param3 third object
+   * @param param2 second object
    * @param param3Name third object name
-   * @param param4 fourth object
+   * @param param3 third object
    * @param param4Name fourth object name
+   * @param param4 fourth object
    */
   public static void requireAtLeastOneOf(
       final String param1Name,

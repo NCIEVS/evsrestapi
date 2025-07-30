@@ -34,7 +34,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -126,9 +128,10 @@ public class ValueSetProviderR5 implements IResourceProvider {
     FhirUtilityR5.notSupportedSearchParams(request);
     final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
     final List<ValueSet> list = new ArrayList<>();
-
+    final Map<String, Terminology> map = new HashMap<>();
     if (code == null) {
       for (final Terminology terminology : terms) {
+        map.put(terminology.getTerminology(), terminology);
         final ValueSet vs = FhirUtilityR5.toR5VS(terminology);
         // Skip non-matching
         if (id != null && !id.getValue().equals(vs.getId())) {
@@ -163,7 +166,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         subsets.stream().flatMap(Concept::streamSelfAndChildren).collect(Collectors.toSet());
 
     for (final Concept subset : subsetsAsConcepts) {
-      final ValueSet vs = FhirUtilityR5.toR5VS(subset);
+      final ValueSet vs = FhirUtilityR5.toR5VS(map.get(subset.getTerminology()), subset);
       // Skip non-matching
       if (id != null && !id.getValue().equals(vs.getId())) {
         logger.debug("  SKIP id mismatch = " + vs.getUrl());
@@ -1074,8 +1077,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
     final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
     final List<ValueSet> list = new ArrayList<ValueSet>();
-
+    final Map<String, Terminology> map = new HashMap<>();
     for (final Terminology terminology : terms) {
+      map.put(terminology.getTerminology(), terminology);
       final ValueSet vs = FhirUtilityR5.toR5VS(terminology);
       // Skip non-matching
       if (id != null && !id.getIdPart().equals(vs.getId())) {
@@ -1101,7 +1105,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         subsets.stream().flatMap(Concept::streamSelfAndChildren).collect(Collectors.toSet());
 
     for (final Concept subset : subsetsAsConcepts) {
-      final ValueSet vs = FhirUtilityR5.toR5VS(subset);
+      final ValueSet vs = FhirUtilityR5.toR5VS(map.get(subset.getTerminology()), subset);
       // Skip non-matching
       if (id != null && !id.getIdPart().equals(vs.getId())) {
         logger.debug("  SKIP id mismatch = " + vs.getId());
