@@ -332,8 +332,7 @@ public class MapsetControllerTests {
     // Assert matches for this code
     assertTrue(!mapList.getMaps().isEmpty());
   }
-  
-  
+
   /**
    * Test mapsets return maps with valid code params and fromRecord = 9 and pageSize is 23
    *
