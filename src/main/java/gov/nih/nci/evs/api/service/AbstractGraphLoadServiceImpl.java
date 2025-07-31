@@ -976,14 +976,16 @@ The browser links each mapped concept to that concept's page in the current prod
     map.getProperties()
         .add(new Property("sourceTerminologyVersion", sourceTerminology.getVersion()));
     map.getProperties().add(new Property("targetTerminology", targetTermName));
-    map.getProperties()
-        .add(
-            new Property(
-                "targetTerminologyVersion",
-                targetTerminology != null ? targetTerminology.getVersion() : null));
+    if (targetTerminology != null
+        && targetTerminology.getVersion() != null
+        && !targetTerminology.getVersion().isEmpty()) {
+      map.getProperties()
+          .add(new Property("targetTerminologyVersion", targetTerminology.getVersion()));
+      map.getProperties().add(new Property("targetLoaded", "true"));
+    } else {
+      map.getProperties().add(new Property("targetLoaded", "false"));
+    }
     map.getProperties().add(new Property("sourceLoaded", "true"));
-    map.getProperties()
-        .add(new Property("targetLoaded", targetTerminology != null ? "true" : "false"));
     map.getProperties().add(new Property("mapsetLink", null));
     map.getProperties().add(new Property("loader", "AbstractGraphLoadServiceImpl"));
     return map;
