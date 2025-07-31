@@ -71,8 +71,12 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
       // Support for ICD10-MDR mappings and similar
       if (mappingDataList[0].split("\t").length > 2) {
-        for (final String conceptMap :
-            Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
+        for (final String conceptMap :mappingDataList) {
+          // Skip header
+          if (conceptMap.contains("Source Code")) {
+            continue;
+          }
+
           final String[] conceptSplit = conceptMap.split("\t");
           final Mapping conceptToAdd = new Mapping();
           conceptToAdd.setMapsetCode(metadata[0]);
@@ -104,8 +108,11 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       }
       // Support for NCIT-HGNC maps and others regularly updated by NCI
       else if (mappingDataList[0].split("\t").length == 2) {
-        for (final String conceptMap :
-            Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
+        for (final String conceptMap :mappingDataList) {
+          // Skip header
+          if (conceptMap.contains("Source Code")) {
+            continue;
+          }
           final String[] conceptSplit = conceptMap.split("\t");
 
           // Determine "source"
