@@ -967,7 +967,7 @@ This is a manual EVS mapping of concepts with equivalent meaning in the source a
 <br>
 &nbsp;&nbsp;&nbsp;Target: %s %s
 <br><br>
-The browser links each mapped concept to that concept's page in the current production version of its terminology. There are currently no links for GDC, as it is not indexed in this tool.
+The browser links each mapped concept to that concept's page in the current production version of its terminology.
 <br><br>
 """
             .formatted(sourceTerminology.getVersion(), targetTermName, termFullNameAndVersion);
