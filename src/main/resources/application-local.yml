@@ -78,7 +78,7 @@ nci:
       configBaseUri: ${CONFIG_BASE_URI:https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata}
       uiLicense: ${UI_LICENSE:ui-license}
       unitTestData: ${UNIT_TEST_DATA:../data/UnitTestData/}
-      childhoodNeoplasmSubsetsXls: ${CHILDHOOD_NEOPLASM_SUBSETS_XLS:Childhood_Neoplasm_Subsets.xls}
+      childhoodNeoplasmSubsetsXls: ${CHILDHOOD_NEOPLASM_SUBSETS_XLS:NCIT/Childhood_Neoplasm_Subsets.xls}
       ftpNeoplasmUrl: ${FTP_NEOPLASM_URL:https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/Neoplasm/}
     bulkload:
       historyDir: ${NCI_EVS_HISTORY_DIR:src/main/resources/cumulative_history_25.06e.txt}
