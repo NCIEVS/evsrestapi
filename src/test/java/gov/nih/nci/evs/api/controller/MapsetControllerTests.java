@@ -314,6 +314,26 @@ public class MapsetControllerTests {
   }
 
   /**
+   * Test nci hgnc map for first row.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testNciHgncMapForFirstRow() throws Exception {
+    // Arrange
+    String path = "NCIt_to_HGNC_Mapping/maps?query=C101088";
+
+    // Act
+    MvcResult result =
+        mvc.perform(get(baseUrl + "/" + path)).andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
+    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+
+    // Assert matches for this code
+    assertTrue(!mapList.getMaps().isEmpty());
+  }
+
+  /**
    * Test mapsets return maps with valid code params and fromRecord = 9 and pageSize is 23
    *
    * @throws Exception the exception
