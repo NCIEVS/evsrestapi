@@ -184,6 +184,40 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
    *
    * @param code the code
    * @param terminology the terminology
+   * @return the descendants
+   */
+  @Override
+  public List<Concept> getAncestors(String code, Terminology terminology) throws IOException {
+    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("descendants"));
+    if (!concept.isPresent()) {
+      return new ArrayList<>();
+    }
+    List<Concept> ancestors = new ArrayList<>();
+
+    // find root and add as ancestors all concepts between self and this root
+    for (Concept root : getRootNodes(terminology, new IncludeParam("descendants"))) {
+      boolean foundMatch =
+          root.getDescendants().stream()
+              .anyMatch(descendant -> descendant.getCode().equals(concept.get().getCode()));
+
+      if (foundMatch) {
+        Paths paths = getPathsToParent(code, root.getCode(), terminology);
+        List<Path> pathList = paths.getPaths();
+        for (Path p : pathList) {
+          for (ConceptMinimal cm : p.getConcepts()) {
+            ancestors.add(new Concept(cm));
+          }
+        }
+      }
+    }
+    return ancestors;
+  }
+
+  /**
+   * see superclass *.
+   *
+   * @param code the code
+   * @param terminology the terminology
    * @return the superclasses
    */
   @Override

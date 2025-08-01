@@ -1525,14 +1525,14 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
 
     // Handle filter-based inclusion
-    // if (include.hasFilter()) {
-    // for (ValueSet.ConceptSetFilterComponent filter : include.getFilter()) {
-    // List<ValueSetExpansionContainsComponent> filteredConcepts =
-    // applyConceptFilter(include.getSystem(), filter, textFilter, activeOnly,
-    // includeDesignations);
-    // concepts.addAll(filteredConcepts);
-    // }
-    // }
+    if (include.hasFilter()) {
+      for (ValueSet.ConceptSetFilterComponent filter : include.getFilter()) {
+        List<ValueSetExpansionContainsComponent> filteredConcepts =
+            applyConceptFilter(
+                include.getSystem(), filter, textFilter, activeOnly, includeDesignations);
+        concepts.addAll(filteredConcepts);
+      }
+    }
 
     // Handle value set inclusion
     // if (include.hasValueSet()) {
@@ -1620,50 +1620,154 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return concept.getName();
   }
 
-  // private List<ValueSetExpansionContainsComponent> applyConceptFilter(
-  // String system,
-  // ValueSet.ConceptSetFilterComponent filter,
-  // String textFilter,
-  // boolean activeOnly,
-  // boolean includeDesignations) throws Exception {
-  //
-  //
-  // // TODO: Implement filter logic based on your terminology service
-  // List<ValueSetExpansionContainsComponent> compList = new ArrayList<>();
-  //
-  // Terminology selectedTerminology = termUtils.getIndexedTerminologies(osQueryService)
-  // .stream()
-  // .filter(term -> term.getMetadata().getFhirUri().equals(system))
-  // .findFirst()
-  // .orElse(null);
-  // Concept concept = osQueryService
-  // .getConcept(
-  // filter.getValue(),
-  // selectedTerminology,
-  // new IncludeParam("descendants"))
-  // .get();
-  // for (Concept desc : concept.getDescendants()) {
-  // if (desc.getActive() != null && !desc.getActive()) {
-  // continue;
-  // }
-  // final ValueSet.ValueSetExpansionContainsComponent vsContains =
-  // new ValueSet.ValueSetExpansionContainsComponent();
-  // vsContains.setSystem(system);
-  // vsContains.setCode(desc.getCode());
-  // vsContains.setDisplay(desc.getName());
-  //
-  // compList.add(vsContains);
-  // }
-  // // Example for SNOMED CT "is-a" filter:
-  // // if ("concept".equals(filter.getProperty()) && "is-a".equals(filter.getOp())) {
-  // // return snomedService.getDescendants(filter.getValue(), textFilter, activeOnly);
-  // // }
-  //
-  // logger.debug("Applying filter: {} {} {} on {}",
-  // filter.getProperty(), filter.getOp(), filter.getValue(), system);
-  //
-  // return compList;
-  // }
+  private List<ValueSetExpansionContainsComponent> applyConceptFilter(
+      String system,
+      ValueSet.ConceptSetFilterComponent filter,
+      String textFilter,
+      boolean activeOnly,
+      boolean includeDesignations)
+      throws Exception {
+
+    List<ValueSetExpansionContainsComponent> compList = new ArrayList<>();
+
+    Terminology selectedTerminology =
+        termUtils.getIndexedTerminologies(osQueryService).stream()
+            .filter(term -> term.getMetadata().getFhirUri().equals(system))
+            .findFirst()
+            .orElse(null);
+
+    IncludeParam includeParam = new IncludeParam();
+    if (includeDesignations) {
+      includeParam.setSynonyms(true);
+    }
+
+    // descendants and self of the given code
+    if ("concept".equals(filter.getProperty()) && "is-a".equals(filter.getOp().toCode())) {
+      includeParam.setDescendant(true);
+      compList =
+          processDescendents(
+              system, filter, selectedTerminology, textFilter, activeOnly, includeParam, compList);
+    } else
+    // descendants of the given code
+    if ("concept".equals(filter.getProperty()) && "descendent-of".equals(filter.getOp().toCode())) {
+      includeParam.setDescendant(true);
+      compList =
+          processDescendents(
+              system, filter, selectedTerminology, textFilter, activeOnly, includeParam, compList);
+    } else
+    // descendants of the given code if they are leaf nodes
+    if ("concept".equals(filter.getProperty())
+        && "descendent-leaf".equals(filter.getOp().toCode())) {
+      includeParam.setDescendant(true);
+      compList =
+          processDescendents(
+              system, filter, selectedTerminology, textFilter, activeOnly, includeParam, compList);
+    } else
+    // children of the given code
+    if ("concept".equals(filter.getProperty()) && "child-of".equals(filter.getOp().toCode())) {
+      includeParam.setChildren(true);
+      compList =
+          processDescendents(
+              system, filter, selectedTerminology, textFilter, activeOnly, includeParam, compList);
+    } else
+    // anscestors of the given code
+    if ("concept".equals(filter.getProperty()) && "generalizes".equals(filter.getOp().toCode())) {
+      List<Concept> ancestors =
+          osQueryService.getAncestors(filter.getValue().trim(), selectedTerminology);
+      for (Concept ancestor : ancestors) {
+        ValueSetExpansionContainsComponent contains = new ValueSetExpansionContainsComponent();
+        contains.setSystem(system);
+        contains.setCode(ancestor.getCode());
+        contains.setDisplay(ancestor.getName());
+        compList.add(contains);
+      }
+    } else
+    // concept is in filter list
+    if ("concept".equals(filter.getProperty()) && "in".equals(filter.getOp().toCode())) {
+      // Parse the comma-separated list of codes
+      String[] codes = filter.getValue().split(",");
+
+      for (String code : codes) {
+        String trimmedCode = code.trim();
+        // Look up each concept by code
+        Optional<Concept> concept =
+            osQueryService.getConcept(trimmedCode, selectedTerminology, includeParam);
+        if (concept.isPresent()) {
+          ValueSetExpansionContainsComponent contains = new ValueSetExpansionContainsComponent();
+          contains.setSystem(system);
+          contains.setCode(trimmedCode);
+          contains.setDisplay(concept.get().getName());
+          compList.add(contains);
+        }
+      }
+    } else {
+      throw FhirUtilityR5.exception(
+          "ValueSet filter not supported with property "
+              + filter.getProperty()
+              + " and operation "
+              + filter.getOp().toCode()
+              + " "
+              + JpaConstants.OPERATION_EXPAND,
+          IssueType.NOTSUPPORTED,
+          405);
+    }
+
+    // is-a requires self concept to be added
+    if ("is-a".equals(filter.getOp().toCode()) || "generalizes".equals(filter.getOp().toCode())) {
+      Concept concept =
+          osQueryService.getConcept(filter.getValue(), selectedTerminology, includeParam).get();
+      final ValueSet.ValueSetExpansionContainsComponent vsContains =
+          new ValueSet.ValueSetExpansionContainsComponent();
+      vsContains.setSystem(system);
+      vsContains.setCode(concept.getCode());
+      vsContains.setDisplay(concept.getName());
+
+      if (passesTextFilter(vsContains, textFilter)) {
+        compList.add(vsContains);
+      }
+    }
+
+    logger.debug(
+        "Applying filter: {} {} {} on {}",
+        filter.getProperty(),
+        filter.getOp(),
+        filter.getValue(),
+        system);
+
+    return compList;
+  }
+
+  private List<ValueSetExpansionContainsComponent> processDescendents(
+      String system,
+      ValueSet.ConceptSetFilterComponent filter,
+      Terminology selectedTerminology,
+      String textFilter,
+      boolean activeOnly,
+      IncludeParam includeParam,
+      List<ValueSetExpansionContainsComponent> compList) {
+    Concept concept =
+        osQueryService.getConcept(filter.getValue(), selectedTerminology, includeParam).get();
+    for (Concept desc : concept.getDescendants()) {
+      if (activeOnly && desc.getActive() != null && !desc.getActive()) {
+        continue;
+      }
+
+      final ValueSet.ValueSetExpansionContainsComponent vsContains =
+          new ValueSet.ValueSetExpansionContainsComponent();
+      vsContains.setSystem(system);
+      vsContains.setCode(desc.getCode());
+      vsContains.setDisplay(desc.getName());
+
+      if (passesTextFilter(vsContains, textFilter)) {
+        // check for leaf requirement
+        if (!"descendent-leaf".equals(filter.getOp().toCode())
+            || ("descendent-leaf".equals(filter.getOp().toCode()) && desc.getLeaf())) {
+          compList.add(vsContains);
+        }
+      }
+    }
+    return compList;
+  }
 
   // private List<ValueSetExpansionContainsComponent> expandReferencedValueSet(
   // String valueSetUrl,

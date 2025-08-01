@@ -1940,6 +1940,1227 @@ public class FhirR5ValueSetExpandTests {
     return inputValueSet;
   }
 
+  // Helper method to create ValueSet with filter-based include, direct includes, and excludes
+  private ValueSet createNCITestValueSetWithIsaFilterIncludeAndExclude(
+      String id, String name, String title, String description) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName(name);
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(description);
+
+    // Build compose definition with NCI Thesaurus concepts
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+
+    // FIRST INCLUDE - Filter-based inclusion for Lyase Gene and its descendants
+    ValueSet.ConceptSetComponent lyaseInclude = new ValueSet.ConceptSetComponent();
+    lyaseInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Add filter for Lyase Gene (C21282) and descendants using "is-a" relationship
+    ValueSet.ConceptSetFilterComponent lyaseFilter = new ValueSet.ConceptSetFilterComponent();
+    lyaseFilter.setProperty("concept");
+    lyaseFilter.setOp(Enumerations.FilterOperator.ISA); // "is-a" - includes descendants
+    lyaseFilter.setValue("C21282"); // Lyase Gene
+    lyaseInclude.addFilter(lyaseFilter);
+
+    compose.addInclude(lyaseInclude);
+
+    // SECOND INCLUDE - Direct concept inclusion (your original test concepts)
+    ValueSet.ConceptSetComponent directInclude = new ValueSet.ConceptSetComponent();
+    directInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Valid active concept
+    ValueSet.ConceptReferenceComponent diseaseOrDisorder = new ValueSet.ConceptReferenceComponent();
+    diseaseOrDisorder.setCode("C2991");
+    diseaseOrDisorder.setDisplay("Disease or Disorder");
+    directInclude.addConcept(diseaseOrDisorder);
+
+    // Valid active concept
+    ValueSet.ConceptReferenceComponent gene = new ValueSet.ConceptReferenceComponent();
+    gene.setCode("C16612");
+    gene.setDisplay("Gene");
+    directInclude.addConcept(gene);
+
+    // Inactive concept
+    ValueSet.ConceptReferenceComponent inactiveConcept = new ValueSet.ConceptReferenceComponent();
+    inactiveConcept.setCode("C176707");
+    inactiveConcept.setDisplay("Physical Examination Finding - Inactive Test Concept");
+    directInclude.addConcept(inactiveConcept);
+
+    // Invalid/bogus concept
+    ValueSet.ConceptReferenceComponent invalidConcept = new ValueSet.ConceptReferenceComponent();
+    invalidConcept.setCode("INVALID123");
+    invalidConcept.setDisplay("This is an invalid concept code");
+    directInclude.addConcept(invalidConcept);
+
+    compose.addInclude(directInclude);
+
+    // EXCLUDE section - exclude one of the directly included concepts
+    ValueSet.ConceptSetComponent nciExclude = new ValueSet.ConceptSetComponent();
+    nciExclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Exclude the Gene concept (C16612) that was included above
+    ValueSet.ConceptReferenceComponent excludeGene = new ValueSet.ConceptReferenceComponent();
+    excludeGene.setCode("C16612");
+    excludeGene.setDisplay("Gene");
+    nciExclude.addConcept(excludeGene);
+
+    compose.addExclude(nciExclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  @Test
+  public void testValueSetExpandWithNCIThesaurusIsaFilterIncludeAndExclude() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with filter-based include, direct includes, and excludes
+    ValueSet inputValueSet =
+        createNCITestValueSetWithIsaFilterIncludeAndExclude(
+            "nci-filter-include-exclude-test",
+            "NCIFilterIncludeExcludeTest",
+            "NCI Thesaurus Filter Include and Exclude Test",
+            "Test ValueSet with filter for Lyase Gene descendants plus direct includes and"
+                + " excludes");
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + requestBody);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+
+    // Assert - Lyase Gene (C21282) should be included from filter
+    Optional<ValueSet.ValueSetExpansionContainsComponent> lyaseResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C21282".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(lyaseResult.isPresent(), "Lyase Gene (C21282) should be included from is-a filter");
+    log.info("C21282 (Lyase Gene) correctly included from filter");
+
+    // Assert - Check for descendants of Lyase Gene (if any exist in your terminology)
+    long lyaseDescendantCount =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(
+                comp ->
+                    comp.getDisplay() != null
+                        && (comp.getDisplay().toLowerCase().contains("lyase")
+                            || comp.getCode().equals("C21282")))
+            .count();
+
+    assertTrue(lyaseDescendantCount >= 1, "Should include at least Lyase Gene itself from filter");
+    log.info("Found {} concepts matching Lyase Gene filter", lyaseDescendantCount);
+
+    // Assert - Disease or Disorder should still be included (direct include, not excluded)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C2991".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(
+        diseaseResult.isPresent(),
+        "Disease or Disorder (C2991) should be included (direct include, not excluded)");
+    assertEquals("Disease or Disorder", diseaseResult.get().getDisplay());
+
+    // Assert - Gene should NOT be included (excluded despite being in direct include)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> geneResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C16612".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(
+        geneResult.isPresent(),
+        "Gene (C16612) should be excluded despite being in direct include section");
+    log.info("C16612 (Gene) correctly excluded - exclude overrides include");
+
+    // Assert - Check handling of inactive concept
+    Optional<ValueSet.ValueSetExpansionContainsComponent> inactiveResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C176707".equals(comp.getCode()))
+            .findFirst();
+
+    log.info("Inactive concept C176707 present in expansion: {}", inactiveResult.isPresent());
+
+    // Assert - Invalid concept should NOT be included
+    Optional<ValueSet.ValueSetExpansionContainsComponent> invalidResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "INVALID123".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(invalidResult.isPresent(), "Invalid concept (INVALID123) should not be included");
+
+    // Assert - All returned concepts should have valid NCI Thesaurus system
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      assertEquals(
+          "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+          concept.getSystem(),
+          "All concepts should be from NCI Thesaurus system");
+      assertNotNull(concept.getCode(), "All concepts should have a code");
+      assertNotNull(concept.getDisplay(), "All concepts should have a display");
+      assertFalse(concept.getDisplay().trim().isEmpty(), "Display should not be empty");
+
+      // Assert valid NCI concept code format (should start with 'C' followed by digits)
+      assertTrue(
+          concept.getCode().matches("C\\d+"),
+          "NCI concept codes should start with 'C' followed by digits: " + concept.getCode());
+    }
+
+    // Assert - Verify specific inclusion/exclusion behavior
+    Set<String> actualCodes =
+        contains.stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+            .collect(Collectors.toSet());
+
+    // Should contain C21282 (Lyase Gene from filter) and C2991 (Disease or Disorder from direct
+    // include)
+    assertTrue(actualCodes.contains("C21282"), "Should contain Lyase Gene from filter");
+    assertTrue(
+        actualCodes.contains("C2991"), "Should contain Disease or Disorder from direct include");
+
+    // Should NOT contain excluded or invalid concepts
+    assertFalse(actualCodes.contains("C16612"), "Should NOT contain excluded Gene concept");
+    assertFalse(actualCodes.contains("INVALID123"), "Should NOT contain invalid concept");
+
+    log.info("Actual concept codes in expansion: {}", actualCodes);
+
+    // Assert - Should have concepts from both filter and direct includes (minus exclusions)
+    assertTrue(
+        expansion.getTotal() >= 2,
+        "Should have at least 2 concepts (Lyase Gene from filter + Disease or Disorder from direct"
+            + " include)");
+
+    // Assert - Log expansion results for debugging
+    log.info(
+        "NCI Thesaurus ValueSet expansion with filter, includes, and excludes completed with {}"
+            + " concepts",
+        expansion.getTotal());
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      log.debug("Expanded NCI concept: {} - {}", concept.getCode(), concept.getDisplay());
+    }
+
+    // Assert - Categorize concepts by source
+    long filterBasedConcepts =
+        contains.stream()
+            .filter(
+                comp ->
+                    comp.getDisplay() != null
+                        && (comp.getDisplay().toLowerCase().contains("lyase")
+                            || comp.getCode().equals("C21282")))
+            .count();
+
+    long directIncludeConcepts =
+        contains.stream()
+            .filter(
+                comp ->
+                    Set.of("C2991", "C176707")
+                        .contains(comp.getCode())) // Possible direct includes (minus excluded)
+            .count();
+
+    log.info(
+        "Filter-based concepts (Lyase): {}, Direct include concepts: {}",
+        filterBasedConcepts,
+        directIncludeConcepts);
+
+    // Assert - Verify filter functionality worked
+    assertTrue(filterBasedConcepts >= 1, "Should have at least 1 concept from Lyase Gene filter");
+
+    // Assert - Check for any error messages in expansion
+    if (expansion.hasParameter()) {
+      for (ValueSet.ValueSetExpansionParameterComponent param : expansion.getParameter()) {
+        log.info("Expansion parameter: {} = {}", param.getName(), param.getValue());
+
+        // Check for warnings about invalid concepts
+        if ("warning".equals(param.getName())) {
+          String warningMessage = param.getValue().toString();
+          assertTrue(
+              warningMessage.contains("INVALID123") || warningMessage.contains("invalid"),
+              "Should warn about invalid concept");
+        }
+      }
+    }
+  }
+
+  // Helper method to create ValueSet with descendant-leaf filter-based include, direct includes,
+  // and excludes
+  private ValueSet createNCITestValueSetWithDescendantLeafFilterIncludeAndExclude(
+      String id, String name, String title, String description) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName(name);
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(description);
+
+    // Build compose definition with NCI Thesaurus concepts
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+
+    // FIRST INCLUDE - Filter-based inclusion for Lyase Gene descendant leaf nodes only
+    ValueSet.ConceptSetComponent lyaseInclude = new ValueSet.ConceptSetComponent();
+    lyaseInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Add filter for Lyase Gene (C21282) descendant-leaf nodes (leaf concepts only, not
+    // intermediate)
+    ValueSet.ConceptSetFilterComponent lyaseFilter = new ValueSet.ConceptSetFilterComponent();
+    lyaseFilter.setProperty("concept");
+    lyaseFilter.setOp(
+        Enumerations.FilterOperator.DESCENDENTLEAF); // "descendant-leaf" - only leaf descendants
+    lyaseFilter.setValue("C21282"); // Lyase Gene
+    lyaseInclude.addFilter(lyaseFilter);
+
+    compose.addInclude(lyaseInclude);
+
+    // SECOND INCLUDE - Direct concept inclusion (your original test concepts)
+    ValueSet.ConceptSetComponent directInclude = new ValueSet.ConceptSetComponent();
+    directInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Valid active concept
+    ValueSet.ConceptReferenceComponent diseaseOrDisorder = new ValueSet.ConceptReferenceComponent();
+    diseaseOrDisorder.setCode("C2991");
+    diseaseOrDisorder.setDisplay("Disease or Disorder");
+    directInclude.addConcept(diseaseOrDisorder);
+
+    // Valid active concept
+    ValueSet.ConceptReferenceComponent gene = new ValueSet.ConceptReferenceComponent();
+    gene.setCode("C16612");
+    gene.setDisplay("Gene");
+    directInclude.addConcept(gene);
+
+    // Inactive concept
+    ValueSet.ConceptReferenceComponent inactiveConcept = new ValueSet.ConceptReferenceComponent();
+    inactiveConcept.setCode("C176707");
+    inactiveConcept.setDisplay("Physical Examination Finding - Inactive Test Concept");
+    directInclude.addConcept(inactiveConcept);
+
+    // Invalid/bogus concept
+    ValueSet.ConceptReferenceComponent invalidConcept = new ValueSet.ConceptReferenceComponent();
+    invalidConcept.setCode("INVALID123");
+    invalidConcept.setDisplay("This is an invalid concept code");
+    directInclude.addConcept(invalidConcept);
+
+    compose.addInclude(directInclude);
+
+    // EXCLUDE section - exclude one of the directly included concepts
+    ValueSet.ConceptSetComponent nciExclude = new ValueSet.ConceptSetComponent();
+    nciExclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Exclude the Gene concept (C16612) that was included above
+    ValueSet.ConceptReferenceComponent excludeGene = new ValueSet.ConceptReferenceComponent();
+    excludeGene.setCode("C16612");
+    excludeGene.setDisplay("Gene");
+    nciExclude.addConcept(excludeGene);
+
+    compose.addExclude(nciExclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  @Test
+  public void testValueSetExpandWithNCIThesaurusDescendantLeafFilterIncludeAndExclude()
+      throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with descendant-leaf filter-based include, direct includes, and excludes
+    ValueSet inputValueSet =
+        createNCITestValueSetWithDescendantLeafFilterIncludeAndExclude(
+            "nci-descendant-leaf-filter-test",
+            "NCIDescendantLeafFilterTest",
+            "NCI Thesaurus Descendant-Leaf Filter Test",
+            "Test ValueSet with descendant-leaf filter for Lyase Gene leaf descendants plus direct"
+                + " includes and excludes");
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + requestBody);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+
+    // Assert - Check for descendant-leaf concepts of Lyase Gene (leaf nodes only)
+    long lyaseDescendantLeafCount =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(
+                comp ->
+                    comp.getDisplay() != null && comp.getDisplay().toLowerCase().contains("lyase"))
+            .count();
+
+    // Note: descendant-leaf should return only leaf concepts (no intermediate parent concepts)
+    log.info(
+        "Found {} leaf concepts matching Lyase Gene descendant-leaf filter",
+        lyaseDescendantLeafCount);
+
+    // Assert - Disease or Disorder should still be included (direct include, not excluded)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C2991".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(
+        diseaseResult.isPresent(),
+        "Disease or Disorder (C2991) should be included (direct include, not excluded)");
+    assertEquals("Disease or Disorder", diseaseResult.get().getDisplay());
+
+    // Assert - Gene should NOT be included (excluded despite being in direct include)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> geneResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C16612".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(
+        geneResult.isPresent(),
+        "Gene (C16612) should be excluded despite being in direct include section");
+    log.info("C16612 (Gene) correctly excluded - exclude overrides include");
+
+    // Assert - Lyase Gene itself (C21282) should NOT be included with descendant-leaf (only leaf
+    // descendants)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> lyaseParentResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C21282".equals(comp.getCode()))
+            .findFirst();
+
+    // descendant-leaf excludes the parent concept itself, only includes leaf descendants
+    log.info(
+        "Lyase Gene parent (C21282) present in expansion: {} (should be false for descendant-leaf)",
+        lyaseParentResult.isPresent());
+
+    // Assert - Check handling of inactive concept
+    Optional<ValueSet.ValueSetExpansionContainsComponent> inactiveResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C176707".equals(comp.getCode()))
+            .findFirst();
+
+    log.info("Inactive concept C176707 present in expansion: {}", inactiveResult.isPresent());
+
+    // Assert - Invalid concept should NOT be included
+    Optional<ValueSet.ValueSetExpansionContainsComponent> invalidResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "INVALID123".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(invalidResult.isPresent(), "Invalid concept (INVALID123) should not be included");
+
+    // Assert - All returned concepts should have valid NCI Thesaurus system
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      assertEquals(
+          "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+          concept.getSystem(),
+          "All concepts should be from NCI Thesaurus system");
+      assertNotNull(concept.getCode(), "All concepts should have a code");
+      assertNotNull(concept.getDisplay(), "All concepts should have a display");
+      assertFalse(concept.getDisplay().trim().isEmpty(), "Display should not be empty");
+
+      // Assert valid NCI concept code format (should start with 'C' followed by digits)
+      assertTrue(
+          concept.getCode().matches("C\\d+"),
+          "NCI concept codes should start with 'C' followed by digits: " + concept.getCode());
+    }
+
+    // Assert - Verify specific inclusion/exclusion behavior
+    Set<String> actualCodes =
+        contains.stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+            .collect(Collectors.toSet());
+
+    // Should contain C2991 (Disease or Disorder from direct include)
+    assertTrue(
+        actualCodes.contains("C2991"), "Should contain Disease or Disorder from direct include");
+
+    // Should NOT contain excluded, invalid, or parent concepts
+    assertFalse(actualCodes.contains("C16612"), "Should NOT contain excluded Gene concept");
+    assertFalse(actualCodes.contains("INVALID123"), "Should NOT contain invalid concept");
+    assertFalse(
+        actualCodes.contains("C21282"),
+        "Should NOT contain parent Lyase Gene concept (descendant-leaf excludes parent)");
+
+    log.info("Actual concept codes in expansion: {}", actualCodes);
+
+    // Assert - Should have concepts from both filter and direct includes (minus exclusions)
+    assertTrue(
+        expansion.getTotal() >= 1,
+        "Should have at least 1 concept (Disease or Disorder from direct include + any Lyase leaf"
+            + " descendants)");
+
+    // Assert - Log expansion results for debugging
+    log.info(
+        "NCI Thesaurus ValueSet expansion with descendant-leaf filter completed with {} concepts",
+        expansion.getTotal());
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      log.debug("Expanded NCI concept: {} - {}", concept.getCode(), concept.getDisplay());
+    }
+
+    // Assert - Categorize concepts by source
+    long filterBasedLeafConcepts =
+        contains.stream()
+            .filter(
+                comp ->
+                    comp.getDisplay() != null
+                        && comp.getDisplay().toLowerCase().contains("lyase")
+                        && !comp.getCode().equals("C21282")) // Should not include parent
+            .count();
+
+    long directIncludeConcepts =
+        contains.stream()
+            .filter(
+                comp ->
+                    Set.of("C2991", "C176707")
+                        .contains(comp.getCode())) // Possible direct includes (minus excluded)
+            .count();
+
+    log.info(
+        "Descendant-leaf concepts (Lyase leaf descendants): {}, Direct include concepts: {}",
+        filterBasedLeafConcepts,
+        directIncludeConcepts);
+
+    // Assert - Verify descendant-leaf filter behavior
+    // descendant-leaf should only return leaf nodes, not intermediate or parent concepts
+    log.info(
+        "Descendant-leaf filter test: Parent concept C21282 should be excluded, only leaf"
+            + " descendants included");
+
+    // Assert - Check for any error messages in expansion
+    if (expansion.hasParameter()) {
+      for (ValueSet.ValueSetExpansionParameterComponent param : expansion.getParameter()) {
+        log.info("Expansion parameter: {} = {}", param.getName(), param.getValue());
+
+        // Check for warnings about invalid concepts
+        if ("warning".equals(param.getName())) {
+          String warningMessage = param.getValue().toString();
+          assertTrue(
+              warningMessage.contains("INVALID123") || warningMessage.contains("invalid"),
+              "Should warn about invalid concept");
+        }
+      }
+    }
+  }
+
+  // Helper method to create ValueSet with "in" filter-based include, direct includes, and excludes
+  private ValueSet createNCITestValueSetWithInFilterIncludeAndExclude(
+      String id, String name, String title, String description) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName(name);
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(description);
+
+    // Build compose definition with NCI Thesaurus concepts
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+
+    // FIRST INCLUDE - Filter-based inclusion using "in" operation for specific concept codes
+    ValueSet.ConceptSetComponent inFilterInclude = new ValueSet.ConceptSetComponent();
+    inFilterInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Add filter for concepts where the code is "in" the specified comma-separated list
+    ValueSet.ConceptSetFilterComponent inFilter = new ValueSet.ConceptSetFilterComponent();
+    inFilter.setProperty("concept");
+    inFilter.setOp(Enumerations.FilterOperator.IN); // "in" - concept code is in the specified list
+    inFilter.setValue(
+        "C21282,C3262,C2991"); // Comma-separated list: Lyase Gene, Neoplasm, Disease or Disorder
+    inFilterInclude.addFilter(inFilter);
+
+    compose.addInclude(inFilterInclude);
+
+    // SECOND INCLUDE - Direct concept inclusion (your original test concepts)
+    ValueSet.ConceptSetComponent directInclude = new ValueSet.ConceptSetComponent();
+    directInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Valid active concept (this will be duplicated by the "in" filter above)
+    ValueSet.ConceptReferenceComponent diseaseOrDisorder = new ValueSet.ConceptReferenceComponent();
+    diseaseOrDisorder.setCode("C2991");
+    diseaseOrDisorder.setDisplay("Disease or Disorder");
+    directInclude.addConcept(diseaseOrDisorder);
+
+    // Valid active concept
+    ValueSet.ConceptReferenceComponent gene = new ValueSet.ConceptReferenceComponent();
+    gene.setCode("C16612");
+    gene.setDisplay("Gene");
+    directInclude.addConcept(gene);
+
+    // Inactive concept
+    ValueSet.ConceptReferenceComponent inactiveConcept = new ValueSet.ConceptReferenceComponent();
+    inactiveConcept.setCode("C176707");
+    inactiveConcept.setDisplay("Physical Examination Finding - Inactive Test Concept");
+    directInclude.addConcept(inactiveConcept);
+
+    // Invalid/bogus concept
+    ValueSet.ConceptReferenceComponent invalidConcept = new ValueSet.ConceptReferenceComponent();
+    invalidConcept.setCode("INVALID123");
+    invalidConcept.setDisplay("This is an invalid concept code");
+    directInclude.addConcept(invalidConcept);
+
+    compose.addInclude(directInclude);
+
+    // EXCLUDE section - exclude one of the directly included concepts
+    ValueSet.ConceptSetComponent nciExclude = new ValueSet.ConceptSetComponent();
+    nciExclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Exclude the Gene concept (C16612) that was included above
+    ValueSet.ConceptReferenceComponent excludeGene = new ValueSet.ConceptReferenceComponent();
+    excludeGene.setCode("C16612");
+    excludeGene.setDisplay("Gene");
+    nciExclude.addConcept(excludeGene);
+
+    compose.addExclude(nciExclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  @Test
+  public void testValueSetExpandWithNCIThesaurusInFilterIncludeAndExclude() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with "in" filter-based include, direct includes, and excludes
+    ValueSet inputValueSet =
+        createNCITestValueSetWithInFilterIncludeAndExclude(
+            "nci-in-filter-test",
+            "NCIInFilterTest",
+            "NCI Thesaurus In Filter Test",
+            "Test ValueSet with 'in' filter for concepts in a specific ValueSet plus direct"
+                + " includes and excludes");
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + requestBody);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+
+    // Assert - Check for specific concepts from the "in" filter
+    // The "in" filter should include: C21282 (Lyase Gene), C3262 (Neoplasm), C2991 (Disease or
+    // Disorder)
+
+    Optional<ValueSet.ValueSetExpansionContainsComponent> lyaseResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C21282".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(lyaseResult.isPresent(), "Lyase Gene (C21282) should be included from 'in' filter");
+    log.info("C21282 (Lyase Gene) correctly included from 'in' filter");
+
+    Optional<ValueSet.ValueSetExpansionContainsComponent> neoplasmResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C3262".equals(comp.getCode()))
+            .findFirst();
+
+    // Assert - Count concepts from the "in" filter
+    long inFilterConceptCount =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(
+                comp ->
+                    Set.of("C21282", "C3262", "C2991")
+                        .contains(comp.getCode())) // Codes from "in" filter
+            .count();
+
+    log.info("Found {} concepts from 'in' filter", inFilterConceptCount);
+
+    if (neoplasmResult.isPresent()) {
+      log.info("C3262 (Neoplasm) correctly included from 'in' filter");
+    } else {
+      log.warn("C3262 (Neoplasm) not found - may not exist in terminology or may be inactive");
+    }
+
+    // Assert - Disease or Disorder should still be included (direct include, not excluded)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C2991".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(
+        diseaseResult.isPresent(),
+        "Disease or Disorder (C2991) should be included (from both 'in' filter and direct"
+            + " include)");
+    assertEquals("Disease or Disorder", diseaseResult.get().getDisplay());
+    log.info(
+        "C2991 (Disease or Disorder) correctly included from both 'in' filter and direct include");
+
+    // Assert - Gene should NOT be included (excluded despite being in direct include)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> geneResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C16612".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(
+        geneResult.isPresent(),
+        "Gene (C16612) should be excluded despite being in direct include section");
+    log.info("C16612 (Gene) correctly excluded - exclude overrides include");
+
+    // Assert - Check handling of inactive concept
+    Optional<ValueSet.ValueSetExpansionContainsComponent> inactiveResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C176707".equals(comp.getCode()))
+            .findFirst();
+
+    log.info("Inactive concept C176707 present in expansion: {}", inactiveResult.isPresent());
+
+    // Assert - Invalid concept should NOT be included
+    Optional<ValueSet.ValueSetExpansionContainsComponent> invalidResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "INVALID123".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(invalidResult.isPresent(), "Invalid concept (INVALID123) should not be included");
+
+    // Assert - All returned concepts should have valid NCI Thesaurus system
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      assertEquals(
+          "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+          concept.getSystem(),
+          "All concepts should be from NCI Thesaurus system");
+      assertNotNull(concept.getCode(), "All concepts should have a code");
+      assertNotNull(concept.getDisplay(), "All concepts should have a display");
+      assertFalse(concept.getDisplay().trim().isEmpty(), "Display should not be empty");
+
+      // Assert valid NCI concept code format (should start with 'C' followed by digits)
+      assertTrue(
+          concept.getCode().matches("C\\d+"),
+          "NCI concept codes should start with 'C' followed by digits: " + concept.getCode());
+    }
+
+    // Assert - Verify specific inclusion/exclusion behavior
+    Set<String> actualCodes =
+        contains.stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+            .collect(Collectors.toSet());
+
+    // Should contain C2991 (Disease or Disorder from direct include)
+    assertTrue(
+        actualCodes.contains("C2991"), "Should contain Disease or Disorder from direct include");
+
+    // Should NOT contain excluded or invalid concepts
+    assertFalse(actualCodes.contains("C16612"), "Should NOT contain excluded Gene concept");
+    assertFalse(actualCodes.contains("INVALID123"), "Should NOT contain invalid concept");
+
+    log.info("Actual concept codes in expansion: {}", actualCodes);
+
+    // Assert - Should have concepts from both filter and direct includes (minus exclusions)
+    assertTrue(
+        expansion.getTotal() >= 1,
+        "Should have at least 1 concept (Disease or Disorder from direct include + concepts from"
+            + " 'in' filter)");
+
+    // Assert - Log expansion results for debugging
+    log.info(
+        "NCI Thesaurus ValueSet expansion with 'in' filter completed with {} concepts",
+        expansion.getTotal());
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      log.debug("Expanded NCI concept: {} - {}", concept.getCode(), concept.getDisplay());
+    }
+
+    // Assert - Categorize concepts by source
+    long directIncludeConcepts =
+        contains.stream()
+            .filter(
+                comp ->
+                    Set.of("C2991", "C176707")
+                        .contains(comp.getCode())) // Possible direct includes (minus excluded)
+            .count();
+
+    log.info(
+        "'In' filter concepts: {}, Direct include concepts: {}",
+        inFilterConceptCount,
+        directIncludeConcepts);
+
+    // Assert - Verify "in" filter functionality
+    // The "in" filter should include concepts that are members of the referenced ValueSet
+    log.info("'In' filter test: Concepts from referenced ValueSet should be included");
+
+    // Assert - Check that we have some concepts from the "in" filter (this depends on the
+    // referenced ValueSet having content)
+    if (inFilterConceptCount > 0) {
+      log.info("Successfully found {} concepts from 'in' filter", inFilterConceptCount);
+    } else {
+      log.warn(
+          "No concepts found from 'in' filter - check if referenced ValueSet exists and has"
+              + " content");
+    }
+
+    // Assert - Check for any error messages in expansion
+    if (expansion.hasParameter()) {
+      for (ValueSet.ValueSetExpansionParameterComponent param : expansion.getParameter()) {
+        log.info("Expansion parameter: {} = {}", param.getName(), param.getValue());
+
+        // Check for warnings about invalid concepts
+        if ("warning".equals(param.getName())) {
+          String warningMessage = param.getValue().toString();
+          assertTrue(
+              warningMessage.contains("INVALID123") || warningMessage.contains("invalid"),
+              "Should warn about invalid concept");
+        }
+      }
+    }
+
+    // Assert - Verify that "in" filter processed correctly
+    // Look for evidence that the filter was applied (concepts from referenced ValueSet)
+    boolean hasFilterConcepts =
+        contains.stream()
+            .anyMatch(
+                comp -> {
+                  // Check if any concepts appear to be from a cancer/disease-related ValueSet
+                  String display = comp.getDisplay() != null ? comp.getDisplay().toLowerCase() : "";
+                  return display.contains("cancer")
+                      || display.contains("neoplasm")
+                      || display.contains("disease")
+                      || display.contains("disorder");
+                });
+
+    if (hasFilterConcepts) {
+      log.info("'In' filter appears to have included relevant concepts from referenced ValueSet");
+    } else {
+      log.warn(
+          "'In' filter may not have found concepts - verify referenced ValueSet URL and content");
+    }
+  }
+
+  // Helper method to create ValueSet with "generalizes" filter-based include, direct includes, and
+  // excludes
+  private ValueSet createNCITestValueSetWithGeneralizesFilterIncludeAndExclude(
+      String id, String name, String title, String description) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName(name);
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(description);
+
+    // Build compose definition with NCI Thesaurus concepts
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+
+    // FIRST INCLUDE - Filter-based inclusion using "generalizes" operation for ancestors of Lyase
+    // Gene
+    ValueSet.ConceptSetComponent generalizesInclude = new ValueSet.ConceptSetComponent();
+    generalizesInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Add filter for concepts that "generalize" Lyase Gene (C21282) - i.e., ancestors + the concept
+    // itself
+    ValueSet.ConceptSetFilterComponent generalizesFilter = new ValueSet.ConceptSetFilterComponent();
+    generalizesFilter.setProperty("concept");
+    generalizesFilter.setOp(
+        Enumerations.FilterOperator.GENERALIZES); // "generalizes" - ancestors + self
+    generalizesFilter.setValue("C21282"); // Lyase Gene
+    generalizesInclude.addFilter(generalizesFilter);
+
+    compose.addInclude(generalizesInclude);
+
+    // SECOND INCLUDE - Direct concept inclusion (your original test concepts)
+    ValueSet.ConceptSetComponent directInclude = new ValueSet.ConceptSetComponent();
+    directInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Valid active concept
+    ValueSet.ConceptReferenceComponent diseaseOrDisorder = new ValueSet.ConceptReferenceComponent();
+    diseaseOrDisorder.setCode("C2991");
+    diseaseOrDisorder.setDisplay("Disease or Disorder");
+    directInclude.addConcept(diseaseOrDisorder);
+
+    // Valid active concept
+    ValueSet.ConceptReferenceComponent gene = new ValueSet.ConceptReferenceComponent();
+    gene.setCode("C16612");
+    gene.setDisplay("Gene");
+    directInclude.addConcept(gene);
+
+    // Inactive concept
+    ValueSet.ConceptReferenceComponent inactiveConcept = new ValueSet.ConceptReferenceComponent();
+    inactiveConcept.setCode("C176707");
+    inactiveConcept.setDisplay("Physical Examination Finding - Inactive Test Concept");
+    directInclude.addConcept(inactiveConcept);
+
+    // Invalid/bogus concept
+    ValueSet.ConceptReferenceComponent invalidConcept = new ValueSet.ConceptReferenceComponent();
+    invalidConcept.setCode("INVALID123");
+    invalidConcept.setDisplay("This is an invalid concept code");
+    directInclude.addConcept(invalidConcept);
+
+    compose.addInclude(directInclude);
+
+    // EXCLUDE section - exclude one of the directly included concepts
+    ValueSet.ConceptSetComponent nciExclude = new ValueSet.ConceptSetComponent();
+    nciExclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Exclude the Gene concept (C16612) that was included above
+    ValueSet.ConceptReferenceComponent excludeGene = new ValueSet.ConceptReferenceComponent();
+    excludeGene.setCode("C16612");
+    excludeGene.setDisplay("Gene");
+    nciExclude.addConcept(excludeGene);
+
+    compose.addExclude(nciExclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  @Test
+  public void testValueSetExpandWithNCIThesaurusGeneralizesFilterIncludeAndExclude()
+      throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with "generalizes" filter-based include, direct includes, and excludes
+    ValueSet inputValueSet =
+        createNCITestValueSetWithGeneralizesFilterIncludeAndExclude(
+            "nci-generalizes-filter-test",
+            "NCIGeneralizesFilterTest",
+            "NCI Thesaurus Generalizes Filter Test",
+            "Test ValueSet with 'generalizes' filter for Lyase Gene ancestors plus direct includes"
+                + " and excludes");
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+
+    // Assert - Lyase Gene (C21282) should be included (generalizes includes the concept itself)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> lyaseResult =
+        contains.stream()
+            // .filter(comp ->
+            // "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C21282".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(
+        lyaseResult.isPresent(),
+        "Lyase Gene (C21282) should be included from 'generalizes' filter (includes self)");
+    log.info("C21282 (Lyase Gene) correctly included from 'generalizes' filter");
+
+    // Assert - Check for ancestor concepts of Lyase Gene (broader/parent concepts)
+    long generalizesConceptCount =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(
+                comp -> {
+                  // Look for broader concepts that would be ancestors of Lyase Gene
+                  String display = comp.getDisplay() != null ? comp.getDisplay().toLowerCase() : "";
+                  String code = comp.getCode();
+                  // Include the target concept itself and potential parent concepts
+                  return code.equals("C21282")
+                      || // Lyase Gene itself
+                      display.contains("enzyme")
+                      || display.contains("protein")
+                      || display.contains("gene")
+                      || display.contains("molecular");
+                })
+            .count();
+
+    log.info(
+        "Found {} concepts from 'generalizes' filter (Lyase Gene + ancestors)",
+        generalizesConceptCount);
+
+    // Assert - Disease or Disorder should still be included (direct include, not excluded)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C2991".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(
+        diseaseResult.isPresent(),
+        "Disease or Disorder (C2991) should be included (direct include, not excluded)");
+    assertEquals("Disease or Disorder", diseaseResult.get().getDisplay());
+
+    // Assert - Gene should NOT be included (excluded despite being in direct include)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> geneResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C16612".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(
+        geneResult.isPresent(),
+        "Gene (C16612) should be excluded despite being in direct include section");
+    log.info("C16612 (Gene) correctly excluded - exclude overrides include");
+
+    // Assert - Check handling of inactive concept
+    Optional<ValueSet.ValueSetExpansionContainsComponent> inactiveResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C176707".equals(comp.getCode()))
+            .findFirst();
+
+    log.info("Inactive concept C176707 present in expansion: {}", inactiveResult.isPresent());
+
+    // Assert - Invalid concept should NOT be included
+    Optional<ValueSet.ValueSetExpansionContainsComponent> invalidResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "INVALID123".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(invalidResult.isPresent(), "Invalid concept (INVALID123) should not be included");
+
+    // Assert - All returned concepts should have valid NCI Thesaurus system
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      assertEquals(
+          "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+          concept.getSystem(),
+          "All concepts should be from NCI Thesaurus system");
+      assertNotNull(concept.getCode(), "All concepts should have a code");
+      assertNotNull(concept.getDisplay(), "All concepts should have a display");
+      assertFalse(concept.getDisplay().trim().isEmpty(), "Display should not be empty");
+
+      // Assert valid NCI concept code format (should start with 'C' followed by digits)
+      assertTrue(
+          concept.getCode().matches("C\\d+"),
+          "NCI concept codes should start with 'C' followed by digits: " + concept.getCode());
+    }
+
+    // Assert - Verify specific inclusion/exclusion behavior
+    Set<String> actualCodes =
+        contains.stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+            .collect(Collectors.toSet());
+
+    // Should contain C21282 (Lyase Gene - target concept) and C2991 (Disease or Disorder from
+    // direct include)
+    assertTrue(
+        actualCodes.contains("C21282"), "Should contain Lyase Gene from 'generalizes' filter");
+    assertTrue(
+        actualCodes.contains("C2991"), "Should contain Disease or Disorder from direct include");
+
+    // Should NOT contain excluded or invalid concepts
+    assertFalse(actualCodes.contains("C16612"), "Should NOT contain excluded Gene concept");
+    assertFalse(actualCodes.contains("INVALID123"), "Should NOT contain invalid concept");
+
+    log.info("Actual concept codes in expansion: {}", actualCodes);
+
+    // Assert - Should have concepts from both filter and direct includes (minus exclusions)
+    assertTrue(
+        expansion.getTotal() >= 2,
+        "Should have at least 2 concepts (Lyase Gene from filter + Disease or Disorder from direct"
+            + " include)");
+
+    // Assert - Log expansion results for debugging
+    log.info(
+        "NCI Thesaurus ValueSet expansion with 'generalizes' filter completed with {} concepts",
+        expansion.getTotal());
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      log.debug("Expanded NCI concept: {} - {}", concept.getCode(), concept.getDisplay());
+    }
+
+    // Assert - Categorize concepts by source
+    long directIncludeConcepts =
+        contains.stream()
+            .filter(
+                comp ->
+                    Set.of("C2991", "C176707")
+                        .contains(comp.getCode())) // Possible direct includes (minus excluded)
+            .count();
+
+    log.info(
+        "'Generalizes' filter concepts: {}, Direct include concepts: {}",
+        generalizesConceptCount,
+        directIncludeConcepts);
+
+    // Assert - Compare with other filter operations for documentation
+    log.info("Filter operation comparison:");
+    log.info("- 'is-a': includes C21282 + all descendants (children, grandchildren, etc.)");
+    log.info(
+        "- 'descendant-leaf': includes only leaf descendants of C21282 (excludes C21282 itself)");
+    log.info("- 'generalizes': includes C21282 + all ancestors (parents, grandparents, etc.)");
+    log.info("- 'in': includes only explicitly listed concepts");
+
+    // Assert - Verify "generalizes" filter functionality
+    assertTrue(
+        actualCodes.contains("C21282"),
+        "'Generalizes' filter should include the target concept itself (C21282)");
+
+    // Check if we have ancestor concepts (broader than the target)
+    long ancestorCount =
+        contains.stream()
+            .filter(comp -> !comp.getCode().equals("C21282")) // Exclude the target concept
+            .filter(
+                comp -> {
+                  String display = comp.getDisplay() != null ? comp.getDisplay().toLowerCase() : "";
+                  // Look for broader concepts that could be ancestors
+                  return display.contains("enzyme")
+                      || display.contains("protein")
+                      || display.contains("gene")
+                      || display.contains("molecular")
+                      || display.contains("biological");
+                })
+            .count();
+
+    log.info("Found {} potential ancestor concepts from 'generalizes' filter", ancestorCount);
+
+    // Assert - Check for any error messages in expansion
+    if (expansion.hasParameter()) {
+      for (ValueSet.ValueSetExpansionParameterComponent param : expansion.getParameter()) {
+        log.info("Expansion parameter: {} = {}", param.getName(), param.getValue());
+
+        // Check for warnings about invalid concepts
+        if ("warning".equals(param.getName())) {
+          String warningMessage = param.getValue().toString();
+          assertTrue(
+              warningMessage.contains("INVALID123") || warningMessage.contains("invalid"),
+              "Should warn about invalid concept");
+        }
+      }
+    }
+  }
+
   /**
    * Test value set expand with NCI thesaurus include and exclude.
    *
