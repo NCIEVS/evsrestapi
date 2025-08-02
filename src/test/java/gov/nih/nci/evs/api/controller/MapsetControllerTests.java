@@ -682,6 +682,91 @@ public class MapsetControllerTests {
     assertEquals(10, mapList.getMaps().size());
   }
 
+  @Test
+  public void testNciMapsToViewable() throws Exception {
+    String path = "NCIt_Maps_To_ICD9CM";
+    String params = "?include=properties";
+    MvcResult result =
+        mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
+    assertNotNull(content);
+    Concept singleMetadataMap = new ObjectMapper().readValue(content, Concept.class);
+    assertTrue(
+        singleMetadataMap.getProperties().stream()
+            .anyMatch(
+                property ->
+                    property.getType().equals("downloadOnly")
+                        && property.getValue().equals("false")));
+    assertTrue(
+        singleMetadataMap.getProperties().stream()
+            .anyMatch(
+                property ->
+                    property.getType().equals("welcomeText") && property.getValue() != null));
+    assertTrue(
+        singleMetadataMap.getProperties().stream()
+            .anyMatch(
+                property ->
+                    property.getType().equals("sourceTerminologyVersion")
+                        && property.getValue() != null));
+    assertTrue(
+        singleMetadataMap.getProperties().stream()
+            .anyMatch(
+                property ->
+                    property.getType().equals("targetTerminologyVersion")
+                        && property.getValue() != null));
+    assertTrue(
+        singleMetadataMap.getProperties().stream()
+            .anyMatch(
+                property ->
+                    property.getType().equals("sourceLoaded")
+                        && property.getValue().equals("true")));
+    assertTrue(
+        singleMetadataMap.getProperties().stream()
+            .anyMatch(
+                property ->
+                    property.getType().equals("targetLoaded")
+                        && property.getValue().equals("true")));
+
+    // GDC is not loaded so it has slightly different properties
+    path = "NCIt_Maps_To_GDC";
+    result = mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    assertNotNull(content);
+    singleMetadataMap = new ObjectMapper().readValue(content, Concept.class);
+    assertTrue(
+        singleMetadataMap.getProperties().stream()
+            .anyMatch(
+                property ->
+                    property.getType().equals("downloadOnly")
+                        && property.getValue().equals("false")));
+    assertTrue(
+        singleMetadataMap.getProperties().stream()
+            .anyMatch(
+                property ->
+                    property.getType().equals("welcomeText") && property.getValue() != null));
+    assertTrue(
+        singleMetadataMap.getProperties().stream()
+            .anyMatch(
+                property ->
+                    property.getType().equals("sourceTerminologyVersion")
+                        && property.getValue() != null));
+    assertTrue(
+        singleMetadataMap.getProperties().stream()
+            .noneMatch(property -> property.getType().equals("targetTerminologyVersion")));
+    assertTrue(
+        singleMetadataMap.getProperties().stream()
+            .anyMatch(
+                property ->
+                    property.getType().equals("sourceLoaded")
+                        && property.getValue().equals("true")));
+    assertTrue(
+        singleMetadataMap.getProperties().stream()
+            .anyMatch(
+                property ->
+                    property.getType().equals("targetLoaded")
+                        && property.getValue().equals("false")));
+  }
+
   /**
    * Test mapsets with retired concepts.
    *

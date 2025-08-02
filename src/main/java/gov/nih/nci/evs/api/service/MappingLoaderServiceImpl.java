@@ -148,6 +148,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           conceptToAdd.setSource(metadata[5]);
           conceptToAdd.setSourceTerminology(
               sourceTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
+          conceptToAdd.setSourceTerminologyVersion(sourceTerminology.getVersion());
           conceptToAdd.setType("mapsTo");
           conceptToAdd.setRank("1");
           conceptToAdd.setTargetCode(conceptSplit[1].strip());

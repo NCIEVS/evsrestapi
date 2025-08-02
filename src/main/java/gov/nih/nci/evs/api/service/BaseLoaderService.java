@@ -69,6 +69,10 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
   @Value("${nci.evs.bulkload.graphDbs}")
   private String dbs;
 
+  public TerminologyUtils getTerminologyUtils() {
+    return termUtils;
+  }
+
   /**
    * build config object from command line options.
    *
