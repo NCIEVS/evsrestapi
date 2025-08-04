@@ -1754,7 +1754,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         }
 
         final ValueSet.ValueSetExpansionContainsComponent vsContains =
-                new ValueSet.ValueSetExpansionContainsComponent();
+            new ValueSet.ValueSetExpansionContainsComponent();
         vsContains.setSystem(system);
         vsContains.setCode(desc.getCode());
         vsContains.setDisplay(desc.getName());
@@ -1762,7 +1762,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         if (passesTextFilter(vsContains, textFilter)) {
           // check for leaf requirement
           if (!"descendent-leaf".equals(filter.getOp().toCode())
-                  || ("descendent-leaf".equals(filter.getOp().toCode()) && desc.getLeaf())) {
+              || ("descendent-leaf".equals(filter.getOp().toCode()) && desc.getLeaf())) {
             compList.add(vsContains);
           }
         }
@@ -1774,13 +1774,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
         }
 
         final ValueSet.ValueSetExpansionContainsComponent vsContains =
-                new ValueSet.ValueSetExpansionContainsComponent();
+            new ValueSet.ValueSetExpansionContainsComponent();
         vsContains.setSystem(system);
         vsContains.setCode(desc.getCode());
         vsContains.setDisplay(desc.getName());
 
         if (passesTextFilter(vsContains, textFilter)) {
-            compList.add(vsContains);
+          compList.add(vsContains);
         }
       }
     }

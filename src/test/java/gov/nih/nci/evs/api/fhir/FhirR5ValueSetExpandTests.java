@@ -3211,9 +3211,7 @@ public class FhirR5ValueSetExpandTests {
 
     // Assert - ADCY9 Gene (C21283) should be included as child of Lyase Gene (C21282)
     Optional<ValueSet.ValueSetExpansionContainsComponent> adcy9Result =
-        contains.stream()
-            .filter(comp -> "C21283".equals(comp.getCode()))
-            .findFirst();
+        contains.stream().filter(comp -> "C21283".equals(comp.getCode())).findFirst();
 
     assertTrue(
         adcy9Result.isPresent(),
@@ -3229,13 +3227,12 @@ public class FhirR5ValueSetExpandTests {
 
     // Assert - Lyase Gene (C21282) itself should NOT be included (child-of excludes parent)
     Optional<ValueSet.ValueSetExpansionContainsComponent> lyaseResult =
-        contains.stream()
-            .filter(comp -> "C21282".equals(comp.getCode()))
-            .findFirst();
+        contains.stream().filter(comp -> "C21282".equals(comp.getCode())).findFirst();
 
     assertFalse(
         lyaseResult.isPresent(),
-        "Lyase Gene (C21282) should NOT be included in 'child-of' filter (excludes the parent concept itself)");
+        "Lyase Gene (C21282) should NOT be included in 'child-of' filter (excludes the parent"
+            + " concept itself)");
     log.info("C21282 (Lyase Gene) correctly excluded from 'child-of' filter");
 
     // Assert - Check for other children of Lyase Gene
@@ -3254,8 +3251,7 @@ public class FhirR5ValueSetExpandTests {
             .count();
 
     log.info(
-        "Found {} concepts from 'child-of' filter (children of Lyase Gene)",
-        childConceptCount);
+        "Found {} concepts from 'child-of' filter (children of Lyase Gene)", childConceptCount);
 
     // Assert - Should have at least one child concept
     assertTrue(
@@ -3306,7 +3302,8 @@ public class FhirR5ValueSetExpandTests {
     log.info("- 'is-a': includes C21282 + all descendants (children, grandchildren, etc.)");
     log.info("- 'child-of': includes only direct children of C21282 (excludes C21282 itself)");
     log.info("- 'generalizes': includes C21282 + all ancestors (parents, grandparents, etc.)");
-    log.info("- 'descendant-leaf': includes only leaf descendants of C21282 (excludes C21282 itself)");
+    log.info(
+        "- 'descendant-leaf': includes only leaf descendants of C21282 (excludes C21282 itself)");
 
     // Assert - Check for any error messages in expansion
     if (expansion.hasParameter()) {
