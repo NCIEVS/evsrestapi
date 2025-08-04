@@ -1747,22 +1747,40 @@ public class ValueSetProviderR5 implements IResourceProvider {
       List<ValueSetExpansionContainsComponent> compList) {
     Concept concept =
         osQueryService.getConcept(filter.getValue(), selectedTerminology, includeParam).get();
-    for (Concept desc : concept.getDescendants()) {
-      if (activeOnly && desc.getActive() != null && !desc.getActive()) {
-        continue;
+    if (!concept.getDescendants().isEmpty()) {
+      for (Concept desc : concept.getDescendants()) {
+        if (activeOnly && desc.getActive() != null && !desc.getActive()) {
+          continue;
+        }
+
+        final ValueSet.ValueSetExpansionContainsComponent vsContains =
+                new ValueSet.ValueSetExpansionContainsComponent();
+        vsContains.setSystem(system);
+        vsContains.setCode(desc.getCode());
+        vsContains.setDisplay(desc.getName());
+
+        if (passesTextFilter(vsContains, textFilter)) {
+          // check for leaf requirement
+          if (!"descendent-leaf".equals(filter.getOp().toCode())
+                  || ("descendent-leaf".equals(filter.getOp().toCode()) && desc.getLeaf())) {
+            compList.add(vsContains);
+          }
+        }
       }
+    } else if (!concept.getChildren().isEmpty()) {
+      for (Concept desc : concept.getChildren()) {
+        if (activeOnly && desc.getActive() != null && !desc.getActive()) {
+          continue;
+        }
 
-      final ValueSet.ValueSetExpansionContainsComponent vsContains =
-          new ValueSet.ValueSetExpansionContainsComponent();
-      vsContains.setSystem(system);
-      vsContains.setCode(desc.getCode());
-      vsContains.setDisplay(desc.getName());
+        final ValueSet.ValueSetExpansionContainsComponent vsContains =
+                new ValueSet.ValueSetExpansionContainsComponent();
+        vsContains.setSystem(system);
+        vsContains.setCode(desc.getCode());
+        vsContains.setDisplay(desc.getName());
 
-      if (passesTextFilter(vsContains, textFilter)) {
-        // check for leaf requirement
-        if (!"descendent-leaf".equals(filter.getOp().toCode())
-            || ("descendent-leaf".equals(filter.getOp().toCode()) && desc.getLeaf())) {
-          compList.add(vsContains);
+        if (passesTextFilter(vsContains, textFilter)) {
+            compList.add(vsContains);
         }
       }
     }
