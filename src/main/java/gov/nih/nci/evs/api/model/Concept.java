@@ -655,6 +655,21 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
+   * Gets the property value.
+   *
+   * @param type the type
+   * @return the property value
+   */
+  public String getPropertyValue(final String type) {
+    final Property prop =
+        getProperties().stream()
+            .filter(p -> p.getType() != null && p.getType().equals(type))
+            .findFirst()
+            .orElse(null);
+    return prop == null ? null : prop.getValue();
+  }
+
+  /**
    * Returns the qualifiers.
    *
    * @return the qualifiers

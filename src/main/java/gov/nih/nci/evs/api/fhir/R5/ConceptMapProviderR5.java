@@ -4,7 +4,13 @@ import static gov.nih.nci.evs.api.service.OpenSearchServiceImpl.escape;
 
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
-import ca.uhn.fhir.rest.annotation.*;
+import ca.uhn.fhir.rest.annotation.History;
+import ca.uhn.fhir.rest.annotation.IdParam;
+import ca.uhn.fhir.rest.annotation.Operation;
+import ca.uhn.fhir.rest.annotation.OperationParam;
+import ca.uhn.fhir.rest.annotation.OptionalParam;
+import ca.uhn.fhir.rest.annotation.Read;
+import ca.uhn.fhir.rest.annotation.Search;
 import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
@@ -17,19 +23,31 @@ import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.OpenSearchService;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
-import org.hl7.fhir.r5.model.*;
+import java.util.Map;
+import java.util.stream.Collectors;
+import org.hl7.fhir.r5.model.Bundle;
+import org.hl7.fhir.r5.model.CodeType;
+import org.hl7.fhir.r5.model.Coding;
+import org.hl7.fhir.r5.model.ConceptMap;
+import org.hl7.fhir.r5.model.IdType;
+import org.hl7.fhir.r5.model.Meta;
 import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r5.model.Parameters;
+import org.hl7.fhir.r5.model.StringType;
+import org.hl7.fhir.r5.model.UriType;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,6 +65,9 @@ public class ConceptMapProviderR5 implements IResourceProvider {
 
   /** the opensearch search service. */
   @Autowired OpenSearchService osSearchService;
+
+  /** The term utils. */
+  @Autowired TerminologyUtils termUtils;
 
   /**
    * Returns the type of resource for this provider.
@@ -89,6 +110,9 @@ public class ConceptMapProviderR5 implements IResourceProvider {
     try {
       FhirUtilityR5.notSupportedSearchParams(request);
 
+      final Map<String, Terminology> map =
+          termUtils.getIndexedTerminologies(osQueryService).stream()
+              .collect(Collectors.toMap(t -> t.getTerminology(), t -> t));
       final List<Concept> mapsets = osQueryService.getMapsets(new IncludeParam("properties"));
 
       final List<ConceptMap> list = new ArrayList<>();
@@ -98,7 +122,11 @@ public class ConceptMapProviderR5 implements IResourceProvider {
             .anyMatch(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))) {
           continue;
         }
-        final ConceptMap cm = FhirUtilityR5.toR5(mapset);
+        final ConceptMap cm =
+            FhirUtilityR5.toR5(
+                map.get(mapset.getPropertyValue("sourceTerminology")),
+                map.get(mapset.getPropertyValue("targetTerminology")),
+                mapset);
         // Skip non-matching
         if (url != null && !url.getValue().equals(cm.getUrl())) {
           logger.debug("  SKIP url mismatch = " + cm.getUrl());
@@ -543,7 +571,11 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       final UriType targetSystem)
       throws Exception {
     try {
+      final Map<String, Terminology> map =
+          termUtils.getIndexedTerminologies(osQueryService).stream()
+              .collect(Collectors.toMap(t -> t.getTerminology(), t -> t));
       final List<Concept> mapsets = osQueryService.getMapsets(new IncludeParam("properties"));
+
       final List<ConceptMap> list = new ArrayList<>();
       // Find the matching mapsets
       for (final Concept mapset : mapsets) {
@@ -552,7 +584,11 @@ public class ConceptMapProviderR5 implements IResourceProvider {
             .anyMatch(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))) {
           continue;
         }
-        final ConceptMap cm = FhirUtilityR5.toR5(mapset);
+        final ConceptMap cm =
+            FhirUtilityR5.toR5(
+                map.get(mapset.getPropertyValue("sourceTerminology")),
+                map.get(mapset.getPropertyValue("targetTerminology")),
+                mapset);
         // Skip non-matching
         if (url != null && !url.getValue().equals(cm.getUrl())) {
           logger.debug("  SKIP url mismatch = " + cm.getUrl());
@@ -594,7 +630,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
   }
 
   /**
-   * Helper method for building a query string for the source or target code for FHIR
+   * Helper method for building a query string for the source or target code for FHIR.
    *
    * @param sourceCode the code being translated
    * @param targetCode the target value set to be used for translation. Extracted from the system
@@ -602,6 +638,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
    * @param mapsetCodes the system for the code that is being translated, if provided
    * @param operator the operator to use for the query
    * @return the query string
+   * @throws Exception the exception
    */
   private String buildFhirQueryString(
       CodeType sourceCode, CodeType targetCode, List<String> mapsetCodes, String operator)
@@ -631,6 +668,12 @@ public class ConceptMapProviderR5 implements IResourceProvider {
     }
   }
 
+  /**
+   * Gets the concept map history.
+   *
+   * @param id the id
+   * @return the concept map history
+   */
   @History(type = ConceptMap.class)
   public List<ConceptMap> getConceptMapHistory(@IdParam IdType id) {
     List<ConceptMap> history = new ArrayList<>();
@@ -670,6 +713,12 @@ public class ConceptMapProviderR5 implements IResourceProvider {
     return history;
   }
 
+  /**
+   * Vread.
+   *
+   * @param versionedId the versioned id
+   * @return the concept map
+   */
   @Read(version = true)
   public ConceptMap vread(@IdParam IdType versionedId) {
     String resourceId = versionedId.getIdPart();
