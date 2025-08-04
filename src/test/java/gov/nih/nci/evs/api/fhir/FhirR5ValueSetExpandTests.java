@@ -2939,6 +2939,7 @@ public class FhirR5ValueSetExpandTests {
 
     // Convert to JSON for POST request
     String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + requestBody);
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -2947,6 +2948,7 @@ public class FhirR5ValueSetExpandTests {
     // Act
     ResponseEntity<String> response =
         this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
     ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
 
     // Assert - Basic structure validation
