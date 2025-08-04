@@ -3164,6 +3164,199 @@ public class FhirR5ValueSetExpandTests {
   }
 
   /**
+   * Test value set expand with NCI thesaurus child-of filter.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithNCIThesaurusChildOfFilter() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with "child-of" filter to get children of Lyase Gene (C21282)
+    ValueSet inputValueSet =
+        createNCITestValueSetWithChildOfFilter(
+            "nci-child-of-filter-test",
+            "NCIChildOfFilterTest",
+            "NCI Thesaurus Child-Of Filter Test",
+            "Test ValueSet with 'child-of' filter for Lyase Gene children");
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + requestBody);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+
+    // Assert - ADCY9 Gene (C21283) should be included as child of Lyase Gene (C21282)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> adcy9Result =
+        contains.stream()
+            .filter(comp -> "C21283".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(
+        adcy9Result.isPresent(),
+        "ADCY9 Gene (C21283) should be included as child of Lyase Gene (C21282)");
+    log.info("C21283 (ADCY9 Gene) correctly included as child of Lyase Gene");
+
+    // Assert - Verify ADCY9 Gene has correct display name
+    ValueSet.ValueSetExpansionContainsComponent adcy9Concept = adcy9Result.get();
+    assertNotNull(adcy9Concept.getDisplay(), "ADCY9 Gene should have a display name");
+    assertTrue(
+        adcy9Concept.getDisplay().toLowerCase().contains("adcy9"),
+        "Display should contain 'ADCY9': " + adcy9Concept.getDisplay());
+
+    // Assert - Lyase Gene (C21282) itself should NOT be included (child-of excludes parent)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> lyaseResult =
+        contains.stream()
+            .filter(comp -> "C21282".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(
+        lyaseResult.isPresent(),
+        "Lyase Gene (C21282) should NOT be included in 'child-of' filter (excludes the parent concept itself)");
+    log.info("C21282 (Lyase Gene) correctly excluded from 'child-of' filter");
+
+    // Assert - Check for other children of Lyase Gene
+    long childConceptCount =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(
+                comp -> {
+                  String display = comp.getDisplay() != null ? comp.getDisplay().toLowerCase() : "";
+                  String code = comp.getCode();
+                  // Look for gene concepts that could be children of Lyase Gene
+                  return display.contains("gene") || display.contains("lyase");
+                })
+            .count();
+
+    log.info(
+        "Found {} concepts from 'child-of' filter (children of Lyase Gene)",
+        childConceptCount);
+
+    // Assert - Should have at least one child concept
+    assertTrue(
+        expansion.getTotal() >= 1,
+        "Should have at least 1 child concept of Lyase Gene (including ADCY9 Gene)");
+
+    // Assert - All returned concepts should have valid NCI Thesaurus system
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      assertEquals(
+          "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
+          concept.getSystem(),
+          "All concepts should be from NCI Thesaurus system");
+      assertNotNull(concept.getCode(), "All concepts should have a code");
+      assertNotNull(concept.getDisplay(), "All concepts should have a display");
+      assertFalse(concept.getDisplay().trim().isEmpty(), "Display should not be empty");
+
+      // Assert valid NCI concept code format (should start with 'C' followed by digits)
+      assertTrue(
+          concept.getCode().matches("C\\d+"),
+          "NCI concept codes should start with 'C' followed by digits: " + concept.getCode());
+    }
+
+    // Assert - Log expansion results for debugging
+    log.info(
+        "NCI Thesaurus ValueSet expansion with 'child-of' filter completed with {} concepts",
+        expansion.getTotal());
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      log.debug("Child concept: {} - {}", concept.getCode(), concept.getDisplay());
+    }
+
+    // Assert - Verify "child-of" filter functionality
+    Set<String> actualCodes =
+        contains.stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+            .collect(Collectors.toSet());
+
+    assertTrue(
+        actualCodes.contains("C21283"),
+        "'Child-of' filter should include ADCY9 Gene (C21283) as child of Lyase Gene (C21282)");
+    assertFalse(
+        actualCodes.contains("C21282"),
+        "'Child-of' filter should NOT include the parent concept itself (C21282)");
+
+    log.info("Actual concept codes in expansion: {}", actualCodes);
+
+    // Assert - Compare with other filter operations for documentation
+    log.info("Filter operation comparison:");
+    log.info("- 'is-a': includes C21282 + all descendants (children, grandchildren, etc.)");
+    log.info("- 'child-of': includes only direct children of C21282 (excludes C21282 itself)");
+    log.info("- 'generalizes': includes C21282 + all ancestors (parents, grandparents, etc.)");
+    log.info("- 'descendant-leaf': includes only leaf descendants of C21282 (excludes C21282 itself)");
+
+    // Assert - Check for any error messages in expansion
+    if (expansion.hasParameter()) {
+      for (ValueSet.ValueSetExpansionParameterComponent param : expansion.getParameter()) {
+        log.info("Expansion parameter: {} = {}", param.getName(), param.getValue());
+      }
+    }
+  }
+
+  /**
+   * Creates NCI test ValueSet with child-of filter for testing direct children of a concept.
+   *
+   * @param id the id
+   * @param name the name
+   * @param title the title
+   * @param description the description
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithChildOfFilter(
+      String id, String name, String title, String description) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName(name);
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(description);
+
+    // Build compose definition with NCI Thesaurus concepts
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+
+    // Filter-based inclusion using "child-of" operation for children of Lyase Gene
+    ValueSet.ConceptSetComponent childOfInclude = new ValueSet.ConceptSetComponent();
+    childOfInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Add filter for concepts that are "child-of" Lyase Gene (C21282) - i.e., direct children only
+    ValueSet.ConceptSetFilterComponent childOfFilter = new ValueSet.ConceptSetFilterComponent();
+    childOfFilter.setProperty("concept");
+    childOfFilter.setOp(Enumerations.FilterOperator.CHILDOF); // "child-of" - direct children only
+    childOfFilter.setValue("C21282"); // Lyase Gene
+    childOfInclude.addFilter(childOfFilter);
+
+    compose.addInclude(childOfInclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  /**
    * Test value set expand with NCI thesaurus include and exclude.
    *
    * @throws Exception the exception
