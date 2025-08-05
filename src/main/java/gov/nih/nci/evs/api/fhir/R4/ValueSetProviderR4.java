@@ -14,8 +14,6 @@ import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
-import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
-import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.controller.SubsetController;
 import gov.nih.nci.evs.api.fhir.R5.FhirUtilityR5;
@@ -333,8 +331,12 @@ public class ValueSetProviderR4 implements IResourceProvider {
               // For now we'll add them as designations with a special use
               ConceptReferenceDesignationComponent defDesignation =
                   new ConceptReferenceDesignationComponent()
-                      .setLanguage("en")  
-                      .setUse(new Coding("http://terminology.hl7.org/CodeSystem/designation-usage", "definition", "Definition"))
+                      .setLanguage("en")
+                      .setUse(
+                          new Coding(
+                              "http://terminology.hl7.org/CodeSystem/designation-usage",
+                              "definition",
+                              "Definition"))
                       .setValue(def.getDefinition());
               vsContains.addDesignation(defDesignation);
             }
@@ -392,7 +394,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
    *
    * @param request the request
    * @param valueSet the value set to expand
-   * @param version the version 
+   * @param version the version
    * @param filter the filter
    * @param count the count
    * @param offset the offset
@@ -425,21 +427,24 @@ public class ValueSetProviderR4 implements IResourceProvider {
     // Process the compose definition
     List<Concept> allConcepts = new ArrayList<>();
     if (valueSet.hasCompose()) {
-      allConcepts = expandCompose(valueSet.getCompose(), version, includeDesignations, includeDefinition);
+      allConcepts =
+          expandCompose(valueSet.getCompose(), version, includeDesignations, includeDefinition);
     }
 
     // Apply text filter if specified
     if (filter != null && !filter.trim().isEmpty()) {
-      allConcepts = allConcepts.stream()
-          .filter(concept -> passesTextFilter(concept, filter))
-          .collect(Collectors.toList());
+      allConcepts =
+          allConcepts.stream()
+              .filter(concept -> passesTextFilter(concept, filter))
+              .collect(Collectors.toList());
     }
 
     // Apply active filter if specified
     if (activeOnly) {
-      allConcepts = allConcepts.stream()
-          .filter(concept -> passesActiveFilter(concept, activeOnly))
-          .collect(Collectors.toList());
+      allConcepts =
+          allConcepts.stream()
+              .filter(concept -> passesActiveFilter(concept, activeOnly))
+              .collect(Collectors.toList());
     }
 
     // Deduplicate and sort concepts
@@ -454,9 +459,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
     // Convert concepts to expansion contains
     for (Concept concept : paginatedConcepts) {
       ValueSetExpansionContainsComponent contains = new ValueSetExpansionContainsComponent();
-      contains.setSystem(concept.getTerminology() != null 
-          ? "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl" 
-          : valueSet.getUrl());
+      contains.setSystem(
+          concept.getTerminology() != null
+              ? "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl"
+              : valueSet.getUrl());
       contains.setCode(concept.getCode());
       contains.setDisplay(concept.getName());
 
@@ -465,19 +471,20 @@ public class ValueSetProviderR4 implements IResourceProvider {
     }
 
     // Add parameters to expansion
-    addExpansionParameters(expansion, filter, count, offset, includeDesignations, includeDefinition, activeOnly);
+    addExpansionParameters(
+        expansion, filter, count, offset, includeDesignations, includeDefinition, activeOnly);
 
     // Set expansion on value set and return
     ValueSet result = valueSet.copy();
     result.setExpansion(expansion);
-    
+
     logger.info("ValueSet expansion completed with {} concepts", expansion.getTotal());
     return result;
   }
 
   /**
    * Expand compose definition to get all included concepts.
-   * 
+   *
    * @param compose the compose component
    * @param version the version
    * @param includeDesignations include designations flag
@@ -486,43 +493,47 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @throws Exception on error
    */
   private List<Concept> expandCompose(
-      ValueSet.ValueSetComposeComponent compose, 
+      ValueSet.ValueSetComposeComponent compose,
       StringType version,
-      boolean includeDesignations, 
-      boolean includeDefinition) throws Exception {
-    
+      boolean includeDesignations,
+      boolean includeDefinition)
+      throws Exception {
+
     List<Concept> allConcepts = new ArrayList<>();
-    
+
     // Process includes first
     if (compose.hasInclude()) {
       for (ValueSet.ConceptSetComponent include : compose.getInclude()) {
-        List<Concept> includedConcepts = processInclude(include, version, includeDesignations, includeDefinition);
+        List<Concept> includedConcepts =
+            processInclude(include, version, includeDesignations, includeDefinition);
         allConcepts.addAll(includedConcepts);
       }
     }
-    
+
     // Process excludes - remove concepts that should be excluded
     if (compose.hasExclude()) {
       Set<String> excludeCodes = new java.util.HashSet<>();
-      
+
       for (ValueSet.ConceptSetComponent exclude : compose.getExclude()) {
-        List<Concept> excludedConcepts = processExclude(exclude, version, includeDesignations, includeDefinition);
-        excludeCodes.addAll(excludedConcepts.stream().map(Concept::getCode).collect(Collectors.toSet()));
+        List<Concept> excludedConcepts =
+            processExclude(exclude, version, includeDesignations, includeDefinition);
+        excludeCodes.addAll(
+            excludedConcepts.stream().map(Concept::getCode).collect(Collectors.toSet()));
       }
-      
+
       // Filter out excluded concepts
       allConcepts = filterOutExcludedConcepts(allConcepts, excludeCodes);
     }
-    
+
     return allConcepts;
   }
 
   /**
    * Process include component.
-   * 
+   *
    * @param include the include component
    * @param version the version
-   * @param includeDesignations include designations flag  
+   * @param includeDesignations include designations flag
    * @param includeDefinition include definition flag
    * @return list of included concepts
    * @throws Exception on error
@@ -531,17 +542,18 @@ public class ValueSetProviderR4 implements IResourceProvider {
       ValueSet.ConceptSetComponent include,
       StringType version,
       boolean includeDesignations,
-      boolean includeDefinition) throws Exception {
-    
+      boolean includeDefinition)
+      throws Exception {
+
     List<Concept> concepts = new ArrayList<>();
-    
+
     // Determine terminology
     Terminology terminology = getTerminologyFromSystem(include.getSystem(), version);
     if (terminology == null) {
       logger.warn("Unknown system: {}", include.getSystem());
       return concepts;
     }
-    
+
     // Set up include parameters
     List<String> includeList = new ArrayList<>();
     includeList.add("minimal");
@@ -552,20 +564,23 @@ public class ValueSetProviderR4 implements IResourceProvider {
       includeList.add("definitions");
     }
     IncludeParam includeParam = new IncludeParam(String.join(",", includeList));
-    
+
     // Process direct concept references
     if (include.hasConcept()) {
       for (ValueSet.ConceptReferenceComponent concept : include.getConcept()) {
-        Optional<Concept> foundConcept = osQueryService.getConcept(
-            concept.getCode(), terminology, includeParam);
+        Optional<Concept> foundConcept =
+            osQueryService.getConcept(concept.getCode(), terminology, includeParam);
         if (foundConcept.isPresent()) {
           // Validate display if provided
           Concept c = foundConcept.get();
           if (concept.hasDisplay()) {
             String expectedDisplay = lookupConceptDisplay(c.getCode(), terminology);
             if (expectedDisplay != null && !expectedDisplay.equals(concept.getDisplay())) {
-              logger.warn("Display mismatch for {}: expected '{}', got '{}'", 
-                  c.getCode(), expectedDisplay, concept.getDisplay());
+              logger.warn(
+                  "Display mismatch for {}: expected '{}', got '{}'",
+                  c.getCode(),
+                  expectedDisplay,
+                  concept.getDisplay());
             }
           }
           concepts.add(c);
@@ -574,7 +589,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         }
       }
     }
-    
+
     // Process filters
     if (include.hasFilter()) {
       for (ValueSet.ConceptSetFilterComponent filter : include.getFilter()) {
@@ -582,24 +597,25 @@ public class ValueSetProviderR4 implements IResourceProvider {
         concepts.addAll(filteredConcepts);
       }
     }
-    
+
     // If no concepts or filters, include entire code system (may be impractical)
     if (!include.hasConcept() && !include.hasFilter()) {
-      logger.warn("Include has no concepts or filters - including entire code system may be impractical");
+      logger.warn(
+          "Include has no concepts or filters - including entire code system may be impractical");
       // For now, we'll return empty list to avoid overwhelming results
       // In a production system, you might want to implement pagination or limits
     }
-    
+
     return concepts;
   }
 
   /**
    * Process exclude component.
-   * 
+   *
    * @param exclude the exclude component
    * @param version the version
    * @param includeDesignations include designations flag
-   * @param includeDefinition include definition flag 
+   * @param includeDefinition include definition flag
    * @return list of excluded concepts
    * @throws Exception on error
    */
@@ -607,8 +623,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
       ValueSet.ConceptSetComponent exclude,
       StringType version,
       boolean includeDesignations,
-      boolean includeDefinition) throws Exception {
-    
+      boolean includeDefinition)
+      throws Exception {
+
     // Process excludes similar to includes, but return concepts to be excluded
     return processInclude(exclude, version, includeDesignations, includeDefinition);
   }
@@ -1462,16 +1479,12 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
   // Utility methods for ValueSet expansion
 
-  /**
-   * Generate unique expansion identifier.
-   */
+  /** Generate unique expansion identifier. */
   private String generateExpansionId() {
     return UUID.randomUUID().toString();
   }
 
-  /**
-   * Get terminology from system URL.
-   */
+  /** Get terminology from system URL. */
   private Terminology getTerminologyFromSystem(String system, StringType version) throws Exception {
     if ("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(system)) {
       return termUtils.getIndexedTerminology("ncit", osQueryService, true);
@@ -1480,14 +1493,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return null;
   }
 
-  /**
-   * Apply concept filter (is-a, child-of, in, etc.).
-   */
+  /** Apply concept filter (is-a, child-of, in, etc.). */
   private List<Concept> applyConceptFilter(
-      ValueSet.ConceptSetFilterComponent filter, 
-      Terminology terminology, 
-      IncludeParam includeParam) throws Exception {
-    
+      ValueSet.ConceptSetFilterComponent filter, Terminology terminology, IncludeParam includeParam)
+      throws Exception {
+
     List<Concept> concepts = new ArrayList<>();
     String property = filter.getProperty();
     String operation = filter.getOp().toCode();
@@ -1536,17 +1546,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return concepts;
   }
 
-  /**
-   * Process descendants (for is-a and descendant-of filters).
-   */
+  /** Process descendants (for is-a and descendant-of filters). */
   private List<Concept> processDescendants(
-      String conceptCode, 
-      Terminology terminology, 
-      IncludeParam includeParam,
-      boolean includeSelf) throws Exception {
-    
+      String conceptCode, Terminology terminology, IncludeParam includeParam, boolean includeSelf)
+      throws Exception {
+
     List<Concept> concepts = new ArrayList<>();
-    
+
     // Include the concept itself if is-a filter
     if (includeSelf) {
       Optional<Concept> concept = osQueryService.getConcept(conceptCode, terminology, includeParam);
@@ -1554,26 +1560,21 @@ public class ValueSetProviderR4 implements IResourceProvider {
         concepts.add(concept.get());
       }
     }
-    
+
     // Get descendants using the query service
     List<Concept> descendants = osQueryService.getDescendants(conceptCode, terminology);
     concepts.addAll(descendants);
-    
+
     return concepts;
   }
 
-
-  /**
-   * Process "in" filter (comma-separated concept codes).
-   */
+  /** Process "in" filter (comma-separated concept codes). */
   private List<Concept> processInFilter(
-      String value, 
-      Terminology terminology, 
-      IncludeParam includeParam) throws Exception {
-    
+      String value, Terminology terminology, IncludeParam includeParam) throws Exception {
+
     List<Concept> concepts = new ArrayList<>();
     String[] codes = value.split(",");
-    
+
     for (String code : codes) {
       code = code.trim();
       Optional<Concept> concept = osQueryService.getConcept(code, terminology, includeParam);
@@ -1583,30 +1584,27 @@ public class ValueSetProviderR4 implements IResourceProvider {
         logger.warn("Concept not found for 'in' filter: {}", code);
       }
     }
-    
+
     return concepts;
   }
 
-  /**
-   * Lookup concept display name.
-   */
+  /** Lookup concept display name. */
   private String lookupConceptDisplay(String code, Terminology terminology) throws Exception {
-    Optional<Concept> concept = osQueryService.getConcept(code, terminology, new IncludeParam("minimal"));
+    Optional<Concept> concept =
+        osQueryService.getConcept(code, terminology, new IncludeParam("minimal"));
     return concept.map(Concept::getName).orElse(null);
   }
 
-  /**
-   * Add designations and definitions to expansion contains.
-   */
+  /** Add designations and definitions to expansion contains. */
   private void addDesignationsAndDefinitions(
       ValueSetExpansionContainsComponent contains,
       Concept concept,
       boolean includeDesignations,
       boolean includeDefinition) {
-    
+
     if (includeDesignations && concept.getSynonyms() != null) {
       for (Synonym synonym : concept.getSynonyms()) {
-        ConceptReferenceDesignationComponent designation = 
+        ConceptReferenceDesignationComponent designation =
             new ConceptReferenceDesignationComponent()
                 .setLanguage("en")
                 .setUse(new Coding(synonym.getUri(), synonym.getTermType(), synonym.getName()))
@@ -1617,32 +1615,34 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
     if (includeDefinition && concept.getDefinitions() != null) {
       for (Definition definition : concept.getDefinitions()) {
-        ConceptReferenceDesignationComponent defDesignation = 
+        ConceptReferenceDesignationComponent defDesignation =
             new ConceptReferenceDesignationComponent()
                 .setLanguage("en")
-                .setUse(new Coding("http://terminology.hl7.org/CodeSystem/designation-usage", "definition", "Definition"))
+                .setUse(
+                    new Coding(
+                        "http://terminology.hl7.org/CodeSystem/designation-usage",
+                        "definition",
+                        "Definition"))
                 .setValue(definition.getDefinition());
         contains.addDesignation(defDesignation);
       }
     }
   }
 
-  /**
-   * Check if concept passes text filter.
-   */
+  /** Check if concept passes text filter. */
   private boolean passesTextFilter(Concept concept, String filter) {
     if (filter == null || filter.trim().isEmpty()) {
       return true;
     }
-    
+
     String lowerFilter = filter.toLowerCase();
-    
+
     // Check code and name
-    if (concept.getCode().toLowerCase().contains(lowerFilter) ||
-        concept.getName().toLowerCase().contains(lowerFilter)) {
+    if (concept.getCode().toLowerCase().contains(lowerFilter)
+        || concept.getName().toLowerCase().contains(lowerFilter)) {
       return true;
     }
-    
+
     // Check synonyms
     if (concept.getSynonyms() != null) {
       for (Synonym synonym : concept.getSynonyms()) {
@@ -1651,13 +1651,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
         }
       }
     }
-    
+
     return false;
   }
 
-  /**
-   * Check if concept passes active filter.
-   */
+  /** Check if concept passes active filter. */
   private boolean passesActiveFilter(Concept concept, boolean activeOnly) {
     if (!activeOnly) {
       return true;
@@ -1665,46 +1663,39 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return concept.getActive();
   }
 
-  /**
-   * Filter out excluded concepts.
-   */
-  private List<Concept> filterOutExcludedConcepts(List<Concept> concepts, Set<String> excludeCodes) {
+  /** Filter out excluded concepts. */
+  private List<Concept> filterOutExcludedConcepts(
+      List<Concept> concepts, Set<String> excludeCodes) {
     return concepts.stream()
         .filter(concept -> !excludeCodes.contains(concept.getCode()))
         .collect(Collectors.toList());
   }
 
-  /**
-   * Deduplicate and sort concepts by code.
-   */
+  /** Deduplicate and sort concepts by code. */
   private List<Concept> deduplicateAndSort(List<Concept> concepts) {
     Map<String, Concept> conceptMap = new LinkedHashMap<>();
-    
+
     for (Concept concept : concepts) {
       // Keep first occurrence of each concept
       conceptMap.putIfAbsent(concept.getCode(), concept);
     }
-    
+
     return conceptMap.values().stream()
         .sorted((c1, c2) -> c1.getCode().compareTo(c2.getCode()))
         .collect(Collectors.toList());
   }
 
-  /**
-   * Apply pagination to concept list.
-   */
+  /** Apply pagination to concept list. */
   private List<Concept> applyPagination(List<Concept> concepts, int offset, int count) {
     if (offset >= concepts.size()) {
       return new ArrayList<>();
     }
-    
+
     int endIndex = Math.min(offset + count, concepts.size());
     return concepts.subList(offset, endIndex);
   }
 
-  /**
-   * Add expansion parameters.
-   */
+  /** Add expansion parameters. */
   private void addExpansionParameters(
       ValueSetExpansionComponent expansion,
       String filter,
@@ -1713,41 +1704,29 @@ public class ValueSetProviderR4 implements IResourceProvider {
       boolean includeDesignations,
       boolean includeDefinition,
       boolean activeOnly) {
-    
+
     if (filter != null && !filter.trim().isEmpty()) {
-      expansion.addParameter()
-          .setName("filter")
-          .setValue(new StringType(filter));
+      expansion.addParameter().setName("filter").setValue(new StringType(filter));
     }
-    
+
     if (count != 1000) {
-      expansion.addParameter()
-          .setName("count")
-          .setValue(new IntegerType(count));
+      expansion.addParameter().setName("count").setValue(new IntegerType(count));
     }
-    
+
     if (offset != 0) {
-      expansion.addParameter()
-          .setName("offset")
-          .setValue(new IntegerType(offset));
+      expansion.addParameter().setName("offset").setValue(new IntegerType(offset));
     }
-    
+
     if (includeDesignations) {
-      expansion.addParameter()
-          .setName("includeDesignations")
-          .setValue(new BooleanType(true));
+      expansion.addParameter().setName("includeDesignations").setValue(new BooleanType(true));
     }
-    
+
     if (includeDefinition) {
-      expansion.addParameter()
-          .setName("includeDefinition")
-          .setValue(new BooleanType(true));
+      expansion.addParameter().setName("includeDefinition").setValue(new BooleanType(true));
     }
-    
+
     if (activeOnly) {
-      expansion.addParameter()
-          .setName("activeOnly")
-          .setValue(new BooleanType(true));
+      expansion.addParameter().setName("activeOnly").setValue(new BooleanType(true));
     }
   }
 }

@@ -187,6 +187,23 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
    * @return the descendants
    */
   @Override
+  public List<Concept> getChildren(String code, Terminology terminology) {
+    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("children"));
+    if (!concept.isPresent() || CollectionUtils.isEmpty(concept.get().getDescendants())) {
+      return Collections.emptyList();
+    }
+
+    return concept.get().getChildren();
+  }
+
+  /**
+   * see superclass *.
+   *
+   * @param code the code
+   * @param terminology the terminology
+   * @return the descendants
+   */
+  @Override
   public List<Concept> getAncestors(String code, Terminology terminology) throws IOException {
     Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("descendants"));
     if (!concept.isPresent()) {

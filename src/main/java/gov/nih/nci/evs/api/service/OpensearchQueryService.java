@@ -88,6 +88,8 @@ public interface OpensearchQueryService {
    */
   List<Concept> getDescendants(String code, Terminology terminology);
 
+  List<Concept> getChildren(String code, Terminology terminology);
+
   /**
    * Returns ancestor concepts.
    *

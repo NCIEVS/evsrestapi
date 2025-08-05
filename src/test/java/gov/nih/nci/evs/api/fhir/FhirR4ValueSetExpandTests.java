@@ -24,15 +24,12 @@ import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.ValueSet;
 import org.hl7.fhir.r4.model.ValueSet.ConceptReferenceDesignationComponent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -40,7 +37,10 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
@@ -381,7 +381,6 @@ public class FhirR4ValueSetExpandTests {
     inputValueSet.setCompose(compose);
     return inputValueSet;
   }
-
 
   /**
    * Helper method to create ValueSet with specific NCIt version.
@@ -1239,8 +1238,7 @@ public class FhirR4ValueSetExpandTests {
             .filter(comp -> "C21282".equals(comp.getCode()))
             .findFirst();
 
-    assertTrue(
-        lyaseResult.isPresent(), "Lyase Gene (C21282) should be included from 'in' filter");
+    assertTrue(lyaseResult.isPresent(), "Lyase Gene (C21282) should be included from 'in' filter");
     log.info("C21282 (Lyase Gene) correctly included from 'in' filter");
 
     // Assert - C21283 (ADCY9 Gene) should be included from "in" filter (not excluded)
@@ -1252,8 +1250,7 @@ public class FhirR4ValueSetExpandTests {
             .filter(comp -> "C21283".equals(comp.getCode()))
             .findFirst();
 
-    assertTrue(
-        adcy9Result.isPresent(), "ADCY9 Gene (C21283) should be included from 'in' filter");
+    assertTrue(adcy9Result.isPresent(), "ADCY9 Gene (C21283) should be included from 'in' filter");
     log.info("C21283 (ADCY9 Gene) correctly included from 'in' filter");
 
     // Assert - Disease or Disorder (C2991) should be included from direct include (not excluded)
@@ -1283,7 +1280,8 @@ public class FhirR4ValueSetExpandTests {
         excludedGeneResult.isPresent(),
         "Gene (C16612) should be excluded despite being in direct include");
 
-    // Assert - Inactive concept (C176707) should be included since activeOnly=false and it's not excluded
+    // Assert - Inactive concept (C176707) should be included since activeOnly=false and it's not
+    // excluded
     Optional<ValueSet.ValueSetExpansionContainsComponent> inactiveResult =
         contains.stream()
             .filter(
@@ -1294,7 +1292,8 @@ public class FhirR4ValueSetExpandTests {
 
     assertTrue(
         inactiveResult.isPresent(),
-        "Inactive concept (C176707) should be included since activeOnly was not specified and it's not excluded");
+        "Inactive concept (C176707) should be included since activeOnly was not specified and it's"
+            + " not excluded");
     log.info("C176707 (Inactive concept) correctly included - activeOnly not specified");
 
     // Assert - Invalid concept should NOT be included
@@ -1315,12 +1314,12 @@ public class FhirR4ValueSetExpandTests {
     }
 
     // Assert - Verify that exclude takes precedence over include
-    long totalExpectedConcepts = 4; // C21282, C21283, C2991, C176707 (C3262 and C16612 are excluded)
+    long totalExpectedConcepts =
+        4; // C21282, C21283, C2991, C176707 (C3262 and C16612 are excluded)
     assertTrue(
         expansion.getTotal() <= totalExpectedConcepts,
         "Should have at most " + totalExpectedConcepts + " concepts after exclusions");
   }
-
 
   /**
    * Test value set expand with NCI thesaurus include and exclude.
@@ -1549,8 +1548,7 @@ public class FhirR4ValueSetExpandTests {
           concept.getCode().matches("C\\d+"),
           "NCI concept codes should start with 'C' followed by digits: " + concept.getCode());
 
-      log.debug(
-          "    Version 24.03d concept: {} - {}", concept.getCode(), concept.getDisplay());
+      log.debug("    Version 24.03d concept: {} - {}", concept.getCode(), concept.getDisplay());
     }
 
     // Assert - Should have the expected number of valid concepts
