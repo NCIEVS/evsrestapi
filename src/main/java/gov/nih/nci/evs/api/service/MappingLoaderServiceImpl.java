@@ -111,6 +111,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       else if (mappingDataList[0].split("\t").length == 2) {
         for (final String conceptMap :
             Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
+
           final String[] conceptSplit = conceptMap.split("\t");
 
           // Determine "source"

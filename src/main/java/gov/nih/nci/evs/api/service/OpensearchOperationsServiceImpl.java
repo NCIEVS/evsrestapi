@@ -164,6 +164,7 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
           field.set(obj, null);
         }
       } catch (IllegalAccessException ignored) {
+        // n/a
       }
     }
   }
