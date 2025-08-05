@@ -150,7 +150,7 @@ EOF
   #    "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/\$/datasets" 2> /dev/null > /tmp/x.$$
   #check_status $? "GET /admin/databases failed to list databases"
   #check_http_status 200 "GET /admin/databases expecting 200"
-  #perl -lane 'print if not eof()' /tmp/x.$$ | $jq | grep 'ds.name' | perl -pe 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
+  #sed '$d' /tmp/x.$$ | $jq | grep 'ds.name' | perl -pe 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
   #echo "  databases = " `cat /tmp/db.$$.txt`
   #ct=`cat /tmp/db.$$.txt | wc -l`
   #if [[ $ct -eq 0 ]]; then
@@ -255,7 +255,7 @@ get_graphs(){
           --data-urlencode "$query" -H "Accept: application/sparql-results+json" 2> /dev/null > /tmp/x.$$
       check_status $? "GET /$db/query failed to get graphs"
       check_http_status 200 "GET /$db/query expecting 200"
-      perl -lane 'print if not eof()' /tmp/x.$$ | $jq | perl -ne '
+      sed '$d' /tmp/x.$$ | $jq | perl -ne '
             chop; $x="version" if /"version"/; 
             $x="source" if /"source"/; 
             $x=0 if /\}/; 
@@ -375,8 +375,6 @@ download_ncit_history() {
       # get server port for local vs deployed environment
       serverPort=8080
       if [[ $config -eq 0 ]]; then
-          local="-Dspring.profiles.active=local"
-          jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
           serverPort=8082
       fi
 
@@ -392,11 +390,12 @@ download_ncit_history() {
               prev_version="25.06e"
           else
               echo "  Failed to find terminology version on non-local server, exiting"
+              cd - > /dev/null
               return 1
           fi
-          return 1
+
       fi
-      echo "  Response from API: $response"
+      echo "      response = $response"
 
       if [[ -z "${prev_version}" ]]; then
           echo "  prev_version is not set to a default, trying to parse response"
@@ -408,19 +407,19 @@ download_ncit_history() {
               prev_version=$(echo "$response" | jq -r '.[] | .version')
           fi
       fi
-      echo "  Previous monthly version of ncit: $prev_version"
+      echo "    Previous monthly version of ncit: $prev_version"
             
       if [[ -z "$prev_version" ]]; then
-          echo "  Unable to find a previous monthly version of ncit"
-  # done looking
+          echo "    Unable to find a previous monthly version of ncit"
+      # done looking
       else 
-          echo "  Trying again with prev_version = $prev_version"
+          echo "    Trying again with prev_version = $prev_version"
           download_and_unpack "$prev_version"
       fi
   fi
 
   # cd back out
-  cd - > /dev/null 2> /dev/null
+  cd - > /dev/null
   return 0
 }
 
@@ -488,6 +487,7 @@ for x in `cat /tmp/y.$$.txt`; do
     fi
     
     if [[ $exists -eq 0 ]] || [[ $force -eq 1 ]]; then
+
         if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
             echo "    FOUND indexes for $term $version, force reindex anyway"        
 

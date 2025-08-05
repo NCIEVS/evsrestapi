@@ -108,6 +108,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       }
       // Support for NCIT-HGNC maps and others regularly updated by NCI
       else if (mappingDataList[0].split("\t").length == 2) {
+
         for (final String conceptMap : mappingDataList) {
           // Skip header
           if (conceptMap.contains("Source Code")) {
