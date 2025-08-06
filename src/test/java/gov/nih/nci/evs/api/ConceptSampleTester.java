@@ -992,16 +992,14 @@ public class ConceptSampleTester {
     return concept.getProperties().stream()
         .filter(
             o ->
-                o.getType().equals(otherProperty.getName())
-                    || o.getType().equals(otherProperty.getCode())
-                        && o.getQualifiers() != null
-                        && o.getQualifiers().stream()
-                            .filter(
-                                p ->
-                                    p.getType().equals(otherQualifier.getName())
-                                        && p.getValue().equals(propertyValue))
-                            .findAny()
-                            .isPresent())
+                (o.getCode().equals(otherProperty.getName())
+                        || o.getCode().equals(otherProperty.getCode()))
+                    && o.getQualifiers() != null
+                    && o.getQualifiers().stream()
+                        .anyMatch(
+                            p ->
+                                p.getType().equals(otherQualifier.getName())
+                                    && p.getValue().equals(propertyValue)))
         .findAny()
         .isPresent();
   }
@@ -1098,7 +1096,7 @@ public class ConceptSampleTester {
       return concept.getSynonyms().stream()
           .filter(
               o ->
-                  o.getType().equals(otherProperty.getName())
+                  o.getTypeCode().equals(otherProperty.getCode())
                       && o.getQualifiers() != null
                       && o.getQualifiers().stream()
                           .filter(
