@@ -402,7 +402,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           if (property.getCode().equals(terminology.getMetadata().getConceptStatus())) {
             // Set to retired if it matches config
             if (property.getValue().equals(terminology.getMetadata().getRetiredStatusValue())) {
-              concept.setConceptStatus(property.getValue());
+              concept.setConceptStatus("Retired_Concept");
               concept.setActive(false);
             } else {
               concept.setConceptStatus(property.getValue());
@@ -2157,11 +2157,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // Send URI or code
       final Concept concept =
           getRole(role.getUri() != null ? role.getUri() : role.getCode(), terminology, ip);
-      final gov.nih.nci.evs.api.model.sparql.Bindings matchConcept =
-          Stream.of(bindings)
-              .filter(binding -> binding.getProperty().getValue().equals(concept.getUri()))
-              .findFirst()
-              .orElse(null);
+      gov.nih.nci.evs.api.model.sparql.Bindings matchConcept = null;
+      if (role.getUri() != null) {
+        matchConcept =
+            Stream.of(bindings)
+                .filter(binding -> binding.getProperty().getValue().equals(concept.getUri()))
+                .findFirst()
+                .orElse(null);
+      } else {
+        matchConcept =
+            Stream.of(bindings)
+                .filter(binding -> binding.getPropertyCode().getValue().equals(concept.getCode()))
+                .findFirst()
+                .orElse(null);
+      }
       if (concept.getCode().equals(concept.getName())
           && bindings != null
           && matchConcept != null
