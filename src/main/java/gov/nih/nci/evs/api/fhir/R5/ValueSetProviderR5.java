@@ -1526,11 +1526,77 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
     // Handle filter-based inclusion
     if (include.hasFilter()) {
+      // Separate concept-based filters from property-based filters
+      List<ValueSet.ConceptSetFilterComponent> conceptFilters = new ArrayList<>();
+      List<ValueSet.ConceptSetFilterComponent> propertyFilters = new ArrayList<>();
+
       for (ValueSet.ConceptSetFilterComponent filter : include.getFilter()) {
+        if ("concept".equals(filter.getProperty())) {
+          conceptFilters.add(filter);
+        } else if ("=".equals(filter.getOp().toCode()) || "exists".equals(filter.getOp().toCode())) {
+          propertyFilters.add(filter);
+        } else {
+          conceptFilters.add(
+              filter); // Handle as concept filter for unsupported property operations
+        }
+      }
+
+      // Apply concept-based filters first
+      for (ValueSet.ConceptSetFilterComponent filter : conceptFilters) {
         List<ValueSetExpansionContainsComponent> filteredConcepts =
             applyConceptFilter(
                 include.getSystem(), filter, textFilter, activeOnly, includeDesignations);
         concepts.addAll(filteredConcepts);
+      }
+
+      // Apply property-based filters to existing concepts
+      if (!propertyFilters.isEmpty()) {
+        Terminology selectedTerminology =
+            termUtils.getIndexedTerminologies(osQueryService).stream()
+                .filter(term -> term.getMetadata().getFhirUri().equals(include.getSystem()))
+                .findFirst()
+                .orElse(null);
+
+        if (selectedTerminology != null) {
+          for (ValueSet.ConceptSetFilterComponent filter : propertyFilters) {
+            concepts =
+                concepts.stream()
+                    .filter(
+                        concept -> {
+                          try {
+                            if ("=".equals(filter.getOp().toCode())) {
+                              return conceptHasPropertyValue(
+                                  concept,
+                                  selectedTerminology,
+                                  filter.getProperty(),
+                                  filter.getValue().trim());
+                            } else if ("exists".equals(filter.getOp().toCode())) {
+                              boolean shouldExist = "true".equalsIgnoreCase(filter.getValue().trim());
+                              return conceptHasProperty(
+                                  concept,
+                                  selectedTerminology,
+                                  filter.getProperty(),
+                                  shouldExist);
+                            }
+                            return false;
+                          } catch (Exception e) {
+                            logger.warn(
+                                "Error checking property filter '{}' {} '{}' for concept {}: {}",
+                                filter.getProperty(),
+                                filter.getOp().toCode(),
+                                filter.getValue(),
+                                concept.getCode(),
+                                e.getMessage());
+                            return false;
+                          }
+                        })
+                    .collect(Collectors.toList());
+          }
+        } else {
+          logger.warn(
+              "No terminology found for system: {} - cannot apply property filters",
+              include.getSystem());
+        }
       }
     }
 
@@ -1706,7 +1772,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
               + filter.getProperty()
               + " and operation "
               + filter.getOp().toCode()
-              + " "
+              + ". Supported operations: concept filters (is-a, descendent-of, descendent-leaf,"
+              + " child-of, generalizes, in) and property filters (=, exists) "
               + JpaConstants.OPERATION_EXPAND,
           IssueType.NOTSUPPORTED,
           405);
@@ -2024,6 +2091,105 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
 
     return concepts.subList(startIndex, endIndex);
+  }
+
+  /**
+   * Check if concept has property value.
+   *
+   * @param contains the contains component
+   * @param terminology the terminology
+   * @param propertyName the property name
+   * @param propertyValue the property value
+   * @return true if concept has the property with matching value
+   * @throws Exception the exception
+   */
+  private boolean conceptHasPropertyValue(
+      ValueSetExpansionContainsComponent contains,
+      Terminology terminology,
+      String propertyName,
+      String propertyValue)
+      throws Exception {
+
+    // Get the full concept details including properties
+    Optional<Concept> conceptOpt =
+        osQueryService.getConcept(contains.getCode(), terminology, new IncludeParam("properties"));
+
+    if (!conceptOpt.isPresent()) {
+      logger.debug(
+          "Concept {} not found in terminology {}",
+          contains.getCode(),
+          terminology.getTerminology());
+      return false;
+    }
+
+    Concept concept = conceptOpt.get();
+    if (concept.getProperties() == null || concept.getProperties().isEmpty()) {
+      logger.debug("Concept {} has no properties", contains.getCode());
+      return false;
+    }
+
+    // Check if any property matches the specified name and value
+    boolean hasMatch =
+        concept.getProperties().stream()
+            .anyMatch(
+                prop ->
+                    propertyName.equals(prop.getType()) && propertyValue.equals(prop.getValue()));
+
+    logger.debug(
+        "Concept {} property '{}' = '{}': {}",
+        contains.getCode(),
+        propertyName,
+        propertyValue,
+        hasMatch ? "MATCH" : "NO MATCH");
+
+    return hasMatch;
+  }
+
+  /**
+   * Check if concept has property.
+   *
+   * @param contains the contains component
+   * @param terminology the terminology
+   * @param propertyName the property name
+   * @param shouldExist true if property should exist, false if it should not exist
+   * @return true if the existence condition is met
+   * @throws Exception the exception
+   */
+  private boolean conceptHasProperty(
+      ValueSetExpansionContainsComponent contains, 
+      Terminology terminology, 
+      String propertyName, 
+      boolean shouldExist) throws Exception {
+    
+    // Get the full concept details including properties
+    Optional<Concept> conceptOpt = osQueryService.getConcept(
+        contains.getCode(), terminology, new IncludeParam("properties"));
+    
+    if (!conceptOpt.isPresent()) {
+      logger.debug("Concept {} not found in terminology {}", 
+                  contains.getCode(), terminology.getTerminology());
+      // If concept doesn't exist, it certainly doesn't have the property
+      return !shouldExist;
+    }
+    
+    Concept concept = conceptOpt.get();
+    
+    // Check if the concept has any properties at all
+    if (concept.getProperties() == null || concept.getProperties().isEmpty()) {
+      logger.debug("Concept {} has no properties", contains.getCode());
+      return !shouldExist; // No properties = property doesn't exist
+    }
+    
+    // Check if the specific property exists (has at least one value)
+    boolean hasProperty = concept.getProperties().stream()
+        .anyMatch(prop -> propertyName.equals(prop.getType()) && 
+                         prop.getValue() != null && 
+                         !prop.getValue().toString().trim().isEmpty());
+    
+    logger.debug("Concept {} property '{}' exists: {} (expected: {})", 
+                contains.getCode(), propertyName, hasProperty, shouldExist);
+    
+    return hasProperty == shouldExist;
   }
 
   /**
