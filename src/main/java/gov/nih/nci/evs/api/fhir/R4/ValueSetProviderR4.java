@@ -592,9 +592,33 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
     // Process filters
     if (include.hasFilter()) {
+      // Separate concept-based filters from property-based filters
+      List<ValueSet.ConceptSetFilterComponent> conceptFilters = new ArrayList<>();
+      List<ValueSet.ConceptSetFilterComponent> propertyFilters = new ArrayList<>();
+      
       for (ValueSet.ConceptSetFilterComponent filter : include.getFilter()) {
+        if ("concept".equals(filter.getProperty())) {
+          conceptFilters.add(filter);
+        } else if ("=".equals(filter.getOp().toCode()) || "exists".equals(filter.getOp().toCode())) {
+          propertyFilters.add(filter);
+        } else {
+          conceptFilters.add(filter); // Handle as concept filter for unsupported property operations
+        }
+      }
+      
+      // Apply concept-based filters first
+      for (ValueSet.ConceptSetFilterComponent filter : conceptFilters) {
         List<Concept> filteredConcepts = applyConceptFilter(filter, terminology, includeParam);
         concepts.addAll(filteredConcepts);
+      }
+      
+      // Apply property-based filters to existing concepts
+      if (!propertyFilters.isEmpty() && !concepts.isEmpty()) {
+        for (ValueSet.ConceptSetFilterComponent filter : propertyFilters) {
+          concepts = applyPropertyFilterToConcepts(concepts, filter, terminology);
+        }
+      } else if (!propertyFilters.isEmpty()) {
+        logger.warn("Property filters found but no concepts to filter. Property filters require explicit concept list or concept-based filters.");
       }
     }
 
@@ -1507,8 +1531,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
     switch (operation.toLowerCase()) {
       case "=":
-        // Equals operation - not yet implemented
-        logger.warn("Equals filter operation not yet implemented: {}", operation);
+        // Property equals filter is now handled in the include processing logic
+        // This case should not be reached for property filters
+        if ("concept".equals(property)) {
+          logger.warn("Equals operation not supported for 'concept' property: {}", operation);
+        } else {
+          logger.warn("Property equals filter should be handled in include processing, not in applyConceptFilter: {}", operation);
+        }
         break;
       case "is-a":
         concepts = processDescendants(value, terminology, includeParam, true);
@@ -1536,8 +1565,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
         logger.warn("Generalizes filter operation not yet implemented: {}", operation);
         break;
       case "exists":
-        // Not implemented yet
-        logger.warn("Exists filter operation not yet implemented: {}", operation);
+        // Property exists filter is now handled in the include processing logic
+        // This case should not be reached for property filters
+        if ("concept".equals(property)) {
+          logger.warn("Exists operation not supported for 'concept' property: {}", operation);
+        } else {
+          logger.warn("Property exists filter should be handled in include processing, not in applyConceptFilter: {}", operation);
+        }
         break;
       default:
         logger.warn("Unsupported filter operation for FHIR R4: {}", operation);
@@ -1586,6 +1620,92 @@ public class ValueSetProviderR4 implements IResourceProvider {
     }
 
     return concepts;
+  }
+
+  /** Apply property filter to concept list. */
+  private List<Concept> applyPropertyFilterToConcepts(
+      List<Concept> concepts, ValueSet.ConceptSetFilterComponent filter, Terminology terminology) throws Exception {
+    
+    List<Concept> filteredConcepts = new ArrayList<>();
+    String propertyName = filter.getProperty();
+    String operation = filter.getOp().toCode();
+    String value = filter.getValue();
+    
+    for (Concept concept : concepts) {
+      boolean shouldInclude = false;
+      
+      try {
+        if ("=".equals(operation)) {
+          shouldInclude = conceptHasPropertyValue(concept, terminology, propertyName, value.trim());
+        } else if ("exists".equals(operation)) {
+          boolean shouldExist = "true".equalsIgnoreCase(value.trim());
+          shouldInclude = conceptHasProperty(concept, terminology, propertyName, shouldExist);
+        }
+      } catch (Exception e) {
+        logger.warn("Error checking property filter '{}' {} '{}' for concept {}: {}", 
+                   propertyName, operation, value, concept.getCode(), e.getMessage());
+      }
+      
+      if (shouldInclude) {
+        filteredConcepts.add(concept);
+      }
+    }
+    
+    logger.info("Property filter '{}' {} '{}' filtered {} concepts to {} matches", 
+               propertyName, operation, value, concepts.size(), filteredConcepts.size());
+    
+    return filteredConcepts;
+  }
+
+  /** Check if concept has property value. */
+  private boolean conceptHasPropertyValue(
+      Concept concept, Terminology terminology, String propertyName, String propertyValue) throws Exception {
+    
+    // Get the full concept details including properties if not already loaded
+    Concept fullConcept = concept;
+    if (concept.getProperties() == null || concept.getProperties().isEmpty()) {
+      Optional<Concept> conceptOpt = osQueryService.getConcept(
+          concept.getCode(), terminology, new IncludeParam("properties"));
+      if (conceptOpt.isPresent()) {
+        fullConcept = conceptOpt.get();
+      }
+    }
+    
+    if (fullConcept.getProperties() == null) {
+      return false;
+    }
+    
+    // Check if any property matches the specified name and value
+    return fullConcept.getProperties().stream()
+        .anyMatch(prop -> propertyName.equals(prop.getType()) && 
+                         propertyValue.equals(prop.getValue()));
+  }
+
+  /** Check if concept has property. */
+  private boolean conceptHasProperty(
+      Concept concept, Terminology terminology, String propertyName, boolean shouldExist) throws Exception {
+    
+    // Get the full concept details including properties if not already loaded
+    Concept fullConcept = concept;
+    if (concept.getProperties() == null || concept.getProperties().isEmpty()) {
+      Optional<Concept> conceptOpt = osQueryService.getConcept(
+          concept.getCode(), terminology, new IncludeParam("properties"));
+      if (conceptOpt.isPresent()) {
+        fullConcept = conceptOpt.get();
+      }
+    }
+    
+    if (fullConcept.getProperties() == null || fullConcept.getProperties().isEmpty()) {
+      return !shouldExist; // No properties = property doesn't exist
+    }
+    
+    // Check if the specific property exists (has at least one value)
+    boolean hasProperty = fullConcept.getProperties().stream()
+        .anyMatch(prop -> propertyName.equals(prop.getType()) && 
+                         prop.getValue() != null && 
+                         !prop.getValue().toString().trim().isEmpty());
+    
+    return hasProperty == shouldExist;
   }
 
   /** Lookup concept display name. */

@@ -1579,4 +1579,375 @@ public class FhirR4ValueSetExpandTests {
     // The exact behavior may depend on whether version 24.03d is available
     // and how the implementation handles version-specific requests
   }
+
+  /**
+   * Test value set expand with NCI thesaurus property equals filter.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithNCIThesaurusPropertyEqualsFilter() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with property '=' filter
+    ValueSet inputValueSet =
+        createNCITestValueSetWithPropertyEqualsFilter(
+            "nci-property-equals-filter-test",
+            "NCIPropertyEqualsFilterTest",
+            "NCI Thesaurus Property Equals Filter Test",
+            "Test ValueSet with '=' filter for Contributing_Source property");
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + requestBody);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+    log.info("Found {} concepts in expansion", contains.size());
+
+    // Assert - Should only contain concepts with Contributing_Source = "FDA"
+    // We expect C48672 (Schedule I Substance) to be included since it has Contributing_Source = "FDA"
+    Optional<ValueSet.ValueSetExpansionContainsComponent> scheduleIResult =
+        contains.stream().filter(comp -> "C48672".equals(comp.getCode())).findFirst();
+
+    assertTrue(
+        scheduleIResult.isPresent(),
+        "Schedule I Substance (C48672) should be included as it has Contributing_Source = 'FDA'");
+    log.info("C48672 (Schedule I Substance) correctly included with Contributing_Source = 'FDA'");
+
+    // Assert - Should NOT contain concepts without Contributing_Source = "FDA" 
+    // For example, C2991 (Disease or Disorder) should not have Contributing_Source = "FDA"
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream().filter(comp -> "C2991".equals(comp.getCode())).findFirst();
+
+    assertFalse(
+        diseaseResult.isPresent(),
+        "Disease or Disorder (C2991) should NOT be included as it does not have Contributing_Source = 'FDA'");
+    log.info("C2991 (Disease or Disorder) correctly excluded - does not have Contributing_Source = 'FDA'");
+
+    // Assert - Should have at least one concept with the matching property
+    assertTrue(
+        expansion.getTotal() >= 1,
+        "Should find at least one concept with Contributing_Source = 'FDA', found: " + expansion.getTotal());
+        
+    log.info("Property equals filter test completed successfully with {} matching concepts", expansion.getTotal());
+  }
+
+  /**
+   * Test value set expand with NCI thesaurus property exists filter (value=true).
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithNCIThesaurusPropertyExistsTrue() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with property 'exists' filter (value=true)
+    ValueSet inputValueSet =
+        createNCITestValueSetWithPropertyExistsFilter(
+            "nci-property-exists-true-test",
+            "NCIPropertyExistsTrueTest",
+            "NCI Thesaurus Property Exists True Filter Test",
+            "Test ValueSet with 'exists' filter for Contributing_Source property (value=true)",
+            true);
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + requestBody);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+    log.info("Found {} concepts with Contributing_Source property existing", contains.size());
+
+    // Assert - Should contain concepts that HAVE Contributing_Source property
+    // C48672 (Schedule I Substance) should be included as it has Contributing_Source = "FDA"
+    Optional<ValueSet.ValueSetExpansionContainsComponent> scheduleIResult =
+        contains.stream().filter(comp -> "C48672".equals(comp.getCode())).findFirst();
+
+    assertTrue(
+        scheduleIResult.isPresent(),
+        "Schedule I Substance (C48672) should be included as it has Contributing_Source property");
+    log.info("C48672 (Schedule I Substance) correctly included - has Contributing_Source property");
+
+    // C2991 (Disease or Disorder) should be included as it has Contributing_Source properties
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream().filter(comp -> "C2991".equals(comp.getCode())).findFirst();
+
+    assertTrue(
+        diseaseResult.isPresent(),
+        "Disease or Disorder (C2991) should be included as it has Contributing_Source property");
+    log.info("C2991 (Disease or Disorder) correctly included - has Contributing_Source property");
+
+    // Assert - Should NOT contain concepts that do NOT have Contributing_Source property
+    // C48670 (Controlled Substance) should not have Contributing_Source property
+    Optional<ValueSet.ValueSetExpansionContainsComponent> controlledResult =
+        contains.stream().filter(comp -> "C48670".equals(comp.getCode())).findFirst();
+
+    assertFalse(
+        controlledResult.isPresent(),
+        "Controlled Substance (C48670) should NOT be included as it does not have Contributing_Source property");
+    log.info("C48670 (Controlled Substance) correctly excluded - does not have Contributing_Source property");
+
+    // Assert - Should have at least one concept with the property
+    assertTrue(
+        expansion.getTotal() >= 1,
+        "Should find at least one concept with Contributing_Source property, found: " + expansion.getTotal());
+        
+    log.info("Property exists filter (value=true) test completed successfully with {} matching concepts", expansion.getTotal());
+  }
+
+  /**
+   * Test value set expand with NCI thesaurus property exists filter (value=false).
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithNCIThesaurusPropertyExistsFalse() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with property 'exists' filter (value=false)
+    ValueSet inputValueSet =
+        createNCITestValueSetWithPropertyExistsFilter(
+            "nci-property-exists-false-test",
+            "NCIPropertyExistsFalseTest",
+            "NCI Thesaurus Property Exists False Filter Test",
+            "Test ValueSet with 'exists' filter for Contributing_Source property (value=false)",
+            false);
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + requestBody);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+    log.info("Found {} concepts without Contributing_Source property", contains.size());
+
+    // Assert - Should contain concepts that do NOT have Contributing_Source property
+    // C48670 (Controlled Substance) should be included as it does not have Contributing_Source property
+    Optional<ValueSet.ValueSetExpansionContainsComponent> controlledResult =
+        contains.stream().filter(comp -> "C48670".equals(comp.getCode())).findFirst();
+
+    assertTrue(
+        controlledResult.isPresent(),
+        "Controlled Substance (C48670) should be included as it does not have Contributing_Source property");
+    log.info("C48670 (Controlled Substance) correctly included - does not have Contributing_Source property");
+
+    // Assert - Should NOT contain concepts that HAVE Contributing_Source property
+    // C48672 (Schedule I Substance) should not be included as it has Contributing_Source = "FDA"
+    Optional<ValueSet.ValueSetExpansionContainsComponent> scheduleIResult =
+        contains.stream().filter(comp -> "C48672".equals(comp.getCode())).findFirst();
+
+    assertFalse(
+        scheduleIResult.isPresent(),
+        "Schedule I Substance (C48672) should NOT be included as it has Contributing_Source property");
+    log.info("C48672 (Schedule I Substance) correctly excluded - has Contributing_Source property");
+
+    // C2991 (Disease or Disorder) should not be included as it has Contributing_Source properties
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream().filter(comp -> "C2991".equals(comp.getCode())).findFirst();
+
+    assertFalse(
+        diseaseResult.isPresent(),
+        "Disease or Disorder (C2991) should NOT be included as it has Contributing_Source property");
+    log.info("C2991 (Disease or Disorder) correctly excluded - has Contributing_Source property");
+
+    // Assert - Should have at least one concept without the property
+    assertTrue(
+        expansion.getTotal() >= 1,
+        "Should find at least one concept without Contributing_Source property, found: " + expansion.getTotal());
+        
+    log.info("Property exists filter (value=false) test completed successfully with {} matching concepts", expansion.getTotal());
+  }
+
+  /**
+   * Create NCI test value set with property equals filter.
+   *
+   * @param id the id
+   * @param name the name
+   * @param title the title
+   * @param description the description
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithPropertyEqualsFilter(
+      String id, String name, String title, String description) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName(name);
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(description);
+
+    // Build compose definition with NCI Thesaurus concepts
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+
+    // FIRST INCLUDE - Add explicit concepts that we know have the Contributing_Source property
+    ValueSet.ConceptSetComponent nciInclude = new ValueSet.ConceptSetComponent();
+    nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Add concepts that we know have different Contributing_Source values
+    // C48672 (Schedule I Substance) has Contributing_Source = "FDA"
+    ValueSet.ConceptReferenceComponent scheduleIConcept = new ValueSet.ConceptReferenceComponent();
+    scheduleIConcept.setCode("C48672");
+    scheduleIConcept.setDisplay("Schedule I Substance");
+    nciInclude.addConcept(scheduleIConcept);
+
+    // C2991 (Disease or Disorder) - has Contributing_Source but not "FDA" 
+    ValueSet.ConceptReferenceComponent diseaseConcept = new ValueSet.ConceptReferenceComponent();
+    diseaseConcept.setCode("C2991");
+    diseaseConcept.setDisplay("Disease or Disorder");
+    nciInclude.addConcept(diseaseConcept);
+
+    // C48670 (Controlled Substance) - does not have Contributing_Source
+    ValueSet.ConceptReferenceComponent controlledConcept = new ValueSet.ConceptReferenceComponent();
+    controlledConcept.setCode("C48670");
+    controlledConcept.setDisplay("Controlled Substance");
+    nciInclude.addConcept(controlledConcept);
+
+    // Now add the property equals filter to filter for Contributing_Source = "FDA"
+    ValueSet.ConceptSetFilterComponent propertyFilter = new ValueSet.ConceptSetFilterComponent();
+    propertyFilter.setProperty("Contributing_Source");
+    propertyFilter.setOp(ValueSet.FilterOperator.EQUAL); // "=" operation
+    propertyFilter.setValue("FDA"); // Filter for Contributing_Source = "FDA"
+    nciInclude.addFilter(propertyFilter);
+
+    compose.addInclude(nciInclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  /**
+   * Create NCI test value set with property exists filter.
+   *
+   * @param id the id
+   * @param name the name
+   * @param title the title
+   * @param description the description
+   * @param shouldExist true to filter for concepts that HAVE the property, false to filter for concepts that do NOT have the property
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithPropertyExistsFilter(
+      String id, String name, String title, String description, boolean shouldExist) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName(name);
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(description);
+
+    // Build compose definition with NCI Thesaurus concepts
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+
+    // Add explicit concepts that we know have different property existence patterns
+    ValueSet.ConceptSetComponent nciInclude = new ValueSet.ConceptSetComponent();
+    nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Add concepts with known Contributing_Source property patterns
+    // C48672 (Schedule I Substance) - HAS Contributing_Source = "FDA"
+    ValueSet.ConceptReferenceComponent scheduleIConcept = new ValueSet.ConceptReferenceComponent();
+    scheduleIConcept.setCode("C48672");
+    scheduleIConcept.setDisplay("Schedule I Substance");
+    nciInclude.addConcept(scheduleIConcept);
+
+    // C2991 (Disease or Disorder) - HAS Contributing_Source = "CDISC-GLOSS", "CTDC", "CTRP", "GDC", "NICHD"
+    ValueSet.ConceptReferenceComponent diseaseConcept = new ValueSet.ConceptReferenceComponent();
+    diseaseConcept.setCode("C2991");
+    diseaseConcept.setDisplay("Disease or Disorder");
+    nciInclude.addConcept(diseaseConcept);
+
+    // C48670 (Controlled Substance) - does NOT have Contributing_Source property
+    ValueSet.ConceptReferenceComponent controlledConcept = new ValueSet.ConceptReferenceComponent();
+    controlledConcept.setCode("C48670");
+    controlledConcept.setDisplay("Controlled Substance");
+    nciInclude.addConcept(controlledConcept);
+    
+    // C21282 (Lyase Gene) - gene concept, does not have Contributing_Source
+    ValueSet.ConceptReferenceComponent lyaseConcept = new ValueSet.ConceptReferenceComponent();
+    lyaseConcept.setCode("C21282");
+    lyaseConcept.setDisplay("Lyase Gene");
+    nciInclude.addConcept(lyaseConcept);
+
+    // Add the property exists filter
+    ValueSet.ConceptSetFilterComponent propertyFilter = new ValueSet.ConceptSetFilterComponent();
+    propertyFilter.setProperty("Contributing_Source");
+    propertyFilter.setOp(ValueSet.FilterOperator.EXISTS); // "exists" operation
+    propertyFilter.setValue(shouldExist ? "true" : "false"); // Filter for property existence
+
+    nciInclude.addFilter(propertyFilter);
+
+    compose.addInclude(nciInclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
 }
