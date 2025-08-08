@@ -1950,4 +1950,310 @@ public class FhirR4ValueSetExpandTests {
 
     return inputValueSet;
   }
+
+  /**
+   * Test value set expand with NCI thesaurus 'not-in' filter.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithNCIThesaurusNotInFilter() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with 'not-in' filter
+    ValueSet inputValueSet =
+        createNCITestValueSetWithNotInFilter(
+            "nci-not-in-filter-test",
+            "NCINotInFilterTest",
+            "NCI Thesaurus Not-In Filter Test",
+            "Test ValueSet with 'not-in' filter to exclude specific concepts");
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + requestBody);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+    log.info("Found {} concepts after 'not-in' filter", contains.size());
+
+    // Assert - Should contain concepts that are NOT in the exclusion list
+    // C48670 (Controlled Substance) should be included as it's not in the exclusion list
+    Optional<ValueSet.ValueSetExpansionContainsComponent> controlledResult =
+        contains.stream().filter(comp -> "C48670".equals(comp.getCode())).findFirst();
+
+    assertTrue(
+        controlledResult.isPresent(),
+        "Controlled Substance (C48670) should be included as it's not in the exclusion list");
+    log.info("C48670 (Controlled Substance) correctly included - not in exclusion list");
+
+    // Assert - Should NOT contain concepts that ARE in the exclusion list
+    // C2991 (Disease or Disorder) should be excluded as it's in the exclusion list
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream().filter(comp -> "C2991".equals(comp.getCode())).findFirst();
+
+    assertFalse(
+        diseaseResult.isPresent(),
+        "Disease or Disorder (C2991) should NOT be included as it's in the exclusion list");
+    log.info("C2991 (Disease or Disorder) correctly excluded - in exclusion list");
+
+    // C48672 (Schedule I Substance) should be excluded as it's in the exclusion list
+    Optional<ValueSet.ValueSetExpansionContainsComponent> scheduleIResult =
+        contains.stream().filter(comp -> "C48672".equals(comp.getCode())).findFirst();
+
+    assertFalse(
+        scheduleIResult.isPresent(),
+        "Schedule I Substance (C48672) should NOT be included as it's in the exclusion list");
+    log.info("C48672 (Schedule I Substance) correctly excluded - in exclusion list");
+
+    // Assert - Should have at least one concept remaining
+    assertTrue(
+        expansion.getTotal() >= 1,
+        "Should find at least one concept not in exclusion list, found: " + expansion.getTotal());
+        
+    log.info("Not-in filter test completed successfully with {} remaining concepts", expansion.getTotal());
+  }
+
+  /**
+   * Test value set expand with NCI thesaurus 'is-not-a' filter.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithNCIThesaurusIsNotAFilter() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with 'is-not-a' filter
+    ValueSet inputValueSet =
+        createNCITestValueSetWithIsNotAFilter(
+            "nci-is-not-a-filter-test",
+            "NCIIsNotAFilterTest",
+            "NCI Thesaurus Is-Not-A Filter Test",
+            "Test ValueSet with 'is-not-a' filter to exclude gene concepts");
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + requestBody);
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+    log.info("Found {} concepts after 'is-not-a' filter", contains.size());
+
+    // Assert - Should contain concepts that are NOT gene-related
+    // C48672 (Schedule I Substance) should be included as it's not a gene
+    Optional<ValueSet.ValueSetExpansionContainsComponent> scheduleIResult =
+        contains.stream().filter(comp -> "C48672".equals(comp.getCode())).findFirst();
+
+    assertTrue(
+        scheduleIResult.isPresent(),
+        "Schedule I Substance (C48672) should be included as it's not a gene");
+    log.info("C48672 (Schedule I Substance) correctly included - not a gene");
+
+    // C2991 (Disease or Disorder) should be included as it's not a gene
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream().filter(comp -> "C2991".equals(comp.getCode())).findFirst();
+
+    assertTrue(
+        diseaseResult.isPresent(),
+        "Disease or Disorder (C2991) should be included as it's not a gene");
+    log.info("C2991 (Disease or Disorder) correctly included - not a gene");
+
+    // Assert - Should NOT contain gene concepts
+    // C21282 (Lyase Gene) should be excluded as it's a gene (is-a Gene)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> lyaseResult =
+        contains.stream().filter(comp -> "C21282".equals(comp.getCode())).findFirst();
+
+    assertFalse(
+        lyaseResult.isPresent(),
+        "Lyase Gene (C21282) should NOT be included as it is-a Gene");
+    log.info("C21282 (Lyase Gene) correctly excluded - is-a Gene");
+
+    // Assert - Should have at least one non-gene concept
+    assertTrue(
+        expansion.getTotal() >= 1,
+        "Should find at least one concept that is-not-a Gene, found: " + expansion.getTotal());
+        
+    log.info("Is-not-a filter test completed successfully with {} non-gene concepts", expansion.getTotal());
+  }
+
+  /**
+   * Creates the NCI test value set with 'not-in' filter.
+   *
+   * @param id the id
+   * @param name the name
+   * @param title the title
+   * @param description the description
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithNotInFilter(
+      String id, String name, String title, String description) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName(name);
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(description);
+
+    // Build compose definition with NCI Thesaurus concepts
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+
+    // Add concepts that should be filtered by 'not-in' operation
+    ValueSet.ConceptSetComponent nciInclude = new ValueSet.ConceptSetComponent();
+    nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Include several concepts to test exclusion
+    // C48670 (Controlled Substance) - should be included (not in exclusion list)
+    ValueSet.ConceptReferenceComponent controlledConcept = new ValueSet.ConceptReferenceComponent();
+    controlledConcept.setCode("C48670");
+    controlledConcept.setDisplay("Controlled Substance");
+    nciInclude.addConcept(controlledConcept);
+
+    // C2991 (Disease or Disorder) - will be excluded via filter
+    ValueSet.ConceptReferenceComponent diseaseConcept = new ValueSet.ConceptReferenceComponent();
+    diseaseConcept.setCode("C2991");
+    diseaseConcept.setDisplay("Disease or Disorder");
+    nciInclude.addConcept(diseaseConcept);
+
+    // C48672 (Schedule I Substance) - will be excluded via filter
+    ValueSet.ConceptReferenceComponent scheduleIConcept = new ValueSet.ConceptReferenceComponent();
+    scheduleIConcept.setCode("C48672");
+    scheduleIConcept.setDisplay("Schedule I Substance");
+    nciInclude.addConcept(scheduleIConcept);
+
+    // C16612 (Gene) - should be included (not in exclusion list)
+    ValueSet.ConceptReferenceComponent geneConcept = new ValueSet.ConceptReferenceComponent();
+    geneConcept.setCode("C16612");
+    geneConcept.setDisplay("Gene");
+    nciInclude.addConcept(geneConcept);
+
+    // Add the 'not-in' filter to exclude specific concepts
+    ValueSet.ConceptSetFilterComponent notInFilter = new ValueSet.ConceptSetFilterComponent();
+    notInFilter.setProperty("concept");
+    notInFilter.setOp(ValueSet.FilterOperator.NOTIN); // "not-in" operation
+    notInFilter.setValue("C2991,C48672"); // Exclude Disease or Disorder and Schedule I Substance
+
+    nciInclude.addFilter(notInFilter);
+
+    compose.addInclude(nciInclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  /**
+   * Creates the NCI test value set with 'is-not-a' filter.
+   *
+   * @param id the id
+   * @param name the name
+   * @param title the title
+   * @param description the description
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithIsNotAFilter(
+      String id, String name, String title, String description) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName(name);
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(description);
+
+    // Build compose definition with NCI Thesaurus concepts
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+
+    // Add concepts that should be filtered by 'is-not-a' operation
+    ValueSet.ConceptSetComponent nciInclude = new ValueSet.ConceptSetComponent();
+    nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Include gene and non-gene concepts to test exclusion
+    // C21282 (Lyase Gene) - will be excluded (is-a Gene)
+    ValueSet.ConceptReferenceComponent lyaseConcept = new ValueSet.ConceptReferenceComponent();
+    lyaseConcept.setCode("C21282");
+    lyaseConcept.setDisplay("Lyase Gene");
+    nciInclude.addConcept(lyaseConcept);
+
+    // C16612 (Gene) - will be excluded (is-a Gene, actually is Gene itself)
+    ValueSet.ConceptReferenceComponent geneConcept = new ValueSet.ConceptReferenceComponent();
+    geneConcept.setCode("C16612");
+    geneConcept.setDisplay("Gene");
+    nciInclude.addConcept(geneConcept);
+
+    // C48672 (Schedule I Substance) - should be included (not a gene)
+    ValueSet.ConceptReferenceComponent scheduleIConcept = new ValueSet.ConceptReferenceComponent();
+    scheduleIConcept.setCode("C48672");
+    scheduleIConcept.setDisplay("Schedule I Substance");
+    nciInclude.addConcept(scheduleIConcept);
+
+    // C2991 (Disease or Disorder) - should be included (not a gene)
+    ValueSet.ConceptReferenceComponent diseaseConcept = new ValueSet.ConceptReferenceComponent();
+    diseaseConcept.setCode("C2991");
+    diseaseConcept.setDisplay("Disease or Disorder");
+    nciInclude.addConcept(diseaseConcept);
+
+    // C48670 (Controlled Substance) - should be included (not a gene)
+    ValueSet.ConceptReferenceComponent controlledConcept = new ValueSet.ConceptReferenceComponent();
+    controlledConcept.setCode("C48670");
+    controlledConcept.setDisplay("Controlled Substance");
+    nciInclude.addConcept(controlledConcept);
+
+    // Add the 'is-not-a' filter to exclude gene concepts
+    ValueSet.ConceptSetFilterComponent isNotAFilter = new ValueSet.ConceptSetFilterComponent();
+    isNotAFilter.setProperty("concept");
+    isNotAFilter.setOp(ValueSet.FilterOperator.ISNOTA); // "is-not-a" operation
+    isNotAFilter.setValue("C16612"); // Exclude concepts that are-a Gene (C16612)
+
+    nciInclude.addFilter(isNotAFilter);
+
+    compose.addInclude(nciInclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
 }

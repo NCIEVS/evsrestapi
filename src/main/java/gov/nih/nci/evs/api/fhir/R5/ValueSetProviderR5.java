@@ -1526,13 +1526,18 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
     // Handle filter-based inclusion
     if (include.hasFilter()) {
-      // Separate concept-based filters from property-based filters
+      // Separate concept-based filters from property-based filters and exclusion filters
       List<ValueSet.ConceptSetFilterComponent> conceptFilters = new ArrayList<>();
       List<ValueSet.ConceptSetFilterComponent> propertyFilters = new ArrayList<>();
+      List<ValueSet.ConceptSetFilterComponent> exclusionFilters = new ArrayList<>();
 
       for (ValueSet.ConceptSetFilterComponent filter : include.getFilter()) {
         if ("concept".equals(filter.getProperty())) {
-          conceptFilters.add(filter);
+          if ("not-in".equals(filter.getOp().toCode()) || "is-not-a".equals(filter.getOp().toCode())) {
+            exclusionFilters.add(filter);
+          } else {
+            conceptFilters.add(filter);
+          }
         } else if ("=".equals(filter.getOp().toCode()) || "exists".equals(filter.getOp().toCode())) {
           propertyFilters.add(filter);
         } else {
@@ -1597,6 +1602,27 @@ public class ValueSetProviderR5 implements IResourceProvider {
               "No terminology found for system: {} - cannot apply property filters",
               include.getSystem());
         }
+      }
+      
+      // Apply exclusion filters to existing concepts
+      if (!exclusionFilters.isEmpty() && !concepts.isEmpty()) {
+        Terminology selectedTerminology =
+            termUtils.getIndexedTerminologies(osQueryService).stream()
+                .filter(term -> term.getMetadata().getFhirUri().equals(include.getSystem()))
+                .findFirst()
+                .orElse(null);
+        
+        if (selectedTerminology != null) {
+          for (ValueSet.ConceptSetFilterComponent filter : exclusionFilters) {
+            concepts = applyExclusionFilter(concepts, filter, selectedTerminology);
+          }
+        } else {
+          logger.warn(
+              "No terminology found for system: {} - cannot apply exclusion filters",
+              include.getSystem());
+        }
+      } else if (!exclusionFilters.isEmpty()) {
+        logger.warn("Exclusion filters found but no concepts to filter. Exclusion filters require explicit concept list or concept-based filters.");
       }
     }
 
@@ -1773,7 +1799,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
               + " and operation "
               + filter.getOp().toCode()
               + ". Supported operations: concept filters (is-a, descendent-of, descendent-leaf,"
-              + " child-of, generalizes, in) and property filters (=, exists) "
+              + " child-of, generalizes, in, not-in, is-not-a) and property filters (=, exists) "
               + JpaConstants.OPERATION_EXPAND,
           IssueType.NOTSUPPORTED,
           405);
@@ -2190,6 +2216,90 @@ public class ValueSetProviderR5 implements IResourceProvider {
                 contains.getCode(), propertyName, hasProperty, shouldExist);
     
     return hasProperty == shouldExist;
+  }
+
+  /**
+   * Apply exclusion filter to concept list.
+   *
+   * @param concepts the concepts to filter
+   * @param filter the exclusion filter
+   * @param terminology the terminology
+   * @return filtered list of concepts with exclusions applied
+   * @throws Exception the exception
+   */
+  private List<ValueSetExpansionContainsComponent> applyExclusionFilter(
+      List<ValueSetExpansionContainsComponent> concepts,
+      ValueSet.ConceptSetFilterComponent filter,
+      Terminology terminology) throws Exception {
+    
+    List<ValueSetExpansionContainsComponent> filteredConcepts = new ArrayList<>();
+    String operation = filter.getOp().toCode();
+    String value = filter.getValue().trim();
+    
+    for (ValueSetExpansionContainsComponent concept : concepts) {
+      boolean shouldExclude = false;
+      
+      try {
+        if ("not-in".equals(operation)) {
+          shouldExclude = conceptIsInList(concept.getCode(), value);
+        } else if ("is-not-a".equals(operation)) {
+          shouldExclude = conceptIsA(concept.getCode(), value, terminology);
+        }
+      } catch (Exception e) {
+        logger.warn("Error checking exclusion filter '{}' {} '{}' for concept {}: {}", 
+                   filter.getProperty(), operation, value, concept.getCode(), e.getMessage());
+      }
+      
+      // Include concept if it should NOT be excluded
+      if (!shouldExclude) {
+        filteredConcepts.add(concept);
+      }
+    }
+    
+    logger.info("Exclusion filter '{}' {} '{}' filtered {} concepts to {} matches", 
+               filter.getProperty(), operation, value, concepts.size(), filteredConcepts.size());
+    
+    return filteredConcepts;
+  }
+
+  /**
+   * Check if concept code is in the comma-separated list.
+   *
+   * @param conceptCode the concept code
+   * @param codeList comma-separated list of codes
+   * @return true if concept is in the list
+   */
+  private boolean conceptIsInList(String conceptCode, String codeList) {
+    String[] codes = codeList.split(",");
+    for (String code : codes) {
+      if (conceptCode.equals(code.trim())) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  /**
+   * Check if concept has is-a relationship with the specified concept.
+   *
+   * @param conceptCode the concept code to check
+   * @param parentCode the parent concept code
+   * @param terminology the terminology
+   * @return true if concept is-a descendant of parent
+   * @throws Exception the exception
+   */
+  private boolean conceptIsA(String conceptCode, String parentCode, Terminology terminology) throws Exception {
+    // Check if conceptCode is the same as parentCode (concept is-a itself)
+    if (conceptCode.equals(parentCode)) {
+      return true;
+    }
+    
+    // Get all descendants of the parent concept
+    List<Concept> descendants = osQueryService.getDescendants(parentCode, terminology);
+    
+    // Check if conceptCode is among the descendants
+    return descendants.stream()
+        .anyMatch(descendant -> conceptCode.equals(descendant.getCode()));
   }
 
   /**
