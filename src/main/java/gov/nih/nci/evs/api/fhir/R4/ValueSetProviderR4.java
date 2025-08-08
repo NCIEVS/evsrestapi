@@ -596,7 +596,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       List<ValueSet.ConceptSetFilterComponent> inclusionFilters = new ArrayList<>();
       List<ValueSet.ConceptSetFilterComponent> exclusionFilters = new ArrayList<>();
       List<ValueSet.ConceptSetFilterComponent> propertyFilters = new ArrayList<>();
-      
+
       for (ValueSet.ConceptSetFilterComponent filter : include.getFilter()) {
         String operation = filter.getOp().toCode();
         if ("concept".equals(filter.getProperty())) {
@@ -609,32 +609,37 @@ public class ValueSetProviderR4 implements IResourceProvider {
         } else if ("=".equals(operation) || "exists".equals(operation)) {
           propertyFilters.add(filter);
         } else {
-          inclusionFilters.add(filter); // Handle as concept filter for unsupported property operations
+          inclusionFilters.add(
+              filter); // Handle as concept filter for unsupported property operations
         }
       }
-      
+
       // Apply inclusion concept-based filters first
       for (ValueSet.ConceptSetFilterComponent filter : inclusionFilters) {
         List<Concept> filteredConcepts = applyConceptFilter(filter, terminology, includeParam);
         concepts.addAll(filteredConcepts);
       }
-      
+
       // Apply property-based filters to existing concepts
       if (!propertyFilters.isEmpty() && !concepts.isEmpty()) {
         for (ValueSet.ConceptSetFilterComponent filter : propertyFilters) {
           concepts = applyPropertyFilterToConcepts(concepts, filter, terminology);
         }
       } else if (!propertyFilters.isEmpty()) {
-        logger.warn("Property filters found but no concepts to filter. Property filters require explicit concept list or concept-based filters.");
+        logger.warn(
+            "Property filters found but no concepts to filter. Property filters require explicit"
+                + " concept list or concept-based filters.");
       }
-      
+
       // Apply exclusion filters last to remove concepts from the final set
       if (!exclusionFilters.isEmpty() && !concepts.isEmpty()) {
         for (ValueSet.ConceptSetFilterComponent filter : exclusionFilters) {
           concepts = applyExclusionFilter(concepts, filter, terminology);
         }
       } else if (!exclusionFilters.isEmpty()) {
-        logger.warn("Exclusion filters found but no concepts to filter. Exclusion filters require explicit concept list or inclusion filters.");
+        logger.warn(
+            "Exclusion filters found but no concepts to filter. Exclusion filters require explicit"
+                + " concept list or inclusion filters.");
       }
     }
 
@@ -1552,7 +1557,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
         if ("concept".equals(property)) {
           logger.warn("Equals operation not supported for 'concept' property: {}", operation);
         } else {
-          logger.warn("Property equals filter should be handled in include processing, not in applyConceptFilter: {}", operation);
+          logger.warn(
+              "Property equals filter should be handled in include processing, not in"
+                  + " applyConceptFilter: {}",
+              operation);
         }
         break;
       case "is-a":
@@ -1563,7 +1571,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
         break;
       case "is-not-a":
         // Exclusion filter - should be handled in include processing, not here
-        logger.warn("Is-not-a filter operation should be handled as exclusion filter in include processing: {}", operation);
+        logger.warn(
+            "Is-not-a filter operation should be handled as exclusion filter in include processing:"
+                + " {}",
+            operation);
         break;
       case "regex":
         // Not implemented yet
@@ -1574,7 +1585,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
         break;
       case "not-in":
         // Exclusion filter - should be handled in include processing, not here
-        logger.warn("Not-in filter operation should be handled as exclusion filter in include processing: {}", operation);
+        logger.warn(
+            "Not-in filter operation should be handled as exclusion filter in include processing:"
+                + " {}",
+            operation);
         break;
       case "generalizes":
         // Not implemented yet
@@ -1586,7 +1600,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
         if ("concept".equals(property)) {
           logger.warn("Exists operation not supported for 'concept' property: {}", operation);
         } else {
-          logger.warn("Property exists filter should be handled in include processing, not in applyConceptFilter: {}", operation);
+          logger.warn(
+              "Property exists filter should be handled in include processing, not in"
+                  + " applyConceptFilter: {}",
+              operation);
         }
         break;
       default:
@@ -1640,16 +1657,17 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
   /** Apply property filter to concept list. */
   private List<Concept> applyPropertyFilterToConcepts(
-      List<Concept> concepts, ValueSet.ConceptSetFilterComponent filter, Terminology terminology) throws Exception {
-    
+      List<Concept> concepts, ValueSet.ConceptSetFilterComponent filter, Terminology terminology)
+      throws Exception {
+
     List<Concept> filteredConcepts = new ArrayList<>();
     String propertyName = filter.getProperty();
     String operation = filter.getOp().toCode();
     String value = filter.getValue();
-    
+
     for (Concept concept : concepts) {
       boolean shouldInclude = false;
-      
+
       try {
         if ("=".equals(operation)) {
           shouldInclude = conceptHasPropertyValue(concept, terminology, propertyName, value.trim());
@@ -1658,85 +1676,105 @@ public class ValueSetProviderR4 implements IResourceProvider {
           shouldInclude = conceptHasProperty(concept, terminology, propertyName, shouldExist);
         }
       } catch (Exception e) {
-        logger.warn("Error checking property filter '{}' {} '{}' for concept {}: {}", 
-                   propertyName, operation, value, concept.getCode(), e.getMessage());
+        logger.warn(
+            "Error checking property filter '{}' {} '{}' for concept {}: {}",
+            propertyName,
+            operation,
+            value,
+            concept.getCode(),
+            e.getMessage());
       }
-      
+
       if (shouldInclude) {
         filteredConcepts.add(concept);
       }
     }
-    
-    logger.info("Property filter '{}' {} '{}' filtered {} concepts to {} matches", 
-               propertyName, operation, value, concepts.size(), filteredConcepts.size());
-    
+
+    logger.info(
+        "Property filter '{}' {} '{}' filtered {} concepts to {} matches",
+        propertyName,
+        operation,
+        value,
+        concepts.size(),
+        filteredConcepts.size());
+
     return filteredConcepts;
   }
 
   /** Check if concept has property value. */
   private boolean conceptHasPropertyValue(
-      Concept concept, Terminology terminology, String propertyName, String propertyValue) throws Exception {
-    
+      Concept concept, Terminology terminology, String propertyName, String propertyValue)
+      throws Exception {
+
     // Get the full concept details including properties if not already loaded
     Concept fullConcept = concept;
     if (concept.getProperties() == null || concept.getProperties().isEmpty()) {
-      Optional<Concept> conceptOpt = osQueryService.getConcept(
-          concept.getCode(), terminology, new IncludeParam("properties"));
+      Optional<Concept> conceptOpt =
+          osQueryService.getConcept(concept.getCode(), terminology, new IncludeParam("properties"));
       if (conceptOpt.isPresent()) {
         fullConcept = conceptOpt.get();
       }
     }
-    
+
     if (fullConcept.getProperties() == null) {
       return false;
     }
-    
+
     // Check if any property matches the specified name and value
     return fullConcept.getProperties().stream()
-        .anyMatch(prop -> propertyName.equals(prop.getType()) && 
-                         propertyValue.equals(prop.getValue()));
+        .anyMatch(
+            prop -> propertyName.equals(prop.getType()) && propertyValue.equals(prop.getValue()));
   }
 
   /** Check if concept has property. */
   private boolean conceptHasProperty(
-      Concept concept, Terminology terminology, String propertyName, boolean shouldExist) throws Exception {
-    
+      Concept concept, Terminology terminology, String propertyName, boolean shouldExist)
+      throws Exception {
+
     // Get the full concept details including properties if not already loaded
     Concept fullConcept = concept;
     if (concept.getProperties() == null || concept.getProperties().isEmpty()) {
-      Optional<Concept> conceptOpt = osQueryService.getConcept(
-          concept.getCode(), terminology, new IncludeParam("properties"));
+      Optional<Concept> conceptOpt =
+          osQueryService.getConcept(concept.getCode(), terminology, new IncludeParam("properties"));
       if (conceptOpt.isPresent()) {
         fullConcept = conceptOpt.get();
       }
     }
-    
+
     if (fullConcept.getProperties() == null || fullConcept.getProperties().isEmpty()) {
       return !shouldExist; // No properties = property doesn't exist
     }
-    
+
     // Check if the specific property exists (has at least one value)
-    boolean hasProperty = fullConcept.getProperties().stream()
-        .anyMatch(prop -> propertyName.equals(prop.getType()) && 
-                         prop.getValue() != null && 
-                         !prop.getValue().toString().trim().isEmpty());
-    
+    boolean hasProperty =
+        fullConcept.getProperties().stream()
+            .anyMatch(
+                prop ->
+                    propertyName.equals(prop.getType())
+                        && prop.getValue() != null
+                        && !prop.getValue().toString().trim().isEmpty());
+
     return hasProperty == shouldExist;
   }
 
   /** Apply exclusion filter to remove concepts from the list. */
   private List<Concept> applyExclusionFilter(
-      List<Concept> concepts, ValueSet.ConceptSetFilterComponent filter, Terminology terminology) throws Exception {
-    
+      List<Concept> concepts, ValueSet.ConceptSetFilterComponent filter, Terminology terminology)
+      throws Exception {
+
     List<Concept> filteredConcepts = new ArrayList<>();
     String operation = filter.getOp().toCode();
     String value = filter.getValue();
-    
-    logger.info("Applying exclusion filter: op={}, value={} to {} concepts", operation, value, concepts.size());
-    
+
+    logger.info(
+        "Applying exclusion filter: op={}, value={} to {} concepts",
+        operation,
+        value,
+        concepts.size());
+
     for (Concept concept : concepts) {
       boolean shouldExclude = false;
-      
+
       try {
         if ("not-in".equals(operation)) {
           shouldExclude = conceptIsInList(concept, value);
@@ -1744,20 +1782,28 @@ public class ValueSetProviderR4 implements IResourceProvider {
           shouldExclude = conceptIsA(concept, value, terminology);
         }
       } catch (Exception e) {
-        logger.warn("Error checking exclusion filter {} '{}' for concept {}: {}", 
-                   operation, value, concept.getCode(), e.getMessage());
+        logger.warn(
+            "Error checking exclusion filter {} '{}' for concept {}: {}",
+            operation,
+            value,
+            concept.getCode(),
+            e.getMessage());
       }
-      
+
       if (!shouldExclude) {
         filteredConcepts.add(concept);
       } else {
         logger.debug("Excluding concept {} due to {} filter", concept.getCode(), operation);
       }
     }
-    
-    logger.info("Exclusion filter {} '{}' filtered {} concepts to {} remaining", 
-               operation, value, concepts.size(), filteredConcepts.size());
-    
+
+    logger.info(
+        "Exclusion filter {} '{}' filtered {} concepts to {} remaining",
+        operation,
+        value,
+        concepts.size(),
+        filteredConcepts.size());
+
     return filteredConcepts;
   }
 
@@ -1766,7 +1812,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
     if (conceptList == null || conceptList.trim().isEmpty()) {
       return false;
     }
-    
+
     String[] codes = conceptList.split(",");
     for (String code : codes) {
       if (concept.getCode().equals(code.trim())) {
@@ -1777,16 +1823,17 @@ public class ValueSetProviderR4 implements IResourceProvider {
   }
 
   /** Check if concept has is-a relationship with target concept. */
-  private boolean conceptIsA(Concept concept, String targetConceptCode, Terminology terminology) throws Exception {
+  private boolean conceptIsA(Concept concept, String targetConceptCode, Terminology terminology)
+      throws Exception {
     // First check if it's the same concept
     if (concept.getCode().equals(targetConceptCode)) {
       return true;
     }
-    
+
     // Check if concept is a descendant of the target concept
     // We use the ancestors to determine is-a relationships
     List<Concept> ancestors = osQueryService.getAncestors(concept.getCode(), terminology);
-    
+
     return ancestors.stream().anyMatch(ancestor -> ancestor.getCode().equals(targetConceptCode));
   }
 

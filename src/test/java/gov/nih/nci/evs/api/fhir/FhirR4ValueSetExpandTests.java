@@ -1628,7 +1628,8 @@ public class FhirR4ValueSetExpandTests {
     log.info("Found {} concepts in expansion", contains.size());
 
     // Assert - Should only contain concepts with Contributing_Source = "FDA"
-    // We expect C48672 (Schedule I Substance) to be included since it has Contributing_Source = "FDA"
+    // We expect C48672 (Schedule I Substance) to be included since it has Contributing_Source =
+    // "FDA"
     Optional<ValueSet.ValueSetExpansionContainsComponent> scheduleIResult =
         contains.stream().filter(comp -> "C48672".equals(comp.getCode())).findFirst();
 
@@ -1637,22 +1638,28 @@ public class FhirR4ValueSetExpandTests {
         "Schedule I Substance (C48672) should be included as it has Contributing_Source = 'FDA'");
     log.info("C48672 (Schedule I Substance) correctly included with Contributing_Source = 'FDA'");
 
-    // Assert - Should NOT contain concepts without Contributing_Source = "FDA" 
+    // Assert - Should NOT contain concepts without Contributing_Source = "FDA"
     // For example, C2991 (Disease or Disorder) should not have Contributing_Source = "FDA"
     Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
         contains.stream().filter(comp -> "C2991".equals(comp.getCode())).findFirst();
 
     assertFalse(
         diseaseResult.isPresent(),
-        "Disease or Disorder (C2991) should NOT be included as it does not have Contributing_Source = 'FDA'");
-    log.info("C2991 (Disease or Disorder) correctly excluded - does not have Contributing_Source = 'FDA'");
+        "Disease or Disorder (C2991) should NOT be included as it does not have Contributing_Source"
+            + " = 'FDA'");
+    log.info(
+        "C2991 (Disease or Disorder) correctly excluded - does not have Contributing_Source ="
+            + " 'FDA'");
 
     // Assert - Should have at least one concept with the matching property
     assertTrue(
         expansion.getTotal() >= 1,
-        "Should find at least one concept with Contributing_Source = 'FDA', found: " + expansion.getTotal());
-        
-    log.info("Property equals filter test completed successfully with {} matching concepts", expansion.getTotal());
+        "Should find at least one concept with Contributing_Source = 'FDA', found: "
+            + expansion.getTotal());
+
+    log.info(
+        "Property equals filter test completed successfully with {} matching concepts",
+        expansion.getTotal());
   }
 
   /**
@@ -1729,15 +1736,21 @@ public class FhirR4ValueSetExpandTests {
 
     assertFalse(
         controlledResult.isPresent(),
-        "Controlled Substance (C48670) should NOT be included as it does not have Contributing_Source property");
-    log.info("C48670 (Controlled Substance) correctly excluded - does not have Contributing_Source property");
+        "Controlled Substance (C48670) should NOT be included as it does not have"
+            + " Contributing_Source property");
+    log.info(
+        "C48670 (Controlled Substance) correctly excluded - does not have Contributing_Source"
+            + " property");
 
     // Assert - Should have at least one concept with the property
     assertTrue(
         expansion.getTotal() >= 1,
-        "Should find at least one concept with Contributing_Source property, found: " + expansion.getTotal());
-        
-    log.info("Property exists filter (value=true) test completed successfully with {} matching concepts", expansion.getTotal());
+        "Should find at least one concept with Contributing_Source property, found: "
+            + expansion.getTotal());
+
+    log.info(
+        "Property exists filter (value=true) test completed successfully with {} matching concepts",
+        expansion.getTotal());
   }
 
   /**
@@ -1789,14 +1802,18 @@ public class FhirR4ValueSetExpandTests {
     log.info("Found {} concepts without Contributing_Source property", contains.size());
 
     // Assert - Should contain concepts that do NOT have Contributing_Source property
-    // C48670 (Controlled Substance) should be included as it does not have Contributing_Source property
+    // C48670 (Controlled Substance) should be included as it does not have Contributing_Source
+    // property
     Optional<ValueSet.ValueSetExpansionContainsComponent> controlledResult =
         contains.stream().filter(comp -> "C48670".equals(comp.getCode())).findFirst();
 
     assertTrue(
         controlledResult.isPresent(),
-        "Controlled Substance (C48670) should be included as it does not have Contributing_Source property");
-    log.info("C48670 (Controlled Substance) correctly included - does not have Contributing_Source property");
+        "Controlled Substance (C48670) should be included as it does not have Contributing_Source"
+            + " property");
+    log.info(
+        "C48670 (Controlled Substance) correctly included - does not have Contributing_Source"
+            + " property");
 
     // Assert - Should NOT contain concepts that HAVE Contributing_Source property
     // C48672 (Schedule I Substance) should not be included as it has Contributing_Source = "FDA"
@@ -1805,7 +1822,8 @@ public class FhirR4ValueSetExpandTests {
 
     assertFalse(
         scheduleIResult.isPresent(),
-        "Schedule I Substance (C48672) should NOT be included as it has Contributing_Source property");
+        "Schedule I Substance (C48672) should NOT be included as it has Contributing_Source"
+            + " property");
     log.info("C48672 (Schedule I Substance) correctly excluded - has Contributing_Source property");
 
     // C2991 (Disease or Disorder) should not be included as it has Contributing_Source properties
@@ -1814,15 +1832,20 @@ public class FhirR4ValueSetExpandTests {
 
     assertFalse(
         diseaseResult.isPresent(),
-        "Disease or Disorder (C2991) should NOT be included as it has Contributing_Source property");
+        "Disease or Disorder (C2991) should NOT be included as it has Contributing_Source"
+            + " property");
     log.info("C2991 (Disease or Disorder) correctly excluded - has Contributing_Source property");
 
     // Assert - Should have at least one concept without the property
     assertTrue(
         expansion.getTotal() >= 1,
-        "Should find at least one concept without Contributing_Source property, found: " + expansion.getTotal());
-        
-    log.info("Property exists filter (value=false) test completed successfully with {} matching concepts", expansion.getTotal());
+        "Should find at least one concept without Contributing_Source property, found: "
+            + expansion.getTotal());
+
+    log.info(
+        "Property exists filter (value=false) test completed successfully with {} matching"
+            + " concepts",
+        expansion.getTotal());
   }
 
   /**
@@ -1859,7 +1882,7 @@ public class FhirR4ValueSetExpandTests {
     scheduleIConcept.setDisplay("Schedule I Substance");
     nciInclude.addConcept(scheduleIConcept);
 
-    // C2991 (Disease or Disorder) - has Contributing_Source but not "FDA" 
+    // C2991 (Disease or Disorder) - has Contributing_Source but not "FDA"
     ValueSet.ConceptReferenceComponent diseaseConcept = new ValueSet.ConceptReferenceComponent();
     diseaseConcept.setCode("C2991");
     diseaseConcept.setDisplay("Disease or Disorder");
@@ -1891,7 +1914,8 @@ public class FhirR4ValueSetExpandTests {
    * @param name the name
    * @param title the title
    * @param description the description
-   * @param shouldExist true to filter for concepts that HAVE the property, false to filter for concepts that do NOT have the property
+   * @param shouldExist true to filter for concepts that HAVE the property, false to filter for
+   *     concepts that do NOT have the property
    * @return the value set
    */
   private ValueSet createNCITestValueSetWithPropertyExistsFilter(
@@ -1919,7 +1943,8 @@ public class FhirR4ValueSetExpandTests {
     scheduleIConcept.setDisplay("Schedule I Substance");
     nciInclude.addConcept(scheduleIConcept);
 
-    // C2991 (Disease or Disorder) - HAS Contributing_Source = "CDISC-GLOSS", "CTDC", "CTRP", "GDC", "NICHD"
+    // C2991 (Disease or Disorder) - HAS Contributing_Source = "CDISC-GLOSS", "CTDC", "CTRP", "GDC",
+    // "NICHD"
     ValueSet.ConceptReferenceComponent diseaseConcept = new ValueSet.ConceptReferenceComponent();
     diseaseConcept.setCode("C2991");
     diseaseConcept.setDisplay("Disease or Disorder");
@@ -1930,7 +1955,7 @@ public class FhirR4ValueSetExpandTests {
     controlledConcept.setCode("C48670");
     controlledConcept.setDisplay("Controlled Substance");
     nciInclude.addConcept(controlledConcept);
-    
+
     // C21282 (Lyase Gene) - gene concept, does not have Contributing_Source
     ValueSet.ConceptReferenceComponent lyaseConcept = new ValueSet.ConceptReferenceComponent();
     lyaseConcept.setCode("C21282");
@@ -2031,8 +2056,10 @@ public class FhirR4ValueSetExpandTests {
     assertTrue(
         expansion.getTotal() >= 1,
         "Should find at least one concept not in exclusion list, found: " + expansion.getTotal());
-        
-    log.info("Not-in filter test completed successfully with {} remaining concepts", expansion.getTotal());
+
+    log.info(
+        "Not-in filter test completed successfully with {} remaining concepts",
+        expansion.getTotal());
   }
 
   /**
@@ -2107,16 +2134,17 @@ public class FhirR4ValueSetExpandTests {
         contains.stream().filter(comp -> "C21282".equals(comp.getCode())).findFirst();
 
     assertFalse(
-        lyaseResult.isPresent(),
-        "Lyase Gene (C21282) should NOT be included as it is-a Gene");
+        lyaseResult.isPresent(), "Lyase Gene (C21282) should NOT be included as it is-a Gene");
     log.info("C21282 (Lyase Gene) correctly excluded - is-a Gene");
 
     // Assert - Should have at least one non-gene concept
     assertTrue(
         expansion.getTotal() >= 1,
         "Should find at least one concept that is-not-a Gene, found: " + expansion.getTotal());
-        
-    log.info("Is-not-a filter test completed successfully with {} non-gene concepts", expansion.getTotal());
+
+    log.info(
+        "Is-not-a filter test completed successfully with {} non-gene concepts",
+        expansion.getTotal());
   }
 
   /**
