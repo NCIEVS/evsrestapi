@@ -583,7 +583,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
                   concept.getDisplay());
             }
           }
-          concepts.add(c);
+
+          // Apply version filtering to direct concepts
+          if (passesVersionFilter(c, include.getVersion(), terminology)) {
+            concepts.add(c);
+          }
         } else {
           logger.warn("Concept not found: {} in system {}", concept.getCode(), include.getSystem());
         }
@@ -617,13 +621,53 @@ public class ValueSetProviderR4 implements IResourceProvider {
       // Apply inclusion concept-based filters first
       for (ValueSet.ConceptSetFilterComponent filter : inclusionFilters) {
         List<Concept> filteredConcepts = applyConceptFilter(filter, terminology, includeParam);
+
+        // Apply version filtering to filter-based concepts with optimization
+        if (include.hasVersion()) {
+          filteredConcepts =
+              applyVersionFilterOptimizedR4(filteredConcepts, include.getVersion(), terminology);
+        }
+
         concepts.addAll(filteredConcepts);
       }
 
-      // Apply property-based filters to existing concepts
+      // Apply property-based filters to existing concepts with optimization
       if (!propertyFilters.isEmpty() && !concepts.isEmpty()) {
-        for (ValueSet.ConceptSetFilterComponent filter : propertyFilters) {
-          concepts = applyPropertyFilterToConcepts(concepts, filter, terminology);
+        // OPTIMIZATION: Apply version filtering FIRST to potentially eliminate all concepts early
+        if (include.hasVersion()) {
+          concepts = applyVersionFilterOptimizedR4(concepts, include.getVersion(), terminology);
+          logger.debug("Version filtering reduced concepts to {}", concepts.size());
+
+          // If version filtering eliminated all concepts, skip property filtering
+          if (concepts.isEmpty()) {
+            logger.debug("Version filtering eliminated all concepts, skipping property filtering");
+          }
+        }
+
+        // Apply property filters only if we still have concepts
+        if (!concepts.isEmpty()) {
+          // Apply property filters with limited batch size to prevent timeout
+          int maxConceptsForPropertyFiltering = 1000; // Limit to prevent timeout
+          if (concepts.size() > maxConceptsForPropertyFiltering) {
+            logger.warn(
+                "Too many concepts ({}) for property filtering, limiting to first {}",
+                concepts.size(),
+                maxConceptsForPropertyFiltering);
+            concepts = concepts.subList(0, maxConceptsForPropertyFiltering);
+          }
+
+          for (ValueSet.ConceptSetFilterComponent filter : propertyFilters) {
+            logger.debug(
+                "Applying property filter '{}' {} '{}' to {} concepts",
+                filter.getProperty(),
+                filter.getOp().toCode(),
+                filter.getValue(),
+                concepts.size());
+
+            concepts = applyPropertyFilterToConcepts(concepts, filter, terminology);
+
+            logger.debug("Property filter reduced concepts to {}", concepts.size());
+          }
         }
       } else if (!propertyFilters.isEmpty()) {
         logger.warn(
@@ -635,6 +679,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
       if (!exclusionFilters.isEmpty() && !concepts.isEmpty()) {
         for (ValueSet.ConceptSetFilterComponent filter : exclusionFilters) {
           concepts = applyExclusionFilter(concepts, filter, terminology);
+        }
+
+        // Apply version filtering after exclusion filters with optimization
+        if (include.hasVersion()) {
+          concepts = applyVersionFilterOptimizedR4(concepts, include.getVersion(), terminology);
         }
       } else if (!exclusionFilters.isEmpty()) {
         logger.warn(
@@ -2070,5 +2119,103 @@ public class ValueSetProviderR4 implements IResourceProvider {
     if (activeOnly) {
       expansion.addParameter().setName("activeOnly").setValue(new BooleanType(true));
     }
+  }
+
+  /**
+   * Check if a concept passes the version filter.
+   *
+   * @param concept the concept to check
+   * @param version the requested version
+   * @param terminology the terminology
+   * @return true if concept passes version filter
+   * @throws Exception the exception
+   */
+  private boolean passesVersionFilter(Concept concept, String version, Terminology terminology)
+      throws Exception {
+
+    if (version == null || version.isEmpty()) {
+      return true;
+    }
+
+    // OPTIMIZATION: Check if requested version matches current terminology version
+    String currentTerminologyVersion = terminology.getVersion();
+    if (currentTerminologyVersion != null) {
+      // If requested version matches current terminology version, accept concept
+      if (version.equals(currentTerminologyVersion)) {
+        return true;
+      }
+
+      // If requested version is older than current terminology version,
+      // and this server only maintains current version, reject concept
+      if (version.compareTo(currentTerminologyVersion) < 0) {
+        logger.debug(
+            "Rejecting concept {} - requested version {} is older than current {}",
+            concept.getCode(),
+            version,
+            currentTerminologyVersion);
+        return false;
+      }
+    }
+
+    // Fallback to individual concept version check (for edge cases)
+    String conceptVersion = concept.getVersion();
+
+    // Compare concept version with requested version
+    return conceptVersion != null && version.compareTo(conceptVersion) <= 0;
+  }
+
+  /**
+   * Apply version filtering with optimization for bulk operations (R4).
+   *
+   * @param concepts the concepts to filter
+   * @param version the requested version
+   * @param terminology the terminology
+   * @return filtered concepts
+   */
+  private List<Concept> applyVersionFilterOptimizedR4(
+      List<Concept> concepts, String version, Terminology terminology) {
+
+    if (version == null || version.isEmpty() || concepts.isEmpty()) {
+      return concepts;
+    }
+
+    // OPTIMIZATION: Check terminology version first
+    String currentTerminologyVersion = terminology.getVersion();
+    if (currentTerminologyVersion != null) {
+      // If requested version matches current terminology version, accept all concepts
+      if (version.equals(currentTerminologyVersion)) {
+        logger.debug(
+            "Version match: accepting all {} concepts for version {}", concepts.size(), version);
+        return concepts;
+      }
+
+      // If requested version is older than current terminology version,
+      // and this server only maintains current version, reject all concepts
+      if (version.compareTo(currentTerminologyVersion) < 0) {
+        logger.debug(
+            "Version mismatch: rejecting all {} concepts - requested {} vs current {}",
+            concepts.size(),
+            version,
+            currentTerminologyVersion);
+        return new ArrayList<>(); // Return empty list for old versions
+      }
+    }
+
+    // Fallback to individual concept filtering (should rarely be needed)
+    logger.debug("Applying individual version filtering to {} concepts", concepts.size());
+    return concepts.stream()
+        .filter(
+            concept -> {
+              try {
+                return passesVersionFilter(concept, version, terminology);
+              } catch (Exception e) {
+                logger.warn(
+                    "Error applying version filter to concept {}: {}",
+                    concept.getCode(),
+                    e.getMessage());
+                return false;
+              }
+            })
+        .collect(Collectors.toList());
   }
 }

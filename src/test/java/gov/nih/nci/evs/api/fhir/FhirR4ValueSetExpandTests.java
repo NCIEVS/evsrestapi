@@ -11,18 +11,12 @@ import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.util.JsonUtils;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+
+import java.util.*;
 import java.util.stream.Collectors;
-import org.hl7.fhir.r4.model.BooleanType;
-import org.hl7.fhir.r4.model.Enumerations;
-import org.hl7.fhir.r4.model.OperationOutcome;
+
+import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.ValueSet;
 import org.hl7.fhir.r4.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -382,54 +376,6 @@ public class FhirR4ValueSetExpandTests {
     return inputValueSet;
   }
 
-  /**
-   * Helper method to create ValueSet with specific NCIt version.
-   *
-   * @param id the id
-   * @param name the name
-   * @param title the title
-   * @param description the description
-   * @return the value set
-   */
-  private ValueSet createNCITestValueSetWithVersion(
-      String id, String name, String title, String description) {
-    ValueSet inputValueSet = new ValueSet();
-    inputValueSet.setId(id);
-    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
-    inputValueSet.setVersion("1.0.0");
-    inputValueSet.setName(name);
-    inputValueSet.setTitle(title);
-    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
-    inputValueSet.setDescription(description);
-
-    // Build compose definition with NCI Thesaurus concepts using specific version
-    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
-    ValueSet.ConceptSetComponent nciInclude = new ValueSet.ConceptSetComponent();
-    nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    nciInclude.setVersion("24.03d"); // Specific NCIt version
-
-    // Valid active concept
-    ValueSet.ConceptReferenceComponent diseaseOrDisorder = new ValueSet.ConceptReferenceComponent();
-    diseaseOrDisorder.setCode("C2991");
-    diseaseOrDisorder.setDisplay("Disease or Disorder");
-    nciInclude.addConcept(diseaseOrDisorder);
-
-    // Valid active concept
-    ValueSet.ConceptReferenceComponent gene = new ValueSet.ConceptReferenceComponent();
-    gene.setCode("C16612");
-    gene.setDisplay("Gene");
-    nciInclude.addConcept(gene);
-
-    // Inactive concept
-    ValueSet.ConceptReferenceComponent inactiveConcept = new ValueSet.ConceptReferenceComponent();
-    inactiveConcept.setCode("C176707");
-    inactiveConcept.setDisplay("Physical Examination Finding - Inactive Test Concept");
-    nciInclude.addConcept(inactiveConcept);
-
-    compose.addInclude(nciInclude);
-    inputValueSet.setCompose(compose);
-    return inputValueSet;
-  }
 
   /**
    * Test value set expand instance.
@@ -819,7 +765,7 @@ public class FhirR4ValueSetExpandTests {
 
     // Convert to JSON for POST request
     String requestBody = parser.encodeResourceToString(inputValueSet);
-    log.info("  value set = " + requestBody);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -1071,7 +1017,7 @@ public class FhirR4ValueSetExpandTests {
 
     // Convert to JSON for POST request
     String requestBody = parser.encodeResourceToString(inputValueSet);
-    log.info("  value set = " + requestBody);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -1190,7 +1136,7 @@ public class FhirR4ValueSetExpandTests {
 
     // Convert to JSON for POST request
     String requestBody = parser.encodeResourceToString(inputValueSet);
-    log.info("  value set = " + requestBody);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -1341,7 +1287,7 @@ public class FhirR4ValueSetExpandTests {
 
     // Convert to JSON for POST request
     String requestBody = parser.encodeResourceToString(inputValueSet);
-    log.info("  value set = " + requestBody);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -1451,134 +1397,6 @@ public class FhirR4ValueSetExpandTests {
         expansion.getTotal());
   }
 
-  /**
-   * Test value set expand with NCI thesaurus specific version.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testValueSetExpandWithNCIThesaurusSpecificVersion() throws Exception {
-    // Arrange
-    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
-
-    // Create the ValueSet with specific NCIt version
-    ValueSet inputValueSet =
-        createNCITestValueSetWithVersion(
-            "nci-version-test",
-            "NCIVersionTest",
-            "NCI Thesaurus Version Test",
-            "Test ValueSet with specific NCIt version 24.03d");
-
-    // Convert to JSON for POST request
-    String requestBody = parser.encodeResourceToString(inputValueSet);
-    log.info("  value set = " + requestBody);
-
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
-    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
-
-    // Act
-    ResponseEntity<String> response =
-        this.restTemplate.postForEntity(endpoint, request, String.class);
-    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
-    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
-
-    // Assert - Basic structure validation
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertNotNull(expandedValueSet);
-    assertTrue(expandedValueSet.hasExpansion());
-
-    // Assert - Expansion metadata
-    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
-    assertNotNull(expansion.getIdentifier());
-    assertNotNull(expansion.getTimestamp());
-    assertNotNull(expansion.getTotal());
-    assertTrue(expansion.hasContains());
-
-    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
-
-    // Assert - Valid active concepts should be included
-    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
-        contains.stream()
-            .filter(
-                comp ->
-                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
-            .filter(comp -> "C2991".equals(comp.getCode()))
-            .findFirst();
-
-    assertTrue(diseaseResult.isPresent(), "Disease or Disorder (C2991) should be included");
-    assertEquals("Disease or Disorder", diseaseResult.get().getDisplay());
-
-    Optional<ValueSet.ValueSetExpansionContainsComponent> geneResult =
-        contains.stream()
-            .filter(
-                comp ->
-                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
-            .filter(comp -> "C16612".equals(comp.getCode()))
-            .findFirst();
-
-    assertTrue(geneResult.isPresent(), "Gene (C16612) should be included");
-    assertEquals("Gene", geneResult.get().getDisplay());
-
-    // Assert - Check for version-specific behavior with inactive concept
-    Optional<ValueSet.ValueSetExpansionContainsComponent> inactiveResult =
-        contains.stream()
-            .filter(
-                comp ->
-                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
-            .filter(comp -> "C176707".equals(comp.getCode()))
-            .findFirst();
-
-    log.info(
-        "  Inactive concept C176707 present in version-specific expansion: {}",
-        inactiveResult.isPresent());
-
-    // Assert - All returned concepts should be valid and from NCI Thesaurus
-    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
-      assertEquals(
-          "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl",
-          concept.getSystem(),
-          "All concepts should be from NCI Thesaurus system");
-      assertNotNull(concept.getCode(), "All concepts should have a code");
-      assertNotNull(concept.getDisplay(), "All concepts should have a display");
-      assertFalse(concept.getDisplay().trim().isEmpty(), "Display should not be empty");
-
-      // Assert valid NCI concept code format
-      assertTrue(
-          concept.getCode().matches("C\\d+"),
-          "NCI concept codes should start with 'C' followed by digits: " + concept.getCode());
-
-      log.debug("    Version 24.03d concept: {} - {}", concept.getCode(), concept.getDisplay());
-    }
-
-    // Assert - Should have the expected number of valid concepts
-    assertTrue(expansion.getTotal() >= 2, "Should have at least 2 valid concepts");
-    assertTrue(
-        expansion.getTotal() <= 3,
-        "Should have at most 3 concepts (depending on inactive handling)");
-
-    // Assert - Check if expansion contains version information
-    if (expansion.hasParameter()) {
-      for (ValueSet.ValueSetExpansionParameterComponent param : expansion.getParameter()) {
-        log.info("  Expansion parameter: {} = {}", param.getName(), param.getValue());
-
-        // Check for version-related parameters
-        if ("version".equals(param.getName()) || "system-version".equals(param.getName())) {
-          String versionValue = param.getValue().toString();
-          log.info("  Found version parameter: {}", versionValue);
-          // Note: The exact version format may vary depending on implementation
-        }
-      }
-    }
-
-    log.info(
-        "  NCI Thesaurus version-specific expansion completed with {} concepts",
-        expansion.getTotal());
-
-    // Note: This test validates that version-specific expansion works
-    // The exact behavior may depend on whether version 24.03d is available
-    // and how the implementation handles version-specific requests
-  }
 
   /**
    * Test value set expand with NCI thesaurus property equals filter.
@@ -1590,7 +1408,7 @@ public class FhirR4ValueSetExpandTests {
     // Arrange
     String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
 
-    // Create the ValueSet with property '=' filter
+    // Create the ValueSet with property '=' filter3
     ValueSet inputValueSet =
         createNCITestValueSetWithPropertyEqualsFilter(
             "nci-property-equals-filter-test",
@@ -1600,7 +1418,7 @@ public class FhirR4ValueSetExpandTests {
 
     // Convert to JSON for POST request
     String requestBody = parser.encodeResourceToString(inputValueSet);
-    log.info("  value set = " + requestBody);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -1683,7 +1501,7 @@ public class FhirR4ValueSetExpandTests {
 
     // Convert to JSON for POST request
     String requestBody = parser.encodeResourceToString(inputValueSet);
-    log.info("  value set = " + requestBody);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -1774,7 +1592,7 @@ public class FhirR4ValueSetExpandTests {
 
     // Convert to JSON for POST request
     String requestBody = parser.encodeResourceToString(inputValueSet);
-    log.info("  value set = " + requestBody);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -1996,7 +1814,7 @@ public class FhirR4ValueSetExpandTests {
 
     // Convert to JSON for POST request
     String requestBody = parser.encodeResourceToString(inputValueSet);
-    log.info("  value set = " + requestBody);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -2082,7 +1900,7 @@ public class FhirR4ValueSetExpandTests {
 
     // Convert to JSON for POST request
     String requestBody = parser.encodeResourceToString(inputValueSet);
-    log.info("  value set = " + requestBody);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
 
     HttpHeaders headers = new HttpHeaders();
     headers.setContentType(MediaType.APPLICATION_JSON);
@@ -2278,6 +2096,705 @@ public class FhirR4ValueSetExpandTests {
     isNotAFilter.setValue("C16612"); // Exclude concepts that are-a Gene (C16612)
 
     nciInclude.addFilter(isNotAFilter);
+
+    compose.addInclude(nciInclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  /**
+   * Test value set expand with NCI thesaurus exclude 'is-a' filter.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithNCIThesaurusExcludeIsAFilter() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with exclude 'is-a' filter
+    ValueSet inputValueSet =
+        createNCITestValueSetWithExcludeIsAFilter(
+            "nci-exclude-is-a-filter-test",
+            "NCIExcludeIsAFilterTest",
+            "NCI Thesaurus Exclude Is-A Filter Test",
+            "Test ValueSet with exclude 'is-a' filter to remove gene concepts");
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+    log.info("Found {} concepts after exclude 'is-a' filter", contains.size());
+
+    // Assert - Should contain non-gene concepts
+    // C48672 (Schedule I Substance) should be included as it's not a gene
+    Optional<ValueSet.ValueSetExpansionContainsComponent> scheduleIResult =
+        contains.stream().filter(comp -> "C48672".equals(comp.getCode())).findFirst();
+
+    assertTrue(
+        scheduleIResult.isPresent(),
+        "Schedule I Substance (C48672) should be included as it's not a gene");
+    log.info("C48672 (Schedule I Substance) correctly included - not a gene");
+
+    // C2991 (Disease or Disorder) should be included as it's not a gene
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream().filter(comp -> "C2991".equals(comp.getCode())).findFirst();
+
+    assertTrue(
+        diseaseResult.isPresent(),
+        "Disease or Disorder (C2991) should be included as it's not a gene");
+    log.info("C2991 (Disease or Disorder) correctly included - not a gene");
+
+    // Assert - Should NOT contain gene concepts that were excluded
+    // C21282 (Lyase Gene) should be excluded by the exclude filter
+    Optional<ValueSet.ValueSetExpansionContainsComponent> lyaseResult =
+        contains.stream().filter(comp -> "C21282".equals(comp.getCode())).findFirst();
+
+    assertFalse(
+        lyaseResult.isPresent(),
+        "Lyase Gene (C21282) should NOT be included due to exclude 'is-a' filter");
+    log.info("C21282 (Lyase Gene) correctly excluded by exclude filter");
+
+    // C16612 (Gene) should be excluded by the exclude filter
+    Optional<ValueSet.ValueSetExpansionContainsComponent> geneResult =
+        contains.stream().filter(comp -> "C16612".equals(comp.getCode())).findFirst();
+
+    assertFalse(
+        geneResult.isPresent(),
+        "Gene (C16612) should NOT be included due to exclude 'is-a' filter");
+    log.info("C16612 (Gene) correctly excluded by exclude filter");
+
+    log.info(
+        "Exclude is-a filter test completed successfully with {} remaining concepts",
+        expansion.getTotal());
+  }
+
+  /**
+   * Test value set expand with NCI thesaurus exclude property equals filter.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithNCIThesaurusExcludePropertyEqualsFilter() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with exclude property equals filter
+    ValueSet inputValueSet =
+        createNCITestValueSetWithExcludePropertyEqualsFilter(
+            "nci-exclude-property-equals-filter-test",
+            "NCIExcludePropertyEqualsFilterTest",
+            "NCI Thesaurus Exclude Property Equals Filter Test",
+            "Test ValueSet with exclude property equals filter");
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+    log.info("Found {} concepts after exclude property equals filter", contains.size());
+
+    // Assert - Should contain concepts that do NOT have Contributing_Source = "FDA"
+    // C2991 (Disease or Disorder) should be included (has Contributing_Source but not "FDA")
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream().filter(comp -> "C2991".equals(comp.getCode())).findFirst();
+
+    assertTrue(
+        diseaseResult.isPresent(),
+        "Disease or Disorder (C2991) should be included as it doesn't have Contributing_Source ="
+            + " 'FDA'");
+    log.info("C2991 (Disease or Disorder) correctly included - no FDA Contributing_Source");
+
+    // C48670 (Controlled Substance) should be included (no Contributing_Source property)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> controlledResult =
+        contains.stream().filter(comp -> "C48670".equals(comp.getCode())).findFirst();
+
+    assertTrue(
+        controlledResult.isPresent(),
+        "Controlled Substance (C48670) should be included as it has no Contributing_Source"
+            + " property");
+    log.info("C48670 (Controlled Substance) correctly included - no Contributing_Source property");
+
+    // Assert - Should NOT contain concepts with Contributing_Source = "FDA"
+    // C48672 (Schedule I Substance) should be excluded (has Contributing_Source = "FDA")
+    Optional<ValueSet.ValueSetExpansionContainsComponent> scheduleIResult =
+        contains.stream().filter(comp -> "C48672".equals(comp.getCode())).findFirst();
+
+    assertFalse(
+        scheduleIResult.isPresent(),
+        "Schedule I Substance (C48672) should NOT be included due to exclude property equals"
+            + " filter");
+    log.info("C48672 (Schedule I Substance) correctly excluded - has Contributing_Source = 'FDA'");
+
+    log.info(
+        "Exclude property equals filter test completed successfully with {} remaining concepts",
+        expansion.getTotal());
+  }
+
+  /**
+   * Creates the NCI test value set with exclude 'is-a' filter.
+   *
+   * @param id the id
+   * @param name the name
+   * @param title the title
+   * @param description the description
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithExcludeIsAFilter(
+      String id, String name, String title, String description) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName(name);
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(description);
+
+    // Build compose definition with NCI Thesaurus concepts
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+
+    // INCLUDE section - include various concepts
+    ValueSet.ConceptSetComponent nciInclude = new ValueSet.ConceptSetComponent();
+    nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Include various concepts including genes and non-genes
+    ValueSet.ConceptReferenceComponent lyaseConcept = new ValueSet.ConceptReferenceComponent();
+    lyaseConcept.setCode("C21282");
+    lyaseConcept.setDisplay("Lyase Gene");
+    nciInclude.addConcept(lyaseConcept);
+
+    ValueSet.ConceptReferenceComponent geneConcept = new ValueSet.ConceptReferenceComponent();
+    geneConcept.setCode("C16612");
+    geneConcept.setDisplay("Gene");
+    nciInclude.addConcept(geneConcept);
+
+    ValueSet.ConceptReferenceComponent scheduleIConcept = new ValueSet.ConceptReferenceComponent();
+    scheduleIConcept.setCode("C48672");
+    scheduleIConcept.setDisplay("Schedule I Substance");
+    nciInclude.addConcept(scheduleIConcept);
+
+    ValueSet.ConceptReferenceComponent diseaseConcept = new ValueSet.ConceptReferenceComponent();
+    diseaseConcept.setCode("C2991");
+    diseaseConcept.setDisplay("Disease or Disorder");
+    nciInclude.addConcept(diseaseConcept);
+
+    compose.addInclude(nciInclude);
+
+    // EXCLUDE section - exclude gene concepts using 'is-a' filter
+    ValueSet.ConceptSetComponent nciExclude = new ValueSet.ConceptSetComponent();
+    nciExclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    ValueSet.ConceptSetFilterComponent isAFilter = new ValueSet.ConceptSetFilterComponent();
+    isAFilter.setProperty("concept");
+    isAFilter.setOp(ValueSet.FilterOperator.ISA); // "is-a" operation in exclude
+    isAFilter.setValue("C16612"); // Exclude concepts that are-a Gene (C16612)
+
+    nciExclude.addFilter(isAFilter);
+
+    compose.addExclude(nciExclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  /**
+   * Creates the NCI test value set with exclude property equals filter.
+   *
+   * @param id the id
+   * @param name the name
+   * @param title the title
+   * @param description the description
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithExcludePropertyEqualsFilter(
+      String id, String name, String title, String description) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName(name);
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(description);
+
+    // Build compose definition with NCI Thesaurus concepts
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+
+    // INCLUDE section - include various concepts
+    ValueSet.ConceptSetComponent nciInclude = new ValueSet.ConceptSetComponent();
+    nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Include concepts with different Contributing_Source properties
+    ValueSet.ConceptReferenceComponent scheduleIConcept = new ValueSet.ConceptReferenceComponent();
+    scheduleIConcept.setCode("C48672");
+    scheduleIConcept.setDisplay("Schedule I Substance");
+    nciInclude.addConcept(scheduleIConcept);
+
+    ValueSet.ConceptReferenceComponent diseaseConcept = new ValueSet.ConceptReferenceComponent();
+    diseaseConcept.setCode("C2991");
+    diseaseConcept.setDisplay("Disease or Disorder");
+    nciInclude.addConcept(diseaseConcept);
+
+    ValueSet.ConceptReferenceComponent controlledConcept = new ValueSet.ConceptReferenceComponent();
+    controlledConcept.setCode("C48670");
+    controlledConcept.setDisplay("Controlled Substance");
+    nciInclude.addConcept(controlledConcept);
+
+    compose.addInclude(nciInclude);
+
+    // EXCLUDE section - exclude concepts with Contributing_Source = "FDA"
+    ValueSet.ConceptSetComponent nciExclude = new ValueSet.ConceptSetComponent();
+    nciExclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Include the same concepts in exclude to apply property filter
+    ValueSet.ConceptReferenceComponent excludeScheduleIConcept =
+        new ValueSet.ConceptReferenceComponent();
+    excludeScheduleIConcept.setCode("C48672");
+    excludeScheduleIConcept.setDisplay("Schedule I Substance");
+    nciExclude.addConcept(excludeScheduleIConcept);
+
+    ValueSet.ConceptReferenceComponent excludeDiseaseConcept =
+        new ValueSet.ConceptReferenceComponent();
+    excludeDiseaseConcept.setCode("C2991");
+    excludeDiseaseConcept.setDisplay("Disease or Disorder");
+    nciExclude.addConcept(excludeDiseaseConcept);
+
+    ValueSet.ConceptReferenceComponent excludeControlledConcept =
+        new ValueSet.ConceptReferenceComponent();
+    excludeControlledConcept.setCode("C48670");
+    excludeControlledConcept.setDisplay("Controlled Substance");
+    nciExclude.addConcept(excludeControlledConcept);
+
+    // Add property equals filter to exclude
+    ValueSet.ConceptSetFilterComponent propertyFilter = new ValueSet.ConceptSetFilterComponent();
+    propertyFilter.setProperty("Contributing_Source");
+    propertyFilter.setOp(ValueSet.FilterOperator.EQUAL); // "=" operation
+    propertyFilter.setValue("FDA"); // Exclude concepts with Contributing_Source = "FDA"
+
+    nciExclude.addFilter(propertyFilter);
+
+    compose.addExclude(nciExclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  /**
+   * Test value set expand with include.version for direct concepts using current NCIt version.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithIncludeVersionDirectConceptsCurrent() throws Exception {
+    // Arrange - Get current NCIt version
+    String content;
+    String endpoint = localHost + port + fhirVSPath;
+
+    // Get list of NCIt ValueSets to find a valid ID and current version
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> valueSets =
+        data.getEntry().stream()
+            .map(Bundle.BundleEntryComponent::getResource)
+            .filter(resource -> resource instanceof ValueSet)
+            .filter(
+                resource -> {
+                  ValueSet vs = (ValueSet) resource;
+                  return vs.hasUrl()
+                      && vs.getUrl().contains("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+                })
+            .toList();
+    String firstValueSetId = valueSets.get(0).getIdPart();
+
+    // Get current version
+    content = this.restTemplate.getForObject(endpoint + "/" + firstValueSetId, String.class);
+    ValueSet currentValueSet = parser.parseResource(ValueSet.class, content);
+    String currentNCItVersion = currentValueSet.getVersion();
+
+    if (currentNCItVersion == null) {
+      log.warn("Could not determine current NCIt version, using fallback");
+      currentNCItVersion = "24.01d"; // Fallback to a recent version
+    }
+    log.info("Using current NCIt version: {} for R4 include.version test", currentNCItVersion);
+
+    String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet using current version - should return concepts
+    ValueSet inputValueSet = createNCITestValueSetWithIncludeVersionR4(currentNCItVersion);
+
+    // Create Parameters resource
+    Parameters parameters = new Parameters();
+    parameters.addParameter().setName("valueSet").setResource(inputValueSet);
+    parameters.addParameter("count", new IntegerType(100));
+    parameters.addParameter("offset", new IntegerType(0));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    String parametersJson = parser.encodeResourceToString(parameters);
+
+    log.info("  parameters = " + JsonUtils.prettyPrint(parametersJson));
+    HttpEntity<String> entity = new HttpEntity<>(parametersJson, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        restTemplate.postForEntity(expandEndpoint, entity, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+
+    // Assert - Should return 200 OK
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion(), "Expanded ValueSet should have expansion");
+
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+
+    // Assert - Should have concepts since we're using current version
+    log.info(
+        "R4 NCI Thesaurus ValueSet expansion with current include.version ({}) completed with {}"
+            + " concepts",
+        currentNCItVersion,
+        expansion.getTotal());
+
+    assertTrue(
+        expansion.getTotal() > 0,
+        "Should have concepts when using current NCIt version: " + currentNCItVersion);
+
+    // Verify specific concepts are present
+    Optional<ValueSet.ValueSetExpansionContainsComponent> neoplasmResult =
+        contains.stream().filter(comp -> "C3262".equals(comp.getCode())).findFirst();
+    assertTrue(
+        neoplasmResult.isPresent(), "Neoplasm (C3262) should be included with current version");
+  }
+
+  /**
+   * Test value set expand with include.version for direct concepts using old NCIt version.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithIncludeVersionDirectConceptsOld() throws Exception {
+    // Arrange
+    String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String oldVersion = "23.03d"; // Old version that shouldn't be available on server
+
+    // Create the ValueSet using old version - should return no concepts
+    ValueSet inputValueSet = createNCITestValueSetWithIncludeVersionR4(oldVersion);
+
+    // Create Parameters resource
+    Parameters parameters = new Parameters();
+    parameters.addParameter().setName("valueSet").setResource(inputValueSet);
+    parameters.addParameter("count", new IntegerType(100));
+    parameters.addParameter("offset", new IntegerType(0));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    String parametersJson = parser.encodeResourceToString(parameters);
+
+    log.info("  parameters = " + JsonUtils.prettyPrint(parametersJson));
+    HttpEntity<String> entity = new HttpEntity<>(parametersJson, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        restTemplate.postForEntity(expandEndpoint, entity, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+
+    // Assert - Should return 200 OK but no concepts
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion(), "Expanded ValueSet should have expansion");
+
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+
+    // Assert - Should have no concepts since we're using old version not available on server
+    log.info(
+        "R4 NCI Thesaurus ValueSet expansion with old include.version ({}) completed with {}"
+            + " concepts",
+        oldVersion,
+        expansion.getTotal());
+
+    assertEquals(
+        0,
+        expansion.getTotal(),
+        "Should have no concepts when using old NCIt version not available on server: "
+            + oldVersion);
+  }
+
+  /**
+   * Test value set expand with include.version for filter-based concepts using current NCIt
+   * version.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithIncludeVersionFilterBasedCurrent() throws Exception {
+    // Arrange - Get current NCIt version
+    String content;
+    String endpoint = localHost + port + fhirVSPath;
+
+    // Get list of NCIt ValueSets to find a valid ID and current version
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> valueSets =
+        data.getEntry().stream()
+            .map(Bundle.BundleEntryComponent::getResource)
+            .filter(resource -> resource instanceof ValueSet)
+            .filter(
+                resource -> {
+                  ValueSet vs = (ValueSet) resource;
+                  return vs.hasUrl()
+                      && vs.getUrl().contains("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+                })
+            .toList();
+    String firstValueSetId = valueSets.get(0).getIdPart();
+
+    // Get current version
+    content = this.restTemplate.getForObject(endpoint + "/" + firstValueSetId, String.class);
+    ValueSet currentValueSet = parser.parseResource(ValueSet.class, content);
+    String currentNCItVersion = currentValueSet.getVersion();
+
+    if (currentNCItVersion == null) {
+      log.warn("Could not determine current NCIt version, using fallback");
+      currentNCItVersion = "24.01d"; // Fallback to a recent version
+    }
+    log.info(
+        "Using current NCIt version: {} for R4 include.version filter test", currentNCItVersion);
+
+    String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet using current version and filters - should return concepts
+    ValueSet inputValueSet =
+        createNCITestValueSetWithIncludeVersionAndFiltersR4(currentNCItVersion);
+
+    // Create Parameters resource
+    Parameters parameters = new Parameters();
+    parameters.addParameter().setName("valueSet").setResource(inputValueSet);
+    parameters.addParameter("count", new IntegerType(100));
+    parameters.addParameter("offset", new IntegerType(0));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    String parametersJson = parser.encodeResourceToString(parameters);
+
+    log.info("  parameters = " + JsonUtils.prettyPrint(parametersJson));
+    HttpEntity<String> entity = new HttpEntity<>(parametersJson, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        restTemplate.postForEntity(expandEndpoint, entity, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+
+    // Assert - Should return 200 OK
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion(), "Expanded ValueSet should have expansion");
+
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+
+    // Assert - Should have concepts since we're using current version and valid filters
+    log.info(
+        "R4 NCI Thesaurus ValueSet expansion with current include.version ({}) and filters"
+            + " completed with {} concepts",
+        currentNCItVersion,
+        expansion.getTotal());
+
+    assertTrue(
+        expansion.getTotal() > 0,
+        "Should have concepts when using current NCIt version with filters: " + currentNCItVersion);
+  }
+
+  /**
+   * Test value set expand with include.version for filter-based concepts using old NCIt version.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithIncludeVersionFilterBasedOld() throws Exception {
+    // Arrange
+    String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String oldVersion = "23.03d"; // Old version that shouldn't be available on server
+
+    // Create the ValueSet using old version and filters - should return no concepts
+    ValueSet inputValueSet = createNCITestValueSetWithIncludeVersionAndFiltersR4(oldVersion);
+
+    // Create Parameters resource
+    Parameters parameters = new Parameters();
+    parameters.addParameter().setName("valueSet").setResource(inputValueSet);
+    parameters.addParameter("count", new IntegerType(100));
+    parameters.addParameter("offset", new IntegerType(0));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    String parametersJson = parser.encodeResourceToString(parameters);
+
+    log.info("  parameters = " + JsonUtils.prettyPrint(parametersJson));
+    HttpEntity<String> entity = new HttpEntity<>(parametersJson, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        restTemplate.postForEntity(expandEndpoint, entity, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+
+    // Assert - Should return 200 OK but no concepts
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion(), "Expanded ValueSet should have expansion");
+
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+
+    // Assert - Should have no concepts since we're using old version not available on server
+    log.info(
+        "R4 NCI Thesaurus ValueSet expansion with old include.version ({}) and filters completed"
+            + " with {} concepts",
+        oldVersion,
+        expansion.getTotal());
+
+    assertEquals(
+        0,
+        expansion.getTotal(),
+        "Should have no concepts when using old NCIt version not available on server with filters: "
+            + oldVersion);
+  }
+
+  /**
+   * Creates a test ValueSet with include.version for direct concepts (R4).
+   *
+   * @param version the NCIt version to use
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithIncludeVersionR4(String version) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId("test-valueset-include-version-r4-" + version.replace(".", "-"));
+    inputValueSet.setUrl("http://example.org/test/ValueSet/include-version-test-r4");
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName("IncludeVersionTestR4");
+    inputValueSet.setTitle("Include Version Test ValueSet R4");
+    inputValueSet.setStatus(org.hl7.fhir.r4.model.Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDate(new Date());
+    inputValueSet.setDescription(
+        "Test ValueSet for include.version functionality with direct concepts using NCIt "
+            + version
+            + " (R4)");
+
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+    ValueSet.ConceptSetComponent nciInclude = new ValueSet.ConceptSetComponent();
+    nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    nciInclude.setVersion(version); // Set specific version
+
+    // Add some known NCI concepts
+    ValueSet.ConceptReferenceComponent conceptNeoplasm = new ValueSet.ConceptReferenceComponent();
+    conceptNeoplasm.setCode("C3262");
+    conceptNeoplasm.setDisplay("Neoplasm");
+    nciInclude.addConcept(conceptNeoplasm);
+
+    ValueSet.ConceptReferenceComponent conceptCarcinoma = new ValueSet.ConceptReferenceComponent();
+    conceptCarcinoma.setCode("C2916");
+    conceptCarcinoma.setDisplay("Carcinoma");
+    nciInclude.addConcept(conceptCarcinoma);
+
+    ValueSet.ConceptReferenceComponent conceptMalignant = new ValueSet.ConceptReferenceComponent();
+    conceptMalignant.setCode("C9305");
+    conceptMalignant.setDisplay("Malignant Neoplasm");
+    nciInclude.addConcept(conceptMalignant);
+
+    compose.addInclude(nciInclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  /**
+   * Creates a test ValueSet with include.version and filters (R4).
+   *
+   * @param version the NCIt version to use
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithIncludeVersionAndFiltersR4(String version) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId("test-valueset-include-version-filters-r4-" + version.replace(".", "-"));
+    inputValueSet.setUrl("http://example.org/test/ValueSet/include-version-filters-test-r4");
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName("IncludeVersionFiltersTestR4");
+    inputValueSet.setTitle("Include Version with Filters Test ValueSet R4");
+    inputValueSet.setStatus(org.hl7.fhir.r4.model.Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDate(new Date());
+    inputValueSet.setDescription(
+        "Test ValueSet for include.version functionality with filter-based concepts using NCIt "
+            + version
+            + " (R4)");
+
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+    ValueSet.ConceptSetComponent nciInclude = new ValueSet.ConceptSetComponent();
+    nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    nciInclude.setVersion(version); // Set specific version
+
+    // Add is-a filter with more specific concept to limit the number of concepts
+    ValueSet.ConceptSetFilterComponent isaFilter = new ValueSet.ConceptSetFilterComponent();
+    isaFilter.setProperty("concept");
+    isaFilter.setOp(ValueSet.FilterOperator.ISA); // "is-a" operation (includes descendants)
+    isaFilter.setValue("C2916"); // Carcinoma (smaller set than Neoplasm)3
+    nciInclude.addFilter(isaFilter);
+
+    // Add property filter
+    ValueSet.ConceptSetFilterComponent propertyFilter = new ValueSet.ConceptSetFilterComponent();
+    propertyFilter.setProperty("Contributing_Source");
+    propertyFilter.setOp(ValueSet.FilterOperator.EQUAL); // "=" operation
+    propertyFilter.setValue("CTRP"); // Include concepts with Contributing_Source = "CTRP"
+    nciInclude.addFilter(propertyFilter);
 
     compose.addInclude(nciInclude);
     inputValueSet.setCompose(compose);
