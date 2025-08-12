@@ -1654,29 +1654,112 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
     List<ValueSetExpansionContainsComponent> concepts = new ArrayList<>();
 
+    // Handle direct concept exclusion
     if (exclude.hasConcept()) {
       for (ValueSet.ConceptReferenceComponent concept : exclude.getConcept()) {
+        // Always look up the concept in the terminology service first
+        String authoritativeDisplay = lookupConceptDisplay(exclude.getSystem(), concept.getCode());
+
+        if (authoritativeDisplay == null) {
+          logger.warn(
+              "Skipping invalid exclude concept: {}#{}", exclude.getSystem(), concept.getCode());
+          continue; // Skip invalid concepts - they don't exist in the terminology
+        }
+
+        // Check if input display matches authoritative display
+        if (concept.hasDisplay() && !concept.getDisplay().equals(authoritativeDisplay)) {
+          logger.warn(
+              "Display mismatch for exclude {}#{}: input='{}', authoritative='{}'",
+              exclude.getSystem(),
+              concept.getCode(),
+              concept.getDisplay(),
+              authoritativeDisplay);
+          // Continue with authoritative display, but log the mismatch
+        }
+
         ValueSetExpansionContainsComponent contains = new ValueSetExpansionContainsComponent();
         contains.setSystem(exclude.getSystem());
         contains.setCode(concept.getCode());
-        contains.setDisplay(
-            concept.hasDisplay()
-                ? concept.getDisplay()
-                : lookupConceptDisplay(exclude.getSystem(), concept.getCode()));
+        contains.setDisplay(authoritativeDisplay); // Always use authoritative display
 
-        if (passesActiveFilter(contains, activeOnly)) {
+        // Apply filters
+        if (passesActiveFilter(contains, activeOnly)
+            && passesVersion(contains, exclude.getVersion())) {
           concepts.add(contains);
         }
       }
     }
 
-    // if (exclude.hasFilter()) {
-    // for (ValueSet.ConceptSetFilterComponent filter : exclude.getFilter()) {
-    // List<ValueSetExpansionContainsComponent> filteredConcepts =
-    // applyConceptFilter(exclude.getSystem(), filter, null, activeOnly, false);
-    // concepts.addAll(filteredConcepts);
-    // }
-    // }
+    // Handle filter-based exclusion
+    if (exclude.hasFilter()) {
+      // Separate concept-based filters from property-based filters and exclusion filters
+      List<ValueSet.ConceptSetFilterComponent> conceptFilters = new ArrayList<>();
+      List<ValueSet.ConceptSetFilterComponent> propertyFilters = new ArrayList<>();
+      List<ValueSet.ConceptSetFilterComponent> exclusionFilters = new ArrayList<>();
+
+      for (ValueSet.ConceptSetFilterComponent filter : exclude.getFilter()) {
+        if ("concept".equals(filter.getProperty())) {
+          if ("not-in".equals(filter.getOp().toCode())
+              || "is-not-a".equals(filter.getOp().toCode())) {
+            exclusionFilters.add(filter);
+          } else {
+            conceptFilters.add(filter);
+          }
+        } else if ("=".equals(filter.getOp().toCode())
+            || "exists".equals(filter.getOp().toCode())) {
+          propertyFilters.add(filter);
+        } else {
+          conceptFilters.add(
+              filter); // Handle as concept filter for unsupported property operations
+        }
+      }
+
+      // Apply concept-based filters first
+      for (ValueSet.ConceptSetFilterComponent filter : conceptFilters) {
+        List<ValueSetExpansionContainsComponent> filteredConcepts =
+            applyConceptFilter(exclude.getSystem(), filter, null, activeOnly, false);
+        concepts.addAll(filteredConcepts);
+      }
+
+      // Apply property-based filters to existing concepts
+      if (!propertyFilters.isEmpty()) {
+        Terminology selectedTerminology =
+            termUtils.getIndexedTerminologies(osQueryService).stream()
+                .filter(term -> term.getMetadata().getFhirUri().equals(exclude.getSystem()))
+                .findFirst()
+                .orElse(null);
+
+        if (selectedTerminology != null) {
+          for (ValueSet.ConceptSetFilterComponent filter : propertyFilters) {
+            concepts = applyPropertyFilterToConcepts(concepts, filter, selectedTerminology);
+          }
+        } else {
+          logger.warn("No terminology found for exclude system: {}", exclude.getSystem());
+        }
+      }
+
+      // Apply exclusion filters last to remove concepts from the final set
+      if (!exclusionFilters.isEmpty() && !concepts.isEmpty()) {
+        Terminology selectedTerminology =
+            termUtils.getIndexedTerminologies(osQueryService).stream()
+                .filter(term -> term.getMetadata().getFhirUri().equals(exclude.getSystem()))
+                .findFirst()
+                .orElse(null);
+
+        if (selectedTerminology != null) {
+          for (ValueSet.ConceptSetFilterComponent filter : exclusionFilters) {
+            concepts = applyExclusionFilter(concepts, filter, selectedTerminology);
+          }
+        } else {
+          logger.warn(
+              "No terminology found for exclude exclusion filters: {}", exclude.getSystem());
+        }
+      } else if (!exclusionFilters.isEmpty()) {
+        logger.warn(
+            "Exclusion filters found in exclude but no concepts to filter. Exclusion filters"
+                + " require explicit concept list or concept-based filters.");
+      }
+    }
 
     return concepts;
   }
@@ -2323,6 +2406,64 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
     // Check if conceptCode is among the descendants
     return descendants.stream().anyMatch(descendant -> conceptCode.equals(descendant.getCode()));
+  }
+
+  /**
+   * Apply property filter to expansion contains list.
+   *
+   * @param concepts the expansion contains list
+   * @param filter the filter
+   * @param terminology the terminology
+   * @return filtered expansion contains list
+   * @throws Exception the exception
+   */
+  private List<ValueSetExpansionContainsComponent> applyPropertyFilterToConcepts(
+      List<ValueSetExpansionContainsComponent> concepts,
+      ValueSet.ConceptSetFilterComponent filter,
+      Terminology terminology)
+      throws Exception {
+
+    List<ValueSetExpansionContainsComponent> filteredConcepts = new ArrayList<>();
+    String propertyName = filter.getProperty();
+    String operation = filter.getOp().toCode();
+    String value = filter.getValue();
+
+    for (ValueSetExpansionContainsComponent expansionConcept : concepts) {
+      boolean shouldInclude = false;
+
+      try {
+        if ("=".equals(operation)) {
+          shouldInclude =
+              conceptHasPropertyValue(expansionConcept, terminology, propertyName, value.trim());
+        } else if ("exists".equals(operation)) {
+          boolean shouldExist = "true".equalsIgnoreCase(value.trim());
+          shouldInclude =
+              conceptHasProperty(expansionConcept, terminology, propertyName, shouldExist);
+        }
+      } catch (Exception e) {
+        logger.warn(
+            "Error checking property filter '{}' {} '{}' for concept {}: {}",
+            propertyName,
+            operation,
+            value,
+            expansionConcept.getCode(),
+            e.getMessage());
+      }
+
+      if (shouldInclude) {
+        filteredConcepts.add(expansionConcept);
+      }
+    }
+
+    logger.info(
+        "Property filter '{}' {} '{}' filtered {} concepts to {} matches",
+        propertyName,
+        operation,
+        value,
+        concepts.size(),
+        filteredConcepts.size());
+
+    return filteredConcepts;
   }
 
   /**

@@ -671,8 +671,101 @@ public class ValueSetProviderR4 implements IResourceProvider {
       boolean includeDefinition)
       throws Exception {
 
-    // Process excludes similar to includes, but return concepts to be excluded
-    return processInclude(exclude, version, includeDesignations, includeDefinition);
+    List<Concept> concepts = new ArrayList<>();
+    Terminology terminology =
+        termUtils.getIndexedTerminologies(osQueryService).stream()
+            .filter(term -> term.getMetadata().getFhirUri().equals(exclude.getSystem()))
+            .findFirst()
+            .orElse(null);
+
+    if (terminology == null) {
+      logger.warn("No terminology found for exclude system: {}", exclude.getSystem());
+      return concepts;
+    }
+
+    // Handle direct concept exclusion
+    if (exclude.hasConcept()) {
+      IncludeParam includeParam = new IncludeParam();
+      if (includeDesignations) {
+        includeParam.setSynonyms(true);
+      }
+      if (includeDefinition) {
+        includeParam.setDefinitions(true);
+      }
+
+      for (ValueSet.ConceptReferenceComponent concept : exclude.getConcept()) {
+        Optional<Concept> conceptOpt =
+            osQueryService.getConcept(concept.getCode(), terminology, includeParam);
+        if (conceptOpt.isPresent()) {
+          concepts.add(conceptOpt.get());
+        } else {
+          logger.warn("Concept not found for exclude: {}", concept.getCode());
+        }
+      }
+    }
+
+    // Handle filter-based exclusion
+    if (exclude.hasFilter()) {
+      // Separate inclusion filters from exclusion filters and property-based filters
+      List<ValueSet.ConceptSetFilterComponent> inclusionFilters = new ArrayList<>();
+      List<ValueSet.ConceptSetFilterComponent> exclusionFilters = new ArrayList<>();
+      List<ValueSet.ConceptSetFilterComponent> propertyFilters = new ArrayList<>();
+
+      for (ValueSet.ConceptSetFilterComponent filter : exclude.getFilter()) {
+        String operation = filter.getOp().toCode();
+        if ("concept".equals(filter.getProperty())) {
+          // Classify concept-based filters
+          if ("not-in".equals(operation) || "is-not-a".equals(operation)) {
+            exclusionFilters.add(filter);
+          } else {
+            inclusionFilters.add(filter);
+          }
+        } else if ("=".equals(operation) || "exists".equals(operation)) {
+          propertyFilters.add(filter);
+        } else {
+          inclusionFilters.add(
+              filter); // Handle as concept filter for unsupported property operations
+        }
+      }
+
+      IncludeParam includeParam = new IncludeParam();
+      if (includeDesignations) {
+        includeParam.setSynonyms(true);
+      }
+      if (includeDefinition) {
+        includeParam.setDefinitions(true);
+      }
+
+      // Apply inclusion concept-based filters first
+      for (ValueSet.ConceptSetFilterComponent filter : inclusionFilters) {
+        List<Concept> filteredConcepts = applyConceptFilter(filter, terminology, includeParam);
+        concepts.addAll(filteredConcepts);
+      }
+
+      // Apply property-based filters to existing concepts
+      if (!propertyFilters.isEmpty() && !concepts.isEmpty()) {
+        for (ValueSet.ConceptSetFilterComponent filter : propertyFilters) {
+          concepts = applyPropertyFilterToConcepts(concepts, filter, terminology);
+        }
+      } else if (!propertyFilters.isEmpty()) {
+        logger.warn(
+            "Property filters found in exclude but no concepts to filter. Property filters require"
+                + " explicit concept list or concept-based filters.");
+      }
+
+      // Apply exclusion filters last to remove concepts from the final set
+      if (!exclusionFilters.isEmpty() && !concepts.isEmpty()) {
+        for (ValueSet.ConceptSetFilterComponent filter : exclusionFilters) {
+          concepts = applyExclusionFilter(concepts, filter, terminology);
+        }
+      } else if (!exclusionFilters.isEmpty()) {
+        logger.warn(
+            "Exclusion filters found in exclude but no concepts to filter. Exclusion filters"
+                + " require explicit concept list or inclusion filters.");
+      }
+    }
+
+    return concepts;
   }
 
   /**
