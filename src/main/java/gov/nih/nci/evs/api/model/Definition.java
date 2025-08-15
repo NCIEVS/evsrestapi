@@ -246,8 +246,5 @@ public class Definition extends BaseModel implements Comparable<Definition> {
   }
 
   /** Clear hidden. */
-  public void clearHidden() {
-    code = null;
-    getQualifiers().forEach(q -> q.clearHidden());
-  }
+  public void clearHidden() {}
 }

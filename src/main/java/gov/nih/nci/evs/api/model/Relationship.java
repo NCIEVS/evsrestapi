@@ -277,8 +277,5 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
   }
 
   /** Clear hidden. */
-  public void clearHidden() {
-    code = null;
-    getQualifiers().forEach(q -> q.clearHidden());
-  }
+  public void clearHidden() {}
 }
