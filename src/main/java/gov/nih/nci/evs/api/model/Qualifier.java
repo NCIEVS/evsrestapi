@@ -47,6 +47,19 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
   /**
    * Instantiates a {@link Qualifier} from the specified parameters.
    *
+   * @param type the type
+   * @param value the value
+   * @param code the code
+   */
+  public Qualifier(final String type, final String value, final String code) {
+    this.type = type;
+    this.value = value;
+    this.code = code;
+  }
+
+  /**
+   * Instantiates a {@link Qualifier} from the specified parameters.
+   *
    * @param other the other
    */
   public Qualifier(final Qualifier other) {
@@ -70,6 +83,7 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
    *
    * @return the code
    */
+  @Schema(description = "Qualifier code")
   public String getCode() {
     return code;
   }
@@ -79,7 +93,6 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
    *
    * @param code the code
    */
-  @Schema(description = "Qualifier code")
   public void setCode(String code) {
     this.code = code;
   }
@@ -169,7 +182,5 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
   }
 
   /** Clear hidden. */
-  public void clearHidden() {
-    code = null;
-  }
+  public void clearHidden() {}
 }
