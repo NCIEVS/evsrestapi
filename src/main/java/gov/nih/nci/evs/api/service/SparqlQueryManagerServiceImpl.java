@@ -1632,7 +1632,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                   propertyCode,
                   propertyUri);
           if (name != null) {
-            axiomObject.getQualifiers().add(new Qualifier(name, labelValue));
+            axiomObject.getQualifiers().add(new Qualifier(name, labelValue, propertyCode));
           }
           // log.debug(" qualifier = " + name + ", " + labelValue + ", " +
           // propertyCode);
