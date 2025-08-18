@@ -12,7 +12,6 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
  * as a first-class attribute.
  */
 @Schema(description = "Represents a type/value qualifier on a concept element")
-@JsonIgnoreProperties(value = {"code"})
 @JsonInclude(Include.NON_EMPTY)
 public class Qualifier extends BaseModel implements Comparable<Qualifier> {
 
