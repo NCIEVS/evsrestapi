@@ -2100,7 +2100,7 @@ public class ConceptControllerTests {
     String content;
     Concept concept;
 
-    // C101669 has synonyms, definitions
+    // C101669 has synonyms, definitions, qualifier codes
     url = baseUrl + "/ncit/C101669?include=full";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -2110,6 +2110,14 @@ public class ConceptControllerTests {
     assertThat(concept.getDefinitions().get(0).getCode() != null).isTrue();
     assertThat(concept.getProperties().get(0).getCode() != null).isTrue();
     assertThat(concept.getAssociations().get(0).getCode() != null).isTrue();
+    // C101669 has a definition with a qualifier
+    assertThat(
+            concept.getDefinitions().stream()
+                .anyMatch(
+                    def ->
+                        !def.getQualifiers().isEmpty()
+                            && def.getQualifiers().get(0).getCode() != null))
+        .isTrue();
 
     // C3224 lacks qualifiers, but should have code for other types
     url = baseUrl + "/ncit/C3224?include=full";

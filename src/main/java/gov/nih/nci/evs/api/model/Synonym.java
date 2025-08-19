@@ -440,7 +440,5 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   public void clearHidden() {
     normName = null;
     stemName = null;
-    typeCode = null;
-    getQualifiers().forEach(q -> q.clearHidden());
   }
 }

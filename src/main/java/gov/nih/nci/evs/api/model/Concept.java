@@ -1011,12 +1011,5 @@ public class Concept extends ConceptMinimal {
     normName = null;
     stemName = null;
     getSynonyms().forEach(s -> s.clearHidden());
-    getQualifiers().forEach(q -> q.clearHidden());
-    getProperties().forEach(p -> p.clearHidden());
-    getDefinitions().forEach(d -> d.clearHidden());
-    getAssociations().forEach(r -> r.clearHidden());
-    getInverseAssociations().forEach(r -> r.clearHidden());
-    getRoles().forEach(r -> r.clearHidden());
-    getInverseRoles().forEach(r -> r.clearHidden());
   }
 }

@@ -275,10 +275,4 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
     return (relatedName + source + relatedCode + type)
         .compareToIgnoreCase(o.getRelatedName() + o.getSource() + o.getRelatedCode() + o.getType());
   }
-
-  /** Clear hidden. */
-  public void clearHidden() {
-    code = null;
-    getQualifiers().forEach(q -> q.clearHidden());
-  }
 }

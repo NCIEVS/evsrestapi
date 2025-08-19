@@ -1,6 +1,5 @@
 package gov.nih.nci.evs.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -12,7 +11,6 @@ import org.springframework.data.elasticsearch.annotations.FieldType;
  * as a first-class attribute.
  */
 @Schema(description = "Represents a type/value qualifier on a concept element")
-@JsonIgnoreProperties(value = {"code"})
 @JsonInclude(Include.NON_EMPTY)
 public class Qualifier extends BaseModel implements Comparable<Qualifier> {
 
@@ -47,6 +45,19 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
   /**
    * Instantiates a {@link Qualifier} from the specified parameters.
    *
+   * @param type the type
+   * @param value the value
+   * @param code the code
+   */
+  public Qualifier(final String type, final String value, final String code) {
+    this.type = type;
+    this.value = value;
+    this.code = code;
+  }
+
+  /**
+   * Instantiates a {@link Qualifier} from the specified parameters.
+   *
    * @param other the other
    */
   public Qualifier(final Qualifier other) {
@@ -70,6 +81,7 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
    *
    * @return the code
    */
+  @Schema(description = "Qualifier code")
   public String getCode() {
     return code;
   }
@@ -79,7 +91,6 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
    *
    * @param code the code
    */
-  @Schema(description = "Qualifier code")
   public void setCode(String code) {
     this.code = code;
   }
@@ -169,7 +180,5 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
   }
 
   /** Clear hidden. */
-  public void clearHidden() {
-    code = null;
-  }
+  public void clearHidden() {}
 }
