@@ -235,46 +235,46 @@ public class MetadataController extends BaseController {
       metadata.put(
           "associations",
           metadataService.getAssociations(terminology, Optional.empty(), Optional.empty()).stream()
-          .sorted(byCode)
-          .collect(Collectors.toList()));
+              .sorted(byCode)
+              .collect(Collectors.toList()));
       metadata.put(
           "properties",
           metadataService.getProperties(terminology, Optional.empty(), Optional.empty()).stream()
-          .sorted(byCode)
-          .collect(Collectors.toList()));
+              .sorted(byCode)
+              .collect(Collectors.toList()));
       metadata.put(
           "qualifiers",
           metadataService.getQualifiers(terminology, Optional.empty(), Optional.empty()).stream()
-          .sorted(byCode)
-          .collect(Collectors.toList()));
+              .sorted(byCode)
+              .collect(Collectors.toList()));
       metadata.put(
           "roles",
           metadataService.getRoles(terminology, Optional.empty(), Optional.empty()).stream()
-          .sorted(byCode)
-          .collect(Collectors.toList()));
+              .sorted(byCode)
+              .collect(Collectors.toList()));
       metadata.put(
           "termTypes",
           metadataService.getTermTypes(terminology).stream()
-          .map(Concept::new)
-          .sorted(byCode)
-          .collect(Collectors.toList()));
+              .map(Concept::new)
+              .sorted(byCode)
+              .collect(Collectors.toList()));
       metadata.put(
           "sources",
           metadataService.getSynonymSources(terminology).stream()
-          .map(Concept::new)
-          .sorted(byCode)
-          .collect(Collectors.toList()));
+              .map(Concept::new)
+              .sorted(byCode)
+              .collect(Collectors.toList()));
       metadata.put(
           "definitionTypes",
           metadataService.getDefinitionSources(terminology).stream()
-          .map(Concept::new)
-          .sorted(byCode)
-          .collect(Collectors.toList()));
+              .map(Concept::new)
+              .sorted(byCode)
+              .collect(Collectors.toList()));
       metadata.put(
           "synonymTypes",
           metadataService.getSynonymTypes(terminology, Optional.empty(), Optional.empty()).stream()
-          .sorted(byCode)
-          .collect(Collectors.toList()));
+              .sorted(byCode)
+              .collect(Collectors.toList()));
       return metadata;
     } catch (Exception e) {
       handleException(e, terminology);
