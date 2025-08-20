@@ -107,7 +107,7 @@ public class NcimControllerTests {
     final Terminology ncim =
         terminologies.stream().filter(t -> t.getTerminology().equals("ncim")).findFirst().get();
     assertThat(ncim.getTerminology()).isEqualTo("ncim");
-    assertThat(ncim.getName()).isEqualTo("NCI Metathesaurus 202102");
+    assertThat(ncim.getName()).isEqualTo("NCI Metathesaurus 202508");
     assertThat(ncim.getMetadata().getUiLabel()).isEqualTo("NCI Metathesaurus");
     assertThat(ncim.getMetadata().getLoader()).isEqualTo("rrf");
     assertThat(ncim.getMetadata().getSourceCt()).isGreaterThan(1);
@@ -153,19 +153,6 @@ public class NcimControllerTests {
     assertThat(concept.getCode()).isEqualTo("CL990362");
     assertThat(concept.getName()).isEqualTo("Foundational Model of Anatomy Ontology, 4_15");
     assertThat(concept.getTerminology()).isEqualTo("ncim");
-
-    // test concept with only NOCODE atoms
-    url = baseUrl + "/ncim/C0738563";
-    log.info("Testing url - " + url + "?terminology=ncim&code=C0738563");
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
-    assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("C0738563");
-    assertThat(concept.getName()).isEqualTo("Entire subregion of abdomen");
-    assertThat(concept.getTerminology()).isEqualTo("ncim");
-    assertThat(concept.getSynonyms().get(0).getCode()).isNull();
   }
 
   /**
@@ -231,7 +218,7 @@ public class NcimControllerTests {
     assertThat(concept.getCode()).isEqualTo("C0030274");
     assertThat(concept.getName()).isEqualTo("Pancreas");
     assertThat(concept.getDefinitions()).isNotNull();
-    assertThat(concept.getDefinitions().size()).isEqualTo(8);
+    assertThat(concept.getDefinitions().size()).isEqualTo(9);
     assertThat(concept.getDefinitions().get(0).getDefinition())
         .startsWith(
             "A digestive organ in the abdomen that has both endocrine and exocrine functions.");
@@ -396,10 +383,10 @@ public class NcimControllerTests {
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0242354");
-    assertThat(concept.getChildren().size()).isEqualTo(4);
+    assertThat(concept.getChildren().size()).isEqualTo(7);
     assertThat(concept.getChildren().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .contains("CL979355");
-    assertThat(concept.getParents().size()).isEqualTo(2);
+    assertThat(concept.getParents().size()).isEqualTo(3);
     assertThat(concept.getParents().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .contains("C0012634");
   }
@@ -513,15 +500,15 @@ public class NcimControllerTests {
         .isEqualTo(1);
 
     // random concept in MRSAT
-    url = baseUrl + "/ncim/C0436993";
+    url = baseUrl + "/ncim/C0000658";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("C0436993");
-    assertThat(concept.getName()).isEqualTo("On examination - abdominal mass - regular shape");
+    assertThat(concept.getCode()).isEqualTo("C0000658");
+    assertThat(concept.getName()).isEqualTo("Dihomo-gamma-linolenic Acid");
     assertThat(concept.getProperties().size()).isGreaterThan(1);
     assertThat(
             concept.getProperties().stream()
@@ -836,7 +823,7 @@ public class NcimControllerTests {
     List<String> list = null;
 
     // NCIM qualifier values
-    url = "/api/v1/metadata/ncim/qualifier/SMQ_TERM_LEVEL/values";
+    url = "/api/v1/metadata/ncim/qualifier/CELL_APPENDAGE_TYPE/values";
     log.info("Testing url - " + url);
     result =
         mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
@@ -852,7 +839,7 @@ public class NcimControllerTests {
                   // n/a
                 });
     assertThat(list).isNotNull();
-    assertThat(list.size()).isEqualTo(2);
+    assertThat(list.size()).isEqualTo(1);
   }
 
   /**

@@ -78,7 +78,14 @@ fi
 
 # Check NCIM
 echo "    check NCIM"
-ct=`ls $dir/NCIM | egrep "(AUI|COLS|CONSO|CUI|DEF|DOC|FILES|HIER|MAP|RANK|REL|SAB|SAT|STY)*RRF" | wc -l`
+ct=`ls $dir/NCIM | grep RRF | wc -l`
+if [[ $ct -le 20 ]]; then
+    echo "ERROR: unexpectedly small number of NCIM/*RRF files = $ct"
+    exit 1
+fi
+# Check NCIM2
+echo "    check NCIM2"
+ct=`ls $dir/NCIM2 | egrep "(AUI|COLS|CONSO|CUI|DEF|DOC|FILES|HIER|MAP|RANK|REL|SAB|SAT|STY)*RRF" | wc -l`
 if [[ ! $ct -eq 14 ]]; then
     echo "ERROR: unexpectedly missing NCIM/*RRF files = $dir/NCIM"
     exit 1
@@ -243,6 +250,29 @@ reindex_ncim(){
   fi
 }
 
+# Reindex ncim - individual terminologies
+reindex_ncim2(){
+  echo "  Reindexing ncim2 ...`/bin/date`"
+  for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V3.0; do
+      # Keep the NCIM folder around while we run
+      echo "  Load $t (from ncim2 downloaded data) ...`/bin/date`"
+      src/main/bin/ncim-part.sh --noconfig $dir/NCIM2 --keep --terminology $t > /tmp/x.$$.txt 2>&1
+      if [[ $? -ne 0 ]]; then
+          cat /tmp/x.$$.txt | sed 's/^/    /'
+          echo "ERROR: loading $t"
+          exit 1
+      fi
+  done
+  # Reindex ncim - must run after the prior section so that maps can connect to loaded terminologies
+  echo "  Reindex ncim from ncim2 ...`/bin/date`"
+  src/main/bin/ncim-part.sh --noconfig $dir/NCIM2 > /tmp/x.$$.txt 2>&1
+  if [[ $? -ne 0 ]]; then
+      cat /tmp/x.$$.txt | sed 's/^/    /'
+      echo "ERROR: problem running ncim-part.sh"
+      exit 1
+  fi
+}
+
 drop_databases(){
   for db in "${databases[@]}"
   do
@@ -330,6 +360,7 @@ drop_databases
 create_databases
 remove_elasticsearch_indexes
 reindex_ncim
+reindex_ncim2
 load_data
 # This will load maps from github evsrestapi-operations
 reindex
