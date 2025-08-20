@@ -11,10 +11,10 @@ import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.util.JsonUtils;
-
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
-
 import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r4.model.ValueSet.ConceptReferenceDesignationComponent;
@@ -375,7 +375,6 @@ public class FhirR4ValueSetExpandTests {
     inputValueSet.setCompose(compose);
     return inputValueSet;
   }
-
 
   /**
    * Test value set expand instance.
@@ -1396,7 +1395,6 @@ public class FhirR4ValueSetExpandTests {
         "  NCI Thesaurus include/exclude expansion completed with {} concepts after exclusions",
         expansion.getTotal());
   }
-
 
   /**
    * Test value set expand with NCI thesaurus property equals filter.
@@ -2794,6 +2792,106 @@ public class FhirR4ValueSetExpandTests {
     propertyFilter.setProperty("Contributing_Source");
     propertyFilter.setOp(ValueSet.FilterOperator.EQUAL); // "=" operation
     propertyFilter.setValue("CTRP"); // Include concepts with Contributing_Source = "CTRP"
+    nciInclude.addFilter(propertyFilter);
+
+    compose.addInclude(nciInclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  /**
+   * Test value set expand too-costly error when using is-a filter that would return too many
+   * concepts.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandTooCostlyError() throws Exception {
+    // Arrange
+    String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Get current NCIt version from server
+    String endpoint =
+        localHost
+            + port
+            + fhirVSPath
+            + "?url="
+            + URLEncoder.encode(
+                "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl", StandardCharsets.UTF_8);
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+
+    // Create the ValueSet using is-a filter that would return a very large number of concepts
+    ValueSet inputValueSet = createNCITestValueSetWithLargeIsAFilter();
+
+    // Create Parameters resource
+    Parameters parameters = new Parameters();
+    parameters.addParameter().setName("valueSet").setResource(inputValueSet);
+    parameters.addParameter("count", new IntegerType(100));
+    parameters.addParameter("offset", new IntegerType(0));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    String parametersJson = parser.encodeResourceToString(parameters);
+
+    log.info("  parameters = " + parametersJson);
+    HttpEntity<String> entity = new HttpEntity<>(parametersJson, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        restTemplate.postForEntity(expandEndpoint, entity, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+
+    // Assert - Should return OperationOutcome with too-costly error
+    // assertEquals(HttpStatus.OK, response.getStatusCode());
+    // assertNotNull(response.getBody());
+
+    // Parse the OperationOutcome from the response body
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, response.getBody());
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Verify the error code and message
+    assertEquals("too-costly", component.getCode().toCode());
+    assertTrue(
+        component.getDiagnostics().contains("too costly"),
+        "Diagnostics should contain 'too costly' error message: " + component.getDiagnostics());
+  }
+
+  /**
+   * Creates a test ValueSet with a large is-a filter that would trigger the too-costly error.
+   *
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithLargeIsAFilter() {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId("test-valueset-too-costly");
+    inputValueSet.setUrl("http://example.org/test/ValueSet/too-costly-test");
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName("TooCostlyTest");
+    inputValueSet.setTitle("Too Costly Test ValueSet");
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDate(new Date());
+    inputValueSet.setDescription(
+        "Test ValueSet for too-costly error using is-a filter with large concept set (no version"
+            + " constraint)");
+
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+    ValueSet.ConceptSetComponent nciInclude = new ValueSet.ConceptSetComponent();
+    nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    // Note: Not setting version to allow access to full concept set and trigger too-costly error
+
+    // Add is-a filter for "Thing" (C2991) which should return a very large number of concepts
+    ValueSet.ConceptSetFilterComponent isAFilter = new ValueSet.ConceptSetFilterComponent();
+    isAFilter.setProperty("concept");
+    isAFilter.setOp(ValueSet.FilterOperator.ISA); // "is-a" operation
+    isAFilter.setValue("C2991"); // Thing - the root concept that has many descendants
+    nciInclude.addFilter(isAFilter);
+
+    // Add property filter to trigger property filtering on the large set
+    ValueSet.ConceptSetFilterComponent propertyFilter = new ValueSet.ConceptSetFilterComponent();
+    propertyFilter.setProperty("Semantic_Type");
+    propertyFilter.setOp(ValueSet.FilterOperator.EQUAL);
+    propertyFilter.setValue("Disease or Syndrome"); // Some semantic type filter
     nciInclude.addFilter(propertyFilter);
 
     compose.addInclude(nciInclude);

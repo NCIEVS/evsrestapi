@@ -14,6 +14,7 @@ import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
+import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.controller.SubsetController;
 import gov.nih.nci.evs.api.fhir.R5.FhirUtilityR5;
@@ -647,13 +648,32 @@ public class ValueSetProviderR4 implements IResourceProvider {
         // Apply property filters only if we still have concepts
         if (!concepts.isEmpty()) {
           // Apply property filters with limited batch size to prevent timeout
-          int maxConceptsForPropertyFiltering = 1000; // Limit to prevent timeout
+          int maxConceptsForPropertyFiltering = 10000; // Limit to prevent timeout
           if (concepts.size() > maxConceptsForPropertyFiltering) {
-            logger.warn(
-                "Too many concepts ({}) for property filtering, limiting to first {}",
-                concepts.size(),
-                maxConceptsForPropertyFiltering);
-            concepts = concepts.subList(0, maxConceptsForPropertyFiltering);
+            logger.debug(
+                "Too many concepts ({}) for property filtering, returning too-costly error",
+                concepts.size());
+            InvalidRequestException exception =
+                new InvalidRequestException(
+                    "ValueSet expansion is too costly ("
+                        + concepts.size()
+                        + " concepts exceed limit of "
+                        + maxConceptsForPropertyFiltering
+                        + ")");
+            org.hl7.fhir.r4.model.OperationOutcome oo =
+                new org.hl7.fhir.r4.model.OperationOutcome();
+            org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent issue =
+                oo.addIssue();
+            issue.setCode(org.hl7.fhir.r4.model.OperationOutcome.IssueType.TOOCOSTLY);
+            issue.setSeverity(org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity.ERROR);
+            issue.setDiagnostics(
+                "ValueSet expansion is too costly ("
+                    + concepts.size()
+                    + " concepts exceed limit of "
+                    + maxConceptsForPropertyFiltering
+                    + ")");
+            exception.setOperationOutcome(oo);
+            throw exception;
           }
 
           for (ValueSet.ConceptSetFilterComponent filter : propertyFilters) {

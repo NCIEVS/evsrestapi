@@ -44,6 +44,7 @@ import org.hl7.fhir.r5.model.Coding;
 import org.hl7.fhir.r5.model.IdType;
 import org.hl7.fhir.r5.model.IntegerType;
 import org.hl7.fhir.r5.model.Meta;
+import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r5.model.Parameters;
 import org.hl7.fhir.r5.model.StringType;
@@ -1407,6 +1408,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
       return expandedValueSet;
 
+    } catch (InvalidRequestException e) {
+      // Re-throw InvalidRequestException (including too-costly errors) without wrapping
+      throw e;
     } catch (Exception e) {
       logger.error("Error expanding ValueSet: " + valueSet.getUrl(), e);
       throw new InternalErrorException("Error during ValueSet expansion: " + e.getMessage());
@@ -1480,7 +1484,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
     // Handle direct concept inclusion
     if (include.hasConcept()) {
-      // TODO consider version field on the include and match concepts accordingly
       for (ValueSet.ConceptReferenceComponent concept : include.getConcept()) {
         // Always look up the concept in the terminology service first
         String authoritativeDisplay = lookupConceptDisplay(include.getSystem(), concept.getCode());
@@ -1553,6 +1556,14 @@ public class ValueSetProviderR5 implements IResourceProvider {
         List<ValueSetExpansionContainsComponent> filteredConcepts =
             applyConceptFilter(
                 include.getSystem(), filter, textFilter, activeOnly, includeDesignations);
+
+        // Apply version filtering to filter-based concepts with optimization
+        if (include.hasVersion()) {
+          filteredConcepts =
+              applyVersionFilterOptimized(
+                  filteredConcepts, include.getSystem(), include.getVersion());
+        }
+
         concepts.addAll(filteredConcepts);
       }
 
@@ -1565,37 +1576,92 @@ public class ValueSetProviderR5 implements IResourceProvider {
                 .orElse(null);
 
         if (selectedTerminology != null) {
-          for (ValueSet.ConceptSetFilterComponent filter : propertyFilters) {
+          // OPTIMIZATION: Apply version filtering FIRST to potentially eliminate all concepts early
+          if (include.hasVersion()) {
             concepts =
-                concepts.stream()
-                    .filter(
-                        concept -> {
-                          try {
-                            if ("=".equals(filter.getOp().toCode())) {
-                              return conceptHasPropertyValue(
-                                  concept,
-                                  selectedTerminology,
+                applyVersionFilterOptimized(concepts, include.getSystem(), include.getVersion());
+            logger.debug("Version filtering reduced concepts to {}", concepts.size());
+
+            // If version filtering eliminated all concepts, skip property filtering
+            if (concepts.isEmpty()) {
+              logger.debug(
+                  "Version filtering eliminated all concepts, skipping property filtering");
+            }
+          }
+
+          // Apply property filters only if we still have concepts
+          if (!concepts.isEmpty()) {
+            // Apply property filters with limited batch size to prevent timeout
+            int maxConceptsForPropertyFiltering = 10000; // Limit to prevent timeout
+            if (concepts.size() > maxConceptsForPropertyFiltering) {
+              logger.debug(
+                  "Too many concepts ({}) for property filtering, returning too-costly error",
+                  concepts.size());
+              InvalidRequestException exception =
+                  new InvalidRequestException(
+                      "ValueSet expansion is too costly ("
+                          + concepts.size()
+                          + " concepts exceed limit of "
+                          + maxConceptsForPropertyFiltering
+                          + ")");
+              OperationOutcome oo = new OperationOutcome();
+              OperationOutcome.OperationOutcomeIssueComponent issue = oo.addIssue();
+              issue.setCode(OperationOutcome.IssueType.TOOCOSTLY);
+              issue.setSeverity(OperationOutcome.IssueSeverity.ERROR);
+              issue.setDiagnostics(
+                  "ValueSet expansion is too costly ("
+                      + concepts.size()
+                      + " concepts exceed limit of "
+                      + maxConceptsForPropertyFiltering
+                      + ")");
+              exception.setOperationOutcome(oo);
+              throw exception;
+            }
+
+            for (ValueSet.ConceptSetFilterComponent filter : propertyFilters) {
+              logger.debug(
+                  "Applying property filter '{}' {} '{}' to {} concepts",
+                  filter.getProperty(),
+                  filter.getOp().toCode(),
+                  filter.getValue(),
+                  concepts.size());
+
+              concepts =
+                  concepts.stream()
+                      .filter(
+                          concept -> {
+                            try {
+                              if ("=".equals(filter.getOp().toCode())) {
+                                return conceptHasPropertyValue(
+                                    concept,
+                                    selectedTerminology,
+                                    filter.getProperty(),
+                                    filter.getValue().trim());
+                              } else if ("exists".equals(filter.getOp().toCode())) {
+                                boolean shouldExist =
+                                    "true".equalsIgnoreCase(filter.getValue().trim());
+                                return conceptHasProperty(
+                                    concept,
+                                    selectedTerminology,
+                                    filter.getProperty(),
+                                    shouldExist);
+                              }
+                              return false;
+                            } catch (Exception e) {
+                              logger.warn(
+                                  "Error checking property filter '{}' {} '{}' for concept {}: {}",
                                   filter.getProperty(),
-                                  filter.getValue().trim());
-                            } else if ("exists".equals(filter.getOp().toCode())) {
-                              boolean shouldExist =
-                                  "true".equalsIgnoreCase(filter.getValue().trim());
-                              return conceptHasProperty(
-                                  concept, selectedTerminology, filter.getProperty(), shouldExist);
+                                  filter.getOp().toCode(),
+                                  filter.getValue(),
+                                  concept.getCode(),
+                                  e.getMessage());
+                              return false;
                             }
-                            return false;
-                          } catch (Exception e) {
-                            logger.warn(
-                                "Error checking property filter '{}' {} '{}' for concept {}: {}",
-                                filter.getProperty(),
-                                filter.getOp().toCode(),
-                                filter.getValue(),
-                                concept.getCode(),
-                                e.getMessage());
-                            return false;
-                          }
-                        })
-                    .collect(Collectors.toList());
+                          })
+                      .collect(Collectors.toList());
+
+              logger.debug("Property filter reduced concepts to {}", concepts.size());
+            }
           }
         } else {
           logger.warn(
@@ -1615,6 +1681,12 @@ public class ValueSetProviderR5 implements IResourceProvider {
         if (selectedTerminology != null) {
           for (ValueSet.ConceptSetFilterComponent filter : exclusionFilters) {
             concepts = applyExclusionFilter(concepts, filter, selectedTerminology);
+          }
+
+          // Apply version filtering after exclusion filters with optimization
+          if (include.hasVersion()) {
+            concepts =
+                applyVersionFilterOptimized(concepts, include.getSystem(), include.getVersion());
           }
         } else {
           logger.warn(
@@ -2101,9 +2173,10 @@ public class ValueSetProviderR5 implements IResourceProvider {
   private boolean passesVersion(ValueSetExpansionContainsComponent contains, String version)
       throws Exception {
 
-    if (version == null || (version != null && version.isEmpty())) {
+    if (version == null || version.isEmpty()) {
       return true;
     }
+
     Terminology selectedTerminology =
         termUtils.getIndexedTerminologies(osQueryService).stream()
             .filter(term -> term.getMetadata().getFhirUri().equals(contains.getSystem()))
@@ -2115,23 +2188,111 @@ public class ValueSetProviderR5 implements IResourceProvider {
       return false; // Filter out concepts from unknown systems
     }
 
+    // OPTIMIZATION: Check if requested version matches current terminology version
+    String currentTerminologyVersion = selectedTerminology.getVersion();
+    if (currentTerminologyVersion != null) {
+      // If requested version matches current terminology version, accept all concepts
+      if (version.equals(currentTerminologyVersion)) {
+        return true;
+      }
+
+      // If requested version is older than current terminology version,
+      // and this server only maintains current version, reject all concepts
+      if (version.compareTo(currentTerminologyVersion) < 0) {
+        logger.debug(
+            "Rejecting concept {} - requested version {} is older than current {}",
+            contains.getCode(),
+            version,
+            currentTerminologyVersion);
+        return false;
+      }
+    }
+
+    // Fallback to individual concept version check (for edge cases)
     Optional<Concept> conceptOpt =
         osQueryService.getConcept(
             contains.getCode(), selectedTerminology, new IncludeParam("minimal"));
 
     if (!conceptOpt.isPresent()) {
       logger.warn(
-          "Concept not found during active filter: {}#{}",
+          "Concept not found during version filter: {}#{}",
           contains.getSystem(),
           contains.getCode());
       return false; // Filter out non-existent concepts
     }
 
     Concept concept = conceptOpt.get();
-    String cptVersion = concept.getVersion();
+    String conceptVersion = concept.getVersion();
 
-    // If active status is null, treat as inactive when activeOnly is true
-    return version != null && version.compareTo(cptVersion) >= 0;
+    // Compare concept version with requested version
+    return conceptVersion != null && version.compareTo(conceptVersion) <= 0;
+  }
+
+  /**
+   * Apply version filtering with optimization for bulk operations.
+   *
+   * @param concepts the concepts to filter
+   * @param system the terminology system
+   * @param version the requested version
+   * @return filtered concepts
+   */
+  private List<ValueSetExpansionContainsComponent> applyVersionFilterOptimized(
+      List<ValueSetExpansionContainsComponent> concepts, String system, String version)
+      throws Exception {
+
+    if (version == null || version.isEmpty() || concepts.isEmpty()) {
+      return concepts;
+    }
+
+    Terminology selectedTerminology =
+        termUtils.getIndexedTerminologies(osQueryService).stream()
+            .filter(term -> term.getMetadata().getFhirUri().equals(system))
+            .findFirst()
+            .orElse(null);
+
+    if (selectedTerminology == null) {
+      logger.warn("No terminology found for system: {} - rejecting all concepts", system);
+      return new ArrayList<>(); // Filter out all concepts from unknown systems
+    }
+
+    // OPTIMIZATION: Check terminology version first
+    String currentTerminologyVersion = selectedTerminology.getVersion();
+    if (currentTerminologyVersion != null) {
+      // If requested version matches current terminology version, accept all concepts
+      if (version.equals(currentTerminologyVersion)) {
+        logger.debug(
+            "Version match: accepting all {} concepts for version {}", concepts.size(), version);
+        return concepts;
+      }
+
+      // If requested version is older than current terminology version,
+      // and this server only maintains current version, reject all concepts
+      if (version.compareTo(currentTerminologyVersion) < 0) {
+        logger.debug(
+            "Version mismatch: rejecting all {} concepts - requested {} vs current {}",
+            concepts.size(),
+            version,
+            currentTerminologyVersion);
+        return new ArrayList<>(); // Return empty list for old versions
+      }
+    }
+
+    // Fallback to individual concept filtering (should rarely be needed)
+    logger.debug("Applying individual version filtering to {} concepts", concepts.size());
+    return concepts.stream()
+        .filter(
+            concept -> {
+              try {
+                return passesVersion(concept, version);
+              } catch (Exception e) {
+                logger.warn(
+                    "Error applying version filter to concept {}: {}",
+                    concept.getCode(),
+                    e.getMessage());
+                return false;
+              }
+            })
+        .collect(Collectors.toList());
   }
 
   /**

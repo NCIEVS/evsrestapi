@@ -11,10 +11,9 @@ import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.util.JsonUtils;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.hl7.fhir.r5.model.*;
 import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
@@ -4860,6 +4859,476 @@ public class FhirR5ValueSetExpandTests {
     nciExclude.addFilter(propertyFilter);
 
     compose.addExclude(nciExclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  /**
+   * Test value set expand with include.version for direct concepts using current NCIt version.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithIncludeVersionDirectConceptsCurrent() throws Exception {
+    // Arrange - Get current NCIt version
+    String content;
+    String endpoint = localHost + port + fhirVSPath;
+
+    // Get list of NCIt ValueSets to find a valid ID and current version
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> valueSets =
+        data.getEntry().stream()
+            .map(Bundle.BundleEntryComponent::getResource)
+            .filter(resource -> resource instanceof ValueSet)
+            .filter(
+                resource -> {
+                  ValueSet vs = (ValueSet) resource;
+                  return vs.hasUrl()
+                      && vs.getUrl().contains("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+                })
+            .toList();
+    String firstValueSetId = valueSets.get(0).getIdPart();
+
+    // Get current version
+    content = this.restTemplate.getForObject(endpoint + "/" + firstValueSetId, String.class);
+    ValueSet currentValueSet = parser.parseResource(ValueSet.class, content);
+    String currentNCItVersion = currentValueSet.getVersion();
+
+    if (currentNCItVersion == null) {
+      log.warn("Could not determine current NCIt version, using fallback");
+      currentNCItVersion = "24.01d"; // Fallback to a recent version
+    }
+    log.info("Using current NCIt version: {} for include.version test", currentNCItVersion);
+
+    String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet using current version - should return concepts
+    ValueSet inputValueSet = createNCITestValueSetWithIncludeVersion(currentNCItVersion);
+
+    // Create Parameters resource
+    Parameters parameters = new Parameters();
+    parameters.addParameter().setName("valueSet").setResource(inputValueSet);
+    parameters.addParameter("count", new IntegerType(100));
+    parameters.addParameter("offset", new IntegerType(0));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    String parametersJson = parser.encodeResourceToString(parameters);
+
+    log.info("  parameters = " + parametersJson);
+    HttpEntity<String> entity = new HttpEntity<>(parametersJson, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        restTemplate.postForEntity(expandEndpoint, entity, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+
+    // Assert - Should return 200 OK
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion(), "Expanded ValueSet should have expansion");
+
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+
+    // Assert - Should have concepts since we're using current version
+    log.info(
+        "NCI Thesaurus ValueSet expansion with current include.version ({}) completed with {}"
+            + " concepts",
+        currentNCItVersion,
+        expansion.getTotal());
+
+    assertTrue(
+        expansion.getTotal() > 0,
+        "Should have concepts when using current NCIt version: " + currentNCItVersion);
+
+    // Verify specific concepts are present
+    Optional<ValueSet.ValueSetExpansionContainsComponent> neoplasmResult =
+        contains.stream().filter(comp -> "C3262".equals(comp.getCode())).findFirst();
+    assertTrue(
+        neoplasmResult.isPresent(), "Neoplasm (C3262) should be included with current version");
+  }
+
+  /**
+   * Test value set expand with include.version for direct concepts using old NCIt version.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithIncludeVersionDirectConceptsOld() throws Exception {
+    // Arrange
+    String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String oldVersion = "20.03d"; // Old version that shouldn't be available on server
+
+    // Create the ValueSet using old version - should return no concepts
+    ValueSet inputValueSet = createNCITestValueSetWithIncludeVersion(oldVersion);
+
+    // Create Parameters resource
+    Parameters parameters = new Parameters();
+    parameters.addParameter().setName("valueSet").setResource(inputValueSet);
+    parameters.addParameter("count", new IntegerType(100));
+    parameters.addParameter("offset", new IntegerType(0));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    String parametersJson = parser.encodeResourceToString(parameters);
+
+    log.info("  parameters = " + parametersJson);
+    HttpEntity<String> entity = new HttpEntity<>(parametersJson, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        restTemplate.postForEntity(expandEndpoint, entity, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+
+    // Assert - Should return 200 OK but no concepts
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion(), "Expanded ValueSet should have expansion");
+
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+
+    // Assert - Should have no concepts since we're using old version not available on server
+    log.info(
+        "NCI Thesaurus ValueSet expansion with old include.version ({}) completed with {} concepts",
+        oldVersion,
+        expansion.getTotal());
+
+    assertEquals(
+        0,
+        expansion.getTotal(),
+        "Should have no concepts when using old NCIt version not available on server: "
+            + oldVersion);
+  }
+
+  /**
+   * Test value set expand with include.version for filter-based concepts.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithIncludeVersionFilterBased() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Get current NCIt version first
+    String content = this.restTemplate.getForObject(localHost + port + fhirVSPath, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> valueSets =
+        data.getEntry().stream()
+            .map(Bundle.BundleEntryComponent::getResource)
+            .filter(resource -> resource instanceof ValueSet)
+            .filter(
+                resource -> {
+                  ValueSet vs = (ValueSet) resource;
+                  return vs.hasUrl()
+                      && vs.getUrl().contains("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+                })
+            .toList();
+    String firstValueSetId = valueSets.get(0).getIdPart();
+
+    content =
+        this.restTemplate.getForObject(
+            localHost + port + fhirVSPath + "/" + firstValueSetId, String.class);
+    ValueSet currentValueSet = parser.parseResource(ValueSet.class, content);
+    String currentNCItVersion = currentValueSet.getVersion();
+
+    if (currentNCItVersion == null) {
+      currentNCItVersion = "24.01d";
+    }
+    log.info("Using current NCIt version: {} for include.version filter test", currentNCItVersion);
+
+    // Create the ValueSet using current version and filters
+    ValueSet inputValueSet = createNCITestValueSetWithIncludeVersionAndFilters(currentNCItVersion);
+
+    // Create Parameters resource with both ValueSet and other parameters
+    Parameters parameters = new Parameters();
+    parameters
+        .addParameter()
+        .setName("valueSet")
+        .setResource(inputValueSet); // Add your ValueSet here
+    parameters.addParameter("count", new IntegerType(100));
+    parameters.addParameter("offset", new IntegerType(0));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    String parametersJson = parser.encodeResourceToString(parameters);
+
+    log.info("  parameters = " + parametersJson);
+    HttpEntity<String> entity = new HttpEntity<>(parametersJson, headers);
+
+    // Act
+    ResponseEntity<String> response = restTemplate.postForEntity(endpoint, entity, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+
+    // Assert - Should return 200 OK
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion(), "Expanded ValueSet should have expansion");
+
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+
+    // Assert - Should have concepts since we're using current version and valid filters
+    log.info(
+        "NCI Thesaurus ValueSet expansion with current include.version ({}) and filters completed"
+            + " with {} concepts",
+        currentNCItVersion,
+        expansion.getTotal());
+
+    assertTrue(
+        expansion.getTotal() > 0,
+        "Should have concepts when using current NCIt version with filters: " + currentNCItVersion);
+  }
+
+  /**
+   * Test value set expand with include.version for filter-based concepts using old NCIt version.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithIncludeVersionFilterBasedOld() throws Exception {
+    // Arrange
+    String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String oldVersion = "20.03d"; // Old version that shouldn't be available on server
+
+    // Create the ValueSet using old version and filters - should return no concepts
+    ValueSet inputValueSet = createNCITestValueSetWithIncludeVersionAndFilters(oldVersion);
+
+    // Create Parameters resource
+    Parameters parameters = new Parameters();
+    parameters.addParameter().setName("valueSet").setResource(inputValueSet);
+    parameters.addParameter("count", new IntegerType(100));
+    parameters.addParameter("offset", new IntegerType(0));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    String parametersJson = parser.encodeResourceToString(parameters);
+
+    log.info("  parameters = " + parametersJson);
+    HttpEntity<String> entity = new HttpEntity<>(parametersJson, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        restTemplate.postForEntity(expandEndpoint, entity, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+
+    // Assert - Should return 200 OK but no concepts
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion(), "Expanded ValueSet should have expansion");
+
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+
+    // Assert - Should have no concepts since we're using old version not available on server
+    log.info(
+        "NCI Thesaurus ValueSet expansion with old include.version ({}) and filters completed with"
+            + " {} concepts",
+        oldVersion,
+        expansion.getTotal());
+
+    assertEquals(
+        0,
+        expansion.getTotal(),
+        "Should have no concepts when using old NCIt version not available on server with filters: "
+            + oldVersion);
+  }
+
+  /**
+   * Creates a test ValueSet with include.version for direct concepts.
+   *
+   * @param version the NCIt version to use
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithIncludeVersion(String version) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId("test-valueset-include-version-" + version.replace(".", "-"));
+    inputValueSet.setUrl("http://example.org/test/ValueSet/include-version-test");
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName("IncludeVersionTest");
+    inputValueSet.setTitle("Include Version Test ValueSet");
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDate(new Date());
+    inputValueSet.setDescription(
+        "Test ValueSet for include.version functionality with direct concepts using NCIt "
+            + version);
+
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+    ValueSet.ConceptSetComponent nciInclude = new ValueSet.ConceptSetComponent();
+    nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    nciInclude.setVersion(version); // Set specific version
+
+    // Add some known NCI concepts
+    ValueSet.ConceptReferenceComponent conceptNeoplasm = new ValueSet.ConceptReferenceComponent();
+    conceptNeoplasm.setCode("C3262");
+    conceptNeoplasm.setDisplay("Neoplasm");
+    nciInclude.addConcept(conceptNeoplasm);
+
+    ValueSet.ConceptReferenceComponent conceptCarcinoma = new ValueSet.ConceptReferenceComponent();
+    conceptCarcinoma.setCode("C2916");
+    conceptCarcinoma.setDisplay("Carcinoma");
+    nciInclude.addConcept(conceptCarcinoma);
+
+    ValueSet.ConceptReferenceComponent conceptMalignant = new ValueSet.ConceptReferenceComponent();
+    conceptMalignant.setCode("C9305");
+    conceptMalignant.setDisplay("Malignant Neoplasm");
+    nciInclude.addConcept(conceptMalignant);
+
+    compose.addInclude(nciInclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  /**
+   * Creates a test ValueSet with include.version and filters.
+   *
+   * @param version the NCIt version to use
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithIncludeVersionAndFilters(String version) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId("test-valueset-include-version-filters-" + version.replace(".", "-"));
+    inputValueSet.setUrl("http://example.org/test/ValueSet/include-version-filters-test");
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName("IncludeVersionFiltersTest");
+    inputValueSet.setTitle("Include Version with Filters Test ValueSet");
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDate(new Date());
+    inputValueSet.setDescription(
+        "Test ValueSet for include.version functionality with filter-based concepts using NCIt "
+            + version);
+
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+    ValueSet.ConceptSetComponent nciInclude = new ValueSet.ConceptSetComponent();
+    nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    nciInclude.setVersion(version); // Set specific version
+
+    // Add child-of filter instead of is-a to limit the number of concepts
+    ValueSet.ConceptSetFilterComponent childOfFilter = new ValueSet.ConceptSetFilterComponent();
+    childOfFilter.setProperty("concept");
+    childOfFilter.setOp(Enumerations.FilterOperator.CHILDOF); // "child-of" operation
+    childOfFilter.setValue("C3262"); // Neoplasm children only (much smaller set)
+    nciInclude.addFilter(childOfFilter);
+
+    // Add property filter
+    ValueSet.ConceptSetFilterComponent propertyFilter = new ValueSet.ConceptSetFilterComponent();
+    propertyFilter.setProperty("Contributing_Source");
+    propertyFilter.setOp(Enumerations.FilterOperator.EQUAL); // "=" operation
+    propertyFilter.setValue("CTRP"); // Include concepts with Contributing_Source = "CTRP"
+    nciInclude.addFilter(propertyFilter);
+
+    compose.addInclude(nciInclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  /**
+   * Test value set expand too-costly error when using is-a filter that would return too many
+   * concepts.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandTooCostlyError() throws Exception {
+    // Arrange
+    String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Get current NCIt version from server
+    String endpoint =
+        localHost
+            + port
+            + fhirVSPath
+            + "?url="
+            + URLEncoder.encode(
+                "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl", StandardCharsets.UTF_8);
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+
+    // Create the ValueSet using is-a filter that would return a very large number of concepts
+    ValueSet inputValueSet = createNCITestValueSetWithLargeIsAFilter();
+
+    // Create Parameters resource
+    Parameters parameters = new Parameters();
+    parameters.addParameter().setName("valueSet").setResource(inputValueSet);
+    parameters.addParameter("count", new IntegerType(100));
+    parameters.addParameter("offset", new IntegerType(0));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    String parametersJson = parser.encodeResourceToString(parameters);
+
+    log.info("  parameters = " + parametersJson);
+    HttpEntity<String> entity = new HttpEntity<>(parametersJson, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        restTemplate.postForEntity(expandEndpoint, entity, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+
+    // Assert - Should return OperationOutcome with too-costly error
+    // assertEquals(HttpStatus.OK, response.getStatusCode());
+    // assertNotNull(response.getBody());
+
+    // Parse the OperationOutcome from the response body
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, response.getBody());
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Verify the error code and message
+    assertEquals("too-costly", component.getCode().toCode());
+    assertTrue(
+        component.getDiagnostics().contains("too costly"),
+        "Diagnostics should contain 'too costly' error message: " + component.getDiagnostics());
+  }
+
+  /**
+   * Creates a test ValueSet with a large is-a filter that would trigger the too-costly error.
+   *
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithLargeIsAFilter() {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId("test-valueset-too-costly");
+    inputValueSet.setUrl("http://example.org/test/ValueSet/too-costly-test");
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName("TooCostlyTest");
+    inputValueSet.setTitle("Too Costly Test ValueSet");
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDate(new Date());
+    inputValueSet.setDescription(
+        "Test ValueSet for too-costly error using is-a filter with large concept set (no version"
+            + " constraint)");
+
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+    ValueSet.ConceptSetComponent nciInclude = new ValueSet.ConceptSetComponent();
+    nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    // Note: Not setting version to allow access to full concept set and trigger too-costly error
+
+    // Add is-a filter for "Thing" (C54253) which should return a very large number of concepts
+    ValueSet.ConceptSetFilterComponent isAFilter = new ValueSet.ConceptSetFilterComponent();
+    isAFilter.setProperty("concept");
+    isAFilter.setOp(Enumerations.FilterOperator.ISA); // "is-a" operation
+    isAFilter.setValue("C2991"); // Thing - the root concept that has many descendants
+    nciInclude.addFilter(isAFilter);
+
+    // Add property filter to trigger property filtering on the large set
+    ValueSet.ConceptSetFilterComponent propertyFilter = new ValueSet.ConceptSetFilterComponent();
+    propertyFilter.setProperty("Semantic_Type");
+    propertyFilter.setOp(Enumerations.FilterOperator.EQUAL);
+    propertyFilter.setValue("Disease or Syndrome"); // Some semantic type filter
+    nciInclude.addFilter(propertyFilter);
+
+    compose.addInclude(nciInclude);
     inputValueSet.setCompose(compose);
 
     return inputValueSet;
