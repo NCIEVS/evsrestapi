@@ -37,19 +37,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.hl7.fhir.r5.model.BooleanType;
-import org.hl7.fhir.r5.model.Bundle;
-import org.hl7.fhir.r5.model.CodeType;
-import org.hl7.fhir.r5.model.Coding;
-import org.hl7.fhir.r5.model.IdType;
-import org.hl7.fhir.r5.model.IntegerType;
-import org.hl7.fhir.r5.model.Meta;
-import org.hl7.fhir.r5.model.OperationOutcome;
+import org.hl7.fhir.r5.model.*;
 import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r5.model.Parameters;
-import org.hl7.fhir.r5.model.StringType;
-import org.hl7.fhir.r5.model.UriType;
-import org.hl7.fhir.r5.model.ValueSet;
 import org.hl7.fhir.r5.model.ValueSet.ConceptPropertyComponent;
 import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionContainsComponent;
@@ -1701,14 +1690,14 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
 
     // Handle value set inclusion
-    // if (include.hasValueSet()) {
-    // for (CanonicalType valueSetUrl : include.getValueSet()) {
-    // List<ValueSetExpansionContainsComponent> referencedConcepts =
-    // expandReferencedValueSet(valueSetUrl.getValue(), textFilter, activeOnly,
-    // includeDesignations);
-    // concepts.addAll(referencedConcepts);
-    // }
-    // }
+    if (include.hasValueSet()) {
+      for (CanonicalType valueSetUrl : include.getValueSet()) {
+        List<ValueSetExpansionContainsComponent> referencedConcepts =
+            expandReferencedValueSet(
+                valueSetUrl, textFilter, activeOnly, includeDesignations, includeDefinitions);
+        concepts.addAll(referencedConcepts);
+      }
+    }
 
     return concepts;
   }
@@ -2037,18 +2026,151 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return compList;
   }
 
-  // private List<ValueSetExpansionContainsComponent> expandReferencedValueSet(
-  // String valueSetUrl,
-  // String textFilter,
-  // boolean activeOnly,
-  // boolean includeDesignations) throws Exception {
-  //
-  // // TODO: Implement recursive ValueSet expansion
-  // // Example: return valueSetService.expand(valueSetUrl, textFilter, activeOnly,
-  // includeDesignations);
-  // logger.debug("Expanding referenced ValueSet: {}", valueSetUrl);
-  // return new ArrayList<>();
-  // }
+  /**
+   * Expand referenced value set.
+   *
+   * @param valueSetUrl the value set url
+   * @param textFilter the text filter
+   * @param activeOnly the active only
+   * @param includeDesignations the include designations
+   * @param includeDefinitions the include definitions
+   * @return the list
+   * @throws Exception the exception
+   */
+  private List<ValueSetExpansionContainsComponent> expandReferencedValueSet(
+      UriType valueSetUrl,
+      String textFilter,
+      boolean activeOnly,
+      boolean includeDesignations,
+      boolean includeDefinitions)
+      throws Exception {
+
+    logger.debug("Expanding referenced ValueSet: {}", valueSetUrl);
+
+    try {
+      // Find the referenced ValueSet by URL
+      final List<ValueSet> vsList = findPossibleValueSets(null, null, valueSetUrl, null);
+
+      // Check if ValueSet exists
+      if (vsList == null || vsList.isEmpty()) {
+        logger.warn("Referenced ValueSet not found: {}", valueSetUrl);
+        InvalidRequestException exception =
+            new InvalidRequestException("Referenced ValueSet not found: " + valueSetUrl);
+        OperationOutcome oo = new OperationOutcome();
+        OperationOutcome.OperationOutcomeIssueComponent issue = oo.addIssue();
+        issue.setCode(OperationOutcome.IssueType.NOTFOUND);
+        issue.setSeverity(OperationOutcome.IssueSeverity.ERROR);
+        issue.setDiagnostics("Referenced ValueSet not found: " + valueSetUrl);
+        exception.setOperationOutcome(oo);
+        throw exception;
+      }
+
+      final ValueSet vs = vsList.get(0);
+      List<Concept> subsetMembers = new ArrayList<Concept>();
+      final ValueSet.ValueSetExpansionComponent vsExpansion =
+          new ValueSet.ValueSetExpansionComponent();
+      String system = "";
+      if (valueSetUrl.getValue().contains("?fhir_vs=")) {
+        system = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
+        final List<Association> invAssoc =
+            osQueryService
+                .getConcept(
+                    vs.getIdentifier().get(0).getValue(),
+                    termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
+                    new IncludeParam("inverseAssociations"))
+                .get()
+                .getInverseAssociations();
+        for (final Association assn : invAssoc) {
+          final Concept member =
+              osQueryService
+                  .getConcept(
+                      assn.getRelatedCode(),
+                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
+                      new IncludeParam())
+                  .orElse(null);
+          if (member != null) {
+            subsetMembers.add(member);
+          }
+        }
+
+      } else {
+        final List<Terminology> terminologies = new ArrayList<>();
+        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true));
+        final SearchCriteria sc = new SearchCriteria();
+        sc.setPageSize(1000);
+        sc.setFromRecord(0);
+        sc.setTerm(textFilter != null && !textFilter.isEmpty() ? textFilter : null);
+        sc.setType("contains");
+        sc.setTerminology(
+            terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
+        ConceptResultList subsetMembersList = searchService.findConcepts(terminologies, sc);
+        subsetMembers.addAll(subsetMembersList.getConcepts());
+
+        system = valueSetUrl.getValue().replace("?fhir_vs", "");
+      }
+
+      vsExpansion.setTotal(subsetMembers.size());
+
+      // Check if ValueSet has no content
+      if (subsetMembers.isEmpty()) {
+        logger.warn("Referenced ValueSet has no content: {}", valueSetUrl);
+        InvalidRequestException exception =
+            new InvalidRequestException("Referenced ValueSet has no content: " + valueSetUrl);
+        OperationOutcome oo = new OperationOutcome();
+        OperationOutcome.OperationOutcomeIssueComponent issue = oo.addIssue();
+        issue.setCode(OperationOutcome.IssueType.NOTFOUND);
+        issue.setSeverity(OperationOutcome.IssueSeverity.ERROR);
+        issue.setDiagnostics("Referenced ValueSet has no content: " + valueSetUrl);
+        exception.setOperationOutcome(oo);
+        throw exception;
+      }
+
+      // Convert subset members to ValueSetExpansionContainsComponent
+      List<ValueSetExpansionContainsComponent> referencedConcepts = new ArrayList<>();
+
+      for (Concept member : subsetMembers) {
+        if (activeOnly && !member.getActive()) {
+          continue; // Skip inactive concepts if activeOnly is true
+        }
+
+        if (textFilter != null && !textFilter.isEmpty()) {
+          // Apply text filter to concept name/display
+          if (!member.getName().toLowerCase().contains(textFilter.toLowerCase())
+              && !member.getCode().toLowerCase().contains(textFilter.toLowerCase())) {
+            continue; // Skip concepts that don't match the filter
+          }
+        }
+
+        ValueSetExpansionContainsComponent contains = new ValueSetExpansionContainsComponent();
+        contains.setSystem(system);
+        contains.setCode(member.getCode());
+        contains.setDisplay(member.getName());
+
+        // Add designations and definitions if requested
+        if (includeDesignations || includeDefinitions) {
+          addDesignationsAndDefinitions(
+              contains, system, member.getCode(), includeDesignations, includeDefinitions);
+        }
+
+        referencedConcepts.add(contains);
+      }
+
+      logger.debug(
+          "Expanded referenced ValueSet {} with {} subset members",
+          valueSetUrl,
+          referencedConcepts.size());
+      return referencedConcepts;
+
+    } catch (InvalidRequestException e) {
+      // Re-throw InvalidRequestException (including not-found and too-costly errors) without
+      // wrapping
+      throw e;
+    } catch (Exception e) {
+      logger.error("Error expanding referenced ValueSet: {}", valueSetUrl, e);
+      throw new Exception(
+          "Failed to expand referenced ValueSet: " + valueSetUrl + ". " + e.getMessage());
+    }
+  }
 
   /**
    * Adds the designations and definitions.

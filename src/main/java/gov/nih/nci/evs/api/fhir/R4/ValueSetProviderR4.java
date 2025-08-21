@@ -44,19 +44,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.hl7.fhir.r4.model.BooleanType;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.IntegerType;
-import org.hl7.fhir.r4.model.Meta;
-import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.*;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.UriType;
-import org.hl7.fhir.r4.model.ValueSet;
 import org.hl7.fhir.r4.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionContainsComponent;
@@ -548,7 +537,17 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
     List<Concept> concepts = new ArrayList<>();
 
-    // Determine terminology
+    // Handle value set inclusion first (before system-based processing)
+    if (include.hasValueSet()) {
+      for (CanonicalType valueSetUrl : include.getValueSet()) {
+        List<Concept> referencedConcepts =
+            expandReferencedValueSet(valueSetUrl, version, includeDesignations, includeDefinition);
+        concepts.addAll(referencedConcepts);
+      }
+      return concepts; // Return early for valueSet includes
+    }
+
+    // Determine terminology for system-based processing
     Terminology terminology = getTerminologyFromSystem(include.getSystem(), version);
     if (terminology == null) {
       logger.warn("Unknown system: {}", include.getSystem());
@@ -719,7 +718,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
       // For now, we'll return empty list to avoid overwhelming results
       // In a production system, you might want to implement pagination or limits
     }
-
     return concepts;
   }
 
@@ -873,7 +871,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @ca.uhn.fhir.rest.annotation.Count final Integer count,
       @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
       // @OperationParam(name = "designation") final StringType designation,
-      // @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
+      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
       @OperationParam(name = "activeOnly") final BooleanType activeOnly
       // @OperationParam(name = "excludeNested") final BooleanType excludeNested,
       // @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
@@ -901,7 +899,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
             "contextDirection",
             "date",
             "designation",
-            "includeDefinition",
             "excludeNested",
             "excludeNotForUI",
             "excludePostCoordinated",
@@ -934,9 +931,14 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
       if (includeDesignations != null && includeDesignations.getValue().booleanValue() == true) {
         includeList.add("synonyms");
-      } else {
+      }
+      if (includeDefinition != null && includeDefinition.getValue().booleanValue() == true) {
+        includeList.add("definitions");
+      }
+      if (includeList.isEmpty()) {
         includeList.add("minimal");
       }
+
       includeParam = new IncludeParam(String.join(",", includeList));
 
       final ValueSet vs = vsList.get(0);
@@ -1022,6 +1024,25 @@ public class ValueSetProviderR4 implements IResourceProvider {
                       .setValue(term.getName());
 
               vsContains.addDesignation(designation);
+            }
+          }
+
+          // Add definitions to the contains component if they were requested
+          if (includeDefinition != null
+              && includeDefinition.booleanValue()
+              && member.getDefinitions() != null) {
+            for (Definition definition : member.getDefinitions()) {
+              ConceptReferenceDesignationComponent definitionDesignation =
+                  new ConceptReferenceDesignationComponent()
+                      .setLanguage("en")
+                      .setUse(
+                          new Coding(
+                              "http://terminology.hl7.org/CodeSystem/designation-usage",
+                              "definition",
+                              "Definition"))
+                      .setValue(definition.getDefinition());
+
+              vsContains.addDesignation(definitionDesignation);
             }
           }
         }
@@ -2237,5 +2258,124 @@ public class ValueSetProviderR4 implements IResourceProvider {
               }
             })
         .collect(Collectors.toList());
+  }
+
+  /**
+   * Expand referenced value set.
+   *
+   * @param valueSetUrl the value set url
+   * @param version the version
+   * @param includeDesignations the include designations
+   * @param includeDefinitions the include definitions
+   * @return the list
+   * @throws Exception the exception
+   */
+  private List<Concept> expandReferencedValueSet(
+      UriType valueSetUrl,
+      StringType version,
+      boolean includeDesignations,
+      boolean includeDefinitions)
+      throws Exception {
+
+    logger.debug("Expanding referenced ValueSet: {}", valueSetUrl);
+
+    try {
+      // Find the referenced ValueSet by URL
+      final List<ValueSet> vsList = findPossibleValueSets(null, null, valueSetUrl, version);
+
+      // Check if ValueSet exists
+      if (vsList == null || vsList.isEmpty()) {
+        logger.warn("Referenced ValueSet not found: {}", valueSetUrl);
+        ca.uhn.fhir.rest.server.exceptions.InvalidRequestException exception =
+            new ca.uhn.fhir.rest.server.exceptions.InvalidRequestException(
+                "Referenced ValueSet not found: " + valueSetUrl);
+        org.hl7.fhir.r4.model.OperationOutcome oo = new org.hl7.fhir.r4.model.OperationOutcome();
+        org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent issue = oo.addIssue();
+        issue.setCode(org.hl7.fhir.r4.model.OperationOutcome.IssueType.NOTFOUND);
+        issue.setSeverity(org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity.ERROR);
+        issue.setDiagnostics("Referenced ValueSet not found: " + valueSetUrl);
+        exception.setOperationOutcome(oo);
+        throw exception;
+      }
+
+      final ValueSet vs = vsList.get(0);
+      List<Concept> subsetMembers = new ArrayList<Concept>();
+
+      // Set up include parameters for designations and definitions
+      List<String> includeList = new ArrayList<>();
+      includeList.add("minimal");
+      if (includeDesignations) {
+        includeList.add("synonyms");
+      }
+      if (includeDefinitions) {
+        includeList.add("definitions");
+      }
+      IncludeParam includeParam = new IncludeParam(String.join(",", includeList));
+
+      if (valueSetUrl.getValue().contains("?fhir_vs=")) {
+        final List<Association> invAssoc =
+            osQueryService
+                .getConcept(
+                    vs.getIdentifier().get(0).getValue(),
+                    termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
+                    new IncludeParam("inverseAssociations"))
+                .get()
+                .getInverseAssociations();
+        for (final Association assn : invAssoc) {
+          final Concept member =
+              osQueryService
+                  .getConcept(
+                      assn.getRelatedCode(),
+                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
+                      includeParam)
+                  .orElse(null);
+          if (member != null) {
+            subsetMembers.add(member);
+          }
+        }
+      } else {
+        final List<Terminology> terminologies = new ArrayList<>();
+        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true));
+        final SearchCriteria sc = new SearchCriteria();
+        sc.setPageSize(1000);
+        sc.setFromRecord(0);
+        sc.setTerm(null); // No text filtering for referenced ValueSet expansion
+        sc.setType("contains");
+        sc.setTerminology(
+            terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
+        ConceptResultList subsetMembersList = searchService.findConcepts(terminologies, sc);
+        subsetMembers.addAll(subsetMembersList.getConcepts());
+      }
+
+      // Check if ValueSet has no content
+      if (subsetMembers.isEmpty()) {
+        logger.warn("Referenced ValueSet has no content: {}", valueSetUrl);
+        ca.uhn.fhir.rest.server.exceptions.InvalidRequestException exception =
+            new ca.uhn.fhir.rest.server.exceptions.InvalidRequestException(
+                "Referenced ValueSet has no content: " + valueSetUrl);
+        org.hl7.fhir.r4.model.OperationOutcome oo = new org.hl7.fhir.r4.model.OperationOutcome();
+        org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent issue = oo.addIssue();
+        issue.setCode(org.hl7.fhir.r4.model.OperationOutcome.IssueType.NOTFOUND);
+        issue.setSeverity(org.hl7.fhir.r4.model.OperationOutcome.IssueSeverity.ERROR);
+        issue.setDiagnostics("Referenced ValueSet has no content: " + valueSetUrl);
+        exception.setOperationOutcome(oo);
+        throw exception;
+      }
+
+      logger.debug(
+          "Expanded referenced ValueSet {} with {} subset members",
+          valueSetUrl,
+          subsetMembers.size());
+      return subsetMembers;
+
+    } catch (ca.uhn.fhir.rest.server.exceptions.InvalidRequestException e) {
+      // Re-throw InvalidRequestException (including not-found and too-costly errors) without
+      // wrapping
+      throw e;
+    } catch (Exception e) {
+      logger.error("Error expanding referenced ValueSet: {}", valueSetUrl, e);
+      throw new Exception(
+          "Failed to expand referenced ValueSet: " + valueSetUrl + ". " + e.getMessage());
+    }
   }
 }
