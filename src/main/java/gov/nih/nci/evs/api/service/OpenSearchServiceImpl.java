@@ -89,7 +89,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     // Escape the term in case it has special characters
     final String term = escape(searchCriteria.getTerm());
-    logger.debug("query string [{}]", term);
+    // logger.debug("query string [{}]", term);
 
     final BoolQueryBuilder boolQuery = new BoolQueryBuilder();
 
@@ -162,7 +162,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             Concept.class,
             IndexCoordinates.of(buildIndicesArray(searchCriteria)));
 
-    logger.debug("result count: {}", hits.getTotalHits());
+    // logger.debug("result count: {}", hits.getTotalHits());
 
     final ConceptResultList result = new ConceptResultList();
 
@@ -675,7 +675,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @return the updated term
    */
   private String updateTermForType(String term, String type) {
-    if (StringUtils.isBlank(term) || StringUtils.isBlank(type)) return term;
+    if (StringUtils.isBlank(term) || StringUtils.isBlank(type)) {
+      return term;
+    }
     String result = null;
 
     switch (type.toLowerCase()) {
@@ -708,7 +710,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     StringBuilder builder = new StringBuilder();
 
     for (String token : tokens) {
-      if (builder.length() > 0) builder.append(" ");
+      if (builder.length() > 0) {
+        builder.append(" ");
+      }
       builder.append(token).append(modifier);
     }
 
@@ -856,7 +860,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    */
   private QueryBuilder getSubsetValueQueryBuilder(
       final List<Terminology> terminologies, SearchCriteria searchCriteria) {
-    if (searchCriteria.getSubset().size() == 0) return null;
+    if (searchCriteria.getSubset().size() == 0) {
+      return null;
+    }
 
     List<String> subsets = searchCriteria.getSubset();
     BoolQueryBuilder subsetListQuery = QueryBuilders.boolQuery();
@@ -902,7 +908,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @return the nested query
    */
   private QueryBuilder getPropertyValueQueryBuilder(SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getProperty())) return null;
+    if (CollectionUtils.isEmpty(searchCriteria.getProperty())) {
+      return null;
+    }
 
     boolean hasValue = !StringUtils.isBlank(searchCriteria.getValue());
 
@@ -939,7 +947,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @return the nested query
    */
   private QueryBuilder getSynonymSourceQueryBuilder(SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getSynonymSource())) return null;
+    if (CollectionUtils.isEmpty(searchCriteria.getSynonymSource())) {
+      return null;
+    }
 
     // IN query on synonym.source
 
@@ -971,7 +981,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    */
   private QueryBuilder getSynonymTypeQueryBuilder(
       List<Terminology> terminologies, SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getSynonymType())) return null;
+    if (CollectionUtils.isEmpty(searchCriteria.getSynonymType())) {
+      return null;
+    }
 
     // bool query to match synonym.type
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
@@ -1002,7 +1014,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @return the nested query
    */
   private QueryBuilder getDefinitionSourceQueryBuilder(SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getDefinitionSource())) return null;
+    if (CollectionUtils.isEmpty(searchCriteria.getDefinitionSource())) {
+      return null;
+    }
 
     // IN query on definition.source
     BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
@@ -1034,7 +1048,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    */
   private QueryBuilder getDefinitionTypeQueryBuilder(
       List<Terminology> terminologies, SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getDefinitionType())) return null;
+    if (CollectionUtils.isEmpty(searchCriteria.getDefinitionType())) {
+      return null;
+    }
 
     // bool query to match definition.type
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
@@ -1065,7 +1081,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @return the nested query
    */
   private QueryBuilder getSynonymTermTypeQueryBuilder(SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermType())) return null;
+    if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermType())) {
+      return null;
+    }
 
     // bool query to match synonym.termType
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
@@ -1095,7 +1113,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @return the nested query
    */
   private QueryBuilder getSynonymTermTypeAndSourceQueryBuilder(SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermType())) return null;
+    if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermType())) {
+      return null;
+    }
 
     // bool query to match synonym.termType
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
