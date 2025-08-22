@@ -3,10 +3,12 @@ package gov.nih.nci.evs.api.service;
 import gov.nih.nci.evs.api.Application;
 import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import jakarta.annotation.PostConstruct;
 import java.util.Date;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
@@ -18,9 +20,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ExitCodeGenerator;
 import org.springframework.boot.SpringApplication;
-import org.springframework.context.ApplicationContext;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
@@ -35,17 +36,17 @@ public class LoaderServiceImpl {
   /** the logger *. */
   private static final Logger logger = LoggerFactory.getLogger(LoaderServiceImpl.class);
 
-  /** the concepts download location *. */
-  @Value("${nci.evs.bulkload.conceptsDir}")
-  private static String CONCEPTS_OUT_DIR;
+  /** the history download location *. */
+  @Value("${nci.evs.bulkload.historyDir}")
+  private static String HISTORY_DIR;
 
   /** the environment *. */
   @Autowired Environment env;
 
-  /** The Elasticsearch operations service instance *. */
-  @Autowired private ElasticOperationsService operationsService;
+  /** The Opensearch operations service instance *. */
+  @Autowired private OpensearchOperationsService operationsService;
 
-  private static ElasticOperationsService staticOperationsService;
+  private static OpensearchOperationsService staticOperationsService;
 
   @PostConstruct
   public void init() {
@@ -65,7 +66,8 @@ public class LoaderServiceImpl {
     options.addOption("h", "help", false, "Show this help information and exit.");
     options.addOption("r", "realTime", false, "Keep for backwards compabitlity. No Effect.");
     options.addOption("t", "terminology", true, "The terminology (ex: ncit_20.02d) to load.");
-    options.addOption("d", "directory", true, "Load concepts from the given directory");
+    // Use this for explicit history file for a RDF data source OR for the actual data dir for RRF
+    options.addOption("d", "data", true, "Load data OR concept history from the given directory");
     options.addOption(
         "xc",
         "skipConcepts",
@@ -104,13 +106,13 @@ public class LoaderServiceImpl {
    * @param defaultLocation the default download location to use
    * @return the config object
    */
-  public static ElasticLoadConfig buildConfig(CommandLine cmd, String defaultLocation) {
-    ElasticLoadConfig config = new ElasticLoadConfig();
+  public static OpensearchLoadConfig buildConfig(CommandLine cmd, String defaultLocation) {
+    OpensearchLoadConfig config = new OpensearchLoadConfig();
 
     config.setTerminology(cmd.getOptionValue('t'));
     config.setForceDeleteIndex(cmd.hasOption('f'));
-    if (cmd.hasOption('d')) {
-      String location = cmd.getOptionValue('d');
+    if (cmd.hasOption("d")) {
+      String location = cmd.getOptionValue("d");
       if (StringUtils.isBlank(location)) {
         logger.error("Location is empty!");
       }
@@ -127,10 +129,11 @@ public class LoaderServiceImpl {
   }
 
   /**
-   * the main method to trigger elasticsearch load via command line *.
+   * the main method to trigger Opensearch load via command line *.
    *
    * @param args the command line arguments
    */
+  @SuppressWarnings("resource")
   public static void main(String[] args) throws Exception {
     Options options = prepareOptions();
     CommandLine cmd;
@@ -148,11 +151,12 @@ public class LoaderServiceImpl {
       return;
     }
 
-    @SuppressWarnings("resource")
-    ApplicationContext app = SpringApplication.run(Application.class, args);
-    ElasticLoadService loadService = null;
-
+    ConfigurableApplicationContext app = null;
     try {
+
+      app = SpringApplication.run(Application.class, args);
+      OpensearchLoadService loadService = null;
+
       // create Audit object
       final Audit termAudit = new Audit();
       termAudit.setType("reindex");
@@ -163,25 +167,33 @@ public class LoaderServiceImpl {
         loadService = app.getBean(MappingLoaderServiceImpl.class);
         loadService.initialize();
         loadService.loadObjects(null, null, null);
-        System.exit(0);
+        // Exit app here
+        if (app.isRunning()) {
+          logger.info("Finished mappings (app running), exit 0");
+          SpringApplication.exit(app, () -> 0);
+          System.exit(0);
+        } else {
+          logger.info("Finished mappings, exit 0");
+          System.exit(0);
+        }
       }
       if (cmd.hasOption('d')) {
         if (cmd.getOptionValue("t").equals("ncim")) {
-          loadService = app.getBean(MetaElasticLoadServiceImpl.class);
+          loadService = app.getBean(MetaOpensearchLoadServiceImpl.class);
         } else if (cmd.getOptionValue("t").startsWith("ncit")) {
-          loadService = app.getBean(GraphElasticLoadServiceImpl.class);
+          loadService = app.getBean(GraphOpensearchLoadServiceImpl.class);
         } else {
-          loadService = app.getBean(MetaSourceElasticLoadServiceImpl.class);
+          loadService = app.getBean(MetaSourceOpensearchLoadServiceImpl.class);
         }
       } else if (cmd.hasOption("xr")) {
         loadService = app.getBean(GraphReportLoadServiceImpl.class);
       } else {
-        loadService = app.getBean(GraphElasticLoadServiceImpl.class);
+        loadService = app.getBean(GraphOpensearchLoadServiceImpl.class);
       }
       termAudit.setProcess(loadService.getClass().getSimpleName());
 
       loadService.initialize();
-      final ElasticLoadConfig config = buildConfig(cmd, CONCEPTS_OUT_DIR);
+      final OpensearchLoadConfig config = buildConfig(cmd, HISTORY_DIR);
       final Terminology term =
           loadService.getTerminology(
               app,
@@ -192,10 +204,13 @@ public class LoaderServiceImpl {
       termAudit.setTerminology(term.getTerminology());
       termAudit.setVersion(term.getVersion());
       final HierarchyUtils hierarchy = loadService.getHierarchyUtils(term);
+      final Map<String, List<Map<String, String>>> historyMap =
+          loadService.updateHistoryMap(term, config.getLocation());
       int totalConcepts = 0;
       if (!cmd.hasOption("xl")) {
+        logger.info("Loading terminology: {}", term.getTerminology());
         if (!cmd.hasOption("xc")) {
-          totalConcepts = loadService.loadConcepts(config, term, hierarchy);
+          totalConcepts = loadService.loadConcepts(config, term, hierarchy, historyMap);
           loadService.checkLoadStatus(totalConcepts, term);
         }
         if (!cmd.hasOption("xm")) {
@@ -203,6 +218,14 @@ public class LoaderServiceImpl {
           loadService.loadObjects(config, term, hierarchy);
           loadService.loadIndexMetadata(totalConcepts, term);
         }
+        // reload history if the new version if ready and there's a valid history map
+        String newHistoryVersion =
+            config.getLocation() != null
+                    && config.getLocation().contains("cumulative_history_")
+                    && config.getLocation().contains(".txt")
+                ? config.getLocation().split("cumulative_history_")[1].split("\\.txt")[0]
+                : null;
+        loadService.updateHistory(term, historyMap, newHistoryVersion);
       }
       final Set<String> removed = loadService.cleanStaleIndexes(term);
       loadService.updateLatestFlag(term, removed);
@@ -213,8 +236,14 @@ public class LoaderServiceImpl {
       termAudit.setLogLevel("INFO");
       logger.info("Audit: {}", termAudit.toString());
       // only add new audit if something major has actually happened
-      if (termAudit.getElapsedTime() > 10000) {
+      if (termAudit.getElapsedTime() > 10000 && totalConcepts > 0) {
         addAudit(termAudit);
+        // update the metadata with the elapsed time
+        term.getMetadata().setIndexRuntime(termAudit.getElapsedTime());
+        logger.warn(
+            "index runtime of {} ms for terminology {}",
+            term.getMetadata().getIndexRuntime(),
+            term.getTerminology());
       }
 
     } catch (Exception e) {
@@ -226,32 +255,26 @@ public class LoaderServiceImpl {
           cmd.getOptionValue("t"),
           e.getMessage(),
           "ERROR");
-      int exitCode =
-          SpringApplication.exit(
-              app,
-              new ExitCodeGenerator() {
-                @Override
-                public int getExitCode() {
-                  // return the error code
-                  logger.info("Exit code 1");
-                  return 1;
-                }
-              });
-      System.exit(exitCode);
+
+      // If app is null, initialization failed immediately, return nonzero code
+      if (app != null && app.isRunning()) {
+        logger.info("Finished (app running), exit 1");
+        SpringApplication.exit(app, () -> 1);
+        System.exit(1);
+      } else {
+        logger.info("Finished, exit 1");
+        System.exit(1);
+      }
     }
 
-    int exitCode =
-        SpringApplication.exit(
-            app,
-            new ExitCodeGenerator() {
-              @Override
-              public int getExitCode() {
-                // return the error code
-                logger.info("Exit code 0");
-                return 0;
-              }
-            });
-    System.exit(exitCode);
+    if (app != null && app.isRunning()) {
+      logger.info("Finished (app running), exit 0");
+      SpringApplication.exit(app, () -> 0);
+      System.exit(0);
+    } else {
+      logger.info("Finished, exit 0");
+      System.exit(0);
+    }
   }
 
   /**
@@ -263,7 +286,7 @@ public class LoaderServiceImpl {
   public static void addAudit(final Audit audit) throws Exception {
     staticOperationsService.deleteQuery(
         "terminology:" + audit.getTerminology() + " AND version:" + audit.getVersion(),
-        ElasticOperationsService.AUDIT_INDEX);
-    staticOperationsService.index(audit, ElasticOperationsService.AUDIT_INDEX, Audit.class);
+        OpensearchOperationsService.AUDIT_INDEX);
+    staticOperationsService.index(audit, OpensearchOperationsService.AUDIT_INDEX, Audit.class);
   }
 }

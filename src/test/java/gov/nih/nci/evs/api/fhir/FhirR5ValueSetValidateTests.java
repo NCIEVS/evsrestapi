@@ -11,7 +11,11 @@ import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import java.net.URI;
 import org.hl7.fhir.r5.model.BooleanType;
+import org.hl7.fhir.r5.model.Coding;
+import org.hl7.fhir.r5.model.OperationOutcome;
+import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r5.model.Parameters;
 import org.hl7.fhir.r5.model.StringType;
 import org.junit.jupiter.api.BeforeAll;
@@ -28,6 +32,7 @@ import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * Class tests for FhirR5Tests. Tests the functionality of the FHIR R5 endpoints, CodeSystem,
@@ -97,6 +102,117 @@ public class FhirR5ValueSetValidateTests {
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
     assertEquals(
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+  }
+
+  @Test
+  public void testValueSetValidateActiveImplicitCodeWithCoding() throws Exception {
+    // Arrange
+    String activeCode = "T100";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String displayString = "Age Group";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+
+    // Create the Coding object
+    Coding coding = new Coding(url, activeCode, null);
+
+    // Construct the GET request URI with the coding parameter
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    builder.queryParam("coding", coding.getSystem() + "|" + coding.getCode());
+
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+  }
+
+  @Test
+  public void testValueSetValidateActiveInstanceCodeWithCoding() throws Exception {
+    // Arrange
+    String activeCode = "T100";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String activeId = "umlssemnet_2023aa";
+    String displayString = "Age Group";
+    String endpoint =
+        localHost + port + fhirVSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+
+    // Create the Coding object
+    Coding coding = new Coding(url, activeCode, null);
+
+    // Construct the GET request URI with the coding parameter
+    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    builder.queryParam("coding", coding.getSystem() + "|" + coding.getCode());
+
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+  }
+
+  /**
+   * Test value set validate active code parameter not supported.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetValidateActiveCodeParameterNotSupported() throws Exception {
+    // Arrange
+    String content;
+    String activeCode = "T100";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?url=" + url + "&code=" + activeCode + "&displayLanguage=not_supported";
+
+    String errorCode = "not-supported";
+    String messageNotSupported = "Input parameter 'displayLanguage' is not supported.";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, (component.getDiagnostics()));
+  }
+
+  /**
+   * Test value set validate active code invariant parameters.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetValidateActiveCodeInvariantParameters() throws Exception {
+    // Arrange
+    String content;
+    String activeCode = "T100";
+    // String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    String parameters = "?code=" + activeCode + "&displayLanguage=not_supported";
+
+    String errorCode = "invariant";
+    String messageInvariant =
+        "Use of input parameter 'code' only allowed if 'system' or 'url' is also present.";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageInvariant, (component.getDiagnostics()));
   }
 
   /**
@@ -367,5 +483,68 @@ public class FhirR5ValueSetValidateTests {
     assertNotNull(content.getBody());
     assertTrue(content.getBody().contains(message));
     assertTrue(content.getBody().contains("not supported"));
+  }
+
+  /**
+   * Test value set validate implicit code with both code and coding.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetValidateImplicitCodeWithBothCodeAndCoding() throws Exception {
+    // Arrange
+    String activeCode = "T100";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    Coding coding = new Coding(url, activeCode, null);
+
+    String messageNotSupported = "Must use one of 'code' or 'coding' parameters";
+    String errorCode = "invariant";
+
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(
+            localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE);
+    builder.queryParam("code", activeCode);
+    builder.queryParam("url", url);
+    builder.queryParam("coding", coding.getSystem() + "|" + coding.getCode());
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, (component.getDiagnostics()));
+  }
+
+  /**
+   * Test value set validate implicit code with no system.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetValidateImplicitCodeWithNoSystem() throws Exception {
+    // Arrange
+    String activeCode = "T100";
+
+    String messageNotSupported =
+        "Use of input parameter 'code' only allowed if 'system' or 'url' is also present.";
+    String errorCode = "invariant";
+
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(
+            localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE);
+    builder.queryParam("code", activeCode);
+    URI getUri = builder.build().toUri();
+
+    // Act
+    String content = this.restTemplate.getForObject(getUri, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, (component.getDiagnostics()));
   }
 }

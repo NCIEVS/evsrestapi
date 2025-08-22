@@ -56,6 +56,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -66,6 +67,7 @@ import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Triple;
 import org.hl7.fhir.convertors.factory.VersionConvertorFactory_40_50;
 import org.hl7.fhir.convertors.factory.VersionConvertorFactory_43_50;
 import org.hl7.fhir.instance.model.api.IBaseConformance;
@@ -167,6 +169,9 @@ public class OpenApiInterceptorR5 {
   /** The use resource pages. */
   private boolean myUseResourcePages;
 
+  /** The ignore parameters. */
+  private Set<Triple<String, String, String>> ignoreParameter = new HashSet<>();
+
   /** Constructor. */
   public OpenApiInterceptorR5() {
     mySwaggerUiVersion = initSwaggerUiWebJar();
@@ -196,6 +201,11 @@ public class OpenApiInterceptorR5 {
 
     myExtensionToContentType.put(".png", "image/png");
     myExtensionToContentType.put(".css", "text/css; charset=UTF-8");
+
+    ignoreParameter.add(Triple.of("CodeSystem", "validate-code", "system"));
+    ignoreParameter.add(Triple.of("CodeSystem", "validate-code", "systemVersion"));
+    // TODO: we probably want this
+    ignoreParameter.add(Triple.of("ValueSet", "validate-code", "version"));
   }
 
   /**
@@ -422,13 +432,13 @@ public class OpenApiInterceptorR5 {
       throws IOException {
     final CapabilityStatement cs = getCapabilityStatement(theRequestDetails);
 
-    // final String baseUrl = removeTrailingSlash(cs.getImplementation().getUrl());
-    final IServerAddressStrategy addressStrategy =
-        theRequestDetails.getServer().getServerAddressStrategy();
-    final String baseUrl =
-        addressStrategy.determineServerBase(
-            theRequestDetails.getServletRequest().getServletContext(),
-            theRequestDetails.getServletRequest());
+    final String baseUrl = theRequestDetails.getServletRequest().getParameter("baseUrl");
+    //  final IServerAddressStrategy addressStrategy =
+    //      theRequestDetails.getServer().getServerAddressStrategy();
+    //  final String baseUrl =
+    //      addressStrategy.determineServerBase(
+    //          theRequestDetails.getServletRequest().getServletContext(),
+    //          theRequestDetails.getServletRequest());
 
     theResponse.setStatus(200);
     theResponse.setContentType(Constants.CT_HTML);
@@ -585,13 +595,13 @@ public class OpenApiInterceptorR5 {
     final Server server = new Server();
     openApi.addServersItem(server);
 
-    // final String baseUrl = removeTrailingSlash(cs.getImplementation().getUrl());
-    final IServerAddressStrategy addressStrategy =
-        theRequestDetails.getServer().getServerAddressStrategy();
-    final String baseUrl =
-        addressStrategy.determineServerBase(
-            theRequestDetails.getServletRequest().getServletContext(),
-            theRequestDetails.getServletRequest());
+    final String baseUrl = theRequestDetails.getServletRequest().getParameter("baseUrl");
+    //  final IServerAddressStrategy addressStrategy =
+    //      theRequestDetails.getServer().getServerAddressStrategy();
+    //  final String baseUrl =
+    //      addressStrategy.determineServerBase(
+    //          theRequestDetails.getServletRequest().getServletContext(),
+    //          theRequestDetails.getServletRequest());
 
     server.setUrl(baseUrl);
     server.setDescription(cs.getSoftware().getName());
@@ -676,7 +686,14 @@ public class OpenApiInterceptorR5 {
 
       final Tag resourceTag = new Tag();
       resourceTag.setName(resourceType);
-      resourceTag.setDescription("The " + resourceType + " FHIR resource type");
+      resourceTag.setDescription(
+          "The "
+              + resourceType
+              + " FHIR resource type (<a target=\"_blank\" href=\"https://hl7.org/fhir/R5/"
+              + resourceType
+              + ".html\">https://hl7.org/fhir/R5/"
+              + resourceType
+              + ".html</a>)");
       openApi.addTagsItem(resourceTag);
 
       // Instance Read
@@ -684,13 +701,7 @@ public class OpenApiInterceptorR5 {
         final Operation operation =
             getPathItem(paths, "/" + resourceType + "/{id}", PathItem.HttpMethod.GET);
         operation.addTagsItem(resourceType);
-        operation.setSummary(
-            "Get "
-                + unCamelCase(resourceType)
-                + " by ID. For more information see the R5 spec for this resource at"
-                + " https://hl7.org/fhir/R5/"
-                + resourceType
-                + ".html");
+        operation.setSummary("Get " + unCamelCase(resourceType) + " by ID. ");
         addResourceIdParameter(operation);
         addFhirResourceResponse(ctx, openApi, operation, null);
       }
@@ -827,14 +838,8 @@ public class OpenApiInterceptorR5 {
       final String resourceType,
       final CapabilityStatementRestResourceComponent nextResource) {
     operation.addTagsItem(resourceType);
-    operation.setDescription("This is a search type");
-    operation.setSummary(
-        "Search for "
-            + unCamelCase(resourceType)
-            + " instances. For more information see the R5 spec for this resource at"
-            + " https://hl7.org/fhir/R5/"
-            + resourceType
-            + ".html");
+    //    operation.setDescription("This is a search type");
+    operation.setSummary("Search for " + unCamelCase(resourceType) + " instances. ");
     addFhirResourceResponse(ctx, openApi, operation, null);
 
     for (final CapabilityStatementRestResourceSearchParamComponent nextSearchParam :
@@ -928,6 +933,7 @@ public class OpenApiInterceptorR5 {
    * @param theResourceType the resource type
    * @param theOperation the operation
    */
+  @SuppressWarnings("null")
   private void addFhirOperation(
       final FhirContext theFhirContext,
       final OpenAPI theOpenApi,
@@ -967,11 +973,17 @@ public class OpenApiInterceptorR5 {
                     PathItem.HttpMethod.GET);
             populateOperation(
                 theFhirContext, theOpenApi, theResourceType, operationDefinition, operation, true);
-            operation.setSummary(operationDefinition.getCode());
             operation.setSummary(
                 unCamelCase(theResourceType)
                     + " operation to perform "
                     + operationDefinition.getCode());
+            final String url =
+                "https://hl7.org/fhir/R5/"
+                    + theResourceType
+                    + "-operation-"
+                    + operationDefinition.getCode()
+                    + ".html";
+            operation.setDescription("See [" + url + "](" + url + ")");
           }
           if (operationDefinition.getInstance()) {
             final Operation operation =
@@ -983,11 +995,17 @@ public class OpenApiInterceptorR5 {
             // addAuthParameter(operation);
             populateOperation(
                 theFhirContext, theOpenApi, theResourceType, operationDefinition, operation, true);
-            operation.setSummary(operationDefinition.getCode());
             operation.setSummary(
                 unCamelCase(theResourceType)
                     + " operation to perform "
                     + operationDefinition.getCode());
+            final String url =
+                "https://hl7.org/fhir/R5/"
+                    + theResourceType
+                    + "-operation-"
+                    + operationDefinition.getCode()
+                    + ".html";
+            operation.setDescription("See [" + url + "](" + url + ")");
           }
         } else {
           if (operationDefinition.getSystem()) {
@@ -996,9 +1014,8 @@ public class OpenApiInterceptorR5 {
                     thePaths, "/$" + operationDefinition.getCode(), PathItem.HttpMethod.GET);
             populateOperation(
                 theFhirContext, theOpenApi, null, operationDefinition, operation, true);
-            operation.setSummary(operationDefinition.getCode());
             operation.setSummary(
-                unCamelCase(theResourceType)
+                unCamelCase(theResourceType == null ? "" : theResourceType)
                     + " operation to perform "
                     + operationDefinition.getCode());
           }
@@ -1120,6 +1137,14 @@ public class OpenApiInterceptorR5 {
     if (theGet) {
       for (final OperationDefinitionParameterComponent nextParameter :
           theOperationDefinition.getParameter()) {
+
+        // Don't display unsupported parameters
+        if (ignoreParameter.contains(
+            Triple.of(
+                theResourceType, theOperationDefinition.getCode(), nextParameter.getName()))) {
+          continue;
+        }
+
         if ("0".equals(nextParameter.getMax())
             || !nextParameter.getUse().equals(OperationParameterUse.IN)
             || (!isPrimitive(nextParameter) && nextParameter.getMin() == 0)) {
@@ -1603,12 +1628,13 @@ public class OpenApiInterceptorR5 {
       final ServletRequestDetails requestDetails =
           (ServletRequestDetails) theExpressionContext.getVariable(REQUEST_DETAILS);
 
-      final IServerAddressStrategy addressStrategy =
-          requestDetails.getServer().getServerAddressStrategy();
-      final String baseUrl =
-          addressStrategy.determineServerBase(
-              requestDetails.getServletRequest().getServletContext(),
-              requestDetails.getServletRequest());
+      final String baseUrl = requestDetails.getServletRequest().getParameter("baseUrl");
+      //    final IServerAddressStrategy addressStrategy =
+      //        theRequestDetails.getServer().getServerAddressStrategy();
+      //    final String baseUrl =
+      //        addressStrategy.determineServerBase(
+      //            theRequestDetails.getServletRequest().getServletContext(),
+      //            theRequestDetails.getServletRequest());
 
       final StringBuilder builder = new StringBuilder();
       builder.append(baseUrl);

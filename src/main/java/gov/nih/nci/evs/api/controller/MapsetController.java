@@ -1,15 +1,15 @@
 package gov.nih.nci.evs.api.controller;
 
-import static gov.nih.nci.evs.api.service.ElasticSearchServiceImpl.escape;
+import static gov.nih.nci.evs.api.service.OpenSearchServiceImpl.escape;
 
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.SearchCriteria;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.service.OpenSearchService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import io.swagger.v3.oas.annotations.Operation;
@@ -47,11 +47,11 @@ public class MapsetController extends BaseController {
   /** The metadata service. */
   @Autowired MetadataService metadataService;
 
-  /** The elasticquery service. */
-  @Autowired ElasticQueryService esQueryService;
+  /** The opensearch service. */
+  @Autowired OpensearchQueryService osQueryService;
 
-  /** The elasticsearch service. */
-  @Autowired ElasticSearchService esSearchService;
+  /** The Opensearch service. */
+  @Autowired OpenSearchService osSearchService;
 
   /** The term utils. */
   @Autowired TerminologyUtils termUtils;
@@ -80,7 +80,7 @@ public class MapsetController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, inverseAssociations, inverseRoles, maps, parents, properties,"
                 + " roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class),
@@ -93,7 +93,7 @@ public class MapsetController extends BaseController {
       throws Exception {
     try {
       final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
-      return esQueryService.getMapsets(ip);
+      return osQueryService.getMapsets(ip);
     } catch (Exception e) {
       handleException(e, "ncit");
       return null;
@@ -144,7 +144,7 @@ public class MapsetController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, inverseAssociations, inverseRoles, maps, parents, properties,"
                 + " roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class),
@@ -158,7 +158,7 @@ public class MapsetController extends BaseController {
       throws Exception {
     try {
       final IncludeParam ip = new IncludeParam(include.orElse("minimal"));
-      List<Concept> results = esQueryService.getMapset(code, ip);
+      List<Concept> results = osQueryService.getMapset(code, ip);
       if (results.size() > 0) {
         return results.get(0);
       } else {
@@ -265,7 +265,7 @@ public class MapsetController extends BaseController {
 
       logger.debug("  Query = " + query);
 
-      return esSearchService.findConceptMappings(query, searchCriteria);
+      return osSearchService.findConceptMappings(query, searchCriteria);
     } catch (Exception e) {
       handleException(e, "ncit");
       return null;

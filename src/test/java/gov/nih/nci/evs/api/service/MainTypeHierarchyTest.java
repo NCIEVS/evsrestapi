@@ -37,8 +37,8 @@ public class MainTypeHierarchyTest {
   /** The service. */
   @Autowired private SparqlQueryManagerService sparqlQueryService;
 
-  /** The elasticquery service. */
-  @Autowired ElasticQueryService esQueryService;
+  /** The opensearchquery service. */
+  @Autowired OpensearchQueryService osQueryService;
 
   /** The term utils. */
   @Autowired TerminologyUtils termUtils;
@@ -53,7 +53,7 @@ public class MainTypeHierarchyTest {
 
     log.info("  Get terminology = ncit");
     // Use true to get the metadata
-    final Terminology terminology = termUtils.getIndexedTerminology("ncit", esQueryService);
+    final Terminology terminology = termUtils.getIndexedTerminology("ncit", osQueryService, true);
     log.info("    terminology = " + terminology);
     log.info("  Get hierarchy");
     final HierarchyUtils hierarchy = sparqlQueryService.getHierarchyUtilsCache(terminology);

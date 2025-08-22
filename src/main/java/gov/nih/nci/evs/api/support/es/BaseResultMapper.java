@@ -4,7 +4,7 @@ import gov.nih.nci.evs.api.model.IncludeParam;
 import java.util.Map;
 
 /**
- * The base elasticsearch result mapper class with common helper methods
+ * The base opensearch result mapper class with common helper methods
  *
  * @author Arun
  */

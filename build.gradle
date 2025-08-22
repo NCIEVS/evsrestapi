@@ -1,6 +1,6 @@
  buildscript {
   ext {
-    springBootVersion = '3.3.5'
+    springBootVersion = '3.3.11'
     // Remove this line to see what version is favored by springBootVersion
     // and the version brought in by spring-data-elasticsearch
     set('elasticsearch.version', '7.12.1')
@@ -56,7 +56,7 @@ ext {
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
-version = "2.1.1.RELEASE"
+version = "2.2.0.RELEASE"
 
 sourceCompatibility = 17
 targetCompatibility = 17
@@ -72,6 +72,7 @@ java {
   toolchain {
     languageVersion = JavaLanguageVersion.of(17)
   }
+
 }
 
 dependencies {
@@ -89,7 +90,7 @@ dependencies {
   implementation "org.springframework:spring-aop"
 
   // For vulnerabilities
-  implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.40"
+  implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.42"
 
   //implementation "org.springframework.data:spring-data-elasticsearch:4.2.12"
   implementation "org.opensearch.client:spring-data-opensearch-starter:1.5.3"
@@ -120,11 +121,11 @@ dependencies {
   implementation 'com.google.protobuf:protobuf-java:3.25.5'
 
   // fhir dependencies
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-base:7.4.5";
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:7.4.5"
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r5:7.4.5"
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-server:7.4.5"
-  implementation("ca.uhn.hapi.fhir:hapi-fhir-jpaserver-base:7.4.5") {
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-base:7.6.1";
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r4:7.6.1"
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-structures-r5:7.6.1"
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-server:7.6.1"
+  implementation("ca.uhn.hapi.fhir:hapi-fhir-jpaserver-base:7.6.1") {
     exclude group: "net.minidev", module: "json-smart"
     exclude group: "ca.uhn.hapi.fhir", module: "hapi-fhir-sql-migrate"
     exclude group: "org.elasticsearch.client", module: "elasticsearch-rest-high-level-client"
@@ -136,19 +137,19 @@ dependencies {
     exclude group: "org.glassfish", module: "javax.el"
     exclude group: "org.apache.logging.log4j", module: "log4j-to-slf4j"
   }
-  implementation "ca.uhn.hapi.fhir:hapi-fhir-server-openapi:7.4.5"
+  implementation "ca.uhn.hapi.fhir:hapi-fhir-server-openapi:7.6.1"
 
   // For the moment, these require explicit 6.4.0 to resolve vulnerabilities (as 7.4.5 above is current)
   implementation "org.fhir:ucum:1.0.9"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.4.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.4.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.4.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.4.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.4.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.4.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.4.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.4.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.4.0"
+  //implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.4.0"
 
   // Lombok dependencies (avoid using lombok for now)
   //implementation "org.projectlombok:lombok:1.18.32"

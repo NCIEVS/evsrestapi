@@ -32,8 +32,8 @@ public class SparqlQueryManagerServiceImplTests {
 
   @Autowired SparqlQueryManagerService sparqlQueryService;
 
-  /** The elasticquery service. */
-  @Autowired ElasticQueryService esQueryService;
+  /** The opensearchquery service. */
+  @Autowired OpensearchQueryService osQueryService;
 
   /** The term utils. */
   @Autowired TerminologyUtils termUtils;
@@ -51,7 +51,7 @@ public class SparqlQueryManagerServiceImplTests {
    */
   @Test
   public void testGetDefinitionSources() throws Exception {
-    final Terminology term = termUtils.getIndexedTerminology("ncit", esQueryService);
+    final Terminology term = termUtils.getIndexedTerminology("ncit", osQueryService, true);
     final List<ConceptMinimal> list = sparqlQueryService.getDefinitionSources(term);
 
     assertTrue(list.stream().filter(c -> c.getCode().equals("BRIDG")).count() > 0);
@@ -66,7 +66,7 @@ public class SparqlQueryManagerServiceImplTests {
   @Test
   public void testGetSynonymSources() throws Exception {
 
-    final Terminology term = termUtils.getIndexedTerminology("ncit", esQueryService);
+    final Terminology term = termUtils.getIndexedTerminology("ncit", osQueryService, true);
     final List<ConceptMinimal> list = sparqlQueryService.getSynonymSources(term);
     assertTrue(list.stream().filter(c -> c.getCode().equals("BRIDG")).count() > 0);
   }

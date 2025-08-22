@@ -14,20 +14,23 @@ import ca.uhn.fhir.rest.param.TokenParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.controller.SubsetController;
+import gov.nih.nci.evs.api.fhir.R5.FhirUtilityR5;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.service.OpenSearchService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -36,9 +39,7 @@ import java.util.stream.Collectors;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.IntegerType;
 import org.hl7.fhir.r4.model.OperationOutcome;
@@ -47,6 +48,7 @@ import org.hl7.fhir.r4.model.Parameters;
 import org.hl7.fhir.r4.model.StringType;
 import org.hl7.fhir.r4.model.UriType;
 import org.hl7.fhir.r4.model.ValueSet;
+import org.hl7.fhir.r4.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionContainsComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionParameterComponent;
@@ -63,10 +65,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
   private static Logger logger = LoggerFactory.getLogger(ValueSetProviderR4.class);
 
   /** The search service. */
-  @Autowired ElasticSearchService searchService;
+  @Autowired OpenSearchService searchService;
 
   /** The search service. */
-  @Autowired ElasticQueryService esQueryService;
+  @Autowired OpensearchQueryService osQueryService;
 
   /** The metadata service. */
   @Autowired MetadataService metadataService;
@@ -81,43 +83,18 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Expand implicit.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/valueset-operation-expand.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R4/valueset-operation-expand.html
    *
    * @param request the request
    * @param details the details
    * @param url the canonical reference to the value set.
-   * @param valueSet the value set
    * @param version the value set version to specify the version to be used when generating the
    *     expansion
-   * @param context the context of the value set.
-   * @param contextDirection the context direction, incoming or outgoing. Usually accompanied by
-   *     context.
    * @param filter the text filter applied to restrict code that are returned.
-   * @param date the date for which the expansion should be generated.
    * @param offset the offset for number of records.
    * @param count the count for codes that should be provided in the partial page view.
-   * @param includeDesignations the include designations flag for included/excluded in value set
-   *     expansions
-   * @param designation the designation token that specifies the system + code that either a use or
-   *     language.
-   * @param includeDefinition controls whether the value set definition is included or excluded in
-   *     value set expansions
    * @param activeOnly controls whether inactive concepts are included or excluded in value set
    *     expansions.
-   * @param excludeNested controls whether the value set expansion nests codes or not
-   * @param excludeNotForUI controls whether the value set expansion is assembled for a user
-   *     interface use
-   * @param excludePostCoordinated controls whether the value set expansion includes post
-   *     coordinated codes
-   * @param displayLanguage specifies the language to be used for description in teh expansions
-   * @param exclude_system the code system or particular version of a code system to be excluded
-   *     from the expansion
-   * @param system_version the version to use for a system
-   * @param check_system_version specifies a version to use for a system.
-   * @param force_system_version specifies a version to use for a system. Overrides any specified
-   *     version in the value set
    * @return the value set
    * @throws Exception the exception
    */
@@ -126,28 +103,30 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final HttpServletRequest request,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-      @OperationParam(name = "valueSet") final ValueSet valueSet,
+      //      @OperationParam(name = "valueSet") final ValueSet valueSet,
       @OperationParam(name = "valueSetVersion") final StringType version,
-      @OperationParam(name = "context") final UriType context,
-      @OperationParam(name = "contextDirection") final CodeType contextDirection,
+      //      @OperationParam(name = "context") final UriType context,
+      //      @OperationParam(name = "contextDirection") final CodeType contextDirection,
       @OperationParam(name = "filter") final StringType filter,
-      @OperationParam(name = "date") final DateTimeType date,
+      //      @OperationParam(name = "date") final DateTimeType date,
       @OperationParam(name = "offset") final IntegerType offset,
       @OperationParam(name = "count") final IntegerType count,
       @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
-      @OperationParam(name = "designation") final StringType designation,
-      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
-      @OperationParam(name = "activeOnly") final BooleanType activeOnly,
-      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
-      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
-      @OperationParam(name = "excludePostCoordinated") final BooleanType excludePostCoordinated,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      @OperationParam(name = "exclude-system") final StringType exclude_system,
-      @OperationParam(name = "system-version") final StringType system_version,
-      @OperationParam(name = "check-system-version") final StringType check_system_version,
-      @OperationParam(name = "force-system-version") final StringType force_system_version)
-      throws Exception {
-    // check if request is a post, throw exception as we don't support post calls
+      //      @OperationParam(name = "designation") final StringType designation,
+      //	  @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
+      @OperationParam(name = "activeOnly") final BooleanType activeOnly
+      //      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
+      //      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
+      //      @OperationParam(name = "excludePostCoordinated") final BooleanType
+      // excludePostCoordinated,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      //      @OperationParam(name = "exclude-system") final StringType exclude_system,
+      //      @OperationParam(name = "system-version") final StringType system_version,
+      //      @OperationParam(name = "check-system-version") final StringType check_system_version,
+      //      @OperationParam(name = "force-system-version") final StringType force_system_version
+      ) throws Exception {
+    // check if request is a post, throw exception as we don't support post
+    // calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
           "POST method not supported for " + JpaConstants.OPERATION_EXPAND,
@@ -156,21 +135,36 @@ public class ValueSetProviderR4 implements IResourceProvider {
     }
     try {
       FhirUtilityR4.required("url", url);
-      FhirUtilityR4.notSupported("valueSet", valueSet);
-      FhirUtilityR4.notSupported("context", context);
-      FhirUtilityR4.notSupported("contextDirection", contextDirection);
-      FhirUtilityR4.notSupported("date", date);
-      FhirUtilityR4.notSupported("includeDesignations", includeDesignations);
-      FhirUtilityR4.notSupported("designation", designation);
-      FhirUtilityR4.notSupported("includeDefinition", includeDefinition);
-      FhirUtilityR4.notSupported("excludeNested", excludeNested);
-      FhirUtilityR4.notSupported("excludeNotForUI", excludeNotForUI);
-      FhirUtilityR4.notSupported("excludePostCoordinated", excludePostCoordinated);
-      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
-      FhirUtilityR4.notSupported("exclude-system", exclude_system);
-      FhirUtilityR4.notSupported("system-version", system_version);
-      FhirUtilityR4.notSupported("check-system-version", check_system_version);
-      FhirUtilityR4.notSupported("force-system-version", force_system_version);
+
+      // The params below should be commented out above
+      for (final String param :
+          new String[] {
+            "valueSet",
+            "context",
+            "contextDirection",
+            "date",
+            "designation",
+            "includeDefinition",
+            "excludeNested",
+            "excludeNotForUI",
+            "excludePostCoordinated",
+            "displayLanguage",
+            "exclude-system",
+            "system-version",
+            "check-system-version",
+            "force-system-version",
+            "_count",
+            "_offset"
+          }) {
+        FhirUtilityR4.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
+      }
+
       final List<ValueSet> vsList = findPossibleValueSets(null, null, url, version);
       if (vsList.size() == 0) {
         throw FhirUtilityR4.exception(
@@ -178,24 +172,37 @@ public class ValueSetProviderR4 implements IResourceProvider {
             OperationOutcome.IssueType.EXCEPTION,
             500);
       }
+
+      // If properties are indicated, retrieve the concept with all potentially
+      // needed info
+      IncludeParam includeParam = new IncludeParam("minimal");
+      List<String> includeList = new ArrayList<>();
+
+      if (includeDesignations != null && includeDesignations.getValue().booleanValue() == true) {
+        includeList.add("synonyms");
+      } else {
+        includeList.add("minimal");
+      }
+      includeParam = new IncludeParam(String.join(",", includeList));
+
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
-      if (url.getValue().contains("?fhir_vs=$")) {
+      if (url.getValue().contains("?fhir_vs=")) {
         final List<Association> invAssoc =
-            esQueryService
+            osQueryService
                 .getConcept(
                     vs.getIdentifier().get(0).getValue(),
-                    termUtils.getIndexedTerminology(vs.getTitle(), esQueryService),
+                    termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
                     new IncludeParam("inverseAssociations"))
                 .get()
                 .getInverseAssociations();
         for (final Association assn : invAssoc) {
           final Concept member =
-              esQueryService
+              osQueryService
                   .getConcept(
                       assn.getRelatedCode(),
-                      termUtils.getIndexedTerminology(vs.getTitle(), esQueryService),
-                      new IncludeParam("minimal"))
+                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
+                      includeParam)
                   .orElse(null);
           if (member != null) {
             subsetMembers.add(member);
@@ -203,7 +210,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         }
       } else {
         final List<Terminology> terminologies = new ArrayList<>();
-        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), esQueryService));
+        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true));
         final SearchCriteria sc = new SearchCriteria();
         sc.setPageSize(count != null ? count.getValue() : 10);
         sc.setFromRecord(offset != null ? offset.getValue() : 0);
@@ -211,6 +218,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
         sc.setType("contains");
         sc.setTerminology(
             terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
+        if (includeList.size() >= 1) {
+          sc.setInclude(String.join(",", includeList));
+        }
         subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();
       }
       final ValueSetExpansionComponent vsExpansion = new ValueSetExpansionComponent();
@@ -218,15 +228,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
       vsExpansion.setOffset(offset != null ? offset.getValue() : 0);
       vsExpansion.setTotal(subsetMembers.size());
       if (subsetMembers.size() > 0) {
-        for (final Concept subset : subsetMembers) {
-          if (activeOnly != null && activeOnly.getValue() && !subset.getActive()) {
+        for (final Concept member : subsetMembers) {
+          if (activeOnly != null && activeOnly.getValue() && !member.getActive()) {
             continue;
           }
           final ValueSetExpansionContainsComponent vsContains =
               new ValueSetExpansionContainsComponent();
-          vsContains.setSystem(url.getValue());
-          vsContains.setCode(subset.getCode());
-          vsContains.setDisplay(subset.getName());
+          vsContains.setSystem(vs.getUrl());
+          vsContains.setCode(member.getCode());
+          vsContains.setDisplay(member.getName());
           vsExpansion.addContains(vsContains);
           ValueSetExpansionParameterComponent vsParameter =
               new ValueSetExpansionParameterComponent();
@@ -237,6 +247,21 @@ public class ValueSetProviderR4 implements IResourceProvider {
           vsParameter.setName("version");
           vsParameter.setValue(version);
           vsExpansion.addParameter(vsParameter);
+
+          // Add synonyms to the contains component if they were requested
+          if (includeDesignations != null
+              && includeDesignations.booleanValue()
+              && member.getSynonyms() != null) {
+            for (Synonym term : member.getSynonyms()) {
+              ConceptReferenceDesignationComponent designation =
+                  new ConceptReferenceDesignationComponent()
+                      .setLanguage("en")
+                      .setUse(new Coding(term.getUri(), term.getTermType(), term.getName()))
+                      .setValue(term.getName());
+
+              vsContains.addDesignation(designation);
+            }
+          }
         }
       }
       vs.setExpansion(vsExpansion);
@@ -253,44 +278,19 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Expand instance.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/valueset-operation-expand.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R4/valueset-operation-expand.html
    *
    * @param request the request
    * @param details the details
    * @param id the id
    * @param url the canonical reference to the value set.
-   * @param valueSet the value set
    * @param version the value set version to specify the version to be used when generating the
    *     expansion
-   * @param context the context of the value set.
-   * @param contextDirection the context direction, incoming or outgoing. Usually accompanied by
-   *     context.
    * @param filter the text filter applied to restrict code that are returned.
-   * @param date the date for which the expansion should be generated.
    * @param offset the offset for number of records.
    * @param count the count for codes that should be provided in the partial page view.
-   * @param includeDesignations the include designations flag for included/excluded in value set
-   *     expansions
-   * @param designation the designation token that specifies the system + code that either a use or
-   *     language.
-   * @param includeDefinition controls whether the value set definition is included or excluded in
-   *     value set expansions
    * @param activeOnly controls whether inactive concepts are included or excluded in value set
    *     expansions.
-   * @param excludeNested controls whether the value set expansion nests codes or not
-   * @param excludeNotForUI controls whether the value set expansion is assembled for a user
-   *     interface use
-   * @param excludePostCoordinated controls whether the value set expansion includes post
-   *     coordinated codes
-   * @param displayLanguage specifies the language to be used for description in teh expansions
-   * @param exclude_system the code system or particular version of a code system to be excluded
-   *     from the expansion
-   * @param system_version the version to use for a system
-   * @param check_system_version specifies a version to use for a system.
-   * @param force_system_version specifies a version to use for a system. Overrides any specified
-   *     version in the value set
    * @return the value set
    * @throws Exception the exception
    */
@@ -300,28 +300,30 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-      @OperationParam(name = "valueSet") final ValueSet valueSet,
+      //      @OperationParam(name = "valueSet") final ValueSet valueSet,
       @OperationParam(name = "valueSetVersion") final StringType version,
-      @OperationParam(name = "context") final UriType context,
-      @OperationParam(name = "contextDirection") final CodeType contextDirection,
+      //      @OperationParam(name = "context") final UriType context,
+      //      @OperationParam(name = "contextDirection") final CodeType contextDirection,
       @OperationParam(name = "filter") final StringType filter,
-      @OperationParam(name = "date") final DateTimeType date,
+      //      @OperationParam(name = "date") final DateTimeType date,
       @ca.uhn.fhir.rest.annotation.Offset final Integer offset,
       @ca.uhn.fhir.rest.annotation.Count final Integer count,
       @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
-      @OperationParam(name = "designation") final StringType designation,
-      @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
-      @OperationParam(name = "activeOnly") final BooleanType activeOnly,
-      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
-      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
-      @OperationParam(name = "excludePostCoordinated") final BooleanType excludePostCoordinated,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      @OperationParam(name = "exclude-system") final StringType exclude_system,
-      @OperationParam(name = "system-version") final StringType system_version,
-      @OperationParam(name = "check-system-version") final StringType check_system_version,
-      @OperationParam(name = "force-system-version") final StringType force_system_version)
-      throws Exception {
-    // check if request is a post, throw exception as we don't support post calls
+      //      @OperationParam(name = "designation") final StringType designation,
+      //	  @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
+      @OperationParam(name = "activeOnly") final BooleanType activeOnly
+      //      @OperationParam(name = "excludeNested") final BooleanType excludeNested,
+      //      @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
+      //      @OperationParam(name = "excludePostCoordinated") final BooleanType
+      // excludePostCoordinated,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      //      @OperationParam(name = "exclude-system") final StringType exclude_system,
+      //      @OperationParam(name = "system-version") final StringType system_version,
+      //      @OperationParam(name = "check-system-version") final StringType check_system_version,
+      //      @OperationParam(name = "force-system-version") final StringType force_system_version
+      ) throws Exception {
+    // check if request is a post, throw exception as we don't support post
+    // calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
           "POST method not supported for " + JpaConstants.OPERATION_EXPAND,
@@ -329,23 +331,33 @@ public class ValueSetProviderR4 implements IResourceProvider {
           405);
     }
     try {
-      // URL is not required because "id" is provided
-      // FhirUtilityR4.required("url", url);
-      FhirUtilityR4.notSupported("valueSet", null);
-      FhirUtilityR4.notSupported("context", context);
-      FhirUtilityR4.notSupported("contextDirection", contextDirection);
-      FhirUtilityR4.notSupported("date", date);
-      FhirUtilityR4.notSupported("includeDesignations", includeDesignations);
-      FhirUtilityR4.notSupported("designation", designation);
-      FhirUtilityR4.notSupported("includeDefinition", includeDefinition);
-      FhirUtilityR4.notSupported("excludeNested", excludeNested);
-      FhirUtilityR4.notSupported("excludeNotForUI", excludeNotForUI);
-      FhirUtilityR4.notSupported("excludePostCoordinated", excludePostCoordinated);
-      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
-      FhirUtilityR4.notSupported("exclude-system", exclude_system);
-      FhirUtilityR4.notSupported("system-version", system_version);
-      FhirUtilityR4.notSupported("check-system-version", check_system_version);
-      FhirUtilityR4.notSupported("force-system-version", force_system_version);
+      for (final String param :
+          new String[] {
+            "valueSet",
+            "context",
+            "contextDirection",
+            "date",
+            "designation",
+            "includeDefinition",
+            "excludeNested",
+            "excludeNotForUI",
+            "excludePostCoordinated",
+            "displayLanguage",
+            "exclude-system",
+            "system-version",
+            "check-system-version",
+            "force-system-version",
+            "_count",
+            "_offset"
+          }) {
+        FhirUtilityR4.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
+      }
       final List<ValueSet> vsList = findPossibleValueSets(id, null, url, version);
       if (vsList.size() == 0) {
         throw FhirUtilityR4.exception(
@@ -353,24 +365,38 @@ public class ValueSetProviderR4 implements IResourceProvider {
             OperationOutcome.IssueType.EXCEPTION,
             500);
       }
+
+      // If properties are indicated, retrieve the concept with all potentially
+      // needed info
+      IncludeParam includeParam = new IncludeParam("minimal");
+      List<String> includeList = new ArrayList<>();
+
+      if (includeDesignations != null && includeDesignations.getValue().booleanValue() == true) {
+        includeList.add("synonyms");
+      } else {
+        includeList.add("minimal");
+      }
+      includeParam = new IncludeParam(String.join(",", includeList));
+
       final ValueSet vs = vsList.get(0);
       List<Concept> subsetMembers = new ArrayList<Concept>();
-      if (url.getValue().contains("?fhir_vs=$")) {
+
+      if (url != null && url.getValue().contains("?fhir_vs=")) {
         final List<Association> invAssoc =
-            esQueryService
+            osQueryService
                 .getConcept(
                     vs.getIdentifier().get(0).getValue(),
-                    termUtils.getIndexedTerminology(vs.getTitle(), esQueryService),
+                    termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
                     new IncludeParam("inverseAssociations"))
                 .get()
                 .getInverseAssociations();
         for (final Association assn : invAssoc) {
           final Concept member =
-              esQueryService
+              osQueryService
                   .getConcept(
                       assn.getRelatedCode(),
-                      termUtils.getIndexedTerminology(vs.getTitle(), esQueryService),
-                      new IncludeParam("minimal"))
+                      termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
+                      includeParam)
                   .orElse(null);
           if (member != null) {
             subsetMembers.add(member);
@@ -378,7 +404,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         }
       } else {
         final List<Terminology> terminologies = new ArrayList<>();
-        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), esQueryService));
+        terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true));
         final SearchCriteria sc = new SearchCriteria();
         sc.setPageSize(count != null ? count : 10);
         sc.setFromRecord(offset != null ? offset : 0);
@@ -386,6 +412,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
         sc.setType("contains");
         sc.setTerminology(
             terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
+        if (includeList.size() >= 1) {
+          sc.setInclude(String.join(",", includeList));
+        }
         subsetMembers = searchService.findConcepts(terminologies, sc).getConcepts();
       }
       final ValueSetExpansionComponent vsExpansion = new ValueSetExpansionComponent();
@@ -393,15 +422,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
       vsExpansion.setOffset(offset != null ? offset : 0);
       vsExpansion.setTotal(subsetMembers.size());
       if (subsetMembers.size() > 0) {
-        for (final Concept subset : subsetMembers) {
-          if (activeOnly != null && activeOnly.getValue() && !subset.getActive()) {
+        for (final Concept member : subsetMembers) {
+          if (activeOnly != null && activeOnly.getValue() && !member.getActive()) {
             continue;
           }
           final ValueSetExpansionContainsComponent vsContains =
               new ValueSetExpansionContainsComponent();
-          vsContains.setSystem(url.getValue());
-          vsContains.setCode(subset.getCode());
-          vsContains.setDisplay(subset.getName());
+          vsContains.setSystem(vs.getUrl());
+          vsContains.setCode(member.getCode());
+          vsContains.setDisplay(member.getName());
           vsExpansion.addContains(vsContains);
           ValueSetExpansionParameterComponent vsParameter =
               new ValueSetExpansionParameterComponent();
@@ -412,6 +441,21 @@ public class ValueSetProviderR4 implements IResourceProvider {
           vsParameter.setName("version");
           vsParameter.setValue(version);
           vsExpansion.addParameter(vsParameter);
+
+          // Add synonyms to the contains component if they were requested
+          if (includeDesignations != null
+              && includeDesignations.booleanValue()
+              && member.getSynonyms() != null) {
+            for (Synonym term : member.getSynonyms()) {
+              ConceptReferenceDesignationComponent designation =
+                  new ConceptReferenceDesignationComponent()
+                      .setLanguage("en")
+                      .setUse(new Coding(term.getUri(), term.getTermType(), term.getName()))
+                      .setValue(term.getName());
+
+              vsContains.addDesignation(designation);
+            }
+          }
         }
       }
       vs.setExpansion(vsExpansion);
@@ -419,6 +463,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
+      e.printStackTrace();
       throw FhirUtilityR4.exception(
           "Failed to load value set", OperationOutcome.IssueType.EXCEPTION, 500);
     }
@@ -427,32 +472,16 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Validate code implicit.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/valueset-operation-validate-code.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R4/valueset-operation-validate-code.html
    *
    * @param request the request
    * @param details the details
    * @param url the value set canonical url
-   * @param context the context of the value set, allows the server to resolve the value set to
-   *     validate against
-   * @param valueSet the value set
-   * @param valueSetVersion the value set version identifier use to specify the version of the value
-   *     set to be used when validating the code
    * @param code the code that is to be validated. If provided, systems or context must be provided
    * @param system the system for the code that is to be validated
    * @param systemVersion the version of the system
-   * @param version the version
    * @param display the display associated with the code, if provided. If provided, a code must be
    *     provided
-   * @param coding the coding to be validated
-   * @param codeableConcept the codeable concept to validate
-   * @param date the date that the validation should be checked.
-   * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
-   *     the validation is being performed in a context where a concept designated as 'abstract' is
-   *     appropriate/allowed to be used
-   * @param displayLanguage the display language for the description when validating a display
-   *     property
    * @return the parameters
    * @throws Exception the exception
    */
@@ -461,21 +490,22 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final HttpServletRequest request,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-      @OperationParam(name = "context") final UriType context,
-      @OperationParam(name = "valueSet") final ValueSet valueSet,
-      @OperationParam(name = "valueSetVersion") final StringType valueSetVersion,
+      //      @OperationParam(name = "context") final UriType context,
+      //      @OperationParam(name = "valueSet") final ValueSet valueSet,
+      //      @OperationParam(name = "valueSetVersion") final StringType valueSetVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "systemVersion") final StringType systemVersion,
-      @OperationParam(name = "version") final StringType version,
+      //      @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display,
-      @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-      @OperationParam(name = "date") final DateTimeType date,
-      @OperationParam(name = "abstract") final BooleanType abstractt,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage)
-      throws Exception {
-    // check if request is a post, throw exception as we don't support post calls
+      @OperationParam(name = "coding") final Coding coding
+      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      //      @OperationParam(name = "date") final DateTimeType date,
+      //      @OperationParam(name = "abstract") final BooleanType abstractt,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      ) throws Exception {
+    // check if request is a post, throw exception as we don't support post
+    // calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
           "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
@@ -483,25 +513,51 @@ public class ValueSetProviderR4 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR4.required("code", code);
+      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR4.mutuallyRequired("code", code, "system", system, "url", url);
       FhirUtilityR4.mutuallyRequired("system", system, "systemVersion", systemVersion);
-      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
-      FhirUtilityR4.notSupported("coding", coding);
-      FhirUtilityR4.notSupported("context", context);
-      FhirUtilityR4.notSupported("date", date);
-      FhirUtilityR4.notSupported("abstract", abstractt);
-      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
-      FhirUtilityR4.notSupported("version", version);
-      FhirUtilityR4.notSupported("valueSet", valueSet);
-      FhirUtilityR4.notSupported("valueSetVersion", valueSetVersion);
-      final List<ValueSet> list = findPossibleValueSets(null, system, url, systemVersion);
+
+      // TODO: not sure that "version" should be in this list
+      for (final String param :
+          new String[] {
+            "context",
+            "date",
+            "abstract",
+            "displayLanguage",
+            "version",
+            "valueSet",
+            "valueSetVersion"
+          }) {
+        FhirUtilityR4.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
+      }
+
+      UriType urlToLookup = null;
+      if (url != null) {
+        urlToLookup = url;
+      }
+      if (coding != null) {
+        urlToLookup = coding.getSystemElement();
+      }
+
+      final List<ValueSet> list = findPossibleValueSets(null, system, urlToLookup, systemVersion);
       final Parameters params = new Parameters();
 
       if (list.size() > 0) {
+        String codeToLookup = "";
+        if (code != null) {
+          codeToLookup = code.getCode();
+        } else if (coding != null) {
+          codeToLookup = coding.getCode();
+        }
         final ValueSet vs = list.get(0);
         final SearchCriteria sc = new SearchCriteria();
-        sc.setTerm(code.getCode());
+        sc.setTerm(codeToLookup);
         sc.setInclude("minimal");
         sc.setType("exact");
         sc.setFromRecord(0);
@@ -509,7 +565,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
         if (vs.getIdentifier() != null && !vs.getIdentifier().isEmpty()) {
           sc.setSubset(Arrays.asList(vs.getIdentifier().get(0).getValue()));
         }
-        final Terminology term = termUtils.getIndexedTerminology(vs.getTitle(), esQueryService);
+        final Terminology term =
+            termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true);
         sc.setTerminology(Arrays.asList(vs.getTitle()));
         sc.validate(term, metadataService);
         final List<Terminology> terms = Arrays.asList(term);
@@ -530,14 +587,14 @@ public class ValueSetProviderR4 implements IResourceProvider {
           }
         } else {
           params.addParameter("result", false);
-          params.addParameter("message", "The code '" + code.getCode() + "' was not found.");
+          params.addParameter("message", "The code '" + codeToLookup + "' was not found.");
         }
 
       } else {
         params.addParameter("result", false);
         params.addParameter("message", "Unable to find matching value set");
         params.addParameter("url", (url == null ? new UriType("<null>") : url));
-        params.addParameter("version", version);
+        //        params.addParameter("version", version);
       }
       return params;
 
@@ -552,33 +609,17 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Validate code instance.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/valueset-operation-validate-code.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R4/valueset-operation-validate-code.html
    *
    * @param request the request
    * @param details the details
    * @param id the id
    * @param url the value set canonical url
-   * @param context the context of the value set, allows the server to resolve the value set to
-   *     validate against
-   * @param valueSet the value set
-   * @param valueSetVersion the value set version identifier use to specify the version of the value
-   *     set to be used when validating the code
    * @param code the code that is to be validated. If provided, systems or context must be provided
    * @param system the system for the code that is to be validated
    * @param systemVersion the version of the system
-   * @param version the version
    * @param display the display associated with the code, if provided. If provided, a code must be
    *     provided
-   * @param coding the coding to be validated
-   * @param codeableConcept the codeable concept to validate
-   * @param date the date that the validation should be checked.
-   * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
-   *     the validation is being performed in a context where a concept designated as 'abstract' is
-   *     appropriate/allowed to be used
-   * @param displayLanguage the display language for the description when validating a display
-   *     property
    * @return the parameters
    * @throws Exception the exception
    */
@@ -588,21 +629,22 @@ public class ValueSetProviderR4 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-      @OperationParam(name = "context") final UriType context,
-      @OperationParam(name = "valueSet") final ValueSet valueSet,
-      @OperationParam(name = "valueSetVersion") final StringType valueSetVersion,
+      //      @OperationParam(name = "context") final UriType context,
+      //      @OperationParam(name = "valueSet") final ValueSet valueSet,
+      //      @OperationParam(name = "valueSetVersion") final StringType valueSetVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "systemVersion") final StringType systemVersion,
-      @OperationParam(name = "version") final StringType version,
+      //      @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display,
-      @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-      @OperationParam(name = "date") final DateTimeType date,
-      @OperationParam(name = "abstract") final BooleanType abstractt,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage)
-      throws Exception {
-    // check if request is a post, throw exception as we don't support post calls
+      @OperationParam(name = "coding") final Coding coding
+      //      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
+      //      @OperationParam(name = "date") final DateTimeType date,
+      //      @OperationParam(name = "abstract") final BooleanType abstractt,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      ) throws Exception {
+    // check if request is a post, throw exception as we don't support post
+    // calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
           "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE,
@@ -610,29 +652,57 @@ public class ValueSetProviderR4 implements IResourceProvider {
           405);
     }
     try {
+      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR4.requireAtLeastOneOf(
-          "code", code, "system", system, "systemVersion", systemVersion, "url", url);
-      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
-      FhirUtilityR4.notSupported("coding", coding);
-      FhirUtilityR4.notSupported("context", context);
-      FhirUtilityR4.notSupported("date", date);
-      FhirUtilityR4.notSupported("abstract", abstractt);
-      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
-      FhirUtilityR4.notSupported("version", version);
-      FhirUtilityR4.notSupported("valueSet", valueSet);
-      FhirUtilityR4.notSupported("valueSetVersion", valueSetVersion);
-      final List<ValueSet> list = findPossibleValueSets(id, system, url, systemVersion);
+          "code", code, "coding", coding, "systemVersion", systemVersion, "url", url);
+
+      // TODO: not sure that "version" should be in this list
+      for (final String param :
+          new String[] {
+            "context",
+            "date",
+            "abstractt",
+            "displayLanguage",
+            "version",
+            "valueSet",
+            "valueSetVersion"
+          }) {
+        FhirUtilityR4.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
+      }
+
+      UriType urlToLookup = null;
+      if (url != null) {
+        urlToLookup = url;
+      }
+      if (coding != null) {
+        urlToLookup = coding.getSystemElement();
+      }
+
+      final List<ValueSet> list = findPossibleValueSets(id, system, urlToLookup, systemVersion);
       final Parameters params = new Parameters();
       if (list.size() > 0) {
+        String codeToLookup = "";
+        if (code != null) {
+          codeToLookup = code.getCode();
+        } else if (coding != null) {
+          codeToLookup = coding.getCode();
+        }
         final ValueSet vs = list.get(0);
         final SearchCriteria sc = new SearchCriteria();
-        sc.setTerm(code.getCode());
+        sc.setTerm(codeToLookup);
         sc.setInclude("minimal");
         sc.setType("exact");
         if (vs.getIdentifier() != null && !vs.getIdentifier().isEmpty()) {
           sc.setSubset(Arrays.asList(vs.getIdentifier().get(0).getValue()));
         }
-        final Terminology term = termUtils.getIndexedTerminology(vs.getTitle(), esQueryService);
+        final Terminology term =
+            termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true);
         sc.validate(term, metadataService);
         final List<Terminology> terms = Arrays.asList(term);
         final List<Concept> conc = searchService.findConcepts(terms, sc).getConcepts();
@@ -652,14 +722,14 @@ public class ValueSetProviderR4 implements IResourceProvider {
           }
         } else {
           params.addParameter("result", false);
-          params.addParameter("message", "The code '" + code.getCode() + "' was not found.");
+          params.addParameter("message", "The code '" + codeToLookup + "' was not found.");
         }
 
       } else {
         params.addParameter("result", false);
         params.addParameter("message", "Unable to find matching value set");
         params.addParameter("url", (url == null ? new UriType("<null>") : url));
-        params.addParameter("version", version);
+        // params.addParameter("version", version);
       }
       return params;
 
@@ -674,11 +744,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /**
    * Find value sets.
    *
+   * <p>See https://hl7.org/fhir/R4/valueset.html (find "search parameters")
+   *
    * @param request the request
    * @param id the id
    * @param code the code
    * @param name the name
-   * @param system the system
+   * @param title the title
    * @param url the url
    * @param version the version
    * @param count the count
@@ -692,7 +764,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OptionalParam(name = "_id") final TokenParam id,
       @OptionalParam(name = "code") final StringParam code,
       @OptionalParam(name = "name") final StringParam name,
-      @OptionalParam(name = "system") final UriType system,
+      @OptionalParam(name = "title") final StringParam title,
       @OptionalParam(name = "url") final StringParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
@@ -702,7 +774,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
           final NumberParam offset)
       throws Exception {
     FhirUtilityR4.notSupportedSearchParams(request);
-    final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
+    final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
     final List<ValueSet> list = new ArrayList<>();
 
     if (code == null) {
@@ -717,11 +789,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
           logger.debug("  SKIP url mismatch = " + vs.getUrl());
           continue;
         }
-        if (system != null && !system.getValue().equals(vs.getTitle())) {
-          logger.debug("  SKIP system mismatch = " + vs.getTitle());
+        if (title != null && !FhirUtility.compareString(title, vs.getTitle())) {
+          logger.debug("  SKIP title mismatch = " + vs.getTitle());
           continue;
         }
-        if (name != null && !name.getValue().equals(vs.getName())) {
+        if (name != null && !FhirUtility.compareString(name, vs.getName())) {
           logger.debug("  SKIP name mismatch = " + vs.getName());
           continue;
         }
@@ -741,9 +813,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
             .map(c -> c.getCode())
             .collect(Collectors.toSet());
     final List<Concept> subsetsAsConcepts =
-        esQueryService.getConcepts(
+        osQueryService.getConcepts(
             codes,
-            termUtils.getIndexedTerminology("ncit", esQueryService),
+            termUtils.getIndexedTerminology("ncit", osQueryService, true),
             new IncludeParam("minimal"));
     for (final Concept subset : subsetsAsConcepts) {
       final ValueSet vs = FhirUtilityR4.toR4VS(subset);
@@ -756,11 +828,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
         logger.debug("  SKIP url mismatch = " + vs.getUrl());
         continue;
       }
-      if (system != null && !system.getValue().equals(vs.getTitle())) {
-        logger.debug("  SKIP system mismatch = " + vs.getTitle());
+      if (title != null && !FhirUtility.compareString(title, vs.getTitle())) {
+        logger.debug("  SKIP title mismatch = " + vs.getTitle());
         continue;
       }
-      if (name != null && !name.getValue().equals(vs.getName())) {
+      if (name != null && !FhirUtility.compareString(name, vs.getName())) {
         logger.debug("  SKIP name mismatch = " + vs.getName());
         continue;
       }
@@ -780,6 +852,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
   /**
    * Returns the value set.
+   *
+   * <p>See https://hl7.org/fhir/R4/valueset.html
    *
    * @param details the details
    * @param id the id
@@ -832,7 +906,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       return new ArrayList<>(0);
     }
 
-    final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
+    final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
 
     final List<ValueSet> list = new ArrayList<ValueSet>();
     for (final Terminology terminology : terms) {
@@ -865,9 +939,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
             .map(c -> c.getCode())
             .collect(Collectors.toSet());
     final List<Concept> subsetsAsConcepts =
-        esQueryService.getConcepts(
+        osQueryService.getConcepts(
             codes,
-            termUtils.getIndexedTerminology("ncit", esQueryService),
+            termUtils.getIndexedTerminology("ncit", osQueryService, true),
             new IncludeParam("minimal"));
 
     for (final Concept subset : subsetsAsConcepts) {

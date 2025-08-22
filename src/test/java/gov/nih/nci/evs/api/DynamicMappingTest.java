@@ -6,8 +6,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticOperationsService;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.OpensearchOperationsService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
@@ -32,11 +32,11 @@ public class DynamicMappingTest {
   /** The logger. */
   private static final Logger logger = LoggerFactory.getLogger(DynamicMappingTest.class);
 
-  /** The Elasticsearch operations service instance *. */
-  @Autowired ElasticOperationsService operationsService;
+  /** The opensearch operations service instance *. */
+  @Autowired OpensearchOperationsService operationsService;
 
-  /** The elastic query service. */
-  @Autowired ElasticQueryService elasticQueryService;
+  /** The opensearch query service. */
+  @Autowired OpensearchQueryService elasticQueryService;
 
   /** The terminology utils. */
   @Autowired TerminologyUtils termUtils;
@@ -67,7 +67,8 @@ public class DynamicMappingTest {
                     getClass().getClassLoader().getResource("conceptTestDM.json"), "UTF-8"),
                 Concept.class);
 
-    final Terminology term = termUtils.getIndexedTerminology(terminology, elasticQueryService);
+    final Terminology term =
+        termUtils.getIndexedTerminology(terminology, elasticQueryService, true);
     final IncludeParam ip = new IncludeParam("full,descendants,paths");
 
     // ACT

@@ -12,30 +12,29 @@ import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.param.UriParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.controller.ConceptController;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.ElasticOperationsService;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.ElasticSearchService;
+import gov.nih.nci.evs.api.service.OpenSearchService;
+import gov.nih.nci.evs.api.service.OpensearchOperationsService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeSystem;
 import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.CodeableConcept;
 import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.DateTimeType;
 import org.hl7.fhir.r4.model.IdType;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
@@ -55,13 +54,13 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   private static Logger logger = LoggerFactory.getLogger(CodeSystemProviderR4.class);
 
   /** The operations service. */
-  @Autowired ElasticOperationsService operationsService;
+  @Autowired OpensearchOperationsService operationsService;
 
   /** the query service. */
-  @Autowired ElasticQueryService esQueryService;
+  @Autowired OpensearchQueryService osQueryService;
 
   /** The search service. */
-  @Autowired ElasticSearchService searchService;
+  @Autowired OpenSearchService searchService;
 
   /** The concept controller. */
   @Autowired ConceptController conceptController;
@@ -73,9 +72,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Lookup implicit.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-lookup.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R4/codesystem-operation-lookup.html
    *
    * @param request the request
    * @param response the response
@@ -100,10 +97,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "date") final DateRangeParam date,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      @OperationParam(name = "property") final CodeType property)
-      throws Exception {
+      @OperationParam(name = "date") final DateRangeParam date
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      //      @OperationParam(name = "property") final CodeType property
+      ) throws Exception {
     // check if request is a post, throw exception as we don't support post calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
@@ -114,9 +111,26 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
-      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
-      FhirUtilityR4.notSupported("property", property);
-      final List<CodeSystem> cs = findPossibleCodeSystems(null, date, system, version);
+      //      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
+      //      FhirUtilityR4.notSupported("property", property);
+      for (final String param : new String[] {"displayLanguage", "property"}) {
+        FhirUtilityR4.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
+      }
+
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (coding != null) {
+        systemToLookup = coding.getSystemElement();
+      }
+
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, date, systemToLookup, version);
       final Parameters params = new Parameters();
       if (cs.size() > 0) {
         String codeToLookup = "";
@@ -127,9 +141,9 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
         final Concept conc =
-            esQueryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
+            osQueryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
         // required in the specification
         params.addParameter("name", codeSys.getName());
         params.addParameter("display", conc.getName());
@@ -161,9 +175,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Lookup instance.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-lookup.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R4/codesystem-operation-lookup.html
    *
    * @param request the request
    * @param response the response
@@ -190,10 +202,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       @OperationParam(name = "system") final UriType system,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "date") final DateRangeParam date,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
-      @OperationParam(name = "property") final CodeType property)
-      throws Exception {
+      @OperationParam(name = "date") final DateRangeParam date
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage,
+      //      @OperationParam(name = "property") final CodeType property
+      ) throws Exception {
     // check if request is a post, throw exception as we don't support post calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
@@ -204,9 +216,26 @@ public class CodeSystemProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system);
       FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
-      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
-      FhirUtilityR4.notSupported("property", property);
-      final List<CodeSystem> cs = findPossibleCodeSystems(id, date, system, version);
+      //      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
+      //      FhirUtilityR4.notSupported("property", property);
+      for (final String param : new String[] {"displayLanguage", "property"}) {
+        FhirUtilityR4.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
+      }
+
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (coding != null) {
+        systemToLookup = coding.getSystemElement();
+      }
+
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, date, systemToLookup, version);
       final Parameters params = new Parameters();
       if (cs.size() > 0) {
         String codeToLookup = "";
@@ -217,9 +246,9 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
         final Concept conc =
-            esQueryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
+            osQueryService.getConcept(codeToLookup, term, new IncludeParam("children")).get();
         // required in the specification
         params.addParameter("name", codeSys.getName());
         params.addParameter("display", conc.getName());
@@ -250,9 +279,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Validate code implicit.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-validate-code.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R4/codesystem-operation-validate-code.html
    *
    * @param request the request
    * @param response the response
@@ -263,7 +290,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param version the version of the code system.
    * @param display the display associated with the code If provided, a code must be provided.
    * @param coding the coding to validate.
-   * @param codeableConcept the full codeable concept to validate.
    * @param date the date for when the validation should be checked
    * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
    *     the validation is being performed in a context where a concept designated as 'abstract' is
@@ -279,16 +305,15 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       final HttpServletResponse response,
       final ServletRequestDetails details,
       @OperationParam(name = "url") final UriType url,
-      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
+      //      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display,
-      @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-      @OperationParam(name = "date") final DateTimeType date,
-      @OperationParam(name = "abstract") final BooleanType abstractt,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage)
-      throws Exception {
+      @OperationParam(name = "coding") final Coding coding
+      //      @OperationParam(name = "date") final DateTimeType date,
+      //      @OperationParam(name = "abstract") final BooleanType abstractt,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      ) throws Exception {
     // check if request is a post, throw exception as we don't support post calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
@@ -297,25 +322,44 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
-      FhirUtilityR4.notSupported("codeSystem", codeSystem);
-      FhirUtilityR4.notSupported("coding", coding);
-      FhirUtilityR4.notSupported("date", date);
-      FhirUtilityR4.notSupported("abstract", abstractt);
-      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
 
-      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, url, version);
+      FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
+      FhirUtilityR4.mutuallyRequired("code", code, "url", url);
+      for (final String param :
+          new String[] {"codeSystem", "date", "abstract", "displayLanguage"}) {
+        FhirUtilityR4.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
+      }
+
+      UriType systemToLookup = null;
+      if (url != null) {
+        systemToLookup = url;
+      } else if (coding != null) {
+        systemToLookup = coding.getSystemElement();
+      }
+
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (cs.size() > 0) {
-        final String codeToValidate = code.getCode();
+        String codeToValidate = "";
+        if (code != null) {
+          codeToValidate = code.getCode();
+        } else if (coding != null) {
+          codeToValidate = coding.getCode();
+        }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
         final Optional<Concept> check =
-            esQueryService.getConcept(codeToValidate, term, new IncludeParam("children"));
+            osQueryService.getConcept(codeToValidate, term, new IncludeParam("children"));
         if (check.isPresent()) {
           final Concept conc =
-              esQueryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
+              osQueryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
           if (display == null || conc.getName().equals(display.getValue())) {
             params.addParameter("result", true);
             params.addParameter("code", conc.getCode());
@@ -355,6 +399,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Validate code implicit.
    *
+   * <p>See https://hl7.org/fhir/R4/codesystem-operation-validate-code.html
+   *
    * @param request the request
    * @param response the response
    * @param details the details
@@ -365,7 +411,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @param version the version of the code system.
    * @param display the display associated with the code If provided, a code must be provided.
    * @param coding the coding to validate.
-   * @param codeableConcept the full codeable concept to validate.
    * @param date the date for when the validation should be checked
    * @param abstractt the abstractt indicates if the concept is a logical grouping concept. If True,
    *     the validation is being performed in a context where a concept designated as 'abstract' is
@@ -382,16 +427,15 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       final ServletRequestDetails details,
       @IdParam final IdType id,
       @OperationParam(name = "url") final UriType url,
-      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
+      //      @OperationParam(name = "codeSystem") final CodeSystem codeSystem,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "version") final StringType version,
       @OperationParam(name = "display") final StringType display,
-      @OperationParam(name = "coding") final Coding coding,
-      @OperationParam(name = "codeableConcept") final CodeableConcept codeableConcept,
-      @OperationParam(name = "date") final DateTimeType date,
-      @OperationParam(name = "abstract") final BooleanType abstractt,
-      @OperationParam(name = "displayLanguage") final StringType displayLanguage)
-      throws Exception {
+      @OperationParam(name = "coding") final Coding coding
+      //      @OperationParam(name = "date") final DateTimeType date,
+      //      @OperationParam(name = "abstract") final BooleanType abstractt,
+      //      @OperationParam(name = "displayLanguage") final StringType displayLanguage
+      ) throws Exception {
     // check if request is a post, throw exception as we don't support post calls
     if (request.getMethod().equals("POST")) {
       throw FhirUtilityR4.exception(
@@ -399,25 +443,46 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           IssueType.NOTSUPPORTED,
           405);
     }
+
+    // This is an instance call so the url is unnecessary
+    // FhirUtilityR4.mutuallyRequired("code", code, "url", url);
+    FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
     try {
-      FhirUtilityR4.notSupported("codeableConcept", codeableConcept);
-      FhirUtilityR4.notSupported("codeSystem", codeSystem);
-      FhirUtilityR4.notSupported("coding", coding);
-      FhirUtilityR4.notSupported("date", date);
-      FhirUtilityR4.notSupported("abstract", abstractt);
-      FhirUtilityR4.notSupported("displayLanguage", displayLanguage);
-      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, url, version);
+      for (final String param :
+          new String[] {"codeSystem", "date", "abstract", "displayLanguage"}) {
+        FhirUtilityR4.notSupported(request, param);
+      }
+      if (Collections.list(request.getParameterNames()).stream()
+              .filter(k -> k.startsWith("_has"))
+              .count()
+          > 0) {
+        FhirUtilityR4.notSupported(request, "_has");
+      }
+
+      UriType systemToLookup = null;
+      if (url != null) {
+        systemToLookup = url;
+      } else if (coding != null) {
+        systemToLookup = coding.getSystemElement();
+      }
+
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (cs.size() > 0) {
-        final String codeToValidate = code.getCode();
+        String codeToValidate = "";
+        if (code != null) {
+          codeToValidate = code.getCode();
+        } else if (coding != null) {
+          codeToValidate = coding.getCode();
+        }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
         final Optional<Concept> check =
-            esQueryService.getConcept(codeToValidate, term, new IncludeParam("children"));
+            osQueryService.getConcept(codeToValidate, term, new IncludeParam("children"));
         if (check.isPresent()) {
           final Concept conc =
-              esQueryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
+              osQueryService.getConcept(codeToValidate, term, new IncludeParam("children")).get();
           if (display == null || conc.getName().equals(display.getValue())) {
             params.addParameter("code", conc.getCode());
             params.addParameter("result", true);
@@ -457,9 +522,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Subsumes implicit.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
    *
    * @param request the request
    * @param response the response
@@ -498,7 +561,15 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.mutuallyRequired("codeB", codeB, "system", system);
       FhirUtilityR4.mutuallyExclusive("codingB", codingB, "codeB", codeB);
       FhirUtilityR4.mutuallyExclusive("codingA", codingA, "codeA", codeA);
-      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, system, version);
+
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (codingA != null) {
+        systemToLookup = codingA.getSystemElement();
+      }
+
+      final List<CodeSystem> cs = findPossibleCodeSystems(null, null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (cs.size() > 0) {
         String code1 = "";
@@ -518,17 +589,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
         final Optional<Concept> checkA =
-            esQueryService.getConcept(code1, term, new IncludeParam("minimal"));
+            osQueryService.getConcept(code1, term, new IncludeParam("minimal"));
         final Optional<Concept> checkB =
-            esQueryService.getConcept(code2, term, new IncludeParam("minimal"));
+            osQueryService.getConcept(code2, term, new IncludeParam("minimal"));
         if (checkA.get() != null && checkB.get() != null) {
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
-          if (esQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
+          if (osQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumes");
-          } else if (esQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
+          } else if (osQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumed-by");
           } else {
             params.addParameter("outcome", "no-subsumption-relationship");
@@ -551,9 +622,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Subsumes instance.
    *
-   * <pre>
-   * https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
-   * </pre>
+   * <p>See https://hl7.org/fhir/R5/codesystem-operation-subsumes.html
    *
    * @param request the request
    * @param response the response
@@ -594,7 +663,15 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.mutuallyRequired("codeB", codeB, "system", system);
       FhirUtilityR4.mutuallyExclusive("codingB", codingB, "codeB", codeB);
       FhirUtilityR4.mutuallyExclusive("codeA", codingA, "codeA", codeA);
-      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, system, version);
+
+      UriType systemToLookup = null;
+      if (system != null) {
+        systemToLookup = system;
+      } else if (codingA != null) {
+        systemToLookup = codingA.getSystemElement();
+      }
+
+      final List<CodeSystem> cs = findPossibleCodeSystems(id, null, systemToLookup, version);
       final Parameters params = new Parameters();
       if (cs.size() > 0) {
         String code1 = "";
@@ -614,17 +691,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         }
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), esQueryService);
+            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
         final Optional<Concept> checkA =
-            esQueryService.getConcept(code1, term, new IncludeParam("minimal"));
+            osQueryService.getConcept(code1, term, new IncludeParam("minimal"));
         final Optional<Concept> checkB =
-            esQueryService.getConcept(code2, term, new IncludeParam("minimal"));
+            osQueryService.getConcept(code2, term, new IncludeParam("minimal"));
         if (checkA.get() != null && checkB.get() != null) {
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
-          if (esQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
+          if (osQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumes");
-          } else if (esQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
+          } else if (osQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumed-by");
           } else {
             params.addParameter("outcome", "no-subsumption-relationship");
@@ -647,9 +724,12 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Find code systems.
    *
+   * <p>See https://hl7.org/fhir/R4/codesystem.html (find "search parameters")
+   *
    * @param request the request
    * @param id the id
    * @param date the date
+   * @param url the url
    * @param system the system
    * @param version the version
    * @param title the title
@@ -663,7 +743,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       final HttpServletRequest request,
       @OptionalParam(name = "_id") final TokenParam id,
       @OptionalParam(name = "date") final DateRangeParam date,
-      @OptionalParam(name = "system") final StringParam system,
+      @OptionalParam(name = "url") final UriParam url,
+      @OptionalParam(name = "system") final UriParam system,
       @OptionalParam(name = "version") final StringParam version,
       @OptionalParam(name = "title") final StringParam title,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
@@ -674,7 +755,9 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       throws Exception {
     try {
       FhirUtilityR4.notSupportedSearchParams(request);
-      final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
+      FhirUtilityR4.mutuallyExclusive("url", url, "system", system);
+
+      final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
 
       final List<CodeSystem> list = new ArrayList<>();
       for (final Terminology terminology : terms) {
@@ -682,6 +765,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         // Skip non-matching
         if ((id != null && !id.getValue().equals(cs.getId()))
             || (system != null && !system.getValue().equals(cs.getUrl()))) {
+          logger.debug("  SKIP system mismatch = " + cs.getUrl());
+          continue;
+        }
+        if (url != null && !url.getValue().equals(cs.getUrl())) {
           logger.debug("  SKIP url mismatch = " + cs.getUrl());
           continue;
         }
@@ -733,7 +820,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         return new ArrayList<>(0);
       }
 
-      final List<Terminology> terms = termUtils.getIndexedTerminologies(esQueryService);
+      final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
 
       final List<CodeSystem> list = new ArrayList<>();
       for (final Terminology terminology : terms) {
@@ -767,6 +854,8 @@ public class CodeSystemProviderR4 implements IResourceProvider {
 
   /**
    * Returns the concept map for the specified details.
+   *
+   * <p>See https://hl7.org/fhir/R4/codesystem.html
    *
    * @param details the details
    * @param id the id

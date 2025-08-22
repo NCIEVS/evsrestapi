@@ -164,6 +164,18 @@ public class TerminologyMetadata extends BaseModel {
   /** The extra subsets. */
   private Map<String, String> extraSubsets;
 
+  /** The fhir uri. */
+  private String fhirUri;
+
+  /** The fhir publisher. */
+  private String fhirPublisher;
+
+  /** The index runtime. */
+  private Long indexRuntime;
+
+  /** The history version. */
+  private String historyVersion;
+
   /** Instantiates an empty {@link TerminologyMetadata}. */
   public TerminologyMetadata() {
     // n/a
@@ -232,6 +244,10 @@ public class TerminologyMetadata extends BaseModel {
     subset = new HashSet<>(other.getSubset());
     codeLabel = other.getCodeLabel();
     welcomeText = other.getWelcomeText();
+    fhirUri = other.getFhirUri();
+    fhirPublisher = other.getFhirPublisher();
+    indexRuntime = other.getIndexRuntime();
+    historyVersion = other.getHistoryVersion();
     extraSubsets = new HashMap<>(other.getExtraSubsets());
   }
 
@@ -1265,6 +1281,80 @@ public class TerminologyMetadata extends BaseModel {
    */
   public void setMapsets(final Boolean mapsets) {
     this.mapsets = mapsets;
+  }
+
+  /**
+   * Gets the fhir uri.
+   *
+   * @return the fhir uri
+   */
+  @Schema(hidden = true)
+  public String getFhirUri() {
+    return fhirUri;
+  }
+
+  /**
+   * Sets the fhir uri.
+   *
+   * @param fhirUri the new fhir uri
+   */
+  public void setFhirUri(String fhirUri) {
+    this.fhirUri = fhirUri;
+  }
+
+  /**
+   * Gets the fhir publisher.
+   *
+   * @return the fhir publisher
+   */
+  @Schema(hidden = true)
+  public String getFhirPublisher() {
+    return fhirPublisher;
+  }
+
+  /**
+   * Sets the fhir publisher.
+   *
+   * @param fhirPublisher the new fhir publisher
+   */
+  public void setFhirPublisher(String fhirPublisher) {
+    this.fhirPublisher = fhirPublisher;
+  }
+
+  /**
+   * Gets the index runtime in milliseconds.
+   *
+   * @return the index runtime
+   */
+  public Long getIndexRuntime() {
+    return indexRuntime;
+  }
+
+  /**
+   * Sets the index runtime.
+   *
+   * @param indexRuntime the new index runtime
+   */
+  public void setIndexRuntime(Long indexRuntime) {
+    this.indexRuntime = indexRuntime;
+  }
+
+  /**
+   * Gets the history version.
+   *
+   * @return the history version
+   */
+  public String getHistoryVersion() {
+    return historyVersion;
+  }
+
+  /**
+   * Sets the history version.
+   *
+   * @param historyVersion the new history version
+   */
+  public void setHistoryVersion(String historyVersion) {
+    this.historyVersion = historyVersion;
   }
 
   /**

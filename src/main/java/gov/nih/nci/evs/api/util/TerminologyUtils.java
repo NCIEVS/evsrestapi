@@ -3,7 +3,7 @@ package gov.nih.nci.evs.api.util;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.GraphProperties;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import java.text.DateFormat;
@@ -71,16 +71,16 @@ public final class TerminologyUtils {
   }
 
   /**
-   * Returns terminologies loaded to elasticsearch.
+   * Returns terminologies loaded to opensearch.
    *
-   * @param esQueryService elastic query service
+   * @param osQueryService opensearch query service
    * @return the list of terminology objects
    * @throws Exception Signals that an exception has occurred.
    */
-  public List<Terminology> getIndexedTerminologies(ElasticQueryService esQueryService)
+  public List<Terminology> getIndexedTerminologies(OpensearchQueryService osQueryService)
       throws Exception {
     // get index metadata for terminologies completely loaded in es
-    List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+    List<IndexMetadata> iMetas = osQueryService.getIndexMetadata(true);
     if (CollectionUtils.isEmpty(iMetas)) return Collections.emptyList();
 
     return iMetas.stream().map(m -> m.getTerminology()).collect(Collectors.toList());
@@ -98,10 +98,10 @@ public final class TerminologyUtils {
       final List<String> dbs,
       final Terminology terminology,
       SparqlQueryManagerService sparqlQueryManagerService,
-      ElasticQueryService esQueryService)
+      OpensearchQueryService osQueryService)
       throws Exception {
     // get index metadata for terminologies completely loaded in es
-    List<IndexMetadata> iMetas = esQueryService.getIndexMetadata(true);
+    List<IndexMetadata> iMetas = osQueryService.getIndexMetadata(true);
     if (CollectionUtils.isEmpty(iMetas)) {
       return Collections.emptyList();
     }
@@ -139,21 +139,22 @@ public final class TerminologyUtils {
       final String terminology, SparqlQueryManagerService sparqlQueryManagerService)
       throws Exception {
     List<Terminology> terminologies = getTerminologies(sparqlQueryManagerService);
-    return findTerminology(terminology, terminologies);
+    return findTerminology(terminology, terminologies, true);
   }
 
   /**
    * Get the indexed terminology
    *
    * @param terminology search terminology
-   * @param esQueryService elastic query service
+   * @param osQueryService opensearch query service
    * @return the Terminology
    * @throws Exception the exception
    */
   public Terminology getIndexedTerminology(
-      final String terminology, ElasticQueryService esQueryService) throws Exception {
-    List<Terminology> terminologies = getIndexedTerminologies(esQueryService);
-    return findTerminology(terminology, terminologies);
+      final String terminology, OpensearchQueryService osQueryService, boolean requireFlag)
+      throws Exception {
+    List<Terminology> terminologies = getIndexedTerminologies(osQueryService);
+    return findTerminology(terminology, terminologies, requireFlag);
   }
 
   /**
@@ -163,7 +164,8 @@ public final class TerminologyUtils {
    * @param terminologies list of terminologies to search through
    * @return the Terminology
    */
-  private Terminology findTerminology(final String terminology, List<Terminology> terminologies) {
+  private Terminology findTerminology(
+      final String terminology, List<Terminology> terminologies, boolean requireFlag) {
     // Find latest monthly match
     final Terminology latestMonthly =
         terminologies.stream()
@@ -214,10 +216,15 @@ public final class TerminologyUtils {
       return first;
     }
 
-    // IF we get this far, something is weird, show all terminologies
-    terminologies.stream().forEach(t -> logger.info("  " + t.getTerminologyVersion() + " = " + t));
-    throw new ResponseStatusException(
-        HttpStatus.NOT_FOUND, "Terminology not found = " + terminology);
+    if (requireFlag) {
+      // IF we get this far, something is weird, show all terminologies
+      terminologies.stream()
+          .forEach(t -> logger.info("  " + t.getTerminologyVersion() + " = " + t));
+      throw new ResponseStatusException(
+          HttpStatus.NOT_FOUND, "Terminology not found = " + terminology);
+    } else {
+      return null;
+    }
   }
 
   /**
@@ -330,7 +337,7 @@ public final class TerminologyUtils {
     }
 
     final String licenseUrl =
-        "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md";
+        "https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md";
 
     // Check the license key and fail
     if (license == null) {

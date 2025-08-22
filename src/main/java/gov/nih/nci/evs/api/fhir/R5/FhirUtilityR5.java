@@ -3,16 +3,17 @@ package gov.nih.nci.evs.api.fhir.R5;
 import static java.lang.String.format;
 
 import ca.uhn.fhir.rest.param.NumberParam;
+import gov.nih.nci.evs.api.controller.StaticContextAccessor;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Collections;
 import java.util.Date;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 import org.hl7.fhir.r5.model.BooleanType;
@@ -40,7 +41,7 @@ import org.hl7.fhir.r5.model.ValueSet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-/** Utility for FHIR R4. */
+/** Utility for FHIR R5. */
 public class FhirUtilityR5 {
   /** The logger. */
   @SuppressWarnings("unused")
@@ -49,41 +50,8 @@ public class FhirUtilityR5 {
   /** The publishers. */
   private static HashMap<String, String> publishers = generatePublishers();
 
-  static {
-    publishers.put(
-        "mdr",
-        "MedDRA Maintenance and Support Services Organization (MedDRA MSSO); Mr. Patrick Revelle;"
-            + " MSSO Director");
-    publishers.put("umlssemnet", "National Library of Medicine");
-    publishers.put("go", "GO Consortium");
-    publishers.put("icd10cm", "NCHS");
-    publishers.put("icd10", "World Health Organization");
-    publishers.put("hgnc", "HUGO Gene Nomenclature Committee");
-    publishers.put("duo", "Data Use Ontology");
-    publishers.put("obi", "Ontology for Biomedical Investigations");
-    publishers.put("obib", "Ontology for Biobanking");
-    publishers.put("ndfrt", "Veterans Health Administration");
-    publishers.put("snomedct_us", "National Library of Medicine");
-    publishers.put("ctcae5", "NCI");
-    publishers.put("lnc", "LOINC and Health Data Standards, Regenstrief Institute, Inc.");
-    publishers.put("ncit", "NCI");
-    publishers.put("icd9cm", "NCHS");
-    publishers.put("radlex", "RSNA (Radiological Society of North America)");
-    publishers.put("canmed", "National Cancer Institute Enterprise Vocabulary Services");
-    publishers.put("medrt", "National Library of Medicine");
-    publishers.put("chebi", "Open Biomedical Ontologies - European Bioinformatics Institute");
-    publishers.put("ncim", "National Cancer Institute Enterprise Vocabulary Services");
-    publishers.put("pdq", "National Cancer Institute");
-    publishers.put("ma", "The Jackson Laboratory");
-    publishers.put("hl7v30", "Health Level Seven International");
-    publishers.put("mged", "National Cancer Institute");
-    publishers.put("npo", "National Cancer Institute");
-    publishers.put("ma", "National Cancer Institute");
-    publishers.put("zfa", "National Cancer Institute");
-  }
-
-  /** The URIs. */
-  private static final HashMap<String, String> uris = generateUris();
+  /** The uris. */
+  private static HashMap<String, String> uris = generateUris();
 
   /** The unsupported params list for search. */
   private static final String[] unsupportedParams =
@@ -109,75 +77,59 @@ public class FhirUtilityR5 {
     // n/a
   }
 
+  /**
+   * Generate uris from the terminology metadata.
+   *
+   * @return the hash map
+   */
   private static HashMap<String, String> generateUris() {
     final HashMap<String, String> uri = new HashMap<>();
-    uri.put("mdr", "https://www.meddra.org");
-    uri.put("umlssemnet", "http://www.nlm.nih.gov/research/umls/umlssemnet.owl");
-    uri.put("go", "http://purl.obolibrary.org/obo/go.owl");
-    uri.put("icd10", "http://hl7.org/fhir/sid/icd-10");
-    uri.put("icd10cm", "http://hl7.org/fhir/sid/icd-10-cm");
-    uri.put("hgnc", "http://www.genenames.org");
-    uri.put("duo", "https://obofoundry.org/ontology/duo.html");
-    uri.put("obi", "https://obi-ontology.org/");
-    uri.put("obib", "https://obofoundry.org/ontology/obib.html");
-    uri.put("ndfrt", "https://bioportal.bioontology.org/ontologies/NDF-RT");
-    uri.put("snomedct_us", "http://snomed.info/sct");
-    uri.put("ctcae5", "http://hl7.org/fhir/us/ctcae");
-    uri.put("lnc", "http://loinc.org");
-    uri.put("ncit", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    uri.put("icd9cm", "http://terminology.hl7.org/CodeSystem/icd9cm");
-    uri.put("radlex", "http://radlex.org/");
-    uri.put("canmed", "http://seer.nci.nih.gov/CanMED.owl");
-    uri.put("medrt", "http://va.gov/terminology/medrt");
-    uri.put("chebi", "http://www.ebi.ac.uk/chebi/");
-    uri.put("ncim", "https://ncim.nci.nih.gov/ncimbrowser/");
-    uri.put("pdq", "https://www.cancer.gov/publications/pdq");
-    uri.put(
-        "hl7v30",
-        "https://www.nlm.nih.gov/research/umls/sourcereleasedocs/current/HL7V3.0/index.html");
-    uri.put("mged", "http://mged.sourceforge.net/ontologies/MGEDOntology.owl");
-    uri.put("npo", "http://purl.bioontology.org/ontology/npo");
-    uri.put("ma", "http://purl.obolibrary.org/obo/emap.owl");
-    uri.put("zfa", "http://purl.obolibrary.org/obo/zfa.owl");
-    // Put reverse entries isnomedn
-    for (final Map.Entry<String, String> entry : new HashSet<>(uri.entrySet())) {
-      uri.put(entry.getValue(), entry.getKey());
+    List<Terminology> terms;
+    try {
+      OpensearchQueryService osQueryService =
+          StaticContextAccessor.getBean(OpensearchQueryService.class);
+      TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
+
+      terms = termUtils.getIndexedTerminologies(osQueryService);
+
+      terms.forEach(
+          terminology -> {
+            if (terminology.getMetadata().getFhirUri() != null) {
+              uri.put(terminology.getTerminology(), terminology.getMetadata().getFhirUri());
+            }
+          });
+    } catch (Exception e) {
+      throw new RuntimeException(e);
     }
+
     return uri;
   }
 
+  /**
+   * Generate publishers from the terminology metadata.
+   *
+   * @return the hash map
+   */
   private static HashMap<String, String> generatePublishers() {
     final HashMap<String, String> publish = new HashMap<>();
-    publish.put(
-        "mdr",
-        "MedDRA Maintenance and Support Services Organization (MedDRA MSSO); Mr. Patrick Revelle;"
-            + " MSSO Director");
-    publish.put("umlssemnet", "National Library of Medicine");
-    publish.put("go", "GO Consortium");
-    publish.put("icd10cm", "NCHS");
-    publish.put("icd10", "World Health Organization");
-    publish.put("hgnc", "HUGO Gene Nomenclature Committee");
-    publish.put("duo", "Data Use Ontology");
-    publish.put("obi", "Ontology for Biomedical Investigations");
-    publish.put("obib", "Ontology for Biobanking");
-    publish.put("ndfrt", "Veterans Health Administration");
-    publish.put("snomedct_us", "National Library of Medicine");
-    publish.put("ctcae5", "NCI");
-    publish.put("lnc", "LOINC and Health Data Standards, Regenstrief Institute, Inc.");
-    publish.put("ncit", "NCI");
-    publish.put("icd9cm", "NCHS");
-    publish.put("radlex", "RSNA (Radiological Society of North America)");
-    publish.put("canmed", "National Cancer Institute Enterprise Vocabulary Services");
-    publish.put("medrt", "National Library of Medicine");
-    publish.put("chebi", "Open Biomedical Ontologies - European Bioinformatics Institute");
-    publish.put("ncim", "National Cancer Institute Enterprise Vocabulary Services");
-    publish.put("pdq", "National Cancer Institute");
-    publish.put("ma", "The Jackson Laboratory");
-    publish.put("hl7v30", "Health Level Seven International");
-    publish.put("mged", "National Cancer Institute");
-    publish.put("npo", "National Cancer Institute");
-    publish.put("ma", "National Cancer Institute");
-    publish.put("zfa", "National Cancer Institute");
+    List<Terminology> terms;
+    try {
+      OpensearchQueryService osQueryService =
+          StaticContextAccessor.getBean(OpensearchQueryService.class);
+      TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
+
+      terms = termUtils.getIndexedTerminologies(osQueryService);
+
+      terms.forEach(
+          terminology -> {
+            if (terminology.getMetadata().getFhirPublisher() != null) {
+              publish.put(
+                  terminology.getTerminology(), terminology.getMetadata().getFhirPublisher());
+            }
+          });
+    } catch (Exception e) {
+      throw new RuntimeException(e);
+    }
 
     return publish;
   }
@@ -189,7 +141,9 @@ public class FhirUtilityR5 {
    * @return the publisher for a given terminology
    */
   private static String getPublisher(final String terminology) {
-    return publishers.get(terminology);
+    return publishers.containsKey(terminology)
+        ? publishers.get(terminology)
+        : "publisher not specified";
   }
 
   /**
@@ -199,7 +153,9 @@ public class FhirUtilityR5 {
    * @return the uri for a given terminology
    */
   private static String getUri(final String terminology) {
-    return uris.get(terminology.toLowerCase());
+    return uris.containsKey(terminology.toLowerCase())
+        ? uris.get(terminology.toLowerCase())
+        : "uri not specified";
   }
 
   /**
@@ -346,28 +302,28 @@ public class FhirUtilityR5 {
   /**
    * Check if the required object is valid.
    *
-   * @param obj the required object
-   * @param objName the string name of the object
+   * @param param the required object
+   * @param paramName the string name of the object
    */
-  public static void required(final Object obj, final String objName) {
-    if (obj == null) {
-      throw exception(format("Must use '%s' parameter.", objName), IssueType.INVARIANT, 400);
+  public static void required(final String paramName, final Object param) {
+    if (param == null) {
+      throw exception(format("Must use '%s' parameter.", paramName), IssueType.INVARIANT, 400);
     }
   }
 
   /**
    * Check if the object is mutually exclusive.
    *
-   * @param obj1 first object
-   * @param obj1Name first object string name
-   * @param obj2 second object
-   * @param obj2Name second object string name
+   * @param param1Name first object string name
+   * @param param1 first object
+   * @param param2Name second object string name
+   * @param param2 second object
    */
   public static void mutuallyExclusive(
-      final Object obj1, final String obj1Name, final Object obj2, final String obj2Name) {
-    if (obj1 != null && obj2 != null) {
+      final String param1Name, final Object param1, final String param2Name, final Object param2) {
+    if (param1 != null && param2 != null) {
       throw exception(
-          format("Must use one of '%s' or '%s' parameters", obj1Name, obj2Name),
+          format("Must use one of '%s' or '%s' parameters", param1Name, param2Name),
           IssueType.INVARIANT,
           400);
     }
@@ -377,26 +333,26 @@ public class FhirUtilityR5 {
    * Check if the object is not supported.
    *
    * @param obj the object
-   * @param objName the string name of the object
+   * @param paramName the string name of the object
    */
-  public static void notSupported(final Object obj, final String objName) {
-    notSupported(obj, objName, null);
+  public static void notSupported(final String paramName, final Object obj) {
+    notSupported(paramName, obj, null);
   }
 
   /**
    * Check if the object is not supported with additional detail param.
    *
    * @param obj the object
-   * @param objName the string name of the object
+   * @param paramName the string name of the object
    * @param additionalDetail additional information and details
    */
   public static void notSupported(
-      final Object obj, final String objName, final String additionalDetail) {
+      final String paramName, final Object obj, final String additionalDetail) {
     if (obj != null) {
       final String message =
           format(
               "Input parameter '%s' is not supported '%s'",
-              objName, (additionalDetail == null ? "." : format(" '%s'", additionalDetail)));
+              paramName, (additionalDetail == null ? "." : format(" '%s'", additionalDetail)));
       throw exception(message, IssueType.NOTSUPPORTED, 400);
     }
   }
@@ -409,7 +365,17 @@ public class FhirUtilityR5 {
    */
   public static void notSupported(final HttpServletRequest request, final String paramName) {
     if (request.getParameterMap().containsKey(paramName)) {
-      final String message = format("Input parameter '%s' is not supported.", paramName);
+      String message = "";
+      if (paramName.equals("_count") || paramName.equals("_offset")) {
+        message =
+            format(
+                "Input parameter '%s' is not supported.  Use '"
+                    + paramName.substring(1)
+                    + "' instead.",
+                paramName);
+      } else {
+        message = format("Input parameter '%s' is not supported.", paramName);
+      }
       throw exception(message, IssueType.NOTSUPPORTED, 400);
     }
   }
@@ -434,80 +400,80 @@ public class FhirUtilityR5 {
   /**
    * Check we have at least one required object fopr 2 objects.
    *
-   * @param obj1 the first object
-   * @param obj1Name the first object name
-   * @param obj2 the second object
-   * @param obj2Name the second object name
+   * @param param1Name the first object name
+   * @param param1 the first object
+   * @param param2Name the second object name
+   * @param param2 the second object
    */
   public static void requireExactlyOneOf(
-      final Object obj1, final String obj1Name, final Object obj2, final String obj2Name) {
-    if (obj1 == null && obj2 == null) {
+      final String param1Name, final Object param1, final String param2Name, final Object param2) {
+    if (param1 == null && param2 == null) {
       throw exception(
-          format("Must supply one of '%s' or '%s' parameters.", obj1Name, obj2Name),
+          format("Must supply one of '%s' or '%s' parameters.", param1Name, param2Name),
           IssueType.INVARIANT,
           400);
     } else {
-      mutuallyExclusive(obj1, obj1Name, obj2, obj2Name);
+      mutuallyExclusive(param1Name, param1, param2Name, param2);
     }
   }
 
   /**
    * Check we have exactly one required object for 3 objects.
    *
-   * @param obj1 first object
-   * @param obj1Name first object name
-   * @param obj2 second object
-   * @param obj2Name second object name
-   * @param obj3 third object
-   * @param obj3Name third object name
+   * @param param1Name first object name
+   * @param param1 first object
+   * @param param2Name second object name
+   * @param param2 second object
+   * @param param3Name third object name
+   * @param param3 third object
    */
   public static void requireExactlyOneOf(
-      final Object obj1,
-      final String obj1Name,
-      final Object obj2,
-      final String obj2Name,
-      final Object obj3,
-      final String obj3Name) {
-    if (obj1 == null && obj2 == null && obj3 == null) {
+      final String param1Name,
+      final Object param1,
+      final String param2Name,
+      final Object param2,
+      final String param3Name,
+      final Object param3) {
+    if (param1 == null && param2 == null && param3 == null) {
       throw exception(
           format(
               "Must supply at least one of '%s', '%s', or '%s' parameters.",
-              obj1Name, obj2Name, obj3Name),
+              param1Name, param2Name, param3Name),
           IssueType.INVARIANT,
           400);
     } else {
-      mutuallyExclusive(obj1, obj1Name, obj2, obj2Name);
-      mutuallyExclusive(obj1, obj1Name, obj3, obj3Name);
-      mutuallyExclusive(obj2, obj2Name, obj3, obj3Name);
+      mutuallyExclusive(param1Name, param1, param2Name, param2);
+      mutuallyExclusive(param1Name, param1, param3Name, param3);
+      mutuallyExclusive(param2Name, param2, param3Name, param3);
     }
   }
 
   /**
    * Check we have at least one required object for 4 objects.
    *
-   * @param obj1 first object
-   * @param obj1Name first object name
-   * @param obj2 second object
-   * @param obj2Name second object name
-   * @param obj3 third object
-   * @param obj3Name third object name
-   * @param obj4 fourth object
-   * @param obj4Name fourth object name
+   * @param param1 first object
+   * @param param1Name first object name
+   * @param param2 second object
+   * @param param2Name second object name
+   * @param param3 third object
+   * @param param3Name third object name
+   * @param param4 fourth object
+   * @param param4Name fourth object name
    */
   public static void requireAtLeastOneOf(
-      final Object obj1,
-      final String obj1Name,
-      final Object obj2,
-      final String obj2Name,
-      final Object obj3,
-      final String obj3Name,
-      final Object obj4,
-      final String obj4Name) {
-    if (obj1 == null && obj2 == null && obj3 == null && obj4 == null) {
+      final String param1Name,
+      final Object param1,
+      final String param2Name,
+      final Object param2,
+      final String param3Name,
+      final Object param3,
+      final String param4Name,
+      final Object param4) {
+    if (param1 == null && param2 == null && param3 == null && param4 == null) {
       throw exception(
           format(
               "Must supply at least one of '%s', '%s', '%s', or '%s' parameters.",
-              obj1Name, obj2Name, obj3Name, obj4Name),
+              param1Name, param2Name, param3Name, param4Name),
           IssueType.INVARIANT,
           400);
     }
@@ -516,18 +482,18 @@ public class FhirUtilityR5 {
   /**
    * Check we have both required fields for 2 objects.
    *
-   * @param obj1 first object
-   * @param obj1Name first object name
-   * @param obj2 second object
-   * @param obj2Name second object name
+   * @param param1Name first object name
+   * @param param1 first object
+   * @param param2Name second object name
+   * @param param2 second object
    */
   public static void mutuallyRequired(
-      final Object obj1, final String obj1Name, final Object obj2, final String obj2Name) {
-    if (obj1 != null && obj2 == null) {
+      final String param1Name, final Object param1, final String param2Name, final Object param2) {
+    if (param1 != null && param2 == null) {
       throw exception(
           format(
               "Input parameter '%s' can only be used in conjunction with parameter '%s'.",
-              obj1Name, obj2Name),
+              param1Name, param2Name),
           IssueType.INVARIANT,
           400);
     }
@@ -536,25 +502,25 @@ public class FhirUtilityR5 {
   /**
    * Check we have all required fields for 3 objects.
    *
-   * @param obj1 first object
-   * @param obj1Name first object name
-   * @param obj2 second object
-   * @param obj2Name second object name
-   * @param obj3 third object
-   * @param obj3Name third object name
+   * @param param1Name first object name
+   * @param param1 first object
+   * @param param2Name second object name
+   * @param param2 second object
+   * @param param3Name third object name
+   * @param param3 third object
    */
   public static void mutuallyRequired(
-      final Object obj1,
-      final String obj1Name,
-      final Object obj2,
-      final String obj2Name,
-      final Object obj3,
-      final String obj3Name) {
-    if (obj1 != null && obj2 == null && obj3 == null) {
+      final String param1Name,
+      final Object param1,
+      final String param2Name,
+      final Object param2,
+      final String param3Name,
+      final Object param3) {
+    if (param1 != null && param2 == null && param3 == null) {
       throw exception(
           format(
               "Use of input parameter '%s' only allowed if '%s' or '%s' is also present.",
-              obj1Name, obj2Name, obj3Name),
+              param1Name, param2Name, param3Name),
           IssueType.INVARIANT,
           400);
     }

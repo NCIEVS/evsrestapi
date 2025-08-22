@@ -150,7 +150,7 @@ EOF
   #    "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/\$/datasets" 2> /dev/null > /tmp/x.$$
   #check_status $? "GET /admin/databases failed to list databases"
   #check_http_status 200 "GET /admin/databases expecting 200"
-  #head -n -1 /tmp/x.$$ | $jq | grep 'ds.name' | perl -pe 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
+  #sed '$d' /tmp/x.$$ | $jq | grep 'ds.name' | perl -pe 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
   #echo "  databases = " `cat /tmp/db.$$.txt`
   #ct=`cat /tmp/db.$$.txt | wc -l`
   #if [[ $ct -eq 0 ]]; then
@@ -255,7 +255,7 @@ get_graphs(){
           --data-urlencode "$query" -H "Accept: application/sparql-results+json" 2> /dev/null > /tmp/x.$$
       check_status $? "GET /$db/query failed to get graphs"
       check_http_status 200 "GET /$db/query expecting 200"
-      head -n -1 /tmp/x.$$ | $jq | perl -ne '
+      sed '$d' /tmp/x.$$ | $jq | perl -ne '
             chop; $x="version" if /"version"/; 
             $x="source" if /"source"/; 
             $x=0 if /\}/; 
@@ -320,6 +320,97 @@ get_terminology(){
   fi
 }
 
+download_and_unpack() {
+    local ver="$1"
+    success=0
+    for i in {1..5}; do 
+        echo "  Download NCIt History version $ver: attempt $i"
+        url="https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/cumulative_history_$ver.zip"
+        echo "    url = $url"
+        
+        curl -w "\n%{http_code}" -s -o cumulative_history_$ver.zip "$url" > /tmp/x.$$
+        # if curl command fails then try again
+        if [[ $? -ne 0 ]]; then
+            echo "ERROR: problem downloading NCIt history (trying again $i)"
+        # if status code is not 200, then bail
+        elif [[ $(tail -1 /tmp/x.$$) -ne 200 ]]; then
+            echo "ERROR: unexpected status code downloading NCIt history = "$(tail -1 /tmp/x.$$)
+            break
+        else
+            echo "  Unpack NCIt history"
+            unzip "cumulative_history_$ver.zip" > /tmp/x.$$ 2>&1
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$
+                echo "ERROR: problem unpacking cumulative_history_$ver.zip"
+                break
+            fi
+
+            historyFile="$DIR/NCIT_HISTORY/cumulative_history_$ver.txt"
+
+            if [[ -f "$historyFile" ]]; then
+                echo "    historyFile = $historyFile"
+                success=1
+            else
+                echo "ERROR: expected file $historyFile not found"
+            fi
+            break
+        fi
+    done
+}
+
+download_ncit_history() {
+  # Prep dir
+  /bin/rm -rf $DIR/NCIT_HISTORY
+  mkdir $DIR/NCIT_HISTORY
+  cd $DIR/NCIT_HISTORY
+
+  # Download file (try 5 times)
+  success=0
+  download_and_unpack "$version"
+
+  # try to get previous version of the history file
+  if [[ $success -eq 0 ]]; then
+      echo "    Initial version $version failed. Fetching latest version from API..."
+
+      # get server port for local vs deployed environment
+      serverPort=8080
+      if [[ $config -eq 0 ]]; then
+          serverPort=8082
+      fi
+
+      # This script runs on the same server as the API
+      response=$(curl -s -X 'GET' \
+        "http://localhost:${serverPort}/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit" \
+        -H 'accept: application/json')
+      if [[ $? -ne 0 ]]; then
+          echo "ERROR: Failed to get latest terminology from http://localhost:${serverPort}/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
+          cd - > /dev/null
+          return 1
+      fi
+      echo "      response = $response"
+
+      if ! command -v jq &> /dev/null; then
+          echo "jq is not installed, using grep and perl as fallback"
+          prev_version=$(echo "$response" | grep '"version"' | perl -pe 's/.*"version":"//; s/".*//; ')
+      else
+          prev_version=$(echo "$response" | jq -r '.[] | .version')
+      fi
+      echo "    Previous monthly version of ncit: $prev_version"
+            
+      if [[ -z "$prev_version" ]]; then
+          echo "    Unable to find a previous monthly version of ncit"
+      # done looking
+      else 
+          echo "    Trying again with prev_version = $prev_version"
+          download_and_unpack "$prev_version"
+      fi
+  fi
+
+  # cd back out
+  cd - > /dev/null
+  return 0
+}
+
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
     version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
@@ -346,44 +437,7 @@ for x in `cat /tmp/y.$$.txt`; do
 
     # Otherwise, download if ncit
     elif [[ "$term" == "ncit" ]]; then
-	
-        # Prep dir
-        /bin/rm -rf $DIR/NCIT_HISTORY
-        mkdir $DIR/NCIT_HISTORY
-        cd $DIR/NCIT_HISTORY
-
-        # Download file (try 5 times)
-        for i in {1..5}; do 
-
-        	echo "  Download latest NCIt History: attempt $i"
-        	# Use the upload directory because this is where we can control it from
-        	url=https://evs.nci.nih.gov/ftp1/upload/cumulative_history_$version.zip
-            echo "    url = $url"
-            curl -w "\n%{http_code}" -s -o cumulative_history_$version.zip $url > /tmp/x.$$
-            if [[ $? -ne 0 ]]; then
-                echo "ERROR: problem downloading NCIt history (trying again $i)"
-            elif [[ `tail -1 /tmp/x.$$` -eq 404 ]]; then
-                echo "ERROR: url does not exist, bail out"
-                break;
-            else
-
-                echo "  Unpack NCIt history"
-                unzip cumulative_history_$version.zip > /tmp/x.$$ 2>&1
-                if [[ $? -ne 0 ]]; then
-                    cat /tmp/x.$$
-                    echo "ERROR: problem unpacking cumulative_history_$version.zip"
-                    break
-                fi
-
-                # Set historyFile for later steps    
-                historyFile=$DIR/NCIT_HISTORY/cumulative_history_$version.txt
-                echo "    historyFile = $DIR/NCIT_HISTORY/cumulative_history_$version.txt"
-                break
-            fi
-        done
-
-        # cd back out
-        cd - > /dev/null 2> /dev/null
+        download_ncit_history
 	fi
 	
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
@@ -414,21 +468,28 @@ for x in `cat /tmp/y.$$.txt`; do
     # Set up environment
     export GRAPH_DB=$db
     export EVS_SERVER_PORT="8083"
+
+    # Set the history clause for "ncit"
+    historyClause=""
+    if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
+      historyClause=" -d $historyFile"
+    fi
     
     if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
         echo "    FOUND indexes for $term $version"
         
-        if [[ $term == $pt ]]; then
-            echo "    SKIP RECONCILE $term stale indexes and update flags"
-            continue
-        fi
+        #if [[ $term == $pt ]]; then
+        #    echo "    SKIP RECONCILE $term stale indexes and update flags"
+        #    continue
+        #fi
         
         # Stale indexes are automatically cleaned up by the indexing process
         # It checks against graph db and reconciles everything and updates latest flags
         # regardless of whether there was new data
-        echo "    RECONCILE $term stale indexes and update flags"
+        echo "    RECONCILE $term stale indexes and update flags "`pwd`
         export EVS_SERVER_PORT="8083"
-        java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata > /tmp/x.$$.log 2>&1 
+        echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata $historyClause"
+        java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata $historyClause
         if [[ $? -ne 0 ]]; then
             cat /tmp/x.$$.log | sed 's/^/    /'
             echo "ERROR: unexpected error building indexes"
@@ -453,13 +514,6 @@ for x in `cat /tmp/y.$$.txt`; do
 
         # Run reindexing process (choose a port other than the one that it runs on)
         echo "    Generate indexes for $GRAPH_DB ${term} $version"
-        
-        # Set the history clause for "ncit"
-        historyClause=""
-        if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
-        	historyClause=" -d $historyFile"
-        fi
-
         echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
         java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
         if [[ $? -ne 0 ]]; then
@@ -511,7 +565,7 @@ done
 # Reconcile mappings after loading terminologies
 export EVS_SERVER_PORT="8083"
 echo "    Generate mapping indexes"
-echo "      java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology mapping"
+echo "      java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -jar $jar --terminology mapping"
 java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
 if [[ $? -ne 0 ]]; then
     echo "ERROR: unexpected error building mapping indexes"

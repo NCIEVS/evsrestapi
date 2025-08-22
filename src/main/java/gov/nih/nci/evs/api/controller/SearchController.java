@@ -13,9 +13,9 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.GraphProperties;
-import gov.nih.nci.evs.api.service.ElasticQueryService;
-import gov.nih.nci.evs.api.service.ElasticSearchService;
 import gov.nih.nci.evs.api.service.MetadataService;
+import gov.nih.nci.evs.api.service.OpenSearchService;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.service.QueryBuilderService;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
@@ -36,7 +36,6 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.apache.jena.query.QueryException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,12 +46,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.FieldError;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -70,8 +69,8 @@ public class SearchController extends BaseController {
   /** The graph db properties. */
   @Autowired GraphProperties graphProperties;
 
-  /** The elastic search service. */
-  @Autowired ElasticSearchService elasticSearchService;
+  /** The opensearch search service. */
+  @Autowired OpenSearchService openSearchService;
 
   /** The sparql query manager service. */
   @Autowired SparqlQueryManagerService sparqlQueryManagerService;
@@ -83,7 +82,7 @@ public class SearchController extends BaseController {
   @Autowired MetadataService metadataService;
 
   /** The es query service. */
-  @Autowired ElasticQueryService esQueryService;
+  @Autowired OpensearchQueryService osQueryService;
 
   /** The term utils. */
   @Autowired TerminologyUtils termUtils;
@@ -154,7 +153,7 @@ public class SearchController extends BaseController {
         name = "terminology",
         description =
             "Single terminology to search, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -188,7 +187,7 @@ public class SearchController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
                 + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class),
@@ -300,7 +299,7 @@ public class SearchController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -324,17 +323,14 @@ public class SearchController extends BaseController {
     // String.class)
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/{terminology}/search",
-      produces = "application/json")
+  @GetMapping(value = "/concept/{terminology}/search", produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminology(
       @PathVariable(value = "terminology") final String terminology,
       @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
       BindingResult bindingResult,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
-    final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
+    final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService, true);
     termUtils.checkLicense(term, license);
     return search(new SearchCriteria(searchCriteria, terminology), bindingResult, license);
   }
@@ -388,7 +384,7 @@ public class SearchController extends BaseController {
         name = "terminology",
         description =
             "Comma-separated list of terminologies to search, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
                 + " here for complete list</a>)",
         required = false,
         schema = @Schema(implementation = String.class),
@@ -422,7 +418,7 @@ public class SearchController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
                 + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class),
@@ -534,7 +530,7 @@ public class SearchController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -558,10 +554,7 @@ public class SearchController extends BaseController {
     // String.class)
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/concept/search",
-      produces = "application/json")
+  @GetMapping(value = "/concept/search", produces = "application/json")
   public @ResponseBody ConceptResultList search(
       @ModelAttribute SearchCriteria searchCriteria,
       BindingResult bindingResult,
@@ -607,14 +600,14 @@ public class SearchController extends BaseController {
     try {
       final List<Terminology> terminologies = new ArrayList<>();
       for (String terminology : searchCriteria.getTerminology()) {
-        final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
+        final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService, true);
         termUtils.checkLicense(term, license);
         searchCriteria.validate(term, metadataService);
         terminologies.add(term);
       }
 
       final ConceptResultList results =
-          elasticSearchService.findConcepts(terminologies, searchCriteria);
+          openSearchService.findConcepts(terminologies, searchCriteria);
 
       // Look up info for all the concepts
       for (final Concept result : results.getConcepts()) {
@@ -659,7 +652,7 @@ public class SearchController extends BaseController {
               description =
                   "SPARQL query that returns ?code identifying a valid code in the specified"
                       + " terminology. <a"
-                      + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/SPARQL.md'"
+                      + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/SPARQL.md'"
                       + " target='_blank'>See here for more information and examples of using"
                       + " SPARQL with EVSRESTAPI</a>.",
               required = true))
@@ -688,7 +681,7 @@ public class SearchController extends BaseController {
         name = "terminology",
         description =
             "Single terminology to search, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -722,7 +715,7 @@ public class SearchController extends BaseController {
                 + " values: minimal, summary, full, associations, children, definitions,"
                 + " disjointWith, history, inverseAssociations, inverseRoles, maps, parents,"
                 + " properties, roles, synonyms. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/INCLUDE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/INCLUDE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class),
@@ -840,7 +833,7 @@ public class SearchController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
@@ -870,7 +863,6 @@ public class SearchController extends BaseController {
       produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminologySparql(
       @PathVariable(value = "terminology") final String terminology,
-      @RequestParam(required = false, name = "include") final Optional<String> include,
       @RequestParam(required = false, name = "prefixes") final Boolean prefixes,
       @org.springframework.web.bind.annotation.RequestBody final String query,
       @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
@@ -878,7 +870,7 @@ public class SearchController extends BaseController {
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws ResponseStatusException, Exception {
 
-    final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
+    final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService, true);
     String res = null;
 
     if (query == null || query.isEmpty()) {
@@ -960,7 +952,6 @@ public class SearchController extends BaseController {
 
       // Otherwise, continue and perform search
       searchCriteria.setCodeList(codes);
-      searchCriteria.setInclude(include.orElse("summary"));
       final ConceptResultList list =
           search(new SearchCriteria(searchCriteria, terminology), bindingResult, license);
       list.getParameters().setSparql(query);
@@ -990,7 +981,7 @@ public class SearchController extends BaseController {
           @RequestBody(
               description =
                   "SPARQL query to execute on the graph for the specified terminology. <a"
-                      + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/SPARQL.md'"
+                      + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/SPARQL.md'"
                       + " target='_blank'>See here for more information and examples of using"
                       + " SPARQL with EVSRESTAPI</a>.",
               required = true))
@@ -1019,7 +1010,7 @@ public class SearchController extends BaseController {
         name = "terminology",
         description =
             "Single terminology to search, e.g. 'ncit' or 'ncim' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
@@ -1046,14 +1037,13 @@ public class SearchController extends BaseController {
         name = "X-EVSRESTAPI-License-Key",
         description =
             "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/LICENSE.md'"
+                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
                 + " target='_blank'>See here for detailed information</a>.",
         required = false,
         schema = @Schema(implementation = String.class))
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.POST,
+  @PostMapping(
       value = "/sparql/{terminology}",
       consumes = "text/plain",
       produces = "application/json")
@@ -1067,7 +1057,7 @@ public class SearchController extends BaseController {
       throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService, true);
       if (term.getSource() == null) {
         throw new ResponseStatusException(
             HttpStatus.EXPECTATION_FAILED,
@@ -1159,22 +1149,19 @@ public class SearchController extends BaseController {
         name = "terminology",
         description =
             "Single terminology to find prefixes for, e.g. 'ncit' or 'hgnc' (<a"
-                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/master/doc/TERMINOLOGIES.md\">See"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
                 + " here for complete list</a>)",
         required = true,
         schema = @Schema(implementation = String.class),
         example = "ncit")
   })
   @RecordMetric
-  @RequestMapping(
-      method = RequestMethod.GET,
-      value = "/sparql/{terminology}/prefixes",
-      produces = "application/json")
+  @GetMapping(value = "/sparql/{terminology}/prefixes", produces = "application/json")
   public @ResponseBody ResponseEntity<String> getSparqlPrefixes(
       @PathVariable(value = "terminology") final String terminology) throws Exception {
 
     try {
-      final Terminology term = termUtils.getIndexedTerminology(terminology, esQueryService);
+      final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService, true);
       if (term.getSource() == null) {
         throw new ResponseStatusException(
             HttpStatus.EXPECTATION_FAILED,

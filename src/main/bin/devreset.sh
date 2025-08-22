@@ -195,6 +195,32 @@ remove_elasticsearch_indexes(){
       check_http_status 200 "DELETE /$i expecting 200"
   done
 }
+
+# Load saved maps data to ensure it aligns with testing conditions
+load_mapping(){
+  echo "  Load stock maps aligned with data verions"
+  local="-Dspring.profiles.active=local"
+  jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
+  java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
+  if [[ $? -ne 0 ]]; then
+    echo "ERROR: unexpected error building mapping indexes"
+    exit 1
+  fi
+}
+
+# Load saved maps data to ensure it aligns with testing conditions
+load_mapping2(){
+  echo "  Load stock map changes"
+  local="-Dspring.profiles.active=local"
+  jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
+  java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
+  if [[ $? -ne 0 ]]; then
+    echo "ERROR: unexpected error building mapping indexes"
+    exit 1
+  fi
+}
+
+
 # Reindex ncim - individual terminologies
 reindex_ncim(){
   for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V3.0; do
@@ -291,9 +317,8 @@ reindex(){
 echo "  Reindex terminologies ...`/bin/date`"
 # After this point, the log is stored in the tmp folder unless an error is hit
 echo "    see /tmp/x.$$.txt"
-src/main/bin/reindex.sh --noconfig --history "$historyFile" > /tmp/x.$$.txt 2>&1
+src/main/bin/reindex.sh --noconfig --history "$historyFile"
 if [[ $? -ne 0 ]]; then
-    cat /tmp/x.$$.txt | sed 's/^/    /'
     echo "ERROR: problem running reindex.sh script"
     exit 1
 fi
@@ -306,7 +331,15 @@ create_databases
 remove_elasticsearch_indexes
 reindex_ncim
 load_data
+# This will load maps from github evsrestapi-operations
 reindex
+# After this, we should load "mappings" and "mappings2" from UnitTestData
+# to control exactly
+export CONFIG_BASE_URI=file://$(realpath $dir)/mappings/config/metadata
+load_mapping
+export CONFIG_BASE_URI=file://$(realpath $dir)/mappings2/config/metadata
+load_mapping2
+# NOTE: here $CONFIG_BASE_URI is pointing to the new value still
 
 # Cleanup
 /bin/rm -f /tmp/x.$$.txt $dir/x.{sh,txt}

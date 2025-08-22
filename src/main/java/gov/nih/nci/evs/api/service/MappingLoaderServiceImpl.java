@@ -6,7 +6,7 @@ import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
@@ -51,11 +51,11 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   /** The application properties. */
   @Autowired ApplicationProperties applicationProperties;
 
-  /** The Elasticsearch operations service instance *. */
-  @Autowired ElasticOperationsService operationsService;
+  /** The Opensearch operations service instance *. */
+  @Autowired OpensearchOperationsService operationsService;
 
-  /** The Elasticsearch operations service instance *. */
-  @Autowired ElasticQueryService esQueryService;
+  /** The Opensearch operations service instance *. */
+  @Autowired OpensearchQueryService osQueryService;
 
   /** The terminology utils. */
   @Autowired TerminologyUtils termUtils;
@@ -74,6 +74,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     final String[] mappingDataList = mappingData.split("\n");
 
     if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
+      // Support for ICD10-MDR mappings and similar
       if (mappingDataList[0].split("\t").length > 2) {
         for (final String conceptMap :
             Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
@@ -105,17 +106,20 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           conceptToAdd.setTargetTerminologyVersion(conceptSplit[11].replace("\"", ""));
           maps.add(conceptToAdd);
         }
-      } else if (mappingDataList[0].split("\t").length == 2) {
+      }
+      // Support for NCIT-HGNC maps and others regularly updated by NCI
+      else if (mappingDataList[0].split("\t").length == 2) {
         for (final String conceptMap :
             Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
+
           final String[] conceptSplit = conceptMap.split("\t");
 
           // Determine "source"
           final String source = metadata[0].split("_")[0];
           final Terminology sourceTerminology =
-              termUtils.getIndexedTerminology(source.toLowerCase(), esQueryService);
+              termUtils.getIndexedTerminology(source.toLowerCase(), osQueryService, true);
           final Concept sourceConcept =
-              esQueryService
+              osQueryService
                   .getConcept(conceptSplit[0].strip(), sourceTerminology, new IncludeParam())
                   .orElse(null);
           String sourceName = "Unable to determine name";
@@ -126,9 +130,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           // Determine "target" terminology
           final String target = metadata[0].split("_")[2];
           final Terminology targetTerminology =
-              termUtils.getIndexedTerminology(target.toLowerCase(), esQueryService);
+              termUtils.getIndexedTerminology(target.toLowerCase(), osQueryService, true);
           final Concept targetConcept =
-              esQueryService
+              osQueryService
                   .getConcept(conceptSplit[1].strip(), targetTerminology, new IncludeParam())
                   .orElse(null);
           String targetName = "Unable to determine name";
@@ -154,7 +158,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           maps.add(conceptToAdd);
         }
       } else {
-        logger.info("" + mappingDataList[0].split("\t"));
+        logger.info("  line = " + Arrays.asList(mappingDataList[0].split("\t")).toString());
         throw new Exception(
             "Missing data in metadata for " + metadata[0] + " line: " + mappingDataList[0]);
       }
@@ -230,18 +234,22 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public void loadObjects(
-      final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
+      final OpensearchLoadConfig config,
+      final Terminology terminology,
+      final HierarchyUtils hierarchy)
       throws Exception {
+
+    // Get mapset metadata without the header line
     final String uri = applicationProperties.getConfigBaseUri();
     final String mappingUri = uri.replaceFirst("config/metadata", "data/mappings/");
     final String mapsetMetadataUri = uri + "/mapsetMetadata.txt";
-    logger.info("evs_mapsets " + mapsetMetadataUri);
+    logger.info("  Download mapset metadata = " + mapsetMetadataUri);
     final String rawMetadata =
         StringUtils.join(EVSUtils.getValueFromFile(mapsetMetadataUri, "mapsetMetadataUri"), '\n');
     List<String> allLines = Arrays.asList(rawMetadata.split("\n"));
-    // skip header line
     allLines = allLines.subList(1, allLines.size());
 
+    // Find all mapset codes from metadata that are handled by this loader
     final List<String> allCodes = new ArrayList<String>();
     for (final String line : allLines) {
       if (line.split(",")[4].contains("MappingLoadServiceImpl")) {
@@ -249,9 +257,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       }
     }
 
-    // all the current codes that this deals with
+    // Build mapset code -> version map
     final List<String> currentMapsetCodes =
-        esQueryService.getMapsets(new IncludeParam("properties")).stream()
+        osQueryService.getMapsets(new IncludeParam("properties")).stream()
             .filter(
                 concept ->
                     concept.getProperties().stream()
@@ -263,7 +271,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             .collect(Collectors.toList());
 
     final List<String> currentMapsetVersions =
-        esQueryService.getMapsets(new IncludeParam("properties")).stream()
+        osQueryService.getMapsets(new IncludeParam("properties")).stream()
             .filter(
                 concept ->
                     concept.getProperties().stream()
@@ -274,7 +282,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             .map(Concept::getVersion)
             .collect(Collectors.toList());
 
-    final Map<String, String> currentMapsets =
+    final Map<String, String> mapsetVersionMap =
         IntStream.range(0, currentMapsetCodes.size())
             .boxed()
             .collect(
@@ -284,52 +292,63 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     // mapsets to add (not in current index and should be)
     final List<String> mapsetsToAdd =
         allCodes.stream().filter(l -> !currentMapsetCodes.contains(l)).collect(Collectors.toList());
-    logger.info("Mapsets to add = " + mapsetsToAdd.toString());
+    logger.info("  Mapsets to add = " + mapsetsToAdd);
 
     // mapsets to remove (in current index and shouldn't be)
     final List<String> mapsetsToRemove =
         currentMapsetCodes.stream().filter(l -> !allCodes.contains(l)).collect(Collectors.toList());
-    logger.info("Mapsets to remove = " + mapsetsToRemove.toString());
+    logger.info("  Mapsets to remove = " + mapsetsToRemove);
 
     final List<String> terms =
-        termUtils.getIndexedTerminologies(esQueryService).stream()
+        termUtils.getIndexedTerminologies(osQueryService).stream()
             .map(Terminology::getTerminology)
             .collect(Collectors.toList());
 
     for (final String line : allLines) {
-      logger.info("mapset metadata line = " + allLines);
+
       // build each mapset
       final String[] metadata = line.split(",", -1);
-      // remove and skip
-      if (mapsetsToRemove.contains(metadata[0])) {
-        logger.info("  deleting " + metadata[0] + " " + metadata[2]);
-        operationsService.delete(metadata[0], ElasticOperationsService.MAPSET_INDEX);
+      final String code = metadata[0];
+      final String version = metadata[2];
+
+      // remove and continue
+      if (mapsetsToRemove.contains(code)) {
+        logger.info("  Delete mapset (and mappings) = " + code + " " + version);
+        operationsService.delete(code, OpensearchOperationsService.MAPSET_INDEX);
         operationsService.deleteQuery(
-            "mapsetCode:" + metadata[0], ElasticOperationsService.MAPPINGS_INDEX);
+            "mapsetCode:" + code, OpensearchOperationsService.MAPPINGS_INDEX);
         continue;
       }
 
       // skip if no update needed
-      if (!mappingNeedsUpdate(metadata[0], metadata[2], currentMapsets)) {
-        logger.info("  " + metadata[0] + " " + metadata[2] + " is current");
+      if (!mappingNeedsUpdate(code, version, mapsetVersionMap)) {
+        logger.info("  SKIP current mapset = " + code + " " + version);
         continue;
-      } else if (!mapsetsToAdd.contains(metadata[0])) {
-        logger.info("  " + metadata[0] + " needs update to version: " + metadata[2]);
+      } else if (!mapsetsToAdd.contains(code)) {
+        logger.info("  Update mapset to version = " + code + " " + version);
+        // No need to delete from MAPSET_INDEX because the index call below
+        // will just replace/update the mapset to the new version
+        logger.info("    delete old version maps");
         operationsService.deleteQuery(
-            "mapsetCode:" + metadata[0], ElasticOperationsService.MAPPINGS_INDEX);
+            "mapsetCode:" + code, OpensearchOperationsService.MAPPINGS_INDEX);
+      } else {
+        logger.info("  Add mapset = " + code + " " + version);
       }
+
+      // Create the mapset concept and set metadata
       final Concept map = new Concept();
-      map.setName(metadata[0]);
-      map.setCode(metadata[0]);
-      if (metadata[2] != null && !metadata[2].isEmpty()) { // version numbers
-        map.setVersion(metadata[2]);
+      map.setName(code);
+      map.setCode(code);
+      // version numbers
+      if (version != null && !version.isEmpty()) {
+        map.setVersion(version);
       } else {
         map.setVersion(null);
       }
       map.getProperties().add(new Property("loader", "MappingLoadServiceImpl"));
 
-      // setting up metadata
-      if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) { // welcome
+      // Get the welcome text
+      if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
 
         try (final InputStream is =
             new URL(uri + "/" + metadata[3]).openConnection().getInputStream()) {
@@ -352,6 +371,8 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                     + metadata[3]);
           }
         }
+
+        // Configure source/target terminology and version
         map.getProperties().add(new Property("sourceTerminology", metadata[5]));
         map.getProperties().add(new Property("sourceTerminologyVersion", metadata[6]));
         map.getProperties().add(new Property("targetTerminology", metadata[7]));
@@ -362,12 +383,12 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         map.getProperties()
             .add(new Property("targetLoaded", Boolean.toString(terms.contains(metadata[7]))));
 
+        // Get the map data and build the maps
         final String mappingDataUri =
             mappingUri
                 + map.getName()
                 + (map.getVersion() != null ? ("_" + map.getVersion()) : "")
                 + ".txt";
-
         final String mappingData =
             StringUtils.join(EVSUtils.getValueFromFile(mappingDataUri, "mappingDataUri"), '\n');
         map.setMaps(buildMaps(mappingData, metadata));
@@ -395,9 +416,9 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       } else {
         map.getProperties().add(new Property("downloadOnly", "false"));
       }
-      logger.info("indexing " + metadata[0]);
+      logger.info("  INDEX mapset (and mappings) = " + code + " " + version);
 
-      // Sort maps (e.g. mostly for SNOMED maps)
+      // Sort maps (e.g. mostly for SNOMEDCT maps which have multiple groups)
       Collections.sort(
           map.getMaps(),
           new Comparator<Mapping>() {
@@ -422,16 +443,19 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         mapToSort.setSortKey(String.valueOf(1000000 + i++));
       }
       operationsService.bulkIndex(
-          map.getMaps(), ElasticOperationsService.MAPPINGS_INDEX, Mapping.class);
+          map.getMaps(), OpensearchOperationsService.MAPPINGS_INDEX, Mapping.class);
       map.setMaps(null);
-      operationsService.index(map, ElasticOperationsService.MAPSET_INDEX, Concept.class);
+      operationsService.index(map, OpensearchOperationsService.MAPSET_INDEX, Concept.class);
     }
   }
 
   /* see superclass */
   @Override
   public int loadConcepts(
-      final ElasticLoadConfig config, final Terminology terminology, final HierarchyUtils hierarchy)
+      final OpensearchLoadConfig config,
+      final Terminology terminology,
+      final HierarchyUtils hierarchy,
+      Map<String, List<Map<String, String>>> historyMap)
       throws IOException, Exception {
     // n/a
     return 0;
@@ -441,7 +465,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
   @Override
   public Terminology getTerminology(
       final ApplicationContext app,
-      final ElasticLoadConfig config,
+      final OpensearchLoadConfig config,
       final String filepath,
       final String termName,
       final boolean forceDelete)

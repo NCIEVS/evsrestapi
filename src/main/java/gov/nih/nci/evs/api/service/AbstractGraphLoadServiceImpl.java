@@ -15,22 +15,24 @@ import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.GraphProperties;
-import gov.nih.nci.evs.api.support.es.ElasticLoadConfig;
-import gov.nih.nci.evs.api.support.es.ElasticObject;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
+import gov.nih.nci.evs.api.support.es.OpensearchObject;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.MainTypeHierarchy;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -58,7 +60,7 @@ import org.springframework.data.elasticsearch.NoSuchIndexException;
 import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.util.CollectionUtils;
 
-/** The implementation for {@link ElasticLoadService}. */
+/** The implementation for {@link OpensearchLoadService}. */
 // @Service
 public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /** the logger *. */
@@ -66,14 +68,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
 
   /** constant value for mapping string. */
   public static final String NCIT_MAPS_TO = "NCIt_Maps_To_";
-
-  /** the concepts download location *. */
-  @Value("${nci.evs.bulkload.conceptsDir}")
-  private String CONCEPTS_OUT_DIR;
-
-  /** the lock file name *. */
-  @Value("${nci.evs.bulkload.lockFile}")
-  private String LOCK_FILE;
 
   /** download batch size *. */
   @Value("${nci.evs.bulkload.downloadBatchSize}")
@@ -86,11 +80,11 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /** the environment *. */
   @Autowired Environment env;
 
-  /** The Elasticsearch operations service instance *. */
-  @Autowired ElasticOperationsService operationsService;
+  /** The Opensearch operations service instance *. */
+  @Autowired OpensearchOperationsService operationsService;
 
-  /** The Elasticsearch query service instance *. */
-  @Autowired ElasticQueryService esQueryService;
+  /** The Opensearch query service instance *. */
+  @Autowired OpensearchQueryService opensearchQueryService;
 
   /** The sparql query manager service. */
   @Autowired private SparqlQueryManagerService sparqlQueryManagerService;
@@ -110,9 +104,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /** The name map. */
   private Map<String, String> nameMap = new HashMap<>();
 
-  /** The history map. */
-  private Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
-
   /** The simple date format. */
   private SimpleDateFormat inputDateFormat = new SimpleDateFormat("dd-MMM-yy");
 
@@ -125,11 +116,14 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public int loadConcepts(
-      ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+      OpensearchLoadConfig config,
+      Terminology terminology,
+      HierarchyUtils hierarchy,
+      Map<String, List<Map<String, String>>> historyMap)
       throws Exception {
 
     logger.debug(
-        "ElasticLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName());
+        "OpensearchLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName());
 
     boolean result =
         operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
@@ -158,14 +152,14 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     int ct = concepts.size();
 
     logger.info("Loading concepts without codes");
-    loadConceptsRealTime(concepts, terminology, hierarchy);
+    loadConceptsRealTime(concepts, terminology, hierarchy, historyMap);
 
     concepts = sparqlQueryManagerService.getAllConceptsWithCode(terminology);
     ct += concepts.size();
 
     // download concepts and upload to es in real time
     logger.info("Loading concepts with codes");
-    loadConceptsRealTime(concepts, terminology, hierarchy);
+    loadConceptsRealTime(concepts, terminology, hierarchy, historyMap);
 
     return ct;
   }
@@ -176,10 +170,14 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
    * @param allConcepts all concepts to load
    * @param terminology the terminology
    * @param hierarchy the hierarchy
+   * @param historyMap the history map
    * @throws Exception the exception
    */
   private void loadConceptsRealTime(
-      List<Concept> allConcepts, Terminology terminology, HierarchyUtils hierarchy)
+      List<Concept> allConcepts,
+      Terminology terminology,
+      HierarchyUtils hierarchy,
+      Map<String, List<Map<String, String>>> historyMap)
       throws Exception {
     logger.info("  download batch size = " + DOWNLOAD_BATCH_SIZE);
     logger.info("  index batch size = " + INDEX_BATCH_SIZE);
@@ -241,7 +239,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
                   // logger.info(" concept = " + c.getCode() + " " + c.getName());
                   c.setExtensions(mainTypeHierarchy.getExtensions(c));
                   try {
-                    handleHistory(terminology, c);
+                    handleHistory(terminology, c, historyMap);
                   } catch (Exception e) {
                     logger.error("Error handling history for concept " + c.getCode(), e);
                     // needs an extra try-catching because we're in a forEach
@@ -326,10 +324,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         // TEMP FIX FOR NOSUCHINDEXERROR THROWN BY DELETING A MAPPING INDEX
         try {
           operationsService.delete(
-              ElasticOperationsService.MAPSET_INDEX, NCIT_MAPS_TO + mapset.getKey());
+              OpensearchOperationsService.MAPSET_INDEX, NCIT_MAPS_TO + mapset.getKey());
           operationsService.deleteQuery(
               "mapsetCode:" + NCIT_MAPS_TO + mapset.getKey(),
-              ElasticOperationsService.MAPPINGS_INDEX);
+              OpensearchOperationsService.MAPPINGS_INDEX);
         } catch (NoSuchIndexException e) {
           logger.warn("UNABLE TO DELETE INDEX: " + NCIT_MAPS_TO + mapset.getKey() + " NOT FOUND!");
           Audit.addAudit(
@@ -365,10 +363,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
                 + ", "
                 + mapset.getValue().getMaps().size());
         operationsService.bulkIndex(
-            mapset.getValue().getMaps(), ElasticOperationsService.MAPPINGS_INDEX, Mapping.class);
+            mapset.getValue().getMaps(), OpensearchOperationsService.MAPPINGS_INDEX, Mapping.class);
         mapset.getValue().setMaps(null);
         operationsService.index(
-            mapset.getValue(), ElasticOperationsService.MAPSET_INDEX, Concept.class);
+            mapset.getValue(), OpensearchOperationsService.MAPSET_INDEX, Concept.class);
       }
 
     } catch (Exception e) {
@@ -384,10 +382,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   /* see superclass */
   @Override
   public void loadObjects(
-      ElasticLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
+      OpensearchLoadConfig config, Terminology terminology, HierarchyUtils hierarchy)
       throws Exception {
     String indexName = terminology.getObjectIndexName();
-    logger.info("Loading Elastic Objects");
+    logger.info("Loading Opensearch Objects");
     logger.debug("object index name: {}", indexName);
     boolean result = operationsService.createIndex(indexName, config.isForceDeleteIndex());
     logger.debug("index result: {}", result);
@@ -396,28 +394,28 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     // if (result) {
     // logger.debug("put mapping");
     // operationsService.getElasticsearchOperations().putMapping(terminology.getIndexName(),
-    // ElasticOperationsService.OBJECT_TYPE, ElasticObjectMapping.class);
+    // OpensearchOperationsService.OBJECT_TYPE, OpensearchObjectMapping.class);
     // }
 
     if (terminology.getMetadata().getHierarchy() != null
         && terminology.getMetadata().getHierarchy()) {
-      ElasticObject hierarchyObject = new ElasticObject("hierarchy");
+      OpensearchObject hierarchyObject = new OpensearchObject("hierarchy");
       hierarchyObject.setHierarchy(hierarchy);
-      operationsService.index(hierarchyObject, indexName, ElasticObject.class);
+      operationsService.index(hierarchyObject, indexName, OpensearchObject.class);
       logger.info("  Hierarchy loaded = " + hierarchy.getHierarchyRoots());
     } else {
       logger.info("  Hierarchy skipped");
     }
 
     List<ConceptMinimal> synonymSources = sparqlQueryManagerService.getSynonymSources(terminology);
-    ElasticObject ssObject = new ElasticObject("synonym_sources");
+    OpensearchObject ssObject = new OpensearchObject("synonym_sources");
     ssObject.setConceptMinimals(synonymSources);
-    operationsService.index(ssObject, indexName, ElasticObject.class);
+    operationsService.index(ssObject, indexName, OpensearchObject.class);
     logger.info("  Synonym Sources loaded");
 
     List<Concept> qualifiers =
         sparqlQueryManagerService.getAllQualifiersCache(terminology, new IncludeParam("full"));
-    ElasticObject conceptsObject = new ElasticObject("qualifiers");
+    OpensearchObject conceptsObject = new OpensearchObject("qualifiers");
     conceptsObject.setConcepts(qualifiers);
     // Get qualifier values by code and by qualifier name
     final Map<String, Set<String>> qualMap = new HashMap<>();
@@ -436,44 +434,44 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     }
     ConceptUtils.limitQualMap(qualMap, 1000);
     conceptsObject.setMap(qualMap);
-    operationsService.index(conceptsObject, indexName, ElasticObject.class);
+    operationsService.index(conceptsObject, indexName, OpensearchObject.class);
     logger.info("  Qualifiers loaded");
 
     List<Concept> properties =
         sparqlQueryManagerService.getAllProperties(terminology, new IncludeParam("full"));
-    ElasticObject propertiesObject = new ElasticObject("properties");
+    OpensearchObject propertiesObject = new OpensearchObject("properties");
     propertiesObject.setConcepts(properties);
-    operationsService.index(propertiesObject, indexName, ElasticObject.class);
+    operationsService.index(propertiesObject, indexName, OpensearchObject.class);
     logger.info("  Properties loaded");
 
     List<Concept> associations =
         sparqlQueryManagerService.getAllAssociations(terminology, new IncludeParam("full"));
-    ElasticObject associationsObject = new ElasticObject("associations");
+    OpensearchObject associationsObject = new OpensearchObject("associations");
     associationsObject.setConcepts(associations);
-    operationsService.index(associationsObject, indexName, ElasticObject.class);
+    operationsService.index(associationsObject, indexName, OpensearchObject.class);
     logger.info("  Associations loaded");
 
     List<Concept> roles =
         sparqlQueryManagerService.getAllRoles(terminology, new IncludeParam("full"));
-    ElasticObject rolesObject = new ElasticObject("roles");
+    OpensearchObject rolesObject = new OpensearchObject("roles");
     rolesObject.setConcepts(roles);
-    operationsService.index(rolesObject, indexName, ElasticObject.class);
+    operationsService.index(rolesObject, indexName, OpensearchObject.class);
     logger.info("  Roles loaded");
 
     // synonymTypes
     List<Concept> synonymTypes =
         sparqlQueryManagerService.getAllSynonymTypes(terminology, new IncludeParam("full"));
-    ElasticObject synonymTypesObject = new ElasticObject("synonymTypes");
+    OpensearchObject synonymTypesObject = new OpensearchObject("synonymTypes");
     synonymTypesObject.setConcepts(synonymTypes);
-    operationsService.index(synonymTypesObject, indexName, ElasticObject.class);
+    operationsService.index(synonymTypesObject, indexName, OpensearchObject.class);
     logger.info("  Synonym Types loaded");
 
     // definitionTypes
     List<Concept> definitionTypes =
         sparqlQueryManagerService.getAllDefinitionTypes(terminology, new IncludeParam("full"));
-    ElasticObject definitionTypesObject = new ElasticObject("definitionTypes");
+    OpensearchObject definitionTypesObject = new OpensearchObject("definitionTypes");
     definitionTypesObject.setConcepts(definitionTypes);
-    operationsService.index(definitionTypesObject, indexName, ElasticObject.class);
+    operationsService.index(definitionTypesObject, indexName, OpensearchObject.class);
     logger.info("  Definition Types loaded");
 
     // subsets
@@ -482,9 +480,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     if (terminology.getTerminology().equals("ncit")) {
       this.addExtraSubsets(subsets, terminology);
     }
-    ElasticObject subsetsObject = new ElasticObject("subsets");
+    OpensearchObject subsetsObject = new OpensearchObject("subsets");
     subsetsObject.setConcepts(subsets);
-    operationsService.index(subsetsObject, indexName, ElasticObject.class);
+    operationsService.index(subsetsObject, indexName, OpensearchObject.class);
     logger.info("  Subsets loaded");
     List<AssociationEntry> entries = new ArrayList<>();
     // associationEntries
@@ -505,15 +503,15 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
           }
         }
       }
-      ElasticObject associationEntriesObject =
-          new ElasticObject("associationEntries_" + association.getName());
+      OpensearchObject associationEntriesObject =
+          new OpensearchObject("associationEntries_" + association.getName());
       logger.info("    add associationEntries_" + association.getName() + " = " + entries.size());
       associationEntriesObject.setAssociationEntries(entries);
-      operationsService.index(associationEntriesObject, indexName, ElasticObject.class);
+      operationsService.index(associationEntriesObject, indexName, OpensearchObject.class);
     }
     logger.info("  Association Entries loaded");
 
-    logger.info("Done loading Elastic Objects!");
+    logger.info("Done loading Opensearch Objects!");
   }
 
   /**
@@ -544,7 +542,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         // We can't use "full" here or we wind up losing "extensions" and "paths"
         // So we use the "everything" mode
         subsetConcept =
-            esQueryService.getConcept(subsetCode, terminology, new IncludeParam("*")).orElseThrow();
+            opensearchQueryService
+                .getConcept(subsetCode, terminology, new IncludeParam("*"))
+                .orElseThrow();
       } catch (NoSuchElementException e) {
         logger.warn("Subset " + subsetCode + " not found as a concept, skipping.");
         Audit.addAudit(
@@ -603,7 +603,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
           // We can't use "full" here or we wind up losing "extensions" and "paths"
           // So we use the "everything" mode
           subsetMember =
-              esQueryService
+              opensearchQueryService
                   .getConcept(
                       row.getCell(2).getStringCellValue(), terminology, new IncludeParam("*"))
                   .get();
@@ -629,14 +629,22 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         conceptComputed.setType("computed");
         conceptAssoc.getQualifiers().add(conceptComputed);
 
-        subsetMember.getAssociations().add(conceptAssoc);
+        // handle the case where the code is itself a member in its own subset
+        if (subsetMember.getCode().equals(subsetConcept.getCode())) {
+          subsetConcept.getAssociations().add(conceptAssoc);
+        } else {
+          subsetMember.getAssociations().add(conceptAssoc);
+        }
         // edit codes for inverseAssociation
         Association inverseAssoc = new Association(conceptAssoc);
         inverseAssoc.setRelatedCode(subsetMember.getCode());
         inverseAssoc.setRelatedName(subsetMember.getName());
         subsetConcept.getInverseAssociations().add(inverseAssoc);
-        // index subsetMember
-        operationsService.index(subsetMember, terminology.getIndexName(), Concept.class);
+        // index subsetMember (but only if the member is not also the subset concept itself)
+        if (!subsetMember.getCode().equals(subsetConcept.getCode())) {
+          operationsService.update(
+              subsetMember.getCode(), subsetMember, terminology.getIndexName(), Concept.class);
+        }
       }
       if (missingConcepts.size() > 0) {
         Audit.addAudit(
@@ -653,8 +661,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       subsetConcept.getProperties().add(new Property("Publish_Value_Set", "Yes"));
       subsetConcept.getProperties().add(new Property("EVSRESTAPI_Subset_Format", "NCI"));
       subsetConcept.setSubsetLink(url);
+
       // index subsetConcept
-      operationsService.index(subsetConcept, terminology.getIndexName(), Concept.class);
+      operationsService.update(
+          subsetConcept.getCode(), subsetConcept, terminology.getIndexName(), Concept.class);
       // create new subset for parentSubset to add as child of existing subset
       Concept parentSubsetChild = new Concept(subsetConcept);
       // strip out everything the subset tree doesn't need
@@ -739,7 +749,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
-   * Task to load a batch of concepts to elasticsearch.
+   * Task to load a batch of concepts to Opensearch.
    *
    * @author Arun
    */
@@ -816,12 +826,21 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   @Override
   public Terminology getTerminology(
       ApplicationContext app,
-      ElasticLoadConfig config,
+      OpensearchLoadConfig config,
       String filepath,
       String terminology,
       boolean forceDelete)
       throws Exception {
     TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
+
+    // first check to see if this terminology already exists and if so return it
+    final Terminology indexedTerm =
+        termUtils.getIndexedTerminology(terminology, opensearchQueryService, false);
+    if (indexedTerm != null) {
+      return indexedTerm;
+    }
+
+    // otherwise, build it
     final Terminology term =
         termUtils.getTerminology(config.getTerminology(), sparqlQueryManagerService);
 
@@ -850,7 +869,6 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       metadata.setSourceCt(metadata.getSources().size());
       metadata.setWelcomeText(getWelcomeText(terminology.toLowerCase()));
       term.setMetadata(metadata);
-      loadHistory(term, filepath);
 
       // Compute concept statuses
       if (metadata.getConceptStatus() != null) {
@@ -929,95 +947,27 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
   }
 
   /**
-   * Load (and cache) the history info for all concepts.
-   *
-   * @param terminology the terminology
-   * @param filepath the file path
-   * @throws Exception the exception
-   */
-  private void loadHistory(final Terminology terminology, final String filepath) throws Exception {
-
-    // Only load history for NCI Thesaurus
-    if (!terminology.getTerminology().equals("ncit") || filepath == null || filepath.isEmpty()) {
-      return;
-    }
-
-    try {
-
-      File file = new File(filepath);
-      logger.info("Load ncit history");
-
-      // Assume this file is checked. It's passed in by the reindex.sh
-      try (BufferedReader reader =
-          new BufferedReader(new InputStreamReader(new FileInputStream(file), "UTF-8")); ) {
-
-        String line = null;
-
-        // CODE, NA, ACTION, DATE, REPLACEMENT CODE
-        // Loop through lines until we reach "the end"
-        while ((line = reader.readLine()) != null) {
-
-          final String[] fields = line.split("\\|", -1);
-          final String code = fields[0];
-          final String action = fields[2];
-          final String date = fields[3];
-          final String replacementCode = fields[4];
-          List<Map<String, String>> conceptHistory = new ArrayList<>();
-          final Map<String, String> historyItem = new HashMap<>();
-
-          if (historyMap.containsKey(code)) {
-            conceptHistory = historyMap.get(code);
-          }
-
-          historyItem.put("action", action);
-          historyItem.put("date", date);
-
-          if (replacementCode != null && !replacementCode.equals("null")) {
-
-            historyItem.put("replacementCode", replacementCode);
-
-            // create history entry for the replacement concept if it isn't merging with itself
-            if (!replacementCode.equals(code)) {
-
-              List<Map<String, String>> replacementConceptHistory = new ArrayList<>();
-              final Map<String, String> replacementHistoryItem = new HashMap<>(historyItem);
-
-              if (historyMap.containsKey(replacementCode)) {
-                replacementConceptHistory = historyMap.get(replacementCode);
-              }
-
-              replacementHistoryItem.put("code", code);
-              replacementConceptHistory.add(replacementHistoryItem);
-              historyMap.put(replacementCode, replacementConceptHistory);
-            }
-          }
-
-          conceptHistory.add(historyItem);
-          historyMap.put(code, conceptHistory);
-        }
-      }
-      logger.info("    count = " + historyMap.size());
-    } catch (Exception e) {
-      throw new Exception(
-          "Unable to load history file for " + terminology.getName() + ": " + filepath, e);
-    }
-  }
-
-  /**
    * Handle history.
    *
    * @param terminology the terminology
    * @param concept the concept
+   * @param historyMap the history map
    * @throws Exception the exception
    */
-  private void handleHistory(final Terminology terminology, final Concept concept)
+  private void handleHistory(
+      final Terminology terminology,
+      final Concept concept,
+      Map<String, List<Map<String, String>>> historyMap)
       throws Exception {
 
     List<Map<String, String>> conceptHistory = historyMap.get(concept.getCode());
 
-    if (conceptHistory == null) {
+    if (conceptHistory == null || conceptHistory.isEmpty()) {
       return;
     }
+
+    // reset concept history
+    concept.setHistory(new ArrayList<>());
 
     for (final Map<String, String> historyItem : conceptHistory) {
 
@@ -1045,6 +995,213 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
 
       concept.getHistory().add(history);
     }
+  }
+
+  /**
+   * Update historyMap.
+   *
+   * @param terminology the terminology
+   * @param filepath the filepath
+   * @return the map
+   * @throws Exception the exception
+   */
+  @Override
+  public Map<String, List<Map<String, String>>> updateHistoryMap(
+      final Terminology terminology, final String filepath) throws Exception {
+
+    if (!terminology.getTerminology().equals("ncit")) {
+      return new HashMap<>();
+    }
+    if (filepath == null || filepath.isEmpty()) {
+      logger.warn("File path is null or empty, returning empty history map.");
+      Audit.addAudit(
+          operationsService,
+          "FilePathException",
+          "updateHistoryMap",
+          terminology.getTerminology(),
+          "File path is null or empty.",
+          "WARN");
+      return new HashMap<>();
+    }
+    Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
+    try (BufferedReader reader =
+        new BufferedReader(new InputStreamReader(new FileInputStream(filepath), "UTF-8")); ) {
+      historyMap = processHistoryMap(reader);
+    } catch (IOException e) {
+      logger.error("Error reading history file: " + filepath, e);
+      Audit.addAudit(
+          operationsService,
+          "IOException",
+          "updateHistoryMap",
+          terminology.getTerminology(),
+          "Error reading history file: " + filepath,
+          "ERROR");
+      throw new Exception("Error reading history file: " + filepath, e);
+    }
+    return historyMap;
+  }
+
+  /**
+   * process history map.
+   *
+   * @param reader the reader
+   * @return the map
+   * @throws Exception the exception
+   */
+  public Map<String, List<Map<String, String>>> processHistoryMap(BufferedReader reader)
+      throws Exception {
+    // CODE, NA, ACTION, DATE, REPLACEMENT CODE
+    // Loop through lines until we reach "the end"
+    Map<String, List<Map<String, String>>> historyMap = new HashMap<>();
+    String line = null;
+    while ((line = reader.readLine()) != null) {
+
+      final String[] fields = line.split("\\|", -1);
+      final String code = fields[0];
+      final String action = fields[2];
+      final String date = fields[3];
+      final String replacementCode = fields[4];
+      List<Map<String, String>> conceptHistory = new ArrayList<>();
+      final Map<String, String> historyItem = new HashMap<>();
+
+      if (historyMap.containsKey(code)) {
+        conceptHistory = historyMap.get(code);
+      }
+
+      historyItem.put("action", action);
+      historyItem.put("date", date);
+
+      if (replacementCode != null && !replacementCode.equals("null")) {
+
+        historyItem.put("replacementCode", replacementCode);
+
+        // create history entry for the replacement concept if it isn't merging with itself
+        if (!replacementCode.equals(code)) {
+
+          List<Map<String, String>> replacementConceptHistory = new ArrayList<>();
+          final Map<String, String> replacementHistoryItem = new HashMap<>(historyItem);
+
+          if (historyMap.containsKey(replacementCode)) {
+            replacementConceptHistory = historyMap.get(replacementCode);
+          }
+
+          replacementHistoryItem.put("code", code);
+          replacementConceptHistory.add(replacementHistoryItem);
+          historyMap.put(replacementCode, replacementConceptHistory);
+        }
+      }
+
+      conceptHistory.add(historyItem);
+      historyMap.put(code, conceptHistory);
+    }
+    return historyMap;
+  }
+
+  /**
+   * update history.
+   *
+   * @param terminology the terminology
+   * @param historyMap the history map
+   * @param newHistoryVersion the new history version
+   * @throws Exception the exception
+   */
+  @Override
+  public void updateHistory(
+      final Terminology terminology,
+      Map<String, List<Map<String, String>>> historyMap,
+      String newHistoryVersion)
+      throws Exception {
+
+    // Update history for "ncit" monthly when it gets revisitied to double check latest versions
+    // Skip this for other terminologies, for cases where an updated cumulative history file has
+    // already been processed
+    // or in cases where the cumulative history for this version is unable to be found
+    if (!terminology.getTerminology().equals("ncit")
+        || newHistoryVersion == null
+        || newHistoryVersion.isEmpty()) {
+      return;
+    }
+    if (historyMap == null || historyMap.size() == 0) {
+      logger.warn(
+          "History map for {}-{} is null or empty, skipping update.",
+          terminology.getTerminology(),
+          terminology.getVersion());
+      return;
+    }
+    if ((terminology.getMetadata().getHistoryVersion() != null
+        && terminology.getMetadata().getHistoryVersion().compareTo(newHistoryVersion) >= 0)) {
+      logger.info(
+          "History version for {}-{} is already set to {}, skipping update.",
+          terminology.getTerminology(),
+          terminology.getVersion(),
+          newHistoryVersion);
+      return;
+    }
+
+    logger.info(
+        "Updating history for terminology: {}-{}, current history version:"
+            + " {}, new history version {}",
+        terminology.getTerminology(),
+        terminology.getVersion(),
+        terminology.getMetadata().getHistoryVersion(),
+        newHistoryVersion);
+
+    Date startOfUpdateScope = parseVersion(newHistoryVersion);
+    Map<String, List<Map<String, String>>> historyMapUpdate = new HashMap<>();
+    SimpleDateFormat sdf = new SimpleDateFormat("dd-MMM-yyyy");
+
+    // Loop through the historyMap and check if the date is within the update scope
+    for (final String code : historyMap.keySet()) {
+      for (final Map<String, String> map : historyMap.get(code)) {
+        if (sdf.parse(map.get("date")).after(startOfUpdateScope)) {
+          // If the date is within the scope, add it to historyMapUpdate and break off
+          historyMapUpdate.put(code, historyMap.get(code));
+          break;
+        }
+      }
+    }
+
+    IncludeParam ip = new IncludeParam("*");
+    Concept concept = new Concept();
+    for (Map.Entry<String, List<Map<String, String>>> entry : historyMapUpdate.entrySet()) {
+      try {
+        // If the concept is not found, skip it
+        concept = opensearchQueryService.getConcept(entry.getKey(), terminology, ip).get();
+      } catch (Exception e) {
+        logger.warn("Could not retrieve concept {}, skipping.", entry.getKey());
+        continue;
+      }
+      handleHistory(terminology, concept, historyMap);
+      // index the concept with the history
+      operationsService.update(
+          concept.getCode(), concept, terminology.getIndexName(), Concept.class);
+    }
+    terminology.getMetadata().setHistoryVersion(newHistoryVersion);
+    logger.info(
+        "History version for {} is now set to {}",
+        terminology.getTerminology(),
+        terminology.getMetadata().getHistoryVersion());
+    // Index the terminology to update the history version
+    loadIndexMetadata(historyMap.size(), terminology);
+  }
+
+  /**
+   * Parses the version.
+   *
+   * @param version the version
+   * @return the date
+   */
+  public Date parseVersion(String version) {
+    int year = Integer.parseInt(version.substring(0, 2));
+    int month = Integer.parseInt(version.substring(3, 5));
+
+    Calendar cal = Calendar.getInstance();
+    // set to first of the month to ignore date
+    cal.set(year, month, 1);
+    // go back 2 months to cover everything
+    cal.add(Calendar.MONTH, -2);
+
+    return cal.getTime();
   }
 
   /* see superclass */

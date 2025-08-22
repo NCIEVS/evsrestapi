@@ -74,16 +74,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /** The application properties. */
   @Autowired ApplicationProperties applicationProperties;
 
-  /** The elastic search service. */
+  /** The Opensearch search service. */
   @Autowired
-  @org.springframework.beans.factory.annotation.Qualifier("elasticSearchServiceImpl")
-  ElasticSearchService elasticSearchService;
+  @org.springframework.beans.factory.annotation.Qualifier("openSearchServiceImpl")
+  OpenSearchService openSearchService;
 
-  /** The elastic search service. */
-  @Autowired ElasticQueryService elasticQueryService;
+  /** The Opensearch search service. */
+  @Autowired OpensearchQueryService opensearchQueryService;
 
   /** The operations service. */
-  @Autowired ElasticOperationsService operationsService;
+  @Autowired OpensearchOperationsService operationsService;
 
   /** The sparql query cache service. */
   @Autowired SparqlQueryCacheService sparqlQueryCacheService;
@@ -257,14 +257,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   }
 
   @Override
-  public Concept getConceptFromElasticSearch(
+  public Concept getConceptFromOpensearch(
       final String conceptCode, final Terminology terminology, final String include)
       throws Exception {
     SearchCriteria searchCriteria = new SearchCriteria();
     searchCriteria.setTerm(conceptCode);
     searchCriteria.setInclude(include);
     ConceptResultList result =
-        elasticSearchService.findConcepts(Collections.singletonList(terminology), searchCriteria);
+        openSearchService.findConcepts(Collections.singletonList(terminology), searchCriteria);
     return !result.getConcepts().isEmpty() ? result.getConcepts().get(0) : null;
   }
 
@@ -689,6 +689,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       concept.setDefinitions(EVSUtils.getDefinitions(terminology, properties, axioms));
+
       concept.setChildren(childMap.get(conceptCode));
       for (final Concept child : concept.getChildren()) {
         child.setLeaf(hierarchy.getChildNodes(child.getCode(), 1).isEmpty());
@@ -2285,7 +2286,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   @Override
   public List<HierarchyNode> getPathInHierarchy(final String code, final Terminology terminology)
       throws Exception {
-    final List<HierarchyNode> rootNodes = elasticQueryService.getRootNodesHierarchy(terminology);
+    final List<HierarchyNode> rootNodes = opensearchQueryService.getRootNodesHierarchy(terminology);
     final Paths paths =
         sparqlQueryCacheService
             .getHierarchyUtils(terminology, restUtils, this)
@@ -2520,7 +2521,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final List<Concept> subsets = new ArrayList<>();
     for (final String code : terminology.getMetadata().getSubset()) {
       final Concept concept =
-          getConceptFromElasticSearch(code, terminology, "minimal,children,properties");
+          getConceptFromOpensearch(code, terminology, "minimal,children,properties");
 
       getSubsetsHelper(concept, terminology, 0);
       subsets.add(concept);
@@ -2542,7 +2543,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final List<Concept> children = new ArrayList<>();
     for (final Concept child : concept.getChildren()) {
       final Concept childFull =
-          getConceptFromElasticSearch(child.getCode(), terminology, "minimal,children,properties");
+          getConceptFromOpensearch(child.getCode(), terminology, "minimal,children,properties");
       boolean valInSubset = false;
       boolean found = false;
       for (final Property prop : childFull.getProperties()) {
@@ -2624,7 +2625,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    *
    * @return the ignore source urls
    */
-  private List<String> getIgnoreSourceUrls() {
+  private List<String> getIgnoreSourceUrls() throws Exception {
     final String uri = applicationProperties.getConfigBaseUri() + "/ignore-source.txt";
     if (StringUtils.isNotBlank(uri)) {
       log.info("Ignore source file URL:{}", uri);

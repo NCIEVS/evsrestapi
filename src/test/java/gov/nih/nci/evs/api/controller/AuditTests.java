@@ -1,7 +1,7 @@
 package gov.nih.nci.evs.api.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -12,7 +12,7 @@ import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
-import gov.nih.nci.evs.api.service.ElasticQueryServiceImpl;
+import gov.nih.nci.evs.api.service.OpensearchQueryServiceImpl;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
@@ -39,8 +39,8 @@ public class AuditTests {
   /** The test properties. */
   @Autowired TestProperties testProperties;
 
-  /** The elastic query service. */
-  @Autowired private ElasticQueryServiceImpl elasticQueryService;
+  /** The opensearch query service. */
+  @Autowired private OpensearchQueryServiceImpl opensearchQueryService;
 
   /**
    * Test get all audits and check against terminologies.
@@ -49,7 +49,7 @@ public class AuditTests {
    */
   @Test
   public void testGetAllAudits() throws Exception {
-    List<Audit> audits = elasticQueryService.getAllAudits(new SearchCriteria());
+    List<Audit> audits = opensearchQueryService.getAllAudits(new SearchCriteria());
     assertNotNull(audits);
     assertThat(audits.size()).isGreaterThan(0);
 
@@ -88,7 +88,7 @@ public class AuditTests {
    */
   @Test
   public void testGetAuditsByTerminology() throws Exception {
-    List<Audit> audits = elasticQueryService.getAuditsByTerminology("ncit");
+    List<Audit> audits = opensearchQueryService.getAuditsByTerminology("ncit");
     // filter errors and warnings
     audits =
         audits.stream()
@@ -112,7 +112,7 @@ public class AuditTests {
   public void testGetAuditsByType() throws Exception {
 
     // Act
-    List<Audit> audits = elasticQueryService.getAuditsByType("reindex");
+    List<Audit> audits = opensearchQueryService.getAuditsByType("reindex");
     assertNotNull(audits);
     // all entries are REINDEX
     assertThat(audits.stream().allMatch(audit -> audit.getType().equals("reindex"))).isTrue();

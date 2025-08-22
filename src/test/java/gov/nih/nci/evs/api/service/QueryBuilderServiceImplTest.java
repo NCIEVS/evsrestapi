@@ -36,8 +36,8 @@ public class QueryBuilderServiceImplTest {
   /** The term utils. */
   @Autowired TerminologyUtils termUtils;
 
-  /** The es query service. */
-  @Autowired ElasticQueryService esQueryService;
+  /** The os query service. */
+  @Autowired OpensearchQueryService osQueryService;
 
   /** The rest utils. */
   private RESTUtils restUtils = null;
@@ -66,7 +66,7 @@ public class QueryBuilderServiceImplTest {
   public void testPrepSparql() throws Exception {
 
     log.info("  get ncit terminology");
-    Terminology ncit = termUtils.getIndexedTerminology("ncit", esQueryService);
+    Terminology ncit = termUtils.getIndexedTerminology("ncit", osQueryService, true);
     log.info("    terminology = " + ncit);
 
     for (final String query :
@@ -122,7 +122,7 @@ public class QueryBuilderServiceImplTest {
   public void testPrepBadSparql() throws Exception {
 
     log.info("  get ncit terminology");
-    Terminology ncit = termUtils.getIndexedTerminology("ncit", esQueryService);
+    Terminology ncit = termUtils.getIndexedTerminology("ncit", osQueryService, true);
     log.info("    terminology = " + ncit);
 
     for (final String query :
