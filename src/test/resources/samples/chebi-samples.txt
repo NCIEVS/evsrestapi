@@ -1,14 +1,13 @@
-http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	chebi:charge	0
-http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	chebi:formula	C36H38N2O6
-http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	chebi:inchi	InChI=1S/C36H38N2O6/c1-37-13-11-23-18-31(41-3)32-20-26(23)27(37)15-21-5-8-25(9-6-21)43-30-17-22(7-10-29(30)39)16-28-34-24(12-14-38(28)2)19-33(42-4)35(40)36(34)44-32/h5-10,17-20,27-28,39-40H,11-16H2,1-4H3/t27-,28-/m0/s1
-http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	chebi:inchikey	XGEAUXVPBXUBKN-NSOVKSMOSA-N
-http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	chebi:mass	594.698
-http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	chebi:monoisotopicmass	594.27299
-http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	chebi:smiles	COc1cc2CCN(C)[C@H]3Cc4ccc(Oc5cc(C[C@@H]6N(C)CCc7cc(OC)c(O)c(Oc1cc23)c67)ccc5O)cc4
+http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	charge	0
+http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	formula	C36H38N2O6
+http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	inchi	InChI=1S/C36H38N2O6/c1-37-13-11-23-18-31(41-3)32-20-26(23)27(37)15-21-5-8-25(9-6-21)43-30-17-22(7-10-29(30)39)16-28-34-24(12-14-38(28)2)19-33(42-4)35(40)36(34)44-32/h5-10,17-20,27-28,39-40H,11-16H2,1-4H3/t27-,28-/m0/s1
+http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	inchikey	XGEAUXVPBXUBKN-NSOVKSMOSA-N
+http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	mass	594.698
+http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	monoisotopicmass	594.27299
+http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	smiles	COc1cc2CCN(C)[C@H]3Cc4ccc(Oc5cc(C[C@@H]6N(C)CCc7cc(OC)c(O)c(Oc1cc23)c67)ccc5O)cc4
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	oboInOwl:hasDbXref	CAS:21008-67-3
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	oboInOwl:hasExactSynonym	(+)-Atherospermoline
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	oboInOwl:hasOBONamespace	chebi_ontology
-http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	oboInOwl:inSubset	2_STAR
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	rdfs:label	(+)-Atherospermoline
 http://purl.obolibrary.org/obo/CHEBI_100	CHEBI:100	rdfs:subClassOf/owl:Restriction~has_role	CHEBI:76924
 http://purl.obolibrary.org/obo/CHEBI_100	CHEBI:100	rdfs:subClassOf/owl:Restriction~is_enantiomer_of	CHEBI:6714
@@ -28,7 +27,7 @@ http://purl.obolibrary.org/obo/CHEBI_9999	CHEBI:9999	qualifier-oboInOwl:hasExact
 http://purl.obolibrary.org/obo/CHEBI_9997	CHEBI:9997	qualifier-oboInOwl:hasRelatedSynonym~oboInOwl:hasDbXref	Virginiamycin factor M1~ChemIDplus
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	parent-style1	CHEBI:133004
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:133004	child-style1	CHEBI:10
-http://purl.obolibrary.org/obo/CHEBI_24995	CHEBI:24995	max-children	7343
+http://purl.obolibrary.org/obo/CHEBI_47923	CHEBI:47923	max-children	8077
 http://purl.obolibrary.org/obo/CHEBI_10	CHEBI:10	parent-count1
 http://purl.obolibrary.org/obo/CHEBI_100002	CHEBI:100002	parent-count2
 http://purl.obolibrary.org/obo/CHEBI_100000	CHEBI:100000	parent-count3

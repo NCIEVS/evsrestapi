@@ -13,6 +13,8 @@ import ca.uhn.fhir.rest.param.DateParam;
 import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.StringParam;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import org.apache.commons.lang3.StringUtils;
 
 /** Utility for fhir data building. */
@@ -159,5 +161,190 @@ public final class FhirUtility {
 
     // Check that date is in range
     return compareDate(d1.getLowerBound(), d2) && compareDate(d1.getUpperBound(), d2);
+  }
+
+  public static String convertToYYYYMMDD(String sdate) {
+    if (sdate == null || sdate.trim().isEmpty()) {
+      return sdate; // Return input unchanged instead of null
+    }
+
+    String cleaned = sdate.trim();
+
+    // YYYY_MM_DD pattern (e.g., "2008_12_19")
+    if (cleaned.matches("\\d{4}_\\d{1,2}_\\d{1,2}")) {
+      String[] parts = cleaned.split("_");
+      String year = parts[0];
+      String month = String.format("%02d", Integer.parseInt(parts[1]));
+      String day = String.format("%02d", Integer.parseInt(parts[2]));
+      return year + "-" + month + "-" + day;
+    }
+
+    // YYYY pattern (e.g., "2008")
+    if (cleaned.matches("\\d{4}")) {
+      return cleaned + "-01-01";
+    }
+
+    // YYYY_MM pattern (e.g., "2011_02")
+    if (cleaned.matches("\\d{4}_\\d{1,2}")) {
+      String[] parts = cleaned.split("_");
+      String year = parts[0];
+      String month = String.format("%02d", Integer.parseInt(parts[1]));
+      return year + "-" + month + "-01";
+    }
+
+    // YYYYMM pattern (e.g., "202311")
+    if (cleaned.matches("\\d{6}")) {
+      String year = cleaned.substring(0, 4);
+      String month = cleaned.substring(4, 6);
+      return year + "-" + month + "-01";
+    }
+
+    // YYYYMMDD pattern (e.g., "20231101")
+    if (cleaned.matches("\\d{8}")) {
+      String year = cleaned.substring(0, 4);
+      String month = cleaned.substring(4, 6);
+      String day = cleaned.substring(6, 8);
+      return year + "-" + month + "-" + day;
+    }
+
+    // dd:MM:yyyy pattern (e.g., "14:11:2014")
+    if (cleaned.matches("\\d{1,2}:\\d{1,2}:\\d{4}")) {
+      String[] parts = cleaned.split(":");
+      String day = String.format("%02d", Integer.parseInt(parts[0]));
+      String month = String.format("%02d", Integer.parseInt(parts[1]));
+      String year = parts[2];
+      return year + "-" + month + "-" + day;
+    }
+
+    // yyyy.MM.dd pattern (e.g., "2018.02.05")
+    if (cleaned.matches("\\d{4}\\.\\d{1,2}\\.\\d{1,2}")) {
+      String[] parts = cleaned.split("\\.");
+      String year = parts[0];
+      String month = String.format("%02d", Integer.parseInt(parts[1]));
+      String day = String.format("%02d", Integer.parseInt(parts[2]));
+      return year + "-" + month + "-" + day;
+    }
+
+    // dd:MM:yyyy HH:mm pattern (e.g., "09:09:2022 07:26") - extract date part only
+    if (cleaned.matches("\\d{1,2}:\\d{1,2}:\\d{4}\\s+\\d{1,2}:\\d{1,2}")) {
+      String datePart = cleaned.split("\\s+")[0]; // Get the date part before space
+      String[] parts = datePart.split(":");
+      String day = String.format("%02d", Integer.parseInt(parts[0]));
+      String month = String.format("%02d", Integer.parseInt(parts[1]));
+      String year = parts[2];
+      return year + "-" + month + "-" + day;
+    }
+
+    // yyyy-MM-dd pattern (e.g., "2021-02-23") - already in correct format
+    if (cleaned.matches("\\d{4}-\\d{1,2}-\\d{1,2}")) {
+      String[] parts = cleaned.split("-");
+      String year = parts[0];
+      String month = String.format("%02d", Integer.parseInt(parts[1]));
+      String day = String.format("%02d", Integer.parseInt(parts[2]));
+      return year + "-" + month + "-" + day;
+    }
+
+    // MMMM d, yyyy pattern (e.g., "February 9, 2007")
+    if (cleaned.matches("(?i)[a-z]+\\s+\\d{1,2},\\s*\\d{4}")) {
+      try {
+        // Create month name mapping
+        Map<String, String> monthMap = new HashMap<>();
+        monthMap.put("january", "01");
+        monthMap.put("february", "02");
+        monthMap.put("march", "03");
+        monthMap.put("april", "04");
+        monthMap.put("may", "05");
+        monthMap.put("june", "06");
+        monthMap.put("july", "07");
+        monthMap.put("august", "08");
+        monthMap.put("september", "09");
+        monthMap.put("october", "10");
+        monthMap.put("november", "11");
+        monthMap.put("december", "12");
+
+        // Parse the parts
+        String[] parts = cleaned.toLowerCase().replaceAll(",", "").split("\\s+");
+        String monthName = parts[0];
+        String day = String.format("%02d", Integer.parseInt(parts[1]));
+        String year = parts[2];
+
+        String monthNum = monthMap.get(monthName);
+        if (monthNum != null) {
+          return year + "-" + monthNum + "-" + day;
+        }
+      } catch (Exception e) {
+        // Fall through to return input unchanged
+      }
+    }
+
+    // Full month name + year pattern (e.g., "November2011", "DECEMBER2020")
+    if (cleaned.matches(
+        "(?i)(January|February|March|April|May|June|July|August|September|October|November|December)\\d{4}")) {
+      try {
+        // Create month name mapping
+        Map<String, String> monthMap = new HashMap<>();
+        monthMap.put("january", "01");
+        monthMap.put("february", "02");
+        monthMap.put("march", "03");
+        monthMap.put("april", "04");
+        monthMap.put("may", "05");
+        monthMap.put("june", "06");
+        monthMap.put("july", "07");
+        monthMap.put("august", "08");
+        monthMap.put("september", "09");
+        monthMap.put("october", "10");
+        monthMap.put("november", "11");
+        monthMap.put("december", "12");
+
+        // Extract month name and year
+        String lowerCleaned = cleaned.toLowerCase();
+        String year = cleaned.substring(cleaned.length() - 4); // Last 4 digits
+        String monthName =
+            lowerCleaned.substring(0, lowerCleaned.length() - 4); // Everything except last 4 digits
+
+        String monthNum = monthMap.get(monthName);
+        if (monthNum != null) {
+          return year + "-" + monthNum + "-01";
+        }
+      } catch (Exception e) {
+        // Fall through to return input unchanged
+      }
+    }
+
+    // Abbreviated month name + year pattern (e.g., "Nov2011", "DEC2020")
+    if (cleaned.matches("(?i)(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\\d{4}")) {
+      try {
+        // Create abbreviated month name mapping
+        Map<String, String> monthMap = new HashMap<>();
+        monthMap.put("jan", "01");
+        monthMap.put("feb", "02");
+        monthMap.put("mar", "03");
+        monthMap.put("apr", "04");
+        monthMap.put("may", "05");
+        monthMap.put("jun", "06");
+        monthMap.put("jul", "07");
+        monthMap.put("aug", "08");
+        monthMap.put("sep", "09");
+        monthMap.put("oct", "10");
+        monthMap.put("nov", "11");
+        monthMap.put("dec", "12");
+
+        // Extract month abbreviation and year
+        String lowerCleaned = cleaned.toLowerCase();
+        String year = cleaned.substring(cleaned.length() - 4); // Last 4 digits
+        String monthAbbr =
+            lowerCleaned.substring(0, lowerCleaned.length() - 4); // Everything except last 4 digits
+
+        String monthNum = monthMap.get(monthAbbr);
+        if (monthNum != null) {
+          return year + "-" + monthNum + "-01";
+        }
+      } catch (Exception e) {
+        // Fall through to return input unchanged
+      }
+    }
+
+    // No pattern matched
+    return "";
   }
 }

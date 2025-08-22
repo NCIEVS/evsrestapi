@@ -137,10 +137,10 @@ public class FhirR4CodeSystemReadSearchTests {
         data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Verify things about this one
-    // {"resourceType":"CodeSystem","id":"ncit_21.06e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"21.06e","name":"NCI
+    // {"resourceType":"CodeSystem","id":"ncit_25.06e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"25.06e","name":"NCI
     // Thesaurus
-    // 21.06e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","hierarchyMeaning":"is-a"}
-    final Set<String> ids = new HashSet<>(Set.of("ncit_21.06e"));
+    // 25.06e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","hierarchyMeaning":"is-a"}
+    final Set<String> ids = new HashSet<>(Set.of("ncit_25.06e"));
     final Set<String> urls =
         new HashSet<>(Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl"));
 
@@ -176,7 +176,7 @@ public class FhirR4CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
             // "ge2021-06")
             .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "21.06e")
+            .queryParam("version", "25.06e")
             .queryParam("title", "ncit");
 
     // Test successful case with all parameters
@@ -190,7 +190,7 @@ public class FhirR4CodeSystemReadSearchTests {
             .queryParam("date", "ge2025-01") // Future
             // date
             .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "21.06e")
+            .queryParam("version", "25.06e")
             .queryParam("title", "ncit");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -202,7 +202,7 @@ public class FhirR4CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("date", "ge2021-06")
             .queryParam("system", "http://invalid.system.url")
-            .queryParam("version", "21.06e")
+            .queryParam("version", "25.06e")
             .queryParam("title", "ncit");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -226,7 +226,7 @@ public class FhirR4CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("date", "ge2021-06")
             .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "21.06e")
+            .queryParam("version", "25.06e")
             .queryParam("title", "invalid_title");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -238,7 +238,7 @@ public class FhirR4CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
             // "ge2021-06")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "21.06e")
+            .queryParam("version", "25.06e")
             .queryParam("title", "ncit");
 
     // Test successful case with all parameters
@@ -252,7 +252,7 @@ public class FhirR4CodeSystemReadSearchTests {
             // "ge2021-06")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
             .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "21.06e")
+            .queryParam("version", "25.06e")
             .queryParam("title", "ncit");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -268,6 +268,79 @@ public class FhirR4CodeSystemReadSearchTests {
   }
 
   /**
+   * Test code system search with parameters - date related tests.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemSearchWithDateFocus() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCSPath;
+
+    // Test 1: All valid parameters
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+            // "ge2021-06")
+            .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+            .queryParam("version", "202506")
+            .queryParam("title", "canmed");
+
+    // Test successful case with all parameters
+    String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    validateCanmedCodeSystemResults(data, true); // Expecting results
+
+    // Test 2: Invalid date
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2030-01") // Future date
+            .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+            .queryParam("version", "202506")
+            .queryParam("title", "canmed");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(Bundle.class, content);
+    validateCanmedCodeSystemResults(data, false); // Expecting no results
+
+    // Test 3: Valid date
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "2025-06-01")
+            .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+            .queryParam("version", "202506")
+            .queryParam("title", "canmed");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(Bundle.class, content);
+    validateCanmedCodeSystemResults(data, true);
+
+    // Test 4: Valid date range
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2023-11-01")
+            .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+            .queryParam("version", "202506")
+            .queryParam("title", "canmed");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(Bundle.class, content);
+    validateCanmedCodeSystemResults(data, true);
+
+    // Test 5: Valid date range
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2023-11-01")
+            .queryParam("date", "lt2030-11-01")
+            .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+            .queryParam("version", "202506")
+            .queryParam("title", "canmed");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(Bundle.class, content);
+    validateCanmedCodeSystemResults(data, true);
+  }
+
+  /**
    * Validate code system results.
    *
    * @param data the data
@@ -279,9 +352,36 @@ public class FhirR4CodeSystemReadSearchTests {
 
     if (expectResults) {
       assertFalse(codeSystems.isEmpty());
-      final Set<String> ids = new HashSet<>(Set.of("ncit_21.06e"));
+      final Set<String> ids = new HashSet<>(Set.of("ncit_25.06e"));
       final Set<String> urls =
           new HashSet<>(Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl"));
+
+      for (Resource cs : codeSystems) {
+        log.info(" code system = " + parser.encodeResourceToString(cs));
+        CodeSystem css = (CodeSystem) cs;
+        assertNotNull(css);
+        assertEquals(ResourceType.CodeSystem, css.getResourceType());
+        assertNotNull(css.getIdPart());
+        assertNotNull(css.getPublisher());
+        assertNotNull(css.getUrl());
+        ids.remove(css.getIdPart());
+        urls.remove(css.getUrl());
+      }
+      assertThat(ids).isEmpty();
+      assertThat(urls).isEmpty();
+    } else {
+      assertTrue(data.getEntry().isEmpty() || codeSystems.isEmpty());
+    }
+  }
+
+  private void validateCanmedCodeSystemResults(Bundle data, boolean expectResults) {
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
+
+    if (expectResults) {
+      assertFalse(codeSystems.isEmpty());
+      final Set<String> ids = new HashSet<>(Set.of("canmed_202506"));
+      final Set<String> urls = new HashSet<>(Set.of("http://seer.nci.nih.gov/CanMED.owl"));
 
       for (Resource cs : codeSystems) {
         log.info(" code system = " + parser.encodeResourceToString(cs));
@@ -510,7 +610,7 @@ public class FhirR4CodeSystemReadSearchTests {
     log.info(" code system = " + parser.encodeResourceToString(css));
 
     // Verify specific IDs and URLs if needed
-    if (css.getIdPart().equals("ncit_21.06e")) {
+    if (css.getIdPart().equals("ncit_25.06e")) {
       assertEquals("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl", css.getUrl());
     }
   }
@@ -600,5 +700,219 @@ public class FhirR4CodeSystemReadSearchTests {
     CodeSystem caseSensitiveMatchSystem =
         (CodeSystem) caseSensitiveBundle.getEntry().get(0).getResource();
     assertEquals(firstCodeSystemTitle, caseSensitiveMatchSystem.getTitle());
+  }
+
+  @Test
+  public void testCodeSystemHistory() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirCSPath;
+
+    // Act - First get list of CodeSystems to find a valid ID
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    String firstCodeSystemId = codeSystems.get(0).getIdPart();
+
+    // Act - Get history for the first CodeSystem
+    String historyEndpoint = endpoint + "/" + firstCodeSystemId + "/_history";
+    content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    Bundle historyBundle = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(historyBundle);
+    assertEquals(ResourceType.Bundle, historyBundle.getResourceType());
+    assertEquals(Bundle.BundleType.HISTORY, historyBundle.getType());
+    assertFalse(historyBundle.getEntry().isEmpty());
+
+    // Verify each entry in history is a CodeSystem with the same ID
+    for (Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
+      assertNotNull(entry.getResource());
+      assertEquals(ResourceType.CodeSystem, entry.getResource().getResourceType());
+
+      CodeSystem historyCodeSystem = (CodeSystem) entry.getResource();
+      assertEquals(firstCodeSystemId, historyCodeSystem.getIdPart());
+
+      // Verify metadata is properly set
+      assertNotNull(historyCodeSystem.getMeta());
+      assertNotNull(historyCodeSystem.getMeta().getVersionId());
+      assertNotNull(historyCodeSystem.getMeta().getLastUpdated());
+    }
+  }
+
+  @Test
+  public void testCodeSystemHistoryNotFound() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCSPath;
+    String invalidId = "nonexistent-codesystem-id";
+    String historyEndpoint = endpoint + "/" + invalidId + "/_history";
+
+    String messageNotFound = "Code system not found = " + invalidId;
+    String errorCode = "not-found";
+
+    // Act
+    String content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
+  }
+
+  @Test
+  public void testCodeSystemVread() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirCSPath;
+
+    // Act - First get list of CodeSystems to find a valid ID
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    String firstCodeSystemId = codeSystems.get(0).getIdPart();
+
+    // Act - Get specific version (assuming version 1 exists)
+    String versionEndpoint = endpoint + "/" + firstCodeSystemId + "/_history/1";
+    content = this.restTemplate.getForObject(versionEndpoint, String.class);
+    CodeSystem versionedCodeSystem = parser.parseResource(CodeSystem.class, content);
+
+    // Assert
+    assertNotNull(versionedCodeSystem);
+    assertEquals(ResourceType.CodeSystem, versionedCodeSystem.getResourceType());
+    assertEquals(firstCodeSystemId, versionedCodeSystem.getIdPart());
+
+    // Verify metadata
+    assertNotNull(versionedCodeSystem.getMeta());
+    assertNotNull(versionedCodeSystem.getMeta().getVersionId());
+    assertNotNull(versionedCodeSystem.getMeta().getLastUpdated());
+
+    // Compare with original CodeSystem
+    CodeSystem originalCodeSystem = (CodeSystem) codeSystems.get(0);
+    assertEquals(originalCodeSystem.getUrl(), versionedCodeSystem.getUrl());
+    assertEquals(originalCodeSystem.getName(), versionedCodeSystem.getName());
+    assertEquals(originalCodeSystem.getPublisher(), versionedCodeSystem.getPublisher());
+  }
+
+  @Test
+  public void testCodeSystemVreadNotFound() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCSPath;
+    String invalidId = "nonexistent-codesystem-id";
+    String versionEndpoint = endpoint + "/" + invalidId + "/_history/1";
+
+    // Act & Assert
+    String messageNotFound = "Code system version not found: nonexistent-codesystem-id version 1";
+    String errorCode = "not-found";
+
+    // Act
+    String content = this.restTemplate.getForObject(versionEndpoint, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
+  }
+
+  @Test
+  public void testCodeSystemVreadInvalidVersion() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirCSPath;
+
+    // Act - First get list of CodeSystems to find a valid ID
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    String firstCodeSystemId = codeSystems.get(0).getIdPart();
+
+    // Act & Assert - Try to get a version that doesn't exist
+    String invalidVersionEndpoint = endpoint + "/" + firstCodeSystemId + "/_history/999";
+    String messageNotFound = "Code system version not found: " + firstCodeSystemId + " version 999";
+    String errorCode = "not-found";
+
+    // Act
+    content = this.restTemplate.getForObject(invalidVersionEndpoint, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
+  }
+
+  @Test
+  public void testCodeSystemHistoryMetadataConsistency() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirCSPath;
+
+    // Act - Get a CodeSystem and its history
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    String firstCodeSystemId = codeSystems.get(0).getIdPart();
+
+    // Get history
+    String historyEndpoint = endpoint + "/" + firstCodeSystemId + "/_history";
+    content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    Bundle historyBundle = parser.parseResource(Bundle.class, content);
+
+    // Get current version
+    content = this.restTemplate.getForObject(endpoint + "/" + firstCodeSystemId, String.class);
+    CodeSystem currentCodeSystem = parser.parseResource(CodeSystem.class, content);
+
+    // Assert - Verify history contains current version
+    boolean foundCurrentVersion = false;
+    for (Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
+      CodeSystem historyVersion = (CodeSystem) entry.getResource();
+      if (currentCodeSystem.getUrl().equals(historyVersion.getUrl())
+          && currentCodeSystem.getName().equals(historyVersion.getName())) {
+        foundCurrentVersion = true;
+        break;
+      }
+    }
+
+    assertTrue(foundCurrentVersion, "History should contain the current version");
+  }
+
+  @Test
+  public void testCodeSystemVreadMatchesHistoryEntry() throws Exception {
+    // Arrange
+    String content;
+    String endpoint = localHost + port + fhirCSPath;
+
+    // Act - Get history first
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    String firstCodeSystemId = codeSystems.get(0).getIdPart();
+
+    String historyEndpoint = endpoint + "/" + firstCodeSystemId + "/_history";
+    content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    Bundle historyBundle = parser.parseResource(Bundle.class, content);
+
+    // Get first version from history
+    CodeSystem firstHistoryVersion = (CodeSystem) historyBundle.getEntry().get(0).getResource();
+    String versionId = firstHistoryVersion.getMeta().getVersionId();
+
+    // Act - Get the same version using vread
+    String vreadEndpoint = endpoint + "/" + firstCodeSystemId + "/_history/" + versionId;
+    content = this.restTemplate.getForObject(vreadEndpoint, String.class);
+    CodeSystem vreadCodeSystem = parser.parseResource(CodeSystem.class, content);
+
+    // Assert - Both should be identical
+    // assertEquals(firstHistoryVersion.getId(), vreadCodeSystem.getId());
+    assertEquals(firstHistoryVersion.getUrl(), vreadCodeSystem.getUrl());
+    assertEquals(firstHistoryVersion.getName(), vreadCodeSystem.getName());
+    assertEquals(firstHistoryVersion.getVersion(), vreadCodeSystem.getVersion());
+    assertEquals(
+        firstHistoryVersion.getMeta().getVersionId(), vreadCodeSystem.getMeta().getVersionId());
   }
 }

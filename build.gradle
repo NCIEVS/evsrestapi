@@ -213,7 +213,7 @@ spotless {
 }
 
 // # for this, the cuis with listed sources will have hierarchies computed
-// ./gradlew rrfSample -Pterminology=NCIMTH,ICD10CM,ICD9CM,SNOMEDCT_US,RXNORM,LNC,MDR,RADLEX -PlistFile=src/main/resources/cuis.txt -PinputPath=../data/NCIM
+// ./gradlew rrfSample -Pterminology=NCIMTH,MDR,ICD10CM,ICD9CM,LNC,SNOMEDCT_US,RADLEX,PDQ,ICD10,HL7V3.0 -PlistFile=src/main/resources/cuis-202508.txt -PinputPath=../data/NCIM
 tasks.register('rrfSample', JavaExec) {
   classpath = sourceSets.main.runtimeClasspath
   main = "gov.nih.nci.evs.api.service.SamplingApplication"

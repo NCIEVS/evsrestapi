@@ -1467,7 +1467,7 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(0);
+    assertThat(terminologies.size()).isEqualTo(2);
 
     result = mvc.perform(get(url).param("tag", "monthly")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();

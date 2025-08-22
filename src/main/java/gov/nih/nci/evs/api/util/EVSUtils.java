@@ -9,6 +9,7 @@ import gov.nih.nci.evs.api.model.Qualifier;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
+import gov.nih.nci.evs.api.service.MetadataService;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URL;
@@ -24,6 +25,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /** Utilities for handling EVS stuff. */
 public class EVSUtils {
@@ -31,6 +33,9 @@ public class EVSUtils {
   /** The Constant log. */
   @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(EVSUtils.class);
+
+  /** The metadata service. */
+  @Autowired private static MetadataService metadataService;
 
   /**
    * Returns the qualifier name.
@@ -238,6 +243,21 @@ public class EVSUtils {
         while (attrMatcher.find()) {
           final Qualifier qualifier = new Qualifier();
           qualifier.setType("attribution");
+          try { // Try to get the qualifier code from the metadata service
+            Concept attributeConcept =
+                metadataService
+                    .getQualifier(
+                        terminology.getTerminology(), qualifier.getType(), Optional.of("minimal"))
+                    .orElse(null);
+            if (attributeConcept != null && attributeConcept.getCode() != null) {
+              qualifier.setCode(attributeConcept.getCode());
+            } else {
+              log.warn("No qualifier code found for type: " + qualifier.getType());
+            }
+          } catch (Exception e) {
+            // If it fails, just use the type as is
+            log.warn("Unable to get qualifier code for: " + qualifier.getType(), e);
+          }
           qualifier.setValue(attrMatcher.group(1));
           def.getQualifiers().add(qualifier);
         }
@@ -546,10 +566,10 @@ public class EVSUtils {
     } catch (final Throwable t) {
       try {
         // Try to open URI as a file
-        final File file = new File(uri);
+        final File file = new File(uri.replaceFirst("file://", ""));
         return FileUtils.readLines(file, "UTF-8");
       } catch (Exception e2) {
-        throw new Exception("Unable to get data from = " + uri);
+        throw new Exception("Unable to get data from = " + uri, e2);
       }
     }
   }

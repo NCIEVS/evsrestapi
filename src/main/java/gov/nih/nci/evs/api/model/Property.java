@@ -21,9 +21,6 @@ import org.springframework.data.elasticsearch.annotations.Mapping;
 public class Property extends BaseModel implements Comparable<Property> {
 
   /** The code. */
-  // In the future we can use @WriteOnlyProperty
-  // this does not work: @JsonProperty(access = Access.READ_ONLY)
-  // @WriteOnlyProperty
   @Field(type = FieldType.Keyword)
   private String code;
 
@@ -264,11 +261,5 @@ public class Property extends BaseModel implements Comparable<Property> {
   @Override
   public int compareTo(Property o) {
     return (type + value).compareToIgnoreCase(o.getType() + o.getValue());
-  }
-
-  /** Clear hidden. */
-  public void clearHidden() {
-    code = null;
-    getQualifiers().forEach(q -> q.clearHidden());
   }
 }

@@ -240,6 +240,35 @@ public class FhirR5ValueSetValidateTests {
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
     assertEquals(
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+
+    parameters = "?code=" + activeCode + "&display" + displayString;
+
+    // Act - Test 2 with no url
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+
+    url = "invalid_url";
+    parameters = "?url=" + url + "&code=" + activeCode + "&display" + displayString;
+    String messageNotFound =
+        "Supplied url UriType[invalid_url] doesn't match the ValueSet retrieved by the id"
+            + " ValueSet/umlssemnet_2023aa"
+            + " http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String errorCode = "exception";
+
+    // Act - Test 3 with invalid url
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
   /**
@@ -440,7 +469,7 @@ public class FhirR5ValueSetValidateTests {
     String content;
     String retiredCode = "C45683";
     String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
-    String retiredId = "ncit_21.06e";
+    String retiredId = "ncit_25.06e";
     String retiredName = "ABCB1 1 Allele";
     String endpoint =
         localHost

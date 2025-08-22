@@ -933,7 +933,6 @@ public class OpenApiInterceptorR5 {
    * @param theResourceType the resource type
    * @param theOperation the operation
    */
-  @SuppressWarnings("null")
   private void addFhirOperation(
       final FhirContext theFhirContext,
       final OpenAPI theOpenApi,
@@ -1015,7 +1014,7 @@ public class OpenApiInterceptorR5 {
             populateOperation(
                 theFhirContext, theOpenApi, null, operationDefinition, operation, true);
             operation.setSummary(
-                unCamelCase(theResourceType == null ? "" : theResourceType)
+                unCamelCase(theResourceType)
                     + " operation to perform "
                     + operationDefinition.getCode());
           }

@@ -3,17 +3,15 @@ package gov.nih.nci.evs.api.fhir.R4;
 import static java.lang.String.format;
 
 import ca.uhn.fhir.rest.param.NumberParam;
-import gov.nih.nci.evs.api.controller.StaticContextAccessor;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
+import java.text.SimpleDateFormat;
 import java.util.Collections;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
@@ -46,12 +44,6 @@ public final class FhirUtilityR4 {
   @SuppressWarnings("unused")
   private static Logger logger = LoggerFactory.getLogger(FhirUtilityR4.class);
 
-  /** The publishers. */
-  private static HashMap<String, String> publishers = generatePublishers();
-
-  /** The uris. */
-  private static HashMap<String, String> uris = generateUris();
-
   /** The unsupported params list for search. */
   private static final String[] unsupportedParams =
       new String[] {
@@ -77,68 +69,14 @@ public final class FhirUtilityR4 {
   }
 
   /**
-   * Generate publishers from the terminology metadata.
-   *
-   * @return the hash map
-   */
-  private static HashMap<String, String> generatePublishers() {
-    final HashMap<String, String> map = new HashMap<>();
-    List<Terminology> terminologies;
-    try {
-      OpensearchQueryService osQueryService =
-          StaticContextAccessor.getBean(OpensearchQueryService.class);
-      TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
-
-      terminologies = termUtils.getIndexedTerminologies(osQueryService);
-
-      terminologies.forEach(
-          terminology -> {
-            if (terminology.getMetadata().getFhirPublisher() != null) {
-              map.put(terminology.getTerminology(), terminology.getMetadata().getFhirPublisher());
-            }
-          });
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-    return map;
-  }
-
-  /**
-   * Generate uris from the terminology metadata.
-   *
-   * @return the hash map
-   */
-  private static HashMap<String, String> generateUris() {
-    final HashMap<String, String> map = new HashMap<>();
-    List<Terminology> terminologies;
-    try {
-      OpensearchQueryService osQueryService =
-          StaticContextAccessor.getBean(OpensearchQueryService.class);
-      TerminologyUtils termUtils = StaticContextAccessor.getBean(TerminologyUtils.class);
-
-      terminologies = termUtils.getIndexedTerminologies(osQueryService);
-      terminologies.forEach(
-          terminology -> {
-            if (terminology.getMetadata().getFhirUri() != null) {
-              map.put(terminology.getTerminology(), terminology.getMetadata().getFhirUri());
-            }
-          });
-    } catch (Exception e) {
-      throw new RuntimeException(e);
-    }
-
-    return map;
-  }
-
-  /**
    * Returns the publisher.
    *
    * @param terminology the terminology
    * @return the publisher
    */
-  private static String getPublisher(final String terminology) {
-    return publishers.containsKey(terminology)
-        ? publishers.get(terminology)
+  private static String getPublisher(final Terminology terminology) {
+    return terminology != null && terminology.getMetadata().getFhirPublisher() != null
+        ? terminology.getMetadata().getFhirPublisher()
         : "publisher not specified";
   }
 
@@ -148,10 +86,10 @@ public final class FhirUtilityR4 {
    * @param terminology the terminology
    * @return the uri
    */
-  private static String getUri(final String terminology) {
-    return uris.containsKey(terminology.toLowerCase())
-        ? uris.get(terminology.toLowerCase())
-        : "uri not specified";
+  private static String getUri(final Terminology terminology) {
+    return terminology != null && terminology.getMetadata().getFhirUri() != null
+        ? terminology.getMetadata().getFhirUri()
+        : "url not specified";
   }
 
   /**
@@ -195,21 +133,32 @@ public final class FhirUtilityR4 {
     cs.setName(term.getName());
     cs.setTitle(term.getTerminology());
     cs.setExperimental(false);
+    try {
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+      cs.setDate(sdf.parse(term.getDate()));
+    } catch (Exception e) {
+      cs.setDate(null);
+    }
     cs.setStatus(Enumerations.PublicationStatus.ACTIVE);
     cs.setHierarchyMeaning(CodeSystem.CodeSystemHierarchyMeaning.ISA);
     cs.setVersion(term.getVersion());
-    cs.setPublisher(getPublisher(term.getTerminology()));
-    cs.setUrl(getUri(term.getTerminology()));
+    cs.setPublisher(getPublisher(term));
+    cs.setUrl(getUri(term));
     return cs;
   }
 
   /**
    * To R 4.
    *
+   * @param sourceTerminology the source terminology
+   * @param targetTerminology the target terminology
    * @param mapset the mapset
    * @return the concept map
    */
-  public static ConceptMap toR4(final Concept mapset) {
+  public static ConceptMap toR4(
+      final Terminology sourceTerminology,
+      final Terminology targetTerminology,
+      final Concept mapset) {
     final ConceptMap cm = new ConceptMap();
     cm.setId((mapset.getCode() + "_" + mapset.getVersion()).toLowerCase());
     cm.setName(mapset.getName());
@@ -217,38 +166,23 @@ public final class FhirUtilityR4 {
     cm.setExperimental(false);
     cm.setStatus(Enumerations.PublicationStatus.ACTIVE);
     cm.setVersion(mapset.getVersion());
-    cm.setPublisher(
-        getPublisher(
-            mapset.getProperties().stream()
-                .filter(m -> m.getType().equals("sourceTerminology"))
-                .findFirst()
-                .orElse(null)
-                .getValue()));
-    cm.setSource(
-        new UriType(
-            getUri(
-                mapset.getProperties().stream()
-                    .filter(m -> m.getType().equals("sourceTerminology"))
-                    .findFirst()
-                    .get()
-                    .getValue())));
-    cm.setTarget(
-        new UriType(
-            getUri(
-                mapset.getProperties().stream()
-                    .filter(m -> m.getType().equals("targetTerminology"))
-                    .findFirst()
-                    .get()
-                    .getValue())));
-    cm.setUrl(
-        getUri(
-                mapset.getProperties().stream()
-                    .filter(m -> m.getType().equals("sourceTerminology"))
-                    .findFirst()
-                    .get()
-                    .getValue())
-            + "?fhir_cm="
-            + mapset.getCode());
+    cm.setPublisher(getPublisher(sourceTerminology));
+    try {
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+      cm.setDate(
+          sdf.parse(
+              Objects.requireNonNull(
+                      mapset.getProperties().stream()
+                          .filter(m -> m.getType().equals("date"))
+                          .findFirst()
+                          .orElse(null))
+                  .getValue()));
+    } catch (Exception e) {
+      cm.setDate(null);
+    }
+    cm.setSource(new UriType(getUri(sourceTerminology)));
+    cm.setTarget(new UriType(getUri(targetTerminology)));
+    cm.setUrl(getUri(sourceTerminology) + "?fhir_cm=" + mapset.getCode());
     return cm;
   }
 
@@ -264,8 +198,14 @@ public final class FhirUtilityR4 {
     vs.setName(term.getName());
     vs.setVersion(term.getVersion());
     vs.setTitle(term.getTerminology());
-    vs.setUrl(getUri(term.getTerminology()) + "?fhir_vs");
-    vs.setPublisher(getPublisher(term.getTerminology()));
+    vs.setUrl(getUri(term) + "?fhir_vs");
+    try {
+      SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+      vs.setDate(sdf.parse(term.getDate()));
+    } catch (Exception e) {
+      vs.setDate(null);
+    }
+    vs.setPublisher(getPublisher(term));
     vs.setExperimental(false);
     vs.setStatus(Enumerations.PublicationStatus.ACTIVE);
     vs.setDescription(term.getDescription());
@@ -275,17 +215,18 @@ public final class FhirUtilityR4 {
   /**
    * To R 4 VS.
    *
+   * @param terminology the terminology
    * @param subset the subset
    * @return the value set
    */
-  public static ValueSet toR4VS(final Concept subset) {
+  public static ValueSet toR4VS(final Terminology terminology, final Concept subset) {
     final ValueSet vs = new ValueSet();
     vs.setId((subset.getTerminology() + "_" + subset.getCode()).toLowerCase());
-    vs.setUrl(getUri(subset.getTerminology()) + "?fhir_vs=" + subset.getCode());
+    vs.setUrl(getUri(terminology) + "?fhir_vs=" + subset.getCode());
     vs.setName(subset.getName());
     vs.setVersion(subset.getVersion());
     vs.setTitle(subset.getTerminology());
-    vs.setPublisher(getPublisher(subset.getTerminology()));
+    vs.setPublisher(getPublisher(terminology));
     vs.setDescription(
         "Value set representing the " + subset.getTerminology() + " subset " + subset.getCode());
     vs.addIdentifier(new Identifier().setValue(subset.getCode()));

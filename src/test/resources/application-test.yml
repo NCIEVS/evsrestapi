@@ -90,6 +90,7 @@ nci:
       metricsEnabled: ${METRICS_ENABLED:true}
       metricsDir: ${METRICS_DIR:/tmp}
       configBaseUri: ${CONFIG_BASE_URI:https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata}
+      sdkBaseUri: ${SDK_BASE_URI:https://raw.githubusercontent.com/NCIEVS/evsrestapi-client-SDK/develop}
       uiLicense: ${UI_LICENSE:ui-license}
     bulkload:
       historyDir: ${NCI_EVS_HISTORY_DIR:/tmp}

@@ -1,26 +1,20 @@
 package gov.nih.nci.evs.api.model;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
-import org.springframework.data.elasticsearch.annotations.WriteOnlyProperty;
 
 /**
  * Represents a qualifier on a synonym, definition, property, or role that isn't explicitly modeled
  * as a first-class attribute.
  */
 @Schema(description = "Represents a type/value qualifier on a concept element")
-@JsonIgnoreProperties(value = {"code"})
 @JsonInclude(Include.NON_EMPTY)
 public class Qualifier extends BaseModel implements Comparable<Qualifier> {
 
   /** The code. */
-  // In the future we can use @WriteOnlyProperty
-  // this does not work: @JsonProperty(access = Access.READ_ONLY)
-  @WriteOnlyProperty
   @Field(type = FieldType.Object, enabled = false)
   private String code;
 
@@ -51,6 +45,19 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
   /**
    * Instantiates a {@link Qualifier} from the specified parameters.
    *
+   * @param type the type
+   * @param value the value
+   * @param code the code
+   */
+  public Qualifier(final String type, final String value, final String code) {
+    this.type = type;
+    this.value = value;
+    this.code = code;
+  }
+
+  /**
+   * Instantiates a {@link Qualifier} from the specified parameters.
+   *
    * @param other the other
    */
   public Qualifier(final Qualifier other) {
@@ -74,7 +81,7 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
    *
    * @return the code
    */
-  @Schema(hidden = true)
+  @Schema(description = "Qualifier code")
   public String getCode() {
     return code;
   }
@@ -173,7 +180,5 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
   }
 
   /** Clear hidden. */
-  public void clearHidden() {
-    code = null;
-  }
+  public void clearHidden() {}
 }
