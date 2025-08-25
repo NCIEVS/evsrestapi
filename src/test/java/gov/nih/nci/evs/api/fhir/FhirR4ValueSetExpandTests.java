@@ -3456,4 +3456,261 @@ public class FhirR4ValueSetExpandTests {
 
     return inputValueSet;
   }
+
+  /**
+   * Test value set expand with exclude.valueSet - basic functionality.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithExcludeValueSet() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with include.valueSet and exclude.valueSet
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId("nci-exclude-valueset-test");
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/nci-exclude-valueset-test");
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName("NCIExcludeValueSetTest");
+    inputValueSet.setTitle("NCI Thesaurus Exclude ValueSet Test");
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription("Test ValueSet with exclude.valueSet functionality");
+
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+
+    // Include a ValueSet
+    ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
+    include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    include.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459");
+    compose.addInclude(include);
+
+    // Exclude a smaller subset using direct concepts (to ensure some overlap)
+    ValueSet.ConceptSetComponent exclude = new ValueSet.ConceptSetComponent();
+    exclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    
+    // Add specific concepts to exclude
+    ValueSet.ConceptReferenceComponent excludeConcept1 = new ValueSet.ConceptReferenceComponent();
+    excludeConcept1.setCode("C48672"); // Schedule I Substance
+    excludeConcept1.setDisplay("Schedule I Substance");
+    exclude.addConcept(excludeConcept1);
+
+    compose.addExclude(exclude);
+
+    inputValueSet.setCompose(compose);
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+    log.info("Found {} concepts after exclude processing", contains.size());
+
+    // Assert - Excluded concept should NOT be present
+    Optional<ValueSet.ValueSetExpansionContainsComponent> excludedResult =
+        contains.stream().filter(comp -> "C48672".equals(comp.getCode())).findFirst();
+    
+    assertFalse(excludedResult.isPresent(), 
+        "Schedule I Substance (C48672) should be excluded from expansion");
+
+    log.info("Exclude ValueSet basic functionality test completed successfully");
+  }
+
+  /**
+   * Test value set expand with include C54452 and exclude C54459 ValueSets.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithIncludeAndExcludeValueSet() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    log.info("  parameters = include C54452, exclude C54459");
+
+    // Create the ValueSet with include.valueSet C54452 and exclude.valueSet C54459
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId("nci-include-exclude-valueset-test");
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/nci-include-exclude-valueset-test");
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName("NCIIncludeExcludeValueSetTest");
+    inputValueSet.setTitle("NCI Thesaurus Include and Exclude ValueSet Test");
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription("Test ValueSet with include C54452 and exclude C54459 ValueSets");
+
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+
+    // Include ValueSet C54452
+    ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
+    include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    include.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54452");
+    compose.addInclude(include);
+
+    // Exclude ValueSet C54459
+    ValueSet.ConceptSetComponent exclude = new ValueSet.ConceptSetComponent();
+    exclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    exclude.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459");
+    compose.addExclude(exclude);
+
+    inputValueSet.setCompose(compose);
+
+    // First, get the count of C54452 alone for comparison
+    ValueSet includeOnlyValueSet = new ValueSet();
+    includeOnlyValueSet.setId("nci-include-only-test");
+    includeOnlyValueSet.setUrl("http://example.org/fhir/ValueSet/nci-include-only-test");
+    includeOnlyValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    
+    ValueSet.ValueSetComposeComponent includeOnlyCompose = new ValueSet.ValueSetComposeComponent();
+    ValueSet.ConceptSetComponent includeOnly = new ValueSet.ConceptSetComponent();
+    includeOnly.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    includeOnly.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54452");
+    includeOnlyCompose.addInclude(includeOnly);
+    includeOnlyValueSet.setCompose(includeOnlyCompose);
+
+    String includeOnlyRequestBody = parser.encodeResourceToString(includeOnlyValueSet);
+    HttpEntity<String> includeOnlyRequest = new HttpEntity<>(includeOnlyRequestBody, new HttpHeaders(){{setContentType(MediaType.APPLICATION_JSON);}});
+    ResponseEntity<String> includeOnlyResponse = this.restTemplate.postForEntity(endpoint, includeOnlyRequest, String.class);
+    ValueSet includeOnlyExpandedValueSet = parser.parseResource(ValueSet.class, includeOnlyResponse.getBody());
+    int originalCount = includeOnlyExpandedValueSet.getExpansion().getTotal();
+    log.info("  C54452 original count: {}", originalCount);
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+    int finalCount = expansion.getTotal();
+    int excludedCount = originalCount - finalCount;
+    
+    log.info("  C54452 original count: {}", originalCount);
+    log.info("  Final count after excluding C54459: {}", finalCount);
+    log.info("  Excluded concept count: {}", excludedCount);
+
+    // Assert - C54452 should still be in the expansion
+    Optional<ValueSet.ValueSetExpansionContainsComponent> c54452Result =
+        contains.stream().filter(comp -> "C54452".equals(comp.getCode())).findFirst();
+
+
+    // Assert - Total count should decrease by exactly 5 (as specified by user)
+    assertEquals(5, excludedCount, 
+        "Total count should decrease by exactly 5 concepts due to overlap between C54452 and C54459");
+    
+    assertTrue(finalCount > 0, "Final expansion should contain concepts");
+    assertTrue(finalCount < originalCount, "Final count should be less than original due to exclusion");
+
+    log.info("Include C54452 and exclude C54459 ValueSet test completed successfully");
+  }
+
+  /**
+   * Test value set expand with exclude.valueSet not found error handling.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithExcludeValueSetNotFound() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with exclude.valueSet that doesn't exist
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId("nci-exclude-valueset-not-found-test");
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/nci-exclude-valueset-not-found-test");
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName("NCIExcludeValueSetNotFoundTest");
+    inputValueSet.setTitle("NCI Thesaurus Exclude ValueSet Not Found Test");
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription("Test ValueSet with exclude.valueSet that doesn't exist");
+
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+
+    // Include a valid concept
+    ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
+    include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    
+    ValueSet.ConceptReferenceComponent includeConcept = new ValueSet.ConceptReferenceComponent();
+    includeConcept.setCode("C2991"); // Disease or Disorder
+    includeConcept.setDisplay("Disease or Disorder");
+    include.addConcept(includeConcept);
+    
+    compose.addInclude(include);
+
+    // Exclude a non-existent ValueSet
+    ValueSet.ConceptSetComponent exclude = new ValueSet.ConceptSetComponent();
+    exclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+    exclude.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=INVALID999");
+    compose.addExclude(exclude);
+
+    inputValueSet.setCompose(compose);
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+
+    // Assert - Should return an OperationOutcome error
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    
+    // Parse as OperationOutcome to verify error handling
+    OperationOutcome operationOutcome = parser.parseResource(OperationOutcome.class, response.getBody());
+    assertNotNull(operationOutcome);
+    assertTrue(operationOutcome.hasIssue());
+    
+    OperationOutcome.OperationOutcomeIssueComponent issue = operationOutcome.getIssueFirstRep();
+    assertEquals(OperationOutcome.IssueType.NOTFOUND, issue.getCode());
+    assertTrue(issue.getDiagnostics().contains("Referenced ValueSet not found"));
+    assertTrue(issue.getDiagnostics().contains("INVALID999"));
+
+    log.info("Exclude ValueSet not found error handling test completed successfully");
+  }
 }

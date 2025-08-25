@@ -1715,6 +1715,15 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
     List<ValueSetExpansionContainsComponent> concepts = new ArrayList<>();
 
+    // Handle value set exclusion first (similar to include.valueSet processing)
+    if (exclude.hasValueSet()) {
+      for (CanonicalType valueSetUrl : exclude.getValueSet()) {
+        List<ValueSetExpansionContainsComponent> referencedConcepts =
+            expandReferencedValueSet(valueSetUrl, null, activeOnly, false, false);
+        concepts.addAll(referencedConcepts);
+      }
+    }
+
     // Handle direct concept exclusion
     if (exclude.hasConcept()) {
       for (ValueSet.ConceptReferenceComponent concept : exclude.getConcept()) {

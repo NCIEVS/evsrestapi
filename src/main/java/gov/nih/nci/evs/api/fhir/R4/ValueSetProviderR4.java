@@ -739,13 +739,23 @@ public class ValueSetProviderR4 implements IResourceProvider {
       throws Exception {
 
     List<Concept> concepts = new ArrayList<>();
+
+    // Handle value set exclusion first (similar to include.valueSet processing)
+    if (exclude.hasValueSet()) {
+      for (CanonicalType valueSetUrl : exclude.getValueSet()) {
+        List<Concept> referencedConcepts =
+            expandReferencedValueSet(valueSetUrl, version, includeDesignations, includeDefinition);
+        concepts.addAll(referencedConcepts);
+      }
+    }
+
     Terminology terminology =
         termUtils.getIndexedTerminologies(osQueryService).stream()
             .filter(term -> term.getMetadata().getFhirUri().equals(exclude.getSystem()))
             .findFirst()
             .orElse(null);
 
-    if (terminology == null) {
+    if (terminology == null && exclude.hasConcept()) {
       logger.warn("No terminology found for exclude system: {}", exclude.getSystem());
       return concepts;
     }
