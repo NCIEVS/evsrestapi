@@ -141,7 +141,7 @@ public class RrfSampleGenerator {
       // logger.info(" other = " + otherMap);
 
       logger.info("  Find initial codes");
-      // 1. Find initial concepts
+      // 1. Find initial concepts (keep only things from initial CUI list)
       final Set<String> codesabs = new HashSet<>();
       codesabs.addAll(
           inputCuis.stream()
@@ -224,7 +224,7 @@ public class RrfSampleGenerator {
         // Iterate until the codes list stops growing.
       } while (codesabs.size() != prevCt);
 
-      // Add descendants of original code list back in here
+      // Add descendants of original code list back in here (empty if false)
       codesabs.addAll(
           descendants.stream().map(a -> auiCodesabMap.get(a)).collect(Collectors.toSet()));
 
@@ -237,6 +237,7 @@ public class RrfSampleGenerator {
 
       // Add in original CUIs
       cuis.addAll(inputCuis);
+
       logger.info("    cuis = " + cuis.size());
 
       readers.closeReaders();
@@ -309,9 +310,15 @@ public class RrfSampleGenerator {
 
         // Match this source OR the SRC for this terminology (or input cuis)
         if (!inputCuis.contains(cui)
+            && !terminologies.contains("*")
             && !terminologies.contains(sab)
             && !(sab.equals("SRC")
                 && terminologies.stream().filter(t -> code.contains(t)).count() > 0)) {
+          continue;
+        }
+
+        // Things with NCIMTH and NOCODE are causing an issue
+        if (code.equals("NOCODE")) {
           continue;
         }
 
