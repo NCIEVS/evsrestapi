@@ -341,33 +341,32 @@ public class ConceptController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, code + " not found");
       }
 
-      // Comment this out for 2.0 because it allows "old" NCIt mappings to show up.
-      //      if (ip.isMaps()) {
-      //        List<Mapping> firstList = concept.get().getMaps();
-      //        List<Mapping> secondList =
-      //            openSearchService.getConceptMappings(Arrays.asList(code), terminology);
-      //
-      //        // Create a set of existing keys in firstList to check for matches
-      //        Set<String> existingKeys =
-      //            firstList.stream()
-      //                .map(map -> map.getTargetTerminology() + "_" + map.getTargetCode())
-      //                .collect(Collectors.toSet());
-      //
-      //        // Filter and add only those ConceptMap objects that don't have a match in firstList
-      //        List<Mapping> mapsToAdd =
-      //            secondList.stream()
-      //                .filter(
-      //                    cm ->
-      //                        !existingKeys.contains(
-      //                            cm.getTargetTerminology() + "_" + cm.getTargetCode()))
-      //                .collect(Collectors.toList());
-      //
-      //        // Add the filtered list to firstList
-      //        firstList.addAll(mapsToAdd);
-      //
-      //        // Set the updated list back to the concept
-      //        concept.get().setMaps(firstList);
-      //      }
+      if (ip.isMaps()) {
+        List<Mapping> firstList = concept.get().getMaps();
+        List<Mapping> secondList =
+            openSearchService.getConceptMappings(Arrays.asList(code), terminology);
+
+        // Create a set of existing keys in firstList to check for matches
+        Set<String> existingKeys =
+            firstList.stream()
+                .map(map -> map.getTargetTerminology() + "_" + map.getTargetCode())
+                .collect(Collectors.toSet());
+
+        // Filter and add only those ConceptMap objects that don't have a match in firstList
+        List<Mapping> mapsToAdd =
+            secondList.stream()
+                .filter(
+                    cm ->
+                        !existingKeys.contains(
+                            cm.getTargetTerminology() + "_" + cm.getTargetCode()))
+                .collect(Collectors.toList());
+
+        // Add the filtered list to firstList
+        firstList.addAll(mapsToAdd);
+
+        // Set the updated list back to the concept
+        concept.get().setMaps(firstList);
+      }
 
       if (limit.isPresent()) {
         if (limit.get().intValue() < 1 || limit.get().intValue() > 100) {

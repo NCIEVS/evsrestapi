@@ -17,10 +17,7 @@ import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.support.es.OpensearchObject;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.MainTypeHierarchy;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
+import gov.nih.nci.evs.api.util.*;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -212,7 +209,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     Double taskSize = Math.ceil(total / INDEX_BATCH_SIZE);
 
     // build up a map of concept codes and names to use for history
-    if (historyMap.size() > 0) {
+    if (!historyMap.isEmpty()) {
 
       for (final Concept concept : allConcepts) {
         nameMap.put(concept.getCode(), concept.getName());
@@ -256,7 +253,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
                     }
                   }
                   // Collect maps for NCIt mapsets
-                  if (c.getMaps().size() > 0 && c.getActive()) {
+                  if (!c.getMaps().isEmpty() && c.getActive()) {
                     for (final Mapping map : c.getMaps()) {
                       final String mapterm = map.getTargetTerminology().split(" ")[0];
                       if (mapsets.containsKey(mapterm)) {
@@ -893,16 +890,20 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
 
       // Setup maps if this is a "monthly" version
       // Determine by checking against the graph db we are loading from
-      if (term.getTerminology() == "ncit"
+      if ("ncit".equals(term.getTerminology())
           && graphProperties.getDb().equals(term.getMetadata().getMonthlyDb())) {
 
+        // Get all indexed terminologies for term name search
+        List<Terminology> allTerminologies =
+            this.getTerminologyUtils().getIndexedTerminologies(opensearchQueryService);
+
         // setup mappings
-        Concept ncitMapsToGdc = setupMap("GDC", term.getVersion());
-        Concept ncitMapsToIcd10 = setupMap("ICD10", term.getVersion());
-        Concept ncitMapsToIcd10cm = setupMap("ICD10CM", term.getVersion());
-        Concept ncitMapsToIcd9cm = setupMap("ICD9CM", term.getVersion());
-        Concept ncitMapsToIcdo3 = setupMap("ICDO3", term.getVersion());
-        Concept ncitMapsToMeddra = setupMap("MedDRA", term.getVersion());
+        Concept ncitMapsToGdc = setupMap("GDC", term, allTerminologies);
+        Concept ncitMapsToIcd10 = setupMap("ICD10", term, allTerminologies);
+        Concept ncitMapsToIcd10cm = setupMap("ICD10CM", term, allTerminologies);
+        Concept ncitMapsToIcd9cm = setupMap("ICD9CM", term, allTerminologies);
+        Concept ncitMapsToIcdo3 = setupMap("ICDO3", term, allTerminologies);
+        Concept ncitMapsToMeddra = setupMap("MedDRA", term, allTerminologies);
         mapsets.put("GDC", ncitMapsToGdc);
         mapsets.put("ICD10", ncitMapsToIcd10);
         mapsets.put("ICD10CM", ncitMapsToIcd10cm);
@@ -934,13 +935,57 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
    * @param version the version
    * @return the concept
    */
-  private Concept setupMap(String term, String version) {
+  private Concept setupMap(
+      String targetTermName, Terminology sourceTerminology, List<Terminology> allTerminologies) {
     Concept map = new Concept();
-    map.setCode(NCIT_MAPS_TO + term);
-    map.setName(NCIT_MAPS_TO + term);
-    map.setVersion(version);
+    Terminology targetTerminology =
+        allTerminologies.stream()
+            .filter(
+                t ->
+                    t.getTerminology().equalsIgnoreCase(targetTermName)
+                        || t.getName().startsWith(targetTermName))
+            .findFirst()
+            .orElse(null);
+
+    map.setCode(NCIT_MAPS_TO + targetTermName);
+    map.setName(NCIT_MAPS_TO + targetTermName);
+    map.setVersion(sourceTerminology.getVersion());
     map.setActive(true);
-    map.getProperties().add(new Property("downloadOnly", "true"));
+    map.getProperties()
+        .add(new Property("date", FhirUtility.convertToYYYYMMDD(sourceTerminology.getDate())));
+    map.getProperties().add(new Property("downloadOnly", "false"));
+    String termFullNameAndVersion = "";
+    if (targetTerminology != null) {
+      termFullNameAndVersion =
+          "(" + targetTerminology.getName() + ") " + targetTerminology.getVersion();
+    }
+    String welcomeText =
+        """
+This is a manual EVS mapping of concepts with equivalent meaning in the source and target terminology versions shown below:
+<br><br>
+&nbsp;&nbsp;&nbsp;Source: NCIt (NCI Thesaurus) %s
+<br>
+&nbsp;&nbsp;&nbsp;Target: %s %s
+<br><br>
+The browser links each mapped concept to that concept's page in the current production version of its terminology.
+<br><br>
+"""
+            .formatted(sourceTerminology.getVersion(), targetTermName, termFullNameAndVersion);
+    map.getProperties().add(new Property("welcomeText", welcomeText));
+    map.getProperties().add(new Property("sourceTerminology", "NCIt"));
+    map.getProperties()
+        .add(new Property("sourceTerminologyVersion", sourceTerminology.getVersion()));
+    map.getProperties().add(new Property("targetTerminology", targetTermName));
+    if (targetTerminology != null
+        && targetTerminology.getVersion() != null
+        && !targetTerminology.getVersion().isEmpty()) {
+      map.getProperties()
+          .add(new Property("targetTerminologyVersion", targetTerminology.getVersion()));
+      map.getProperties().add(new Property("targetLoaded", "true"));
+    } else {
+      map.getProperties().add(new Property("targetLoaded", "false"));
+    }
+    map.getProperties().add(new Property("sourceLoaded", "true"));
     map.getProperties().add(new Property("mapsetLink", null));
     map.getProperties().add(new Property("loader", "AbstractGraphLoadServiceImpl"));
     return map;

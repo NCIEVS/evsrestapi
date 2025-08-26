@@ -13,10 +13,7 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.support.es.OpensearchObject;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.PushBackReader;
-import gov.nih.nci.evs.api.util.RrfReaders;
+import gov.nih.nci.evs.api.util.*;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -1392,8 +1389,8 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
           // HL7V3.0 -> hl7v30
           term.setTerminology(terminology.toLowerCase().replaceFirst("\\.", ""));
           term.setVersion(fields[6]);
-          // No info about the date
-          term.setDate(null);
+          // Date will be null if not an accepted format
+          term.setDate(FhirUtility.convertToYYYYMMDD(fields[6]));
           // term.setName(line.split("\\|", -1)[4]);
           term.setDescription(line.split("\\|", -1)[24]);
 

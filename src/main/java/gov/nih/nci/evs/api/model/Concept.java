@@ -655,6 +655,21 @@ public class Concept extends ConceptMinimal {
   }
 
   /**
+   * Gets the property value.
+   *
+   * @param type the type
+   * @return the property value
+   */
+  public String getPropertyValue(final String type) {
+    final Property prop =
+        getProperties().stream()
+            .filter(p -> p.getType() != null && p.getType().equals(type))
+            .findFirst()
+            .orElse(null);
+    return prop == null ? null : prop.getValue();
+  }
+
+  /**
    * Returns the qualifiers.
    *
    * @return the qualifiers
@@ -996,12 +1011,5 @@ public class Concept extends ConceptMinimal {
     normName = null;
     stemName = null;
     getSynonyms().forEach(s -> s.clearHidden());
-    getQualifiers().forEach(q -> q.clearHidden());
-    getProperties().forEach(p -> p.clearHidden());
-    getDefinitions().forEach(d -> d.clearHidden());
-    getAssociations().forEach(r -> r.clearHidden());
-    getInverseAssociations().forEach(r -> r.clearHidden());
-    getRoles().forEach(r -> r.clearHidden());
-    getInverseRoles().forEach(r -> r.clearHidden());
   }
 }

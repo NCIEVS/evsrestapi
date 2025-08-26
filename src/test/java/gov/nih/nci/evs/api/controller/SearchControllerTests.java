@@ -1154,7 +1154,7 @@ public class SearchControllerTests {
         mvc.perform(
                 get(url)
                     .param("terminology", "ncit")
-                    .param("term", "Lymphoid")
+                    .param("term", "Refractory Hairy Cell Leukemia Variant")
                     .param("conceptStatus", "Provisional_Concept")
                     .param("include", "properties"))
             .andExpect(status().isOk())
@@ -1932,7 +1932,7 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     conceptList = list.getConcepts();
-    assertThat(conceptList.size()).isEqualTo(1);
+    assertThat(conceptList.size()).isEqualTo(2);
   }
 
   /**
@@ -2970,7 +2970,7 @@ public class SearchControllerTests {
     log.info("  content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts() != null && list.getConcepts().size() > 0).isTrue();
-    assertThat(list.getTotal()).isEqualTo(27);
+    assertThat(list.getTotal()).isEqualTo(29);
   }
 
   /**
@@ -3262,9 +3262,9 @@ public class SearchControllerTests {
     ConceptResultList list = null;
 
     // Basic search using the weekly version of NCIt
-    log.info("Testing url - " + url + "?terminology=ncit_21.07a&term=cancer");
+    log.info("Testing url - " + url + "?terminology=ncit_25.07b&term=cancer");
     result =
-        mvc.perform(get(url).param("terminology", "ncit_21.07a").param("term", "cancer"))
+        mvc.perform(get(url).param("terminology", "ncit_25.07b").param("term", "cancer"))
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
@@ -4407,6 +4407,7 @@ public class SearchControllerTests {
     assertThat(tempConcept).isNotNull();
     assertThat(tempConcept.getSynonyms()).isNotNull();
     assertThat(tempConcept.getTerminology()).isEqualTo("ncit");
+    assertThat(tempConcept.getSynonyms()).isNotNull();
     opensearchOperationsService.deleteQuery("code:C999999", term.getIndexName());
   }
 

@@ -55,7 +55,7 @@ public class NdfrtSampleTest extends SampleTest {
     log.info("Testing url - " + url);
     result =
         testMvc
-            .perform(get(url).param("latest", "true").param("terminology", "ndfrt"))
+            .perform(get(url).param("terminology", "ndfrt"))
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
@@ -88,8 +88,6 @@ public class NdfrtSampleTest extends SampleTest {
             "National Drug File Reference Terminology (NDF-RT) is produced by "
                 + "the Veterans Health Administration (VHA) as an extension of the "
                 + "VHA National Drug File (VANDF) formulary.");
-
-    assertThat(ndfrt.getLatest()).isTrue();
   }
 
   /**

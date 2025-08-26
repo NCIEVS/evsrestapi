@@ -252,7 +252,7 @@ public class FhirR5CodeSystemLookupTests {
         localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_LOOKUP;
     String parameters = "?system=" + url + "&code=" + activeCode + "&display" + displayString;
 
-    // Act
+    // Act - Test 1 system/url matches that of id
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     Parameters params = parser.parseResource(Parameters.class, content);
 
@@ -264,6 +264,39 @@ public class FhirR5CodeSystemLookupTests {
         ((BooleanType) params.getParameter("property").getPart().get(1).getValue()).getValue());
     assertEquals(name, ((StringType) params.getParameter("name").getValue()).getValue());
     assertEquals(version, ((StringType) params.getParameter("version").getValue()).getValue());
+
+    parameters = "?code=" + activeCode + "&display" + displayString;
+
+    // Act - Test 2 no url
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+    // confirm code is active
+    assertTrue(
+        ((BooleanType) params.getParameter("property").getPart().get(1).getValue()).getValue());
+    assertEquals(name, ((StringType) params.getParameter("name").getValue()).getValue());
+    assertEquals(version, ((StringType) params.getParameter("version").getValue()).getValue());
+
+    url = "invalid_url";
+    parameters = "?system=" + url + "&code=" + activeCode + "&display" + displayString;
+    String messageNotFound =
+        "Supplied url or system UriType[invalid_url] doesn't match the CodeSystem retrieved by the"
+            + " id CodeSystem/umlssemnet_2023aa"
+            + " http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    String errorCode = "exception";
+
+    // Act - Test 3 with invalid url
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
   /**
@@ -335,7 +368,7 @@ public class FhirR5CodeSystemLookupTests {
     String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_LOOKUP;
     String parameters = "?system=" + retiredUrl + "&code=" + retiredCode;
 
-    final Set<String> sourceVersions = new HashSet<>(Set.of("21.06e", "21.07a"));
+    final Set<String> sourceVersions = new HashSet<>(Set.of("25.06e", "25.07b"));
     String retiredName = "ABCB1 1 Allele";
 
     // Act
@@ -371,10 +404,10 @@ public class FhirR5CodeSystemLookupTests {
     String content;
     String retiredCode = "C45683";
     String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
-    String retiredId = "ncit_21.06e";
+    String retiredId = "ncit_25.06e";
     String retiredName = "ABCB1 1 Allele";
-    String sourceName = "NCI Thesaurus 21.06e";
-    String sourceVersion = "21.06e";
+    String sourceName = "NCI Thesaurus 25.06e";
+    String sourceVersion = "25.06e";
     String endpoint =
         localHost + port + fhirCSPath + "/" + retiredId + "/" + JpaConstants.OPERATION_LOOKUP;
     String parameters =
@@ -415,34 +448,6 @@ public class FhirR5CodeSystemLookupTests {
     String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/TheBadTest.owl";
     String messageNotFound = "Unable to find matching code system";
     String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_LOOKUP;
-    String parameters = "?code=" + code + "&system=" + url;
-    String errorCode = "not-found";
-
-    // Act
-    content = restTemplate.getForObject(endpoint + parameters, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-
-    // Assert
-    assertEquals(errorCode, component.getCode().toCode());
-    assertEquals(messageNotFound, (component.getDiagnostics()));
-  }
-
-  /**
-   * Test code system bad.
-   *
-   * @throws Exception exception
-   */
-  @Test
-  public void testCodeSystemBadInstance() throws Exception {
-    // Arrange
-    String content;
-    String code = "C3224";
-    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/TheBadTest.owl";
-    String messageNotFound = "Unable to find matching code system";
-    String activeId = "umlssemnet_2023aa";
-    String endpoint =
-        localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_LOOKUP;
     String parameters = "?code=" + code + "&system=" + url;
     String errorCode = "not-found";
 

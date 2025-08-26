@@ -8,13 +8,10 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.EVSUtils;
+import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -24,8 +21,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.tomcat.util.buf.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,8 +71,12 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
       // Support for ICD10-MDR mappings and similar
       if (mappingDataList[0].split("\t").length > 2) {
-        for (final String conceptMap :
-            Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
+        for (final String conceptMap : mappingDataList) {
+          // Skip header
+          if (conceptMap.contains("Source Code")) {
+            continue;
+          }
+
           final String[] conceptSplit = conceptMap.split("\t");
           final Mapping conceptToAdd = new Mapping();
           conceptToAdd.setMapsetCode(metadata[0]);
@@ -109,9 +108,12 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       }
       // Support for NCIT-HGNC maps and others regularly updated by NCI
       else if (mappingDataList[0].split("\t").length == 2) {
-        for (final String conceptMap :
-            Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
 
+        for (final String conceptMap : mappingDataList) {
+          // Skip header
+          if (conceptMap.contains("Source Code")) {
+            continue;
+          }
           final String[] conceptSplit = conceptMap.split("\t");
 
           // Determine "source"
@@ -147,6 +149,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
           conceptToAdd.setSource(metadata[5]);
           conceptToAdd.setSourceTerminology(
               sourceTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
+          conceptToAdd.setSourceTerminologyVersion(sourceTerminology.getVersion());
           conceptToAdd.setType("mapsTo");
           conceptToAdd.setRank("1");
           conceptToAdd.setTargetCode(conceptSplit[1].strip());
@@ -299,6 +302,15 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
         currentMapsetCodes.stream().filter(l -> !allCodes.contains(l)).collect(Collectors.toList());
     logger.info("  Mapsets to remove = " + mapsetsToRemove);
 
+    // remove all in mapsetsToRemove
+    for (final String code : mapsetsToRemove) {
+      logger.info("  Delete mapset (and mappings) = " + code);
+      // delete the mapset and all mappings
+      operationsService.delete(OpensearchOperationsService.MAPSET_INDEX, code);
+      operationsService.deleteQuery(
+          "mapsetCode:" + code, OpensearchOperationsService.MAPPINGS_INDEX);
+    }
+
     final List<String> terms =
         termUtils.getIndexedTerminologies(osQueryService).stream()
             .map(Terminology::getTerminology)
@@ -310,15 +322,6 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       final String[] metadata = line.split(",", -1);
       final String code = metadata[0];
       final String version = metadata[2];
-
-      // remove and continue
-      if (mapsetsToRemove.contains(code)) {
-        logger.info("  Delete mapset (and mappings) = " + code + " " + version);
-        operationsService.delete(code, OpensearchOperationsService.MAPSET_INDEX);
-        operationsService.deleteQuery(
-            "mapsetCode:" + code, OpensearchOperationsService.MAPPINGS_INDEX);
-        continue;
-      }
 
       // skip if no update needed
       if (!mappingNeedsUpdate(code, version, mapsetVersionMap)) {
@@ -342,6 +345,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       // version numbers
       if (version != null && !version.isEmpty()) {
         map.setVersion(version);
+        map.getProperties().add(new Property("date", FhirUtility.convertToYYYYMMDD(version)));
       } else {
         map.setVersion(null);
       }
@@ -349,30 +353,11 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
 
       // Get the welcome text
       if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
-
-        try (final InputStream is =
-            new URL(uri + "/" + metadata[3]).openConnection().getInputStream()) {
-          // text
-          final String welcomeText = IOUtils.toString(is, StandardCharsets.UTF_8);
-          map.getProperties().add(new Property("welcomeText", welcomeText));
-        } catch (final Throwable t) {
-          // read as file if no url
-          try {
-            final String welcomeText =
-                FileUtils.readFileToString(
-                    new File(uri + "/" + metadata[3]), StandardCharsets.UTF_8);
-            map.getProperties().add(new Property("welcomeText", welcomeText));
-          } catch (final Exception ex) {
-            // only throw exception if both fail
-            throw new IOException(
-                "Could not find either file or uri for config base uri: "
-                    + uri
-                    + "/"
-                    + metadata[3]);
-          }
-        }
+        final String welcomeText =
+            String.join("\n", EVSUtils.getValueFromFile(uri + "/" + metadata[3], "welcomeText"));
 
         // Configure source/target terminology and version
+        map.getProperties().add(new Property("welcomeText", welcomeText));
         map.getProperties().add(new Property("sourceTerminology", metadata[5]));
         map.getProperties().add(new Property("sourceTerminologyVersion", metadata[6]));
         map.getProperties().add(new Property("targetTerminology", metadata[7]));

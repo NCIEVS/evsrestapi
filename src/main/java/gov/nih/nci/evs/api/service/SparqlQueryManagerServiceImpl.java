@@ -26,11 +26,7 @@ import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.GraphProperties;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.EVSUtils;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.RESTUtils;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
+import gov.nih.nci.evs.api.util.*;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.text.ParseException;
@@ -199,7 +195,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // Extract a version if a owl:versionIRI was used
       term.setVersion(b.getVersion().getValue().replaceFirst(".*/([\\d-]+)/[a-zA-Z]+.owl", "$1"));
       // term.setName(TerminologyUtils.constructName(comment, version));
-      term.setDate((b.getDate() == null) ? term.getVersion() : b.getDate().getValue());
+      log.debug(
+          "setting date in Sparql from "
+              + ((b.getDate() == null) ? term.getVersion() : b.getDate().getValue()));
+      log.debug(
+          "setting date in Sparql to "
+              + FhirUtility.convertToYYYYMMDD(
+                  (b.getDate() == null) ? term.getVersion() : b.getDate().getValue()));
+      term.setDate(
+          FhirUtility.convertToYYYYMMDD(
+              (b.getDate() == null) ? term.getVersion() : b.getDate().getValue()));
       term.setGraph(graphName);
       term.setSource(b.getSource().getValue());
       term.setTerminology(getTerm(term.getSource()));
@@ -397,7 +402,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           if (property.getCode().equals(terminology.getMetadata().getConceptStatus())) {
             // Set to retired if it matches config
             if (property.getValue().equals(terminology.getMetadata().getRetiredStatusValue())) {
-              concept.setConceptStatus(property.getValue());
+              concept.setConceptStatus("Retired_Concept");
               concept.setActive(false);
             } else {
               concept.setConceptStatus(property.getValue());
@@ -1627,7 +1632,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                   propertyCode,
                   propertyUri);
           if (name != null) {
-            axiomObject.getQualifiers().add(new Qualifier(name, labelValue));
+            axiomObject.getQualifiers().add(new Qualifier(name, labelValue, propertyCode));
           }
           // log.debug(" qualifier = " + name + ", " + labelValue + ", " +
           // propertyCode);
@@ -2152,11 +2157,20 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // Send URI or code
       final Concept concept =
           getRole(role.getUri() != null ? role.getUri() : role.getCode(), terminology, ip);
-      final gov.nih.nci.evs.api.model.sparql.Bindings matchConcept =
-          Stream.of(bindings)
-              .filter(binding -> binding.getProperty().getValue().equals(concept.getUri()))
-              .findFirst()
-              .orElse(null);
+      gov.nih.nci.evs.api.model.sparql.Bindings matchConcept = null;
+      if (role.getUri() != null) {
+        matchConcept =
+            Stream.of(bindings)
+                .filter(binding -> binding.getProperty().getValue().equals(concept.getUri()))
+                .findFirst()
+                .orElse(null);
+      } else {
+        matchConcept =
+            Stream.of(bindings)
+                .filter(binding -> binding.getPropertyCode().getValue().equals(concept.getCode()))
+                .findFirst()
+                .orElse(null);
+      }
       if (concept.getCode().equals(concept.getName())
           && bindings != null
           && matchConcept != null
