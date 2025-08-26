@@ -1,13 +1,205 @@
-C0000294	C0000294	synonym	Mesna
-C0000294	C0000294	term-type	PT
-C0000294	C0000294	term-type	SY
+C0000005	C0000005	synonym	(131)I-Macroaggregated Albumin
+C0000005	C0000005	term-type	PEP
+C0000005	C0000005	term-type	ET
+C0000039	C0000039	term-type	IN
+C0000039	C0000039	term-type	PN
+C0000039	C0000039	term-type	PM
+C0000039	C0000039	term-type	MH
+C0000039	C0000039	term-type	N1
+C0000039	C0000039	term-type	CN
+C0000039	C0000039	term-type	DEV
+C0000052	C0000052	term-type	PT
+C0000052	C0000052	term-type	SY
+C0000052	C0000052	term-type	FN
+C0000294	C0000294	term-type	DN
+C0000294	C0000294	term-type	SU
 C0000294	C0000294	term-type	CSN
+C0000294	C0000294	term-type	LV
 C0000294	C0000294	term-type	CCN
+C0000294	C0000294	term-type	CON
 C0000294	C0000294	term-type	FBD
 C0000294	C0000294	term-type	BN
-C0000477	C0000477	term-type	AB
-C0012238	C0012238	term-type	AD
+C0000294	C0000294	term-type	AB
+C0000294	C0000294	term-type	CHN
+C0000294	C0000294	term-type	NSC
+C0000294	C0000294	term-type	CAS
+C0000294	C0000294	term-type	IND
+C0000379	C0000379	term-type	NP
+C0000379	C0000379	term-type	FSY
+C0000726	C0000726	term-type	LS
+C0000726	C0000726	term-type	LA
+C0000726	C0000726	term-type	HT
+C0000726	C0000726	term-type	DE
+C0000727	C0000727	term-type	LLT
+C0000727	C0000727	term-type	GT
+C0000731	C0000731	term-type	PTCS
+C0000731	C0000731	term-type	FI
+C0000731	C0000731	term-type	PX
+C0000731	C0000731	term-type	PS
+C0000735	C0000735	term-type	SYGB
+C0000739	C0000739	term-type	RT
+C0000744	C0000744	term-type	PTGB
+C0000744	C0000744	term-type	PHENO
+C0000744	C0000744	term-type	DI
+C0000744	C0000744	term-type	ACR
+C0000744	C0000744	term-type	ETAL
+C0000768	C0000768	term-type	OL
+C0000768	C0000768	term-type	SC
+C0000769	C0000769	term-type	QAB
+C0000769	C0000769	term-type	TQ
+C0000769	C0000769	term-type	XQ
+C0000769	C0000769	term-type	QEV
+C0000850	C0000850	term-type	SCN
+C0000850	C0000850	term-type	USN
+C0001575	C0001575	term-type	OP
+C0001613	C0001613	term-type	AD
+C0002025	C0002025	term-type	PIN
+C0002025	C0002025	term-type	TMSY
+C0002235	C0002235	term-type	CE
+C0002235	C0002235	term-type	NM
+C0002986	C0002986	term-type	PHENO_ET
+C0003158	C0003158	term-type	HC
+C0003353	C0003353	term-type	CNU
+C0003353	C0003353	term-type	CA2
+C0003353	C0003353	term-type	CA3
+C0004057	C0004057	term-type	CU
+C0005424	C0005424	term-type	SD
+C0006614	C0006614	term-type	MTH_CN
+C0006935	C0006935	term-type	DF
+C0006935	C0006935	term-type	VS
+C0007570	C0007570	term-type	MTH_PT
+C0009450	C0009450	term-type	OS
+C0011900	C0011900	term-type	CDO
+C0013227	C0013227	term-type	HS
+C0014852	C0014852	term-type	MTH_LLT
+C0016253	C0016253	term-type	CSD
+C0018939	C0018939	term-type	MTH_HT
+C0021051	C0021051	term-type	HG
+C0023972	C0023972	term-type	IS
+C0024808	C0024808	term-type	CD
+C0025636	C0025636	term-type	MTH_FN
+C0025914	C0025914	term-type	CMN
+C0025914	C0025914	term-type	UCN
+C0027540	C0027540	term-type	OET
+C0031862	C0031862	term-type	MTH_SY
+C0036725	C0036725	term-type	PCE
+C0037943	C0037943	term-type	SP
+C0042338	C0042338	term-type	EQ
+C0042338	C0042338	term-type	LG
+C0079218	C0079218	term-type	PSC
+C0079595	C0079595	term-type	MTH_HX
+C0080298	C0080298	term-type	SYN
+C0080298	C0080298	term-type	MTH_ACR
+C0080298	C0080298	term-type	NS
+C0085393	C0085393	term-type	OA
+C0086466	C0086466	term-type	DFG
+C0205246	C0205246	term-type	CR
+C0205535	C0205535	term-type	NPT
+C0220866	C0220866	term-type	PXQ
+C0220961	C0220961	term-type	RPT
+C0220961	C0220961	term-type	SSN
+C0220961	C0220961	term-type	RAB
+C0220965	C0220965	term-type	RHT
+C0224853	C0224853	term-type	HX
+C0304655	C0304655	term-type	SCD
+C0304655	C0304655	term-type	DP
+C0304655	C0304655	term-type	PSN
+C0355713	C0355713	term-type	SBD
+C0362125	C0362125	term-type	LN
+C0362125	C0362125	term-type	OSN
+C0362125	C0362125	term-type	LC
+C0362125	C0362125	term-type	MTH_LN
+C0375111	C0375111	term-type	MTH_OS
+C0449438	C0449438	term-type	CPR
+C0551722	C0551722	term-type	OLC
+C0551722	C0551722	term-type	OOSN
+C0551722	C0551722	term-type	LO
+C0551722	C0551722	term-type	MTH_LO
+C0717370	C0717370	term-type	MIN
+C0779896	C0779896	term-type	GPCK
+C0856916	C0856916	term-type	MTH_OL
+C0879935	C0879935	term-type	ODN
+C0937558	C0937558	term-type	MTH_RXN_CD
+C0974670	C0974670	term-type	MTH_RXN_DP
+C0991538	C0991538	term-type	CSY
+C1136323	C1136323	term-type	RSY
+C1140098	C1140098	term-type	VPT
+C1140098	C1140098	term-type	VAB
+C1140107	C1140107	term-type	VSY
+C1140168	C1140168	term-type	DPT
+C1246850	C1246850	term-type	SCDF
 C1333305	C1333305	term-type	HD
+C1414333	C1414333	term-type	NA
+C1536063	C1536063	term-type	MTH_HG
+C1752508	C1752508	term-type	MTH_ET
+C1869007	C1869007	term-type	SMQ
+C1869031	C1869031	term-type	MTH_SMQ
+C3149028	C3149028	term-type	ORT
+C3238825	C3238825	term-type	SBDG
+C3275993	C3275993	term-type	PC
+C3527813	C3527813	term-type	SCDC
+C3536527	C3536527	term-type	SCDG
+C3539934	C3539934	term-type	SB
+C3645705	C3645705	term-type	XM
+CL1413638	CL1413638	term-type	SBDF
+CL1442749	CL1442749	term-type	SBDC
+CL521666	CL521666	term-type	MTH_IS
+CL521666	CL521666	term-type	MTH_OP
+CL604463	CL604463	term-type	PTAV
+C0000005	C0000005	qualifier-synonym~TERMUI	(131)I-Macroaggregated Albumin~T037573
+C0000005	C0000005	qualifier-synonym~RN	(131)I-Macroaggregated Albumin~0
+C0000005	C0000005	qualifier-synonym~TH	(131)I-Macroaggregated Albumin~UNK (19XX)
+C0000005	C0000005	qualifier-synonym~TERMUI	(131)I-MAA~T037574
+C0000005	C0000005	qualifier-synonym~TH	(131)I-MAA~UNK (19XX)
+C0000039	C0000039	qualifier-synonym~TERMUI	1,2 Dihexadecyl sn Glycerophosphocholine~T043933
+C0000039	C0000039	qualifier-synonym~AN	1,2-Dipalmitoylphosphatidylcholine~"a major constituent of pulmonary surfactants"; /biosyn /physiol permitted
+C0000039	C0000039	qualifier-synonym~MMR	1,2-Dipalmitoylphosphatidylcholine~20170410
+C0000039	C0000039	qualifier-synonym~AQL	1,2-Dipalmitoylphosphatidylcholine~AA AD AE AG AI AN BI BL CF CH CL CS DF EC GE HI IM IP ME PD PH PK PO RE SD ST TO TU UR
+C0000039	C0000039	qualifier-synonym~DC	1,2-Dipalmitoylphosphatidylcholine~1
+C0000039	C0000039	qualifier-synonym~DX	1,2-Dipalmitoylphosphatidylcholine~19870101
+C0000039	C0000039	qualifier-synonym~HN	1,2-Dipalmitoylphosphatidylcholine~87
+C0000039	C0000039	qualifier-synonym~MDA	1,2-Dipalmitoylphosphatidylcholine~19860612
+C0000039	C0000039	qualifier-synonym~MN	1,2-Dipalmitoylphosphatidylcholine~D10.570.755.375.760.400.800.224
+C0000039	C0000039	qualifier-synonym~OL	1,2-Dipalmitoylphosphatidylcholine~search PULMONARY SURFACTANTS 1977-86
+C0000039	C0000039	qualifier-synonym~PM	1,2-Dipalmitoylphosphatidylcholine~87; was DIPALMITOYL PHOSPHATIDYLCHOLINE see PULMONARY SURFACTANT 1977-86
+C0000039	C0000039	qualifier-synonym~RN	1,2-Dipalmitoylphosphatidylcholine~2644-64-6
+C0000039	C0000039	qualifier-synonym~TERMUI	1,2-Dipalmitoylphosphatidylcholine~T043935
+C0000039	C0000039	qualifier-synonym~TH	1,2-Dipalmitoylphosphatidylcholine~NLM (1987)
+C0000039	C0000039	qualifier-synonym~RXAUI	1,2-dipalmitoylphosphatidylcholine~9194921
+C0000039	C0000039	qualifier-synonym~RXCUI	1,2-dipalmitoylphosphatidylcholine~1926948
+C0000052	C0000052	qualifier-synonym~RR	1,4-alpha-Glucan Branching Enzyme~9001-97-2 (CAS RN)
+C0000052	C0000052	qualifier-synonym~TYPE_ID	1,4-alpha-Glucan branching enzyme~900000000000013009
+C0000052	C0000052	qualifier-synonym~CASE_SIGNIFICANCE_ID	1,4-alpha-Glucan branching enzyme~900000000000020002
+C0000052	C0000052	DEFINITION_STATUS_ID	900000000000074008
+C0000052	C0000052	ACTIVE	1
+C0000052	C0000052	CTV3ID	XUH01
+C0000052	C0000052	EFFECTIVE_TIME	20170131
+C0000052	C0000052	qualifier-synonym~CASE_SIGNIFICANCE_ID	Branching enzyme~900000000000448009
+C0000052	C0000052	qualifier-synonym~TYPE_ID	Branching enzyme~900000000000013009
+C0000052	C0000052	qualifier-synonym~TYPE_ID	1,4-alpha-Glucan branching enzyme (substance)~900000000000003001
+C0000052	C0000052	qualifier-synonym~CASE_SIGNIFICANCE_ID	1,4-alpha-Glucan branching enzyme (substance)~900000000000020002
+C0000097	C0000097	qualifier-synonym~PA	1-Methyl-4-phenyl-1,2,3,6-tetrahydropyridine~D015259
+C0000097	C0000097	qualifier-synonym~EC	1-Methyl-4-phenyl-1,2,3,6-tetrahydropyridine~toxicity:MPTP Poisoning
+C0000097	C0000097	qualifier-synonym~DID	methylphenyltetrahydropyridine~2511-0411
+C0000097	C0000097	qualifier-synonym~DID	MPTP~2511-0411
+C0000294	C0000294	qualifier-synonym~RXAUI	2-Mercaptoethanesulfonate~9183320
+C0000294	C0000294	qualifier-synonym~RXCUI	2-Mercaptoethanesulfonate~42497
+C0000294	C0000294	qualifier-synonym~LT	Ausobronc~TRD
+C0000294	C0000294	qualifier-synonym~LT	Mesnex~TRD
+C0000294	C0000294	qualifier-synonym~LT	Mesnex~TRD
+C0000294	C0000294	qualifier-synonym~RXAUI	Mesnex~1180402
+C0000294	C0000294	qualifier-synonym~RXCUI	Mesnex~218330
+C0000294	C0000294	qualifier-synonym~RXN_BN_CARDINALITY	Mesnex~single
+C0000294	C0000294	qualifier-synonym~NCI_THESAURUS_CODE	mesna~C192
+C0000294	C0000294	ORIG_STY	Drug/agent
+C0000294	C0000294	PID	2420
+C0000294	C0000294	DATE_LAST_MODIFIED	2006-08-29
+C0000294	C0000294	qualifier-synonym~RXAUI	mesna~2798745
+C0000294	C0000294	qualifier-synonym~RXCUI	mesna~44
+C0000294	C0000294	qualifier-synonym~SPL_SET_ID	mesna~2a2a526f-636b-7920-4261-6c626f612a2a
+C0000294	C0000294	qualifier-synonym~LEVEL	Mesna~Example Part D Eligible Drugs
+C0000294	C0000294	qualifier-synonym~MONOGRAPH_STATUS	Mesna~Official Monograph
+C0000294	C0000294	qualifier-synonym~MONOGRAPH_OFFICIAL_DATE	Mesna~12/01/2009
 C0000294	C0000294	PDQ_Closed_Trial_Search_ID	39759
 C0000294	C0000294	Contributing_Source	CTRP
 C0000294	C0000294	Chemical_Formula	C2H5O3S2.Na
@@ -16,51 +208,807 @@ C0000294	C0000294	CAS_Registry	19767-45-4
 C0000294	C0000294	Accepted_Therapeutic_Use_For	Ifosfamide-induced hemorrhagic cystitis, prophylaxis
 C0000294	C0000294	FDA_UNII_Code	NR7O1405Q9
 C0000294	C0000294	NSC_Number	113891
+C0000294	C0000294	NCI_Drug_Dictionary_ID	39759
+C0000294	C0000294	qualifier-synonym~LT	Mistabronco~TRD
+C0000379	C0000379	qualifier-synonym~FDA_UNII_CODE	Tenamfetamine~XJZ28FJ27W
+C0000379	C0000379	qualifier-synonym~RXCUI	Tenamfetaminum~60
+C0000379	C0000379	qualifier-synonym~RXAUI	Tenamfetaminum~10894804
 C0000477	C0000477	CHEBI_ID	CHEBI:34385
-C0000768	C0000768	NICHD_Hierarchy_Term	Congenital Malformation
+C0000658	C0000658	Unit	g
+C0000658	C0000658	qualifier-synonym~SID	Dihomo-gamma-linolenic acid~NUTR00032
+C0000726	C0000726	CITE	Playbook
+C0000726	C0000726	FMAID	9577
+C0000726	C0000726	COMMENT	[altern def] That portion of the body that lies between the thorax and the pelvis. [MeSH]
+C0000726	C0000726	PREFERRED_NAME_GERMAN	Abdomen
+C0000726	C0000726	qualifier-synonym~UWT	Abdomen~Body Part Subdivision
+C0000726	C0000726	qualifier-synonym~TRANSLATION	Abdomen~Filipino: Tiyan
+C0000726	C0000726	qualifier-synonym~AUTHORITY	Abdomen~Terminologia Anatomica 1998
+C0000726	C0000726	qualifier-synonym~TA_ID	Abdomen~A01.1.00.016
+C0000726	C0000726	qualifier-synonym~DATE_LAST_MODIFIED	Abdomen~Wed Mar 24 14:24:29 PST 1999
+C0000726	C0000726	qualifier-synonym~COMMENT	Abdomen~Old definition (retired -03-31-2017): Subdivision of trunk proper which is demarcated from the thorax internally by the inferior surface of the sternocostal part of the diaphragm and externally by the costal margin, from the back of abdomen by the external surface of the posterior abdominal wall, from the perineum by the superior surface of the urogenital diaphragm and from the lower limbs by the inguinal folds; together with the thorax, and perineum, it constitutes the trunk proper.
+C0000726	C0000726	qualifier-synonym~TERM_LEVEL	Abdomen, NOS~4
+C0000726	C0000726	qualifier-synonym~AUTHORITY	Abdominopelvis~Rosse MD
+C0000727	C0000727	qualifier-synonym~EXCLUDES1	Acute abdomen~abdominal rigidity NOS (R19.3); generalized abdominal pain NOS (R10.84); localized abdominal pain (R10.1-R10.3-)
+C0000727	C0000727	qualifier-synonym~ORDER_NO	Acute abdomen~30344
+C0000727	C0000727	INCLUSION_TERM	Severe abdominal pain (generalized)(localized)(with abdominal rigidity)
+C0000727	C0000727	PRIMARY_PATH	10000647$10027678$10018012$10017947$Acute abdomen$Gastrointestinal signs and symptoms NEC$Gastrointestinal signs and symptoms$Gastrointestinal disorders
+C0000727	C0000727	PT_IN_VERSION	15.1
+C0000727	C0000727	SMQ_TERM_LEVEL	4
+C0000727	C0000727	PRIMARY_SOC	10017947
+C0000731	C0000731	qualifier-synonym~SYN_QUALIFIER	Abdominal bloating~layperson term
+C0000731	C0000731	qualifier-synonym~HPO_COMMENT	Abdominal distention~Abdominal distention can be a secondary feature associated with a number of conditions such as bowel obstruction.
+C0000731	C0000731	qualifier-synonym~SID	Abdominal distention~HP:0001542
+C0000731	C0000731	qualifier-synonym~IPX	Change in abd size/distension~+R19.0
+C0000734	C0000734	qualifier-synonym~IPX	Abdominal mass NOS~+R19.0
+C0000735	C0000735	qualifier-synonym~TYPE_ID	Tumour of abdomen~900000000000013009
+C0000735	C0000735	qualifier-synonym~CASE_SIGNIFICANCE_ID	Tumour of abdomen~900000000000448009
+C0000739	C0000739	qualifier-synonym~DATE_LAST_MODIFIED	Abdominal muscle~Jul 29 1996 4:36:29:073PM
+C0000739	C0000739	qualifier-synonym~FX	Abdominal Muscles~D034861
+C0000739	C0000739	qualifier-synonym~TERM_LEVEL	Abdominal wall muscle~Related
+C0000739	C0000739	qualifier-synonym~TA_ID	Musculi abdominis~A04.5.00.001
+C0000739	C0000739	qualifier-synonym~LANGUAGE	Musculi abdominis~Latin
+C0000744	C0000744	qualifier-synonym~TYPE_ID	Abetalipoproteinaemia~900000000000013009
+C0000744	C0000744	qualifier-synonym~CASE_SIGNIFICANCE_ID	Abetalipoproteinaemia~900000000000448009
+C0000744	C0000744	IS_SPANISH	false
+C0000744	C0000744	RARE_DISEASE_URL	http://rarediseases.info.nih.gov/gard/5/abetalipoproteinemia/resources/1
+C0000744	C0000744	HAS_GARD_PAGE	true
+C0000744	C0000744	LAST_REVIEW_DATE	2009-12-20T00:00:00
+C0000744	C0000744	IS_RARE	true
+C0000744	C0000744	qualifier-synonym~IDENTIFIER_SOURCE	Abetalipoproteinemia~Orp
+C0000744	C0000744	qualifier-synonym~DISEASE_IDENTIFIER_ID	Abetalipoproteinemia~30648
+C0000744	C0000744	qualifier-synonym~IS_ACTIVE	Abetalipoproteinemia~true
+C0000744	C0000744	qualifier-synonym~DATE_CREATED	Abetalipoproteinemia~2015-01-22T00:04:00
+C0000744	C0000744	qualifier-synonym~IDENTIFIER_TYPE_ID	Abetalipoproteinemia~1
+C0000744	C0000744	qualifier-synonym~GENELOCUS	ABETALIPOPROTEINEMIA~4q22-q24
+C0000744	C0000744	qualifier-synonym~GENESYMBOL	ABETALIPOPROTEINEMIA~MTTP
+C0000744	C0000744	qualifier-synonym~SOS	ABETALIPOPROTEINEMIA~Caused by mutation in the microsomal triglyceride transfer protein gene (MTP, 157147.0001) [MOLECULAR BASIS]
+C0000744	C0000744	qualifier-synonym~MIMTYPE	ABETALIPOPROTEINEMIA~3
+C0000744	C0000744	qualifier-synonym~MIMTYPEMEANING	ABETALIPOPROTEINEMIA~Phenotype description, molecular basis known.
+C0000744	C0000744	qualifier-synonym~MIMTYPEVALUE	ABETALIPOPROTEINEMIA~pound
+C0000744	C0000744	qualifier-synonym~DATE_LAST_MODIFIED	ABL~2013-01-09T00:04:00
 C0000768	C0000768	FDA_Table	Patient Code (Appendix B)
+C0000768	C0000768	qualifier-synonym~SOS	congenital anomaly~Anomalous malformations, diseases, etc., which may be either hereditary or due to an influence occurring during gestation up to the moment of birth.
+C0000768	C0000768	qualifier-synonym~HN	birth defects~Introduced 2000.
+C0000768	C0000768	qualifier-synonym~DATE_CREATED	Birth Defects~01/10/2000
+C0000768	C0000768	qualifier-synonym~MP_OTHER_LANGUAGE_URL	Birth Defects~Spanish https://medlineplus.gov/spanish/birthdefects.html
+C0000768	C0000768	qualifier-synonym~MP_PRIMARY_INSTITUTE_URL	Birth Defects~Eunice Kennedy Shriver National Institute of Child Health and Human Development https://www.nichd.nih.gov/Pages/index.aspx
+C0000769	C0000769	qualifier-synonym~MMR	abnormalities~20150701
+C0000769	C0000769	qualifier-synonym~AN	abnormalities~subhead only; congenital & structural only: does not include abnormal function ( = /physiopathology or disease heading); includes "deformity", "malformation", "anomalous", includes agenesis, aplasia, atresia, ectopy, hypoplasia, etc.; includes more or less than the normal number of organs (as one ureter, six fingers); see MeSH scope note in Introduction; indexing policy: Manual 19.8.1; DF: /abnorm or /AB
+C0000769	C0000769	qualifier-synonym~DQ	abnormalities~19660101
+C0000769	C0000769	qualifier-synonym~HN	abnormalities~66; used with Category A 1966-74; A1-9 & A13-15 1975-88; A1-9, A13-15 & B2 1989; A1-10, A13-14, A16 & B2 1990 forward
+C0000769	C0000769	qualifier-synonym~MDA	abnormalities~19731227
+C0000769	C0000769	qualifier-synonym~MN	abnormalities~Y02.030.010
+C0000769	C0000769	qualifier-synonym~OL	abnormalities~search policy: Online Manual; use: main heading/AB or AB (SH) or SUBS APPLY AB
+C0000769	C0000769	qualifier-synonym~TERMUI	abnormalities~T060543
+C0000769	C0000769	qualifier-synonym~TERMUI	anomalies~T060544
 C0000850	C0000850	NCBI_Taxon_ID	4828
-C0013227	C0013227	Design_Note	This category represents drug products, not their individual ingredients.
-C0019080	C0019080	Use_For	Blood pooling
-C0206646	C0206646	Neoplastic_Status	Undetermined
-C0206646	C0206646	ICD-O-3_Code	8822/1
-C1880653	C1880653	Publish_Value_Set	Yes
-C1880653	C1880653	Term_Browser_Value_Set_Description	The terminology that includes terms pertaining to FDA/USP Substance Registration System (SRS), which is to support health information technology initiatives by generating unique ingredient identifiers (UNIIs) for substances in drugs, biologics, foods, and devices The text and Microsoft Excel versions of this subset can be downloaded from here: <a href="http://evs.nci.nih.gov/ftp1/FDA/UNII" alt="FDA UNII ftp">FDA UNII ftp</a>
-C0000294	C0000294	Semantic_Type	Organic Chemical
-C0000294	C0000294	Semantic_Type	Pharmacologic Substance
-C0000734	C0000734	Semantic_Type	Finding
+C0000850	C0000850	qualifier-synonym~DIV	Absidia~Plants and Fungi
+C0000850	C0000850	qualifier-synonym~AUTHORITY_NAME	Absidia~Absidia Tiegh. 1878
+C0000850	C0000850	qualifier-synonym~RANK	Absidia~genus
+C0001175	C0001175	SYNONYM_GERMAN	erworbenes Immunschw�chesyndrom
+C0001175	C0001175	qualifier-synonym~ANSWER_CODE_SYSTEM	AIDS~NNDSS
+C0001175	C0001175	qualifier-synonym~LOINC_SCORE	AIDS~4
+C0001261	C0001261	qualifier-synonym~ORDER_NO	Actinomycosis~00317
+C0001261	C0001261	qualifier-synonym~EXCLUDES1	Actinomycosis~actinomycetoma (B47.1)
+C0001261	C0001261	qualifier-synonym~SOS	Actinomycotic infections~Includes: actinomycotic mycetoma; infection by Actinomycetales, such as species of Actinomyces, Actinomadura, Nocardia, Streptomyces; maduromycosis (actinomycotic); schizomycetoma (actinomycotic)
+C0001261	C0001261	qualifier-synonym~ICE	Actinomycotic infection of unspecified site~Actinomycosis NOS; Maduromycosis NOS; Nocardiosis NOS
+C0001575	C0001575	ICD-O-3_CODE	C57.4
+C0001625	C0001625	qualifier-synonym~TERM_LEVEL	Adrenal, NOS~Synonym
+C0001625	C0001625	qualifier-synonym~TERM_LEVEL	ADRENAL GLAND~3
+C0001849	C0001849	IAN	aster
+C0001954	C0001954	qualifier-synonym~EZ	alcohol oxidoreductase~EC 1.1
+C0002025	C0002025	qualifier-synonym~RXN_OBSOLETED	Alfenta~08/30/2023
+C0002025	C0002025	qualifier-synonym~RXN_ACTIVATED	Alfenta~02/27/2024
+C0002025	C0002025	qualifier-synonym~RXAUI	alfentanil hydrochloride~12255254
+C0002025	C0002025	qualifier-synonym~RXCUI	alfentanil hydrochloride~203203
+C0002025	C0002025	qualifier-synonym~RXAUI	ALfentanil hydrochloride~12814378
+C0002025	C0002025	qualifier-synonym~RXCUI	ALfentanil hydrochloride~203203
+C0002235	C0002235	qualifier-synonym~TH	alpha-2 Type 1 Collagen~UNK (19XX)
+C0002235	C0002235	qualifier-synonym~TERMUI	alpha-2 Type 1 Collagen~T008982
+C0002235	C0002235	qualifier-synonym~Initial_Release	Collagen of skin, tendon and bone, alpha-2 chain~2006.03
+C0002235	C0002235	OMIM_Number	120160
+C0002235	C0002235	Swiss_Prot	P08123
+C0002235	C0002235	Design_Note	Type I collagen is a heterotrimer composed of one alpha 2(I) and two alpha 1(I) chains.
+C0002235	C0002235	qualifier-synonym~TH	Collagen Type I, alpha2 Subunit~NLM (2002)
+C0002235	C0002235	qualifier-synonym~TERMUI	Collagen Type I, alpha2 Subunit~T424042
+C0002235	C0002235	qualifier-synonym~RN	Collagen Type I, alpha2 Subunit~0
+C0002235	C0002235	qualifier-synonym~HM	Collagen Type I, alpha2 Subunit~D024042
+C0002235	C0002235	qualifier-synonym~SC	Collagen Type I, alpha2 Subunit~1
+C0002235	C0002235	qualifier-synonym~MDA	Collagen Type I, alpha2 Subunit~20211129
+C0002235	C0002235	qualifier-synonym~MMR	Collagen Type I, alpha2 Subunit~20210701
+C0002235	C0002235	qualifier-synonym~FR	Collagen Type I, alpha2 Subunit~15
+C0002235	C0002235	qualifier-synonym~Initial_Release	(AA).COL1A2.0~2006.03
+C0002235	C0002235	AA_REFSEQ	NP_000080
+C0002235	C0002235	Axis	H_PROTEIN
+C0002235	C0002235	qualifier-synonym~SOS	COL1A2 protein, human~RefSeq NM_000089
+C0002235	C0002235	qualifier-synonym~SRC	COL1A2 protein, human~J Cell Biochem. 2015 Mar;116(3); 408-17
+C0002712	C0002712	qualifier-synonym~CFR	DIASTASE~864.4400
+C0002712	C0002712	qualifier-synonym~MSP	DIASTASE~PA
+C0002712	C0002712	qualifier-synonym~PDC	DIASTASE~1
+C0002712	C0002712	qualifier-synonym~PTR	DIASTASE~Y
+C0002805	C0002805	DATE_FIRST_PUBLISHED	2014-02-26
+C0002986	C0002986	qualifier-synonym~REF	Fabry syndrome~https://orcid.org/0000-0001-6908-9849
+C0003158	C0003158	qualifier-synonym~TERM_STATUS	Antihelminthic Agent~A
+C0003158	C0003158	qualifier-synonym~CONCEPT_TYPE	Antihelminthic Agent~TC
+C0003158	C0003158	qualifier-synonym~LEVEL	Anthelmintics~USP Class
+C0003158	C0003158	qualifier-synonym~RXAUI	ANTHELMINTICS~2626763
+C0003158	C0003158	qualifier-synonym~DRUG_CLASS_TYPE	ANTHELMINTICS~1
+C0003158	C0003158	qualifier-synonym~PARENT_CLASS	ANTHELMINTICS~33
+C0003158	C0003158	qualifier-synonym~VAC	ANTHELMINTICS~AP200
+C0003158	C0003158	qualifier-synonym~RXCUI	ANTHELMINTICS~868
+C0003892	C0003892	qualifier-synonym~ICN	Arthropathy associated with neurological disorders~Code first underlying disease, as: {neuropathic joint disease [Charcot's joints]: NOS (094.0); diabetic (249.6, 250.6); syringomyelic (336.0); tabetic [syphilitic] (094.0)}
+C0004114	C0004114	Neoplastic_Status	Undetermined
+C0004114	C0004114	ICD-O-3_Code	9400/3
+C0004114	C0004114	qualifier-synonym~CODE_REF	Astrocytoma, NOS~(C71._)
+C0005423	C0005423	qualifier-synonym~MSC	Biliary system~Site.Heading
+C0005682	C0005682	qualifier-synonym~CX	Urinary Bladder~consider also terms at CYST- and VESIC-
+C0005889	C0005889	qualifier-synonym~HAS_INHERENT_3D_SHAPE	Portion of body fluid~false
+C0006104	C0006104	qualifier-synonym~RADLEX_ID	Brain~RID6434
+C0006104	C0006104	qualifier-synonym~NEUROLEX_ID	Brain~birnlex_796
+C0006404	C0006404	qualifier-synonym~LT	Buprenex~TRD
+C0006663	C0006663	RADLEX_VERSION_OF_CLASS_CHANGE	07/07/2014
+C0006935	C0006935	qualifier-synonym~HL7CS	Capsule~active
+C0006935	C0006935	qualifier-synonym~HL7PL	Capsule~true
+C0006935	C0006935	qualifier-synonym~HL7ID	Capsule~14507
+C0006935	C0006935	qualifier-synonym~ORIG_CODE	Capsule~HL7T096
+C0006935	C0006935	qualifier-synonym~ORIG_SOURCE	Capsule~HL7
+C0006935	C0006935	qualifier-synonym~RXAUI	Capsule~60912
+C0006935	C0006935	qualifier-synonym~RXCUI	Capsule~1995
+C0006935	C0006935	qualifier-synonym~RXN_OBSOLETED	Capsule~08/30/2007
+C0006935	C0006935	qualifier-synonym~HL7SL	CapsuleDrugForm~en
+C0006935	C0006935	qualifier-synonym~HL7VC	CapsuleDrugForm~<content codeSystem="2.16.840.1.113883.5.85"><codeBasedContent code="CAP"><includeRelatedCodes relationshipName="Generalizes" relationshipTraversal="TransitiveClosure"></includeRelatedCodes></codeBasedContent></content>
+C0006935	C0006935	qualifier-synonym~HL7SCS	CapsuleDrugForm~2.16.840.1.113883.5.85
+C0006935	C0006935	qualifier-synonym~HL7VD	CapsuleDrugForm~2014-03-26
+C0006935	C0006935	qualifier-synonym~HL7HI	CapsuleDrugForm~<historyItem dateTime="2020-05-06" id="v3-CapsuleDrugForm-vs-1-0-0" responsiblePersonName="Ted Klein"><description>UPDATE:</description></historyItem>
+C0007009	C0007009	CODE	NPO_857
+C0007009	C0007009	RDF_ID	NPO_857
+C0007570	C0007570	qualifier-synonym~CODE_ALSO	Celiac disease~exocrine pancreatic insufficiency (K86.81)
+C0007570	C0007570	qualifier-synonym~USE_ADDITIONAL	Celiac disease~code for associated disorders including: dermatitis herpetiformis (L13.0); gluten ataxia (G32.81)
+C0007570	C0007570	LAST_REVIEW_ACTION	Modified
+C0007572	C0007572	DATE_CREATED	2014-08-19T00:00:00
+C0008325	C0008325	qualifier-synonym~USE_ADDITIONAL	Cholecystitis~code if applicable for associated gangrene of gallbladder (K82.A1), or perforation of gallbladder (K82.A2)
+C0008350	C0008350	qualifier-synonym~ICF	Cholelithiasis~The following fifth-digit subclassification is for use with category 574: {0 without mention of obstruction; 1 with obstruction}
+C0008902	C0008902	qualifier-synonym~MODULE_ID	Classification (attribute)~900000000000012004
+C0008902	C0008902	qualifier-synonym~MODULE_NAME	Classification (attribute)~SNOMED CT model component module
+C0008902	C0008902	qualifier-synonym~MODULE_ID	Classification~900000000000012004
+C0008902	C0008902	qualifier-synonym~MODULE_NAME	Classification~SNOMED CT model component module
+C0008902	C0008902	MODULE_ID	900000000000012004
+C0008902	C0008902	MODULE_NAME	SNOMED CT model component module
+C0009450	C0009450	qualifier-synonym~ICN	INFECTIOUS AND PARASITIC DISEASES~Note: Categories for "late effects of infectious and parasitic diseases are to be found at 137-139
+C0009450	C0009450	qualifier-synonym~MP_GROUP_URL	Infections~https://medlineplus.gov/infections.html
+C0009450	C0009450	INTL_SOC_SORT_ORDER	01
+C0009595	C0009595	qualifier-synonym~EXCLUDES2	Obsessive-compulsive personality disorder~obsessive-compulsive disorder (F42.-)
+C0010454	C0010454	qualifier-synonym~DEVTYPE	Culture Media~Device is a USE MORE SPECIFIC TERM entry.
+C0010454	C0010454	CLASS_ROLE	concrete
+C0010454	C0010454	CLASS_SOURCE	ontology
+C0010461	C0010461	qualifier-synonym~RR	SOD1 protein, human~EC 1.15.1.1
+C0010641	C0010641	AA_GI	4557415
+C0010692	C0010692	qualifier-synonym~ICA	Cystitis~Use additional code to identify organism, such as Escherichia coli [E. coli] (041.41-041.49)
+C0011195	C0011195	qualifier-synonym~MOVED_FROM	HYPERTROPHIC NEUROPATHY OF DEJERINE-SOTTAS~605260
+C0011900	C0011900	qualifier-synonym~HL7DC	diagnoses~true
+C0011900	C0011900	qualifier-synonym~HL7CD	diagnoses~true
+C0011980	C0011980	qualifier-synonym~TERM_STATUS	Thoracic diaphragm~Inappropriate
+C0012228	C0012228	qualifier-synonym~LT	Apo Diflunisal~TRD
+C0012238	C0012238	qualifier-synonym~GO_SUBSET	digestion~goslim_chembl
+C0012238	C0012238	qualifier-synonym~GO_NAMESPACE	digestion~biological_process
+C0012238	C0012238	qualifier-synonym~GXR	digestion~Wikipedia:Digestion
+C0012242	C0012242	qualifier-synonym~SYN_QUALIFIER	Digestive system disease~layperson term
+C0013075	C0013075	qualifier-synonym~SEE_NOTE	Pouch of Douglas~see section 4.2.6
+C0013182	C0013182	qualifier-synonym~MODULE_NAME	Allergic reaction to medication~US National Library of Medicine maintained module
+C0013182	C0013182	qualifier-synonym~MODULE_ID	Allergic reaction to medication~731000124108
+C0013221	C0013221	DB_XR_ID	NCIT:C27955
+C0014653	C0014653	qualifier-synonym~AMT	Equilibrium~MeSH
+C0014723	C0014723	INFOODS	F22D1
+C0014723	C0014723	USDA_ID	630
+C0014876	C0014876	qualifier-synonym~EPONYM	Esophagus~false
+C0015020	C0015020	qualifier-synonym~LT	Ethiofos~TRD
+C0015314	C0015314	qualifier-synonym~DID	expectorant~2599-6713
+C0015385	C0015385	REPLACED_BY	RID13202
+C0015450	C0015450	qualifier-synonym~DIMENSION	Face~3-dimension
+C0015641	C0015641	qualifier-synonym~SOS	fascia~A sheet or band of fibrous tissue such as lies deep to the skin or forms an investment for muscles and various other organs of the body.
+C0016030	C0016030	qualifier-synonym~HAS_DIRECT_PLOIDY	Fibroblast~diploid
+C0016030	C0016030	qualifier-synonym~CHROMOSOME_PAIRS_PER_NUCLEUS	Fibroblast~46
+C0016030	C0016030	qualifier-synonym~CELL_APPENDAGE_TYPE	Fibroblast~Non-vibriocyte
+C0016030	C0016030	qualifier-synonym~POLARITY	Fibroblast~none
+C0016030	C0016030	qualifier-synonym~STATE_OF_DETERMINATION	Fibroblast~Transient amplifying cell
+C0016253	C0016253	qualifier-synonym~SUBDIVISION_CATEGORY	Florida~state
+C0016253	C0016253	qualifier-synonym~LANGUAGECODE	Florida~en
+C0016542	C0016542	Use_For	Materials (nonresorbable), unretrieved in body
+C0016542	C0016542	UNSANCTIONED_TERM	implantable object
+C0017105	C0017105	qualifier-synonym~IDENTIFIER_ORDER	C. sordellii infection~2
+C0017155	C0017155	qualifier-synonym~ICE	Gastric mucosal hypertrophy~Hypertrophic gastritis
+C0018927	C0018927	qualifier-synonym~PI	hematein~*BENZOPYRANS (69-77)
+C0019065	C0019065	qualifier-synonym~REF	Hematoperitoneum~https://orcid.org/0000-0001-6908-9849
+C0019204	C0019204	qualifier-synonym~CODE_REF	Liver cell carcinoma~(C22.0)
+C0019270	C0019270	qualifier-synonym~NOTE	Hernia (K40-K46)~Hernia with both gangrene and obstruction is classified to hernia with gangrene.
+C0019693	C0019693	qualifier-synonym~CODE_FIRST	Human immunodeficiency virus [HIV] disease~Human immunodeficiency virus [HIV] disease complicating pregnancy, childbirth and the puerperium, if applicable (O98.7-)
+C0019693	C0019693	qualifier-synonym~ICA	Human immunodeficiency virus [HIV] disease~Use additional code(s) to identify all manifestations of HIV; Use additional code to identify HIV-2 infection (079.53)
+C0021745	C0021745	qualifier-synonym~II	IFNG protein, human~D003324
+C0021851	C0021851	qualifier-synonym~SOS	Large intestine~excludes rectum, NOS C20.9 and recrectosigmoid junction C19.9
+C0024525	C0024525	MISSPELLING_OF_TERM	malacoplakia
+C0024808	C0024808	qualifier-synonym~NDC	MARIJUANA~099000100101
+C0024808	C0024808	qualifier-synonym~DCSA	MARIJUANA~SCHEDULE I
+C0024808	C0024808	qualifier-synonym~DDF	MARIJUANA~MISCELLANEOUS
+C0024808	C0024808	qualifier-synonym~NDF_TRANSMIT_TO_CMOP	MARIJUANA~NO
+C0024808	C0024808	qualifier-synonym~NFI	MARIJUANA~NO
+C0024808	C0024808	qualifier-synonym~NF_NAME	MARIJUANA~MARIJUANA MISCELLANEOUS
+C0024808	C0024808	qualifier-synonym~VAC	MARIJUANA~HA000
+C0024808	C0024808	qualifier-synonym~VA_CLASS_NAME	MARIJUANA~[HA000] HERBS/ALTERNATIVE THERAPIES
+C0024808	C0024808	qualifier-synonym~VA_DISPENSE_UNIT	MARIJUANA~EA
+C0024808	C0024808	qualifier-synonym~VA_GENERIC_NAME	MARIJUANA~MARIJUANA
+C0024808	C0024808	qualifier-synonym~VMO	MARIJUANA~M0626
+C0024808	C0024808	qualifier-synonym~RXAUI	MARIJUANA~2072181
+C0024808	C0024808	qualifier-synonym~RXCUI	MARIJUANA~6650
+C0024808	C0024808	qualifier-synonym~RXAUI	MARIJUANA~2844306
+C0024808	C0024808	qualifier-synonym~RXCUI	MARIJUANA~6650
+C0025080	C0025080	qualifier-synonym~HL7IS	MedicalDevice~false
+C0025815	C0025815	qualifier-synonym~LT	Medrol Veriderm~TRD
+C0027540	C0027540	qualifier-synonym~GO_NAMESPACE	obsolete necrotic cell death~biological_process
+C0027540	C0027540	qualifier-synonym~GO_COMMENT	obsolete necrotic cell death~The reason for obsoletion is that this term represent an assay and not a GO process.n The reason for obsoletion is that this represents a phenotype.
+C0027540	C0027540	qualifier-synonym~REF	cellular necrosis~GOC:add
+C0027540	C0027540	qualifier-synonym~REF	necrosis~GOC:mah
+C0027597	C0027597	PubMedID_Primary_Reference	20735485
+C0027765	C0027765	qualifier-synonym~EXCLUDES2	Diseases of the nervous system (G00-G99)~certain conditions originating in the perinatal period (P04-P96); certain infectious and parasitic diseases (A00-B99); complications of pregnancy, childbirth and the puerperium (O00-O9A); congenital malformations, deformations, and chromosomal abnormalities (Q00-Q99); endocrine, nutritional and metabolic diseases (E00-E88); injury, poisoning and certain other consequences of external causes (S00-T88); neoplasms (C00-D49); symptoms, signs and abnormal clinical and laboratory findings, not elsewhere classified (R00-R94)
+C0031154	C0031154	qualifier-synonym~CODE_ALSO	Peritonitis~if applicable diverticular disease of intestine (K57.-)
+C0031640	C0031640	qualifier-synonym~DID	PDE~2288-0568
+C0031845	C0031845	qualifier-synonym~GO_COMMENT	biological_process~Note that, in addition to forming the root of the biological process ontology, this term is recommended for the annotation of gene products whose biological process is unknown. When this term is used for annotation, it indicates that no information was available about the biological process of the gene product annotated as of the date the annotation was made; the evidence code 'no data' (ND), is used to indicate this.
+C0031845	C0031845	SOS	[source]: GO
+C0036725	C0036725	qualifier-synonym~TH	SHMT1 protein, human~NLM (2007)
+C0036725	C0036725	qualifier-synonym~TERMUI	SHMT1 protein, human~T702062
+C0038085	C0038085	Gene_Encodes_Product	SRC Family Tyrosine Kinase
+C0042338	C0042338	qualifier-synonym~STATUS	Varicella zoster virus~Active
+C0043252	C0043252	qualifier-synonym~HN	gunshot~Introduced 2000.
+C0045260	C0045260	qualifier-synonym~PA	2,2'-dithiodiethanesulfonic acid~D020011
+C0051515	C0051515	qualifier-synonym~RXN_OBSOLETED	aluminum magnesium silicate~08/30/2007
+C0051515	C0051515	qualifier-synonym~RXN_ACTIVATED	aluminum magnesium silicate~01/28/2010
+C0051515	C0051515	qualifier-synonym~LT	Veegum~TRD
+C0051844	C0051844	qualifier-synonym~RN	ANG protein, human~0
+C0078221	C0078221	qualifier-synonym~VACCINE_STATUS	typhoid Vi capsular polysaccharide vaccine~Active
+C0078221	C0078221	qualifier-synonym~NON_VACCINE	typhoid Vi capsular polysaccharide vaccine~False
+C0079278	C0079278	qualifier-synonym~MSC	Gastrointestinal endoscopy~Endoscopic Procedure
+C0080298	C0080298	GenBank_Accession_Number	NM_005417
+C0080298	C0080298	Locus_ID	6714
+C0080298	C0080298	qualifier-synonym~OMIM_ID	SRC proto-oncogene, non-receptor tyrosine kinase~190090
+C0080298	C0080298	qualifier-synonym~PMID	SRC proto-oncogene, non-receptor tyrosine kinase~2582238
+C0080298	C0080298	qualifier-synonym~ENTREZGENE_ID	SRC proto-oncogene, non-receptor tyrosine kinase~6714
+C0080298	C0080298	qualifier-synonym~SWP	SRC proto-oncogene, non-receptor tyrosine kinase~P12931
+C0080298	C0080298	qualifier-synonym~ENSEMBLGENE_ID	SRC proto-oncogene, non-receptor tyrosine kinase~ENSG00000197122
+C0080298	C0080298	qualifier-synonym~DATE_NAME_CHANGED	SRC proto-oncogene, non-receptor tyrosine kinase~2014-06-25
+C0080298	C0080298	qualifier-synonym~LOCUS_GROUP	SRC proto-oncogene, non-receptor tyrosine kinase~protein-coding gene
+C0080298	C0080298	qualifier-synonym~GENE_FAM_DESC	SRC proto-oncogene, non-receptor tyrosine kinase~SH2 domain containing
+C0080298	C0080298	qualifier-synonym~MGD_ID	SRC proto-oncogene, non-receptor tyrosine kinase~MGI:98397
+C0080298	C0080298	qualifier-synonym~DB_XR_ID	SRC proto-oncogene, non-receptor tyrosine kinase~COSMIC: SRC
+C0080298	C0080298	qualifier-synonym~LOCUS_TYPE	SRC proto-oncogene, non-receptor tyrosine kinase~gene with protein product
+C0080298	C0080298	qualifier-synonym~CCDS_ID	SRC proto-oncogene, non-receptor tyrosine kinase~CCDS13294
+C0080298	C0080298	qualifier-synonym~VEGA_ID	SRC proto-oncogene, non-receptor tyrosine kinase~OTTHUMG00000032417
+C0080298	C0080298	qualifier-synonym~REFSEQ_ID	SRC proto-oncogene, non-receptor tyrosine kinase~NM_005417
+C0080298	C0080298	qualifier-synonym~RGD_ID	SRC proto-oncogene, non-receptor tyrosine kinase~RGD:620795
+C0080298	C0080298	qualifier-synonym~GENE_FAM_ID	SRC proto-oncogene, non-receptor tyrosine kinase~741
+C0080298	C0080298	qualifier-synonym~ENA	SRC proto-oncogene, non-receptor tyrosine kinase~AF077754
+C0080298	C0080298	qualifier-synonym~CYTOGENETIC_LOCATION	SRC proto-oncogene, non-receptor tyrosine kinase~20q11.23
+C0080298	C0080298	qualifier-synonym~MAPPED_UCSC_ID	SRC proto-oncogene, non-receptor tyrosine kinase~uc002xgy.5
+C0080298	C0080298	qualifier-synonym~LOCUS_SPECIFIC_DB_XR	SRC proto-oncogene, non-receptor tyrosine kinase~LRG_1018&#x7C;http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_1018.xml
+C0080298	C0080298	qualifier-synonym~AGR	SRC proto-oncogene, non-receptor tyrosine kinase~HGNC:11283
+C0080298	C0080298	qualifier-synonym~MANE_SELECT	SRC proto-oncogene, non-receptor tyrosine kinase~ENST00000373578.7
+C0080298	C0080298	qualifier-synonym~GENCC	SRC proto-oncogene, non-receptor tyrosine kinase~HGNC:11283
+C0085393	C0085393	qualifier-synonym~HPI	Patient immunocompromised~00=Service not separately priced by part B (e.g., services not covered, bundled, used by part a only, etc.)
+C0085393	C0085393	qualifier-synonym~HMP	Patient immunocompromised~9=Not applicable as HCPCS not priced separately by part B (pricing indicator is 00) or value is not established (pricing indicator is '99')
+C0085393	C0085393	qualifier-synonym~HCD	Patient immunocompromised~20190101
+C0085393	C0085393	qualifier-synonym~HBT	Patient immunocompromised~Z2=Undefined codes
+C0085393	C0085393	qualifier-synonym~HCC	Patient immunocompromised~C=Carrier judgment
+C0085393	C0085393	qualifier-synonym~HAQ	Patient immunocompromised~0
+C0085393	C0085393	qualifier-synonym~HTS	Patient immunocompromised~1=Medical care
+C0085393	C0085393	qualifier-synonym~HAD	Patient immunocompromised~20210101
+C0085393	C0085393	qualifier-synonym~HTD	Patient immunocompromised~20201231
+C0085393	C0085393	qualifier-synonym~HAC	Patient immunocompromised~N=No maintenance for this code
+C0086466	C0086466	qualifier-synonym~RXCUI	Injectable Product~1151126
+C0086466	C0086466	qualifier-synonym~RXAUI	Injectable Product~3813594
+C0162508	C0162508	HGNC_ID	HGNC:6204
+C0179695	C0179695	qualifier-synonym~DEVTYPE	Catheter Insertion Needles~Device is a SEE reference.
+C0179695	C0179695	qualifier-synonym~TERM_CODE	Catheter Insertion Needles~-10524
+C0179695	C0179695	qualifier-synonym~DEVTYPE	Catheter Introducers~Device has SEE ALSO references.
+C0181340	C0181340	qualifier-synonym~RXN_ACTIVATED	Nasal Inhaler~11/28/2007
+C0194086	C0194086	qualifier-synonym~ICC	Partial nephrectomy~Code also any synchronous resection of ureter (56.40-56.42)
+C0205161	C0205161	qualifier-synonym~SUBSEQUENT_TEXT_PROMPT	Abnormal~Specify:
+C0205246	C0205246	qualifier-synonym~HL7IN	Generalizes~Specializes
+C0205246	C0205246	qualifier-synonym~HL7RF	Generalizes~irreflexive
+C0205246	C0205246	qualifier-synonym~HL7RK	Generalizes~Generalizes
+C0205246	C0205246	qualifier-synonym~HL7SY	Generalizes~antisymmetric
+C0205246	C0205246	qualifier-synonym~HL7NA	Generalizes~true
+C0205246	C0205246	qualifier-synonym~HL7TR	Generalizes~transitive
+C0205535	C0205535	qualifier-synonym~HL7CS	Inhalation, intrapulmonary~active
+C0205535	C0205535	qualifier-synonym~HL7PL	Inhalation, intrapulmonary~false
+C0220866	C0220866	qualifier-synonym~TERMUI	laws~T060925
+C0224853	C0224853	qualifier-synonym~ADDED_MEANING	Medical and Surgical @ Tendons @ Insertion~Putting in a nonbiological appliance that monitors, assists, performs, or prevents a physiological function but does not physically take the place of a body part
+C0225043	C0225043	qualifier-synonym~EPONYM	Poupart's ligament~true
+C0227507	C0227507	qualifier-synonym~HAS_BOUNDARY	Ligamentum venosum fissure~true
+C0229665	C0229665	qualifier-synonym~PHYSICAL_STATE	Portion of arterial blood~Liquid
+C0242356	C0242356	HAS_VERSION	someValuesFrom: string
+C0304231	C0304231	qualifier-synonym~HL7ID	therapeutic agent~10297
+C0304231	C0304231	qualifier-synonym~HL7CS	therapeutic agent~retired
+C0304231	C0304231	qualifier-synonym~HL7PL	therapeutic agent~true
+C0304231	C0304231	qualifier-synonym~HL7CD	therapeutic agent~true
+C0304655	C0304655	qualifier-synonym~RXN_HUMAN_DRUG	hydrogen peroxide 300 MG/ML Topical Solution~US
+C0304655	C0304655	qualifier-synonym~RXN_AVAILABLE_STRENGTH	hydrogen peroxide 300 MG/ML Topical Solution~300 MG/ML
+C0304655	C0304655	qualifier-synonym~RXTERM_FORM	hydrogen peroxide 300 MG/ML Topical Solution~Sol
+C0304655	C0304655	qualifier-synonym~RXCUI	hydrogen peroxide 300 MG/ML Topical Solution~91348
+C0304655	C0304655	qualifier-synonym~RXAUI	hydrogen peroxide 300 MG/ML Topical Solution~12323694
+C0304655	C0304655	qualifier-synonym~RXN_AI	hydrogen peroxide 300 MG/ML Topical Solution~{334501} 5499
+C0304655	C0304655	qualifier-synonym~RXN_AM	hydrogen peroxide 300 MG/ML Topical Solution~{334501} 5499
+C0304655	C0304655	qualifier-synonym~RXN_BOSS_FROM	hydrogen peroxide 300 MG/ML Topical Solution~{334501} AI
+C0304655	C0304655	qualifier-synonym~NDC	hydrogen peroxide 300 MG/ML Topical Solution~59050026800
+C0304655	C0304655	qualifier-synonym~RXCUI	HYDROGEN PEROXIDE 30 mg in 1 mL TOPICAL SOLUTION [Maokang 3 Hydrogen Peroxide]~91348
+C0304655	C0304655	qualifier-synonym~LABEL_TYPE	HYDROGEN PEROXIDE 30 mg in 1 mL TOPICAL SOLUTION [Maokang 3 Hydrogen Peroxide]~HUMAN OTC DRUG LABEL
+C0304655	C0304655	qualifier-synonym~SPL_SET_ID	HYDROGEN PEROXIDE 30 mg in 1 mL TOPICAL SOLUTION [Maokang 3 Hydrogen Peroxide]~b4b478b9-426d-4864-a64c-31de9bbf5dc3
+C0304655	C0304655	qualifier-synonym~LABELER	HYDROGEN PEROXIDE 30 mg in 1 mL TOPICAL SOLUTION [Maokang 3 Hydrogen Peroxide]~Changzhou Maokang Medical Products Co., Ltd
+C0304655	C0304655	qualifier-synonym~NDC	HYDROGEN PEROXIDE 30 mg in 1 mL TOPICAL SOLUTION [Maokang 3 Hydrogen Peroxide]~59050-268-00
+C0304655	C0304655	qualifier-synonym~RXAUI	HYDROGEN PEROXIDE 30 mg in 1 mL TOPICAL SOLUTION [Maokang 3 Hydrogen Peroxide]~12849696
+C0304655	C0304655	qualifier-synonym~DM_SPL_ID	HYDROGEN PEROXIDE 30 mg in 1 mL TOPICAL SOLUTION [Maokang 3 Hydrogen Peroxide]~745182
+C0304655	C0304655	qualifier-synonym~RXCUI	hydrogen peroxide 30 % Topical Solution~91348
+C0304655	C0304655	qualifier-synonym~RXAUI	hydrogen peroxide 30 % Topical Solution~6394791
+C0304655	C0304655	COUNT_OF_BASE_OF_ACTIVE_INGREDIENT	#1~0
+C0304655	C0304655	CONCENTRATION_STRENGTH_NUMERATOR_VALUE	#300~1
+C0304655	C0304655	CONCENTRATION_STRENGTH_DENOMINATOR_VALUE	#1~1
+C0309618	C0309618	qualifier-synonym~EXCLUDE_DI_CHECK	NITROFURAZONE 0.2% LIQUID,TOP~YES
+C0309618	C0309618	qualifier-synonym~NF_INACTIVATE	NITROFURAZONE 0.2% LIQUID,TOP~20070924
+C0331850	C0331850	qualifier-synonym~MANUFACTURER_STATUS	Lederle~Inactive
+C0331850	C0331850	qualifier-synonym~DATE_MODIFIED	Lederle~2010/05/28
+C0333953	C0333953	qualifier-synonym~HAS_DIMENSION	Involution~false
+C0334390	C0334390	qualifier-synonym~OBS	Acinar cell tumor~[obs]
+C0334390	C0334390	qualifier-synonym~TERM_LEVEL	Acinar cell tumor~Preferred
+C0334634	C0334634	qualifier-synonym~TERM_LEVEL	Malignant lymphoma, lymphocytic, intermediate differentiation, diffuse~Synonym
+C0334634	C0334634	qualifier-synonym~OBS	Malignant lymphoma, lymphocytic, intermediate differentiation, diffuse~[obs]
+C0350710	C0350710	PRESENTATION_STRENGTH_DENOMINATOR_VALUE	#1~1
+C0350710	C0350710	PRESENTATION_STRENGTH_NUMERATOR_VALUE	#250~1
+C0351319	C0351319	qualifier-synonym~RXN_OBSOLETED	potassium chloride 1.33 MEQ/ML Injectable Solution~04/30/2020
+C0354080	C0354080	qualifier-synonym~SNGL_OR_MULT_SRC_PRD	DIGOXIN 0.25MG/ML INJ~Multisource
+C0354080	C0354080	qualifier-synonym~MARKETING_CATEGORY	DIGOXIN 250 ug in 1 mL INTRAVENOUS INJECTION, SOLUTION~ANDA
+C0354080	C0354080	qualifier-synonym~MARKETING_STATUS	DIGOXIN 250 ug in 1 mL INTRAVENOUS INJECTION, SOLUTION~active
+C0354080	C0354080	qualifier-synonym~MARKETING_EFFECTIVE_TIME_LOW	DIGOXIN 250 ug in 1 mL INTRAVENOUS INJECTION, SOLUTION~20030821
+C0354080	C0354080	qualifier-synonym~ANDA	DIGOXIN 250 ug in 1 mL INTRAVENOUS INJECTION, SOLUTION~ANDA040481
+C0354080	C0354080	qualifier-synonym~RXN_QUANTITY	2 ML digoxin 0.25 MG/ML Injection~2 ML
+C0355713	C0355713	qualifier-synonym~RXCUI	diazepam 5 MG/ML Injectable Solution [Valium]~200938
+C0355713	C0355713	qualifier-synonym~RXAUI	diazepam 5 MG/ML Injectable Solution [Valium]~12355485
+C0355713	C0355713	qualifier-synonym~RXTERM_FORM	diazepam 5 MG/ML Injectable Solution [Valium]~Sol
+C0355713	C0355713	qualifier-synonym~RXN_OBSOLETED	diazepam 5 MG/ML Injectable Solution [Valium]~04/30/2020
+C0355713	C0355713	qualifier-synonym~RXN_AI	diazepam 5 MG/ML Injectable Solution [Valium]~{315799} 3322
+C0355713	C0355713	qualifier-synonym~RXN_BOSS_FROM	diazepam 5 MG/ML Injectable Solution [Valium]~{315799} AI
+C0355713	C0355713	qualifier-synonym~RXN_AM	diazepam 5 MG/ML Injectable Solution [Valium]~{315799} 3322
+C0356884	C0356884	qualifier-synonym~IMPRINT_CODE	METHOTREXATE SODIUM 2.5 mg ORAL TABLET~54323
+C0356884	C0356884	qualifier-synonym~SIZE	METHOTREXATE SODIUM 2.5 mg ORAL TABLET~6 mm
+C0356884	C0356884	qualifier-synonym~COLOR	METHOTREXATE SODIUM 2.5 mg ORAL TABLET~C48330
+C0356884	C0356884	qualifier-synonym~SCORE	METHOTREXATE SODIUM 2.5 mg ORAL TABLET~2
+C0356884	C0356884	qualifier-synonym~COLORTEXT	METHOTREXATE SODIUM 2.5 mg ORAL TABLET~YELLOW
+C0356884	C0356884	qualifier-synonym~SHAPE	METHOTREXATE SODIUM 2.5 mg ORAL TABLET~C48348
+C0356884	C0356884	qualifier-synonym~SHAPETEXT	METHOTREXATE SODIUM 2.5 mg ORAL TABLET~Convex
+C0358003	C0358003	qualifier-synonym~MARKETING_EFFECTIVE_TIME_HIGH	TRIAMCINOLONE ACETONIDE 1 mg in 1 g TOPICAL CREAM [TRIAMCINOLONE ACETONIDE]~20260131
+C0358097	C0358097	qualifier-synonym~OTC_MONOGRAPH_DRUG	BENZOYL PEROXIDE 100 mg in 1 g TOPICAL CREAM [CVS Health Concealing Acne Treatment Maximum Strength Adult Acne Treatment]~M006
+C0358097	C0358097	qualifier-synonym~OTC_MONOGRAPH_NOT_FINAL	BENZOYL PEROXIDE 10 g in 100 g TOPICAL CREAM [GOOD NEIGHBOR PHARMACY ACNE TREATMENT]~part333D
+C0358097	C0358097	qualifier-synonym~OTC_MONOGRAPH_FINAL	BENZOYL PEROXIDE 10 g in 100 g TOPICAL CREAM [FAMILY DOLLAR ACNE TREATMENT]~part333D
+C0358232	C0358232	qualifier-synonym~RXN_VET_DRUG	chlorhexidine gluconate 1 MG/ML Topical Solution~US
+C0359218	C0359218	qualifier-synonym~RXN_ACTIVATED	glucose 40 MG/ML / sodium chloride 0.03 MEQ/ML Injectable Solution~08/27/2024
+C0362125	C0362125	qualifier-synonym~COMMON_ORDER_RANK	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~0
+C0362125	C0362125	qualifier-synonym~LCT	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~MIN
+C0362125	C0362125	qualifier-synonym~VERSION_FIRST_RELEASED	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~1.0
+C0362125	C0362125	qualifier-synonym~CONSUMER_NAME	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~Susceptibility to Azithromycin
+C0362125	C0362125	qualifier-synonym~LRN2	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~ANTIBIOTIC SUSCEPTIBILITIES; AST; ID; Infectious Disease; InfectiousDisease; Islt; Isol; Minimum inhibitory concentration; Point in time; Random; Sus; Suscept; Susceptibilities; Susceptibility; Susceptibilty; Zithromax
+C0362125	C0362125	qualifier-synonym~COMMON_TEST_RANK	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~3684
+C0362125	C0362125	qualifier-synonym~VERSION_LAST_CHANGED	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~2.73
+C0362125	C0362125	qualifier-synonym~LOINC_METHOD_TYP	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~MIC
+C0362125	C0362125	qualifier-synonym~LOR	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~Observation
+C0362125	C0362125	qualifier-synonym~LCS	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~ACTIVE
+C0362125	C0362125	qualifier-synonym~LCN	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~1
+C0362125	C0362125	qualifier-synonym~LOINC_COMPONENT	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~Azithromycin
+C0362125	C0362125	qualifier-synonym~LOINC_TIME_ASPECT	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~Pt
+C0362125	C0362125	qualifier-synonym~LOINC_SYSTEM	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~Isolate
+C0362125	C0362125	qualifier-synonym~LOINC_PROPERTY	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~Susc
+C0362125	C0362125	qualifier-synonym~LCL	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~ABXBACT
+C0362125	C0362125	qualifier-synonym~LOINC_SCALE_TYP	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~OrdQn
+C0362127	C0362127	qualifier-synonym~EXAMPLE_UCUM_UNITS	Azithromycin:Titr:Pt:Isolate+Ser:SemiQn:SBT~{titer}
+C0362127	C0362127	qualifier-synonym~EXAMPLE_UNITS	Azithromycin:Titr:Pt:Isolate+Ser:SemiQn:SBT~titer
+C0363784	C0363784	qualifier-synonym~LUR	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~Y
+C0375111	C0375111	Publish_Value_Set	Yes
+C0376540	C0376540	qualifier-synonym~LT	NeoRecormon~TRD
+C0439243	C0439243	UNIT_SYMBOL	&#181;L
+C0441833	C0441833	qualifier-synonym~HL7AT	group~Determiner = determined
+C0449438	C0449438	qualifier-synonym~HL7TY	status~Token
+C0449438	C0449438	qualifier-synonym~HL7IM	status~false
+C0449446	C0449446	UMLSREL	RO
+C0449446	C0449446	UMLSRELA	has_surgical_approach
+C0454169	C0454169	qualifier-synonym~DEVTYPE	X-Ray Beam Aligners~Device is a SEE reference.
+C0460148	C0460148	qualifier-synonym~SPECIES	Human body~Human
+C0475455	C0475455	qualifier-synonym~MODULE_ID	T - Tumour stage~900000000000012004
+C0475455	C0475455	qualifier-synonym~MODULE_NAME	T - Tumour stage~SNOMED CT model component module
+C0483532	C0483532	qualifier-synonym~CHANGE_REASON_PUBLIC	Azithromycin:Susc:Pt:Isolate:OrdQn:Gradient strip~Feb 2016-removed "E-test" from the short and long names because the "ETEST" name is trademarked
+C0484838	C0484838	qualifier-synonym~SOS	Sulfhydryls:PrThr:Pt:Urine:Ord~Metabolic screen
+C0484838	C0484838	qualifier-synonym~ANSWER_LIST_ID	Sulfhydryls:PrThr:Pt:Urine:Ord~LL360-9
+C0484838	C0484838	qualifier-synonym~ANSWER_LIST_NAME	Sulfhydryls:PrThr:Pt:Urine:Ord~Pos&#x7C;Neg
+C0484838	C0484838	qualifier-synonym~ANSWER_LIST_OID	Sulfhydryls:PrThr:Pt:Urine:Ord~1.3.6.1.4.1.12009.10.1.2247
+C0499134	C0499134	qualifier-synonym~HBT	Injection, mesna, 200 mg~O1D=Chemotherapy
+C0499134	C0499134	qualifier-synonym~HTS	Injection, mesna, 200 mg~1=Medical care
+C0499134	C0499134	qualifier-synonym~HAQ	Injection, mesna, 200 mg~0
+C0499134	C0499134	qualifier-synonym~HAC	Injection, mesna, 200 mg~N=No maintenance for this code
+C0499134	C0499134	qualifier-synonym~HPI	Injection, mesna, 200 mg~51=Drugs
+C0499134	C0499134	qualifier-synonym~HMP	Injection, mesna, 200 mg~A=Not applicable as HCPCS priced under one methodology
+C0499134	C0499134	qualifier-synonym~HCC	Injection, mesna, 200 mg~D=Special coverage instructions apply
+C0499134	C0499134	qualifier-synonym~HMR	Injection, mesna, 200 mg~2049
+C0499134	C0499134	qualifier-synonym~HAD	Injection, mesna, 200 mg~20090101
+C0499134	C0499134	qualifier-synonym~HCD	Injection, mesna, 200 mg~19900101
+C0551722	C0551722	qualifier-synonym~LOINC_COMPONENT	Deprecated CT Abdomen study~Study.total
+C0551722	C0551722	qualifier-synonym~LOINC_PROPERTY	Deprecated CT Abdomen study~Find
+C0551722	C0551722	qualifier-synonym~STATUS_TEXT	Deprecated CT Abdomen study~Duplicate concept
+C0551722	C0551722	qualifier-synonym~LCT	Deprecated CT Abdomen study~DEL
+C0551722	C0551722	qualifier-synonym~COMMON_ORDER_RANK	Deprecated CT Abdomen study~0
+C0551722	C0551722	qualifier-synonym~LOINC_SYSTEM	Deprecated CT Abdomen study~Abdomen
+C0551722	C0551722	qualifier-synonym~COMMON_TEST_RANK	Deprecated CT Abdomen study~0
+C0551722	C0551722	qualifier-synonym~LOINC_TIME_ASPECT	Deprecated CT Abdomen study~Pt
+C0551722	C0551722	qualifier-synonym~LCN	Deprecated CT Abdomen study~3
+C0551722	C0551722	qualifier-synonym~LCL	Deprecated CT Abdomen study~ATTACH.CLINRPT
+C0551722	C0551722	qualifier-synonym~LOINC_SCALE_TYP	Deprecated CT Abdomen study~Doc
+C0551722	C0551722	qualifier-synonym~STATUS_REASON	Deprecated CT Abdomen study~Duplicate
+C0551722	C0551722	qualifier-synonym~LOINC_METHOD_TYP	Deprecated CT Abdomen study~CT
+C0551722	C0551722	qualifier-synonym~LMP	Deprecated CT Abdomen study~41806-1
+C0551722	C0551722	qualifier-synonym~LCS	Deprecated CT Abdomen study~DEPRECATED
+C0551722	C0551722	qualifier-synonym~VERSION_LAST_CHANGED	Deprecated CT Abdomen study~2.40
+C0551722	C0551722	qualifier-synonym~LRN2	Deprecated CT Abdomen study~Abd; Abdo; Abdomen+; Abdominal; ATTACH; ATTACH.CLINRPT; CAT scan; Computed tomography; Computerized tomography; CT scan; Document; Finding; Findings; Point in time; Random; Study report; Tot; Totl
+C0551722	C0551722	qualifier-synonym~VERSION_FIRST_RELEASED	Deprecated CT Abdomen study~1.0j-a
+C0551741	C0551741	qualifier-synonym~LEA	Activity:Find:Pt:Trunk^Fetus:Nom:US~Not observed, normal, abnormal &/or more specific code
+C0551961	C0551961	qualifier-synonym~LFO	Diameter.long.mean:Len:Pt:Liver^Fetus:Qn:Estimated from abdominal circumference~liver length (mm) = 6.32 + 1.34 * abdominal circumference (cm)
+C0588125	C0588125	qualifier-synonym~CODE_REF	Tenosynovial giant cell tumor, localised~(C49._)
+C0591085	C0591085	qualifier-synonym~LT	Amsacrina~TRD
+C0687883	C0687883	qualifier-synonym~NDA_AUTHORIZED_GENERIC	AMLODIPINE BESYLATE 5 mg ORAL TABLET~NDA019787
+C0687883	C0687883	qualifier-synonym~SYMBOL	Amlodipine besylate 5 MILLIGRAM In 1 TABLET ORAL TABLET~false
+C0687883	C0687883	qualifier-synonym~COATING	Amlodipine besylate 5 MILLIGRAM In 1 TABLET ORAL TABLET~false
+C0688021	C0688021	qualifier-synonym~NDA	BETAMETHASONE VALERATE 1 mg in 1 mL TOPICAL LOTION [Betamethasone Valerate]~NDA018866
+C0688807	C0688807	qualifier-synonym~DCSA	ESTROGENS, ESTERIFIED 1.25 mg / METHYLTESTOSTERONE 2.5 mg ORAL TABLET~CIII
+C0691451	C0691451	qualifier-synonym~NHRIC	FOLIC ACID 400 ug ORAL TABLET~10135-180-01
+C0692961	C0692961	COUNT_OF_ACTIVE_INGREDIENT	#1~0
+C0694598	C0694598	FREESURFER	206
+C0694598	C0694598	qualifier-synonym~FREESURFER_TERM	CA1 field~206: CA1
+C0703989	C0703989	qualifier-synonym~AMBIGUITY_FLAG	LIDOCAINE HCL 1%/EPINEPHRINE 1:200000 INJ~Base
+C0713917	C0713917	qualifier-synonym~RXN_AVAILABLE_STRENGTH	mesna 100 MG/ML Injectable Solution [Mesnex]~100 MG/ML
+C0713917	C0713917	qualifier-synonym~RXN_HUMAN_DRUG	mesna 100 MG/ML Injectable Solution [Mesnex]~US
+C0713917	C0713917	qualifier-synonym~NDC	mesna 100 MG/ML Injectable Solution [Mesnex]~00338130501
+C0717370	C0717370	qualifier-synonym~RXCUI	acetaminophen / pentazocine~214185
+C0717370	C0717370	qualifier-synonym~RXAUI	acetaminophen / pentazocine~12351221
+C0751291	C0751291	qualifier-synonym~CODE_REF	Circumscribed arachnoidal cerebellar sarcoma~(C71.6)
+C0772959	C0772959	qualifier-synonym~AMBIGUITY_FLAG	SODIUM BICARBONATE 84 mg in 1 mL PARENTERAL SOLUTION~Base
+C0773963	C0773963	qualifier-synonym~UNAPPROVED_DRUG_OTHER	ESTRONE SODIUM SULFATE 0.625 mg / METHYLTESTOSTERONE 1.25 mg ORAL TABLET, FILM COATED~N/A
+C0775081	C0775081	qualifier-synonym~BLA	ALBUMIN (HUMAN) 250 g in 1000 mL Intravenous SOLUTION [Albumin (Human)]~BLA125154
+C0779896	C0779896	qualifier-synonym~RXAUI	{10 (20 ML ifosfamide 50 MG/ML Injection) / 10 (mesna 100 MG/ML Injectable Solution) } Pack~12372896
+C0779896	C0779896	qualifier-synonym~RXCUI	{10 (20 ML ifosfamide 50 MG/ML Injection) / 10 (mesna 100 MG/ML Injectable Solution) } Pack~899367
+C0779896	C0779896	qualifier-synonym~RXN_OBSOLETED	{10 (20 ML ifosfamide 50 MG/ML Injection) / 10 (mesna 100 MG/ML Injectable Solution) } Pack~09/28/2022
+C0801742	C0801742	qualifier-synonym~PANEL_TYPE	Radiology studies:Cmplx:-:^Patient:Set~Panel
+C0879935	C0879935	qualifier-synonym~SOS	La Crosse virus Ab (S)~California encphalitis virus has more than 20 strains- most of which include "strain" in the name, One of these, La Crosse vIrus, has a name that does not signal that it is a strain of California encephalitis.
+C0879935	C0879935	qualifier-synonym~LMP	La Crosse virus Ab (S)~5073-2
+C0879935	C0879935	qualifier-synonym~LOINC_COMPONENT	La Crosse virus Ab (S)~La Crosse virus Ab
+C0879935	C0879935	qualifier-synonym~LCN	La Crosse virus Ab (S)~1
+C0879935	C0879935	qualifier-synonym~LCL	La Crosse virus Ab (S)~MICRO
+C0879935	C0879935	qualifier-synonym~COMMON_ORDER_RANK	La Crosse virus Ab (S)~0
+C0879935	C0879935	qualifier-synonym~LCT	La Crosse virus Ab (S)~DEL
+C0879935	C0879935	qualifier-synonym~LOINC_SYSTEM	La Crosse virus Ab (S)~Ser
+C0879935	C0879935	qualifier-synonym~LOINC_SCALE_TYP	La Crosse virus Ab (S)~OrdQn
+C0879935	C0879935	qualifier-synonym~COMMON_TEST_RANK	La Crosse virus Ab (S)~0
+C0879935	C0879935	qualifier-synonym~LOR	La Crosse virus Ab (S)~Both
+C0879935	C0879935	qualifier-synonym~LCS	La Crosse virus Ab (S)~DEPRECATED
+C0879935	C0879935	qualifier-synonym~STATUS_REASON	La Crosse virus Ab (S)~Erroneous
+C0879935	C0879935	qualifier-synonym~STATUS_TEXT	La Crosse virus Ab (S)~Invalid scale
+C0879935	C0879935	qualifier-synonym~LOINC_PROPERTY	La Crosse virus Ab (S)~ACnc
+C0879935	C0879935	qualifier-synonym~LOINC_TIME_ASPECT	La Crosse virus Ab (S)~Pt
+C0879935	C0879935	qualifier-synonym~VERSION_FIRST_RELEASED	La Crosse virus Ab (S)~1.0n
+C0879935	C0879935	qualifier-synonym~VERSION_LAST_CHANGED	La Crosse virus Ab (S)~2.36
+C0879935	C0879935	qualifier-synonym~CONSUMER_NAME	La Crosse virus Ab (S)~La Crosse virus antibody, Blood
+C0879935	C0879935	qualifier-synonym~LRN2	La Crosse virus Ab (S)~ABS; Aby; Antby; Anti; Antibodies; Antibody; Arbitrary concentration; Autoantibodies; Autoantibody; California Encephalitis Virus; ID; Infectious Disease; InfectiousDisease; Lacrosse virus; LACV; Microbiology; Point in time; Random; Serum; SR
+C0881774	C0881774	qualifier-synonym~ASSOC_OBSERVATIONS	Multisection:Find:Pt:Abdomen>Right upper quadrant:Doc:US~81220-6;72230-6
+C0881774	C0881774	qualifier-synonym~HL7_ATTACHMENT_STRUCTURE	Multisection:Find:Pt:Abdomen>Right upper quadrant:Doc:US~IG exists
+C0881774	C0881774	qualifier-synonym~IMAGING_DOCUMENT_VALUE_SET	Multisection:Find:Pt:Abdomen>Right upper quadrant:Doc:US~TRUE
+C0937459	C0937459	qualifier-synonym~HSN	Levonorgestrel-releasing intrauterine contraceptive system, 52 mg~1862a1
+C0937558	C0937558	qualifier-synonym~RXAUI	IRON SUCROSE 20MG/ML INJ_#1~7742287
+C0937558	C0937558	qualifier-synonym~VA_GENERIC_NAME	IRON SUCROSE 20MG/ML INJ_#1~IRON SUCROSE
+C0937558	C0937558	qualifier-synonym~NDC	IRON SUCROSE 20MG/ML INJ_#1~000517234025
+C0937558	C0937558	qualifier-synonym~NDF_TRANSMIT_TO_CMOP	IRON SUCROSE 20MG/ML INJ_#1~NO
+C0937558	C0937558	qualifier-synonym~AMBIGUITY_FLAG	IRON SUCROSE 20MG/ML INJ_#1~Duplicate
+C0937558	C0937558	qualifier-synonym~VA_CLASS_NAME	IRON SUCROSE 20MG/ML INJ_#1~[TN410] IRON
+C0937558	C0937558	qualifier-synonym~SNGL_OR_MULT_SRC_PRD	IRON SUCROSE 20MG/ML INJ_#1~Multisource
+C0937558	C0937558	qualifier-synonym~NFI	IRON SUCROSE 20MG/ML INJ_#1~YES
+C0937558	C0937558	qualifier-synonym~DCSA	IRON SUCROSE 20MG/ML INJ_#1~UNSCHEDULED
+C0937558	C0937558	qualifier-synonym~VA_DISPENSE_UNIT	IRON SUCROSE 20MG/ML INJ_#1~ML
+C0937558	C0937558	qualifier-synonym~RXCUI	IRON SUCROSE 20MG/ML INJ_#1~1741267
+C0937558	C0937558	qualifier-synonym~VAC	IRON SUCROSE 20MG/ML INJ_#1~TN410
+C0937558	C0937558	qualifier-synonym~NF_NAME	IRON SUCROSE 20MG/ML INJ_#1~IRON SUCROSE INJ,SOLN
+C0937558	C0937558	qualifier-synonym~VMO	IRON SUCROSE 20MG/ML INJ_#1~I0328
+C0937558	C0937558	qualifier-synonym~DDF	IRON SUCROSE 20MG/ML INJ_#1~INJ,SOLN
+C0943740	C0943740	qualifier-synonym~LQS	Diarrhea:Find:Pt:Gastrointestinal system:Ord:Observed.CCC~CLINICAL CARE CLASSIFICATION B03.3
+C0943799	C0943799	qualifier-synonym~STATUS_TEXT	Colonic constipation:Find:Pt:Gastrointestinal system:Ord:Observed.CCC~Term is retired as of CCC System v2.5.
+C0943995	C0943995	qualifier-synonym~LQT	Diarrhea:Find:24H:Gastrointestinal system:Ord:Reported.HIV-SSC~Sign and Symptom Checklist for persons with HIV disease
+C0974670	C0974670	qualifier-synonym~MARKETING_EFFECTIVE_TIME_LOW	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~20221117
+C0974670	C0974670	qualifier-synonym~SPL_SET_ID	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~01649d79-4677-4577-a3e4-e054f3f9fc3b
+C0974670	C0974670	qualifier-synonym~RXAUI	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~12781120
+C0974670	C0974670	qualifier-synonym~ANDA	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~ANDA065398
+C0974670	C0974670	qualifier-synonym~IMPRINT_CODE	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~LU;L04
+C0974670	C0974670	qualifier-synonym~MARKETING_CATEGORY	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~ANDA
+C0974670	C0974670	qualifier-synonym~SHAPE	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~C48345
+C0974670	C0974670	qualifier-synonym~LABELER	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~Lupin Pharmaceuticals, Inc.
+C0974670	C0974670	qualifier-synonym~NDC	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~68180-861-06
+C0974670	C0974670	qualifier-synonym~RXCUI	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~308460
+C0974670	C0974670	qualifier-synonym~COLORTEXT	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~PINK
+C0974670	C0974670	qualifier-synonym~COLOR	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~C48328
+C0974670	C0974670	qualifier-synonym~LABEL_TYPE	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~HUMAN PRESCRIPTION DRUG LABEL
+C0974670	C0974670	qualifier-synonym~AMBIGUITY_FLAG	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~Duplicate
+C0974670	C0974670	qualifier-synonym~SCORE	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~1
+C0974670	C0974670	qualifier-synonym~MARKETING_STATUS	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~active
+C0974670	C0974670	qualifier-synonym~SIZE	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~14 mm
+C0974670	C0974670	qualifier-synonym~DM_SPL_ID	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET_#1~751995
+C0974670	C0974670	qualifier-synonym~SHAPETEXT	AZITHROMYCIN ANHYDROUS 250 mg ORAL TABLET, FILM COATED_#1~oval shaped biconvex
+C0974670	C0974670	qualifier-synonym~NDA_AUTHORIZED_GENERIC	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET, FILM COATED_#2~NDA050711
+C0975266	C0975266	qualifier-synonym~NADA	Carbon Dioxide 1000 mL in 1 L RESPIRATORY (INHALATION) GAS~NADA141385
+C0991538	C0991538	qualifier-synonym~HL7RD	Orderable Drug Form~2019-03-20
+C0991538	C0991538	qualifier-synonym~HL7CC	Orderable Drug Form~true
+C0991538	C0991538	qualifier-synonym~HL7MI	Orderable Drug Form~true
+C0991538	C0991538	qualifier-synonym~HL7SL	Orderable Drug Form~en
+C0991538	C0991538	qualifier-synonym~HL7AI	Orderable Drug Form~true
+C0991538	C0991538	qualifier-synonym~HL7HI	Orderable Drug Form~<historyItem dateTime="2020-05-06" id="v3-orderableDrugForm-cs-1-0-0" responsiblePersonName="Ted Klein"><description>UPDATE:</description></historyItem>
+C0995203	C0995203	HAS_HUMAN_READABLE_URI	http://www.ncbi.nlm.nih.gov/Taxonomy/taxonomyhome.html/
+C1114428	C1114428	qualifier-synonym~LOR	Deprecated Abdomen CT W contrast~Both
+C1114428	C1114428	qualifier-synonym~CHANGE_REASON_PUBLIC	Deprecated Abdomen CT W contrast~The scale has been changed from "Nar" to "Doc" to fit with the CDA model.
+C1114428	C1114428	qualifier-synonym~LUR	Deprecated Abdomen CT W contrast~N
+C1114428	C1114428	qualifier-synonym~ASSOC_OBSERVATIONS	Deprecated Abdomen CT W contrast~81220-6;72230-6
+C1114428	C1114428	qualifier-synonym~HL7_ATTACHMENT_STRUCTURE	Deprecated Abdomen CT W contrast~IG exists
+C1135584	C1135584	qualifier-synonym~HL7OD	MeSH~2.16.840.1.113883.6.177
+C1136323	C1136323	HAS_MACHINE_READABLE_URI	http://www.loinc.org/download
+C1140148	C1140148	qualifier-synonym~HL7IS	HCPCS~false
+C1140168	C1140168	DEPRECATION_IN_VERSION	1.1.7
+C1140168	C1140168	DEPRECATION_OLD_PARENT	TumorGradingDatabase
+C1140168	C1140168	DEPRECATION_REASON	split_term
+C1140168	C1140168	SPLIT_TO_TERM	NCI_compound_database
+C1179877	C1179877	qualifier-synonym~HAS_MASS	Immaterial anatomical entity~false
+C1246850	C1246850	qualifier-synonym~RXCUI	mesna Oral Tablet~372790
+C1246850	C1246850	qualifier-synonym~RXAUI	mesna Oral Tablet~12258108
+C1246850	C1246850	qualifier-synonym~MONOGRAPH_OFFICIAL_DATE	Mesna Tablets~03/01/2019
+C1246850	C1246850	qualifier-synonym~MONOGRAPH_STATUS	Mesna Tablets~Official Monograph
+C1305923	C1305923	DEPRECATION_REPLACEMENT_TERM	TheoreticalBioSequenceType
+C1305923	C1305923	qualifier-synonym~HL7II	ActClassPolypeptide~true
+C1327690	C1327690	qualifier-synonym~NDC	{6 (azithromycin 250 MG Oral Tablet) } Pack~61919036206
+C1327690	C1327690	qualifier-synonym~RXN_HUMAN_DRUG	{6 (azithromycin 250 MG Oral Tablet) } Pack~US
+C1414333	C1414333	qualifier-synonym~DATE_SYMBOL_CHANGED	argonaute RISC catalytic component 2~2013-02-15
+C1415662	C1415662	EntrezGene_ID	3210
+C1544439	C1544439	qualifier-synonym~UNIVERSAL_LAB_ORDERS_VALUE_SET	Drugs:Prid:Pt:Urine:Nom:Confirm~TRUE
+C1550604	C1550604	qualifier-synonym~HL7ID	color~10437
+C1553931	C1553931	qualifier-synonym~HL7PK	HL7 Version 3.0~version
+C1553931	C1553931	qualifier-synonym~HL7DK	HL7 Version 3.0~partial-publishing
+C1553931	C1553931	qualifier-synonym~HL7XN	HL7 Version 3.0~urn:hl7-org:v3/mif2
+C1553931	C1553931	qualifier-synonym~HL7TI	HL7 Version 3.0~HL7 Vocabulary
+C1553931	C1553931	qualifier-synonym~HL7RN	HL7 Version 3.0~UV
+C1553931	C1553931	qualifier-synonym~HL7AR	HL7 Version 3.0~VO
+C1553931	C1553931	qualifier-synonym~HL7PR	HL7 Version 3.0~DEFN
+C1553931	C1553931	qualifier-synonym~HL7CP	HL7 Version 3.0~Health Level Seven, Inc.
+C1553931	C1553931	qualifier-synonym~HL7SV	HL7 Version 3.0~2.1.7
+C1553931	C1553931	qualifier-synonym~HL7RA	HL7 Version 3.0~UTG FHIR to MIF transform 0.1
+C1553931	C1553931	qualifier-synonym~HL7CY	HL7 Version 3.0~2024
+C1553931	C1553931	qualifier-synonym~HL7CI	HL7 Version 3.0~DEFN=UV=VO=2024-11-17
+C1553931	C1553931	qualifier-synonym~HL7RT	HL7 Version 3.0~2024-11-17T12:34:43
+C1553931	C1553931	qualifier-synonym~HL7MN	HL7 Version 3.0~2024-11-17
+C1553931	C1553931	qualifier-synonym~HL7VE	HL7 Version 3.0~2024-11-17
+C1629533	C1629533	qualifier-synonym~RXN_QUALITATIVE_DISTINCTION	Matrix Delivery 24 HR tramadol hydrochloride 100 MG Extended Release Oral Tablet~Matrix Delivery
+C1699591	C1699591	qualifier-synonym~HL7CSC	ActInvoiceElementCode~ActClass.INVE
+C1716728	C1716728	qualifier-synonym~EXTERNAL_COPYRIGHT_LINK	Constipation:Find:Pt:^Patient:Ord:MDS~interRAI
+C1716728	C1716728	qualifier-synonym~COPYRIGHT	Constipation:Find:Pt:^Patient:Ord:MDS~InterRAI holds the copyright to Version 2.0 of the RAI for long term care outside of the US. Supplemental help and contextual information for MDS items in LOINC was derived from Version 2.0 of the RAI/MDS manual, and should not be reproduced outside of the United States without permission of InterRAI. Within the US, Version 2.0 is in the public domain. As a not for profit corporation under the US Tax Code, interRAI holds the copyright to a number of assessment systems, including the Resident Assessment Instrument (RAI) for long term care facilities outside of the US (the RAI is in the public domain within the US), as well as the assessment systems for Home Care (HC), Assisted Living (AL), Palliative Care (PC), Mental Health (MH) (outside of Canada), and Acute Care (RAI-AC). The scales, algorithms, and case-mix measures based on these assessment instruments cannot be copyrighted and are thus available to everyone (although the individual items on which they are based are usually copyrighted). The major clauses of our royalty-free licenses follow: * the instrument is not to be changed substantially (excepting individual identifiers and demographics); * the license is limited to non-commercial use (i.e., the instrument will not be not incorporated into products to be sold to others); * no royalties will be charged; * the organization will make appropriate efforts to inform others of the copyright status of the instrument; * interRAI's logo and copyright notice are to appear on the form; * authors, author institutions, and translators (as appropriate) are to be acknowledged in any document where authors would regularly be indicated (e.g., publication of a training manual); * publication of any training manual is limited to the period until a commercially-published version is available; * data from use of the instrument are to be shared with interRAI, subject to existing laws on confidentiality. Commercial use usually requires royalties. In this instance, interRAI may omit the data requirement, but retains the other requirements for a logo, attribution, etc. We will be pleased in any contract negotiations to acknowledge the participation of individuals or organizations which have played a substantial role in getting the instrument to the point of implementation. For more information on licensing with interRAI, please contact the president of the Board: Brant E. Fries, Ph.D. Institute of Gerontology University of Michigan 300 North Ingalls Ann Arbor, Michigan USA 48109 Email: bfries@umich.edu
+C1830813	C1830813	qualifier-synonym~LMP	Endocrine disorders:Imp:Pt:Bld.dot:Ord~46762-1
+C1869007	C1869007	SMQ_NOTE	NOTE: Due to MedDRA rules and conventions, LLT Rhabdomyolysis-induced renal failure is placed under PT Acute kidney injury. Therefore, LLT Rhabdomyolysis-induced renal failure is included as a broad search term even though it would logically be a narrow term because its PT Acute kidney injury is a broad term.
+C1869007	C1869007	SMQ_LEVEL	1
+C1869007	C1869007	SMQ_SOURCE	Basic requirements for the use of terms for reporting adverse drug reactions (IV). Pharmacoepidemiology and Drug Safety 1993; 2:149-153. Myopathy. Reporting Adverse Drug Reactions: Definitions of Terms and Criteria for Their Use. Bankowski Z, Bruppacher R, Crusius I et al (Eds). Council for International Organizations of Medical Sciences: Geneva, 1999, pg. 16-17. Poels PJE and Gabreels FJM. Rhabdomyolysis: a review of the literature. Clin Neurol Neurosurg 1993; 95:175-192. Omar MA, Wilson JP, and Cox, TS. Rhabdomyolysis and HMG-CoA reductase inhibitors. Annals Pharmacother 2001; 35:1096-1107. Prendergast BD and George CF. Drug-induced rhabdomyolysis - mechanisms and management. Postgrad Med J 1993; 69:333-336.
+C1869007	C1869007	SMQ_STATUS	A
+C1869007	C1869007	SMQ_ALGORITHM	N
+C1878682	C1878682	qualifier-synonym~NDA	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET, FILM COATED [Zithromax]_#1~NDA050711
+C1880104	C1880104	Value_Set_Pair	No
+C1880104	C1880104	Term_Browser_Value_Set_Description	<p><a href="https://www.cdisc.org/">Clinical Data Interchange Standards Consortium (CDISC)</a> is an international, non-profit organization that develops and supports global data standards for medical research. <a href="https://www.cancer.gov/cancertopics/cancerlibrary/terminologyresources/cdisc">CDISC collaborates with EVS</a> to develop and support controlled terminology for a wide spectrum of clinical and nonclinical studies. CDISC terminology goes through an extensive process of content development and public review before it is declared ready for release.</p><p>The value sets presented here represent the various CDISC codesets stored within the NCI Thesaurus. These are also available for download from the <a href="https://evs.nci.nih.gov/ftp1/CDISC">EVS FTP site</a>.</p>
+C2698634	C2698634	Extensible_List	Yes
+C2720507	C2720507	DEFAULT_MODULE_ID	900000000000207008
+C2720507	C2720507	DEFAULT_LANGUAGECODE	en
+C2954745	C2954745	qualifier-synonym~LEGALLY_MARKETED_UNAPPROVED_NEW_ANIMAL_DRUGS_FOR_MINOR_SPECIES	metomidate 1000 mg in 1 g TOPICAL POWDER [Aquacalm]~MIF900002
+C2984278	C2984278	KEGG_ID	hsa05210
+C3149028	C3149028	qualifier-synonym~TERM_LEVEL	Gastrointestinal pacemaker cell tumor~Related
+C3149028	C3149028	qualifier-synonym~OBS	Gastrointestinal pacemaker cell tumor~[obs]
+C3203416	C3203416	qualifier-synonym~HL7UN	MaterialForm~When the Material class is specialised to Manufactured Material, which it is to routinely to describe Medicinal products and ingredient Substances, and to Containers and Devices, the Material Form attribute is used more explicitly to describe the form and manifestation of these types of concepts - for example for medicinal products, the formCode describes their dose form (tablet, ointment); and for containers, it is their physical type (box, carton, vial). Examples: Powder Liquid Gas
+C3238825	C3238825	qualifier-synonym~RXN_AVAILABLE_STRENGTH	Mesnex Injectable Product~100 MG/ML
+C3238825	C3238825	qualifier-synonym~RXAUI	Mesnex Injectable Product~3840514
+C3238825	C3238825	qualifier-synonym~RXCUI	Mesnex Injectable Product~1185037
+C3267643	C3267643	qualifier-synonym~NADA	HYALURONATE SODIUM 20 mg in 2 mL INTRA-ARTICULAR LIQUID [Hyalovet]_#2~NADA140806
+C3267643	C3267643	qualifier-synonym~RXN_VET_DRUG	sodium hyaluronate 10 MG/ML Injectable Solution [HYALOVET]~US
+C3527813	C3527813	qualifier-synonym~RXAUI	heparin sodium, porcine 1000 UNT/ML~5036674
+C3527813	C3527813	qualifier-synonym~RXN_IN_EXPRESSED_FLAG	heparin sodium, porcine 1000 UNT/ML~P
+C3527813	C3527813	qualifier-synonym~RXN_STRENGTH	heparin sodium, porcine 1000 UNT/ML~1000 UNT/ML
+C3527813	C3527813	qualifier-synonym~RXCUI	heparin sodium, porcine 1000 UNT/ML~1361225
+C3527813	C3527813	qualifier-synonym~RXN_BOSS_STRENGTH_DENOM_VALUE	heparin sodium, porcine 1000 UNT/ML~1
+C3527813	C3527813	qualifier-synonym~RXN_BOSS_STRENGTH_DENOM_UNIT	heparin sodium, porcine 1000 UNT/ML~ML
+C3527813	C3527813	qualifier-synonym~RXN_BOSS_STRENGTH_NUM_UNIT	heparin sodium, porcine 1000 UNT/ML~UNT
+C3527813	C3527813	qualifier-synonym~RXN_BOSS_STRENGTH_NUM_VALUE	heparin sodium, porcine 1000 UNT/ML~1000
+C3536527	C3536527	qualifier-synonym~RXAUI	alogliptin / metformin Oral Product~12296167
+C3536527	C3536527	qualifier-synonym~RXN_AVAILABLE_STRENGTH	alogliptin / metformin Oral Product~12.5 MG / 1000 MG
+C3536527	C3536527	qualifier-synonym~RXCUI	alogliptin / metformin Oral Product~1368381
+C3539096	C3539096	REFSET_PATTERN	Annotation type
+C3539107	C3539107	DESCRIPTION_FORMAT	900000000000540000
+C3539107	C3539107	DESCRIPTION_LENGTH	4096
+C3550748	C3550748	qualifier-synonym~SEE_ALSO	Acute lymphoblastic leukemia, NOS~(see also M-9727/3)
+C3550748	C3550748	qualifier-synonym~SEE_ALSO	Precursor cell lymphoblastic leukemia, NOS~(see also M-9727/3)
+C3645705	C3645705	qualifier-synonym~MAPSETSID	SNOMEDCT_US_2025_03_01 to ICD10CM_2025 Mappings~6011000124106
+C3645705	C3645705	qualifier-synonym~MAPSETNAME	SNOMEDCT_US_2025_03_01 to ICD10CM_2025 Mappings~ICD-10-CM complex map reference set
+C3645705	C3645705	qualifier-synonym~MAPSETVERSION	SNOMEDCT_US_2025_03_01 to ICD10CM_2025 Mappings~20250301
+C3645705	C3645705	qualifier-synonym~MAPSETRSAB	SNOMEDCT_US_2025_03_01 to ICD10CM_2025 Mappings~SNOMEDCT_US
+C3645705	C3645705	qualifier-synonym~MAPSETVSAB	SNOMEDCT_US_2025_03_01 to ICD10CM_2025 Mappings~SNOMEDCT_US_2025_03_01
+C3645705	C3645705	qualifier-synonym~FROMRSAB	SNOMEDCT_US_2025_03_01 to ICD10CM_2025 Mappings~SNOMEDCT_US
+C3645705	C3645705	qualifier-synonym~FROMVSAB	SNOMEDCT_US_2025_03_01 to ICD10CM_2025 Mappings~SNOMEDCT_US_2025_03_01
+C3645705	C3645705	qualifier-synonym~TORSAB	SNOMEDCT_US_2025_03_01 to ICD10CM_2025 Mappings~ICD10CM
+C3645705	C3645705	qualifier-synonym~TOVSAB	SNOMEDCT_US_2025_03_01 to ICD10CM_2025 Mappings~ICD10CM_2025
+C3645705	C3645705	qualifier-synonym~SOS	SNOMEDCT_US_2025_03_01 to ICD10CM_2025 Mappings~This set maps SNOMEDCT_US concept identifiers to ICD-10-CM codes; a single SNOMEDCT_US concept id may be mapped to one or more ICD-10-CM codes
+C3645705	C3645705	qualifier-synonym~MTH_MAPSETCOMPLEXITY	SNOMEDCT_US_2025_03_01 to ICD10CM_2025 Mappings~N_TO_N
+C3645705	C3645705	qualifier-synonym~MTH_MAPFROMCOMPLEXITY	SNOMEDCT_US_2025_03_01 to ICD10CM_2025 Mappings~SINGLE SCUI
+C3645705	C3645705	qualifier-synonym~MTH_MAPTOCOMPLEXITY	SNOMEDCT_US_2025_03_01 to ICD10CM_2025 Mappings~SINGLE SDUI, MULTIPLE SDUI
+C3645705	C3645705	qualifier-synonym~MTH_MAPFROMEXHAUSTIVE	SNOMEDCT_US_2025_03_01 to ICD10CM_2025 Mappings~N
+C3645705	C3645705	qualifier-synonym~MTH_MAPTOEXHAUSTIVE	SNOMEDCT_US_2025_03_01 to ICD10CM_2025 Mappings~N
+C3714086	C3714086	miRBase_ID	MIMAT0003239
+C3809229	C3809229	qualifier-synonym~CODE_FIRST	Cardiomyopathy~pre-existing cardiomyopathy complicating pregnancy and puerperium (O99.4)
+C3809964	C3809964	qualifier-synonym~LNCIPEDIA	SWI/SNF complex antagonist associated with prostate cancer 1~SCHLAP1
+C3871245	C3871245	qualifier-synonym~HXR	Injection, elosulfase alfa, 1mg~J1322
+C3871245	C3871245	qualifier-synonym~HPG	Injection, elosulfase alfa, 1 mg~YY
+C3871245	C3871245	qualifier-synonym~HPD	Injection, elosulfase alfa, 1 mg~20150101
+C4048925	C4048925	qualifier-synonym~DCSA	MORPHINE SULFATE 10 mg in 1 mL INTRAVENOUS INJECTION, SOLUTION [Morphine Sulfate]_#2~CII
+C4490588	C4490588	qualifier-synonym~RXN_QUANTITY	1 ML guselkumab 100 MG/ML Prefilled Syringe [Tremfya]~1 ML
+C4490588	C4490588	qualifier-synonym~BLA	GUSELKUMAB 100 mg in 1 mL SUBCUTANEOUS INJECTION [TREMFYA]_#1~BLA761061
+CL1413638	CL1413638	qualifier-synonym~RXCUI	mesna Injectable Solution [Mesnex]~93278
+CL1413638	CL1413638	qualifier-synonym~RXAUI	mesna Injectable Solution [Mesnex]~12316660
+CL1419003	CL1419003	qualifier-synonym~RXN_OBSOLETED	mesna 50 MG/ML~04/30/2020
+CL1431134	CL1431134	qualifier-synonym~RXN_OBSOLETED	ifosfamide / mesna Injectable Solution~04/30/2020
+CL1442749	CL1442749	qualifier-synonym~RXCUI	mesna 400 MG [Mesnex]~575932
+CL1442749	CL1442749	qualifier-synonym~RXAUI	mesna 400 MG [Mesnex]~12306355
+CL1642989	CL1642989	Homologous_Gene	Drosophila sevenless
+CL1773629	CL1773629	Micronutrient	Y
+CL1773629	CL1773629	US_Recommended_Intake	Y
+CL1773629	CL1773629	Nutrient	Y
+CL1948316	CL1948316	MAPSETVERSION	2016_07_31
+CL1948316	CL1948316	FROMVSAB	PDQ_2016_07_31
+CL1948316	CL1948316	MAPSETVSAB	PDQ_2016_07_31
+CL1948316	CL1948316	MAPSETSID	100001
+CL1948316	CL1948316	TOVSAB	NCI_2025_06E
+CL1948316	CL1948316	MTH_MAPSETCOMPLEXITY	N_TO_N
+CL1948316	CL1948316	TORSAB	NCI
+CL1948316	CL1948316	MTH_MAPTOCOMPLEXITY	SINGLE SCUI
+CL1948316	CL1948316	MAPSETRSAB	PDQ
+CL1948316	CL1948316	MTH_MAPTOEXHAUSTIVE	N
+CL1948316	CL1948316	FROMRSAB	PDQ
+CL1948316	CL1948316	MTH_MAPFROMCOMPLEXITY	SINGLE SDUI
+CL1948316	CL1948316	MTH_MAPFROMEXHAUSTIVE	N
+CL440756	CL440756	qualifier-synonym~ROMANIZATION_SYS_ID	Montana~Joint project of the Ministry of State Administration and Administrative Reform (MSAAR) and the Institute for Bulgarian Language at the Bulgarian Academy of Sciences, 2006
+CL440757	CL440757	qualifier-synonym~REGIONAL_DIV	Mali~L
+CL503177	CL503177	BioCarta_ID	h_wntPathway
+CL508249	CL508249	qualifier-synonym~DATE_CREATED	obsolete amylin receptor~2014-08-06T10:21:37Z
+CL554605	CL554605	qualifier-synonym~DISJOINT_FROM	growth~GO:0044848 ! biological phase
+CL561264	CL561264	qualifier-synonym~ANADA	AMOXICILLIN ANHYDROUS 50 mg in 1 mL / CLAVULANATE POTASSIUM 12.5 mg in 1 mL ORAL SUSPENSION [Amoxicillin and Clavulanate Potassium Drops]~ANADA200709
+CL572423	CL572423	qualifier-synonym~LOINC_METHOD_TYP	T classification CAP Nom (Prostate tumor)~CAP cancer protocols
+CL572423	CL572423	qualifier-synonym~LUR	T classification CAP Nom (Prostate tumor)~N
+CL589001	CL589001	qualifier-synonym~HL7_FIELD_SUBFIELD_ID	Frequency prescribed:NRat:Pt:Medication:Qn~TQ1-3
+CL595887	CL595887	qualifier-synonym~IEEE_CF_CODE10	Class:Type:Pt:Nebulizer:Nom~184408
+CL595887	CL595887	qualifier-synonym~IEEE_REFID	Class:Type:Pt:Nebulizer:Nom~MDC_NEB_DEV_TYPE
+CL595887	CL595887	qualifier-synonym~EQUIVALENCE	Class:Type:Pt:Nebulizer:Nom~184408:MDC_NEB_DEV_TYPE:equivalent
+CL604463	CL604463	qualifier-synonym~MOVED_FROM	COL1A2, IVS6DS, G-A, +1~120160.0024
+C0000005	C0000005	Semantic_Type	Amino Acid, Peptide, or Protein
+C0000005	C0000005	Semantic_Type	Pharmacologic Substance
+C0000005	C0000005	Semantic_Type	Indicator, Reagent, or Diagnostic Aid
+C0000039	C0000039	Semantic_Type	Organic Chemical
+C0000052	C0000052	Semantic_Type	Enzyme
+C0000097	C0000097	Semantic_Type	Hazardous or Poisonous Substance
+C0000726	C0000726	Semantic_Type	Body Location or Region
+C0000727	C0000727	Semantic_Type	Sign or Symptom
+C0000731	C0000731	Semantic_Type	Finding
+C0000735	C0000735	Semantic_Type	Neoplastic Process
 C0000739	C0000739	Semantic_Type	Body Part, Organ, or Organ Component
 C0000744	C0000744	Semantic_Type	Disease or Syndrome
 C0000768	C0000768	Semantic_Type	Congenital Abnormality
+C0000769	C0000769	Semantic_Type	Functional Concept
 C0000850	C0000850	Semantic_Type	Fungus
-C0005898	C0005898	Semantic_Type	Body Location or Region
+C0001072	C0001072	Semantic_Type	Behavior
+C0001555	C0001555	Semantic_Type	Quantitative Concept
+C0001688	C0001688	Semantic_Type	Qualitative Concept
+C0001849	C0001849	Semantic_Type	Mental or Behavioral Dysfunction
+C0001861	C0001861	Semantic_Type	Substance
+C0002235	C0002235	Semantic_Type	Biologically Active Substance
+C0002372	C0002372	Semantic_Type	Inorganic Chemical
+C0002776	C0002776	Semantic_Type	Chemical Viewed Structurally
+C0002805	C0002805	Semantic_Type	Therapeutic or Preventive Procedure
+C0002979	C0002979	Semantic_Type	Diagnostic Procedure
+C0003139	C0003139	Semantic_Type	Chemical Viewed Functionally
+C0003353	C0003353	Semantic_Type	Geographic Area
+C0003964	C0003964	Semantic_Type	Body Substance
+C0004268	C0004268	Semantic_Type	Mental Process
+C0004757	C0004757	Semantic_Type	Eukaryote
+C0004958	C0004958	Semantic_Type	Language
+C0006100	C0006100	Semantic_Type	Hormone
+C0006614	C0006614	Semantic_Type	Immunologic Factor
+C0006935	C0006935	Semantic_Type	Biomedical or Dental Material
+C0006976	C0006976	Semantic_Type	Antibiotic
+C0007009	C0007009	Semantic_Type	Element, Ion, or Isotope
+C0007584	C0007584	Semantic_Type	Laboratory Procedure
+C0008300	C0008300	Semantic_Type	Individual Behavior
 C0008902	C0008902	Semantic_Type	Classification
+C0009451	C0009451	Semantic_Type	Anatomical Abnormality
+C0009780	C0009780	Semantic_Type	Tissue
+C0011164	C0011164	Semantic_Type	Pathologic Function
 C0012238	C0012238	Semantic_Type	Organism Function
 C0012240	C0012240	Semantic_Type	Body System
+C0012656	C0012656	Semantic_Type	Animal
+C0013075	C0013075	Semantic_Type	Body Space or Junction
 C0013221	C0013221	Semantic_Type	Injury or Poisoning
-C0013395	C0013395	Semantic_Type	Sign or Symptom
-C0013557	C0013557	Semantic_Type	Functional Concept
+C0013710	C0013710	Semantic_Type	Food
+C0014508	C0014508	Semantic_Type	Intellectual Product
+C0016030	C0016030	Semantic_Type	Cell
+C0017447	C0017447	Semantic_Type	Occupation or Discipline
+C0018851	C0018851	Semantic_Type	Environmental Effect of Humans
 C0018943	C0018943	Semantic_Type	Biomedical Occupation or Discipline
-C0019080	C0019080	Semantic_Type	Pathologic Function
-C0019270	C0019270	Semantic_Type	Anatomical Abnormality
-C0021423	C0021423	Semantic_Type	Occupation or Discipline
-C0027672	C0027672	Semantic_Type	Neoplastic Process
-C0031150	C0031150	Semantic_Type	Diagnostic Procedure
-C0033613	C0033613	Semantic_Type	Chemical Viewed Functionally
-C0035359	C0035359	Semantic_Type	Body Space or Junction
-C0052796	C0052796	Semantic_Type	Antibiotic
-C0065541	C0065541	Semantic_Type	Therapeutic or Preventive Procedure
-C0220965	C0220965	Semantic_Type	Intellectual Product
-C0242481	C0242481	Semantic_Type	Research Activity
-C0444868	C0444868	Semantic_Type	Quantitative Concept
-C0494710	C0494710	Semantic_Type	Acquired Abnormality
-C0718043	C0718043	Semantic_Type	Amino Acid, Peptide, or Protein
-C0718043	C0718043	Semantic_Type	Enzyme
-C0993159	C0993159	Semantic_Type	Biomedical or Dental Material
-C1511989	C1511989	Semantic_Type	Conceptual Entity
-C1512910	C1512910	Semantic_Type	Spatial Concept
-C1619351	C1619351	Semantic_Type	Qualitative Concept
-C1710021	C1710021	Semantic_Type	Regulation or Law
-CL343444	CL343444	Semantic_Type	Professional or Occupational Group
-CL555329	CL555329	Semantic_Type	Manufactured Object
-C0000294	C0000294	DEFINITION	A sulfhydryl compound that is used to reduce the incidence of hemorrhagic cystitis associated with certain chemotherapeutic agents. Mesna is converted to a free thiol compound in the kidney, where it binds to and inactivates acrolein and other urotoxic metabolites of ifosfamide and cyclophosphamide, thereby reducing their toxic effects on the urinary tract during urinary excretion. (NCI04)
+C0019288	C0019288	Semantic_Type	Acquired Abnormality
+C0019381	C0019381	Semantic_Type	Virus
+C0019860	C0019860	Semantic_Type	Health Care Activity
+C0020017	C0020017	Semantic_Type	Manufactured Object
+C0020017	C0020017	Semantic_Type	Health Care Related Organization
+C0020440	C0020440	Semantic_Type	Laboratory or Test Result
+C0020857	C0020857	Semantic_Type	Cell Component
+C0021200	C0021200	Semantic_Type	Occupational Activity
+C0021954	C0021954	Semantic_Type	Regulation or Law
+C0022189	C0022189	Semantic_Type	Research Activity
+C0025080	C0025080	Semantic_Type	Medical Device
+C0025082	C0025082	Semantic_Type	Professional or Occupational Group
+C0025914	C0025914	Semantic_Type	Mammal
+C0028032	C0028032	Semantic_Type	Nucleic Acid, Nucleoside, or Nucleotide
+C0031797	C0031797	Semantic_Type	Idea or Concept
+C0031845	C0031845	Semantic_Type	Biologic Function
+C0031862	C0031862	Semantic_Type	Vitamin
+C0032932	C0032932	Semantic_Type	Molecular Function
+C0034786	C0034786	Semantic_Type	Receptor
+C0038085	C0038085	Semantic_Type	Gene or Genome
+C0040833	C0040833	Semantic_Type	Temporal Concept
+C0041735	C0041735	Semantic_Type	Organization
+C0079043	C0079043	Semantic_Type	Organ or Tissue Function
+C0086767	C0086767	Semantic_Type	Plant
+C0162789	C0162789	Semantic_Type	Molecular Biology Research Technique
+C0178338	C0178338	Semantic_Type	Patient or Disabled Group
+C0205143	C0205143	Semantic_Type	Spatial Concept
+C0205208	C0205208	Semantic_Type	Natural Phenomenon or Process
+C0220844	C0220844	Semantic_Type	Phenomenon or Process
+C0231052	C0231052	Semantic_Type	Embryonic Structure
+C0231961	C0231961	Semantic_Type	Clinical Attribute
+C0234057	C0234057	Semantic_Type	Social Behavior
+C0265415	C0265415	Semantic_Type	Cell or Molecular Dysfunction
+C0282288	C0282288	Semantic_Type	Family Group
+C0304655	C0304655	Semantic_Type	Clinical Drug
+C0326233	C0326233	Semantic_Type	Bird
+C0336966	C0336966	Semantic_Type	Daily or Recreational Activity
+C0337804	C0337804	Semantic_Type	Population Group
+C0429677	C0429677	Semantic_Type	Physiologic Function
+C0444584	C0444584	Semantic_Type	Anatomical Structure
+C0450436	C0450436	Semantic_Type	Conceptual Entity
+C0489477	C0489477	Semantic_Type	Organism Attribute
+C0556656	C0556656	Semantic_Type	Activity
+C0724000	C0724000	Semantic_Type	Age Group
+C0779896	C0779896	Semantic_Type	Drug Delivery Device
+C1022585	C1022585	Semantic_Type	Fish
+C1180279	C1180279	Semantic_Type	Fully Formed Anatomical Structure
+C1210408	C1210408	Semantic_Type	Reptile
+C1516150	C1516150	Semantic_Type	Human-caused Phenomenon or Process
+C1520168	C1520168	Semantic_Type	Nucleotide Sequence
+C1880398	C1880398	Semantic_Type	Event
+C2826108	C2826108	Semantic_Type	Cell Function
+C4050317	C4050317	Semantic_Type	Experimental Model of Disease
+CL1798673	CL1798673	Semantic_Type	Bacterium
+CL1926229	CL1926229	Semantic_Type	Human
+CL1936763	CL1936763	Semantic_Type	Genetic Function
+CL355270	CL355270	Semantic_Type	Group Attribute
+CL381970	CL381970	Semantic_Type	Machine Activity
+CL448711	CL448711	Semantic_Type	Physical Object
+C0000039	C0000039	DEFINITION	Synthetic phospholipid used in liposomes and lipid bilayers to study biological membranes. It is also a major constituent of PULMONARY SURFACTANTS.
+C1869025	C1869025	qualifier-RO~SMQ_TERM_LMVERSION	8.1
+C1869025	C1869025	qualifier-RO~RELA	has_member
+C1869025	C1869025	qualifier-RO~SMQ_TERM_ADDVERSION	8.1
+C1869025	C1869025	qualifier-RO~SMQ_TERM_STATUS	A
+C1869025	C1869025	qualifier-RO~SMQ_TERM_WEIGHT	0
+C1869025	C1869025	qualifier-RO~SMQ_TERM_CAT	C
+C1869025	C1869025	qualifier-RO~SMQ_TERM_SCOPE	1
+C1869025	C1869025	RO	C0000727

@@ -1257,15 +1257,15 @@ public class ConceptSampleTester {
 
     return concept.getSynonyms().stream()
         .filter(
-            o ->
-                o.getName().equals(qualValue)
-                    && o.getQualifiers().stream()
-                        .filter(
-                            q ->
-                                q.getType().equals(propertyKey)
-                                    && q.getValue().equals(propertyValue))
-                        .findAny()
-                        .isPresent())
+            o -> {
+              return qualValue.equals(o.getName())
+                  && o.getQualifiers().stream()
+                      .anyMatch(
+                          q ->
+                              q.getType().equals(propertyKey)
+                                  && StringEscapeUtils.unescapeHtml4(q.getValue())
+                                      .equals(StringEscapeUtils.unescapeHtml4(propertyValue)));
+            })
         .findAny()
         .isPresent();
   }
