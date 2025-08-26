@@ -209,7 +209,7 @@ public class RrfSampleGenerator {
             throw new Exception("Code missing from codeAuiMap = " + codesab);
           }
           if (!chdParMap.containsKey(aui)) {
-            logger.info("      encountered root code = " + codesab);
+            logger.info("      encountered root code = " + codesab + ", " + aui);
             continue;
           }
           for (final String parAui : chdParMap.get(aui)) {
@@ -285,7 +285,11 @@ public class RrfSampleGenerator {
         // }
 
         // Add rank, higher is better
-        ttyMap.put(tty, Integer.parseInt(rank));
+        final int irank = Integer.parseInt(rank);
+        if (!ttyMap.containsKey(tty) || irank > ttyMap.get(tty)) {
+          logger.info("  ttyMap = " + tty + ", " + rank);
+          ttyMap.put(tty, irank);
+        }
       }
     }
 
@@ -330,9 +334,11 @@ public class RrfSampleGenerator {
 
         // Compute highest ranking AUI for the code
         if (!codesabAuiMap.containsKey(codesab)) {
+          logger.info("  init codesab->aui = " + codesab + ", " + aui + ", " + tty);
           codesabAuiMap.put(codesab, aui);
           codesabTtyMap.put(codesab, tty);
         } else if (ttyMap.get(tty) > ttyMap.get(codesabTtyMap.get(codesab))) {
+          logger.info("  repl codesab->aui = " + codesab + ", " + aui + ", " + tty);
           codesabAuiMap.put(codesab, aui);
           codesabTtyMap.put(codesab, tty);
         }
