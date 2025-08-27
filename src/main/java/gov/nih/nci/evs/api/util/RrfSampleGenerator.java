@@ -141,7 +141,7 @@ public class RrfSampleGenerator {
       // logger.info(" other = " + otherMap);
 
       logger.info("  Find initial codes");
-      // 1. Find initial concepts
+      // 1. Find initial concepts (keep only things from initial CUI list)
       final Set<String> codesabs = new HashSet<>();
       codesabs.addAll(
           inputCuis.stream()
@@ -166,13 +166,14 @@ public class RrfSampleGenerator {
       if (distanceOne) {
         logger.info("  Add distance 1 related concepts");
         for (final String codesab : new HashSet<>(codesabs)) {
+
           // Only do this if the SAB part is in terminologies
           if (!terminologies.contains(codesab.replaceFirst(".*\\|", ""))) {
             continue;
           }
           if (otherMap.containsKey(codesabAuiMap.get(codesab))) {
             logger.info("    add auis = " + otherMap.get(codesabAuiMap.get(codesab)));
-            // Map auis back to codes
+            // Map auis back to codesab
             codesabs.addAll(
                 otherMap.get(codesabAuiMap.get(codesab)).stream()
                     .map(a -> auiCodesabMap.get(a))
@@ -209,7 +210,7 @@ public class RrfSampleGenerator {
             throw new Exception("Code missing from codeAuiMap = " + codesab);
           }
           if (!chdParMap.containsKey(aui)) {
-            logger.info("      encountered root code = " + codesab);
+            logger.info("      encountered root code = " + codesab + ", " + aui);
             continue;
           }
           for (final String parAui : chdParMap.get(aui)) {
@@ -224,11 +225,13 @@ public class RrfSampleGenerator {
         // Iterate until the codes list stops growing.
       } while (codesabs.size() != prevCt);
 
-      // Add descendants of original code list back in here
+      // Add descendants of original code list back in here (empty if false)
       codesabs.addAll(
           descendants.stream().map(a -> auiCodesabMap.get(a)).collect(Collectors.toSet()));
 
-      // Map codes to CUIs
+      // Map codes to CUIs (this will pick up some source codes in extra
+      // CUIs that are not themselves in codesabs and so we wind up with
+      // some extra fake "root" concepts
       final Set<String> cuis =
           codesabs.stream()
               .filter(s -> s != null)
@@ -237,6 +240,7 @@ public class RrfSampleGenerator {
 
       // Add in original CUIs
       cuis.addAll(inputCuis);
+
       logger.info("    cuis = " + cuis.size());
 
       readers.closeReaders();
@@ -246,6 +250,8 @@ public class RrfSampleGenerator {
       // Parameterize this!
       final File outputDir = new File(inputPath, "/RRF-subset/");
       copier.setActiveOnly(false);
+      // TODO: we probably should pass in codesabs here and keep atoms
+      // that match them and then other downstream data matching those AUIs only.
       copier.copyFiles(new File(inputPath), outputDir, terminologies, cuis);
 
       logger.info("Done ...");
@@ -276,8 +282,7 @@ public class RrfSampleGenerator {
         // 0096|RXNORM|SY|N|
         final String[] fields = line.split("\\|", -1);
         final String rank = fields[0];
-        // final String sab = fields[1];
-        final String tty = fields[2];
+        final String sabtty = fields[1] + fields[2];
 
         // Keep all SABs
         // if (!terminologies.contains(sab) && !sab.equals("SRC")) {
@@ -285,7 +290,9 @@ public class RrfSampleGenerator {
         // }
 
         // Add rank, higher is better
-        ttyMap.put(tty, Integer.parseInt(rank));
+        final int irank = Integer.parseInt(rank);
+        logger.info("  ttyMap = " + sabtty + ", " + rank);
+        ttyMap.put(sabtty, irank);
       }
     }
 
@@ -299,15 +306,21 @@ public class RrfSampleGenerator {
         final String cui = fields[0];
         final String aui = fields[7];
         final String sab = fields[11];
-        final String tty = fields[12];
+        final String sabtty = fields[11] + fields[12];
         final String code = fields[13];
         final String codesab = fields[13] + "|" + sab;
 
         // Match this source OR the SRC for this terminology (or input cuis)
         if (!inputCuis.contains(cui)
+            && !terminologies.contains("*")
             && !terminologies.contains(sab)
             && !(sab.equals("SRC")
                 && terminologies.stream().filter(t -> code.contains(t)).count() > 0)) {
+          continue;
+        }
+
+        // Things with NCIMTH and NOCODE are causing an issue
+        if (code.equals("NOCODE")) {
           continue;
         }
 
@@ -328,13 +341,20 @@ public class RrfSampleGenerator {
         }
         cuiCodesabsMap.get(cui).add(codesab);
 
+        // Support situations where the sabtty exist in
+        if (!ttyMap.containsKey(sabtty)) {
+          ttyMap.put(sabtty, 0);
+        }
+
         // Compute highest ranking AUI for the code
         if (!codesabAuiMap.containsKey(codesab)) {
+          // logger.info("  init codesab->aui = " + codesab + ", " + aui + ", " + sabtty);
           codesabAuiMap.put(codesab, aui);
-          codesabTtyMap.put(codesab, tty);
-        } else if (ttyMap.get(tty) > ttyMap.get(codesabTtyMap.get(codesab))) {
+          codesabTtyMap.put(codesab, sabtty);
+        } else if (ttyMap.get(sabtty) > ttyMap.get(codesabTtyMap.get(codesab))) {
+          // logger.info("  repl codesab->aui = " + codesab + ", " + aui + ", " + sabtty);
           codesabAuiMap.put(codesab, aui);
-          codesabTtyMap.put(codesab, tty);
+          codesabTtyMap.put(codesab, sabtty);
         }
       }
     }
@@ -358,15 +378,6 @@ public class RrfSampleGenerator {
         final String aui2 = fields[5];
         final String sab = fields[10];
         final String reldir = fields[13];
-
-        // Keep only entries matching terminology (or input cuis)
-        if (!inputCuis.contains(cui1)
-            && !inputCuis.contains(cui2)
-            && !terminologies.contains("*")
-            && !terminologies.contains(sab)
-            && !sab.equals("SRC")) {
-          continue;
-        }
 
         // Skip "mapping" rela values
         if (rela.contains("map")) {
@@ -392,8 +403,18 @@ public class RrfSampleGenerator {
           parChdMap.get(aui2).add(aui1);
         }
 
+        // Keep only entries matching terminology (or input cuis)
+        // Do this after par/chd so we keep all par/chd
+        if (!inputCuis.contains(cui1)
+            && !inputCuis.contains(cui2)
+            && !terminologies.contains("*")
+            && !terminologies.contains(sab)
+            && !sab.equals("SRC")) {
+          continue;
+        }
+
         // Other rels
-        else if (!rel.equals("CHD")) {
+        if (!rel.equals("CHD")) {
 
           // Skip self-referential. some par/chd maybe CUI self-ref
           if (cui1.equals(cui2)) {
@@ -407,6 +428,11 @@ public class RrfSampleGenerator {
 
           // Skip not-asserted-directional rels (blank or "Y" are ok)
           if (reldir.equals("N")) {
+            continue;
+          }
+
+          // skip if the rel is for a terminology we don't care about
+          if (!terminologies.contains(sab)) {
             continue;
           }
 
