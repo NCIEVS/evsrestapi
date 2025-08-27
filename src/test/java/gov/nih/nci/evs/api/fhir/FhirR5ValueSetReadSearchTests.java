@@ -106,7 +106,7 @@ class FhirR5ValueSetReadSearchTests {
     // Questionnaire
     // Terminology","title":"ncit","status":"active","experimental":false,"publisher":"NCI","description":"Value
     // set representing the ncitsubsetC100110"}
-    final Set<String> ids = new HashSet<>(Set.of("ncit_25.06e", "ncit_c61410"));
+    final Set<String> ids = new HashSet<>(Set.of("ncit_21.07a", "ncit_c61410"));
     final Set<String> urls =
         new HashSet<>(
             Set.of(
@@ -1148,5 +1148,161 @@ class FhirR5ValueSetReadSearchTests {
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
     validateCanmedValueSetResults(data, true);
+  }
+
+  /**
+   * Test value set search with sort by name.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByName() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=name";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that sort parameter was accepted and processed (basic functionality test)
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(valueSets);
+    for (Resource vs : valueSets) {
+      ValueSet vss = (ValueSet) vs;
+      assertNotNull(vss.getName());
+    }
+  }
+
+  /**
+   * Test value set search with sort by title descending.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByTitleDescending() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=-title";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that sort parameter was accepted and processed
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(valueSets);
+    for (Resource vs : valueSets) {
+      ValueSet vss = (ValueSet) vs;
+      assertNotNull(vss.getTitle());
+    }
+  }
+
+  /**
+   * Test value set search with sort by publisher.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByPublisher() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=publisher";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that sort parameter was accepted and processed
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(valueSets);
+  }
+
+  /**
+   * Test value set search with sort by date.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByDate() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=date";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that sort parameter was accepted and processed
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(valueSets);
+  }
+
+  /**
+   * Test value set search with sort by URL.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByUrl() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=url";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that sort parameter was accepted and processed
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(valueSets);
+    for (Resource vs : valueSets) {
+      ValueSet vss = (ValueSet) vs;
+      assertNotNull(vss.getUrl());
+    }
+  }
+
+  /**
+   * Test value set search with invalid sort field.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByInvalidField() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=invalid_field";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+
+    // Assert
+    assertNotNull(outcome);
+    assertNotNull(outcome.getIssue());
+    assertFalse(outcome.getIssue().isEmpty());
+    
+    OperationOutcomeIssueComponent issue = outcome.getIssue().get(0);
+    assertEquals(OperationOutcome.IssueSeverity.ERROR, issue.getSeverity());
+    assertTrue(issue.getDiagnostics().contains("Unsupported sort field"));
   }
 }

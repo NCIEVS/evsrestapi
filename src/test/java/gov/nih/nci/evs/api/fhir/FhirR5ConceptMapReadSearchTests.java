@@ -885,4 +885,160 @@ class FhirR5ConceptMapReadSearchTests {
       assertTrue(data.getEntry().isEmpty() || conceptMaps.isEmpty());
     }
   }
+
+  /**
+   * Test concept map search with sort by name.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapSearchSortByName() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCMPath + "?_sort=name";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that sort parameter was accepted and processed (basic functionality test)
+    List<Resource> conceptMaps =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(conceptMaps);
+    for (Resource cm : conceptMaps) {
+      ConceptMap cmm = (ConceptMap) cm;
+      assertNotNull(cmm.getName());
+    }
+  }
+
+  /**
+   * Test concept map search with sort by title descending.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapSearchSortByTitleDescending() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCMPath + "?_sort=-title";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that sort parameter was accepted and processed
+    List<Resource> conceptMaps =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(conceptMaps);
+    for (Resource cm : conceptMaps) {
+      ConceptMap cmm = (ConceptMap) cm;
+      assertNotNull(cmm.getTitle());
+    }
+  }
+
+  /**
+   * Test concept map search with sort by publisher.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapSearchSortByPublisher() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCMPath + "?_sort=publisher";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that sort parameter was accepted and processed
+    List<Resource> conceptMaps =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(conceptMaps);
+  }
+
+  /**
+   * Test concept map search with sort by date.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapSearchSortByDate() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCMPath + "?_sort=date";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that sort parameter was accepted and processed
+    List<Resource> conceptMaps =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(conceptMaps);
+  }
+
+  /**
+   * Test concept map search with sort by URL.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapSearchSortByUrl() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCMPath + "?_sort=url";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that sort parameter was accepted and processed
+    List<Resource> conceptMaps =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(conceptMaps);
+    for (Resource cm : conceptMaps) {
+      ConceptMap cmm = (ConceptMap) cm;
+      assertNotNull(cmm.getUrl());
+    }
+  }
+
+  /**
+   * Test concept map search with invalid sort field.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapSearchSortByInvalidField() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCMPath + "?_sort=invalid_field";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+
+    // Assert
+    assertNotNull(outcome);
+    assertNotNull(outcome.getIssue());
+    assertFalse(outcome.getIssue().isEmpty());
+    
+    OperationOutcomeIssueComponent issue = outcome.getIssue().get(0);
+    assertEquals(OperationOutcome.IssueSeverity.ERROR, issue.getSeverity());
+    assertTrue(issue.getDiagnostics().contains("Unsupported sort field"));
+  }
 }

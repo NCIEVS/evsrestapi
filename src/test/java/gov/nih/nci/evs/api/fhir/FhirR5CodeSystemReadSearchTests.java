@@ -926,4 +926,160 @@ class FhirR5CodeSystemReadSearchTests {
       assertTrue(data.getEntry().isEmpty() || codeSystems.isEmpty());
     }
   }
+
+  /**
+   * Test code system search with sort by name.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByName() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCSPath + "?_sort=name";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that sort parameter was accepted and processed (basic functionality test)
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(codeSystems);
+    for (Resource cs : codeSystems) {
+      CodeSystem css = (CodeSystem) cs;
+      assertNotNull(css.getName());
+    }
+  }
+
+  /**
+   * Test code system search with sort by title descending.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByTitleDescending() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCSPath + "?_sort=-title";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that sort parameter was accepted and processed
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(codeSystems);
+    for (Resource cs : codeSystems) {
+      CodeSystem css = (CodeSystem) cs;
+      assertNotNull(css.getTitle());
+    }
+  }
+
+  /**
+   * Test code system search with sort by publisher.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByPublisher() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCSPath + "?_sort=publisher";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that sort parameter was accepted and processed
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(codeSystems);
+  }
+
+  /**
+   * Test code system search with sort by date.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByDate() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCSPath + "?_sort=date";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that sort parameter was accepted and processed
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(codeSystems);
+  }
+
+  /**
+   * Test code system search with sort by URL.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByUrl() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCSPath + "?_sort=url";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that sort parameter was accepted and processed
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(codeSystems);
+    for (Resource cs : codeSystems) {
+      CodeSystem css = (CodeSystem) cs;
+      assertNotNull(css.getUrl());
+    }
+  }
+
+  /**
+   * Test code system search with invalid sort field.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByInvalidField() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCSPath + "?_sort=invalid_field";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+
+    // Assert
+    assertNotNull(outcome);
+    assertNotNull(outcome.getIssue());
+    assertFalse(outcome.getIssue().isEmpty());
+    
+    OperationOutcomeIssueComponent issue = outcome.getIssue().get(0);
+    assertEquals(OperationOutcome.IssueSeverity.ERROR, issue.getSeverity());
+    assertTrue(issue.getDiagnostics().contains("Unsupported sort field"));
+  }
 }

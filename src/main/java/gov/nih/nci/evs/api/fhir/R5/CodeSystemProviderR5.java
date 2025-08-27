@@ -109,7 +109,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           final NumberParam count,
       @Description(shortDefinition = "Start offset, used when reading a next page")
           @OptionalParam(name = "_offset")
-          final NumberParam offset)
+          final NumberParam offset,
+      @Description(shortDefinition = "Sort by field (name, title, publisher, date, url)")
+          @OptionalParam(name = "_sort")
+          final StringParam sort)
       throws Exception {
     try {
       FhirUtilityR5.notSupportedSearchParams(request);
@@ -162,6 +165,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
 
         list.add(cs);
       }
+      
+      // Apply sorting if requested
+      applySorting(list, sort);
+      
       return FhirUtilityR5.makeBundle(request, list, count, offset);
     } catch (final FHIRServerResponseException e) {
       throw e;
@@ -1006,5 +1013,69 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       logger.error("Unexpected exception in vread", e);
       throw FhirUtilityR5.exception("Failed to get code system version", IssueType.EXCEPTION, 500);
     }
+  }
+
+  /**
+   * Apply sorting to CodeSystem list based on the _sort parameter.
+   *
+   * @param list the list of CodeSystem resources to sort
+   * @param sort the _sort parameter
+   */
+  private void applySorting(final List<CodeSystem> list, final StringParam sort) {
+    if (sort == null || sort.getValue().isEmpty()) {
+      return;
+    }
+
+    String sortValue = sort.getValue();
+    boolean ascending = true;
+
+    if (sortValue.startsWith("-")) {
+      ascending = false;
+      sortValue = sortValue.substring(1);
+    }
+
+    // Validate supported sort fields
+    if (!java.util.Arrays.asList("name", "title", "publisher", "date", "url").contains(sortValue)) {
+      throw FhirUtilityR5.exception(
+          "Unsupported sort field: " + sortValue + ". Supported fields: name, title, publisher, date, url",
+          IssueType.NOTSUPPORTED, 400);
+    }
+
+    // Apply sorting based on field
+    java.util.Comparator<CodeSystem> comparator = getCodeSystemComparator(sortValue, ascending);
+    list.sort(comparator);
+  }
+
+  /**
+   * Get comparator for CodeSystem sorting.
+   *
+   * @param field the field to sort by
+   * @param ascending whether to sort in ascending order
+   * @return the comparator
+   */
+  private java.util.Comparator<CodeSystem> getCodeSystemComparator(final String field, final boolean ascending) {
+    java.util.Comparator<CodeSystem> comparator;
+
+    switch (field) {
+      case "name":
+        comparator = java.util.Comparator.comparing(cs -> cs.getName() != null ? cs.getName() : "", String.CASE_INSENSITIVE_ORDER);
+        break;
+      case "title":
+        comparator = java.util.Comparator.comparing(cs -> cs.getTitle() != null ? cs.getTitle() : "", String.CASE_INSENSITIVE_ORDER);
+        break;
+      case "publisher":
+        comparator = java.util.Comparator.comparing(cs -> cs.getPublisher() != null ? cs.getPublisher() : "", String.CASE_INSENSITIVE_ORDER);
+        break;
+      case "date":
+        comparator = java.util.Comparator.comparing(cs -> cs.getDate() != null ? cs.getDate() : new java.util.Date(0));
+        break;
+      case "url":
+        comparator = java.util.Comparator.comparing(cs -> cs.getUrl() != null ? cs.getUrl() : "", String.CASE_INSENSITIVE_ORDER);
+        break;
+      default:
+        throw FhirUtilityR5.exception("Unsupported sort field: " + field, IssueType.NOTSUPPORTED, 400);
+    }
+
+    return ascending ? comparator : comparator.reversed();
   }
 }
