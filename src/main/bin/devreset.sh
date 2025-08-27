@@ -79,10 +79,18 @@ fi
 # Check NCIM
 echo "    check NCIM"
 ct=`ls $dir/NCIM | egrep "(AUI|COLS|CONSO|CUI|DEF|DOC|FILES|HIER|MAP|RANK|REL|SAB|SAT|STY)*RRF" | wc -l`
+if [[ $ct -le 14 ]]; then
+    echo "ERROR: unexpectedly missing NCIM/*RRF files = $dir/NCIM"
+    exit 1
+fi
+# Check NCIM2
+echo "    check NCIM2"
+ct=`ls $dir/NCIM2 | egrep "(AUI|COLS|CONSO|CUI|DEF|DOC|FILES|HIER|MAP|RANK|REL|SAB|SAT|STY)*RRF" | wc -l`
 if [[ ! $ct -eq 14 ]]; then
     echo "ERROR: unexpectedly missing NCIM/*RRF files = $dir/NCIM"
     exit 1
 fi
+
 # Check NCIt weekly
 echo "    check NCIt weekly"
 if [[ ! -e "$dir/NCIT/ThesaurusInferred_+1weekly.owl" ]]; then
