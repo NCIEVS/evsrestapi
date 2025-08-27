@@ -78,9 +78,9 @@ fi
 
 # Check NCIM
 echo "    check NCIM"
-ct=`ls $dir/NCIM | grep RRF | wc -l`
-if [[ $ct -le 20 ]]; then
-    echo "ERROR: unexpectedly small number of NCIM/*RRF files = $ct"
+ct=`ls $dir/NCIM | egrep "(AUI|COLS|CONSO|CUI|DEF|DOC|FILES|HIER|MAP|RANK|REL|SAB|SAT|STY)*RRF" | wc -l`
+if [[ $ct -le 14 ]]; then
+    echo "ERROR: unexpectedly missing NCIM/*RRF files = $dir/NCIM"
     exit 1
 fi
 # Check NCIM2
