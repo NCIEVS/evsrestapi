@@ -37,6 +37,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -115,9 +116,11 @@ public class ConceptMapProviderR5 implements IResourceProvider {
     try {
       FhirUtilityR5.notSupportedSearchParams(request);
 
-      final Map<String, Terminology> map =
-          termUtils.getIndexedTerminologies(osQueryService).stream()
-              .collect(Collectors.toMap(t -> t.getTerminology(), t -> t));
+      final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+      final Map<String, Terminology> map = new HashMap<>();
+      for (final Terminology terminology : terms) {
+        map.put(terminology.getTerminology(), terminology);
+      }
       final List<Concept> mapsets = osQueryService.getMapsets(new IncludeParam("properties"));
 
       final List<ConceptMap> list = new ArrayList<>();
@@ -579,9 +582,11 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       final UriType targetSystem)
       throws Exception {
     try {
-      final Map<String, Terminology> map =
-          termUtils.getIndexedTerminologies(osQueryService).stream()
-              .collect(Collectors.toMap(t -> t.getTerminology(), t -> t));
+      final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+      final Map<String, Terminology> map = new HashMap<>();
+      for (final Terminology terminology : terms) {
+        map.put(terminology.getTerminology(), terminology);
+      }
       final List<Concept> mapsets = osQueryService.getMapsets(new IncludeParam("properties"));
 
       final List<ConceptMap> list = new ArrayList<>();

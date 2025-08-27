@@ -11,6 +11,7 @@ import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -904,13 +905,21 @@ class FhirR5ConceptMapReadSearchTests {
     assertNotNull(data);
     assertFalse(data.getEntry().isEmpty());
 
-    // Verify that sort parameter was accepted and processed (basic functionality test)
+    // Verify that results are sorted by name in ascending order
     List<Resource> conceptMaps =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(conceptMaps);
+    
+    String previousName = null;
     for (Resource cm : conceptMaps) {
       ConceptMap cmm = (ConceptMap) cm;
       assertNotNull(cmm.getName());
+      String currentName = cmm.getName().toLowerCase();
+      if (previousName != null) {
+        assertTrue(currentName.compareTo(previousName) >= 0, 
+            "Names should be in alphabetical order: '" + previousName + "' should come before '" + currentName + "'");
+      }
+      previousName = currentName;
     }
   }
 
@@ -932,13 +941,21 @@ class FhirR5ConceptMapReadSearchTests {
     assertNotNull(data);
     assertFalse(data.getEntry().isEmpty());
 
-    // Verify that sort parameter was accepted and processed
+    // Verify that results are sorted by title in descending order
     List<Resource> conceptMaps =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(conceptMaps);
+    
+    String previousTitle = null;
     for (Resource cm : conceptMaps) {
       ConceptMap cmm = (ConceptMap) cm;
       assertNotNull(cmm.getTitle());
+      String currentTitle = cmm.getTitle().toLowerCase();
+      if (previousTitle != null) {
+        assertTrue(currentTitle.compareTo(previousTitle) <= 0, 
+            "Titles should be in descending alphabetical order: '" + previousTitle + "' should come after '" + currentTitle + "'");
+      }
+      previousTitle = currentTitle;
     }
   }
 
@@ -960,10 +977,22 @@ class FhirR5ConceptMapReadSearchTests {
     assertNotNull(data);
     assertFalse(data.getEntry().isEmpty());
 
-    // Verify that sort parameter was accepted and processed
+    // Verify that results are sorted by publisher in ascending order
     List<Resource> conceptMaps =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(conceptMaps);
+    
+    String previousPublisher = null;
+    for (Resource cm : conceptMaps) {
+      ConceptMap cmm = (ConceptMap) cm;
+      assertNotNull(cmm.getPublisher());
+      String currentPublisher = cmm.getPublisher().toLowerCase();
+      if (previousPublisher != null) {
+        assertTrue(currentPublisher.compareTo(previousPublisher) >= 0, 
+            "Publishers should be in alphabetical order: '" + previousPublisher + "' should come before '" + currentPublisher + "'");
+      }
+      previousPublisher = currentPublisher;
+    }
   }
 
   /**
@@ -984,10 +1013,23 @@ class FhirR5ConceptMapReadSearchTests {
     assertNotNull(data);
     assertFalse(data.getEntry().isEmpty());
 
-    // Verify that sort parameter was accepted and processed
+    // Verify that results are sorted by date in ascending order
     List<Resource> conceptMaps =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(conceptMaps);
+    
+    Date previousDate = null;
+    for (Resource cm : conceptMaps) {
+      ConceptMap cmm = (ConceptMap) cm;
+      Date currentDate = cmm.getDate();
+      if (previousDate != null && currentDate != null) {
+        assertTrue(currentDate.compareTo(previousDate) >= 0, 
+            "Dates should be in chronological order: '" + previousDate + "' should come before '" + currentDate + "'");
+      }
+      if (currentDate != null) {
+        previousDate = currentDate;
+      }
+    }
   }
 
   /**
@@ -1008,13 +1050,21 @@ class FhirR5ConceptMapReadSearchTests {
     assertNotNull(data);
     assertFalse(data.getEntry().isEmpty());
 
-    // Verify that sort parameter was accepted and processed
+    // Verify that results are sorted by URL in ascending order
     List<Resource> conceptMaps =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(conceptMaps);
+    
+    String previousUrl = null;
     for (Resource cm : conceptMaps) {
       ConceptMap cmm = (ConceptMap) cm;
       assertNotNull(cmm.getUrl());
+      String currentUrl = cmm.getUrl().toLowerCase();
+      if (previousUrl != null) {
+        assertTrue(currentUrl.compareTo(previousUrl) >= 0, 
+            "URLs should be in alphabetical order: '" + previousUrl + "' should come before '" + currentUrl + "'");
+      }
+      previousUrl = currentUrl;
     }
   }
 
