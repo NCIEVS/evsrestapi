@@ -34,6 +34,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -121,7 +122,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
       // @OperationParam(name = "designation") final StringType designation,
       // @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
-      @OperationParam(name = "activeOnly") final BooleanType activeOnly
+      @OperationParam(name = "activeOnly") final BooleanType activeOnly,
       // @OperationParam(name = "excludeNested") final BooleanType excludeNested,
       // @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
       // @OperationParam(name = "excludePostCoordinated") final BooleanType
@@ -131,7 +132,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       // @OperationParam(name = "system-version") final StringType system_version,
       // @OperationParam(name = "check-system-version") final StringType check_system_version,
       // @OperationParam(name = "force-system-version") final StringType force_system_version
-      ) throws Exception {
+      @OperationParam(name = "_sort") final StringType sort)
+      throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls
     if (request.getMethod().equals("POST")) {
@@ -230,6 +232,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
         if (includeList.size() >= 1) {
           sc.setInclude(String.join(",", includeList));
         }
+
+        // Apply sorting if requested
+        applyExpandSorting(sc, sort);
 
         ConceptResultList subsetMembersList = searchService.findConcepts(terminologies, sc);
         subsetMembers = subsetMembersList.getConcepts();
@@ -349,7 +354,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
       // @OperationParam(name = "designation") final StringType designation,
       // @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
-      @OperationParam(name = "activeOnly") final BooleanType activeOnly
+      @OperationParam(name = "activeOnly") final BooleanType activeOnly,
       // @OperationParam(name = "excludeNested") final BooleanType excludeNested,
       // @OperationParam(name = "excludeNotForUI") final BooleanType excludeNotForUI,
       // @OperationParam(name = "excludePostCoordinated") final BooleanType
@@ -359,7 +364,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       // @OperationParam(name = "system-version") final StringType system_version,
       // @OperationParam(name = "check-system-version") final StringType check_system_version,
       // @OperationParam(name = "force-system-version") final StringType force_system_version
-      ) throws Exception {
+      @OperationParam(name = "_sort") final StringType sort)
+      throws Exception {
     // check if request is a post, throw exception as we don't support post
     // calls
     if (request.getMethod().equals("POST")) {
@@ -465,6 +471,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
         if (includeList.size() >= 1) {
           sc.setInclude(String.join(",", includeList));
         }
+
+        // Apply sorting if requested
+        applyExpandSorting(sc, sort);
 
         ConceptResultList subsetMembersList = searchService.findConcepts(terminologies, sc);
         subsetMembers = subsetMembersList.getConcepts();
@@ -863,7 +872,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
           final NumberParam count,
       @Description(shortDefinition = "Start offset, used when reading a next page")
           @OptionalParam(name = "_offset")
-          final NumberParam offset)
+          final NumberParam offset,
+      @Description(shortDefinition = "Sort by field (name, title, publisher, date, url)")
+          @OptionalParam(name = "_sort")
+          final StringParam sort)
       throws Exception {
     FhirUtilityR4.notSupportedSearchParams(request);
     final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
@@ -938,6 +950,9 @@ public class ValueSetProviderR4 implements IResourceProvider {
       }
       list.add(vs);
     }
+
+    // Apply sorting if requested
+    applySorting(list, sort);
 
     return FhirUtilityR4.makeBundle(request, list, count, offset);
   }
@@ -1167,5 +1182,122 @@ public class ValueSetProviderR4 implements IResourceProvider {
       throw FhirUtilityR4.exception(
           "Failed to get value set version", OperationOutcome.IssueType.EXCEPTION, 500);
     }
+  }
+
+  /**
+   * Apply sorting to the list of ValueSets if requested.
+   *
+   * @param list the list to sort
+   * @param sort the sort parameter
+   */
+  private void applySorting(final List<ValueSet> list, final StringParam sort) {
+    if (sort == null || sort.getValue() == null || sort.getValue().trim().isEmpty()) {
+      return;
+    }
+
+    try {
+      final String sortValue = sort.getValue().trim();
+      final boolean descending = sortValue.startsWith("-");
+      final String field = descending ? sortValue.substring(1) : sortValue;
+
+      // Validate supported fields
+      final List<String> supportedFields =
+          Arrays.asList("name", "title", "publisher", "date", "url");
+      if (!supportedFields.contains(field)) {
+        throw FhirUtilityR4.exception(
+            "Unsupported sort field: "
+                + field
+                + ". Supported fields: "
+                + String.join(", ", supportedFields),
+            OperationOutcome.IssueType.INVALID,
+            400);
+      }
+
+      final Comparator<ValueSet> comparator = getValueSetComparator(field);
+      if (descending) {
+        Collections.sort(list, comparator.reversed());
+      } else {
+        Collections.sort(list, comparator);
+      }
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      throw FhirUtilityR4.exception(
+          "Error processing sort parameter: " + e.getMessage(),
+          OperationOutcome.IssueType.INVALID,
+          400);
+    }
+  }
+
+  /**
+   * Get comparator for ValueSet sorting.
+   *
+   * @param field the field to sort by
+   * @return the comparator
+   */
+  private Comparator<ValueSet> getValueSetComparator(final String field) {
+    switch (field) {
+      case "name":
+        return Comparator.comparing(
+            vs -> vs.getName() != null ? vs.getName().toLowerCase() : "",
+            Comparator.nullsLast(String::compareTo));
+      case "title":
+        return Comparator.comparing(
+            vs -> vs.getTitle() != null ? vs.getTitle().toLowerCase() : "",
+            Comparator.nullsLast(String::compareTo));
+      case "publisher":
+        return Comparator.comparing(
+            vs -> vs.getPublisher() != null ? vs.getPublisher().toLowerCase() : "",
+            Comparator.nullsLast(String::compareTo));
+      case "date":
+        return Comparator.comparing(ValueSet::getDate, Comparator.nullsLast(Date::compareTo));
+      case "url":
+        return Comparator.comparing(
+            vs -> vs.getUrl() != null ? vs.getUrl().toLowerCase() : "",
+            Comparator.nullsLast(String::compareTo));
+      default:
+        throw new IllegalArgumentException("Unsupported sort field: " + field);
+    }
+  }
+
+  /**
+   * Apply sorting to SearchCriteria for expand operations.
+   *
+   * @param searchCriteria the search criteria
+   * @param sort the sort parameter
+   */
+  private void applyExpandSorting(final SearchCriteria searchCriteria, final StringType sort) {
+    if (sort == null || sort.getValue() == null || sort.getValue().trim().isEmpty()) {
+      return;
+    }
+
+    final String sortValue = sort.getValue().trim();
+    boolean ascending = true;
+    String field = sortValue;
+
+    // Handle descending sort (prefix with -)
+    if (sortValue.startsWith("-")) {
+      ascending = false;
+      field = sortValue.substring(1);
+    }
+
+    // Validate supported sort fields
+    if (!java.util.Arrays.asList("code", "display").contains(field)) {
+      throw FhirUtilityR4.exception(
+          "Unsupported sort field: " + field + ". Supported fields: code, display",
+          OperationOutcome.IssueType.INVALID,
+          400);
+    }
+
+    // Map FHIR sort fields to Elasticsearch field names
+    String elasticSortField = field;
+    if ("display".equals(field)) {
+      elasticSortField = "normName"; // Map display to normalized name field for sorting
+    } else if ("code".equals(field)) {
+      elasticSortField = "code"; // Code field can be sorted as-is
+    }
+
+    searchCriteria.setSort(elasticSortField);
+    searchCriteria.setAscending(ascending);
   }
 }
