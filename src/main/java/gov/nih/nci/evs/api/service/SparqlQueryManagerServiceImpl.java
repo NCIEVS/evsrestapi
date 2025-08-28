@@ -2153,7 +2153,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     for (final Role role : roles) {
-      log.info("ROLE: {}", role.toString());
 
       // Send URI or code
       final Concept concept =
@@ -2177,7 +2176,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                             && binding.getPropertyCode().getValue().equals(concept.getCode()))
                 .findFirst()
                 .orElse(null);
-        log.info("  MATCH: {}", matchConcept);
       }
       if (concept.getCode().equals(concept.getName())
           && bindings != null
