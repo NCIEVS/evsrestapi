@@ -950,15 +950,20 @@ class FhirR5CodeSystemReadSearchTests {
     List<Resource> codeSystems =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(codeSystems);
-    
+
     String previousName = null;
     for (Resource cs : codeSystems) {
       CodeSystem css = (CodeSystem) cs;
       assertNotNull(css.getName());
       String currentName = css.getName().toLowerCase();
       if (previousName != null) {
-        assertTrue(currentName.compareTo(previousName) >= 0, 
-            "Names should be in alphabetical order: '" + previousName + "' should come before '" + currentName + "'");
+        assertTrue(
+            currentName.compareTo(previousName) >= 0,
+            "Names should be in alphabetical order: '"
+                + previousName
+                + "' should come before '"
+                + currentName
+                + "'");
       }
       previousName = currentName;
     }
@@ -986,15 +991,20 @@ class FhirR5CodeSystemReadSearchTests {
     List<Resource> codeSystems =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(codeSystems);
-    
+
     String previousTitle = null;
     for (Resource cs : codeSystems) {
       CodeSystem css = (CodeSystem) cs;
       assertNotNull(css.getTitle());
       String currentTitle = css.getTitle().toLowerCase();
       if (previousTitle != null) {
-        assertTrue(currentTitle.compareTo(previousTitle) <= 0, 
-            "Titles should be in descending alphabetical order: '" + previousTitle + "' should come after '" + currentTitle + "'");
+        assertTrue(
+            currentTitle.compareTo(previousTitle) <= 0,
+            "Titles should be in descending alphabetical order: '"
+                + previousTitle
+                + "' should come after '"
+                + currentTitle
+                + "'");
       }
       previousTitle = currentTitle;
     }
@@ -1022,15 +1032,20 @@ class FhirR5CodeSystemReadSearchTests {
     List<Resource> codeSystems =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(codeSystems);
-    
+
     String previousPublisher = null;
     for (Resource cs : codeSystems) {
       CodeSystem css = (CodeSystem) cs;
       assertNotNull(css.getPublisher());
       String currentPublisher = css.getPublisher().toLowerCase();
       if (previousPublisher != null) {
-        assertTrue(currentPublisher.compareTo(previousPublisher) >= 0, 
-            "Publishers should be in alphabetical order: '" + previousPublisher + "' should come before '" + currentPublisher + "'");
+        assertTrue(
+            currentPublisher.compareTo(previousPublisher) >= 0,
+            "Publishers should be in alphabetical order: '"
+                + previousPublisher
+                + "' should come before '"
+                + currentPublisher
+                + "'");
       }
       previousPublisher = currentPublisher;
     }
@@ -1058,14 +1073,19 @@ class FhirR5CodeSystemReadSearchTests {
     List<Resource> codeSystems =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(codeSystems);
-    
+
     Date previousDate = null;
     for (Resource cs : codeSystems) {
       CodeSystem css = (CodeSystem) cs;
       Date currentDate = css.getDate();
       if (previousDate != null && currentDate != null) {
-        assertTrue(currentDate.compareTo(previousDate) >= 0, 
-            "Dates should be in chronological order: '" + previousDate + "' should come before '" + currentDate + "'");
+        assertTrue(
+            currentDate.compareTo(previousDate) >= 0,
+            "Dates should be in chronological order: '"
+                + previousDate
+                + "' should come before '"
+                + currentDate
+                + "'");
       }
       if (currentDate != null) {
         previousDate = currentDate;
@@ -1095,15 +1115,20 @@ class FhirR5CodeSystemReadSearchTests {
     List<Resource> codeSystems =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(codeSystems);
-    
+
     String previousUrl = null;
     for (Resource cs : codeSystems) {
       CodeSystem css = (CodeSystem) cs;
       assertNotNull(css.getUrl());
       String currentUrl = css.getUrl().toLowerCase();
       if (previousUrl != null) {
-        assertTrue(currentUrl.compareTo(previousUrl) >= 0, 
-            "URLs should be in alphabetical order: '" + previousUrl + "' should come before '" + currentUrl + "'");
+        assertTrue(
+            currentUrl.compareTo(previousUrl) >= 0,
+            "URLs should be in alphabetical order: '"
+                + previousUrl
+                + "' should come before '"
+                + currentUrl
+                + "'");
       }
       previousUrl = currentUrl;
     }
@@ -1127,7 +1152,7 @@ class FhirR5CodeSystemReadSearchTests {
     assertNotNull(outcome);
     assertNotNull(outcome.getIssue());
     assertFalse(outcome.getIssue().isEmpty());
-    
+
     OperationOutcomeIssueComponent issue = outcome.getIssue().get(0);
     assertEquals(OperationOutcome.IssueSeverity.ERROR, issue.getSeverity());
     assertTrue(issue.getDiagnostics().contains("Unsupported sort field"));

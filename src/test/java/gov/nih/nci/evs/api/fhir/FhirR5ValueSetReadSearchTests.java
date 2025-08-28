@@ -1173,15 +1173,20 @@ class FhirR5ValueSetReadSearchTests {
     List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(valueSets);
-    
+
     String previousName = null;
     for (Resource vs : valueSets) {
       ValueSet vss = (ValueSet) vs;
       assertNotNull(vss.getName());
       String currentName = vss.getName().toLowerCase();
       if (previousName != null) {
-        assertTrue(currentName.compareTo(previousName) >= 0, 
-            "Names should be in alphabetical order: '" + previousName + "' should come before '" + currentName + "'");
+        assertTrue(
+            currentName.compareTo(previousName) >= 0,
+            "Names should be in alphabetical order: '"
+                + previousName
+                + "' should come before '"
+                + currentName
+                + "'");
       }
       previousName = currentName;
     }
@@ -1209,15 +1214,20 @@ class FhirR5ValueSetReadSearchTests {
     List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(valueSets);
-    
+
     String previousTitle = null;
     for (Resource vs : valueSets) {
       ValueSet vss = (ValueSet) vs;
       assertNotNull(vss.getTitle());
       String currentTitle = vss.getTitle().toLowerCase();
       if (previousTitle != null) {
-        assertTrue(currentTitle.compareTo(previousTitle) <= 0, 
-            "Titles should be in descending alphabetical order: '" + previousTitle + "' should come after '" + currentTitle + "'");
+        assertTrue(
+            currentTitle.compareTo(previousTitle) <= 0,
+            "Titles should be in descending alphabetical order: '"
+                + previousTitle
+                + "' should come after '"
+                + currentTitle
+                + "'");
       }
       previousTitle = currentTitle;
     }
@@ -1245,15 +1255,20 @@ class FhirR5ValueSetReadSearchTests {
     List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(valueSets);
-    
+
     String previousPublisher = null;
     for (Resource vs : valueSets) {
       ValueSet vss = (ValueSet) vs;
       assertNotNull(vss.getPublisher());
       String currentPublisher = vss.getPublisher().toLowerCase();
       if (previousPublisher != null) {
-        assertTrue(currentPublisher.compareTo(previousPublisher) >= 0, 
-            "Publishers should be in alphabetical order: '" + previousPublisher + "' should come before '" + currentPublisher + "'");
+        assertTrue(
+            currentPublisher.compareTo(previousPublisher) >= 0,
+            "Publishers should be in alphabetical order: '"
+                + previousPublisher
+                + "' should come before '"
+                + currentPublisher
+                + "'");
       }
       previousPublisher = currentPublisher;
     }
@@ -1281,14 +1296,19 @@ class FhirR5ValueSetReadSearchTests {
     List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(valueSets);
-    
+
     Date previousDate = null;
     for (Resource vs : valueSets) {
       ValueSet vss = (ValueSet) vs;
       Date currentDate = vss.getDate();
       if (previousDate != null && currentDate != null) {
-        assertTrue(currentDate.compareTo(previousDate) >= 0, 
-            "Dates should be in chronological order: '" + previousDate + "' should come before '" + currentDate + "'");
+        assertTrue(
+            currentDate.compareTo(previousDate) >= 0,
+            "Dates should be in chronological order: '"
+                + previousDate
+                + "' should come before '"
+                + currentDate
+                + "'");
       }
       if (currentDate != null) {
         previousDate = currentDate;
@@ -1318,15 +1338,20 @@ class FhirR5ValueSetReadSearchTests {
     List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(valueSets);
-    
+
     String previousUrl = null;
     for (Resource vs : valueSets) {
       ValueSet vss = (ValueSet) vs;
       assertNotNull(vss.getUrl());
       String currentUrl = vss.getUrl().toLowerCase();
       if (previousUrl != null) {
-        assertTrue(currentUrl.compareTo(previousUrl) >= 0, 
-            "URLs should be in alphabetical order: '" + previousUrl + "' should come before '" + currentUrl + "'");
+        assertTrue(
+            currentUrl.compareTo(previousUrl) >= 0,
+            "URLs should be in alphabetical order: '"
+                + previousUrl
+                + "' should come before '"
+                + currentUrl
+                + "'");
       }
       previousUrl = currentUrl;
     }
@@ -1350,7 +1375,7 @@ class FhirR5ValueSetReadSearchTests {
     assertNotNull(outcome);
     assertNotNull(outcome.getIssue());
     assertFalse(outcome.getIssue().isEmpty());
-    
+
     OperationOutcomeIssueComponent issue = outcome.getIssue().get(0);
     assertEquals(OperationOutcome.IssueSeverity.ERROR, issue.getSeverity());
     assertTrue(issue.getDiagnostics().contains("Unsupported sort field"));

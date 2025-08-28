@@ -880,4 +880,154 @@ public class FhirR4ConceptMapReadSearchTests {
       assertTrue(data.getEntry().isEmpty() || conceptMaps.isEmpty());
     }
   }
+
+  @Test
+  public void testConceptMapSearchSortByName() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCMPath + "?_sort=name&_count=100";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<ConceptMap> conceptMaps =
+        data.getEntry().stream()
+            .map(entry -> (ConceptMap) entry.getResource())
+            .filter(cm -> cm.getName() != null)
+            .toList();
+
+    // Assert - verify ascending sort
+    assertFalse(conceptMaps.isEmpty());
+    for (int i = 1; i < conceptMaps.size(); i++) {
+      String previousName = conceptMaps.get(i - 1).getName().toLowerCase();
+      String currentName = conceptMaps.get(i).getName().toLowerCase();
+      assertTrue(
+          previousName.compareTo(currentName) <= 0,
+          String.format(
+              "ConceptMaps not sorted by name: '%s' should come before or equal to '%s'",
+              previousName, currentName));
+    }
+  }
+
+  @Test
+  public void testConceptMapSearchSortByNameDescending() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCMPath + "?_sort=-name&_count=100";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<ConceptMap> conceptMaps =
+        data.getEntry().stream()
+            .map(entry -> (ConceptMap) entry.getResource())
+            .filter(cm -> cm.getName() != null)
+            .toList();
+
+    // Assert - verify descending sort
+    assertFalse(conceptMaps.isEmpty());
+    for (int i = 1; i < conceptMaps.size(); i++) {
+      String previousName = conceptMaps.get(i - 1).getName().toLowerCase();
+      String currentName = conceptMaps.get(i).getName().toLowerCase();
+      assertTrue(
+          previousName.compareTo(currentName) >= 0,
+          String.format(
+              "ConceptMaps not sorted by name descending: '%s' should come after or equal to '%s'",
+              previousName, currentName));
+    }
+  }
+
+  @Test
+  public void testConceptMapSearchSortByTitle() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCMPath + "?_sort=title&_count=100";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<ConceptMap> conceptMaps =
+        data.getEntry().stream()
+            .map(entry -> (ConceptMap) entry.getResource())
+            .filter(cm -> cm.getTitle() != null)
+            .toList();
+
+    // Assert - verify ascending sort
+    assertFalse(conceptMaps.isEmpty());
+    for (int i = 1; i < conceptMaps.size(); i++) {
+      String previousTitle = conceptMaps.get(i - 1).getTitle().toLowerCase();
+      String currentTitle = conceptMaps.get(i).getTitle().toLowerCase();
+      assertTrue(
+          previousTitle.compareTo(currentTitle) <= 0,
+          String.format(
+              "ConceptMaps not sorted by title: '%s' should come before or equal to '%s'",
+              previousTitle, currentTitle));
+    }
+  }
+
+  @Test
+  public void testConceptMapSearchSortByTitleDescending() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCMPath + "?_sort=-title&_count=100";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<ConceptMap> conceptMaps =
+        data.getEntry().stream()
+            .map(entry -> (ConceptMap) entry.getResource())
+            .filter(cm -> cm.getTitle() != null)
+            .toList();
+
+    // Assert - verify descending sort
+    assertFalse(conceptMaps.isEmpty());
+    for (int i = 1; i < conceptMaps.size(); i++) {
+      String previousTitle = conceptMaps.get(i - 1).getTitle().toLowerCase();
+      String currentTitle = conceptMaps.get(i).getTitle().toLowerCase();
+      assertTrue(
+          previousTitle.compareTo(currentTitle) >= 0,
+          String.format(
+              "ConceptMaps not sorted by title descending: '%s' should come after or equal to '%s'",
+              previousTitle, currentTitle));
+    }
+  }
+
+  @Test
+  public void testConceptMapSearchSortByPublisher() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCMPath + "?_sort=publisher&_count=100";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<ConceptMap> conceptMaps =
+        data.getEntry().stream()
+            .map(entry -> (ConceptMap) entry.getResource())
+            .filter(cm -> cm.getPublisher() != null)
+            .toList();
+
+    // Assert - verify ascending sort
+    assertFalse(conceptMaps.isEmpty());
+    for (int i = 1; i < conceptMaps.size(); i++) {
+      String previousPublisher = conceptMaps.get(i - 1).getPublisher().toLowerCase();
+      String currentPublisher = conceptMaps.get(i).getPublisher().toLowerCase();
+      assertTrue(
+          previousPublisher.compareTo(currentPublisher) <= 0,
+          String.format(
+              "ConceptMaps not sorted by publisher: '%s' should come before or equal to '%s'",
+              previousPublisher, currentPublisher));
+    }
+  }
+
+  @Test
+  public void testConceptMapSearchSortInvalidField() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCMPath + "?_sort=invalid_field";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+
+    // Assert
+    assertNotNull(outcome);
+    assertEquals("invalid", outcome.getIssueFirstRep().getCode().toCode());
+    assertTrue(outcome.getIssueFirstRep().getDiagnostics().contains("Unsupported sort field"));
+  }
 }

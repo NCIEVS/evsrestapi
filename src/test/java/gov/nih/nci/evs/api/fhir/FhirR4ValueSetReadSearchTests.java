@@ -1120,4 +1120,154 @@ public class FhirR4ValueSetReadSearchTests {
     data = parser.parseResource(Bundle.class, content);
     validateCanmedValueSetResults(data, true);
   }
+
+  @Test
+  public void testValueSetSearchSortByName() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=name&_count=100";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<ValueSet> valueSets =
+        data.getEntry().stream()
+            .map(entry -> (ValueSet) entry.getResource())
+            .filter(vs -> vs.getName() != null)
+            .toList();
+
+    // Assert - verify ascending sort
+    assertFalse(valueSets.isEmpty());
+    for (int i = 1; i < valueSets.size(); i++) {
+      String previousName = valueSets.get(i - 1).getName().toLowerCase();
+      String currentName = valueSets.get(i).getName().toLowerCase();
+      assertTrue(
+          previousName.compareTo(currentName) <= 0,
+          String.format(
+              "ValueSets not sorted by name: '%s' should come before or equal to '%s'",
+              previousName, currentName));
+    }
+  }
+
+  @Test
+  public void testValueSetSearchSortByNameDescending() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=-name&_count=100";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<ValueSet> valueSets =
+        data.getEntry().stream()
+            .map(entry -> (ValueSet) entry.getResource())
+            .filter(vs -> vs.getName() != null)
+            .toList();
+
+    // Assert - verify descending sort
+    assertFalse(valueSets.isEmpty());
+    for (int i = 1; i < valueSets.size(); i++) {
+      String previousName = valueSets.get(i - 1).getName().toLowerCase();
+      String currentName = valueSets.get(i).getName().toLowerCase();
+      assertTrue(
+          previousName.compareTo(currentName) >= 0,
+          String.format(
+              "ValueSets not sorted by name descending: '%s' should come after or equal to '%s'",
+              previousName, currentName));
+    }
+  }
+
+  @Test
+  public void testValueSetSearchSortByTitle() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=title&_count=100";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<ValueSet> valueSets =
+        data.getEntry().stream()
+            .map(entry -> (ValueSet) entry.getResource())
+            .filter(vs -> vs.getTitle() != null)
+            .toList();
+
+    // Assert - verify ascending sort
+    assertFalse(valueSets.isEmpty());
+    for (int i = 1; i < valueSets.size(); i++) {
+      String previousTitle = valueSets.get(i - 1).getTitle().toLowerCase();
+      String currentTitle = valueSets.get(i).getTitle().toLowerCase();
+      assertTrue(
+          previousTitle.compareTo(currentTitle) <= 0,
+          String.format(
+              "ValueSets not sorted by title: '%s' should come before or equal to '%s'",
+              previousTitle, currentTitle));
+    }
+  }
+
+  @Test
+  public void testValueSetSearchSortByTitleDescending() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=-title&_count=100";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<ValueSet> valueSets =
+        data.getEntry().stream()
+            .map(entry -> (ValueSet) entry.getResource())
+            .filter(vs -> vs.getTitle() != null)
+            .toList();
+
+    // Assert - verify descending sort
+    assertFalse(valueSets.isEmpty());
+    for (int i = 1; i < valueSets.size(); i++) {
+      String previousTitle = valueSets.get(i - 1).getTitle().toLowerCase();
+      String currentTitle = valueSets.get(i).getTitle().toLowerCase();
+      assertTrue(
+          previousTitle.compareTo(currentTitle) >= 0,
+          String.format(
+              "ValueSets not sorted by title descending: '%s' should come after or equal to '%s'",
+              previousTitle, currentTitle));
+    }
+  }
+
+  @Test
+  public void testValueSetSearchSortByPublisher() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=publisher&_count=100";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    List<ValueSet> valueSets =
+        data.getEntry().stream()
+            .map(entry -> (ValueSet) entry.getResource())
+            .filter(vs -> vs.getPublisher() != null)
+            .toList();
+
+    // Assert - verify ascending sort
+    assertFalse(valueSets.isEmpty());
+    for (int i = 1; i < valueSets.size(); i++) {
+      String previousPublisher = valueSets.get(i - 1).getPublisher().toLowerCase();
+      String currentPublisher = valueSets.get(i).getPublisher().toLowerCase();
+      assertTrue(
+          previousPublisher.compareTo(currentPublisher) <= 0,
+          String.format(
+              "ValueSets not sorted by publisher: '%s' should come before or equal to '%s'",
+              previousPublisher, currentPublisher));
+    }
+  }
+
+  @Test
+  public void testValueSetSearchSortInvalidField() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=invalid_field";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+
+    // Assert
+    assertNotNull(outcome);
+    assertEquals("invalid", outcome.getIssueFirstRep().getCode().toCode());
+    assertTrue(outcome.getIssueFirstRep().getDiagnostics().contains("Unsupported sort field"));
+  }
 }

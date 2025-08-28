@@ -199,10 +199,10 @@ public class ValueSetProviderR5 implements IResourceProvider {
       }
       list.add(vs);
     }
-    
+
     // Apply sorting if requested
     applySorting(list, sort);
-    
+
     return FhirUtilityR5.makeBundle(request, list, count, offset);
   }
 
@@ -359,24 +359,25 @@ public class ValueSetProviderR5 implements IResourceProvider {
         sc.setFromRecord(offset != null ? offset.getValue() : 0);
         sc.setTerm(filter != null ? filter.getValue() : null);
         sc.setType("contains");
-        
+
         // Handle sorting if provided
         if (sort != null && !sort.getValue().isEmpty()) {
           String sortValue = sort.getValue();
           boolean ascending = true;
-          
+
           if (sortValue.startsWith("-")) {
             ascending = false;
             sortValue = sortValue.substring(1);
           }
-          
+
           // Validate supported sort fields
           if (!java.util.Arrays.asList("code", "display").contains(sortValue)) {
             throw FhirUtilityR5.exception(
                 "Unsupported sort field: " + sortValue + ". Supported fields: code, display",
-                IssueType.NOTSUPPORTED, 400);
+                IssueType.NOTSUPPORTED,
+                400);
           }
-          
+
           // Map FHIR sort fields to Elasticsearch field names
           String elasticSortField = sortValue;
           if ("display".equals(sortValue)) {
@@ -384,11 +385,11 @@ public class ValueSetProviderR5 implements IResourceProvider {
           } else if ("code".equals(sortValue)) {
             elasticSortField = "code"; // Code field can be sorted as-is
           }
-          
+
           sc.setSort(elasticSortField);
           sc.setAscending(ascending);
         }
-        
+
         sc.setTerminology(
             terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
         // Add property names to search criteria if indicated
@@ -672,24 +673,25 @@ public class ValueSetProviderR5 implements IResourceProvider {
         sc.setFromRecord(offset != null ? offset.getValue() : 0);
         sc.setTerm(filter != null ? filter.getValue() : null);
         sc.setType("contains");
-        
+
         // Handle sorting if provided
         if (sort != null && !sort.getValue().isEmpty()) {
           String sortValue = sort.getValue();
           boolean ascending = true;
-          
+
           if (sortValue.startsWith("-")) {
             ascending = false;
             sortValue = sortValue.substring(1);
           }
-          
+
           // Validate supported sort fields
           if (!java.util.Arrays.asList("code", "display").contains(sortValue)) {
             throw FhirUtilityR5.exception(
                 "Unsupported sort field: " + sortValue + ". Supported fields: code, display",
-                IssueType.NOTSUPPORTED, 400);
+                IssueType.NOTSUPPORTED,
+                400);
           }
-          
+
           // Map FHIR sort fields to Elasticsearch field names
           String elasticSortField = sortValue;
           if ("display".equals(sortValue)) {
@@ -697,11 +699,11 @@ public class ValueSetProviderR5 implements IResourceProvider {
           } else if ("code".equals(sortValue)) {
             elasticSortField = "code"; // Code field can be sorted as-is
           }
-          
+
           sc.setSort(elasticSortField);
           sc.setAscending(ascending);
         }
-        
+
         sc.setTerminology(
             terminologies.stream().map(Terminology::getTerminology).collect(Collectors.toList()));
         // Add property names to search criteria if indicated
@@ -1371,10 +1373,14 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final String field = descending ? sortValue.substring(1) : sortValue;
 
       // Validate supported fields
-      final List<String> supportedFields = Arrays.asList("name", "title", "publisher", "date", "url");
+      final List<String> supportedFields =
+          Arrays.asList("name", "title", "publisher", "date", "url");
       if (!supportedFields.contains(field)) {
         throw FhirUtilityR5.exception(
-            "Unsupported sort field: " + field + ". Supported fields: " + String.join(", ", supportedFields),
+            "Unsupported sort field: "
+                + field
+                + ". Supported fields: "
+                + String.join(", ", supportedFields),
             IssueType.INVALID,
             400);
       }
@@ -1389,9 +1395,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
       throw e;
     } catch (final Exception e) {
       throw FhirUtilityR5.exception(
-          "Error processing sort parameter: " + e.getMessage(),
-          IssueType.INVALID,
-          400);
+          "Error processing sort parameter: " + e.getMessage(), IssueType.INVALID, 400);
     }
   }
 
@@ -1404,18 +1408,22 @@ public class ValueSetProviderR5 implements IResourceProvider {
   private Comparator<ValueSet> getValueSetComparator(final String field) {
     switch (field) {
       case "name":
-        return Comparator.comparing(vs -> vs.getName() != null ? vs.getName().toLowerCase() : "", 
+        return Comparator.comparing(
+            vs -> vs.getName() != null ? vs.getName().toLowerCase() : "",
             Comparator.nullsLast(String::compareTo));
       case "title":
-        return Comparator.comparing(vs -> vs.getTitle() != null ? vs.getTitle().toLowerCase() : "",
+        return Comparator.comparing(
+            vs -> vs.getTitle() != null ? vs.getTitle().toLowerCase() : "",
             Comparator.nullsLast(String::compareTo));
       case "publisher":
-        return Comparator.comparing(vs -> vs.getPublisher() != null ? vs.getPublisher().toLowerCase() : "",
+        return Comparator.comparing(
+            vs -> vs.getPublisher() != null ? vs.getPublisher().toLowerCase() : "",
             Comparator.nullsLast(String::compareTo));
       case "date":
         return Comparator.comparing(ValueSet::getDate, Comparator.nullsLast(Date::compareTo));
       case "url":
-        return Comparator.comparing(vs -> vs.getUrl() != null ? vs.getUrl().toLowerCase() : "",
+        return Comparator.comparing(
+            vs -> vs.getUrl() != null ? vs.getUrl().toLowerCase() : "",
             Comparator.nullsLast(String::compareTo));
       default:
         throw new IllegalArgumentException("Unsupported sort field: " + field);

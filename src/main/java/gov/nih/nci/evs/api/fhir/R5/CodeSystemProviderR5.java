@@ -165,10 +165,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
 
         list.add(cs);
       }
-      
+
       // Apply sorting if requested
       applySorting(list, sort);
-      
+
       return FhirUtilityR5.makeBundle(request, list, count, offset);
     } catch (final FHIRServerResponseException e) {
       throw e;
@@ -1037,8 +1037,11 @@ public class CodeSystemProviderR5 implements IResourceProvider {
     // Validate supported sort fields
     if (!java.util.Arrays.asList("name", "title", "publisher", "date", "url").contains(sortValue)) {
       throw FhirUtilityR5.exception(
-          "Unsupported sort field: " + sortValue + ". Supported fields: name, title, publisher, date, url",
-          IssueType.NOTSUPPORTED, 400);
+          "Unsupported sort field: "
+              + sortValue
+              + ". Supported fields: name, title, publisher, date, url",
+          IssueType.NOTSUPPORTED,
+          400);
     }
 
     // Apply sorting based on field
@@ -1053,27 +1056,40 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @param ascending whether to sort in ascending order
    * @return the comparator
    */
-  private java.util.Comparator<CodeSystem> getCodeSystemComparator(final String field, final boolean ascending) {
+  private java.util.Comparator<CodeSystem> getCodeSystemComparator(
+      final String field, final boolean ascending) {
     java.util.Comparator<CodeSystem> comparator;
 
     switch (field) {
       case "name":
-        comparator = java.util.Comparator.comparing(cs -> cs.getName() != null ? cs.getName() : "", String.CASE_INSENSITIVE_ORDER);
+        comparator =
+            java.util.Comparator.comparing(
+                cs -> cs.getName() != null ? cs.getName() : "", String.CASE_INSENSITIVE_ORDER);
         break;
       case "title":
-        comparator = java.util.Comparator.comparing(cs -> cs.getTitle() != null ? cs.getTitle() : "", String.CASE_INSENSITIVE_ORDER);
+        comparator =
+            java.util.Comparator.comparing(
+                cs -> cs.getTitle() != null ? cs.getTitle() : "", String.CASE_INSENSITIVE_ORDER);
         break;
       case "publisher":
-        comparator = java.util.Comparator.comparing(cs -> cs.getPublisher() != null ? cs.getPublisher() : "", String.CASE_INSENSITIVE_ORDER);
+        comparator =
+            java.util.Comparator.comparing(
+                cs -> cs.getPublisher() != null ? cs.getPublisher() : "",
+                String.CASE_INSENSITIVE_ORDER);
         break;
       case "date":
-        comparator = java.util.Comparator.comparing(cs -> cs.getDate() != null ? cs.getDate() : new java.util.Date(0));
+        comparator =
+            java.util.Comparator.comparing(
+                cs -> cs.getDate() != null ? cs.getDate() : new java.util.Date(0));
         break;
       case "url":
-        comparator = java.util.Comparator.comparing(cs -> cs.getUrl() != null ? cs.getUrl() : "", String.CASE_INSENSITIVE_ORDER);
+        comparator =
+            java.util.Comparator.comparing(
+                cs -> cs.getUrl() != null ? cs.getUrl() : "", String.CASE_INSENSITIVE_ORDER);
         break;
       default:
-        throw FhirUtilityR5.exception("Unsupported sort field: " + field, IssueType.NOTSUPPORTED, 400);
+        throw FhirUtilityR5.exception(
+            "Unsupported sort field: " + field, IssueType.NOTSUPPORTED, 400);
     }
 
     return ascending ? comparator : comparator.reversed();

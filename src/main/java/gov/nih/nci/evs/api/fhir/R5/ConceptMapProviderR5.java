@@ -40,7 +40,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.CodeType;
 import org.hl7.fhir.r5.model.Coding;
@@ -804,10 +803,14 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       final String field = descending ? sortValue.substring(1) : sortValue;
 
       // Validate supported fields
-      final List<String> supportedFields = Arrays.asList("name", "title", "publisher", "date", "url");
+      final List<String> supportedFields =
+          Arrays.asList("name", "title", "publisher", "date", "url");
       if (!supportedFields.contains(field)) {
         throw FhirUtilityR5.exception(
-            "Unsupported sort field: " + field + ". Supported fields: " + String.join(", ", supportedFields),
+            "Unsupported sort field: "
+                + field
+                + ". Supported fields: "
+                + String.join(", ", supportedFields),
             IssueType.INVALID,
             400);
       }
@@ -822,9 +825,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       throw e;
     } catch (final Exception e) {
       throw FhirUtilityR5.exception(
-          "Error processing sort parameter: " + e.getMessage(),
-          IssueType.INVALID,
-          400);
+          "Error processing sort parameter: " + e.getMessage(), IssueType.INVALID, 400);
     }
   }
 
@@ -837,18 +838,22 @@ public class ConceptMapProviderR5 implements IResourceProvider {
   private Comparator<ConceptMap> getConceptMapComparator(final String field) {
     switch (field) {
       case "name":
-        return Comparator.comparing(cm -> cm.getName() != null ? cm.getName().toLowerCase() : "",
+        return Comparator.comparing(
+            cm -> cm.getName() != null ? cm.getName().toLowerCase() : "",
             Comparator.nullsLast(String::compareTo));
       case "title":
-        return Comparator.comparing(cm -> cm.getTitle() != null ? cm.getTitle().toLowerCase() : "",
+        return Comparator.comparing(
+            cm -> cm.getTitle() != null ? cm.getTitle().toLowerCase() : "",
             Comparator.nullsLast(String::compareTo));
       case "publisher":
-        return Comparator.comparing(cm -> cm.getPublisher() != null ? cm.getPublisher().toLowerCase() : "",
+        return Comparator.comparing(
+            cm -> cm.getPublisher() != null ? cm.getPublisher().toLowerCase() : "",
             Comparator.nullsLast(String::compareTo));
       case "date":
         return Comparator.comparing(ConceptMap::getDate, Comparator.nullsLast(Date::compareTo));
       case "url":
-        return Comparator.comparing(cm -> cm.getUrl() != null ? cm.getUrl().toLowerCase() : "",
+        return Comparator.comparing(
+            cm -> cm.getUrl() != null ? cm.getUrl().toLowerCase() : "",
             Comparator.nullsLast(String::compareTo));
       default:
         throw new IllegalArgumentException("Unsupported sort field: " + field);

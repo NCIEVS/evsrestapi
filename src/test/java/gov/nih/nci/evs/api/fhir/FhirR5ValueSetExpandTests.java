@@ -1371,10 +1371,11 @@ public class FhirR5ValueSetExpandTests {
     assertTrue(valueSet.getExpansion().getContains().size() > 1);
 
     // Verify codes are sorted in ascending order
-    List<String> codes = valueSet.getExpansion().getContains().stream()
-        .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
-        .collect(Collectors.toList());
-    
+    List<String> codes =
+        valueSet.getExpansion().getContains().stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+            .collect(Collectors.toList());
+
     // Verify that sorting was applied - the _sort parameter was accepted and results are ordered
     assertTrue(codes.size() > 1, "Should have multiple items to verify sorting");
     assertNotNull(codes, "Codes should not be null");
@@ -1404,11 +1405,13 @@ public class FhirR5ValueSetExpandTests {
     assertTrue(valueSet.getExpansion().getContains().size() > 1);
 
     // Verify codes are sorted in descending order
-    List<String> codes = valueSet.getExpansion().getContains().stream()
-        .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
-        .collect(Collectors.toList());
-    
-    // Verify that descending sorting was applied - the _sort parameter was accepted and results are ordered
+    List<String> codes =
+        valueSet.getExpansion().getContains().stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+            .collect(Collectors.toList());
+
+    // Verify that descending sorting was applied - the _sort parameter was accepted and results are
+    // ordered
     assertTrue(codes.size() > 1, "Should have multiple items to verify sorting");
     assertNotNull(codes, "Codes should not be null");
     assertTrue(codes.size() > 0, "Should have codes when sorting by code descending");
@@ -1437,10 +1440,11 @@ public class FhirR5ValueSetExpandTests {
     assertTrue(valueSet.getExpansion().getContains().size() > 1);
 
     // Verify displays are sorted in ascending order
-    List<String> displays = valueSet.getExpansion().getContains().stream()
-        .map(ValueSet.ValueSetExpansionContainsComponent::getDisplay)
-        .collect(Collectors.toList());
-    
+    List<String> displays =
+        valueSet.getExpansion().getContains().stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getDisplay)
+            .collect(Collectors.toList());
+
     // Verify that results are consistently sorted (don't impose specific sort algorithm)
     // Just verify that when we sort the same way the system would, we get the same order
     assertTrue(displays.size() > 1, "Should have multiple items to verify sorting");
@@ -1463,7 +1467,8 @@ public class FhirR5ValueSetExpandTests {
     String content;
     String activeID = "umlssemnet_2023aa";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    String endpoint = localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
+    String endpoint =
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
     String parameters = "?url=" + url + "&_sort=code&count=5";
 
     // Act
@@ -1476,10 +1481,11 @@ public class FhirR5ValueSetExpandTests {
     assertTrue(valueSet.getExpansion().getContains().size() > 1);
 
     // Verify codes are sorted in ascending order
-    List<String> codes = valueSet.getExpansion().getContains().stream()
-        .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
-        .collect(Collectors.toList());
-    
+    List<String> codes =
+        valueSet.getExpansion().getContains().stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+            .collect(Collectors.toList());
+
     // Verify that sorting was applied - the _sort parameter was accepted and results are ordered
     assertTrue(codes.size() > 1, "Should have multiple items to verify sorting");
     assertNotNull(codes, "Codes should not be null");
@@ -1499,17 +1505,18 @@ public class FhirR5ValueSetExpandTests {
     String parameters = "?url=" + url + "&_sort=invalidField";
 
     // Act
-    ResponseEntity<String> response = this.restTemplate.getForEntity(endpoint + parameters, String.class);
+    ResponseEntity<String> response =
+        this.restTemplate.getForEntity(endpoint + parameters, String.class);
 
     // Assert
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     String content = response.getBody();
     assertNotNull(content);
-    
+
     OperationOutcome operationOutcome = parser.parseResource(OperationOutcome.class, content);
     assertNotNull(operationOutcome);
     assertTrue(operationOutcome.hasIssue());
-    
+
     OperationOutcomeIssueComponent issue = operationOutcome.getIssue().get(0);
     assertTrue(issue.getDiagnostics().contains("Unsupported sort field: invalidField"));
     assertTrue(issue.getDiagnostics().contains("Supported fields: code, display"));
@@ -1525,21 +1532,23 @@ public class FhirR5ValueSetExpandTests {
     // Arrange
     String activeID = "umlssemnet_2023aa";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    String endpoint = localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
+    String endpoint =
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
     String parameters = "?url=" + url + "&_sort=invalidField";
 
     // Act
-    ResponseEntity<String> response = this.restTemplate.getForEntity(endpoint + parameters, String.class);
+    ResponseEntity<String> response =
+        this.restTemplate.getForEntity(endpoint + parameters, String.class);
 
     // Assert
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     String content = response.getBody();
     assertNotNull(content);
-    
+
     OperationOutcome operationOutcome = parser.parseResource(OperationOutcome.class, content);
     assertNotNull(operationOutcome);
     assertTrue(operationOutcome.hasIssue());
-    
+
     OperationOutcomeIssueComponent issue = operationOutcome.getIssue().get(0);
     assertTrue(issue.getDiagnostics().contains("Unsupported sort field: invalidField"));
     assertTrue(issue.getDiagnostics().contains("Supported fields: code, display"));
@@ -1558,17 +1567,18 @@ public class FhirR5ValueSetExpandTests {
     String parameters = "?url=" + url + "&_sort=system";
 
     // Act
-    ResponseEntity<String> response = this.restTemplate.getForEntity(endpoint + parameters, String.class);
+    ResponseEntity<String> response =
+        this.restTemplate.getForEntity(endpoint + parameters, String.class);
 
     // Assert
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     String content = response.getBody();
     assertNotNull(content);
-    
+
     OperationOutcome operationOutcome = parser.parseResource(OperationOutcome.class, content);
     assertNotNull(operationOutcome);
     assertTrue(operationOutcome.hasIssue());
-    
+
     OperationOutcomeIssueComponent issue = operationOutcome.getIssue().get(0);
     assertTrue(issue.getDiagnostics().contains("Unsupported sort field: system"));
     assertTrue(issue.getDiagnostics().contains("Supported fields: code, display"));
@@ -1594,18 +1604,25 @@ public class FhirR5ValueSetExpandTests {
     // Assert
     assertNotNull(valueSet);
     assertTrue(valueSet.hasExpansion());
-    
+
     // Verify that filter works (all codes should contain 'T')
-    valueSet.getExpansion().getContains().forEach(contains -> {
-      assertTrue(contains.getCode().contains("T") || contains.getDisplay().toLowerCase().contains("t"));
-    });
-    
+    valueSet
+        .getExpansion()
+        .getContains()
+        .forEach(
+            contains -> {
+              assertTrue(
+                  contains.getCode().contains("T")
+                      || contains.getDisplay().toLowerCase().contains("t"));
+            });
+
     // Verify sorting still works with filter
     if (valueSet.getExpansion().getContains().size() > 1) {
-      List<String> codes = valueSet.getExpansion().getContains().stream()
-          .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
-          .collect(Collectors.toList());
-      
+      List<String> codes =
+          valueSet.getExpansion().getContains().stream()
+              .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+              .collect(Collectors.toList());
+
       // Verify that sorting was applied even with filter - the _sort parameter was accepted
       assertNotNull(codes, "Codes should not be null when combining filter and sort");
       assertTrue(codes.size() > 0, "Should have codes when combining filter and sort");
