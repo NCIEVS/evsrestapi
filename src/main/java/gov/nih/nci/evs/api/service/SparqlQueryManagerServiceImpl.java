@@ -2153,6 +2153,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
 
     for (final Role role : roles) {
+      log.info("ROLE: {}", role.toString());
 
       // Send URI or code
       final Concept concept =
@@ -2161,15 +2162,22 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (role.getUri() != null) {
         matchConcept =
             Stream.of(bindings)
-                .filter(binding -> binding.getProperty().getValue().equals(concept.getUri()))
+                .filter(
+                    binding ->
+                        binding.getPropertyCode() != null
+                            && binding.getProperty().getValue().equals(concept.getUri()))
                 .findFirst()
                 .orElse(null);
       } else {
         matchConcept =
             Stream.of(bindings)
-                .filter(binding -> binding.getPropertyCode().getValue().equals(concept.getCode()))
+                .filter(
+                    binding ->
+                        binding.getPropertyCode() != null
+                            && binding.getPropertyCode().getValue().equals(concept.getCode()))
                 .findFirst()
                 .orElse(null);
+        log.info("  MATCH: {}", matchConcept);
       }
       if (concept.getCode().equals(concept.getName())
           && bindings != null
