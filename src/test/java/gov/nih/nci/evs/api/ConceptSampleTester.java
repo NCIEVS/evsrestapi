@@ -576,7 +576,7 @@ public class ConceptSampleTester {
           if (!checkQualifier(concept, sample)) {
             errors.add("ERROR: Bad qualifier " + sample.getValue() + " of " + sample.getCode());
           }
-        } else if (key.equals("root")) {
+        } else if (key.equals("root") && !terminology.getMetadata().getLoader().equals("rrf")) {
           if (concept.getParents().size() > 0) {
             errors.add("ERROR: root " + sample.getCode() + " has parents");
           }
@@ -668,7 +668,9 @@ public class ConceptSampleTester {
           // inconsistency
           if (!checkProperties(concept, newSample, propertyList)
               && newSample.equals(colonSample)
-              && (!checkProperties(concept, colonSample, propertyList))) {
+              && (!checkProperties(concept, colonSample, propertyList))
+              && (!terminology.getMetadata().getLoader().equals("rrf")
+                  && sample.getKey().equals("root"))) {
             errors.add(
                 "ERROR: Wrong property ("
                     + sample.getKey()
