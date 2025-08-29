@@ -2,44 +2,58 @@ R10.0	R10.0	synonym	Acute abdomen
 R10.0	R10.0	term-type	PT
 R10.0	R10.0	term-type	AB
 E78.6	E78.6	term-type	ET
-M14.6	M14.6	term-type	HT
+A42	A42	term-type	HT
 R10.0	R10.0	qualifier-synonym~EXCLUDES1	Acute abdomen~abdominal rigidity NOS (R19.3); generalized abdominal pain NOS (R10.84); localized abdominal pain (R10.1-R10.3-)
-R10.0	R10.0	qualifier-synonym~ORDER_NO	Acute abdomen~29149
-M14.6	M14.6	qualifier-synonym~EXCLUDES1	Charcôt's joint~Charcôt's joint in diabetes mellitus (E08-E13 with .610); Charcôt's joint in tabes dorsalis (A52.16)
-M14.6	M14.6	qualifier-synonym~ORDER_NO	Charcôt's joint~17264
+R10.0	R10.0	qualifier-synonym~ORDER_NO	Acute abdomen~30344
+A42	A42	qualifier-synonym~ORDER_NO	Actinomycosis~00317
+A42	A42	qualifier-synonym~EXCLUDES1	Actinomycosis~actinomycetoma (B47.1)
+D57	D57	qualifier-synonym~USE_ADDITIONAL	Sickle-cell disorders~code for any associated fever (R50.81)
+M24.6	M24.6	qualifier-synonym~EXCLUDES2	Ankylosis of joint~spine (M43.2-)
 K90.0	K90.0	qualifier-synonym~CODE_ALSO	Celiac disease~exocrine pancreatic insufficiency (K86.81)
 K90.0	K90.0	qualifier-synonym~USE_ADDITIONAL	Celiac disease~code for associated disorders including: dermatitis herpetiformis (L13.0); gluten ataxia (G32.81)
-N30	N30	qualifier-synonym~USE_ADDITIONAL	Cystitis~code to identify infectious agent (B95-B97)
+K63.5	K63.5	qualifier-synonym~EXCLUDES2	Polyp of colon~adenomatous polyp of colon (D12.-); inflammatory polyp of colon (K51.4-); polyposis of colon (D12.6)
+E84	E84	qualifier-synonym~CODE_ALSO	Cystic fibrosis~exocrine pancreatic insufficiency (K86.81)
+D89.81	D89.81	qualifier-synonym~CODE_FIRST	Graft-versus-host disease~underlying cause, such as: complications of transplanted organs and tissue (T86.-); complications of blood transfusion (T80.89)
 K40-K46	K40-K46	qualifier-synonym~NOTE	Hernia (K40-K46)~Hernia with both gangrene and obstruction is classified to hernia with gangrene.
-G00-G99	G00-G99	qualifier-synonym~EXCLUDES2	Diseases of the nervous system (G00-G99)~certain conditions originating in the perinatal period (P04-P96); certain infectious and parasitic diseases (A00-B99); complications of pregnancy, childbirth and the puerperium (O00-O9A); congenital malformations, deformations, and chromosomal abnormalities (Q00-Q99); endocrine, nutritional and metabolic diseases (E00-E88); injury, poisoning and certain other consequences of external causes (S00-T88); neoplasms (C00-D49); symptoms, signs and abnormal clinical and laboratory findings, not elsewhere classified (R00-R94)
-K65	K65	qualifier-synonym~CODE_ALSO	Peritonitis~if applicable diverticular disease of intestine (K57.-)
-K12.2	K12.2	qualifier-synonym~EXCLUDES2	Cellulitis and abscess of mouth~abscess of salivary gland (K11.3); abscess of tongue (K14.0); periapical abscess (K04.6-K04.7); periodontal abscess (K05.21); peritonsillar abscess (J36)
+B20	B20	qualifier-synonym~CODE_FIRST	Human immunodeficiency virus [HIV] disease~Human immunodeficiency virus [HIV] disease complicating pregnancy, childbirth and the puerperium, if applicable (O98.7-)
 R10.0	R10.0	Semantic_Type	Sign or Symptom
 E78.6	E78.6	Semantic_Type	Disease or Syndrome
 Q89.9	Q89.9	Semantic_Type	Congenital Abnormality
-T88.7	T88.7	Semantic_Type	Pathologic Function
-K46	K46	Semantic_Type	Anatomical Abnormality
-C76.2	C76.2	Semantic_Type	Neoplastic Process
-R19.2	R19.2	Semantic_Type	Finding
-S36	S36	Semantic_Type	Injury or Poisoning
-K09	K09	Semantic_Type	Acquired Abnormality
+M24.6	M24.6	Semantic_Type	Acquired Abnormality
+F99	F99	Semantic_Type	Mental or Behavioral Dysfunction
+W50.3	W50.3	Semantic_Type	Injury or Poisoning
+G93.82	G93.82	Semantic_Type	Pathologic Function
+K63.5	K63.5	Semantic_Type	Anatomical Abnormality
+K09.8	K09.8	Semantic_Type	Neoplastic Process
+Z21	Z21	Semantic_Type	Laboratory or Test Result
+F12	F12	Semantic_Type	Organic Chemical
+F12	F12	Semantic_Type	Pharmacologic Substance
+D84.9	D84.9	Semantic_Type	Finding
+K62	K62	Semantic_Type	Body Part, Organ, or Organ Component
+E65	E65	Semantic_Type	Tissue
 ICD-10-CM	ICD-10-CM	Semantic_Type	Intellectual Product
-N30	N30	root
-K40-K46	K40-K46	root
-R11	R11	root
-K65	K65	root
-K63	K63	root
-R19.1	R19.1	root
-R19.3	R19.3	root
-K20-K31	K20-K31	root
-K92	K92	root
-R10.81	R10.81	root
-S36	S36	root
-K55	K55	root
-K09	K09	root
-K12	K12	root
-K13	K13	root
+O09	O09	Semantic_Type	Therapeutic or Preventive Procedure
+F01-F99	F01-F99	Semantic_Type	Classification
+D89.81	D89.81	root
+C81	C81	root
+C95	C95	root
+H81.0	H81.0	root
+F45	F45	root
+B34	B34	root
+S37.0	S37.0	root
+M79.1	M79.1	root
+E10.6	E10.6	root
+E11.6	E11.6	root
+P35	P35	root
+H01.0	H01.0	root
+E31.2	E31.2	root
+Q05	Q05	root
 ICD-10-CM	ICD-10-CM	root
-K59.0	K59.0	root
-I85	I85	root
-M14.6	M14.6	parent-count1
+C49.A	C49.A	root
+T14.9	T14.9	root
+C46	C46	root
+R31	R31	root
+I42	I42	root
+I50	I50	root
+L40.5	L40.5	root
+R10.0	R10.0	parent-count1

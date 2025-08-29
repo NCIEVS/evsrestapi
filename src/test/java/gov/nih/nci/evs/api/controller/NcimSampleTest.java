@@ -104,14 +104,14 @@ public class NcimSampleTest extends SampleTest {
     assertThat(concept.getActive()).isTrue();
 
     // Test inactive
-    url = "/api/v1/concept/ncim/C0278390?include=full";
+    url = "/api/v1/concept/ncim/C1550508?include=full";
     log.info("Testing url - " + url);
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("C0278390");
+    assertThat(concept.getCode()).isEqualTo("C1550508");
     assertThat(concept.getTerminology()).isEqualTo("ncim");
     assertThat(concept.getActive()).isFalse();
     assertThat(concept.getConceptStatus()).isEqualTo("Retired_Concept");
