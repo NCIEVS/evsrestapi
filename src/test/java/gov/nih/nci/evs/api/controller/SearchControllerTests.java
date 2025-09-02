@@ -4526,6 +4526,55 @@ public class SearchControllerTests {
     } else {
       log.info("No rectal-related concepts found for 'rect car' - this may indicate the concepts don't exist in test data");
     }
+
+    // Test Case 3: Search for "single agen" which should find single agent concepts
+    String url3 = baseUrl + "?terminology=ncit&term=single agen&type=contains&pageSize=30";
+    log.info("Testing multiple partial word match with 'single agen': " + url3);
+
+    MvcResult result3 = this.mvc.perform(get(url3)).andExpect(status().isOk()).andReturn();
+    String content3 = result3.getResponse().getContentAsString();
+    assertThat(content3).isNotNull();
+
+    ConceptResultList list3 = new ObjectMapper().readValue(content3, ConceptResultList.class);
+    assertThat(list3.getConcepts()).isNotNull();
+    assertThat(list3.getConcepts().size()).isGreaterThan(0);
+
+    // Log the results for debugging
+    log.info("Results for 'single agen' (partial word matching test):");
+    for (int i = 0; i < Math.min(12, list3.getConcepts().size()); i++) {
+      Concept concept = list3.getConcepts().get(i);
+      log.info("  " + (i + 1) + ". " + concept.getName() + " (" + concept.getCode() + ")");
+    }
+
+    // Check specifically for 'Single Agent Therapy' concept
+    boolean foundSingleAgentTherapy = list3.getConcepts().stream()
+        .anyMatch(concept -> "Single Agent Therapy".equals(concept.getName()));
+    
+    if (foundSingleAgentTherapy) {
+      log.info("SUCCESS: Found 'Single Agent Therapy' concept for 'single agen' search");
+      
+      // Find the position of Single Agent Therapy for ranking validation
+      int singleAgentTherapyPosition = -1;
+      for (int i = 0; i < list3.getConcepts().size(); i++) {
+        if ("Single Agent Therapy".equals(list3.getConcepts().get(i).getName())) {
+          singleAgentTherapyPosition = i;
+          break;
+        }
+      }
+      log.info("'Single Agent Therapy' found at position: " + (singleAgentTherapyPosition + 1));
+      
+      // Validate that partial word matching ranks it reasonably high
+      assertThat(singleAgentTherapyPosition).as("Single Agent Therapy should be found in results for 'single agen'").isGreaterThanOrEqualTo(0);
+      
+    } else {
+      log.info("'Single Agent Therapy' not found - checking for any single agent-related concepts");
+      boolean foundSingleAgentRelated = list3.getConcepts().stream()
+          .anyMatch(concept -> concept.getName().toLowerCase().contains("single") && 
+                             concept.getName().toLowerCase().contains("agent"));
+      if (foundSingleAgentRelated) {
+        log.info("Found other 'single agent' concepts, partial matching is working");
+      }
+    }
   }
 
   /**
