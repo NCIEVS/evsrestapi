@@ -1,8 +1,52 @@
 package gov.nih.nci.evs.api.fhir.R5;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.hl7.fhir.r5.model.BooleanType;
+import org.hl7.fhir.r5.model.Bundle;
+import org.hl7.fhir.r5.model.CanonicalType;
+import org.hl7.fhir.r5.model.CodeType;
+import org.hl7.fhir.r5.model.Coding;
+import org.hl7.fhir.r5.model.IdType;
+import org.hl7.fhir.r5.model.IntegerType;
+import org.hl7.fhir.r5.model.Meta;
+import org.hl7.fhir.r5.model.OperationOutcome;
+import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r5.model.Parameters;
+import org.hl7.fhir.r5.model.StringType;
+import org.hl7.fhir.r5.model.UriType;
+import org.hl7.fhir.r5.model.ValueSet;
+import org.hl7.fhir.r5.model.ValueSet.ConceptPropertyComponent;
+import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
+import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionContainsComponent;
+import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionParameterComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
-import ca.uhn.fhir.rest.annotation.*;
+import ca.uhn.fhir.rest.annotation.History;
+import ca.uhn.fhir.rest.annotation.IdParam;
+import ca.uhn.fhir.rest.annotation.Operation;
+import ca.uhn.fhir.rest.annotation.OperationParam;
+import ca.uhn.fhir.rest.annotation.OptionalParam;
+import ca.uhn.fhir.rest.annotation.Read;
+import ca.uhn.fhir.rest.annotation.Search;
 import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
@@ -26,30 +70,6 @@ import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import org.hl7.fhir.r5.model.*;
-import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r5.model.ValueSet.ConceptPropertyComponent;
-import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
-import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionContainsComponent;
-import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionParameterComponent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 /** FHIR R5 ValueSet provider. */
 @Component
@@ -197,6 +217,14 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.empty());
   }
 
+  /**
+   * Gets the parameter value.
+   *
+   * @param param the param
+   * @param request the request
+   * @param paramName the param name
+   * @return the parameter value
+   */
   // Helper methods to extract parameters reliably
   private String getParameterValue(
       StringParam param, HttpServletRequest request, String paramName) {
@@ -206,6 +234,15 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return request.getParameter(paramName);
   }
 
+  /**
+   * Gets the boolean parameter value.
+   *
+   * @param param the param
+   * @param request the request
+   * @param paramName the param name
+   * @param defaultValue the default value
+   * @return the boolean parameter value
+   */
   private boolean getBooleanParameterValue(
       BooleanType param, HttpServletRequest request, String paramName, boolean defaultValue) {
     if (param != null && param.getValue() != null) {
@@ -215,6 +252,15 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return requestValue != null ? "true".equalsIgnoreCase(requestValue) : defaultValue;
   }
 
+  /**
+   * Gets the int parameter value.
+   *
+   * @param param the param
+   * @param request the request
+   * @param paramName the param name
+   * @param defaultValue the default value
+   * @return the int parameter value
+   */
   private int getIntParameterValue(
       IntegerType param, HttpServletRequest request, String paramName, int defaultValue) {
     if (param != null && param.getValue() != null) {
@@ -231,8 +277,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
    *
    * @param request the request
    * @param details the details
-   * @param url a canonical reference to the value set.
    * @param valueSet the value set
+   * @param url a canonical reference to the value set.
    * @param version the identifier used to identify the specific version of the value set to be used
    *     to generate expansion.
    * @param filter the text filter applied to the restrict codes that are returned.
@@ -1867,6 +1913,17 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return concept.getName();
   }
 
+  /**
+   * Apply concept filter.
+   *
+   * @param system the system
+   * @param filter the filter
+   * @param textFilter the text filter
+   * @param activeOnly the active only
+   * @param includeDesignations the include designations
+   * @return the list
+   * @throws Exception the exception
+   */
   private List<ValueSetExpansionContainsComponent> applyConceptFilter(
       String system,
       ValueSet.ConceptSetFilterComponent filter,
@@ -1985,6 +2042,18 @@ public class ValueSetProviderR5 implements IResourceProvider {
     return compList;
   }
 
+  /**
+   * Process descendents.
+   *
+   * @param system the system
+   * @param filter the filter
+   * @param selectedTerminology the selected terminology
+   * @param textFilter the text filter
+   * @param activeOnly the active only
+   * @param includeParam the include param
+   * @param compList the comp list
+   * @return the list
+   */
   private List<ValueSetExpansionContainsComponent> processDescendents(
       String system,
       ValueSet.ConceptSetFilterComponent filter,
@@ -2366,6 +2435,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @param system the terminology system
    * @param version the requested version
    * @return filtered concepts
+   * @throws Exception the exception
    */
   private List<ValueSetExpansionContainsComponent> applyVersionFilterOptimized(
       List<ValueSetExpansionContainsComponent> concepts, String system, String version)

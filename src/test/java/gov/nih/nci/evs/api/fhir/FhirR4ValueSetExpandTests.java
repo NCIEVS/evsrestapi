@@ -5,18 +5,25 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.jpa.model.util.JpaConstants;
-import ca.uhn.fhir.parser.IParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.properties.TestProperties;
-import gov.nih.nci.evs.api.util.JsonUtils;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.hl7.fhir.r4.model.*;
+
+import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.Enumerations;
+import org.hl7.fhir.r4.model.IntegerType;
+import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.Resource;
+import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.ValueSet;
 import org.hl7.fhir.r4.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,6 +44,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
+import ca.uhn.fhir.parser.IParser;
+import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.JsonUtils;
 
 // TODO: Auto-generated Javadoc
 /**
@@ -2997,7 +3012,9 @@ public class FhirR4ValueSetExpandTests {
             + "?url="
             + URLEncoder.encode(
                 "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl", StandardCharsets.UTF_8);
-    String content = this.restTemplate.getForObject(endpoint, String.class);
+
+    // Content not needed, we expect an exception
+    this.restTemplate.getForObject(endpoint, String.class);
 
     // Create the ValueSet using is-a filter that would return a very large number of concepts
     ValueSet inputValueSet = createNCITestValueSetWithLargeIsAFilter();
@@ -3488,7 +3505,7 @@ public class FhirR4ValueSetExpandTests {
     // Exclude a smaller subset using direct concepts (to ensure some overlap)
     ValueSet.ConceptSetComponent exclude = new ValueSet.ConceptSetComponent();
     exclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    
+
     // Add specific concepts to exclude
     ValueSet.ConceptReferenceComponent excludeConcept1 = new ValueSet.ConceptReferenceComponent();
     excludeConcept1.setCode("C48672"); // Schedule I Substance
@@ -3531,8 +3548,9 @@ public class FhirR4ValueSetExpandTests {
     // Assert - Excluded concept should NOT be present
     Optional<ValueSet.ValueSetExpansionContainsComponent> excludedResult =
         contains.stream().filter(comp -> "C48672".equals(comp.getCode())).findFirst();
-    
-    assertFalse(excludedResult.isPresent(), 
+
+    assertFalse(
+        excludedResult.isPresent(),
         "Schedule I Substance (C48672) should be excluded from expansion");
 
     log.info("Exclude ValueSet basic functionality test completed successfully");
@@ -3580,7 +3598,7 @@ public class FhirR4ValueSetExpandTests {
     includeOnlyValueSet.setId("nci-include-only-test");
     includeOnlyValueSet.setUrl("http://example.org/fhir/ValueSet/nci-include-only-test");
     includeOnlyValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
-    
+
     ValueSet.ValueSetComposeComponent includeOnlyCompose = new ValueSet.ValueSetComposeComponent();
     ValueSet.ConceptSetComponent includeOnly = new ValueSet.ConceptSetComponent();
     includeOnly.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
@@ -3589,9 +3607,18 @@ public class FhirR4ValueSetExpandTests {
     includeOnlyValueSet.setCompose(includeOnlyCompose);
 
     String includeOnlyRequestBody = parser.encodeResourceToString(includeOnlyValueSet);
-    HttpEntity<String> includeOnlyRequest = new HttpEntity<>(includeOnlyRequestBody, new HttpHeaders(){{setContentType(MediaType.APPLICATION_JSON);}});
-    ResponseEntity<String> includeOnlyResponse = this.restTemplate.postForEntity(endpoint, includeOnlyRequest, String.class);
-    ValueSet includeOnlyExpandedValueSet = parser.parseResource(ValueSet.class, includeOnlyResponse.getBody());
+    HttpEntity<String> includeOnlyRequest =
+        new HttpEntity<>(
+            includeOnlyRequestBody,
+            new HttpHeaders() {
+              {
+                setContentType(MediaType.APPLICATION_JSON);
+              }
+            });
+    ResponseEntity<String> includeOnlyResponse =
+        this.restTemplate.postForEntity(endpoint, includeOnlyRequest, String.class);
+    ValueSet includeOnlyExpandedValueSet =
+        parser.parseResource(ValueSet.class, includeOnlyResponse.getBody());
     int originalCount = includeOnlyExpandedValueSet.getExpansion().getTotal();
     log.info("  C54452 original count: {}", originalCount);
 
@@ -3624,22 +3651,25 @@ public class FhirR4ValueSetExpandTests {
     List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
     int finalCount = expansion.getTotal();
     int excludedCount = originalCount - finalCount;
-    
+
     log.info("  C54452 original count: {}", originalCount);
     log.info("  Final count after excluding C54459: {}", finalCount);
     log.info("  Excluded concept count: {}", excludedCount);
 
     // Assert - C54452 should still be in the expansion
-    Optional<ValueSet.ValueSetExpansionContainsComponent> c54452Result =
-        contains.stream().filter(comp -> "C54452".equals(comp.getCode())).findFirst();
-
+    ValueSet.ValueSetExpansionContainsComponent c54452Result =
+        contains.stream().filter(comp -> "C54452".equals(comp.getCode())).findFirst().orElse(null);
+    assertNotNull(c54452Result);
 
     // Assert - Total count should decrease by exactly 5 (as specified by user)
-    assertEquals(5, excludedCount, 
+    assertEquals(
+        5,
+        excludedCount,
         "Total count should decrease by exactly 5 concepts due to overlap between C54452 and C54459");
-    
+
     assertTrue(finalCount > 0, "Final expansion should contain concepts");
-    assertTrue(finalCount < originalCount, "Final count should be less than original due to exclusion");
+    assertTrue(
+        finalCount < originalCount, "Final count should be less than original due to exclusion");
 
     log.info("Include C54452 and exclude C54459 ValueSet test completed successfully");
   }
@@ -3669,12 +3699,12 @@ public class FhirR4ValueSetExpandTests {
     // Include a valid concept
     ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
     include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    
+
     ValueSet.ConceptReferenceComponent includeConcept = new ValueSet.ConceptReferenceComponent();
     includeConcept.setCode("C2991"); // Disease or Disorder
     includeConcept.setDisplay("Disease or Disorder");
     include.addConcept(includeConcept);
-    
+
     compose.addInclude(include);
 
     // Exclude a non-existent ValueSet
@@ -3700,12 +3730,13 @@ public class FhirR4ValueSetExpandTests {
 
     // Assert - Should return an OperationOutcome error
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    
+
     // Parse as OperationOutcome to verify error handling
-    OperationOutcome operationOutcome = parser.parseResource(OperationOutcome.class, response.getBody());
+    OperationOutcome operationOutcome =
+        parser.parseResource(OperationOutcome.class, response.getBody());
     assertNotNull(operationOutcome);
     assertTrue(operationOutcome.hasIssue());
-    
+
     OperationOutcome.OperationOutcomeIssueComponent issue = operationOutcome.getIssueFirstRep();
     assertEquals(OperationOutcome.IssueType.NOTFOUND, issue.getCode());
     assertTrue(issue.getDiagnostics().contains("Referenced ValueSet not found"));

@@ -5,18 +5,26 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.jpa.model.util.JpaConstants;
-import ca.uhn.fhir.parser.IParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.properties.TestProperties;
-import gov.nih.nci.evs.api.util.JsonUtils;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Date;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.hl7.fhir.r5.model.*;
+
+import org.hl7.fhir.r5.model.BooleanType;
+import org.hl7.fhir.r5.model.Bundle;
+import org.hl7.fhir.r5.model.Enumerations;
+import org.hl7.fhir.r5.model.IntegerType;
+import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
+import org.hl7.fhir.r5.model.Parameters;
+import org.hl7.fhir.r5.model.Resource;
+import org.hl7.fhir.r5.model.StringType;
+import org.hl7.fhir.r5.model.UriType;
+import org.hl7.fhir.r5.model.ValueSet;
 import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -38,6 +46,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
+import ca.uhn.fhir.parser.IParser;
+import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.JsonUtils;
 
 /** Tests for R5 value set expand calls. */
 @ExtendWith(SpringExtension.class)
@@ -185,6 +201,11 @@ public class FhirR5ValueSetExpandTests {
             .getDisplay());
   }
 
+  /**
+   * Test value set post rejects parameters.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetPostRejectsParameters() throws Exception {
     // Arrange
@@ -202,7 +223,7 @@ public class FhirR5ValueSetExpandTests {
     String requestBody = parser.encodeResourceToString(parameters);
     log.info("  parameters = " + requestBody);
 
-    HttpEntity request = new HttpEntity<>(requestBody, headers);
+    HttpEntity<?> request = new HttpEntity<>(requestBody, headers);
 
     // Act
     ResponseEntity<String> content =
@@ -1435,6 +1456,11 @@ public class FhirR5ValueSetExpandTests {
         totalDefinitions);
   }
 
+  /**
+   * Test value set expand with NCI thesaurus active only designations definition parameters.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetExpandWithNCIThesaurusActiveOnlyDesignationsDefinitionParameters()
       throws Exception {
@@ -1462,7 +1488,7 @@ public class FhirR5ValueSetExpandTests {
     String requestBody = parser.encodeResourceToString(parameters);
     log.info("  parameters = " + requestBody);
 
-    HttpEntity request = new HttpEntity<>(requestBody, headers);
+    HttpEntity<?> request = new HttpEntity<>(requestBody, headers);
     ResponseEntity<String> response =
         this.restTemplate.postForEntity(endpoint, request, String.class);
 
@@ -1940,6 +1966,15 @@ public class FhirR5ValueSetExpandTests {
     return inputValueSet;
   }
 
+  /**
+   * Creates the NCI test value set with isa filter include and exclude.
+   *
+   * @param id the id
+   * @param name the name
+   * @param title the title
+   * @param description the description
+   * @return the value set
+   */
   // Helper method to create ValueSet with filter-based include, direct includes, and excludes
   private ValueSet createNCITestValueSetWithIsaFilterIncludeAndExclude(
       String id, String name, String title, String description) {
@@ -2014,6 +2049,11 @@ public class FhirR5ValueSetExpandTests {
     return inputValueSet;
   }
 
+  /**
+   * Test value set expand with NCI thesaurus isa filter include and exclude.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetExpandWithNCIThesaurusIsaFilterIncludeAndExclude() throws Exception {
     // Arrange
@@ -2226,6 +2266,15 @@ public class FhirR5ValueSetExpandTests {
   }
 
   // Helper method to create ValueSet with descendant-leaf filter-based include, direct includes,
+  /**
+   * Creates the NCI test value set with descendant leaf filter include and exclude.
+   *
+   * @param id the id
+   * @param name the name
+   * @param title the title
+   * @param description the description
+   * @return the value set
+   */
   // and excludes
   private ValueSet createNCITestValueSetWithDescendantLeafFilterIncludeAndExclude(
       String id, String name, String title, String description) {
@@ -2302,6 +2351,11 @@ public class FhirR5ValueSetExpandTests {
     return inputValueSet;
   }
 
+  /**
+   * Test value set expand with NCI thesaurus descendant leaf filter include and exclude.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetExpandWithNCIThesaurusDescendantLeafFilterIncludeAndExclude()
       throws Exception {
@@ -2520,6 +2574,15 @@ public class FhirR5ValueSetExpandTests {
     }
   }
 
+  /**
+   * Creates the NCI test value set with in filter include and exclude.
+   *
+   * @param id the id
+   * @param name the name
+   * @param title the title
+   * @param description the description
+   * @return the value set
+   */
   // Helper method to create ValueSet with "in" filter-based include, direct includes, and excludes
   private ValueSet createNCITestValueSetWithInFilterIncludeAndExclude(
       String id, String name, String title, String description) {
@@ -2595,6 +2658,11 @@ public class FhirR5ValueSetExpandTests {
     return inputValueSet;
   }
 
+  /**
+   * Test value set expand with NCI thesaurus in filter include and exclude.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetExpandWithNCIThesaurusInFilterIncludeAndExclude() throws Exception {
     // Arrange
@@ -2845,6 +2913,15 @@ public class FhirR5ValueSetExpandTests {
   }
 
   // Helper method to create ValueSet with "generalizes" filter-based include, direct includes, and
+  /**
+   * Creates the NCI test value set with generalizes filter include and exclude.
+   *
+   * @param id the id
+   * @param name the name
+   * @param title the title
+   * @param description the description
+   * @return the value set
+   */
   // excludes
   private ValueSet createNCITestValueSetWithGeneralizesFilterIncludeAndExclude(
       String id, String name, String title, String description) {
@@ -2922,6 +2999,11 @@ public class FhirR5ValueSetExpandTests {
     return inputValueSet;
   }
 
+  /**
+   * Test value set expand with NCI thesaurus generalizes filter include and exclude.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testValueSetExpandWithNCIThesaurusGeneralizesFilterIncludeAndExclude()
       throws Exception {
@@ -3244,7 +3326,7 @@ public class FhirR5ValueSetExpandTests {
             .filter(
                 comp -> {
                   String display = comp.getDisplay() != null ? comp.getDisplay().toLowerCase() : "";
-                  String code = comp.getCode();
+                  // String code = comp.getCode();
                   // Look for gene concepts that could be children of Lyase Gene
                   return display.contains("gene") || display.contains("lyase");
                 })
@@ -3578,8 +3660,8 @@ public class FhirR5ValueSetExpandTests {
     // Assert - All concepts in the result should have Contributing_Source = "FDA" when properties
     // are included
     // Test a sample of concepts to verify they all have the expected property value
-    String propertyName = "Contributing_Source";
-    String expectedValue = "FDA";
+    //    String propertyName = "Contributing_Source";
+    //    String expectedValue = "FDA";
 
     for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
       log.info("Concept in result: {} - {}", concept.getCode(), concept.getDisplay());
@@ -4155,7 +4237,7 @@ public class FhirR5ValueSetExpandTests {
     // Exclude a smaller subset using direct concepts (to ensure some overlap)
     ValueSet.ConceptSetComponent exclude = new ValueSet.ConceptSetComponent();
     exclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    
+
     // Add specific concepts to exclude
     ValueSet.ConceptReferenceComponent excludeConcept1 = new ValueSet.ConceptReferenceComponent();
     excludeConcept1.setCode("C48672"); // Schedule I Substance
@@ -4198,8 +4280,9 @@ public class FhirR5ValueSetExpandTests {
     // Assert - Excluded concept should NOT be present
     Optional<ValueSet.ValueSetExpansionContainsComponent> excludedResult =
         contains.stream().filter(comp -> "C48672".equals(comp.getCode())).findFirst();
-    
-    assertFalse(excludedResult.isPresent(), 
+
+    assertFalse(
+        excludedResult.isPresent(),
         "Schedule I Substance (C48672) should be excluded from expansion");
 
     log.info("Exclude ValueSet basic functionality test completed successfully");
@@ -4247,7 +4330,7 @@ public class FhirR5ValueSetExpandTests {
     includeOnlyValueSet.setId("nci-include-only-test");
     includeOnlyValueSet.setUrl("http://example.org/fhir/ValueSet/nci-include-only-test");
     includeOnlyValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
-    
+
     ValueSet.ValueSetComposeComponent includeOnlyCompose = new ValueSet.ValueSetComposeComponent();
     ValueSet.ConceptSetComponent includeOnly = new ValueSet.ConceptSetComponent();
     includeOnly.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
@@ -4256,9 +4339,18 @@ public class FhirR5ValueSetExpandTests {
     includeOnlyValueSet.setCompose(includeOnlyCompose);
 
     String includeOnlyRequestBody = parser.encodeResourceToString(includeOnlyValueSet);
-    HttpEntity<String> includeOnlyRequest = new HttpEntity<>(includeOnlyRequestBody, new HttpHeaders(){{setContentType(MediaType.APPLICATION_JSON);}});
-    ResponseEntity<String> includeOnlyResponse = this.restTemplate.postForEntity(endpoint, includeOnlyRequest, String.class);
-    ValueSet includeOnlyExpandedValueSet = parser.parseResource(ValueSet.class, includeOnlyResponse.getBody());
+    HttpEntity<String> includeOnlyRequest =
+        new HttpEntity<>(
+            includeOnlyRequestBody,
+            new HttpHeaders() {
+              {
+                setContentType(MediaType.APPLICATION_JSON);
+              }
+            });
+    ResponseEntity<String> includeOnlyResponse =
+        this.restTemplate.postForEntity(endpoint, includeOnlyRequest, String.class);
+    ValueSet includeOnlyExpandedValueSet =
+        parser.parseResource(ValueSet.class, includeOnlyResponse.getBody());
     int originalCount = includeOnlyExpandedValueSet.getExpansion().getTotal();
     log.info("  C54452 original count: {}", originalCount);
 
@@ -4291,21 +4383,25 @@ public class FhirR5ValueSetExpandTests {
     List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
     int finalCount = expansion.getTotal();
     int excludedCount = originalCount - finalCount;
-    
+
     log.info("  C54452 original count: {}", originalCount);
     log.info("  Final count after excluding C54459: {}", finalCount);
     log.info("  Excluded concept count: {}", excludedCount);
 
     // Assert - C54452 should still be in the expansion
-    Optional<ValueSet.ValueSetExpansionContainsComponent> c54452Result =
-        contains.stream().filter(comp -> "C54452".equals(comp.getCode())).findFirst();
+    ValueSet.ValueSetExpansionContainsComponent c54452Result =
+        contains.stream().filter(comp -> "C54452".equals(comp.getCode())).findFirst().orElse(null);
+    assertNotNull(c54452Result);
 
     // Assert - Total count should decrease by exactly 5 (as specified by user)
-    assertEquals(5, excludedCount, 
+    assertEquals(
+        5,
+        excludedCount,
         "Total count should decrease by exactly 5 concepts due to overlap between C54452 and C54459");
-    
+
     assertTrue(finalCount > 0, "Final expansion should contain concepts");
-    assertTrue(finalCount < originalCount, "Final count should be less than original due to exclusion");
+    assertTrue(
+        finalCount < originalCount, "Final count should be less than original due to exclusion");
 
     log.info("Include C54452 and exclude C54459 ValueSet test completed successfully");
   }
@@ -4328,20 +4424,21 @@ public class FhirR5ValueSetExpandTests {
     inputValueSet.setName("NCIExcludeValueSetNoOverlapTest");
     inputValueSet.setTitle("NCI Thesaurus Exclude ValueSet No Overlap Test");
     inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
-    inputValueSet.setDescription("Test ValueSet with exclude.valueSet that has no overlap with included concepts");
+    inputValueSet.setDescription(
+        "Test ValueSet with exclude.valueSet that has no overlap with included concepts");
 
     ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
 
     // Include direct concepts
     ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
     include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    
+
     // Add a concept that won't be in C54459
     ValueSet.ConceptReferenceComponent includeConcept = new ValueSet.ConceptReferenceComponent();
     includeConcept.setCode("C2991"); // Disease or Disorder
     includeConcept.setDisplay("Disease or Disorder");
     include.addConcept(includeConcept);
-    
+
     compose.addInclude(include);
 
     // Exclude a ValueSet that shouldn't have C2991
@@ -4374,13 +4471,14 @@ public class FhirR5ValueSetExpandTests {
     // Assert - Expansion should still contain the original concept (no overlap to exclude)
     ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
     List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
-    
+
     assertEquals(1, expansion.getTotal(), "Should still have 1 concept (no overlap to exclude)");
-    
+
     Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
         contains.stream().filter(comp -> "C2991".equals(comp.getCode())).findFirst();
-    
-    assertTrue(diseaseResult.isPresent(), 
+
+    assertTrue(
+        diseaseResult.isPresent(),
         "Disease or Disorder (C2991) should still be present (no overlap with excluded ValueSet)");
 
     log.info("Exclude ValueSet no overlap test completed successfully");
@@ -4411,12 +4509,12 @@ public class FhirR5ValueSetExpandTests {
     // Include a valid concept
     ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
     include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    
+
     ValueSet.ConceptReferenceComponent includeConcept = new ValueSet.ConceptReferenceComponent();
     includeConcept.setCode("C2991"); // Disease or Disorder
     includeConcept.setDisplay("Disease or Disorder");
     include.addConcept(includeConcept);
-    
+
     compose.addInclude(include);
 
     // Exclude a non-existent ValueSet
@@ -4442,12 +4540,13 @@ public class FhirR5ValueSetExpandTests {
 
     // Assert - Should return an OperationOutcome error
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    
+
     // Parse as OperationOutcome to verify error handling
-    OperationOutcome operationOutcome = parser.parseResource(OperationOutcome.class, response.getBody());
+    OperationOutcome operationOutcome =
+        parser.parseResource(OperationOutcome.class, response.getBody());
     assertNotNull(operationOutcome);
     assertTrue(operationOutcome.hasIssue());
-    
+
     OperationOutcome.OperationOutcomeIssueComponent issue = operationOutcome.getIssueFirstRep();
     assertEquals(OperationOutcome.IssueType.NOTFOUND, issue.getCode());
     assertTrue(issue.getDiagnostics().contains("Referenced ValueSet not found"));
@@ -5408,7 +5507,7 @@ public class FhirR5ValueSetExpandTests {
     assertTrue(expandedValueSet.hasExpansion(), "Expanded ValueSet should have expansion");
 
     ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
-    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+    // List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
 
     // Assert - Should have concepts since we're using current version and valid filters
     log.info(
@@ -5586,7 +5685,9 @@ public class FhirR5ValueSetExpandTests {
             + "?url="
             + URLEncoder.encode(
                 "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl", StandardCharsets.UTF_8);
-    String content = this.restTemplate.getForObject(endpoint, String.class);
+
+    // content not important, this is expected to have an operation error
+    this.restTemplate.getForObject(endpoint, String.class);
 
     // Create the ValueSet using is-a filter that would return a very large number of concepts
     ValueSet inputValueSet = createNCITestValueSetWithLargeIsAFilter();
