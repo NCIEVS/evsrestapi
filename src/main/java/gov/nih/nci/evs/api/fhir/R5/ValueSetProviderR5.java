@@ -293,8 +293,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
           valueSet,
           version,
           filterValue,
+          count, // Pass original nullable parameter
+          offset, // Pass original nullable parameter
           countValue,
           offsetValue,
+          includeDesignations, // Pass original nullable parameter
+          includeDefinition, // Pass original nullable parameter
+          activeOnly, // Pass original nullable parameter
           includeDesignationsValue,
           includeDefinitionValue,
           activeOnlyValue);
@@ -1174,10 +1179,11 @@ public class ValueSetProviderR5 implements IResourceProvider {
       ValueSetExpansionContainsComponent vsContains, Concept concept, String propertyName) {
 
     if (propertyName.equals("active")) {
+      Boolean active = concept.getActive();
       vsContains.addProperty(
           new ConceptPropertyComponent()
               .setCode("active")
-              .setValue(new BooleanType(concept.getActive())));
+              .setValue(new BooleanType(active != null ? active : true)));
     } else if (propertyName.contains("parent")) {
       for (final Concept parent : concept.getParents()) {
         vsContains.addProperty(
@@ -1342,8 +1348,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final ValueSet valueSet,
       final StringType version,
       final String filter,
+      final IntegerType originalCount,
+      final IntegerType originalOffset,
       final int count,
       final int offset,
+      final BooleanType originalIncludeDesignations,
+      final BooleanType originalIncludeDefinition,
+      final BooleanType originalActiveOnly,
       final boolean includeDesignations,
       final boolean includeDefinition,
       final boolean activeOnly)
@@ -1389,6 +1400,20 @@ public class ValueSetProviderR5 implements IResourceProvider {
       expansion.setTimestamp(new Date());
       expansion.setTotal(expandedConcepts.size());
       expansion.setContains(paginatedConcepts);
+
+      // Add expansion parameters (use original parameters to avoid showing defaults)
+      addExpansionParameters(
+          expansion,
+          filter,
+          originalCount != null ? originalCount.getValue() : null,
+          originalOffset != null && originalOffset.getValue() > 0
+              ? originalOffset.getValue()
+              : null,
+          originalIncludeDesignations != null ? originalIncludeDesignations.getValue() : null,
+          originalIncludeDefinition != null ? originalIncludeDefinition.getValue() : null,
+          originalActiveOnly != null ? originalActiveOnly.getValue() : null,
+          null // propertyNames not available in this method scope
+          );
 
       expandedValueSet.setExpansion(expansion);
 
@@ -1962,16 +1987,19 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
     // is-a requires self concept to be added
     if ("is-a".equals(filter.getOp().toCode()) || "generalizes".equals(filter.getOp().toCode())) {
-      Concept concept =
-          osQueryService.getConcept(filter.getValue(), selectedTerminology, includeParam).get();
-      final ValueSet.ValueSetExpansionContainsComponent vsContains =
-          new ValueSet.ValueSetExpansionContainsComponent();
-      vsContains.setSystem(system);
-      vsContains.setCode(concept.getCode());
-      vsContains.setDisplay(concept.getName());
+      Optional<Concept> conceptOpt =
+          osQueryService.getConcept(filter.getValue(), selectedTerminology, includeParam);
+      if (conceptOpt.isPresent()) {
+        Concept concept = conceptOpt.get();
+        final ValueSet.ValueSetExpansionContainsComponent vsContains =
+            new ValueSet.ValueSetExpansionContainsComponent();
+        vsContains.setSystem(system);
+        vsContains.setCode(concept.getCode());
+        vsContains.setDisplay(concept.getName());
 
-      if (passesTextFilter(vsContains, textFilter)) {
-        compList.add(vsContains);
+        if (passesTextFilter(vsContains, textFilter)) {
+          compList.add(vsContains);
+        }
       }
     }
 
@@ -1993,8 +2021,12 @@ public class ValueSetProviderR5 implements IResourceProvider {
       boolean activeOnly,
       IncludeParam includeParam,
       List<ValueSetExpansionContainsComponent> compList) {
-    Concept concept =
-        osQueryService.getConcept(filter.getValue(), selectedTerminology, includeParam).get();
+    Optional<Concept> conceptOpt =
+        osQueryService.getConcept(filter.getValue(), selectedTerminology, includeParam);
+    if (!conceptOpt.isPresent()) {
+      return compList;
+    }
+    Concept concept = conceptOpt.get();
     if (!concept.getDescendants().isEmpty()) {
       for (Concept desc : concept.getDescendants()) {
         if (activeOnly && desc.getActive() != null && !desc.getActive()) {
@@ -2211,7 +2243,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
       includeParam.setDefinitions(true);
     }
 
-    Concept concept = osQueryService.getConcept(code, selectedTerminology, includeParam).get();
+    Optional<Concept> conceptOpt =
+        osQueryService.getConcept(code, selectedTerminology, includeParam);
+    Concept concept = conceptOpt.get();
     for (Synonym term : concept.getSynonyms()) {
       if (term.getTermType() != null && term.getName() != null) {
         ConceptReferenceDesignationComponent designation =
@@ -2494,6 +2528,82 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
 
     return concepts.subList(startIndex, endIndex);
+  }
+
+  /**
+   * Add expansion parameters to the expansion component.
+   *
+   * @param expansion the expansion component
+   * @param filter the filter parameter
+   * @param count the count parameter
+   * @param offset the offset parameter
+   * @param includeDesignations the includeDesignations parameter
+   * @param includeDefinition the includeDefinition parameter
+   * @param activeOnly the activeOnly parameter
+   * @param propertyNames the property names set
+   */
+  private void addExpansionParameters(
+      ValueSet.ValueSetExpansionComponent expansion,
+      String filter,
+      Integer count,
+      Integer offset,
+      Boolean includeDesignations,
+      Boolean includeDefinition,
+      Boolean activeOnly,
+      Set<String> propertyNames) {
+
+    ValueSetExpansionParameterComponent vsParameter;
+
+    if (filter != null && !filter.trim().isEmpty()) {
+      vsParameter = new ValueSetExpansionParameterComponent();
+      vsParameter.setName("filter");
+      vsParameter.setValue(new StringType(filter));
+      expansion.addParameter(vsParameter);
+    }
+
+    if (count != null) {
+      vsParameter = new ValueSetExpansionParameterComponent();
+      vsParameter.setName("count");
+      vsParameter.setValue(new IntegerType(count));
+      expansion.addParameter(vsParameter);
+    }
+
+    if (offset != null && offset > 0) {
+      vsParameter = new ValueSetExpansionParameterComponent();
+      vsParameter.setName("offset");
+      vsParameter.setValue(new IntegerType(offset));
+      expansion.addParameter(vsParameter);
+    }
+
+    if (includeDefinition != null) {
+      vsParameter = new ValueSetExpansionParameterComponent();
+      vsParameter.setName("includeDefinition");
+      vsParameter.setValue(new BooleanType(includeDefinition));
+      expansion.addParameter(vsParameter);
+    }
+
+    if (includeDesignations != null) {
+      vsParameter = new ValueSetExpansionParameterComponent();
+      vsParameter.setName("includeDesignations");
+      vsParameter.setValue(new BooleanType(includeDesignations));
+      expansion.addParameter(vsParameter);
+    }
+
+    if (activeOnly != null) {
+      vsParameter = new ValueSetExpansionParameterComponent();
+      vsParameter.setName("activeOnly");
+      vsParameter.setValue(new BooleanType(activeOnly));
+      expansion.addParameter(vsParameter);
+    }
+
+    if (propertyNames != null && !propertyNames.isEmpty()) {
+      for (String propertyName : propertyNames) {
+        vsParameter = new ValueSetExpansionParameterComponent();
+        vsParameter.setName("property");
+        vsParameter.setValue(new StringType(propertyName));
+        expansion.addParameter(vsParameter);
+      }
+    }
   }
 
   /**

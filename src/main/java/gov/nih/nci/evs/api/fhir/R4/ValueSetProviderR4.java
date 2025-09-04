@@ -464,8 +464,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
     addExpansionParameters(
         expansion, filter, count, offset, includeDesignations, includeDefinition, activeOnly);
 
-    // Set expansion on value set and return
-    ValueSet result = valueSet.copy();
+    // Create clean response ValueSet without compose definition (FHIR spec compliant)
+    ValueSet result = new ValueSet();
+    result.setId(valueSet.getId());
+    result.setUrl(valueSet.getUrl());
+    result.setVersion(valueSet.getVersion());
+    result.setName(valueSet.getName());
+    result.setTitle(valueSet.getTitle());
+    result.setStatus(valueSet.getStatus());
+    result.setDescription(valueSet.getDescription());
     result.setExpansion(expansion);
 
     logger.info("ValueSet expansion completed with {} concepts", expansion.getTotal());
@@ -1084,9 +1091,26 @@ public class ValueSetProviderR4 implements IResourceProvider {
           vsParameter.setValue(activeOnly);
           vsExpansion.addParameter(vsParameter);
         }
+
+        if (offset != null && offset > 0) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("offset");
+          vsParameter.setValue(new IntegerType(offset));
+          vsExpansion.addParameter(vsParameter);
+        }
       }
-      vs.setExpansion(vsExpansion);
-      return vs;
+
+      // Create clean response ValueSet without compose definition (FHIR spec compliant)
+      ValueSet expandedValueSet = new ValueSet();
+      expandedValueSet.setId(vs.getId());
+      expandedValueSet.setUrl(vs.getUrl());
+      expandedValueSet.setVersion(vs.getVersion());
+      expandedValueSet.setName(vs.getName());
+      expandedValueSet.setTitle(vs.getTitle());
+      expandedValueSet.setStatus(vs.getStatus());
+      expandedValueSet.setDescription(vs.getDescription());
+      expandedValueSet.setExpansion(vsExpansion);
+      return expandedValueSet;
     } catch (final FHIRServerResponseException e) {
       throw e;
     } catch (final Exception e) {
@@ -1784,8 +1808,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
             operation);
         break;
       case "generalizes":
-        // Not implemented yet
-        logger.warn("Generalizes filter operation not yet implemented: {}", operation);
+        concepts = processAncestors(value, terminology, includeParam, true);
         break;
       case "exists":
         // Property exists filter is now handled in the include processing logic
@@ -1825,6 +1848,30 @@ public class ValueSetProviderR4 implements IResourceProvider {
     List<Concept> descendants = osQueryService.getDescendants(conceptCode, terminology);
     concepts.addAll(descendants);
 
+    return concepts;
+  }
+
+  /** Process ancestors (for generalizes filter). */
+  private List<Concept> processAncestors(
+      String conceptCode, Terminology terminology, IncludeParam includeParam, boolean includeSelf)
+      throws Exception {
+
+    List<Concept> concepts = new ArrayList<>();
+
+    // Include the concept itself if generalizes filter (like is-a)
+    if (includeSelf) {
+      Optional<Concept> concept = osQueryService.getConcept(conceptCode, terminology, includeParam);
+      if (concept.isPresent()) {
+        concepts.add(concept.get());
+      }
+    }
+
+    // Get ancestors of the concept
+    List<Concept> ancestors = osQueryService.getAncestors(conceptCode.trim(), terminology);
+    concepts.addAll(ancestors);
+
+    logger.info(
+        "Applied generalizes filter for {}, found {} ancestors", conceptCode, ancestors.size());
     return concepts;
   }
 
@@ -2102,7 +2149,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
     if (!activeOnly) {
       return true;
     }
-    return concept.getActive();
+    Boolean active = concept.getActive();
+    return active != null ? active : true;
   }
 
   /** Filter out excluded concepts. */

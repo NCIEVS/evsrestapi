@@ -377,6 +377,85 @@ public class FhirR4ValueSetExpandTests {
   }
 
   /**
+   * Creates the NCI test value set with generalizes filter include and exclude.
+   *
+   * @param id the id
+   * @param name the name
+   * @param title the title
+   * @param description the description
+   * @return the value set
+   */
+  private ValueSet createNCITestValueSetWithGeneralizesFilterIncludeAndExclude(
+      String id, String name, String title, String description) {
+    ValueSet inputValueSet = new ValueSet();
+    inputValueSet.setId(id);
+    inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
+    inputValueSet.setVersion("1.0.0");
+    inputValueSet.setName(name);
+    inputValueSet.setTitle(title);
+    inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
+    inputValueSet.setDescription(description);
+
+    // Build compose definition with NCI Thesaurus concepts
+    ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
+
+    // FIRST INCLUDE - Filter-based inclusion using "generalizes" operation for ancestors of Lyase
+    // Gene
+    ValueSet.ConceptSetComponent generalizesInclude = new ValueSet.ConceptSetComponent();
+    generalizesInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Add filter for concepts that "generalize" Lyase Gene (C21282) - i.e., ancestors + the concept
+    // itself
+    ValueSet.ConceptSetFilterComponent generalizesFilter = new ValueSet.ConceptSetFilterComponent();
+    generalizesFilter.setProperty("concept");
+    generalizesFilter.setOp(
+        ValueSet.FilterOperator.GENERALIZES); // "generalizes" - ancestors + self
+    generalizesFilter.setValue("C21282"); // Lyase Gene
+    generalizesInclude.addFilter(generalizesFilter);
+
+    compose.addInclude(generalizesInclude);
+
+    // SECOND INCLUDE - Direct concept inclusion (your original test concepts)
+    ValueSet.ConceptSetComponent directInclude = new ValueSet.ConceptSetComponent();
+    directInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Valid active concept
+    ValueSet.ConceptReferenceComponent diseaseOrDisorder = new ValueSet.ConceptReferenceComponent();
+    diseaseOrDisorder.setCode("C2991");
+    diseaseOrDisorder.setDisplay("Disease or Disorder");
+    directInclude.addConcept(diseaseOrDisorder);
+
+    // Valid active concept
+    ValueSet.ConceptReferenceComponent gene = new ValueSet.ConceptReferenceComponent();
+    gene.setCode("C16612");
+    gene.setDisplay("Gene");
+    directInclude.addConcept(gene);
+
+    // Inactive concept
+    ValueSet.ConceptReferenceComponent inactiveConcept = new ValueSet.ConceptReferenceComponent();
+    inactiveConcept.setCode("C176707");
+    inactiveConcept.setDisplay("Physical Examination Finding - Inactive Test Concept");
+    directInclude.addConcept(inactiveConcept);
+
+    compose.addInclude(directInclude);
+
+    // EXCLUDE section - exclude one of the directly included concepts
+    ValueSet.ConceptSetComponent nciExclude = new ValueSet.ConceptSetComponent();
+    nciExclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
+
+    // Exclude the Gene concept (C16612) that was included above
+    ValueSet.ConceptReferenceComponent excludeGene = new ValueSet.ConceptReferenceComponent();
+    excludeGene.setCode("C16612");
+    excludeGene.setDisplay("Gene");
+    nciExclude.addConcept(excludeGene);
+
+    compose.addExclude(nciExclude);
+    inputValueSet.setCompose(compose);
+
+    return inputValueSet;
+  }
+
+  /**
    * Test value set expand instance.
    *
    * @throws Exception the exception
@@ -1287,6 +1366,116 @@ public class FhirR4ValueSetExpandTests {
 
     log.info(
         "  NCI Thesaurus is-a filter expansion completed with {} concepts", expansion.getTotal());
+    for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
+      log.debug("    Expanded NCI concept: {} - {}", concept.getCode(), concept.getDisplay());
+    }
+  }
+
+  /**
+   * Test value set expand with NCI thesaurus "generalizes" filter include and exclude.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandWithNCIThesaurusGeneralizesFilterIncludeAndExclude()
+      throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+
+    // Create the ValueSet with "generalizes" filter-based include, direct includes, and excludes
+    ValueSet inputValueSet =
+        createNCITestValueSetWithGeneralizesFilterIncludeAndExclude(
+            "nci-generalizes-filter-test",
+            "NCIGeneralizesFilterTest",
+            "NCI Thesaurus Generalizes Filter Test",
+            "Test ValueSet with 'generalizes' filter for Lyase Gene ancestors plus direct includes"
+                + " and excludes");
+
+    // Convert to JSON for POST request
+    String requestBody = parser.encodeResourceToString(inputValueSet);
+    log.info("  value set = " + JsonUtils.prettyPrint(requestBody));
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setContentType(MediaType.APPLICATION_JSON);
+    HttpEntity<String> request = new HttpEntity<>(requestBody, headers);
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.postForEntity(endpoint, request, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
+    ValueSet expandedValueSet = parser.parseResource(ValueSet.class, response.getBody());
+
+    // Assert - Basic structure validation
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertNotNull(expandedValueSet);
+    assertTrue(expandedValueSet.hasExpansion());
+
+    // Assert - Expansion metadata
+    ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
+    assertNotNull(expansion.getIdentifier());
+    assertNotNull(expansion.getTimestamp());
+    assertNotNull(expansion.getTotal());
+    assertTrue(expansion.hasContains());
+
+    List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
+
+    // Assert - Lyase Gene (C21282) should be included (generalizes includes the concept itself)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> lyaseResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C21282".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(
+        lyaseResult.isPresent(),
+        "Lyase Gene (C21282) should be included from 'generalizes' filter (includes self)");
+    log.info("C21282 (Lyase Gene) correctly included from 'generalizes' filter");
+
+    // Assert - Check for ancestor concepts of Lyase Gene (broader/parent concepts)
+    long generalizesConceptCount =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .count();
+
+    log.info("Found {} concepts from 'generalizes' filter", generalizesConceptCount);
+    assertTrue(
+        generalizesConceptCount >= 1,
+        "'generalizes' filter should include at least the concept itself (C21282)");
+
+    // Assert - Disease or Disorder (C2991) should be included from direct include
+    Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C2991".equals(comp.getCode()))
+            .findFirst();
+
+    assertTrue(
+        diseaseResult.isPresent(),
+        "Disease or Disorder (C2991) should be included from direct include");
+    assertEquals("Disease or Disorder", diseaseResult.get().getDisplay());
+
+    // Assert - Gene (C16612) should be EXCLUDED (was directly included but then excluded)
+    Optional<ValueSet.ValueSetExpansionContainsComponent> excludedGeneResult =
+        contains.stream()
+            .filter(
+                comp ->
+                    "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
+            .filter(comp -> "C16612".equals(comp.getCode()))
+            .findFirst();
+
+    assertFalse(
+        excludedGeneResult.isPresent(),
+        "Gene (C16612) should be excluded despite being in direct include");
+
+    log.info(
+        "  NCI Thesaurus generalizes filter expansion completed with {} concepts",
+        expansion.getTotal());
     for (ValueSet.ValueSetExpansionContainsComponent concept : contains) {
       log.debug("    Expanded NCI concept: {} - {}", concept.getCode(), concept.getDisplay());
     }
@@ -3488,7 +3677,7 @@ public class FhirR4ValueSetExpandTests {
     // Exclude a smaller subset using direct concepts (to ensure some overlap)
     ValueSet.ConceptSetComponent exclude = new ValueSet.ConceptSetComponent();
     exclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    
+
     // Add specific concepts to exclude
     ValueSet.ConceptReferenceComponent excludeConcept1 = new ValueSet.ConceptReferenceComponent();
     excludeConcept1.setCode("C48672"); // Schedule I Substance
@@ -3531,8 +3720,9 @@ public class FhirR4ValueSetExpandTests {
     // Assert - Excluded concept should NOT be present
     Optional<ValueSet.ValueSetExpansionContainsComponent> excludedResult =
         contains.stream().filter(comp -> "C48672".equals(comp.getCode())).findFirst();
-    
-    assertFalse(excludedResult.isPresent(), 
+
+    assertFalse(
+        excludedResult.isPresent(),
         "Schedule I Substance (C48672) should be excluded from expansion");
 
     log.info("Exclude ValueSet basic functionality test completed successfully");
@@ -3580,7 +3770,7 @@ public class FhirR4ValueSetExpandTests {
     includeOnlyValueSet.setId("nci-include-only-test");
     includeOnlyValueSet.setUrl("http://example.org/fhir/ValueSet/nci-include-only-test");
     includeOnlyValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
-    
+
     ValueSet.ValueSetComposeComponent includeOnlyCompose = new ValueSet.ValueSetComposeComponent();
     ValueSet.ConceptSetComponent includeOnly = new ValueSet.ConceptSetComponent();
     includeOnly.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
@@ -3589,9 +3779,18 @@ public class FhirR4ValueSetExpandTests {
     includeOnlyValueSet.setCompose(includeOnlyCompose);
 
     String includeOnlyRequestBody = parser.encodeResourceToString(includeOnlyValueSet);
-    HttpEntity<String> includeOnlyRequest = new HttpEntity<>(includeOnlyRequestBody, new HttpHeaders(){{setContentType(MediaType.APPLICATION_JSON);}});
-    ResponseEntity<String> includeOnlyResponse = this.restTemplate.postForEntity(endpoint, includeOnlyRequest, String.class);
-    ValueSet includeOnlyExpandedValueSet = parser.parseResource(ValueSet.class, includeOnlyResponse.getBody());
+    HttpEntity<String> includeOnlyRequest =
+        new HttpEntity<>(
+            includeOnlyRequestBody,
+            new HttpHeaders() {
+              {
+                setContentType(MediaType.APPLICATION_JSON);
+              }
+            });
+    ResponseEntity<String> includeOnlyResponse =
+        this.restTemplate.postForEntity(endpoint, includeOnlyRequest, String.class);
+    ValueSet includeOnlyExpandedValueSet =
+        parser.parseResource(ValueSet.class, includeOnlyResponse.getBody());
     int originalCount = includeOnlyExpandedValueSet.getExpansion().getTotal();
     log.info("  C54452 original count: {}", originalCount);
 
@@ -3624,7 +3823,7 @@ public class FhirR4ValueSetExpandTests {
     List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
     int finalCount = expansion.getTotal();
     int excludedCount = originalCount - finalCount;
-    
+
     log.info("  C54452 original count: {}", originalCount);
     log.info("  Final count after excluding C54459: {}", finalCount);
     log.info("  Excluded concept count: {}", excludedCount);
@@ -3633,13 +3832,16 @@ public class FhirR4ValueSetExpandTests {
     Optional<ValueSet.ValueSetExpansionContainsComponent> c54452Result =
         contains.stream().filter(comp -> "C54452".equals(comp.getCode())).findFirst();
 
-
     // Assert - Total count should decrease by exactly 5 (as specified by user)
-    assertEquals(5, excludedCount, 
-        "Total count should decrease by exactly 5 concepts due to overlap between C54452 and C54459");
-    
+    assertEquals(
+        5,
+        excludedCount,
+        "Total count should decrease by exactly 5 concepts due to overlap between C54452 and"
+            + " C54459");
+
     assertTrue(finalCount > 0, "Final expansion should contain concepts");
-    assertTrue(finalCount < originalCount, "Final count should be less than original due to exclusion");
+    assertTrue(
+        finalCount < originalCount, "Final count should be less than original due to exclusion");
 
     log.info("Include C54452 and exclude C54459 ValueSet test completed successfully");
   }
@@ -3669,12 +3871,12 @@ public class FhirR4ValueSetExpandTests {
     // Include a valid concept
     ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
     include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    
+
     ValueSet.ConceptReferenceComponent includeConcept = new ValueSet.ConceptReferenceComponent();
     includeConcept.setCode("C2991"); // Disease or Disorder
     includeConcept.setDisplay("Disease or Disorder");
     include.addConcept(includeConcept);
-    
+
     compose.addInclude(include);
 
     // Exclude a non-existent ValueSet
@@ -3700,12 +3902,13 @@ public class FhirR4ValueSetExpandTests {
 
     // Assert - Should return an OperationOutcome error
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    
+
     // Parse as OperationOutcome to verify error handling
-    OperationOutcome operationOutcome = parser.parseResource(OperationOutcome.class, response.getBody());
+    OperationOutcome operationOutcome =
+        parser.parseResource(OperationOutcome.class, response.getBody());
     assertNotNull(operationOutcome);
     assertTrue(operationOutcome.hasIssue());
-    
+
     OperationOutcome.OperationOutcomeIssueComponent issue = operationOutcome.getIssueFirstRep();
     assertEquals(OperationOutcome.IssueType.NOTFOUND, issue.getCode());
     assertTrue(issue.getDiagnostics().contains("Referenced ValueSet not found"));
