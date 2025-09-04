@@ -23,17 +23,21 @@ import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.OpenSearchService;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeType;
@@ -63,6 +67,9 @@ public class ConceptMapProviderR4 implements IResourceProvider {
 
   /** the opensearch search service. */
   @Autowired OpenSearchService osSearchService;
+
+  /** The term utils. */
+  @Autowired TerminologyUtils termUtils;
 
   /** The code to translate. */
   String codeToTranslate = "";
@@ -393,6 +400,9 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     try {
       FhirUtilityR4.notSupportedSearchParams(request);
 
+      final Map<String, Terminology> map =
+          termUtils.getIndexedTerminologies(osQueryService).stream()
+              .collect(Collectors.toMap(t -> t.getTerminology(), t -> t));
       final List<Concept> mapsets = osQueryService.getMapsets(new IncludeParam("properties"));
 
       final List<ConceptMap> list = new ArrayList<>();
@@ -402,7 +412,11 @@ public class ConceptMapProviderR4 implements IResourceProvider {
             .anyMatch(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))) {
           continue;
         }
-        final ConceptMap cm = FhirUtilityR4.toR4(mapset);
+        final ConceptMap cm =
+            FhirUtilityR4.toR4(
+                map.get(mapset.getPropertyValue("sourceTerminology")),
+                map.get(mapset.getPropertyValue("targetTerminology")),
+                mapset);
         // Skip non-matching
         if (url != null && !url.getValue().equals(cm.getUrl())) {
           logger.debug("  SKIP url mismatch = " + cm.getUrl());
@@ -471,6 +485,9 @@ public class ConceptMapProviderR4 implements IResourceProvider {
         return new ArrayList<>(0);
       }
 
+      final Map<String, Terminology> map =
+          termUtils.getIndexedTerminologies(osQueryService).stream()
+              .collect(Collectors.toMap(t -> t.getTerminology(), t -> t));
       final List<Concept> mapsets = osQueryService.getMapsets(new IncludeParam("properties"));
 
       final List<ConceptMap> list = new ArrayList<>();
@@ -480,7 +497,11 @@ public class ConceptMapProviderR4 implements IResourceProvider {
             .anyMatch(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))) {
           continue;
         }
-        final ConceptMap cm = FhirUtilityR4.toR4(mapset);
+        final ConceptMap cm =
+            FhirUtilityR4.toR4(
+                map.get(mapset.getPropertyValue("sourceTerminology")),
+                map.get(mapset.getPropertyValue("targetTerminology")),
+                mapset);
         // Skip non-matching
         if (url != null && !url.getValue().equals(cm.getUrl())) {
           logger.debug("  SKIP url mismatch = " + cm.getUrl());

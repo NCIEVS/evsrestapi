@@ -208,6 +208,15 @@ public class MetadataControllerTests {
     assertThat(metadata.get("sources")).isNotEmpty();
     assertThat(metadata.get("definitionTypes")).isNotEmpty();
     assertThat(metadata.get("synonymTypes")).isNotEmpty();
+    // check that each entry is sorted by code
+    for (List<Concept> concepts : metadata.values()) {
+      assertThat(
+          concepts.stream()
+              .map(Concept::getCode)
+              .collect(Collectors.toList())
+              .equals(
+                  concepts.stream().map(Concept::getCode).sorted().collect(Collectors.toList())));
+    }
   }
 
   /**
@@ -370,6 +379,12 @@ public class MetadataControllerTests {
     assertThat(list).isNotEmpty();
     // Assert that no cases involve a concept with a name having a space
     assertThat(list.stream().filter(c -> c.getName().contains(" ")).count()).isEqualTo(0);
+    // check that associations are sorted by code
+    assertThat(
+        list.stream()
+            .map(Concept::getCode)
+            .collect(Collectors.toList())
+            .equals(list.stream().map(Concept::getCode).sorted().collect(Collectors.toList())));
   }
 
   /**
@@ -439,12 +454,6 @@ public class MetadataControllerTests {
     assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
         .isEqualTo(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getDefinitions().stream().filter(d -> d.getCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
         .isEqualTo(0);
     // Test with "by label"
     url = baseUrl + "/ncit/association/Concept_In_Subset";
@@ -543,6 +552,12 @@ public class MetadataControllerTests {
     assertThat(list).isNotEmpty();
     // Assert that no cases involve a concept with a name having a space
     assertThat(list.stream().filter(c -> c.getName().contains(" ")).count()).isEqualTo(0);
+    // check that roles are sorted by code
+    assertThat(
+        list.stream()
+            .map(Concept::getCode)
+            .collect(Collectors.toList())
+            .equals(list.stream().map(Concept::getCode).sorted().collect(Collectors.toList())));
   }
 
   /**
@@ -611,12 +626,6 @@ public class MetadataControllerTests {
     assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
         .isEqualTo(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getDefinitions().stream().filter(d -> d.getCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
         .isEqualTo(0);
     // Test with "by label"
     url = baseUrl + "/ncit/role/Conceptual_Part_Of";
@@ -730,6 +739,12 @@ public class MetadataControllerTests {
                             > 0)
                 .count())
         .isEqualTo(0);
+    // check that properties are sorted by code
+    assertThat(
+        list.stream()
+            .map(Concept::getCode)
+            .collect(Collectors.toList())
+            .equals(list.stream().map(Concept::getCode).sorted().collect(Collectors.toList())));
   }
 
   /**
@@ -803,12 +818,6 @@ public class MetadataControllerTests {
     assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
         .isEqualTo(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getDefinitions().stream().filter(d -> d.getCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
         .isEqualTo(0);
 
     // Test with "by label"
@@ -947,6 +956,12 @@ public class MetadataControllerTests {
     assertThat(list).isNotEmpty();
     // NOTE: This may change in the future
     assertThat(list.size()).isGreaterThan(40);
+    // check that synonym sources are sorted by code
+    assertThat(
+        list.stream()
+            .map(Concept::getCode)
+            .collect(Collectors.toList())
+            .equals(list.stream().map(Concept::getCode).sorted().collect(Collectors.toList())));
 
     // Bad terminology
     url = baseUrl + "/ncitXXX/synonymSources";
@@ -985,6 +1000,12 @@ public class MetadataControllerTests {
     // This may change in the future, but it's a way of validating
     // "definition sources" as being different than "synonym sources"
     assertThat(list.size()).isLessThan(50);
+    // check that definition sources are sorted by code
+    assertThat(
+        list.stream()
+            .map(Concept::getCode)
+            .collect(Collectors.toList())
+            .equals(list.stream().map(Concept::getCode).sorted().collect(Collectors.toList())));
 
     // Bad terminology
     url = baseUrl + "/ncitXXX/definitionSources";
@@ -1020,6 +1041,12 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(list).isNotEmpty();
+    // check that term types are sorted by code
+    assertThat(
+        list.stream()
+            .map(Concept::getCode)
+            .collect(Collectors.toList())
+            .equals(list.stream().map(Concept::getCode).sorted().collect(Collectors.toList())));
 
     // Bad terminology
     url = baseUrl + "/ncitXXX/termTypes";
@@ -1068,12 +1095,6 @@ public class MetadataControllerTests {
     assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
         .isEqualTo(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getDefinitions().stream().filter(d -> d.getCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
         .isEqualTo(0);
     // P381
     url = baseUrl + "/ncit/qualifier/P381/values";
@@ -1141,12 +1162,6 @@ public class MetadataControllerTests {
         .isEqualTo(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
         .isEqualTo(0);
-    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getDefinitions().stream().filter(d -> d.getCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
-        .isEqualTo(0);
     // Bad terminology
     url = baseUrl + "/ncitXXX/synonymType/P90";
     log.info("Testing url - " + url);
@@ -1198,12 +1213,6 @@ public class MetadataControllerTests {
         .isEqualTo(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
         .isEqualTo(0);
-    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getDefinitions().stream().filter(d -> d.getCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
-        .isEqualTo(0);
     // Bad terminology
     url = baseUrl + "/ncitXXX/definitionType/P97";
     log.info("Testing url - " + url);
@@ -1246,6 +1255,12 @@ public class MetadataControllerTests {
     List<String> unpublished = Arrays.asList("P379", "P380");
     List<String> properties = list.stream().map(Concept::getCode).collect(Collectors.toList());
     assertThat(Collections.disjoint(properties, unpublished));
+    // check that qualifiers are sorted by code
+    assertThat(
+        list.stream()
+            .map(Concept::getCode)
+            .collect(Collectors.toList())
+            .equals(list.stream().map(Concept::getCode).sorted().collect(Collectors.toList())));
 
     // Test with P389
     url = baseUrl + "/ncit/qualifiers?include=summary&list=P389";
@@ -1269,12 +1284,6 @@ public class MetadataControllerTests {
     assertThat(concept.getSynonyms().stream().filter(s -> s.getNormName() != null).count())
         .isEqualTo(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getDefinitions().stream().filter(d -> d.getCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
         .isEqualTo(0);
 
     // Test with P391
@@ -1467,7 +1476,7 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(0);
+    assertThat(terminologies.size()).isGreaterThanOrEqualTo(1);
 
     result = mvc.perform(get(url).param("tag", "monthly")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();

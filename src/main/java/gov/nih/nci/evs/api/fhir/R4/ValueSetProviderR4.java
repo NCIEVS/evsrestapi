@@ -1,5 +1,43 @@
 package gov.nih.nci.evs.api.fhir.R4;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.apache.commons.lang3.BooleanUtils;
+import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.CanonicalType;
+import org.hl7.fhir.r4.model.CodeType;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.IntegerType;
+import org.hl7.fhir.r4.model.Meta;
+import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.UriType;
+import org.hl7.fhir.r4.model.ValueSet;
+import org.hl7.fhir.r4.model.ValueSet.ConceptReferenceDesignationComponent;
+import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionComponent;
+import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionContainsComponent;
+import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionParameterComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Component;
+
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.History;
@@ -33,41 +71,6 @@ import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import org.apache.commons.lang3.BooleanUtils;
-import org.hl7.fhir.r4.model.BooleanType;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CanonicalType;
-import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.IntegerType;
-import org.hl7.fhir.r4.model.Meta;
-import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.UriType;
-import org.hl7.fhir.r4.model.ValueSet;
-import org.hl7.fhir.r4.model.ValueSet.ConceptReferenceDesignationComponent;
-import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionComponent;
-import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionContainsComponent;
-import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionParameterComponent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Component;
 
 /** FHIR R4 ValueSet provider. */
 /** */
@@ -386,6 +389,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
           vsParameter = new ValueSetExpansionParameterComponent();
           vsParameter.setName("count");
           vsParameter.setValue(new IntegerType(countValue));
+          vsExpansion.addParameter(vsParameter);
+        }
+
+        if (offset != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("offset");
+          vsParameter.setValue(offset);
           vsExpansion.addParameter(vsParameter);
         }
 
@@ -927,8 +937,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       // @OperationParam(name = "contextDirection") final CodeType contextDirection,
       @OperationParam(name = "filter") final StringType filter,
       // @OperationParam(name = "date") final DateTimeType date,
-      @ca.uhn.fhir.rest.annotation.Offset final Integer offset,
-      @ca.uhn.fhir.rest.annotation.Count final Integer count,
+      @OperationParam(name = "offset") final IntegerType offset,
+      @OperationParam(name = "count") final IntegerType count,
       @OperationParam(name = "includeDesignations") final BooleanType includeDesignations,
       // @OperationParam(name = "designation") final StringType designation,
       @OperationParam(name = "includeDefinition") final BooleanType includeDefinition,
@@ -1043,8 +1053,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
         final List<Terminology> terminologies = new ArrayList<>();
         terminologies.add(termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true));
         final SearchCriteria sc = new SearchCriteria();
-        sc.setPageSize(count != null ? count : 10);
-        sc.setFromRecord(offset != null ? offset : 0);
+        sc.setPageSize(count != null ? count.getValue() : 10);
+        sc.setFromRecord(offset != null ? offset.getValue() : 0);
         sc.setTerm(filter != null ? filter.getValue() : null);
         sc.setType("contains");
         sc.setTerminology(
@@ -1059,7 +1069,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       }
       ValueSetExpansionParameterComponent vsParameter;
       vsExpansion.setTimestamp(new Date());
-      vsExpansion.setOffset(offset != null ? offset : 0);
+      vsExpansion.setOffset(offset != null ? offset.getValue() : 0);
       if (subsetMembers.size() > 0) {
         for (final Concept member : subsetMembers) {
           if (activeOnly != null && activeOnly.getValue() && !member.getActive()) {
@@ -1117,7 +1127,14 @@ public class ValueSetProviderR4 implements IResourceProvider {
         if (count != null) {
           vsParameter = new ValueSetExpansionParameterComponent();
           vsParameter.setName("count");
-          vsParameter.setValue(new IntegerType(count));
+          vsParameter.setValue(count);
+          vsExpansion.addParameter(vsParameter);
+        }
+
+        if (offset != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("offset");
+          vsParameter.setValue(offset);
           vsExpansion.addParameter(vsParameter);
         }
 
@@ -1135,10 +1152,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
           vsExpansion.addParameter(vsParameter);
         }
 
-        if (offset != null && offset > 0) {
+        if (offset != null && offset.getValue() > 0) {
           vsParameter = new ValueSetExpansionParameterComponent();
           vsParameter.setName("offset");
-          vsParameter.setValue(new IntegerType(offset));
+          vsParameter.setValue(offset);
           vsExpansion.addParameter(vsParameter);
         }
       }
@@ -1357,7 +1374,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
           new String[] {
             "context",
             "date",
-            "abstractt",
+            "abstract",
             "displayLanguage",
             "version",
             "valueSet",
@@ -1485,9 +1502,10 @@ public class ValueSetProviderR4 implements IResourceProvider {
     FhirUtilityR4.notSupportedSearchParams(request);
     final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
     final List<ValueSet> list = new ArrayList<>();
-
+    final Map<String, Terminology> map = new HashMap<>();
     if (code == null) {
       for (final Terminology terminology : terms) {
+        map.put(terminology.getTerminology(), terminology);
         final ValueSet vs = FhirUtilityR4.toR4VS(terminology);
         // Skip non-matching
         if (id != null && !id.getValue().equals(vs.getId())) {
@@ -1522,7 +1540,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
     final List<Concept> subsetsAsConcepts =
         subsets.stream().flatMap(Concept::streamSelfAndChildren).toList();
     for (final Concept subset : subsetsAsConcepts) {
-      final ValueSet vs = FhirUtilityR4.toR4VS(subset);
+      final ValueSet vs = FhirUtilityR4.toR4VS(map.get(subset.getTerminology()), subset);
       // Skip non-matching
       if (id != null && !id.getValue().equals(vs.getId())) {
         logger.debug("  SKIP id mismatch = " + vs.getUrl());
@@ -1615,9 +1633,11 @@ public class ValueSetProviderR4 implements IResourceProvider {
     }
 
     final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+    final Map<String, Terminology> map = new HashMap<>();
 
     final List<ValueSet> list = new ArrayList<ValueSet>();
     for (final Terminology terminology : terms) {
+      map.put(terminology.getTerminology(), terminology);
       final ValueSet vs = FhirUtilityR4.toR4VS(terminology);
       // Skip non-matching
       if (id != null && !id.getIdPart().equals(vs.getId())) {
@@ -1644,7 +1664,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
         subsets.stream().flatMap(Concept::streamSelfAndChildren).toList();
 
     for (final Concept subset : subsetsAsConcepts) {
-      final ValueSet vs = FhirUtilityR4.toR4VS(subset);
+      final ValueSet vs = FhirUtilityR4.toR4VS(map.get(subset.getTerminology()), subset);
 
       // Skip non-matching
       if (id != null && !id.getIdPart().equals(vs.getId())) {

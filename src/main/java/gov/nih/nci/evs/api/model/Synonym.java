@@ -48,9 +48,6 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   private String type;
 
   /** The "code" of the synonym type, so it can be searched by. */
-  // In the future we can use @WriteOnlyProperty
-  // this does not work: @JsonProperty(access = Access.READ_ONLY)
-  @WriteOnlyProperty
   @Field(type = FieldType.Keyword)
   private String typeCode;
 
@@ -232,7 +229,7 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
    *
    * @return the type code
    */
-  @Schema(hidden = true)
+  @Schema(description = "Synonym Type code")
   public String getTypeCode() {
     return typeCode;
   }
@@ -443,7 +440,5 @@ public class Synonym extends BaseModel implements Comparable<Synonym> {
   public void clearHidden() {
     normName = null;
     stemName = null;
-    typeCode = null;
-    getQualifiers().forEach(q -> q.clearHidden());
   }
 }

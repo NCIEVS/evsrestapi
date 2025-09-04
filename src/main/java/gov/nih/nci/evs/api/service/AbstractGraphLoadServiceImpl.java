@@ -639,7 +639,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         subsetConcept.getInverseAssociations().add(inverseAssoc);
         // index subsetMember (but only if the member is not also the subset concept itself)
         if (!subsetMember.getCode().equals(subsetConcept.getCode())) {
-          operationsService.index(subsetMember, terminology.getIndexName(), Concept.class);
+          operationsService.update(
+              subsetMember.getCode(), subsetMember, terminology.getIndexName(), Concept.class);
         }
       }
       if (missingConcepts.size() > 0) {
@@ -659,7 +660,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       subsetConcept.setSubsetLink(url);
 
       // index subsetConcept
-      operationsService.index(subsetConcept, terminology.getIndexName(), Concept.class);
+      operationsService.update(
+          subsetConcept.getCode(), subsetConcept, terminology.getIndexName(), Concept.class);
       // create new subset for parentSubset to add as child of existing subset
       Concept parentSubsetChild = new Concept(subsetConcept);
       // strip out everything the subset tree doesn't need
@@ -891,13 +893,17 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       if ("ncit".equals(term.getTerminology())
           && graphProperties.getDb().equals(term.getMetadata().getMonthlyDb())) {
 
+        // Get all indexed terminologies for term name search
+        List<Terminology> allTerminologies =
+            this.getTerminologyUtils().getIndexedTerminologies(opensearchQueryService);
+
         // setup mappings
-        Concept ncitMapsToGdc = setupMap("GDC", term);
-        Concept ncitMapsToIcd10 = setupMap("ICD10", term);
-        Concept ncitMapsToIcd10cm = setupMap("ICD10CM", term);
-        Concept ncitMapsToIcd9cm = setupMap("ICD9CM", term);
-        Concept ncitMapsToIcdo3 = setupMap("ICDO3", term);
-        Concept ncitMapsToMeddra = setupMap("MedDRA", term);
+        Concept ncitMapsToGdc = setupMap("GDC", term, allTerminologies);
+        Concept ncitMapsToIcd10 = setupMap("ICD10", term, allTerminologies);
+        Concept ncitMapsToIcd10cm = setupMap("ICD10CM", term, allTerminologies);
+        Concept ncitMapsToIcd9cm = setupMap("ICD9CM", term, allTerminologies);
+        Concept ncitMapsToIcdo3 = setupMap("ICDO3", term, allTerminologies);
+        Concept ncitMapsToMeddra = setupMap("MedDRA", term, allTerminologies);
         mapsets.put("GDC", ncitMapsToGdc);
         mapsets.put("ICD10", ncitMapsToIcd10);
         mapsets.put("ICD10CM", ncitMapsToIcd10cm);
@@ -929,15 +935,57 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
    * @param version the version
    * @return the concept
    */
-  private Concept setupMap(String term, Terminology terminology) {
+  private Concept setupMap(
+      String targetTermName, Terminology sourceTerminology, List<Terminology> allTerminologies) {
     Concept map = new Concept();
-    map.setCode(NCIT_MAPS_TO + term);
-    map.setName(NCIT_MAPS_TO + term);
-    map.setVersion(terminology.getVersion());
+    Terminology targetTerminology =
+        allTerminologies.stream()
+            .filter(
+                t ->
+                    t.getTerminology().equalsIgnoreCase(targetTermName)
+                        || t.getName().startsWith(targetTermName))
+            .findFirst()
+            .orElse(null);
+
+    map.setCode(NCIT_MAPS_TO + targetTermName);
+    map.setName(NCIT_MAPS_TO + targetTermName);
+    map.setVersion(sourceTerminology.getVersion());
     map.setActive(true);
     map.getProperties()
-        .add(new Property("date", FhirUtility.convertToYYYYMMDD(terminology.getDate())));
+        .add(new Property("date", FhirUtility.convertToYYYYMMDD(sourceTerminology.getDate())));
     map.getProperties().add(new Property("downloadOnly", "false"));
+    String termFullNameAndVersion = "";
+    if (targetTerminology != null) {
+      termFullNameAndVersion =
+          "(" + targetTerminology.getName() + ") " + targetTerminology.getVersion();
+    }
+    String welcomeText =
+        """
+This is a manual EVS mapping of concepts with equivalent meaning in the source and target terminology versions shown below:
+<br><br>
+&nbsp;&nbsp;&nbsp;Source: NCIt (NCI Thesaurus) %s
+<br>
+&nbsp;&nbsp;&nbsp;Target: %s %s
+<br><br>
+The browser links each mapped concept to that concept's page in the current production version of its terminology.
+<br><br>
+"""
+            .formatted(sourceTerminology.getVersion(), targetTermName, termFullNameAndVersion);
+    map.getProperties().add(new Property("welcomeText", welcomeText));
+    map.getProperties().add(new Property("sourceTerminology", "NCIt"));
+    map.getProperties()
+        .add(new Property("sourceTerminologyVersion", sourceTerminology.getVersion()));
+    map.getProperties().add(new Property("targetTerminology", targetTermName));
+    if (targetTerminology != null
+        && targetTerminology.getVersion() != null
+        && !targetTerminology.getVersion().isEmpty()) {
+      map.getProperties()
+          .add(new Property("targetTerminologyVersion", targetTerminology.getVersion()));
+      map.getProperties().add(new Property("targetLoaded", "true"));
+    } else {
+      map.getProperties().add(new Property("targetLoaded", "false"));
+    }
+    map.getProperties().add(new Property("sourceLoaded", "true"));
     map.getProperties().add(new Property("mapsetLink", null));
     map.getProperties().add(new Property("loader", "AbstractGraphLoadServiceImpl"));
     return map;
@@ -1170,7 +1218,8 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       }
       handleHistory(terminology, concept, historyMap);
       // index the concept with the history
-      operationsService.index(concept, terminology.getIndexName(), Concept.class);
+      operationsService.update(
+          concept.getCode(), concept, terminology.getIndexName(), Concept.class);
     }
     terminology.getMetadata().setHistoryVersion(newHistoryVersion);
     logger.info(

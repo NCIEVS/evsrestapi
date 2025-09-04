@@ -20,7 +20,7 @@ if [ ${#arr[@]} -ne 0 ]; then
   echo "  e.g. $0"
   echo "  e.g. $0 --noconfig"
   echo "  e.g. $0 --force"
-  echo "  e.g. $0 --noconfig --history ../data/UnitTestData/cumulative_history_21.06e.txt"
+  echo "  e.g. $0 --noconfig --history ../data/UnitTestData/NCIT/cumulative_history_25.06e.txt"
   exit 1
 fi
 
@@ -150,7 +150,7 @@ EOF
   #    "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/\$/datasets" 2> /dev/null > /tmp/x.$$
   #check_status $? "GET /admin/databases failed to list databases"
   #check_http_status 200 "GET /admin/databases expecting 200"
-  #perl -lane 'print if not eof()' /tmp/x.$$ | $jq | grep 'ds.name' | perl -pe 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
+  #sed '$d' /tmp/x.$$ | $jq | grep 'ds.name' | perl -pe 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
   #echo "  databases = " `cat /tmp/db.$$.txt`
   #ct=`cat /tmp/db.$$.txt | wc -l`
   #if [[ $ct -eq 0 ]]; then
@@ -255,7 +255,7 @@ get_graphs(){
           --data-urlencode "$query" -H "Accept: application/sparql-results+json" 2> /dev/null > /tmp/x.$$
       check_status $? "GET /$db/query failed to get graphs"
       check_http_status 200 "GET /$db/query expecting 200"
-      perl -lane 'print if not eof()' /tmp/x.$$ | $jq | perl -ne '
+      sed '$d' /tmp/x.$$ | $jq | perl -ne '
             chop; $x="version" if /"version"/; 
             $x="source" if /"source"/; 
             $x=0 if /\}/; 
@@ -358,7 +358,7 @@ download_and_unpack() {
     done
 }
 
-process_ncit() {
+download_ncit_history() {
   # Prep dir
   /bin/rm -rf $DIR/NCIT_HISTORY
   mkdir $DIR/NCIT_HISTORY
@@ -375,8 +375,6 @@ process_ncit() {
       # get server port for local vs deployed environment
       serverPort=8080
       if [[ $config -eq 0 ]]; then
-          local="-Dspring.profiles.active=local"
-          jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
           serverPort=8082
       fi
 
@@ -388,15 +386,16 @@ process_ncit() {
           echo "ERROR: Failed to get latest terminology from http://localhost:${serverPort}/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
           cd - > /dev/null 2> /dev/null
           if [[ serverPort -eq 8082 ]]; then
-              echo "  Setting default history version on local to 21.06e"
-              prev_version="21.06e"
+              echo "  Setting default history version on local to 25.06e"
+              prev_version="25.06e"
           else
               echo "  Failed to find terminology version on non-local server, exiting"
+              cd - > /dev/null
               return 1
           fi
-          return 1
+
       fi
-      echo "  Response from API: $response"
+      echo "      response = $response"
 
       if [[ -z "${prev_version}" ]]; then
           echo "  prev_version is not set to a default, trying to parse response"
@@ -408,19 +407,19 @@ process_ncit() {
               prev_version=$(echo "$response" | jq -r '.[] | .version')
           fi
       fi
-      echo "  Previous monthly version of ncit: $prev_version"
+      echo "    Previous monthly version of ncit: $prev_version"
             
       if [[ -z "$prev_version" ]]; then
-          echo "  Unable to find a previous monthly version of ncit"
-  # done looking
+          echo "    Unable to find a previous monthly version of ncit"
+      # done looking
       else 
-          echo "  Trying again with prev_version = $prev_version"
+          echo "    Trying again with prev_version = $prev_version"
           download_and_unpack "$prev_version"
       fi
   fi
 
   # cd back out
-  cd - > /dev/null 2> /dev/null
+  cd - > /dev/null
   return 0
 }
 
@@ -449,7 +448,7 @@ for x in `cat /tmp/y.$$.txt`; do
 
     # Otherwise, download if ncit
     elif [[ "$term" == "ncit" ]]; then
-        process_ncit
+        download_ncit_history
 	  fi
 	
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
@@ -484,10 +483,11 @@ for x in `cat /tmp/y.$$.txt`; do
     # Set the history clause for "ncit"
     historyClause=""
     if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
-      historyClause=" -history $historyFile"
+      historyClause=" -d $historyFile"
     fi
     
     if [[ $exists -eq 0 ]] || [[ $force -eq 1 ]]; then
+
         if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
             echo "    FOUND indexes for $term $version, force reindex anyway"        
 
@@ -584,8 +584,6 @@ for t in $ncim_terms; do
   valid_keys="$valid_keys
 concept_${t_lc}_"
 done
-
-echo "  Valid keys: $valid_keys"
 
 # Remove indexes not found in triple store
 echo "  Remove unused indexes"

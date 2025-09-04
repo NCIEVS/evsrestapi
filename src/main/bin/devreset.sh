@@ -22,7 +22,7 @@ if [ $help == 1 ] || [ ${#arr[@]} -ne 1 ]; then
 fi
 dir=${arr[0]}
 # Hardcode the history file
-historyFile=$dir/cumulative_history_21.06e.txt
+historyFile=$dir/NCIT/cumulative_history_25.06e.txt
 
 
 databases=("NCIT2" "CTRP")
@@ -78,20 +78,28 @@ fi
 
 # Check NCIM
 echo "    check NCIM"
-ct=`ls $dir/NCIM | grep RRF | wc -l`
-if [[ $ct -le 20 ]]; then
-    echo "ERROR: unexpectedly small number of NCIM/*RRF files = $ct"
+ct=`ls $dir/NCIM | egrep "(AUI|COLS|CONSO|CUI|DEF|DOC|FILES|HIER|MAP|RANK|REL|SAB|SAT|STY)*RRF" | wc -l`
+if [[ $ct -le 14 ]]; then
+    echo "ERROR: unexpectedly missing NCIM/*RRF files = $dir/NCIM"
     exit 1
 fi
+# Check NCIM2
+echo "    check NCIM2"
+ct=`ls $dir/NCIM2 | egrep "(AUI|COLS|CONSO|CUI|DEF|DOC|FILES|HIER|MAP|RANK|REL|SAB|SAT|STY)*RRF" | wc -l`
+if [[ ! $ct -eq 14 ]]; then
+    echo "ERROR: unexpectedly missing NCIM/*RRF files = $dir/NCIM"
+    exit 1
+fi
+
 # Check NCIt weekly
 echo "    check NCIt weekly"
-if [[ ! -e "$dir/ThesaurusInferred_+1weekly.owl" ]]; then
+if [[ ! -e "$dir/NCIT/ThesaurusInferred_+1weekly.owl" ]]; then
     echo "ERROR: unexpectedly ThesaurusInferred_+1weekly.owl file"
     exit 1
 fi
 # Check NCIt monthly
 echo "    check NCIt monthly"
-if [[ ! -e "$dir/ThesaurusInferred_monthly.owl" ]]; then
+if [[ ! -e "$dir/NCIT/ThesaurusInferred_monthly.owl" ]]; then
     echo "ERROR: unexpectedly ThesaurusInferred_monthly.owl file"
     exit 1
 fi
@@ -290,9 +298,9 @@ load_terminology_data(){
 }
 
 load_data(){
-    load_terminology_data CTRP http://NCI_T_weekly ThesaurusInferred_+1weekly.owl
-    load_terminology_data CTRP http://NCI_T_monthly ThesaurusInferred_monthly.owl
-    load_terminology_data NCIT2 http://NCI_T_monthly ThesaurusInferred_monthly.owl
+    load_terminology_data CTRP http://NCI_T_weekly NCIT/ThesaurusInferred_+1weekly.owl
+    load_terminology_data CTRP http://NCI_T_monthly NCIT/ThesaurusInferred_monthly.owl
+    load_terminology_data NCIT2 http://NCI_T_monthly NCIT/ThesaurusInferred_monthly.owl
     load_terminology_data NCIT2 http://GO_monthly GO/GO.20250601.owl
     load_terminology_data NCIT2 http://HGNC_monthly HGNC/HGNC.202507.owl
     load_terminology_data NCIT2 http://ChEBI_monthly ChEBI/chebi_241.owl

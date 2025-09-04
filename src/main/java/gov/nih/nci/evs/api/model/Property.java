@@ -11,7 +11,6 @@ import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
 import org.springframework.data.elasticsearch.annotations.Mapping;
-import org.springframework.data.elasticsearch.annotations.WriteOnlyProperty;
 
 /** Represents a synonym of a concept. */
 @Schema(description = "Represents a type/value property on a concept")
@@ -22,9 +21,6 @@ import org.springframework.data.elasticsearch.annotations.WriteOnlyProperty;
 public class Property extends BaseModel implements Comparable<Property> {
 
   /** The code. */
-  // In the future we can use @WriteOnlyProperty
-  // this does not work: @JsonProperty(access = Access.READ_ONLY)
-  @WriteOnlyProperty
   @Field(type = FieldType.Keyword)
   private String code;
 
@@ -94,7 +90,6 @@ public class Property extends BaseModel implements Comparable<Property> {
    *
    * @return the code
    */
-  @Schema(hidden = true)
   public String getCode() {
     return code;
   }
@@ -266,11 +261,5 @@ public class Property extends BaseModel implements Comparable<Property> {
   @Override
   public int compareTo(Property o) {
     return (type + value).compareToIgnoreCase(o.getType() + o.getValue());
-  }
-
-  /** Clear hidden. */
-  public void clearHidden() {
-    code = null;
-    getQualifiers().forEach(q -> q.clearHidden());
   }
 }

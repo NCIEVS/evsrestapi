@@ -1,5 +1,44 @@
 package gov.nih.nci.evs.api.fhir.R5;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+import org.hl7.fhir.r5.model.BooleanType;
+import org.hl7.fhir.r5.model.Bundle;
+import org.hl7.fhir.r5.model.CanonicalType;
+import org.hl7.fhir.r5.model.CodeType;
+import org.hl7.fhir.r5.model.Coding;
+import org.hl7.fhir.r5.model.IdType;
+import org.hl7.fhir.r5.model.IntegerType;
+import org.hl7.fhir.r5.model.Meta;
+import org.hl7.fhir.r5.model.OperationOutcome;
+import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r5.model.Parameters;
+import org.hl7.fhir.r5.model.StringType;
+import org.hl7.fhir.r5.model.UriType;
+import org.hl7.fhir.r5.model.ValueSet;
+import org.hl7.fhir.r5.model.ValueSet.ConceptPropertyComponent;
+import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
+import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionContainsComponent;
+import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionParameterComponent;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.stereotype.Component;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.History;
@@ -32,42 +71,6 @@ import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Date;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
-import java.util.stream.Collectors;
-import org.hl7.fhir.r5.model.BooleanType;
-import org.hl7.fhir.r5.model.Bundle;
-import org.hl7.fhir.r5.model.CanonicalType;
-import org.hl7.fhir.r5.model.CodeType;
-import org.hl7.fhir.r5.model.Coding;
-import org.hl7.fhir.r5.model.IdType;
-import org.hl7.fhir.r5.model.IntegerType;
-import org.hl7.fhir.r5.model.Meta;
-import org.hl7.fhir.r5.model.OperationOutcome;
-import org.hl7.fhir.r5.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r5.model.Parameters;
-import org.hl7.fhir.r5.model.StringType;
-import org.hl7.fhir.r5.model.UriType;
-import org.hl7.fhir.r5.model.ValueSet;
-import org.hl7.fhir.r5.model.ValueSet.ConceptPropertyComponent;
-import org.hl7.fhir.r5.model.ValueSet.ConceptReferenceDesignationComponent;
-import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionContainsComponent;
-import org.hl7.fhir.r5.model.ValueSet.ValueSetExpansionParameterComponent;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.Cacheable;
-import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
 
 /** FHIR R5 ValueSet provider. */
 @Component
@@ -135,9 +138,10 @@ public class ValueSetProviderR5 implements IResourceProvider {
     FhirUtilityR5.notSupportedSearchParams(request);
     final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
     final List<ValueSet> list = new ArrayList<>();
-
+    final Map<String, Terminology> map = new HashMap<>();
     if (code == null) {
       for (final Terminology terminology : terms) {
+        map.put(terminology.getTerminology(), terminology);
         final ValueSet vs = FhirUtilityR5.toR5VS(terminology);
         // Skip non-matching
         if (id != null && !id.getValue().equals(vs.getId())) {
@@ -172,7 +176,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         subsets.stream().flatMap(Concept::streamSelfAndChildren).collect(Collectors.toSet());
 
     for (final Concept subset : subsetsAsConcepts) {
-      final ValueSet vs = FhirUtilityR5.toR5VS(subset);
+      final ValueSet vs = FhirUtilityR5.toR5VS(map.get(subset.getTerminology()), subset);
       // Skip non-matching
       if (id != null && !id.getValue().equals(vs.getId())) {
         logger.debug("  SKIP id mismatch = " + vs.getUrl());
@@ -423,15 +427,17 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final ValueSet.ValueSetExpansionComponent vsExpansion =
           new ValueSet.ValueSetExpansionComponent();
       if (url.getValue().contains("?fhir_vs=")) {
-        Optional<Concept> conceptOpt = osQueryService
-            .getConcept(
+        Optional<Concept> conceptOpt =
+            osQueryService.getConcept(
                 vs.getIdentifier().get(0).getValue(),
                 termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
                 new IncludeParam("inverseAssociations"));
         if (!conceptOpt.isPresent()) {
           logger.warn("Referenced concept not found: {}", vs.getIdentifier().get(0).getValue());
           throw FhirUtilityR5.exception(
-              "Referenced concept not found: " + vs.getIdentifier().get(0).getValue(), IssueType.EXCEPTION, 500);
+              "Referenced concept not found: " + vs.getIdentifier().get(0).getValue(),
+              IssueType.EXCEPTION,
+              500);
         }
         final List<Association> invAssoc = conceptOpt.get().getInverseAssociations();
         for (final Association assn : invAssoc) {
@@ -520,6 +526,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
           vsParameter = new ValueSetExpansionParameterComponent();
           vsParameter.setName("count");
           vsParameter.setValue(count);
+          vsExpansion.addParameter(vsParameter);
+        }
+
+        if (offset != null) {
+          vsParameter = new ValueSetExpansionParameterComponent();
+          vsParameter.setName("offset");
+          vsParameter.setValue(offset);
           vsExpansion.addParameter(vsParameter);
         }
 
@@ -701,15 +714,17 @@ public class ValueSetProviderR5 implements IResourceProvider {
       }
 
       if (vs.getUrl() != null && vs.getUrl().contains("?fhir_vs=")) {
-        Optional<Concept> conceptOpt = osQueryService
-            .getConcept(
+        Optional<Concept> conceptOpt =
+            osQueryService.getConcept(
                 vs.getIdentifier().get(0).getValue(),
                 termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
                 new IncludeParam("inverseAssociations"));
         if (!conceptOpt.isPresent()) {
           logger.warn("Referenced concept not found: {}", vs.getIdentifier().get(0).getValue());
           throw FhirUtilityR5.exception(
-              "Referenced concept not found: " + vs.getIdentifier().get(0).getValue(), IssueType.EXCEPTION, 500);
+              "Referenced concept not found: " + vs.getIdentifier().get(0).getValue(),
+              IssueType.EXCEPTION,
+              500);
         }
         final List<Association> invAssoc = conceptOpt.get().getInverseAssociations();
         for (final Association assn : invAssoc) {
@@ -799,6 +814,13 @@ public class ValueSetProviderR5 implements IResourceProvider {
         vsParameter = new ValueSetExpansionParameterComponent();
         vsParameter.setName("count");
         vsParameter.setValue(count);
+        vsExpansion.addParameter(vsParameter);
+      }
+
+      if (offset != null) {
+        vsParameter = new ValueSetExpansionParameterComponent();
+        vsParameter.setName("offset");
+        vsParameter.setValue(offset);
         vsExpansion.addParameter(vsParameter);
       }
 
@@ -1171,8 +1193,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
     final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
     final List<ValueSet> list = new ArrayList<ValueSet>();
-
+    final Map<String, Terminology> map = new HashMap<>();
     for (final Terminology terminology : terms) {
+      map.put(terminology.getTerminology(), terminology);
       final ValueSet vs = FhirUtilityR5.toR5VS(terminology);
       // Skip non-matching
       if (id != null && !id.getIdPart().equals(vs.getId())) {
@@ -1198,7 +1221,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         subsets.stream().flatMap(Concept::streamSelfAndChildren).collect(Collectors.toSet());
 
     for (final Concept subset : subsetsAsConcepts) {
-      final ValueSet vs = FhirUtilityR5.toR5VS(subset);
+      final ValueSet vs = FhirUtilityR5.toR5VS(map.get(subset.getTerminology()), subset);
       // Skip non-matching
       if (id != null && !id.getIdPart().equals(vs.getId())) {
         logger.debug("  SKIP id mismatch = " + vs.getId());
@@ -2186,8 +2209,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
       String system = "";
       if (valueSetUrl.getValue().contains("?fhir_vs=")) {
         system = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
-        Optional<Concept> conceptOpt = osQueryService
-            .getConcept(
+        Optional<Concept> conceptOpt =
+            osQueryService.getConcept(
                 vs.getIdentifier().get(0).getValue(),
                 termUtils.getIndexedTerminology(vs.getTitle(), osQueryService, true),
                 new IncludeParam("inverseAssociations"));

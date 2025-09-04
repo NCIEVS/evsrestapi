@@ -148,16 +148,16 @@ public class ApplicationProperties {
   }
 
   /**
-   * Returns the pediatricSubsetsXls.
+   * Gets the childhood neoplasm subsets xls.
    *
-   * @return the pediatricSubsetsXls
+   * @return the childhood neoplasm subsets xls
    */
   public String getChildhoodNeoplasmSubsetsXls() {
     return childhoodNeoplasmSubsetsXls;
   }
 
   /**
-   * Sets the pediatricSubsetsXls.
+   * Sets the childhood neoplasm subsets xls.
    *
    * @param childhoodNeoplasmSubsetsXls the new childhood neoplasm subsets xls
    */

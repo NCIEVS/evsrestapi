@@ -82,8 +82,8 @@ public class LoaderServiceImpl {
     options.addOption("h", "help", false, "Show this help information and exit.");
     options.addOption("r", "realTime", false, "Keep for backwards compabitlity. No Effect.");
     options.addOption("t", "terminology", true, "The terminology (ex: ncit_20.02d) to load.");
-    options.addOption("d", "directory", true, "Load concepts from the given directory");
-    options.addOption("history", "history", true, "Load concepts history from the given directory");
+    // Use this for explicit history file for a RDF data source OR for the actual data dir for RRF
+    options.addOption("d", "data", true, "Load data OR concept history from the given directory");
     options.addOption(
         "xc",
         "skipConcepts",
@@ -127,8 +127,8 @@ public class LoaderServiceImpl {
 
     config.setTerminology(cmd.getOptionValue('t'));
     config.setForceDeleteIndex(cmd.hasOption('f'));
-    if (cmd.hasOption("history")) {
-      String location = cmd.getOptionValue("history");
+    if (cmd.hasOption("d")) {
+      String location = cmd.getOptionValue("d");
       if (StringUtils.isBlank(location)) {
         logger.error("Location is empty!");
       }
@@ -235,7 +235,7 @@ public class LoaderServiceImpl {
           loadService.getTerminology(
               app,
               config,
-              cmd.hasOption("d") ? cmd.getOptionValue("d") : cmd.getOptionValue("history"),
+              cmd.getOptionValue("d"),
               cmd.getOptionValue("t"),
               config.isForceDeleteIndex());
       termAudit.setTerminology(term.getTerminology());
