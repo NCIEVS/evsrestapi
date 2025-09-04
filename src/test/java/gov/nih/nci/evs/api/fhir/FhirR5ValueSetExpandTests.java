@@ -6,6 +6,12 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
+import ca.uhn.fhir.parser.IParser;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.JsonUtils;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
@@ -17,7 +23,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-
 import org.hl7.fhir.r5.model.BooleanType;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.Enumerations;
@@ -50,14 +55,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.jpa.model.util.JpaConstants;
-import ca.uhn.fhir.parser.IParser;
-import gov.nih.nci.evs.api.properties.TestProperties;
-import gov.nih.nci.evs.api.util.JsonUtils;
 
 /** Tests for R5 value set expand calls. */
 @ExtendWith(SpringExtension.class)
