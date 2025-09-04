@@ -44,8 +44,21 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import org.hl7.fhir.r4.model.*;
+import org.apache.commons.lang3.BooleanUtils;
+import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.CanonicalType;
+import org.hl7.fhir.r4.model.CodeType;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.IntegerType;
+import org.hl7.fhir.r4.model.Meta;
+import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.UriType;
+import org.hl7.fhir.r4.model.ValueSet;
 import org.hl7.fhir.r4.model.ValueSet.ConceptReferenceDesignationComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionComponent;
 import org.hl7.fhir.r4.model.ValueSet.ValueSetExpansionContainsComponent;
@@ -57,6 +70,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 /** FHIR R4 ValueSet provider. */
+/** */
 @Component
 public class ValueSetProviderR4 implements IResourceProvider {
 
@@ -79,6 +93,14 @@ public class ValueSetProviderR4 implements IResourceProvider {
   /* The terminology utils */
   @Autowired TerminologyUtils termUtils;
 
+  /**
+   * Gets the parameter value.
+   *
+   * @param param the param
+   * @param request the request
+   * @param paramName the param name
+   * @return the parameter value
+   */
   // Helper methods to extract parameters reliably
   private String getParameterValue(
       StringParam param, HttpServletRequest request, String paramName) {
@@ -88,6 +110,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return request.getParameter(paramName);
   }
 
+  /**
+   * Gets the boolean parameter value.
+   *
+   * @param param the param
+   * @param request the request
+   * @param paramName the param name
+   * @param defaultValue the default value
+   * @return the boolean parameter value
+   */
   private boolean getBooleanParameterValue(
       BooleanType param, HttpServletRequest request, String paramName, boolean defaultValue) {
     if (param != null && param.getValue() != null) {
@@ -97,6 +128,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return requestValue != null ? "true".equalsIgnoreCase(requestValue) : defaultValue;
   }
 
+  /**
+   * Gets the int parameter value.
+   *
+   * @param param the param
+   * @param request the request
+   * @param paramName the param name
+   * @param defaultValue the default value
+   * @return the int parameter value
+   */
   private int getIntParameterValue(
       IntegerType param, HttpServletRequest request, String paramName, int defaultValue) {
     if (param != null && param.getValue() != null) {
@@ -113,6 +153,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
    *
    * @param request the request
    * @param details the details
+   * @param valueSet the value set
    * @param url the canonical reference to the value set.
    * @param version the value set version to specify the version to be used when generating the
    *     expansion
@@ -120,6 +161,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param offset the offset for number of records.
    * @param count the count for codes that should be provided in the partial page view.
    * @param includeDesignations the include designations
+   * @param includeDefinition the include definition
    * @param activeOnly controls whether inactive concepts are included or excluded in value set
    *     expansions.
    * @return the value set
@@ -867,6 +909,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
    * @param offset the offset for number of records.
    * @param count the count for codes that should be provided in the partial page view.
    * @param includeDesignations the include designations
+   * @param includeDefinition the include definition
    * @param activeOnly controls whether inactive concepts are included or excluded in value set
    *     expansions.
    * @return the value set
@@ -1412,6 +1455,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
    *
    * @param request the request
    * @param id the id
+   * @param date the date
    * @param code the code
    * @param name the name
    * @param title the title
@@ -1621,6 +1665,12 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return list;
   }
 
+  /**
+   * Gets the ncit subsets.
+   *
+   * @return the ncit subsets
+   * @throws Exception the exception
+   */
   @Cacheable("ncitsubsets")
   public List<Concept> getNcitSubsets() throws Exception {
     return metadataService.getSubsets("ncit", Optional.of("minimal"), Optional.empty());
@@ -1741,12 +1791,23 @@ public class ValueSetProviderR4 implements IResourceProvider {
 
   // Utility methods for ValueSet expansion
 
-  /** Generate unique expansion identifier. */
+  /**
+   * Generate unique expansion identifier.
+   *
+   * @return the string
+   */
   private String generateExpansionId() {
     return UUID.randomUUID().toString();
   }
 
-  /** Get terminology from system URL. */
+  /**
+   * Gets the terminology from system.
+   *
+   * @param system the system
+   * @param version the version
+   * @return the terminology from system
+   * @throws Exception the exception
+   */
   private Terminology getTerminologyFromSystem(String system, StringType version) throws Exception {
     if ("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(system)) {
       return termUtils.getIndexedTerminology("ncit", osQueryService, true);
@@ -1755,7 +1816,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return null;
   }
 
-  /** Apply concept filter (is-a, child-of, in, etc.). */
+  /**
+   * Apply concept filter (is-a, child-of, in, etc.).
+   *
+   * @param filter the filter
+   * @param terminology the terminology
+   * @param includeParam the include param
+   * @return the list
+   * @throws Exception the exception
+   */
   private List<Concept> applyConceptFilter(
       ValueSet.ConceptSetFilterComponent filter, Terminology terminology, IncludeParam includeParam)
       throws Exception {
@@ -1829,7 +1898,16 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return concepts;
   }
 
-  /** Process descendants (for is-a and descendant-of filters). */
+  /**
+   * Process descendants (for is-a and descendant-of filters).
+   *
+   * @param conceptCode the concept code
+   * @param terminology the terminology
+   * @param includeParam the include param
+   * @param includeSelf the include self
+   * @return the list
+   * @throws Exception the exception
+   */
   private List<Concept> processDescendants(
       String conceptCode, Terminology terminology, IncludeParam includeParam, boolean includeSelf)
       throws Exception {
@@ -1875,7 +1953,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return concepts;
   }
 
-  /** Process "in" filter (comma-separated concept codes). */
+  /**
+   * Process "in" filter (comma-separated concept codes).
+   *
+   * @param value the value
+   * @param terminology the terminology
+   * @param includeParam the include param
+   * @return the list
+   * @throws Exception the exception
+   */
   private List<Concept> processInFilter(
       String value, Terminology terminology, IncludeParam includeParam) throws Exception {
 
@@ -1895,7 +1981,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return concepts;
   }
 
-  /** Apply property filter to concept list. */
+  /**
+   * Apply property filter to concept list.
+   *
+   * @param concepts the concepts
+   * @param filter the filter
+   * @param terminology the terminology
+   * @return the list
+   * @throws Exception the exception
+   */
   private List<Concept> applyPropertyFilterToConcepts(
       List<Concept> concepts, ValueSet.ConceptSetFilterComponent filter, Terminology terminology)
       throws Exception {
@@ -1941,7 +2035,16 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return filteredConcepts;
   }
 
-  /** Check if concept has property value. */
+  /**
+   * Check if concept has property value.
+   *
+   * @param concept the concept
+   * @param terminology the terminology
+   * @param propertyName the property name
+   * @param propertyValue the property value
+   * @return true, if successful
+   * @throws Exception the exception
+   */
   private boolean conceptHasPropertyValue(
       Concept concept, Terminology terminology, String propertyName, String propertyValue)
       throws Exception {
@@ -1966,7 +2069,16 @@ public class ValueSetProviderR4 implements IResourceProvider {
             prop -> propertyName.equals(prop.getType()) && propertyValue.equals(prop.getValue()));
   }
 
-  /** Check if concept has property. */
+  /**
+   * Check if concept has property.
+   *
+   * @param concept the concept
+   * @param terminology the terminology
+   * @param propertyName the property name
+   * @param shouldExist the should exist
+   * @return true, if successful
+   * @throws Exception the exception
+   */
   private boolean conceptHasProperty(
       Concept concept, Terminology terminology, String propertyName, boolean shouldExist)
       throws Exception {
@@ -1997,7 +2109,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return hasProperty == shouldExist;
   }
 
-  /** Apply exclusion filter to remove concepts from the list. */
+  /**
+   * Apply exclusion filter to remove concepts from the list.
+   *
+   * @param concepts the concepts
+   * @param filter the filter
+   * @param terminology the terminology
+   * @return the list
+   * @throws Exception the exception
+   */
   private List<Concept> applyExclusionFilter(
       List<Concept> concepts, ValueSet.ConceptSetFilterComponent filter, Terminology terminology)
       throws Exception {
@@ -2047,7 +2167,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return filteredConcepts;
   }
 
-  /** Check if concept is in comma-separated list. */
+  /**
+   * Check if concept is in comma-separated list.
+   *
+   * @param concept the concept
+   * @param conceptList the concept list
+   * @return true, if successful
+   */
   private boolean conceptIsInList(Concept concept, String conceptList) {
     if (conceptList == null || conceptList.trim().isEmpty()) {
       return false;
@@ -2062,7 +2188,15 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return false;
   }
 
-  /** Check if concept has is-a relationship with target concept. */
+  /**
+   * Check if concept has is-a relationship with target concept.
+   *
+   * @param concept the concept
+   * @param targetConceptCode the target concept code
+   * @param terminology the terminology
+   * @return true, if successful
+   * @throws Exception the exception
+   */
   private boolean conceptIsA(Concept concept, String targetConceptCode, Terminology terminology)
       throws Exception {
     // First check if it's the same concept
@@ -2077,14 +2211,28 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return ancestors.stream().anyMatch(ancestor -> ancestor.getCode().equals(targetConceptCode));
   }
 
-  /** Lookup concept display name. */
+  /**
+   * Lookup concept display name.
+   *
+   * @param code the code
+   * @param terminology the terminology
+   * @return the string
+   * @throws Exception the exception
+   */
   private String lookupConceptDisplay(String code, Terminology terminology) throws Exception {
     Optional<Concept> concept =
         osQueryService.getConcept(code, terminology, new IncludeParam("minimal"));
     return concept.map(Concept::getName).orElse(null);
   }
 
-  /** Add designations and definitions to expansion contains. */
+  /**
+   * Add designations and definitions to expansion contains.
+   *
+   * @param contains the contains
+   * @param concept the concept
+   * @param includeDesignations the include designations
+   * @param includeDefinition the include definition
+   */
   private void addDesignationsAndDefinitions(
       ValueSetExpansionContainsComponent contains,
       Concept concept,
@@ -2118,7 +2266,13 @@ public class ValueSetProviderR4 implements IResourceProvider {
     }
   }
 
-  /** Check if concept passes text filter. */
+  /**
+   * Check if concept passes text filter.
+   *
+   * @param concept the concept
+   * @param filter the filter
+   * @return true, if successful
+   */
   private boolean passesTextFilter(Concept concept, String filter) {
     if (filter == null || filter.trim().isEmpty()) {
       return true;
@@ -2144,16 +2298,27 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return false;
   }
 
-  /** Check if concept passes active filter. */
+  /**
+   * Check if concept passes active filter.
+   *
+   * @param concept the concept
+   * @param activeOnly the active only
+   * @return true, if successful
+   */
   private boolean passesActiveFilter(Concept concept, boolean activeOnly) {
     if (!activeOnly) {
       return true;
     }
-    Boolean active = concept.getActive();
-    return active != null ? active : true;
+    return BooleanUtils.isTrue(concept.getActive());
   }
 
-  /** Filter out excluded concepts. */
+  /**
+   * Filter out excluded concepts.
+   *
+   * @param concepts the concepts
+   * @param excludeCodes the exclude codes
+   * @return the list
+   */
   private List<Concept> filterOutExcludedConcepts(
       List<Concept> concepts, Set<String> excludeCodes) {
     return concepts.stream()
@@ -2161,7 +2326,12 @@ public class ValueSetProviderR4 implements IResourceProvider {
         .collect(Collectors.toList());
   }
 
-  /** Deduplicate and sort concepts by code. */
+  /**
+   * Deduplicate and sort concepts by code.
+   *
+   * @param concepts the concepts
+   * @return the list
+   */
   private List<Concept> deduplicateAndSort(List<Concept> concepts) {
     Map<String, Concept> conceptMap = new LinkedHashMap<>();
 
@@ -2175,7 +2345,14 @@ public class ValueSetProviderR4 implements IResourceProvider {
         .collect(Collectors.toList());
   }
 
-  /** Apply pagination to concept list. */
+  /**
+   * Apply pagination to concept list.
+   *
+   * @param concepts the concepts
+   * @param offset the offset
+   * @param count the count
+   * @return the list
+   */
   private List<Concept> applyPagination(List<Concept> concepts, int offset, int count) {
     if (offset >= concepts.size()) {
       return new ArrayList<>();
@@ -2185,7 +2362,17 @@ public class ValueSetProviderR4 implements IResourceProvider {
     return concepts.subList(offset, endIndex);
   }
 
-  /** Add expansion parameters. */
+  /**
+   * Add expansion parameters.
+   *
+   * @param expansion the expansion
+   * @param filter the filter
+   * @param count the count
+   * @param offset the offset
+   * @param includeDesignations the include designations
+   * @param includeDefinition the include definition
+   * @param activeOnly the active only
+   */
   private void addExpansionParameters(
       ValueSetExpansionComponent expansion,
       String filter,
