@@ -4155,7 +4155,7 @@ public class FhirR5ValueSetExpandTests {
     // Exclude a smaller subset using direct concepts (to ensure some overlap)
     ValueSet.ConceptSetComponent exclude = new ValueSet.ConceptSetComponent();
     exclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    
+
     // Add specific concepts to exclude
     ValueSet.ConceptReferenceComponent excludeConcept1 = new ValueSet.ConceptReferenceComponent();
     excludeConcept1.setCode("C48672"); // Schedule I Substance
@@ -4198,8 +4198,9 @@ public class FhirR5ValueSetExpandTests {
     // Assert - Excluded concept should NOT be present
     Optional<ValueSet.ValueSetExpansionContainsComponent> excludedResult =
         contains.stream().filter(comp -> "C48672".equals(comp.getCode())).findFirst();
-    
-    assertFalse(excludedResult.isPresent(), 
+
+    assertFalse(
+        excludedResult.isPresent(),
         "Schedule I Substance (C48672) should be excluded from expansion");
 
     log.info("Exclude ValueSet basic functionality test completed successfully");
@@ -4247,7 +4248,7 @@ public class FhirR5ValueSetExpandTests {
     includeOnlyValueSet.setId("nci-include-only-test");
     includeOnlyValueSet.setUrl("http://example.org/fhir/ValueSet/nci-include-only-test");
     includeOnlyValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
-    
+
     ValueSet.ValueSetComposeComponent includeOnlyCompose = new ValueSet.ValueSetComposeComponent();
     ValueSet.ConceptSetComponent includeOnly = new ValueSet.ConceptSetComponent();
     includeOnly.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
@@ -4256,9 +4257,18 @@ public class FhirR5ValueSetExpandTests {
     includeOnlyValueSet.setCompose(includeOnlyCompose);
 
     String includeOnlyRequestBody = parser.encodeResourceToString(includeOnlyValueSet);
-    HttpEntity<String> includeOnlyRequest = new HttpEntity<>(includeOnlyRequestBody, new HttpHeaders(){{setContentType(MediaType.APPLICATION_JSON);}});
-    ResponseEntity<String> includeOnlyResponse = this.restTemplate.postForEntity(endpoint, includeOnlyRequest, String.class);
-    ValueSet includeOnlyExpandedValueSet = parser.parseResource(ValueSet.class, includeOnlyResponse.getBody());
+    HttpEntity<String> includeOnlyRequest =
+        new HttpEntity<>(
+            includeOnlyRequestBody,
+            new HttpHeaders() {
+              {
+                setContentType(MediaType.APPLICATION_JSON);
+              }
+            });
+    ResponseEntity<String> includeOnlyResponse =
+        this.restTemplate.postForEntity(endpoint, includeOnlyRequest, String.class);
+    ValueSet includeOnlyExpandedValueSet =
+        parser.parseResource(ValueSet.class, includeOnlyResponse.getBody());
     int originalCount = includeOnlyExpandedValueSet.getExpansion().getTotal();
     log.info("  C54452 original count: {}", originalCount);
 
@@ -4291,7 +4301,7 @@ public class FhirR5ValueSetExpandTests {
     List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
     int finalCount = expansion.getTotal();
     int excludedCount = originalCount - finalCount;
-    
+
     log.info("  C54452 original count: {}", originalCount);
     log.info("  Final count after excluding C54459: {}", finalCount);
     log.info("  Excluded concept count: {}", excludedCount);
@@ -4301,11 +4311,15 @@ public class FhirR5ValueSetExpandTests {
         contains.stream().filter(comp -> "C54452".equals(comp.getCode())).findFirst();
 
     // Assert - Total count should decrease by exactly 5 (as specified by user)
-    assertEquals(5, excludedCount, 
-        "Total count should decrease by exactly 5 concepts due to overlap between C54452 and C54459");
-    
+    assertEquals(
+        5,
+        excludedCount,
+        "Total count should decrease by exactly 5 concepts due to overlap between C54452 and"
+            + " C54459");
+
     assertTrue(finalCount > 0, "Final expansion should contain concepts");
-    assertTrue(finalCount < originalCount, "Final count should be less than original due to exclusion");
+    assertTrue(
+        finalCount < originalCount, "Final count should be less than original due to exclusion");
 
     log.info("Include C54452 and exclude C54459 ValueSet test completed successfully");
   }
@@ -4328,20 +4342,21 @@ public class FhirR5ValueSetExpandTests {
     inputValueSet.setName("NCIExcludeValueSetNoOverlapTest");
     inputValueSet.setTitle("NCI Thesaurus Exclude ValueSet No Overlap Test");
     inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
-    inputValueSet.setDescription("Test ValueSet with exclude.valueSet that has no overlap with included concepts");
+    inputValueSet.setDescription(
+        "Test ValueSet with exclude.valueSet that has no overlap with included concepts");
 
     ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
 
     // Include direct concepts
     ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
     include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    
+
     // Add a concept that won't be in C54459
     ValueSet.ConceptReferenceComponent includeConcept = new ValueSet.ConceptReferenceComponent();
     includeConcept.setCode("C2991"); // Disease or Disorder
     includeConcept.setDisplay("Disease or Disorder");
     include.addConcept(includeConcept);
-    
+
     compose.addInclude(include);
 
     // Exclude a ValueSet that shouldn't have C2991
@@ -4374,13 +4389,14 @@ public class FhirR5ValueSetExpandTests {
     // Assert - Expansion should still contain the original concept (no overlap to exclude)
     ValueSet.ValueSetExpansionComponent expansion = expandedValueSet.getExpansion();
     List<ValueSet.ValueSetExpansionContainsComponent> contains = expansion.getContains();
-    
+
     assertEquals(1, expansion.getTotal(), "Should still have 1 concept (no overlap to exclude)");
-    
+
     Optional<ValueSet.ValueSetExpansionContainsComponent> diseaseResult =
         contains.stream().filter(comp -> "C2991".equals(comp.getCode())).findFirst();
-    
-    assertTrue(diseaseResult.isPresent(), 
+
+    assertTrue(
+        diseaseResult.isPresent(),
         "Disease or Disorder (C2991) should still be present (no overlap with excluded ValueSet)");
 
     log.info("Exclude ValueSet no overlap test completed successfully");
@@ -4411,12 +4427,12 @@ public class FhirR5ValueSetExpandTests {
     // Include a valid concept
     ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
     include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    
+
     ValueSet.ConceptReferenceComponent includeConcept = new ValueSet.ConceptReferenceComponent();
     includeConcept.setCode("C2991"); // Disease or Disorder
     includeConcept.setDisplay("Disease or Disorder");
     include.addConcept(includeConcept);
-    
+
     compose.addInclude(include);
 
     // Exclude a non-existent ValueSet
@@ -4442,12 +4458,13 @@ public class FhirR5ValueSetExpandTests {
 
     // Assert - Should return an OperationOutcome error
     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    
+
     // Parse as OperationOutcome to verify error handling
-    OperationOutcome operationOutcome = parser.parseResource(OperationOutcome.class, response.getBody());
+    OperationOutcome operationOutcome =
+        parser.parseResource(OperationOutcome.class, response.getBody());
     assertNotNull(operationOutcome);
     assertTrue(operationOutcome.hasIssue());
-    
+
     OperationOutcome.OperationOutcomeIssueComponent issue = operationOutcome.getIssueFirstRep();
     assertEquals(OperationOutcome.IssueType.NOTFOUND, issue.getCode());
     assertTrue(issue.getDiagnostics().contains("Referenced ValueSet not found"));
