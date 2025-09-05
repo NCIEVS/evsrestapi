@@ -11,6 +11,7 @@ import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -106,7 +107,7 @@ class FhirR5ValueSetReadSearchTests {
     // Questionnaire
     // Terminology","title":"ncit","status":"active","experimental":false,"publisher":"NCI","description":"Value
     // set representing the ncitsubsetC100110"}
-    final Set<String> ids = new HashSet<>(Set.of("ncit_25.06e", "ncit_c61410"));
+    final Set<String> ids = new HashSet<>(Set.of("ncit_21.07a", "ncit_c61410"));
     final Set<String> urls =
         new HashSet<>(
             Set.of(
@@ -1148,5 +1149,235 @@ class FhirR5ValueSetReadSearchTests {
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
     validateCanmedValueSetResults(data, true);
+  }
+
+  /**
+   * Test value set search with sort by name.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByName() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=name";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by name in ascending order
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(valueSets);
+
+    String previousName = null;
+    for (Resource vs : valueSets) {
+      ValueSet vss = (ValueSet) vs;
+      assertNotNull(vss.getName());
+      String currentName = vss.getName().toLowerCase();
+      if (previousName != null) {
+        assertTrue(
+            currentName.compareTo(previousName) >= 0,
+            "Names should be in alphabetical order: '"
+                + previousName
+                + "' should come before '"
+                + currentName
+                + "'");
+      }
+      previousName = currentName;
+    }
+  }
+
+  /**
+   * Test value set search with sort by title descending.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByTitleDescending() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=-title";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by title in descending order
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(valueSets);
+
+    String previousTitle = null;
+    for (Resource vs : valueSets) {
+      ValueSet vss = (ValueSet) vs;
+      assertNotNull(vss.getTitle());
+      String currentTitle = vss.getTitle().toLowerCase();
+      if (previousTitle != null) {
+        assertTrue(
+            currentTitle.compareTo(previousTitle) <= 0,
+            "Titles should be in descending alphabetical order: '"
+                + previousTitle
+                + "' should come after '"
+                + currentTitle
+                + "'");
+      }
+      previousTitle = currentTitle;
+    }
+  }
+
+  /**
+   * Test value set search with sort by publisher.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByPublisher() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=publisher";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by publisher in ascending order
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(valueSets);
+
+    String previousPublisher = null;
+    for (Resource vs : valueSets) {
+      ValueSet vss = (ValueSet) vs;
+      assertNotNull(vss.getPublisher());
+      String currentPublisher = vss.getPublisher().toLowerCase();
+      if (previousPublisher != null) {
+        assertTrue(
+            currentPublisher.compareTo(previousPublisher) >= 0,
+            "Publishers should be in alphabetical order: '"
+                + previousPublisher
+                + "' should come before '"
+                + currentPublisher
+                + "'");
+      }
+      previousPublisher = currentPublisher;
+    }
+  }
+
+  /**
+   * Test value set search with sort by date.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByDate() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=date";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by date in ascending order
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(valueSets);
+
+    Date previousDate = null;
+    for (Resource vs : valueSets) {
+      ValueSet vss = (ValueSet) vs;
+      Date currentDate = vss.getDate();
+      if (previousDate != null && currentDate != null) {
+        assertTrue(
+            currentDate.compareTo(previousDate) >= 0,
+            "Dates should be in chronological order: '"
+                + previousDate
+                + "' should come before '"
+                + currentDate
+                + "'");
+      }
+      if (currentDate != null) {
+        previousDate = currentDate;
+      }
+    }
+  }
+
+  /**
+   * Test value set search with sort by URL.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByUrl() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=url";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by URL in ascending order
+    List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(valueSets);
+
+    String previousUrl = null;
+    for (Resource vs : valueSets) {
+      ValueSet vss = (ValueSet) vs;
+      assertNotNull(vss.getUrl());
+      String currentUrl = vss.getUrl().toLowerCase();
+      if (previousUrl != null) {
+        assertTrue(
+            currentUrl.compareTo(previousUrl) >= 0,
+            "URLs should be in alphabetical order: '"
+                + previousUrl
+                + "' should come before '"
+                + currentUrl
+                + "'");
+      }
+      previousUrl = currentUrl;
+    }
+  }
+
+  /**
+   * Test value set search with invalid sort field.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByInvalidField() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirVSPath + "?_sort=invalid_field";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+
+    // Assert
+    assertNotNull(outcome);
+    assertNotNull(outcome.getIssue());
+    assertFalse(outcome.getIssue().isEmpty());
+
+    OperationOutcomeIssueComponent issue = outcome.getIssue().get(0);
+    assertEquals(OperationOutcome.IssueSeverity.ERROR, issue.getSeverity());
+    assertTrue(issue.getDiagnostics().contains("Unsupported sort field"));
   }
 }

@@ -33,11 +33,13 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.CodeType;
 import org.hl7.fhir.r5.model.Coding;
@@ -105,14 +107,19 @@ public class ConceptMapProviderR5 implements IResourceProvider {
           final NumberParam count,
       @Description(shortDefinition = "Start offset, used when reading a next page")
           @OptionalParam(name = "_offset")
-          final NumberParam offset)
+          final NumberParam offset,
+      @Description(shortDefinition = "Sort by field (name, title, publisher, date, url)")
+          @OptionalParam(name = "_sort")
+          final StringParam sort)
       throws Exception {
     try {
       FhirUtilityR5.notSupportedSearchParams(request);
 
-      final Map<String, Terminology> map =
-          termUtils.getIndexedTerminologies(osQueryService).stream()
-              .collect(Collectors.toMap(t -> t.getTerminology(), t -> t));
+      final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+      final Map<String, Terminology> map = new HashMap<>();
+      for (final Terminology terminology : terms) {
+        map.put(terminology.getTerminology(), terminology);
+      }
       final List<Concept> mapsets = osQueryService.getMapsets(new IncludeParam("properties"));
 
       final List<ConceptMap> list = new ArrayList<>();
@@ -151,6 +158,9 @@ public class ConceptMapProviderR5 implements IResourceProvider {
 
         list.add(cm);
       }
+
+      // Apply sorting if requested
+      applySorting(list, sort);
 
       return FhirUtilityR5.makeBundle(request, list, count, offset);
 
@@ -571,9 +581,11 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       final UriType targetSystem)
       throws Exception {
     try {
-      final Map<String, Terminology> map =
-          termUtils.getIndexedTerminologies(osQueryService).stream()
-              .collect(Collectors.toMap(t -> t.getTerminology(), t -> t));
+      final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+      final Map<String, Terminology> map = new HashMap<>();
+      for (final Terminology terminology : terms) {
+        map.put(terminology.getTerminology(), terminology);
+      }
       final List<Concept> mapsets = osQueryService.getMapsets(new IncludeParam("properties"));
 
       final List<ConceptMap> list = new ArrayList<>();
@@ -771,6 +783,80 @@ public class ConceptMapProviderR5 implements IResourceProvider {
     } catch (final Exception e) {
       logger.error("Unexpected exception in vread", e);
       throw FhirUtilityR5.exception("Failed to get concept map version", IssueType.EXCEPTION, 500);
+    }
+  }
+
+  /**
+   * Apply sorting to the list of ConceptMaps if requested.
+   *
+   * @param list the list to sort
+   * @param sort the sort parameter
+   */
+  private void applySorting(final List<ConceptMap> list, final StringParam sort) {
+    if (sort == null || sort.getValue() == null || sort.getValue().trim().isEmpty()) {
+      return;
+    }
+
+    try {
+      final String sortValue = sort.getValue().trim();
+      final boolean descending = sortValue.startsWith("-");
+      final String field = descending ? sortValue.substring(1) : sortValue;
+
+      // Validate supported fields
+      final List<String> supportedFields =
+          Arrays.asList("name", "title", "publisher", "date", "url");
+      if (!supportedFields.contains(field)) {
+        throw FhirUtilityR5.exception(
+            "Unsupported sort field: "
+                + field
+                + ". Supported fields: "
+                + String.join(", ", supportedFields),
+            IssueType.INVALID,
+            400);
+      }
+
+      final Comparator<ConceptMap> comparator = getConceptMapComparator(field);
+      if (descending) {
+        Collections.sort(list, comparator.reversed());
+      } else {
+        Collections.sort(list, comparator);
+      }
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      throw FhirUtilityR5.exception(
+          "Error processing sort parameter: " + e.getMessage(), IssueType.INVALID, 400);
+    }
+  }
+
+  /**
+   * Get comparator for ConceptMap sorting.
+   *
+   * @param field the field to sort by
+   * @return the comparator
+   */
+  private Comparator<ConceptMap> getConceptMapComparator(final String field) {
+    switch (field) {
+      case "name":
+        return Comparator.comparing(
+            cm -> cm.getName() != null ? cm.getName().toLowerCase() : "",
+            Comparator.nullsLast(String::compareTo));
+      case "title":
+        return Comparator.comparing(
+            cm -> cm.getTitle() != null ? cm.getTitle().toLowerCase() : "",
+            Comparator.nullsLast(String::compareTo));
+      case "publisher":
+        return Comparator.comparing(
+            cm -> cm.getPublisher() != null ? cm.getPublisher().toLowerCase() : "",
+            Comparator.nullsLast(String::compareTo));
+      case "date":
+        return Comparator.comparing(ConceptMap::getDate, Comparator.nullsLast(Date::compareTo));
+      case "url":
+        return Comparator.comparing(
+            cm -> cm.getUrl() != null ? cm.getUrl().toLowerCase() : "",
+            Comparator.nullsLast(String::compareTo));
+      default:
+        throw new IllegalArgumentException("Unsupported sort field: " + field);
     }
   }
 }
