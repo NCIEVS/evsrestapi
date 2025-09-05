@@ -134,7 +134,7 @@ public class RrfFileCopier {
         }
 
         // ACTUALLY don't do this, keep all lines for files without CUIs
-        // and for fiels with CUIs, keep lines with matching CUIs
+        // and for files with CUIs, keep lines with matching CUIs
 
         // // Skip non-matching SAB (keep SRC data for CUIs specified)
         // if (sabField != -1 && sabs != null && !sabs.isEmpty() && !sabs.contains(fields[sabField])
