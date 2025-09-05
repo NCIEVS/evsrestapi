@@ -1,5 +1,27 @@
 package gov.nih.nci.evs.api.fhir.R4;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.CodeSystem;
+import org.hl7.fhir.r4.model.CodeType;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.Meta;
+import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.UriType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.History;
@@ -17,7 +39,6 @@ import ca.uhn.fhir.rest.param.UriParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.controller.ConceptController;
-import gov.nih.nci.evs.api.fhir.R5.FhirUtilityR5;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -29,26 +50,6 @@ import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CodeSystem;
-import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.Meta;
-import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.UriType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /** FHIR R4 CodeSystem provider. */
 @Component
@@ -242,14 +243,14 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         final CodeSystem codeSys = cs.get(0);
         // if system is supplied, ensure it matches the url returned on the codeSys found by id
         if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
-          throw FhirUtilityR5.exception(
+          throw FhirUtilityR4.exception(
               "Supplied url or system "
                   + systemToLookup
                   + " doesn't match the CodeSystem retrieved by the id "
                   + id
                   + " "
                   + codeSys.getUrl(),
-              org.hl7.fhir.r5.model.OperationOutcome.IssueType.EXCEPTION,
+              org.hl7.fhir.r4.model.OperationOutcome.IssueType.EXCEPTION,
               400);
         }
         final Terminology term =
@@ -471,14 +472,14 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         final CodeSystem codeSys = cs.get(0);
         // if url is supplied, ensure it matches the url returned on the codeSys found by id
         if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
-          throw FhirUtilityR5.exception(
+          throw FhirUtilityR4.exception(
               "Supplied url or system "
                   + systemToLookup
                   + " doesn't match the CodeSystem retrieved by the id "
                   + id
                   + " "
                   + codeSys.getUrl(),
-              org.hl7.fhir.r5.model.OperationOutcome.IssueType.EXCEPTION,
+              org.hl7.fhir.r4.model.OperationOutcome.IssueType.EXCEPTION,
               400);
         }
         final Terminology term =
@@ -627,7 +628,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Subsumes instance.
    *
-   * <p>See https://hl7.org/fhir/R5/codesystem-operation-subsumes.html
+   * <p>See https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
    *
    * @param request the request
    * @param response the response

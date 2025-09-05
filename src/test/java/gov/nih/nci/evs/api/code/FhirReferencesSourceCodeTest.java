@@ -73,11 +73,19 @@ public class FhirReferencesSourceCodeTest extends AbstractSourceCodeTest {
       if (!path.toString().toUpperCase().contains("R4")) {
         continue;
       }
+      // Exception
+      if (path.toString().contains("OpenApiInterceptor")) {
+        continue;
+      }
       final List<String> lines = FileUtils.readLines(path.toFile(), "UTF-8");
 
       for (final String line : lines) {
-        if (line.matches("import.*\\.r5\\..*")) {
+        if (line.matches("import.*\\.r5\\..*") || line.matches("import.*\\.R5\\..*")) {
           logger.error("Import for R4 references an r5 import - " + path.toFile().getName());
+          failed = true;
+          break;
+        } else if (line.matches(".*\\.fhir\\.r5\\..*")) {
+          logger.error("Line in R4 references an r5 class - " + path.toFile().getName());
           failed = true;
           break;
         }
@@ -98,12 +106,20 @@ public class FhirReferencesSourceCodeTest extends AbstractSourceCodeTest {
       if (!path.toString().toUpperCase().contains("R5")) {
         continue;
       }
+      // Exception
+      if (path.toString().contains("OpenApiInterceptor")) {
+        continue;
+      }
 
       final List<String> lines = FileUtils.readLines(path.toFile(), "UTF-8");
 
       for (final String line : lines) {
-        if (line.matches("import.*\\.r4\\..*")) {
+        if (line.matches("import.*\\.r4\\..*") || line.matches("import.*\\.R4\\..*")) {
           logger.error("Import for R5 references an r4 import - " + path.toFile().getName());
+          failed = true;
+          break;
+        } else if (line.matches(".*\\.fhir\\.r4\\..*")) {
+          logger.error("Line in R5 references an r4 class - " + path.toFile().getName());
           failed = true;
           break;
         }

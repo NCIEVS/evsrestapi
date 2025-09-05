@@ -17,7 +17,6 @@ import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.controller.SubsetController;
-import gov.nih.nci.evs.api.fhir.R5.FhirUtilityR5;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
@@ -1223,7 +1222,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
+      FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR4.mutuallyRequired("code", code, "system", system, "url", url);
       FhirUtilityR4.mutuallyRequired("system", system, "systemVersion", systemVersion);
 
@@ -1363,7 +1362,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
           405);
     }
     try {
-      FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
+      FhirUtilityR4.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR4.requireAtLeastOneOf(
           "code", code, "coding", coding, "systemVersion", systemVersion, "url", url);
 
@@ -1406,14 +1405,14 @@ public class ValueSetProviderR4 implements IResourceProvider {
         }
         final ValueSet vs = list.get(0);
         if ((urlToLookup != null) && !vs.getUrl().equals(urlToLookup.getValue())) {
-          throw FhirUtilityR5.exception(
+          throw FhirUtilityR4.exception(
               "Supplied url "
                   + urlToLookup
                   + " doesn't match the ValueSet retrieved by the id "
                   + id
                   + " "
                   + vs.getUrl(),
-              org.hl7.fhir.r5.model.OperationOutcome.IssueType.EXCEPTION,
+              org.hl7.fhir.r4.model.OperationOutcome.IssueType.EXCEPTION,
               400);
         }
         final SearchCriteria sc = new SearchCriteria();
