@@ -497,7 +497,9 @@ public class FhirR4ValueSetExpandTests {
 
     // Test 1: Only required url parameter - should return empty parameter list
     String parameters = "?url=" + url;
+    log.info("  parameters = " + parameters);
     String content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(content));
     ValueSet valueSet = parser.parseResource(ValueSet.class, content);
 
     assertTrue(valueSet.hasExpansion());
@@ -506,7 +508,9 @@ public class FhirR4ValueSetExpandTests {
 
     // Test 2: Only one optional parameter - should return exactly one parameter
     parameters = "?url=" + url + "&filter=test";
+    log.info("  parameters = " + parameters);
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(content));
     valueSet = parser.parseResource(ValueSet.class, content);
 
     assertTrue(valueSet.hasExpansion());
@@ -517,7 +521,9 @@ public class FhirR4ValueSetExpandTests {
 
     // Test 3: Multiple specific parameters - should return exactly those parameters
     parameters = "?url=" + url + "&includeDesignations=true&activeOnly=false";
+    log.info("  parameters = " + parameters);
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    log.info("  response = " + JsonUtils.prettyPrint(content));
     valueSet = parser.parseResource(ValueSet.class, content);
 
     assertTrue(valueSet.hasExpansion());

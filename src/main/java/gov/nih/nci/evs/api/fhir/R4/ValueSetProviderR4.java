@@ -70,6 +70,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 /** FHIR R4 ValueSet provider. */
+
 /** */
 @Component
 public class ValueSetProviderR4 implements IResourceProvider {
@@ -375,45 +376,48 @@ public class ValueSetProviderR4 implements IResourceProvider {
           }
         }
 
-        if (filterValue != null) {
+        if (filter != null && filter.getValue() != null && !filter.getValue().trim().isEmpty()) {
           vsParameter = new ValueSetExpansionParameterComponent();
           vsParameter.setName("filter");
-          vsParameter.setValue(new StringType(filterValue));
+          vsParameter.setValue(new StringType(filter.getValue()));
           vsExpansion.addParameter(vsParameter);
         }
 
-        if (countValue != 1000) { // Only add if different from default
+        // Only include count if explicitly specified and different from default
+        if (count != null && count.hasValue() && count.getValue() != 1000) {
           vsParameter = new ValueSetExpansionParameterComponent();
           vsParameter.setName("count");
-          vsParameter.setValue(new IntegerType(countValue));
+          vsParameter.setValue(new IntegerType(count.getValue()));
           vsExpansion.addParameter(vsParameter);
         }
 
-        if (offset != null) {
+        // Only include offset if explicitly specified and different from default
+        if (offset != null && offset.hasValue() && offset.getValue() != 0) {
           vsParameter = new ValueSetExpansionParameterComponent();
           vsParameter.setName("offset");
-          vsParameter.setValue(offset);
+          vsParameter.setValue(new IntegerType(offset.getValue()));
           vsExpansion.addParameter(vsParameter);
         }
 
-        if (includeDesignationsValue) {
+        // Include boolean parameters if explicitly specified, regardless of value
+        if (includeDesignations != null && includeDesignations.hasValue()) {
           vsParameter = new ValueSetExpansionParameterComponent();
           vsParameter.setName("includeDesignations");
-          vsParameter.setValue(new BooleanType(includeDesignationsValue));
+          vsParameter.setValue(new BooleanType(includeDesignations.getValue()));
           vsExpansion.addParameter(vsParameter);
         }
 
-        if (includeDefinitionValue) {
+        if (includeDefinition != null && includeDefinition.hasValue()) {
           vsParameter = new ValueSetExpansionParameterComponent();
           vsParameter.setName("includeDefinition");
-          vsParameter.setValue(new BooleanType(includeDefinitionValue));
+          vsParameter.setValue(new BooleanType(includeDefinition.getValue()));
           vsExpansion.addParameter(vsParameter);
         }
 
-        if (activeOnlyValue) {
+        if (activeOnly != null && activeOnly.hasValue()) {
           vsParameter = new ValueSetExpansionParameterComponent();
           vsParameter.setName("activeOnly");
-          vsParameter.setValue(new BooleanType(activeOnlyValue));
+          vsParameter.setValue(new BooleanType(activeOnly.getValue()));
           vsExpansion.addParameter(vsParameter);
         }
       }
