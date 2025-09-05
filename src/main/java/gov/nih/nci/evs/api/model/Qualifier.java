@@ -180,5 +180,7 @@ public class Qualifier extends BaseModel implements Comparable<Qualifier> {
   }
 
   /** Clear hidden. */
-  public void clearHidden() {}
+  public void clearHidden() {
+    // n/a
+  }
 }
