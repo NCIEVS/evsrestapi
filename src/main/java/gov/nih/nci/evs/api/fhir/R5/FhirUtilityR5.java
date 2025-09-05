@@ -176,7 +176,7 @@ public class FhirUtilityR5 {
     } catch (Exception e) {
       cm.setDate(null);
     }
-    cm.setSourceScope(new UriType(getUri(targetTerminology) + "?fhir_vs"));
+    cm.setSourceScope(new UriType(getUri(sourceTerminology) + "?fhir_vs"));
     cm.setTargetScope(new UriType(getUri(targetTerminology) + "?fhir_vs"));
     cm.setUrl(getUri(sourceTerminology) + "?fhir_cm=" + mapset.getCode());
     return cm;

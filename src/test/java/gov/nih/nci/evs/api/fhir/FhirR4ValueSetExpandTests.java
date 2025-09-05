@@ -4361,4 +4361,260 @@ public class FhirR4ValueSetExpandTests {
 
     log.info("Exclude ValueSet not found error handling test completed successfully");
   }
+
+  @Test
+  public void testValueSetExpandImplicitSortCodeAscending() throws Exception {
+    // Arrange
+    String content;
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String parameters = "?url=" + url + "&_sort=code&count=5";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertTrue(valueSet.hasExpansion());
+    List<String> codes =
+        valueSet.getExpansion().getContains().stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+            .collect(Collectors.toList());
+
+    // Verify that sorting was applied - the _sort parameter was accepted and results are ordered
+    assertTrue(codes.size() > 1, "Should have multiple items to verify sorting");
+    assertNotNull(codes, "Codes should not be null");
+    assertTrue(codes.size() > 0, "Should have codes when sorting by code");
+
+    // Verify codes are sorted in ascending order
+    for (int i = 1; i < codes.size(); i++) {
+      assertTrue(
+          codes.get(i - 1).compareToIgnoreCase(codes.get(i)) <= 0,
+          String.format(
+              "Codes not sorted ascending: '%s' should come before or equal to '%s'",
+              codes.get(i - 1), codes.get(i)));
+    }
+  }
+
+  @Test
+  public void testValueSetExpandImplicitSortCodeDescending() throws Exception {
+    // Arrange
+    String content;
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String parameters = "?url=" + url + "&_sort=-code&count=5";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertTrue(valueSet.hasExpansion());
+    List<String> codes =
+        valueSet.getExpansion().getContains().stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+            .collect(Collectors.toList());
+
+    // Verify that descending sorting was applied - the _sort parameter was accepted and results are
+    // ordered
+    assertTrue(codes.size() > 1, "Should have multiple items to verify sorting");
+    assertNotNull(codes, "Codes should not be null");
+    assertTrue(codes.size() > 0, "Should have codes when sorting by code descending");
+
+    // Verify codes are sorted in descending order
+    for (int i = 1; i < codes.size(); i++) {
+      assertTrue(
+          codes.get(i - 1).compareToIgnoreCase(codes.get(i)) >= 0,
+          String.format(
+              "Codes not sorted descending: '%s' should come after or equal to '%s'",
+              codes.get(i - 1), codes.get(i)));
+    }
+  }
+
+  @Test
+  public void testValueSetExpandImplicitSortDisplayAscending() throws Exception {
+    // Arrange
+    String content;
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String parameters = "?url=" + url + "&_sort=display&count=5";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertTrue(valueSet.hasExpansion());
+    List<String> displays =
+        valueSet.getExpansion().getContains().stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getDisplay)
+            .collect(Collectors.toList());
+
+    // Verify that results are consistently sorted
+    assertTrue(displays.size() > 1, "Should have multiple items to verify sorting");
+    assertNotNull(displays, "Displays should not be null");
+    assertTrue(displays.size() > 0, "Should have displays when sorting by display");
+
+    // Verify displays are sorted in ascending order
+    for (int i = 1; i < displays.size(); i++) {
+      assertTrue(
+          displays.get(i - 1).compareToIgnoreCase(displays.get(i)) <= 0,
+          String.format(
+              "Displays not sorted ascending: '%s' should come before or equal to '%s'",
+              displays.get(i - 1), displays.get(i)));
+    }
+  }
+
+  @Test
+  public void testValueSetExpandInstanceSortCodeAscending() throws Exception {
+    // Arrange
+    String content;
+    String activeID = "umlssemnet_2023aa";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String endpoint =
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
+    String parameters = "?url=" + url + "&_sort=code&count=5";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertTrue(valueSet.hasExpansion());
+    List<String> codes =
+        valueSet.getExpansion().getContains().stream()
+            .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+            .collect(Collectors.toList());
+
+    // Verify that sorting was applied - the _sort parameter was accepted and results are ordered
+    assertTrue(codes.size() > 1, "Should have multiple items to verify sorting");
+    assertNotNull(codes, "Codes should not be null");
+    assertTrue(codes.size() > 0, "Should have codes when sorting by code in instance method");
+
+    // Verify codes are sorted in ascending order
+    for (int i = 1; i < codes.size(); i++) {
+      assertTrue(
+          codes.get(i - 1).compareToIgnoreCase(codes.get(i)) <= 0,
+          String.format(
+              "Codes not sorted ascending: '%s' should come before or equal to '%s'",
+              codes.get(i - 1), codes.get(i)));
+    }
+  }
+
+  @Test
+  public void testValueSetExpandImplicitInvalidSortField() throws Exception {
+    // Arrange
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String parameters = "?url=" + url + "&_sort=invalidField";
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.getForEntity(endpoint + parameters, String.class);
+
+    // Assert
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, response.getBody());
+    assertTrue(
+        outcome
+            .getIssueFirstRep()
+            .getDiagnostics()
+            .contains("Unsupported sort field: invalidField"));
+  }
+
+  @Test
+  public void testValueSetExpandInstanceInvalidSortField() throws Exception {
+    // Arrange
+    String activeID = "umlssemnet_2023aa";
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String endpoint =
+        localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
+    String parameters = "?url=" + url + "&_sort=invalidField";
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.getForEntity(endpoint + parameters, String.class);
+
+    // Assert
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, response.getBody());
+    assertTrue(
+        outcome
+            .getIssueFirstRep()
+            .getDiagnostics()
+            .contains("Unsupported sort field: invalidField"));
+  }
+
+  @Test
+  public void testValueSetExpandImplicitSystemSortFieldNotSupported() throws Exception {
+    // Arrange
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String parameters = "?url=" + url + "&_sort=system";
+
+    // Act
+    ResponseEntity<String> response =
+        this.restTemplate.getForEntity(endpoint + parameters, String.class);
+
+    // Assert
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, response.getBody());
+    assertTrue(
+        outcome.getIssueFirstRep().getDiagnostics().contains("Unsupported sort field: system"));
+  }
+
+  @Test
+  public void testValueSetExpandImplicitSortWithFilter() throws Exception {
+    // Arrange
+    String content;
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String parameters = "?url=" + url + "&filter=T&_sort=code&count=3";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertTrue(valueSet.hasExpansion());
+
+    if (valueSet.getExpansion().getContains().size() > 1) {
+      List<String> codes =
+          valueSet.getExpansion().getContains().stream()
+              .map(ValueSet.ValueSetExpansionContainsComponent::getCode)
+              .collect(Collectors.toList());
+
+      // Verify that sorting was applied even with filter - the _sort parameter was accepted
+      assertNotNull(codes, "Codes should not be null when combining filter and sort");
+      assertTrue(codes.size() > 0, "Should have codes when combining filter and sort");
+
+      // Verify codes are sorted in ascending order
+      for (int i = 1; i < codes.size(); i++) {
+        assertTrue(
+            codes.get(i - 1).compareToIgnoreCase(codes.get(i)) <= 0,
+            String.format(
+                "Codes not sorted ascending with filter: '%s' should come before or equal to '%s'",
+                codes.get(i - 1), codes.get(i)));
+      }
+    }
+  }
+
+  @Test
+  public void testValueSetExpandImplicitEmptySortParameter() throws Exception {
+    // Arrange
+    String content;
+    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    String parameters = "?url=" + url + "&_sort=&count=3";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert - empty sort parameter should be ignored and not cause errors
+    assertTrue(valueSet.hasExpansion());
+    assertTrue(
+        valueSet.getExpansion().getContains().size() > 0,
+        "Should have results with empty sort parameter");
+  }
 }
