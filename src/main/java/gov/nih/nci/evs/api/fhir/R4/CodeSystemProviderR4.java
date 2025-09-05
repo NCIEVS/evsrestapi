@@ -17,7 +17,6 @@ import ca.uhn.fhir.rest.param.UriParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.controller.ConceptController;
-import gov.nih.nci.evs.api.fhir.R5.FhirUtilityR5;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -30,7 +29,9 @@ import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
@@ -242,14 +243,14 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         final CodeSystem codeSys = cs.get(0);
         // if system is supplied, ensure it matches the url returned on the codeSys found by id
         if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
-          throw FhirUtilityR5.exception(
+          throw FhirUtilityR4.exception(
               "Supplied url or system "
                   + systemToLookup
                   + " doesn't match the CodeSystem retrieved by the id "
                   + id
                   + " "
                   + codeSys.getUrl(),
-              org.hl7.fhir.r5.model.OperationOutcome.IssueType.EXCEPTION,
+              org.hl7.fhir.r4.model.OperationOutcome.IssueType.EXCEPTION,
               400);
         }
         final Terminology term =
@@ -471,14 +472,14 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         final CodeSystem codeSys = cs.get(0);
         // if url is supplied, ensure it matches the url returned on the codeSys found by id
         if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
-          throw FhirUtilityR5.exception(
+          throw FhirUtilityR4.exception(
               "Supplied url or system "
                   + systemToLookup
                   + " doesn't match the CodeSystem retrieved by the id "
                   + id
                   + " "
                   + codeSys.getUrl(),
-              org.hl7.fhir.r5.model.OperationOutcome.IssueType.EXCEPTION,
+              org.hl7.fhir.r4.model.OperationOutcome.IssueType.EXCEPTION,
               400);
         }
         final Terminology term =
@@ -627,7 +628,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Subsumes instance.
    *
-   * <p>See https://hl7.org/fhir/R5/codesystem-operation-subsumes.html
+   * <p>See https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
    *
    * @param request the request
    * @param response the response
@@ -756,7 +757,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           final NumberParam count,
       @Description(shortDefinition = "Start offset, used when reading a next page")
           @OptionalParam(name = "_offset")
-          final NumberParam offset)
+          final NumberParam offset,
+      @Description(shortDefinition = "Sort by field (name, title, publisher, date, url)")
+          @OptionalParam(name = "_sort")
+          final StringParam sort)
       throws Exception {
     try {
       FhirUtilityR4.notSupportedSearchParams(request);
@@ -792,6 +796,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
 
         list.add(cs);
       }
+
+      // Apply sorting if requested
+      applySorting(list, sort);
+
       return FhirUtilityR4.makeBundle(request, list, count, offset);
 
     } catch (final FHIRServerResponseException e) {
@@ -1012,6 +1020,82 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       logger.error("Unexpected exception in vread", e);
       throw FhirUtilityR4.exception(
           "Failed to get code system version", OperationOutcome.IssueType.EXCEPTION, 500);
+    }
+  }
+
+  /**
+   * Apply sorting to the list of CodeSystems if requested.
+   *
+   * @param list the list to sort
+   * @param sort the sort parameter
+   */
+  private void applySorting(final List<CodeSystem> list, final StringParam sort) {
+    if (sort == null || sort.getValue() == null || sort.getValue().trim().isEmpty()) {
+      return;
+    }
+
+    try {
+      final String sortValue = sort.getValue().trim();
+      final boolean descending = sortValue.startsWith("-");
+      final String field = descending ? sortValue.substring(1) : sortValue;
+
+      // Validate supported fields
+      final List<String> supportedFields =
+          Arrays.asList("name", "title", "publisher", "date", "url");
+      if (!supportedFields.contains(field)) {
+        throw FhirUtilityR4.exception(
+            "Unsupported sort field: "
+                + field
+                + ". Supported fields: "
+                + String.join(", ", supportedFields),
+            OperationOutcome.IssueType.INVALID,
+            400);
+      }
+
+      final Comparator<CodeSystem> comparator = getCodeSystemComparator(field);
+      if (descending) {
+        Collections.sort(list, comparator.reversed());
+      } else {
+        Collections.sort(list, comparator);
+      }
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      throw FhirUtilityR4.exception(
+          "Error processing sort parameter: " + e.getMessage(),
+          OperationOutcome.IssueType.INVALID,
+          400);
+    }
+  }
+
+  /**
+   * Get comparator for CodeSystem sorting.
+   *
+   * @param field the field to sort by
+   * @return the comparator
+   */
+  private Comparator<CodeSystem> getCodeSystemComparator(final String field) {
+    switch (field) {
+      case "name":
+        return Comparator.comparing(
+            cs -> cs.getName() != null ? cs.getName().toLowerCase() : "",
+            Comparator.nullsLast(String::compareTo));
+      case "title":
+        return Comparator.comparing(
+            cs -> cs.getTitle() != null ? cs.getTitle().toLowerCase() : "",
+            Comparator.nullsLast(String::compareTo));
+      case "publisher":
+        return Comparator.comparing(
+            cs -> cs.getPublisher() != null ? cs.getPublisher().toLowerCase() : "",
+            Comparator.nullsLast(String::compareTo));
+      case "date":
+        return Comparator.comparing(CodeSystem::getDate, Comparator.nullsLast(Date::compareTo));
+      case "url":
+        return Comparator.comparing(
+            cs -> cs.getUrl() != null ? cs.getUrl().toLowerCase() : "",
+            Comparator.nullsLast(String::compareTo));
+      default:
+        throw new IllegalArgumentException("Unsupported sort field: " + field);
     }
   }
 }

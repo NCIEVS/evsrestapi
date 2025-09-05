@@ -1021,55 +1021,56 @@ public class OpenApiInterceptorR5 {
         }
       }
 
-      // HIDE POST FORMS of operations
-      //
-      //      // POST form for all operations
-      //      if (theResourceType != null) {
-      //        if (operationDefinition.getType()) {
-      //          final Operation operation =
-      //              getPathItem(
-      //                  thePaths,
-      //                  "/" + theResourceType + "/$" + operationDefinition.getCode(),
-      //                  PathItem.HttpMethod.POST);
-      //          populateOperation(
-      //              theFhirContext, theOpenApi, theResourceType, operationDefinition, operation,
-      // false);
-      //          operation.setSummary(operationDefinition.getCode());
-      //          operation.setSummary(
-      //              unCamelCase(theResourceType)
-      //                  + " operation to perform "
-      //                  + operationDefinition.getCode());
-      //        }
-      //        if (operationDefinition.getInstance()) {
-      //          final Operation operation =
-      //              getPathItem(
-      //                  thePaths,
-      //                  "/" + theResourceType + "/{id}/$" + operationDefinition.getCode(),
-      //                  PathItem.HttpMethod.POST);
-      //          addResourceIdParameter(operation);
-      //          populateOperation(
-      //              theFhirContext, theOpenApi, theResourceType, operationDefinition, operation,
-      // false);
-      //          operation.setSummary(operationDefinition.getCode());
-      //          operation.setSummary(
-      //              unCamelCase(theResourceType)
-      //                  + " operation to perform "
-      //                  + operationDefinition.getCode());
-      //        }
-      //      } else {
-      //        if (operationDefinition.getSystem()) {
-      //          final Operation operation =
-      //              getPathItem(thePaths, "/$" + operationDefinition.getCode(),
-      // PathItem.HttpMethod.POST);
-      //          populateOperation(
-      //              theFhirContext, theOpenApi, null, operationDefinition, operation, false);
-      //          operation.setSummary(operationDefinition.getCode());
-      //          operation.setSummary(
-      //              unCamelCase(theResourceType)
-      //                  + " operation to perform "
-      //                  + operationDefinition.getCode());
-      //        }
-      //      }
+      //       Expose POST FORMS of operations for ValueSet implicit calls
+
+      // POST form for all operations
+      if (theResourceType != null
+          && theResourceType.equals("ValueSet")
+          && operationDefinition.getCode().equals("expand")) {
+        if (operationDefinition.getType()) {
+          final Operation operation =
+              getPathItem(
+                  thePaths,
+                  "/" + theResourceType + "/$" + operationDefinition.getCode(),
+                  PathItem.HttpMethod.POST);
+          populateOperation(
+              theFhirContext, theOpenApi, theResourceType, operationDefinition, operation, false);
+          operation.setSummary(operationDefinition.getCode());
+          operation.setSummary(
+              unCamelCase(theResourceType)
+                  + " operation to perform "
+                  + operationDefinition.getCode());
+        }
+        //              if (operationDefinition.getInstance()) {
+        //                final Operation operation =
+        //                    getPathItem(
+        //                        thePaths,
+        //                        "/" + theResourceType + "/{id}/$" + operationDefinition.getCode(),
+        //                        PathItem.HttpMethod.POST);
+        //                addResourceIdParameter(operation);
+        //                populateOperation(
+        //                    theFhirContext, theOpenApi, theResourceType, operationDefinition,
+        // operation,
+        //       false);
+        //                operation.setSummary(operationDefinition.getCode());
+        //                operation.setSummary(
+        //                    unCamelCase(theResourceType)
+        //                        + " operation to perform "
+        //                        + operationDefinition.getCode());
+        //              }
+      } else {
+        if (operationDefinition.getSystem()) {
+          final Operation operation =
+              getPathItem(thePaths, "/$" + operationDefinition.getCode(), PathItem.HttpMethod.POST);
+          populateOperation(
+              theFhirContext, theOpenApi, null, operationDefinition, operation, false);
+          operation.setSummary(operationDefinition.getCode());
+          operation.setSummary(
+              unCamelCase(theResourceType)
+                  + " operation to perform "
+                  + operationDefinition.getCode());
+        }
+      }
     }
   }
 

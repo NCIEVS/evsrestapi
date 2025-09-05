@@ -31,7 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class EVSUtils {
 
   /** The Constant log. */
-  @SuppressWarnings("unused")
   private static final Logger log = LoggerFactory.getLogger(EVSUtils.class);
 
   /** The metadata service. */
