@@ -11,6 +11,7 @@ import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -925,5 +926,235 @@ class FhirR5CodeSystemReadSearchTests {
     } else {
       assertTrue(data.getEntry().isEmpty() || codeSystems.isEmpty());
     }
+  }
+
+  /**
+   * Test code system search with sort by name.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByName() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCSPath + "?_sort=name";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by name in ascending order
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(codeSystems);
+
+    String previousName = null;
+    for (Resource cs : codeSystems) {
+      CodeSystem css = (CodeSystem) cs;
+      assertNotNull(css.getName());
+      String currentName = css.getName().toLowerCase();
+      if (previousName != null) {
+        assertTrue(
+            currentName.compareTo(previousName) >= 0,
+            "Names should be in alphabetical order: '"
+                + previousName
+                + "' should come before '"
+                + currentName
+                + "'");
+      }
+      previousName = currentName;
+    }
+  }
+
+  /**
+   * Test code system search with sort by title descending.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByTitleDescending() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCSPath + "?_sort=-title";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by title in descending order
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(codeSystems);
+
+    String previousTitle = null;
+    for (Resource cs : codeSystems) {
+      CodeSystem css = (CodeSystem) cs;
+      assertNotNull(css.getTitle());
+      String currentTitle = css.getTitle().toLowerCase();
+      if (previousTitle != null) {
+        assertTrue(
+            currentTitle.compareTo(previousTitle) <= 0,
+            "Titles should be in descending alphabetical order: '"
+                + previousTitle
+                + "' should come after '"
+                + currentTitle
+                + "'");
+      }
+      previousTitle = currentTitle;
+    }
+  }
+
+  /**
+   * Test code system search with sort by publisher.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByPublisher() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCSPath + "?_sort=publisher";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by publisher in ascending order
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(codeSystems);
+
+    String previousPublisher = null;
+    for (Resource cs : codeSystems) {
+      CodeSystem css = (CodeSystem) cs;
+      assertNotNull(css.getPublisher());
+      String currentPublisher = css.getPublisher().toLowerCase();
+      if (previousPublisher != null) {
+        assertTrue(
+            currentPublisher.compareTo(previousPublisher) >= 0,
+            "Publishers should be in alphabetical order: '"
+                + previousPublisher
+                + "' should come before '"
+                + currentPublisher
+                + "'");
+      }
+      previousPublisher = currentPublisher;
+    }
+  }
+
+  /**
+   * Test code system search with sort by date.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByDate() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCSPath + "?_sort=date";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by date in ascending order
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(codeSystems);
+
+    Date previousDate = null;
+    for (Resource cs : codeSystems) {
+      CodeSystem css = (CodeSystem) cs;
+      Date currentDate = css.getDate();
+      if (previousDate != null && currentDate != null) {
+        assertTrue(
+            currentDate.compareTo(previousDate) >= 0,
+            "Dates should be in chronological order: '"
+                + previousDate
+                + "' should come before '"
+                + currentDate
+                + "'");
+      }
+      if (currentDate != null) {
+        previousDate = currentDate;
+      }
+    }
+  }
+
+  /**
+   * Test code system search with sort by URL.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByUrl() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCSPath + "?_sort=url";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by URL in ascending order
+    List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(codeSystems);
+
+    String previousUrl = null;
+    for (Resource cs : codeSystems) {
+      CodeSystem css = (CodeSystem) cs;
+      assertNotNull(css.getUrl());
+      String currentUrl = css.getUrl().toLowerCase();
+      if (previousUrl != null) {
+        assertTrue(
+            currentUrl.compareTo(previousUrl) >= 0,
+            "URLs should be in alphabetical order: '"
+                + previousUrl
+                + "' should come before '"
+                + currentUrl
+                + "'");
+      }
+      previousUrl = currentUrl;
+    }
+  }
+
+  /**
+   * Test code system search with invalid sort field.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByInvalidField() throws Exception {
+    // Arrange
+    String endpoint = localHost + port + fhirCSPath + "?_sort=invalid_field";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint, String.class);
+    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+
+    // Assert
+    assertNotNull(outcome);
+    assertNotNull(outcome.getIssue());
+    assertFalse(outcome.getIssue().isEmpty());
+
+    OperationOutcomeIssueComponent issue = outcome.getIssue().get(0);
+    assertEquals(OperationOutcome.IssueSeverity.ERROR, issue.getSeverity());
+    assertTrue(issue.getDiagnostics().contains("Unsupported sort field"));
   }
 }
