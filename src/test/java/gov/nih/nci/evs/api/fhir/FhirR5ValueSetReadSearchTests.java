@@ -865,7 +865,7 @@ class FhirR5ValueSetReadSearchTests {
   }
 
   @Test
-  public void testCodeSystemHistory() throws Exception {
+  public void testValueSetHistory() throws Exception {
     // Arrange
     String content;
     String endpoint = localHost + port + fhirVSPath;

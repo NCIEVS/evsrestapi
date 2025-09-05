@@ -17,7 +17,6 @@ import ca.uhn.fhir.rest.param.UriParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.controller.ConceptController;
-import gov.nih.nci.evs.api.fhir.R5.FhirUtilityR5;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -244,14 +243,14 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         final CodeSystem codeSys = cs.get(0);
         // if system is supplied, ensure it matches the url returned on the codeSys found by id
         if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
-          throw FhirUtilityR5.exception(
+          throw FhirUtilityR4.exception(
               "Supplied url or system "
                   + systemToLookup
                   + " doesn't match the CodeSystem retrieved by the id "
                   + id
                   + " "
                   + codeSys.getUrl(),
-              org.hl7.fhir.r5.model.OperationOutcome.IssueType.EXCEPTION,
+              org.hl7.fhir.r4.model.OperationOutcome.IssueType.EXCEPTION,
               400);
         }
         final Terminology term =
@@ -473,14 +472,14 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         final CodeSystem codeSys = cs.get(0);
         // if url is supplied, ensure it matches the url returned on the codeSys found by id
         if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
-          throw FhirUtilityR5.exception(
+          throw FhirUtilityR4.exception(
               "Supplied url or system "
                   + systemToLookup
                   + " doesn't match the CodeSystem retrieved by the id "
                   + id
                   + " "
                   + codeSys.getUrl(),
-              org.hl7.fhir.r5.model.OperationOutcome.IssueType.EXCEPTION,
+              org.hl7.fhir.r4.model.OperationOutcome.IssueType.EXCEPTION,
               400);
         }
         final Terminology term =
@@ -629,7 +628,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   /**
    * Subsumes instance.
    *
-   * <p>See https://hl7.org/fhir/R5/codesystem-operation-subsumes.html
+   * <p>See https://hl7.org/fhir/R4/codesystem-operation-subsumes.html
    *
    * @param request the request
    * @param response the response
