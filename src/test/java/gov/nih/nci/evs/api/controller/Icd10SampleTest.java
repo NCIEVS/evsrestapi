@@ -4,8 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.model.Concept;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,6 +16,10 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.model.Concept;
 
 /** NCIt samples test. */
 @ExtendWith(SpringExtension.class)
@@ -55,14 +57,14 @@ public class Icd10SampleTest extends SampleTest {
     Concept concept = null;
 
     // Test active
-    url = "/api/v1/concept/icd10/A00-A09";
+    url = "/api/v1/concept/icd10/M14.6";
     log.info("Testing url - " + url);
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("A00-A09");
+    assertThat(concept.getCode()).isEqualTo("M14.6");
     assertThat(concept.getTerminology()).isEqualTo("icd10");
     assertThat(concept.getActive()).isTrue();
   }
