@@ -1,39 +1,85 @@
 RID56	RID56	synonym	abdomen
 RID56	RID56	term-type	PT
 RID56	RID56	term-type	SY
-RID471	RID471	term-type	OP
+RID28743	RID28743	term-type	OP
+RID10321	RID10321	term-type	ACR
+RID12940	RID12940	term-type	IS
 RID56	RID56	CITE	Playbook
 RID56	RID56	FMAID	9577
 RID56	RID56	COMMENT	[altern def] That portion of the body that lies between the thorax and the pelvis. [MeSH]
 RID56	RID56	PREFERRED_NAME_GERMAN	Abdomen
-RID34730	RID34730	SYNONYM_GERMAN	erworbenes Immunschw√§chesyndrom
-RID7478	RID7478	RADLEX_VERSION_OF_CLASS_CHANGE	08/19/2014
-RID471	RID471	REPLACED_BY	RID29997
-RID49921	RID49921	DATE_CREATED	2016-02-11T00:00:00
+RID3711	RID3711	MISSPELLING_OF_TERM	abcess
+RID34730	RID34730	SYNONYM_GERMAN	erworbenes Immunschw‰chesyndrom
+RID49438	RID49438	RADLEX_VERSION_OF_CLASS_CHANGE	08/19/2014
+RID49533	RID49533	DATE_CREATED	2014-08-19T00:00:00
+RID5966	RID5966	REPLACED_BY	RID13202
+RID5425	RID5425	UNSANCTIONED_TERM	implantable object
+RID46038	RID46038	SNOMED_ID	205465004
 RID56	RID56	Semantic_Type	Body Location or Region
 RID28794	RID28794	Semantic_Type	Sign or Symptom
 RID31594	RID31594	Semantic_Type	Body Part, Organ, or Organ Component
 RID28795	RID28795	Semantic_Type	Congenital Abnormality
+RID3711	RID3711	Semantic_Type	Finding
 RID34730	RID34730	Semantic_Type	Disease or Syndrome
-RID31010	RID31010	Semantic_Type	Body System
-RID7478	RID7478	Semantic_Type	Pharmacologic Substance
-RID4700	RID4700	Semantic_Type	Pathologic Function
-RID4895	RID4895	Semantic_Type	Anatomical Abnormality
-RID6421	RID6421	Semantic_Type	Diagnostic Procedure
-RID431	RID431	Semantic_Type	Body Space or Junction
+RID3831	RID3831	Semantic_Type	Pathologic Function
+RID43373	RID43373	Semantic_Type	Pharmacologic Substance
+RID5395	RID5395	Semantic_Type	Acquired Abnormality
+RID49438	RID49438	Semantic_Type	Antibiotic
+RID29522	RID29522	Semantic_Type	Body Substance
+RID18423	RID18423	Semantic_Type	Body System
+RID38611	RID38611	Semantic_Type	Diagnostic Procedure
+RID10419	RID10419	Semantic_Type	Therapeutic or Preventive Procedure
+RID4247	RID4247	Semantic_Type	Neoplastic Process
+RID34837	RID34837	Semantic_Type	Cell or Molecular Dysfunction
+RID13408	RID13408	Semantic_Type	Tissue
+RID11582	RID11582	Semantic_Type	Indicator, Reagent, or Diagnostic Aid
+RID45805	RID45805	Semantic_Type	Organic Chemical
+RID5840	RID5840	Semantic_Type	Spatial Concept
+RID407	RID407	Semantic_Type	Body Space or Junction
+RID38802	RID38802	Semantic_Type	Enzyme
+RID3907	RID3907	Semantic_Type	Anatomical Abnormality
+RID5654	RID5654	Semantic_Type	Organism Attribute
+RID11213	RID11213	Semantic_Type	Medical Device
+RID11844	RID11844	Semantic_Type	Biologically Active Substance
+RID11844	RID11844	Semantic_Type	Element, Ion, or Isotope
+RID39073	RID39073	Semantic_Type	Population Group
+RID39234	RID39234	Semantic_Type	Organ or Tissue Function
+RID4581	RID4581	Semantic_Type	Injury or Poisoning
+RID39550	RID39550	Semantic_Type	Temporal Concept
+RID13034	RID13034	Semantic_Type	Phenomenon or Process
+RID1554	RID1554	Semantic_Type	Amino Acid, Peptide, or Protein
+RID11751	RID11751	Semantic_Type	Inorganic Chemical
+RID6352	RID6352	Semantic_Type	Organism Function
+RID11296	RID11296	Semantic_Type	Human-caused Phenomenon or Process
+RID28472	RID28472	Semantic_Type	Qualitative Concept
+RID10381	RID10381	Semantic_Type	Health Care Activity
+RID36044	RID36044	Semantic_Type	Quantitative Concept
+RID11711	RID11711	Semantic_Type	Immunologic Factor
+RID29670	RID29670	Semantic_Type	Embryonic Structure
+RID10409	RID10409	Semantic_Type	Activity
+RID45646	RID45646	Semantic_Type	Substance
+RID5187	RID5187	Semantic_Type	Functional Concept
+RID34861	RID34861	Semantic_Type	Physical Object
 RID39569	RID39569	Semantic_Type	Anatomical Structure
-RID5769	RID5769	Semantic_Type	Quantitative Concept
 RID39275	RID39275	Semantic_Type	Intellectual Product
-RID39274	RID39274	Semantic_Type	Classification
-RID1541	RID1541	Semantic_Type	Finding
+RID39276	RID39276	Semantic_Type	Classification
+RID28812	RID28812	Semantic_Type	Idea or Concept
+RID49561	RID49561	Semantic_Type	Clinical Drug
+RID13198	RID13198	Semantic_Type	Fully Formed Anatomical Structure
+RID49562	RID49562	Semantic_Type	Drug Delivery Device
+RID5601	RID5601	Semantic_Type	Biomedical or Dental Material
+RID15843	RID15843	Semantic_Type	Conceptual Entity
+RID39348	RID39348	Semantic_Type	Cell
 RID56	RID56	DEFINITION	Subdivision of trunk proper which is demarcated from the thorax internally by the inferior surface of the sternocostal part of the diaphragm and externally by the costal margin, from the back of abdomen by the external surface of the posterior abdominal wall, from the perineum by the superior surface of the urogenital diaphragm and from the lower limbs by the inguinal folds; together with the thorax, and perineum, it constitutes the trunk proper. Examples: There is only one abdomen. [FMA]
-RID4895	RID4895	root
-RID35738	RID35738	root
-RID28854	RID28854	root
-RID444	RID444	root
-RID13390	RID13390	root
-RID34727	RID34727	root
-RID13404	RID13404	root
-RID5273	RID5273	root
+RID3890	RID3890	root
+RID38701	RID38701	root
+RID10398	RID10398	root
+RID38741	RID38741	root
+RID38723	RID38723	root
+RID5554	RID5554	root
+RID34677	RID34677	root
+RID10409	RID10409	root
+RID43386	RID43386	root
+RID11645	RID11645	root
 RID0	RID0	root
 RID56	RID56	parent-count1

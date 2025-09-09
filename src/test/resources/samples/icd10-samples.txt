@@ -1,0 +1,54 @@
+R10.0	R10.0	synonym	Acute abdomen
+R10.0	R10.0	term-type	PT
+A42	A42	term-type	HT
+D59	D59	term-type	MTH_HT
+D59.9	D59.9	term-type	MTH_PT
+R10.0	R10.0	INCLUSION_TERM	Severe abdominal pain (generalized)(localized)(with abdominal rigidity)
+M14.6	M14.6	IAN	aster
+R10.0	R10.0	Semantic_Type	Sign or Symptom
+Q89.9	Q89.9	Semantic_Type	Congenital Abnormality
+D68.4	D68.4	Semantic_Type	Disease or Syndrome
+M24.6	M24.6	Semantic_Type	Acquired Abnormality
+F99	F99	Semantic_Type	Mental or Behavioral Dysfunction
+O82.9	O82.9	Semantic_Type	Therapeutic or Preventive Procedure
+K63.5	K63.5	Semantic_Type	Anatomical Abnormality
+T36-T50	T36-T50	Semantic_Type	Injury or Poisoning
+R60.9	R60.9	Semantic_Type	Pathologic Function
+C96.6	C96.6	Semantic_Type	Neoplastic Process
+K76.1	K76.1	Semantic_Type	Finding
+U00-U49	U00-U49	Semantic_Type	Intellectual Product
+M24.6	M24.6	root
+F99-F99	F99-F99	root
+XI	XI	root
+C81	C81	root
+C95	C95	root
+VI	VI	root
+F45	F45	root
+B34	B34	root
+XIV	XIV	root
+XII	XII	root
+XVI	XVI	root
+XXI	XXI	root
+XIII	XIII	root
+T01	T01	root
+C15-C26	C15-C26	root
+II	II	root
+P35	P35	root
+F80-F89	F80-F89	root
+I	I	root
+III	III	root
+XVII	XVII	root
+XVIII	XVIII	root
+XIX	XIX	root
+IX	IX	root
+N92	N92	root
+VII	VII	root
+I60	I60	root
+Q05	Q05	root
+IV	IV	root
+XV	XV	root
+C46	C46	root
+I42	I42	root
+I50	I50	root
+XXII	XXII	root
+R10.0	R10.0	parent-count1

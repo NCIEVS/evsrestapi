@@ -2,41 +2,50 @@ MTHU010538	MTHU010538	synonym	Dipalmitoylphosphatidylcholine
 MTHU010538	MTHU010538	term-type	CN
 MTHU001425	MTHU001425	term-type	LS
 LA12706-0	LA12706-0	term-type	LA
+MTHU008583	MTHU008583	term-type	MTH_CN
 MTHU854705	MTHU854705	term-type	HC
 MTHU854705	MTHU854705	term-type	HS
-1650-1	1650-1	term-type	LN
-1650-1	1650-1	term-type	MTH_LN
-1650-1	1650-1	term-type	OSN
-1650-1	1650-1	term-type	LC
-1650-1	1650-1	term-type	DN
-11540-2	11540-2	term-type	MTH_LO
+36-4	36-4	term-type	LN
+36-4	36-4	term-type	OSN
+36-4	36-4	term-type	LC
+36-4	36-4	term-type	DN
+36-4	36-4	term-type	MTH_LN
+11540-2	11540-2	term-type	OLC
 11540-2	11540-2	term-type	OOSN
 11540-2	11540-2	term-type	LO
-11540-2	11540-2	term-type	OLC
-LA12706-0	LA12706-0	qualifier-synonym~ANSWER_CODE	Abdomen~2807001
-LA12706-0	LA12706-0	qualifier-synonym~OID	Abdomen~1.3.6.1.4.1.12009.10.1.1291
+11540-2	11540-2	term-type	MTH_LO
+LG41823-2	LG41823-2	term-type	LG
+44664-1	44664-1	term-type	ODN
 LA10430-9	LA10430-9	qualifier-synonym~ANSWER_CODE_SYSTEM	AIDS~NNDSS
-1650-1	1650-1	qualifier-synonym~COMMON_TEST_RANK	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~0
-1650-1	1650-1	qualifier-synonym~COMMON_SI_TEST_RANK	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~0
-1650-1	1650-1	qualifier-synonym~COMMON_ORDER_RANK	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~0
-1650-1	1650-1	qualifier-synonym~LRN2	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~Alfa; Alpha-1,4-glucan branching enzyme; Catalytic Concentration; Chemistry; Enz; Enzymes; GLGB; Glycogen branching enzyme; i; Leukocytes; Point in time; Q-Enzyme; QNT; Quan; Quant; Quantitative; Random; WBCs; White blood cells
-1650-1	1650-1	qualifier-synonym~VERSION_LAST_CHANGED	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~2.14
-1650-1	1650-1	qualifier-synonym~VERSION_FIRST_RELEASED	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~1.0
-1650-1	1650-1	qualifier-synonym~CONSUMER_NAME	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~1,4-Alpha Glucan Branching Enzyme, White Blood Cells (WBC)
-1650-1	1650-1	qualifier-synonym~LCT	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~MIN
-1650-1	1650-1	qualifier-synonym~LOINC_TIME_ASPECT	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~Pt
-1650-1	1650-1	qualifier-synonym~LOINC_COMPONENT	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~1,4-Alpha glucan branching enzyme
-1650-1	1650-1	qualifier-synonym~LCS	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~ACTIVE
-1650-1	1650-1	qualifier-synonym~LCL	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~CHEM
-1650-1	1650-1	qualifier-synonym~LCN	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~1
-1650-1	1650-1	qualifier-synonym~LOINC_SCALE_TYP	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~Qn
-1650-1	1650-1	qualifier-synonym~LOR	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~Both
-1650-1	1650-1	qualifier-synonym~LOINC_PROPERTY	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~CCnc
-1650-1	1650-1	qualifier-synonym~LOINC_SYSTEM	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~WBC
+LA10430-9	LA10430-9	qualifier-synonym~LOINC_SCORE	AIDS~4
+LA18887-2	LA18887-2	qualifier-synonym~LT	Rocaltrol~TRD
+LA12748-2	LA12748-2	qualifier-synonym~SUBSEQUENT_TEXT_PROMPT	Abnormal~Specify:
+36-4	36-4	qualifier-synonym~COMMON_ORDER_RANK	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~0
+36-4	36-4	qualifier-synonym~LCT	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~MIN
+36-4	36-4	qualifier-synonym~VERSION_FIRST_RELEASED	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~1.0
+36-4	36-4	qualifier-synonym~CONSUMER_NAME	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~Susceptibility to Azithromycin
+36-4	36-4	qualifier-synonym~LRN2	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~ANTIBIOTIC SUSCEPTIBILITIES; AST; ID; Infectious Disease; InfectiousDisease; Islt; Isol; Minimum inhibitory concentration; Point in time; Random; Sus; Suscept; Susceptibilities; Susceptibility; Susceptibilty; Zithromax
+36-4	36-4	qualifier-synonym~COMMON_TEST_RANK	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~3684
+36-4	36-4	qualifier-synonym~VERSION_LAST_CHANGED	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~2.73
+36-4	36-4	qualifier-synonym~LOINC_METHOD_TYP	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~MIC
+36-4	36-4	qualifier-synonym~LOR	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~Observation
+36-4	36-4	qualifier-synonym~LCS	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~ACTIVE
+36-4	36-4	qualifier-synonym~LCN	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~1
+36-4	36-4	qualifier-synonym~LOINC_COMPONENT	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~Azithromycin
+36-4	36-4	qualifier-synonym~LOINC_TIME_ASPECT	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~Pt
+36-4	36-4	qualifier-synonym~LOINC_SYSTEM	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~Isolate
+36-4	36-4	qualifier-synonym~LOINC_PROPERTY	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~Susc
+36-4	36-4	qualifier-synonym~LCL	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~ABXBACT
+36-4	36-4	qualifier-synonym~LOINC_SCALE_TYP	Azithromycin:Susc:Pt:Isolate:OrdQn:MIC~OrdQn
+38-0	38-0	qualifier-synonym~EXAMPLE_UCUM_UNITS	Azithromycin:Titr:Pt:Isolate+Ser:SemiQn:SBT~{titer}
+38-0	38-0	qualifier-synonym~EXAMPLE_UNITS	Azithromycin:Titr:Pt:Isolate+Ser:SemiQn:SBT~titer
 1650-1	1650-1	qualifier-synonym~LUR	1,4-Alpha glucan branching enzyme:CCnc:Pt:WBC:Qn~Y
-10191-5	10191-5	qualifier-synonym~LOINC_METHOD_TYP	Physical findings:Find:Pt:Abdomen:Nar:Observed~Observed
+6981-5	6981-5	qualifier-synonym~CHANGE_REASON_PUBLIC	Azithromycin:Susc:Pt:Isolate:OrdQn:Gradient strip~Feb 2016-removed "E-test" from the short and long names because the "ETEST" name is trademarked
+9350-0	9350-0	qualifier-synonym~SOS	Sulfhydryls:PrThr:Pt:Urine:Ord~Metabolic screen
+9350-0	9350-0	qualifier-synonym~ANSWER_LIST_ID	Sulfhydryls:PrThr:Pt:Urine:Ord~LL360-9
+9350-0	9350-0	qualifier-synonym~ANSWER_LIST_NAME	Sulfhydryls:PrThr:Pt:Urine:Ord~Pos&#x7C;Neg
+9350-0	9350-0	qualifier-synonym~ANSWER_LIST_OID	Sulfhydryls:PrThr:Pt:Urine:Ord~1.3.6.1.4.1.12009.10.1.2247
 11540-2	11540-2	qualifier-synonym~LOINC_COMPONENT	Deprecated CT Abdomen study~Study.total
-11540-2	11540-2	qualifier-synonym~COMMON_SI_TEST_RANK	Deprecated CT Abdomen study~0
 11540-2	11540-2	qualifier-synonym~LOINC_PROPERTY	Deprecated CT Abdomen study~Find
 11540-2	11540-2	qualifier-synonym~STATUS_TEXT	Deprecated CT Abdomen study~Duplicate concept
 11540-2	11540-2	qualifier-synonym~LCT	Deprecated CT Abdomen study~DEL
@@ -54,52 +63,116 @@ LA10430-9	LA10430-9	qualifier-synonym~ANSWER_CODE_SYSTEM	AIDS~NNDSS
 11540-2	11540-2	qualifier-synonym~VERSION_LAST_CHANGED	Deprecated CT Abdomen study~2.40
 11540-2	11540-2	qualifier-synonym~LRN2	Deprecated CT Abdomen study~Abd; Abdo; Abdomen+; Abdominal; ATTACH; ATTACH.CLINRPT; CAT scan; Computed tomography; Computerized tomography; CT scan; Document; Finding; Findings; Point in time; Random; Study report; Tot; Totl
 11540-2	11540-2	qualifier-synonym~VERSION_FIRST_RELEASED	Deprecated CT Abdomen study~1.0j-a
-11777-0	11777-0	qualifier-synonym~SOS	Cross section:Area:Pt:Abdomen^Fetus:Qn:US.derived~Abdominal area derived from measurements of antero-posterior and transverse diameters
-11777-0	11777-0	qualifier-synonym~EXAMPLE_UNITS	Cross section:Area:Pt:Abdomen^Fetus:Qn:US.derived~cm2
-11777-0	11777-0	qualifier-synonym~EXAMPLE_UCUM_UNITS	Cross section:Area:Pt:Abdomen^Fetus:Qn:US.derived~cm2
-11849-7	11849-7	qualifier-synonym~LFO	Diameter.mean:Len:Pt:Abdomen^Fetus:Qn:Estimated from gestational age~ABDOMINAL DIAMETER [mm] = -29.525 + 0.6043653 * (gestational age [days]) - 0.000418794 * (gestational age [days]) ^ 2 + 0.000000214518 * (gestational age [days]) ^ 3
-12028-7	12028-7	qualifier-synonym~ANSWER_LIST_NAME	Study observation:Find:Pt:Abdomen^Fetus:Nom:US~Abdomen defects
-12028-7	12028-7	qualifier-synonym~ANSWER_LIST_ID	Study observation:Find:Pt:Abdomen^Fetus:Nom:US~LL2366-4
-24556-3	24556-3	qualifier-synonym~ASSOC_OBSERVATIONS	Multisection:Find:Pt:Abdomen:Doc:MR~81220-6;72230-6
-24556-3	24556-3	qualifier-synonym~CHANGE_REASON_PUBLIC	Multisection:Find:Pt:Abdomen:Doc:MR~The scale has been changed from "Nar" to "Doc" to fit with the CDA model.; Method of "MRI" was changed to "MR". The LOINC/RadLex Committee agreed to use a subset of the two-letter DICOM modality codes as the primary modality identifier.
-24556-3	24556-3	qualifier-synonym~HL7_ATTACHMENT_STRUCTURE	Multisection:Find:Pt:Abdomen:Doc:MR~IG exists
-24556-3	24556-3	qualifier-synonym~IMAGING_DOCUMENT_VALUE_SET	Multisection:Find:Pt:Abdomen:Doc:MR~TRUE
+11621-0	11621-0	qualifier-synonym~LEA	Activity:Find:Pt:Trunk^Fetus:Nom:US~Not observed, normal, abnormal &/or more specific code
+11844-8	11844-8	qualifier-synonym~LFO	Diameter.long.mean:Len:Pt:Liver^Fetus:Qn:Estimated from abdominal circumference~liver length (mm) = 6.32 + 1.34 * abdominal circumference (cm)
+18726-0	18726-0	qualifier-synonym~PANEL_TYPE	Radiology studies:Cmplx:-:^Patient:Set~Panel
+24532-4	24532-4	qualifier-synonym~ASSOC_OBSERVATIONS	Multisection:Find:Pt:Abdomen>Right upper quadrant:Doc:US~81220-6;72230-6
+24532-4	24532-4	qualifier-synonym~HL7_ATTACHMENT_STRUCTURE	Multisection:Find:Pt:Abdomen>Right upper quadrant:Doc:US~IG exists
+24532-4	24532-4	qualifier-synonym~IMAGING_DOCUMENT_VALUE_SET	Multisection:Find:Pt:Abdomen>Right upper quadrant:Doc:US~TRUE
+28089-1	28089-1	qualifier-synonym~LQS	Diarrhea:Find:Pt:Gastrointestinal system:Ord:Observed.CCC~CLINICAL CARE CLASSIFICATION B03.3
+28154-3	28154-3	qualifier-synonym~STATUS_TEXT	Colonic constipation:Find:Pt:Gastrointestinal system:Ord:Observed.CCC~Term is retired as of CCC System v2.5.
+28379-6	28379-6	qualifier-synonym~LQT	Diarrhea:Find:24H:Gastrointestinal system:Ord:Reported.HIV-SSC~Sign and Symptom Checklist for persons with HIV disease
 30599-5	30599-5	qualifier-synonym~LOR	Deprecated Abdomen CT W contrast~Both
 30599-5	30599-5	qualifier-synonym~CHANGE_REASON_PUBLIC	Deprecated Abdomen CT W contrast~The scale has been changed from "Nar" to "Doc" to fit with the CDA model.
 30599-5	30599-5	qualifier-synonym~LUR	Deprecated Abdomen CT W contrast~N
 30599-5	30599-5	qualifier-synonym~ASSOC_OBSERVATIONS	Deprecated Abdomen CT W contrast~81220-6;72230-6
 30599-5	30599-5	qualifier-synonym~HL7_ATTACHMENT_STRUCTURE	Deprecated Abdomen CT W contrast~IG exists
-33145-4	33145-4	qualifier-synonym~LSU	Perimeter:Len:Pt:Abdomen^Fetus:Qn:US.estimated from ASUM 2000~mm
-39111-0	39111-0	qualifier-synonym~LEA	Body site:Anat:Pt:^Patient:Nom~Abdomen, Anus, Ankle, Arm , Axilla , Back, Body - Whole, Breast, Buttocks , Calf, Chest, Coccyx, Ear, Elbow, Eye, Face , Finger , Flank, Foot, Groin, Hand, Head, Heel , Hip, Inguinal, Jaw, Knee, Labia, Leg, Lip , Mouth, Neck, Nose, Pelvis, Penis, Perineum Sacrum, Scrotum, Shoulder, Stomach, Thumb, Toe, Tooth, Wrist
-58311-2	58311-2	qualifier-synonym~LQS	Radiation of chest discomfort:Anat:Pt:^Patient:Ord~PX040601090000
-67530-6	67530-6	qualifier-synonym~LQT	Physical findings:Find:Pt:Abdomen:Nom:NEMSIS~The assessment findings associated with the patients abdomen.
+40464-0	40464-0	qualifier-synonym~UNIVERSAL_LAB_ORDERS_VALUE_SET	Drugs:Prid:Pt:Urine:Nom:Confirm~TRUE
+45621-0	45621-0	qualifier-synonym~EXTERNAL_COPYRIGHT_LINK	Constipation:Find:Pt:^Patient:Ord:MDS~interRAI
+45621-0	45621-0	qualifier-synonym~COPYRIGHT	Constipation:Find:Pt:^Patient:Ord:MDS~InterRAI holds the copyright to Version 2.0 of the RAI for long term care outside of the US. Supplemental help and contextual information for MDS items in LOINC was derived from Version 2.0 of the RAI/MDS manual, and should not be reproduced outside of the United States without permission of InterRAI. Within the US, Version 2.0 is in the public domain. As a not for profit corporation under the US Tax Code, interRAI holds the copyright to a number of assessment systems, including the Resident Assessment Instrument (RAI) for long term care facilities outside of the US (the RAI is in the public domain within the US), as well as the assessment systems for Home Care (HC), Assisted Living (AL), Palliative Care (PC), Mental Health (MH) (outside of Canada), and Acute Care (RAI-AC). The scales, algorithms, and case-mix measures based on these assessment instruments cannot be copyrighted and are thus available to everyone (although the individual items on which they are based are usually copyrighted). The major clauses of our royalty-free licenses follow: * the instrument is not to be changed substantially (excepting individual identifiers and demographics); * the license is limited to non-commercial use (i.e., the instrument will not be not incorporated into products to be sold to others); * no royalties will be charged; * the organization will make appropriate efforts to inform others of the copyright status of the instrument; * interRAI's logo and copyright notice are to appear on the form; * authors, author institutions, and translators (as appropriate) are to be acknowledged in any document where authors would regularly be indicated (e.g., publication of a training manual); * publication of any training manual is limited to the period until a commercially-published version is available; * data from use of the instrument are to be shared with interRAI, subject to existing laws on confidentiality. Commercial use usually requires royalties. In this instance, interRAI may omit the data requirement, but retains the other requirements for a logo, attribution, etc. We will be pleased in any contract negotiations to acknowledge the participation of individuals or organizations which have played a substantial role in getting the instrument to the point of implementation. For more information on licensing with interRAI, please contact the president of the Board: Brant E. Fries, Ph.D. Institute of Gerontology University of Michigan 300 North Ingalls Ann Arbor, Michigan USA 48109 Email: bfries@umich.edu
+46735-7	46735-7	qualifier-synonym~LMP	Endocrine disorders:Imp:Pt:Bld.dot:Ord~46762-1
+LG41823-2	LG41823-2	qualifier-synonym~STATUS	Region imaged: Abdomen~Active
+44664-1	44664-1	qualifier-synonym~LOINC_TIME_ASPECT	T classification CAP Nom (Prostate tumor)~Pt
+44664-1	44664-1	qualifier-synonym~LOINC_SYSTEM	T classification CAP Nom (Prostate tumor)~Prostate tumor
+44664-1	44664-1	qualifier-synonym~LCN	T classification CAP Nom (Prostate tumor)~1
+44664-1	44664-1	qualifier-synonym~COMMON_ORDER_RANK	T classification CAP Nom (Prostate tumor)~0
+44664-1	44664-1	qualifier-synonym~COMMON_TEST_RANK	T classification CAP Nom (Prostate tumor)~0
+44664-1	44664-1	qualifier-synonym~LOINC_PROPERTY	T classification CAP Nom (Prostate tumor)~Find
+44664-1	44664-1	qualifier-synonym~LOINC_COMPONENT	T classification CAP Nom (Prostate tumor)~T classification
+44664-1	44664-1	qualifier-synonym~LOINC_SCALE_TYP	T classification CAP Nom (Prostate tumor)~Nom
+44664-1	44664-1	qualifier-synonym~LOINC_METHOD_TYP	T classification CAP Nom (Prostate tumor)~CAP cancer protocols
+44664-1	44664-1	qualifier-synonym~LOR	T classification CAP Nom (Prostate tumor)~Observation
+44664-1	44664-1	qualifier-synonym~LCL	T classification CAP Nom (Prostate tumor)~PATH.PROTOCOLS.PROST
+44664-1	44664-1	qualifier-synonym~LUR	T classification CAP Nom (Prostate tumor)~N
+44664-1	44664-1	qualifier-synonym~VERSION_FIRST_RELEASED	T classification CAP Nom (Prostate tumor)~2.17
+44664-1	44664-1	qualifier-synonym~LRN2	T classification CAP Nom (Prostate tumor)~Cancer; CAP prot; Finding; Findings; Nominal; Pathology; PATHOLOGY PROTOCOLS; PATHOLOGY PROTOCOLS PROSTATE; Point in time; Prost; Prostatic; PrT; Random; T prime; tumors; tumour; tumours
+44664-1	44664-1	qualifier-synonym~VERSION_LAST_CHANGED	T classification CAP Nom (Prostate tumor)~2.61
+44664-1	44664-1	qualifier-synonym~STATUS_REASON	T classification CAP Nom (Prostate tumor)~Erroneous
+44664-1	44664-1	qualifier-synonym~STATUS_TEXT	T classification CAP Nom (Prostate tumor)~Although TNM concepts are included in the College of American Pathologists (CAP) cancer protocols, the TNM classification is maintained by the American Joint Committee on Cancer (AJCC), not CAP as the Method implies. The term is deprecated because it does not represent the T classification accurately.
+44664-1	44664-1	qualifier-synonym~LCT	T classification CAP Nom (Prostate tumor)~DEL
+44664-1	44664-1	qualifier-synonym~LCS	T classification CAP Nom (Prostate tumor)~DEPRECATED
+44664-1	44664-1	qualifier-synonym~CONSUMER_NAME	T classification CAP Nom (Prostate tumor)~T Classification, Prostate Tumor
+82777-4	82777-4	qualifier-synonym~HL7_FIELD_SUBFIELD_ID	Frequency prescribed:NRat:Pt:Medication:Qn~TQ1-3
+83374-9	83374-9	qualifier-synonym~IEEE_CF_CODE10	Class:Type:Pt:Nebulizer:Nom~184408
+83374-9	83374-9	qualifier-synonym~IEEE_REFID	Class:Type:Pt:Nebulizer:Nom~MDC_NEB_DEV_TYPE
+83374-9	83374-9	qualifier-synonym~EQUIVALENCE	Class:Type:Pt:Nebulizer:Nom~184408:MDC_NEB_DEV_TYPE:equivalent
 MTHU010538	MTHU010538	Semantic_Type	Organic Chemical
 MTHU010538	MTHU010538	Semantic_Type	Pharmacologic Substance
 MTHU027241	MTHU027241	Semantic_Type	Amino Acid, Peptide, or Protein
 MTHU027241	MTHU027241	Semantic_Type	Enzyme
+MTHU047843	MTHU047843	Semantic_Type	Biologically Active Substance
+MTHU002562	MTHU002562	Semantic_Type	Nucleic Acid, Nucleoside, or Nucleotide
 MTHU001425	MTHU001425	Semantic_Type	Body Location or Region
 LA20354-9	LA20354-9	Semantic_Type	Congenital Abnormality
+MTHU022414	MTHU022414	Semantic_Type	Finding
 LA10430-9	LA10430-9	Semantic_Type	Disease or Syndrome
-MTHU016717	MTHU016717	Semantic_Type	Body Part, Organ, or Organ Component
+MTHU015033	MTHU015033	Semantic_Type	Body Part, Organ, or Organ Component
+MTHU002886	MTHU002886	Semantic_Type	Antibiotic
+LA13475-1	LA13475-1	Semantic_Type	Body Substance
+LA18672-8	LA18672-8	Semantic_Type	Diagnostic Procedure
+MTHU020857	MTHU020857	Semantic_Type	Sign or Symptom
+MTHU002404	MTHU002404	Semantic_Type	Bacterium
+MTHU017342	MTHU017342	Semantic_Type	Hormone
+LA22096-4	LA22096-4	Semantic_Type	Mental or Behavioral Dysfunction
+LA28745-0	LA28745-0	Semantic_Type	Injury or Poisoning
+MTHU015552	MTHU015552	Semantic_Type	Immunologic Factor
+MTHU015552	MTHU015552	Semantic_Type	Hazardous or Poisonous Substance
+MTHU004891	MTHU004891	Semantic_Type	Vitamin
+LA15448-6	LA15448-6	Semantic_Type	Neoplastic Process
+MTHU001406	MTHU001406	Semantic_Type	Body System
+LA25520-0	LA25520-0	Semantic_Type	Therapeutic or Preventive Procedure
+MTHU060553	MTHU060553	Semantic_Type	Inorganic Chemical
+LA10557-9	LA10557-9	Semantic_Type	Anatomical Abnormality
+MTHU065472	MTHU065472	Semantic_Type	Tissue
+LA20339-0	LA20339-0	Semantic_Type	Indicator, Reagent, or Diagnostic Aid
+LA24692-8	LA24692-8	Semantic_Type	Pathologic Function
 LA22116-0	LA22116-0	Semantic_Type	Organism Function
-MTHU001048	MTHU001048	Semantic_Type	Body System
-MTHU002637	MTHU002637	Semantic_Type	Pathologic Function
-LA15411-4	LA15411-4	Semantic_Type	Diagnostic Procedure
+LA3-6	LA3-6	Semantic_Type	Organism Attribute
+MTHU010959	MTHU010959	Semantic_Type	Cell
+LA30125-1	LA30125-1	Semantic_Type	Food
+MTHU027951	MTHU027951	Semantic_Type	Fungus
+MTHU071808	MTHU071808	Semantic_Type	Virus
+MTHU059707	MTHU059707	Semantic_Type	Medical Device
+MTHU048551	MTHU048551	Semantic_Type	Body Space or Junction
+MTHU008687	MTHU008687	Semantic_Type	Element, Ion, or Isotope
+MTHU041262	MTHU041262	Semantic_Type	Population Group
+MTHU041589	MTHU041589	Semantic_Type	Occupation or Discipline
+LA21916-4	LA21916-4	Semantic_Type	Biomedical or Dental Material
+MTHU028014	MTHU028014	Semantic_Type	Health Care Activity
+LA6681-6	LA6681-6	Semantic_Type	Genetic Function
+LA21196-3	LA21196-3	Semantic_Type	Temporal Concept
+MTHU008120	MTHU008120	Semantic_Type	Phenomenon or Process
 LA7200-4	LA7200-4	Semantic_Type	Functional Concept
-MTHU048139	MTHU048139	Semantic_Type	Sign or Symptom
-MTHU006795	MTHU006795	Semantic_Type	Antibiotic
-LA25063-1	LA25063-1	Semantic_Type	Finding
-LA25545-7	LA25545-7	Semantic_Type	Therapeutic or Preventive Procedure
-1650-1	1650-1	Semantic_Type	Clinical Attribute
+MTHU000004	MTHU000004	Semantic_Type	Intellectual Product
+LA26092-9	LA26092-9	Semantic_Type	Substance
+MTHU019200	MTHU019200	Semantic_Type	Human-caused Phenomenon or Process
+LA9633-4	LA9633-4	Semantic_Type	Qualitative Concept
+MTHU000049	MTHU000049	Semantic_Type	Laboratory Procedure
+LA4306-2	LA4306-2	Semantic_Type	Spatial Concept
+LA32048-3	LA32048-3	Semantic_Type	Quantitative Concept
+LA18356-8	LA18356-8	Semantic_Type	Chemical
+LA28307-9	LA28307-9	Semantic_Type	Physiologic Function
+MTHU003137	MTHU003137	Semantic_Type	Activity
+LA15422-1	LA15422-1	Semantic_Type	Acquired Abnormality
+36-4	36-4	Semantic_Type	Clinical Attribute
 MTHU062919	MTHU062919	Semantic_Type	Research Activity
+MTHU019184	MTHU019184	Semantic_Type	Event
 MTHU032566	MTHU032566	Semantic_Type	Anatomical Structure
-LA18187-7	LA18187-7	Semantic_Type	Quantitative Concept
-LA15167-2	LA15167-2	Semantic_Type	Intellectual Product
 MTHU034033	MTHU034033	Semantic_Type	Classification
-MTHU001366	MTHU001366	Semantic_Type	Organism Attribute
-LA22535-1	LA22535-1	Semantic_Type	Occupation or Discipline
-42154-5	42154-5	Semantic_Type	Spatial Concept
-MTHU019696	MTHU019696	Semantic_Type	Body Space or Junction
-LA20362-2	LA20362-2	Semantic_Type	Acquired Abnormality
-LA7200-4	LA7200-4	DEFINITION	Nurses in this specialty provide physical and emotional support to patients and the families of patients with illnesses or disabilities that affect their ability to function normally and that may alter their lifestyle
-MTHU010538	MTHU010538	root
+LA8916-4	LA8916-4	Semantic_Type	Idea or Concept
+LA7172-5	LA7172-5	Semantic_Type	Manufactured Object
+LA7172-5	LA7172-5	Semantic_Type	Health Care Related Organization
+MTHU026213	MTHU026213	Semantic_Type	Natural Phenomenon or Process
+LA28139-6	LA28139-6	DEFINITION	Female score=3; Male score=3
+MTHU000998	MTHU000998	root
+MTHU854705	MTHU854705	parent-count1
