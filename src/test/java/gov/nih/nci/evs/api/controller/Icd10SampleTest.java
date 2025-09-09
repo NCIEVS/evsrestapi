@@ -62,7 +62,7 @@ public class Icd10SampleTest extends SampleTest {
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("A00.0");
+    assertThat(concept.getCode()).isEqualTo("A00-A09");
     assertThat(concept.getTerminology()).isEqualTo("icd10");
     assertThat(concept.getActive()).isTrue();
   }

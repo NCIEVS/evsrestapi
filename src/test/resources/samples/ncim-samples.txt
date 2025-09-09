@@ -79,6 +79,7 @@ C0016360	C0016360	term-type	SCDG
 C0016895	C0016895	term-type	MTH_FN
 C0018681	C0018681	term-type	PC
 C0019045	C0019045	term-type	MTH_HG
+C0019621	C0019621	term-type	ORT
 C0019699	C0019699	term-type	PSC
 C0025080	C0025080	term-type	VS
 C0027540	C0027540	term-type	OET
@@ -125,7 +126,6 @@ C1140107	C1140107	term-type	VSY
 C1140168	C1140168	term-type	DPT
 C1415001	C1415001	term-type	MTH_ACR
 C1415001	C1415001	term-type	NA
-C1801959	C1801959	term-type	ORT
 C1869007	C1869007	term-type	SMQ
 C1869031	C1869031	term-type	MTH_SMQ
 C3238825	C3238825	term-type	SBDG
@@ -136,6 +136,7 @@ CL1413638	CL1413638	term-type	SBDF
 CL1417482	CL1417482	term-type	SCDC
 CL1442749	CL1442749	term-type	SBDC
 CL504005	CL504005	term-type	SCDFP
+CL513073	CL513073	term-type	NPT
 CL572423	CL572423	term-type	ODN
 C0000005	C0000005	qualifier-synonym~TERMUI	(131)I-Macroaggregated Albumin~T037573
 C0000005	C0000005	qualifier-synonym~RN	(131)I-Macroaggregated Albumin~0
@@ -315,10 +316,10 @@ C0001261	C0001261	qualifier-synonym~SOS	Actinomycotic infections~Includes: actin
 C0001314	C0001314	qualifier-synonym~DID	acute disease~0944-4849
 C0001339	C0001339	qualifier-synonym~MSC	Acute pancreatitis~Reason.Term
 C0001339	C0001339	qualifier-synonym~REF	Acute pancreatic inflammation~https://orcid.org/0000-0001-5208-3432
+C0001436	C0001436	qualifier-synonym~TERM_LEVEL	Adenomatosis, NOS~Synonym
 C0001575	C0001575	ICD-O-3_CODE	C57.4
 C0001621	C0001621	qualifier-synonym~SYN_QUALIFIER	Adrenal gland disease~layperson term
 C0001624	C0001624	Neoplastic_Status	Undetermined
-C0001625	C0001625	qualifier-synonym~TERM_LEVEL	Adrenal, NOS~Synonym
 C0001625	C0001625	qualifier-synonym~TERM_LEVEL	ADRENAL GLAND~3
 C0001962	C0001962	qualifier-synonym~DID	ETOH~0081-2416
 C0002025	C0002025	qualifier-synonym~RXAUI	ALfentanil hydrochloride~12814378
@@ -353,8 +354,8 @@ C0003892	C0003892	IAN	aster
 C0003993	C0003993	qualifier-synonym~EZ	asparaginase~EC 3.5.1.1
 C0004135	C0004135	qualifier-synonym~MOVED_FROM	ATAXIA-TELANGIECTASIA~208905
 C0004936	C0004936	INTL_SOC_SORT_ORDER	07
+C0005615	C0005615	qualifier-synonym~GO_NAMESPACE	parturition~biological_process
 C0005682	C0005682	qualifier-synonym~CX	Urinary Bladder~consider also terms at CYST- and VESIC-
-C0005778	C0005778	qualifier-synonym~GO_NAMESPACE	blood coagulation~biological_process
 C0005778	C0005778	qualifier-synonym~GXR	blood coagulation~Wikipedia:Coagulation
 C0005889	C0005889	qualifier-synonym~HAS_INHERENT_3D_SHAPE	Portion of body fluid~false
 C0006050	C0006050	qualifier-synonym~LT	Botox~TRD
@@ -374,24 +375,27 @@ C0007569	C0007569	qualifier-synonym~EPONYM	Haller's tripus~true
 C0007570	C0007570	qualifier-synonym~CODE_ALSO	Celiac disease~exocrine pancreatic insufficiency (K86.81)
 C0007570	C0007570	qualifier-synonym~USE_ADDITIONAL	Celiac disease~code for associated disorders including: dermatitis herpetiformis (L13.0); gluten ataxia (G32.81)
 C0007572	C0007572	DATE_CREATED	2014-08-19T00:00:00
+C0007785	C0007785	qualifier-synonym~EXCLUDES2	Cerebral infarction, unspecified~transient cerebral ischemic attacks and related syndromes (G45.-)
 C0007876	C0007876	qualifier-synonym~ICC	Cesarean section and removal of fetus~Code also any synchronous: {hysterectomy (68.3-68.4, 68.6, 68.8); myomectomy (68.29); sterilization (66.31-66.39, 66.63)}
 C0008350	C0008350	qualifier-synonym~ICF	Cholelithiasis~The following fifth-digit subclassification is for use with category 574: {0 without mention of obstruction; 1 with obstruction}
 C0008625	C0008625	CLASS_ROLE	concrete
 C0008625	C0008625	CLASS_SOURCE	ontology
 C0008626	C0008626	qualifier-synonym~ICA	Chromosomal anomalies~Use additional codes for conditions associated with the chromosomal anomalies
+C0008684	C0008684	qualifier-synonym~CODE_FIRST	Chronic gingivitis~if applicable, diseases of the digestive system complicating pregnancy (O99.61-)
 C0008902	C0008902	qualifier-synonym~MODULE_ID	Classification (attribute)~900000000000012004
 C0008902	C0008902	qualifier-synonym~MODULE_NAME	Classification (attribute)~SNOMED CT model component module
 C0008902	C0008902	qualifier-synonym~MODULE_ID	Classification~900000000000012004
 C0008902	C0008902	qualifier-synonym~MODULE_NAME	Classification~SNOMED CT model component module
 C0008902	C0008902	MODULE_ID	900000000000012004
 C0008902	C0008902	MODULE_NAME	SNOMED CT model component module
-C0009376	C0009376	qualifier-synonym~EXCLUDES2	Polyp of colon~adenomatous polyp of colon (D12.-); inflammatory polyp of colon (K51.4-); polyposis of colon (D12.6)
 C0009450	C0009450	qualifier-synonym~ICN	INFECTIOUS AND PARASITIC DISEASES~Note: Categories for "late effects of infectious and parasitic diseases are to be found at 137-139
 C0009450	C0009450	qualifier-synonym~MP_GROUP_URL	Infections~https://medlineplus.gov/infections.html
 C0009924	C0009924	Design_Note	Positive contrast agents have greater absorption and structures appear light. Negative contrast agents have a lesser degree of absorption and structures appear dark.
 C0009924	C0009924	qualifier-synonym~DEVTYPE	Contrast Agents~Device is a SEE reference.
 C0009924	C0009924	qualifier-synonym~TERM_CODE	Contrast Agents~-4005
 C0009924	C0009924	qualifier-synonym~DEVTYPE	Contrast Media~CATEGORY EXPANDED BELOW entry with SEE ALSO references.
+C0010054	C0010054	qualifier-synonym~MODULE_ID	Atherosclerosis of native coronary artery~731000124108
+C0010054	C0010054	qualifier-synonym~MODULE_NAME	Atherosclerosis of native coronary artery~US National Library of Medicine maintained module
 C0010132	C0010132	Swiss_Prot	P06850
 C0010132	C0010132	OMIM_Number	122560
 C0010206	C0010206	qualifier-synonym~II	coumarin~D004487/Q000188
@@ -403,8 +407,6 @@ C0011900	C0011900	qualifier-synonym~HL7DC	diagnoses~true
 C0011900	C0011900	qualifier-synonym~HL7CD	diagnoses~true
 C0012238	C0012238	qualifier-synonym~GO_SUBSET	digestion~goslim_chembl
 C0013075	C0013075	qualifier-synonym~SEE_NOTE	Pouch of Douglas~see section 4.2.6
-C0013182	C0013182	qualifier-synonym~MODULE_NAME	Allergic reaction to medication~US National Library of Medicine maintained module
-C0013182	C0013182	qualifier-synonym~MODULE_ID	Allergic reaction to medication~731000124108
 C0014876	C0014876	qualifier-synonym~EPONYM	Esophagus~false
 C0015385	C0015385	REPLACED_BY	RID13202
 C0015450	C0015450	qualifier-synonym~DIMENSION	Face~3-dimension
@@ -427,9 +429,12 @@ C0016410	C0016410	Tolerable_Level	Y
 C0016542	C0016542	UNSANCTIONED_TERM	implantable object
 C0017066	C0017066	qualifier-synonym~PI	9-((2,3-dihydroxy-1-propoxy)methyl)guanine~ACYCLOVIR/*analogs (85-89)
 C0017436	C0017436	PubMedID_Primary_Reference	15690437
-C0018133	C0018133	qualifier-synonym~CODE_FIRST	Graft-versus-host disease~underlying cause, such as: complications of transplanted organs and tissue (T86.-); complications of blood transfusion (T80.89)
 C0019270	C0019270	qualifier-synonym~NOTE	Hernia (K40-K46)~Hernia with both gangrene and obstruction is classified to hernia with gangrene.
 C0019562	C0019562	qualifier-synonym~IDENTIFIER_ORDER	Von Hippel-Lindau syndrome~2
+C0019621	C0019621	qualifier-synonym~OBS	Langerhans cell granulomatosis~[obs]
+C0019621	C0019621	qualifier-synonym~TERM_LEVEL	Langerhans cell granulomatosis~Synonym
+C0019621	C0019621	qualifier-synonym~OBS	Histiocytosis X, NOS~[obs]
+C0019621	C0019621	qualifier-synonym~TERM_LEVEL	Histiocytosis X, NOS~Related
 C0019693	C0019693	qualifier-synonym~CODE_FIRST	Human immunodeficiency virus [HIV] disease~Human immunodeficiency virus [HIV] disease complicating pregnancy, childbirth and the puerperium, if applicable (O98.7-)
 C0019829	C0019829	qualifier-synonym~OBS	Hodgkin sarcoma~[obs]
 C0019829	C0019829	qualifier-synonym~TERM_LEVEL	Hodgkin sarcoma~Preferred
@@ -485,6 +490,8 @@ C0065828	C0065828	qualifier-synonym~NON_VACCINE	measles, mumps and rubella virus
 C0068722	C0068722	qualifier-synonym~RXCUI	nicotine Chewing Gum~154906
 C0068722	C0068722	qualifier-synonym~RXAUI	nicotine Chewing Gum~12263633
 C0079278	C0079278	qualifier-synonym~MSC	Gastrointestinal endoscopy~Endoscopic Procedure
+C0079748	C0079748	qualifier-synonym~SEE_ALSO	Precursor cell lymphoblastic lymphoma, NOS~(see also M-9835/3)
+C0079748	C0079748	qualifier-synonym~SEE_ALSO	Malignant lymphoma, lymphoblastic, NOS~(see also M-9835/3)
 C0085393	C0085393	qualifier-synonym~HPI	Patient immunocompromised~00=Service not separately priced by part B (e.g., services not covered, bundled, used by part a only, etc.)
 C0085393	C0085393	qualifier-synonym~HMP	Patient immunocompromised~9=Not applicable as HCPCS not priced separately by part B (pricing indicator is 00) or value is not established (pricing indicator is '99')
 C0085393	C0085393	qualifier-synonym~HCD	Patient immunocompromised~20190101
@@ -749,8 +756,6 @@ C1699591	C1699591	qualifier-synonym~HL7CSC	ActInvoiceElementCode~ActClass.INVE
 C1716728	C1716728	qualifier-synonym~EXTERNAL_COPYRIGHT_LINK	Constipation:Find:Pt:^Patient:Ord:MDS~interRAI
 C1716728	C1716728	qualifier-synonym~COPYRIGHT	Constipation:Find:Pt:^Patient:Ord:MDS~InterRAI holds the copyright to Version 2.0 of the RAI for long term care outside of the US. Supplemental help and contextual information for MDS items in LOINC was derived from Version 2.0 of the RAI/MDS manual, and should not be reproduced outside of the United States without permission of InterRAI. Within the US, Version 2.0 is in the public domain. As a not for profit corporation under the US Tax Code, interRAI holds the copyright to a number of assessment systems, including the Resident Assessment Instrument (RAI) for long term care facilities outside of the US (the RAI is in the public domain within the US), as well as the assessment systems for Home Care (HC), Assisted Living (AL), Palliative Care (PC), Mental Health (MH) (outside of Canada), and Acute Care (RAI-AC). The scales, algorithms, and case-mix measures based on these assessment instruments cannot be copyrighted and are thus available to everyone (although the individual items on which they are based are usually copyrighted). The major clauses of our royalty-free licenses follow: * the instrument is not to be changed substantially (excepting individual identifiers and demographics); * the license is limited to non-commercial use (i.e., the instrument will not be not incorporated into products to be sold to others); * no royalties will be charged; * the organization will make appropriate efforts to inform others of the copyright status of the instrument; * interRAI's logo and copyright notice are to appear on the form; * authors, author institutions, and translators (as appropriate) are to be acknowledged in any document where authors would regularly be indicated (e.g., publication of a training manual); * publication of any training manual is limited to the period until a commercially-published version is available; * data from use of the instrument are to be shared with interRAI, subject to existing laws on confidentiality. Commercial use usually requires royalties. In this instance, interRAI may omit the data requirement, but retains the other requirements for a logo, attribution, etc. We will be pleased in any contract negotiations to acknowledge the participation of individuals or organizations which have played a substantial role in getting the instrument to the point of implementation. For more information on licensing with interRAI, please contact the president of the Board: Brant E. Fries, Ph.D. Institute of Gerontology University of Michigan 300 North Ingalls Ann Arbor, Michigan USA 48109 Email: bfries@umich.edu
 C1744226	C1744226	AA_REFSEQ	NP_005502.1
-C1801959	C1801959	qualifier-synonym~TERM_LEVEL	Histiocytic medullary reticulosis~Related
-C1801959	C1801959	qualifier-synonym~OBS	Histiocytic medullary reticulosis~[obs]
 C1830813	C1830813	qualifier-synonym~LMP	Endocrine disorders:Imp:Pt:Bld.dot:Ord~46762-1
 C1869007	C1869007	SMQ_NOTE	NOTE: Due to MedDRA rules and conventions, LLT Rhabdomyolysis-induced renal failure is placed under PT Acute kidney injury. Therefore, LLT Rhabdomyolysis-induced renal failure is included as a broad search term even though it would logically be a narrow term because its PT Acute kidney injury is a broad term.
 C1869007	C1869007	SMQ_LEVEL	1
@@ -759,8 +764,6 @@ C1869007	C1869007	SMQ_STATUS	A
 C1869007	C1869007	SMQ_ALGORITHM	N
 C1878682	C1878682	qualifier-synonym~NDA	AZITHROMYCIN DIHYDRATE 250 mg ORAL TABLET, FILM COATED [Zithromax]_#1~NDA050711
 C1880653	C1880653	Term_Browser_Value_Set_Description	<p> Terminology that includes terms pertaining to FDA/USP Substance Registration System (SRS), which is to support health information technology initiatives by generating unique ingredient identifiers (UNIIs) for substances in drugs, biologics, foods, and devices. </p><p> UNII Terminology can be downloaded from this location <a href="https://evs.nci.nih.gov/ftp1/FDA/UNII">FDA UNII</a>.</p>
-C1955745	C1955745	qualifier-synonym~TERM_LEVEL	Endocrine adenomatosis~Synonym
-C1955745	C1955745	qualifier-synonym~OBS	Endocrine adenomatosis~[obs]
 C2720507	C2720507	DEFAULT_MODULE_ID	900000000000207008
 C2720507	C2720507	DEFAULT_LANGUAGECODE	en
 C2954745	C2954745	qualifier-synonym~LEGALLY_MARKETED_UNAPPROVED_NEW_ANIMAL_DRUGS_FOR_MINOR_SPECIES	metomidate 1000 mg in 1 g TOPICAL POWDER [Aquacalm]~MIF900002
@@ -813,6 +816,11 @@ CL1948316	CL1948316	MTH_MAPFROMCOMPLEXITY	SINGLE SDUI
 CL1948316	CL1948316	MTH_MAPFROMEXHAUSTIVE	N
 CL504005	CL504005	qualifier-synonym~RXCUI	doxycycline hyclate Injection~2649326
 CL504005	CL504005	qualifier-synonym~RXAUI	doxycycline hyclate Injection~12832249
+CL513073	CL513073	qualifier-synonym~HL7CS	Hospitals; Chronic Disease Hospital~active
+CL513073	CL513073	qualifier-synonym~HL7ID	Hospitals; Chronic Disease Hospital~13792
+CL513073	CL513073	qualifier-synonym~HL7PL	Hospitals; Chronic Disease Hospital~false
+CL554605	CL554605	qualifier-synonym~DISJOINT_FROM	growth~GO:0044848 ! biological phase
+CL554605	CL554605	qualifier-synonym~GO_COMMENT	growth~See also the biological process term 'cell growth ; GO:0016049'.
 CL572423	CL572423	qualifier-synonym~LOINC_TIME_ASPECT	T classification CAP Nom (Prostate tumor)~Pt
 CL572423	CL572423	qualifier-synonym~LOINC_SYSTEM	T classification CAP Nom (Prostate tumor)~Prostate tumor
 CL572423	CL572423	qualifier-synonym~LCN	T classification CAP Nom (Prostate tumor)~1
@@ -872,6 +880,7 @@ C0003968	C0003968	Semantic_Type	Vitamin
 C0004339	C0004339	Semantic_Type	Diagnostic Procedure
 C0004388	C0004388	Semantic_Type	Body System
 C0004936	C0004936	Semantic_Type	Mental or Behavioral Dysfunction
+C0005615	C0005615	Semantic_Type	Organism Function
 C0005778	C0005778	Semantic_Type	Organ or Tissue Function
 C0006098	C0006098	Semantic_Type	Therapeutic or Preventive Procedure
 C0008300	C0008300	Semantic_Type	Individual Behavior
@@ -879,7 +888,6 @@ C0008625	C0008625	Semantic_Type	Cell or Molecular Dysfunction
 C0008902	C0008902	Semantic_Type	Classification
 C0009376	C0009376	Semantic_Type	Anatomical Abnormality
 C0009780	C0009780	Semantic_Type	Tissue
-C0011135	C0011135	Semantic_Type	Organism Function
 C0012727	C0012727	Semantic_Type	Spatial Concept
 C0012737	C0012737	Semantic_Type	Health Care Activity
 C0013058	C0013058	Semantic_Type	Biomedical or Dental Material
@@ -907,6 +915,7 @@ C0031797	C0031797	Semantic_Type	Idea or Concept
 C0032529	C0032529	Semantic_Type	Genetic Function
 C0032979	C0032979	Semantic_Type	Temporal Concept
 C0033095	C0033095	Semantic_Type	Phenomenon or Process
+C0034525	C0034525	Semantic_Type	Biologic Function
 C0034929	C0034929	Semantic_Type	Physiologic Function
 C0038818	C0038818	Semantic_Type	Substance
 C0085089	C0085089	Semantic_Type	Human-caused Phenomenon or Process

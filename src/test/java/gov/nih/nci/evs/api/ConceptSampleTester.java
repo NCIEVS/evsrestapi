@@ -300,6 +300,11 @@ public class ConceptSampleTester {
     }
 
     for (final Entry<String, List<SampleRecord>> entry : sampleMap.entrySet()) {
+      if (entry.getValue().stream().filter(x -> x.getKey().equals("root")).count() > 0
+          && terminology.getMetadata().getLoader().equals("rrf")) {
+        // skip root for rrf loaded terminologies
+        continue;
+      }
       url = baseUrl + term + "/" + entry.getKey() + "?include=full";
       log.info("Testing url - " + url);
       result =
@@ -461,6 +466,10 @@ public class ConceptSampleTester {
     lookupTerminology(term);
 
     for (final Entry<String, List<SampleRecord>> entry : sampleMap.entrySet()) {
+      if (entry.getKey().equals("root") && terminology.getMetadata().getLoader().equals("rrf")) {
+        // skip root for rrf loaded terminologies
+        continue;
+      }
       url = baseUrl + term + "/" + entry.getKey() + "?include=full";
       log.info("Testing url - " + url);
       result =

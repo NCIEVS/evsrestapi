@@ -2,14 +2,14 @@ RID56	RID56	synonym	abdomen
 RID56	RID56	term-type	PT
 RID56	RID56	term-type	SY
 RID28743	RID28743	term-type	OP
-RID10321	RID10321	term-type	ACR
+RID39049	RID39049	term-type	ACR
 RID12940	RID12940	term-type	IS
 RID56	RID56	CITE	Playbook
 RID56	RID56	FMAID	9577
 RID56	RID56	COMMENT	[altern def] That portion of the body that lies between the thorax and the pelvis. [MeSH]
 RID56	RID56	PREFERRED_NAME_GERMAN	Abdomen
 RID3711	RID3711	MISSPELLING_OF_TERM	abcess
-RID34730	RID34730	SYNONYM_GERMAN	erworbenes Immunschwächesyndrom
+RID34730	RID34730	SYNONYM_GERMAN	erworbenes Immunschwï¿½chesyndrom
 RID49438	RID49438	RADLEX_VERSION_OF_CLASS_CHANGE	08/19/2014
 RID49533	RID49533	DATE_CREATED	2014-08-19T00:00:00
 RID5966	RID5966	REPLACED_BY	RID13202
@@ -45,11 +45,11 @@ RID11844	RID11844	Semantic_Type	Element, Ion, or Isotope
 RID39073	RID39073	Semantic_Type	Population Group
 RID39234	RID39234	Semantic_Type	Organ or Tissue Function
 RID4581	RID4581	Semantic_Type	Injury or Poisoning
+RID4941	RID4941	Semantic_Type	Organism Function
 RID39550	RID39550	Semantic_Type	Temporal Concept
 RID13034	RID13034	Semantic_Type	Phenomenon or Process
 RID1554	RID1554	Semantic_Type	Amino Acid, Peptide, or Protein
 RID11751	RID11751	Semantic_Type	Inorganic Chemical
-RID6352	RID6352	Semantic_Type	Organism Function
 RID11296	RID11296	Semantic_Type	Human-caused Phenomenon or Process
 RID28472	RID28472	Semantic_Type	Qualitative Concept
 RID10381	RID10381	Semantic_Type	Health Care Activity
@@ -81,5 +81,6 @@ RID34677	RID34677	root
 RID10409	RID10409	root
 RID43386	RID43386	root
 RID11645	RID11645	root
+RID3839	RID3839	root
 RID0	RID0	root
 RID56	RID56	parent-count1

@@ -11,9 +11,9 @@ D57	D57	qualifier-synonym~USE_ADDITIONAL	Sickle-cell disorders~code for any asso
 M24.6	M24.6	qualifier-synonym~EXCLUDES2	Ankylosis of joint~spine (M43.2-)
 K90.0	K90.0	qualifier-synonym~CODE_ALSO	Celiac disease~exocrine pancreatic insufficiency (K86.81)
 K90.0	K90.0	qualifier-synonym~USE_ADDITIONAL	Celiac disease~code for associated disorders including: dermatitis herpetiformis (L13.0); gluten ataxia (G32.81)
-K63.5	K63.5	qualifier-synonym~EXCLUDES2	Polyp of colon~adenomatous polyp of colon (D12.-); inflammatory polyp of colon (K51.4-); polyposis of colon (D12.6)
+I63.9	I63.9	qualifier-synonym~EXCLUDES2	Cerebral infarction, unspecified~transient cerebral ischemic attacks and related syndromes (G45.-)
+K05.1	K05.1	qualifier-synonym~CODE_FIRST	Chronic gingivitis~if applicable, diseases of the digestive system complicating pregnancy (O99.61-)
 E84	E84	qualifier-synonym~CODE_ALSO	Cystic fibrosis~exocrine pancreatic insufficiency (K86.81)
-D89.81	D89.81	qualifier-synonym~CODE_FIRST	Graft-versus-host disease~underlying cause, such as: complications of transplanted organs and tissue (T86.-); complications of blood transfusion (T80.89)
 K40-K46	K40-K46	qualifier-synonym~NOTE	Hernia (K40-K46)~Hernia with both gangrene and obstruction is classified to hernia with gangrene.
 B20	B20	qualifier-synonym~CODE_FIRST	Human immunodeficiency virus [HIV] disease~Human immunodeficiency virus [HIV] disease complicating pregnancy, childbirth and the puerperium, if applicable (O98.7-)
 R10.0	R10.0	Semantic_Type	Sign or Symptom
@@ -23,29 +23,47 @@ M24.6	M24.6	Semantic_Type	Acquired Abnormality
 F99	F99	Semantic_Type	Mental or Behavioral Dysfunction
 W50.3	W50.3	Semantic_Type	Injury or Poisoning
 G93.82	G93.82	Semantic_Type	Pathologic Function
+Q43.7	Q43.7	Semantic_Type	Body Part, Organ, or Organ Component
 K63.5	K63.5	Semantic_Type	Anatomical Abnormality
 K09.8	K09.8	Semantic_Type	Neoplastic Process
+O88.1	O88.1	Semantic_Type	Finding
 Z21	Z21	Semantic_Type	Laboratory or Test Result
 F12	F12	Semantic_Type	Organic Chemical
 F12	F12	Semantic_Type	Pharmacologic Substance
-D84.9	D84.9	Semantic_Type	Finding
-K62	K62	Semantic_Type	Body Part, Organ, or Organ Component
+Z33.1	Z33.1	Semantic_Type	Organism Function
 E65	E65	Semantic_Type	Tissue
 ICD-10-CM	ICD-10-CM	Semantic_Type	Intellectual Product
+Q93.81	Q93.81	Semantic_Type	Cell or Molecular Dysfunction
 O09	O09	Semantic_Type	Therapeutic or Preventive Procedure
 F01-F99	F01-F99	Semantic_Type	Classification
+I63	I63	root
 D89.81	D89.81	root
+B02	B02	root
 C81	C81	root
 C95	C95	root
 H81.0	H81.0	root
+C90.0	C90.0	root
+H81.3	H81.3	root
 F45	F45	root
+Q96	Q96	root
 B34	B34	root
+C83.5	C83.5	root
+I21	I21	root
+Q24	Q24	root
 S37.0	S37.0	root
 M79.1	M79.1	root
 E10.6	E10.6	root
 E11.6	E11.6	root
+D13.9	D13.9	root
 P35	P35	root
+Q76.4	Q76.4	root
+R04.8	R04.8	root
 H01.0	H01.0	root
+D61.0	D61.0	root
+I25.1	I25.1	root
+Z33	Z33	root
+Q85.8	Q85.8	root
+B10.8	B10.8	root
 E31.2	E31.2	root
 Q05	Q05	root
 ICD-10-CM	ICD-10-CM	root
