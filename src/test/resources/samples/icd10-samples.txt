@@ -14,18 +14,25 @@ O82.9	O82.9	Semantic_Type	Therapeutic or Preventive Procedure
 K63.5	K63.5	Semantic_Type	Anatomical Abnormality
 T36-T50	T36-T50	Semantic_Type	Injury or Poisoning
 R60.9	R60.9	Semantic_Type	Pathologic Function
+O88.1	O88.1	Semantic_Type	Finding
 C96.6	C96.6	Semantic_Type	Neoplastic Process
-K76.1	K76.1	Semantic_Type	Finding
+T66	T66	Semantic_Type	Biologic Function
 U00-U49	U00-U49	Semantic_Type	Intellectual Product
 M24.6	M24.6	root
+I70	I70	root
 F99-F99	F99-F99	root
+I63	I63	root
 XI	XI	root
+B02	B02	root
 C81	C81	root
 C95	C95	root
 VI	VI	root
 F45	F45	root
+Q96	Q96	root
 B34	B34	root
 XIV	XIV	root
+I21	I21	root
+Q24	Q24	root
 XII	XII	root
 XVI	XVI	root
 XXI	XXI	root
@@ -51,4 +58,5 @@ C46	C46	root
 I42	I42	root
 I50	I50	root
 XXII	XXII	root
+I22	I22	root
 R10.0	R10.0	parent-count1

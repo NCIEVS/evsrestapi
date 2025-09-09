@@ -23,27 +23,39 @@ E928.3	E928.3	Semantic_Type	Injury or Poisoning
 577.2	577.2	Semantic_Type	Anatomical Abnormality
 88.90	88.90	Semantic_Type	Diagnostic Procedure
 239.0	239.0	Semantic_Type	Neoplastic Process
+673.1	673.1	Semantic_Type	Finding
 89.7	89.7	Semantic_Type	Health Care Activity
+990	990	Semantic_Type	Biologic Function
 300.8	300.8	Semantic_Type	Mental or Behavioral Dysfunction
-573.0	573.0	Semantic_Type	Finding
+790.8	790.8	Semantic_Type	Laboratory or Test Result
 V10-V19.99	V10-V19.99	Semantic_Type	Patient or Disabled Group
 V01-V91.99	V01-V91.99	Semantic_Type	Classification
+440	440	root
+414.0	414.0	root
+673.1	673.1	root
 201	201	root
 208	208	root
 386.0	386.0	root
+203.0	203.0	root
+386.1	386.1	root
 633	633	root
+300.8	300.8	root
+410	410	root
 456.2	456.2	root
 655	655	root
 666.3	666.3	root
 942	942	root
+237.7	237.7	root
 001-999.99	001-999.99	root
 00-99.99	00-99.99	root
 998.3	998.3	root
 E919	E919	root
 E920	E920	root
+258.0	258.0	root
 157	157	root
 646.4	646.4	root
 722.3	722.3	root
+058.8	058.8	root
 V01-V91.99	V01-V91.99	root
 176	176	root
 599.7	599.7	root

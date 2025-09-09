@@ -124,6 +124,7 @@ MTHU020857	MTHU020857	Semantic_Type	Sign or Symptom
 MTHU002404	MTHU002404	Semantic_Type	Bacterium
 MTHU017342	MTHU017342	Semantic_Type	Hormone
 LA22096-4	LA22096-4	Semantic_Type	Mental or Behavioral Dysfunction
+MTHU034854	MTHU034854	Semantic_Type	Organism Function
 LA28745-0	LA28745-0	Semantic_Type	Injury or Poisoning
 MTHU015552	MTHU015552	Semantic_Type	Immunologic Factor
 MTHU015552	MTHU015552	Semantic_Type	Hazardous or Poisonous Substance
@@ -136,11 +137,11 @@ LA10557-9	LA10557-9	Semantic_Type	Anatomical Abnormality
 MTHU065472	MTHU065472	Semantic_Type	Tissue
 LA20339-0	LA20339-0	Semantic_Type	Indicator, Reagent, or Diagnostic Aid
 LA24692-8	LA24692-8	Semantic_Type	Pathologic Function
-LA22116-0	LA22116-0	Semantic_Type	Organism Function
 LA3-6	LA3-6	Semantic_Type	Organism Attribute
 MTHU010959	MTHU010959	Semantic_Type	Cell
 LA30125-1	LA30125-1	Semantic_Type	Food
 MTHU027951	MTHU027951	Semantic_Type	Fungus
+MTHU015043	MTHU015043	Semantic_Type	Acquired Abnormality
 MTHU071808	MTHU071808	Semantic_Type	Virus
 MTHU059707	MTHU059707	Semantic_Type	Medical Device
 MTHU048551	MTHU048551	Semantic_Type	Body Space or Junction
@@ -163,7 +164,6 @@ LA32048-3	LA32048-3	Semantic_Type	Quantitative Concept
 LA18356-8	LA18356-8	Semantic_Type	Chemical
 LA28307-9	LA28307-9	Semantic_Type	Physiologic Function
 MTHU003137	MTHU003137	Semantic_Type	Activity
-LA15422-1	LA15422-1	Semantic_Type	Acquired Abnormality
 36-4	36-4	Semantic_Type	Clinical Attribute
 MTHU062919	MTHU062919	Semantic_Type	Research Activity
 MTHU019184	MTHU019184	Semantic_Type	Event
