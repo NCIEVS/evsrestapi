@@ -1,3 +1,4 @@
+# no version changes so we use the old sample file
 740-759.99	740-759.99	synonym	CONGENITAL ANOMALIES
 740-759.99	740-759.99	term-type	HT
 759.9	759.9	term-type	AB
