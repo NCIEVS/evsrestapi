@@ -157,14 +157,14 @@ public class MdrSampleTest extends SampleTest {
                 });
     assertThat(terminologies.size()).isGreaterThan(0);
     assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("mdr")).count())
-        .isEqualTo(1);
+        .isEqualTo(2);
     final Terminology mdr =
         terminologies.stream().filter(t -> t.getTerminology().equals("mdr")).findFirst().get();
     assertThat(mdr.getTerminology()).isEqualTo("mdr");
     assertThat(mdr.getMetadata().getUiLabel())
         .isEqualTo("MedDRA: Medical Dictionary for Regulatory Activities");
     assertThat(mdr.getName())
-        .isEqualTo("MedDRA: Medical Dictionary for Regulatory Activities 23_1");
+        .isEqualTo("MedDRA: Medical Dictionary for Regulatory Activities 28_0");
     assertThat(mdr.getDescription()).isNotEmpty();
     assertThat(mdr.getMetadata().getLoader()).isEqualTo("rrf");
     assertThat(mdr.getMetadata().getSourceCt()).isEqualTo(1);
@@ -172,7 +172,7 @@ public class MdrSampleTest extends SampleTest {
     assertThat(mdr.getDescription())
         .isEqualTo(
             ";;MedDRA MSSO;;MedDRA [electronic resource] : Medical Dictionary for Regulatory"
-                + " Activities Terminology;;;Version 23.1;;MedDRA MSSO;;September, 2020;;;;MedDRA"
+                + " Activities Terminology;;;Version 28.0;;MedDRA MSSO;;March 2025;;;;MedDRA"
                 + " [electronic resource] : Medical Dictionary for Regulatory Activities"
                 + " Terminology");
 
@@ -182,7 +182,6 @@ public class MdrSampleTest extends SampleTest {
     final JsonNode node = getMetadataAsNode("mdr");
     final TerminologyMetadata metadata =
         new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
-    log.info("XXX2 = " + metadata.getLicenseCheck());
   }
 
   /**
