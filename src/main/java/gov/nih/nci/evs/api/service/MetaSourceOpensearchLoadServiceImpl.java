@@ -1448,7 +1448,7 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
   }
 
   @Override
-  public final Set<String> cleanStaleIndexes(final Terminology terminology) throws Exception {
+  public final Set<String> cleanStaleIndexes() throws Exception {
     // do nothing - override superclass behavior
     return new HashSet<>(0);
   }

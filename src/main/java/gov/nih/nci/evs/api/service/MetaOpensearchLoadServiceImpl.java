@@ -636,7 +636,9 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
     // different version
     if (!version.isEmpty()
         && currentMapVersion.isPresent()
-        && !version.equals(currentMapVersion.get())) return true;
+        && !version.equals(currentMapVersion.get())) {
+      return true;
+    }
     return false;
   }
 
@@ -1674,7 +1676,7 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public Set<String> cleanStaleIndexes(final Terminology terminology) throws Exception {
+  public Set<String> cleanStaleIndexes() throws Exception {
     // do nothing - override superclass behavior
     return new HashSet<>(0);
   }

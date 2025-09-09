@@ -61,7 +61,7 @@ public interface OpensearchLoadService {
    * @param terminology the terminology
    * @throws Exception the exception
    */
-  Set<String> cleanStaleIndexes(Terminology terminology) throws Exception;
+  Set<String> cleanStaleIndexes() throws Exception;
 
   /**
    * Update latest flag.

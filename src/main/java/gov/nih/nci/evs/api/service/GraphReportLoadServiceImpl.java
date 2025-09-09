@@ -282,7 +282,7 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
 
   /* see superclass */
   @Override
-  public Set<String> cleanStaleIndexes(final Terminology terminology) throws Exception {
+  public Set<String> cleanStaleIndexes() throws Exception {
     // n/a - report only
     return new HashSet<>(0);
   }
