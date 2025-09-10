@@ -429,21 +429,49 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             ScoreMode.Max);
 
     // Partial word match queries - boost higher than phrase but lower than exact
-    final String partialWordQuery = createPartialWordQuery(term);
+    // Only apply for "contains" type queries, not for "phrase" queries
     QueryStringQueryBuilder partialWordNameQuery = null;
+    QueryStringQueryBuilder partialWordSynonymQuery = null;
     NestedQueryBuilder nestedPartialWordSynonymQuery = null;
-    
-    if (partialWordQuery != null) {
-      partialWordNameQuery = QueryBuilders.queryStringQuery(partialWordQuery)
-          .field("name")
-          .defaultOperator(Operator.AND)
-          .boost(35f);
-      
-      final QueryStringQueryBuilder partialWordSynonymQuery = QueryBuilders.queryStringQuery(partialWordQuery)
-          .field("synonyms.name")
-          .defaultOperator(Operator.AND)
-          .boost(34f);
-      nestedPartialWordSynonymQuery = QueryBuilders.nestedQuery("synonyms", partialWordSynonymQuery, ScoreMode.Max);
+
+    // build partial word query if we have partial/short words
+    if ("contains".equalsIgnoreCase(type)) {
+      String[] tokens = normTerm.split("\\s+");
+      boolean hasPartialWord = false;
+      String[] partialTokens = new String[tokens.length];
+
+      for (int i = 0; i < tokens.length; i++) {
+        String token = tokens[i];
+        boolean isPartialWord =
+            (token.length() >= 2 && token.length() <= 4)
+                || (i == tokens.length - 1 && token.length() >= 2 && token.length() <= 5);
+
+        if (isPartialWord) {
+          partialTokens[i] = token + "*";
+          hasPartialWord = true;
+        } else {
+          partialTokens[i] = token;
+        }
+      }
+
+      // Only create partial word queries if we actually have partial words
+      if (hasPartialWord) {
+        partialWordNameQuery =
+            QueryBuilders.queryStringQuery(String.join(" AND ", partialTokens))
+                .field("name")
+                .defaultOperator(Operator.AND)
+                .analyzeWildcard(true)
+                .boost(35f);
+
+        partialWordSynonymQuery =
+            QueryBuilders.queryStringQuery(String.join(" AND ", partialTokens))
+                .field("synonyms.name")
+                .defaultOperator(Operator.AND)
+                .analyzeWildcard(true)
+                .boost(34f);
+        nestedPartialWordSynonymQuery =
+            QueryBuilders.nestedQuery("synonyms", partialWordSynonymQuery, ScoreMode.Max);
+      }
     }
 
     // Boosting matches with words next to each other
@@ -515,6 +543,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       if (partialWordNameQuery != null) {
         partialWordNameQuery.fuzziness(Fuzziness.ONE);
       }
+      if (partialWordSynonymQuery != null) {
+        partialWordSynonymQuery.fuzziness(Fuzziness.ONE);
+      }
     } else {
       fixNameQuery.fuzziness(Fuzziness.ZERO);
       fixNormNameQuery.fuzziness(Fuzziness.ZERO);
@@ -525,6 +556,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       definitionQuery.fuzziness(Fuzziness.ZERO);
       if (partialWordNameQuery != null) {
         partialWordNameQuery.fuzziness(Fuzziness.ZERO);
+      }
+      if (partialWordSynonymQuery != null) {
+        partialWordSynonymQuery.fuzziness(Fuzziness.ZERO);
       }
     }
 
@@ -569,7 +603,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
           .should(nestedSynonymNormNameQuery);
     }
 
-    // Add partial word queries if applicable (boost between exact and phrase)
+    // Add partial word queries (boost between exact and phrase) - only for contains type
     if (partialWordNameQuery != null) {
       termQuery.should(partialWordNameQuery);
     }
@@ -752,51 +786,6 @@ public class OpenSearchServiceImpl implements OpenSearchService {
   }
 
   /**
-   * Creates a partial word query string for boosting partial matches.
-   * Detects tokens that appear to be partial words and creates
-   * a query that matches concepts containing prefix matches for partial tokens.
-   *
-   * @param term the search term
-   * @return the partial word query string, or null if not applicable
-   */
-  private String createPartialWordQuery(String term) {
-    if (StringUtils.isBlank(term)) {
-      return null;
-    }
-    
-    String[] tokens = term.trim().split("\\s+");
-    if (tokens.length < 1) {
-      return null;
-    }
-    
-    StringBuilder queryBuilder = new StringBuilder();
-    boolean hasPartialWord = false;
-    
-    // Process each token - treat as partial if short (2-4 chars) or if it's the last token and short
-    for (int i = 0; i < tokens.length; i++) {
-      String token = tokens[i];
-      boolean isPartialWord = (token.length() >= 2 && token.length() <= 4) || 
-                             (i == tokens.length - 1 && token.length() >= 2 && token.length() <= 5);
-      
-      if (queryBuilder.length() > 0) {
-        queryBuilder.append(" AND ");
-      }
-      
-      if (isPartialWord) {
-        // Add as prefix match
-        queryBuilder.append(token).append("*");
-        hasPartialWord = true;
-      } else {
-        // Add as exact match
-        queryBuilder.append(token);
-      }
-    }
-    
-    // Only return query if we found at least one partial word
-    return hasPartialWord ? queryBuilder.toString() : null;
-  }
-
-  /**
    * builds terminology query based on input search criteria.
    *
    * @param terminologies list of terminologies
@@ -931,7 +920,6 @@ public class OpenSearchServiceImpl implements OpenSearchService {
   /**
    * builds nested query for subset criteria on value field for given types.
    *
-   * @param term the term
    * @param searchCriteria the search criteria
    * @return the nested query
    */

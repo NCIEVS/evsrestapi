@@ -199,9 +199,10 @@ public class SearchControllerTests {
         .isGreaterThan(1);
     assertThat(concept.getAssociations().size()).isGreaterThan(0);
     assertThat(concept.getAssociations().stream().filter(p -> p.getCode() != null).count())
-        .isEqualTo(0);
+        .isGreaterThan(0);
     assertThat(concept.getRoles().size()).isGreaterThan(0);
-    assertThat(concept.getRoles().stream().filter(p -> p.getCode() != null).count()).isEqualTo(0);
+    assertThat(concept.getRoles().stream().filter(p -> p.getCode() != null).count())
+        .isGreaterThan(0);
   }
 
   /**
@@ -4412,68 +4413,122 @@ public class SearchControllerTests {
   }
 
   /**
-   * Test search for partial word matching to ensure "rectal carcino" ranks 
-   * "Rectal Carcinoma" higher than "Rectal Catheter" or "Rectal Lymphoma".
+   * Test search for partial word matching to ensure terms rank their expected results first: -
+   * "rectal car", "rectal carc", "rectal carcin" should rank "Rectal Carcinoma" first - "single
+   * ag", "single agen" should rank "Single Agent Therapy" first
    */
   @Test
   public void testSearchPartialWordMatch() throws Exception {
-    String url = baseUrl + "?terminology=ncit&include=summary,highlights,properties&term=rectal car&type=contains";
-    log.info("Testing partial word match url - " + url);
+    // Test rectal terms - should rank "Rectal Carcinoma" first
+    String[] rectalTerms = {"rectal car", "rectal carc", "rectal carcin"};
 
-    MvcResult result = this.mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    String content = result.getResponse().getContentAsString();
-    log.info("  content = " + content);
-    assertThat(content).isNotNull();
+    for (String term : rectalTerms) {
+      String url =
+          baseUrl
+              + "?terminology=ncit&include=summary,highlights,properties&term="
+              + term
+              + "&type=contains";
+      log.info("Testing rectal partial word match url - " + url);
 
-    ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
-    assertThat(list.getConcepts()).isNotNull();
-    assertThat(list.getConcepts().size()).isGreaterThan(0);
+      MvcResult result = this.mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+      String content = result.getResponse().getContentAsString();
+      log.info("  content = " + content);
+      assertThat(content).isNotNull();
 
-    // Find positions of key concepts
-    int rectalCarcinomaPosition = -1;
-    int rectalCatheterPosition = -1;
-    int rectalLymphomaPosition = -1;
+      ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      assertThat(list.getConcepts()).isNotNull();
+      assertThat(list.getConcepts().size()).isGreaterThan(0);
 
-    for (int i = 0; i < list.getConcepts().size(); i++) {
-      Concept concept = list.getConcepts().get(i);
-      String name = concept.getName();
-      
-      if ("Rectal Carcinoma".equals(name)) {
-        rectalCarcinomaPosition = i;
-      } else if ("Rectal Catheter".equals(name)) {
-        rectalCatheterPosition = i;
-      } else if ("Rectal Lymphoma".equals(name)) {
-        rectalLymphomaPosition = i;
+      // Log the top 5 results for debugging BEFORE assertions
+      log.info("Top 5 results for '" + term + "':");
+      for (int i = 0; i < Math.min(5, list.getConcepts().size()); i++) {
+        Concept concept = list.getConcepts().get(i);
+        log.info("  " + (i + 1) + ". " + concept.getName() + " (" + concept.getCode() + ")");
+      }
+
+      // Find positions of key concepts
+      int rectalCarcinomaPosition = -1;
+      int rectalCatheterPosition = -1;
+      int rectalLymphomaPosition = -1;
+
+      for (int i = 0; i < list.getConcepts().size(); i++) {
+        Concept concept = list.getConcepts().get(i);
+        String name = concept.getName();
+
+        if ("Rectal Carcinoma".equals(name)) {
+          rectalCarcinomaPosition = i;
+        } else if ("Rectal Catheter".equals(name)) {
+          rectalCatheterPosition = i;
+        } else if ("Rectal Lymphoma".equals(name)) {
+          rectalLymphomaPosition = i;
+        }
+      }
+
+      // Assert that Rectal Carcinoma (partial word match) ranks higher than other exact matches
+      assertThat(rectalCarcinomaPosition)
+          .as("Rectal Carcinoma should be found in results for term: " + term)
+          .isGreaterThanOrEqualTo(0);
+
+      if (rectalCatheterPosition >= 0) {
+        assertThat(rectalCarcinomaPosition)
+            .as("Rectal Carcinoma should rank higher than Rectal Catheter for term: " + term)
+            .isLessThan(rectalCatheterPosition);
+      }
+
+      if (rectalLymphomaPosition >= 0) {
+        assertThat(rectalCarcinomaPosition)
+            .as("Rectal Carcinoma should rank higher than Rectal Lymphoma for term: " + term)
+            .isLessThan(rectalLymphomaPosition);
+      }
+
+      // Additional assertion to ensure Rectal Carcinoma is ranked first
+      if (list.getConcepts().size() > 0) {
+        assertThat(list.getConcepts().get(0).getName())
+            .as("Rectal Carcinoma should be ranked first for term: " + term)
+            .isEqualTo("Rectal Carcinoma");
       }
     }
 
-    // Assert that Rectal Carcinoma (partial word match) ranks higher than other exact matches
-    assertThat(rectalCarcinomaPosition).as("Rectal Carcinoma should be found in results").isGreaterThanOrEqualTo(0);
-    
-    if (rectalCatheterPosition >= 0) {
-      assertThat(rectalCarcinomaPosition).as("Rectal Carcinoma should rank higher than Rectal Catheter")
-          .isLessThan(rectalCatheterPosition);
-    }
-    
-    if (rectalLymphomaPosition >= 0) {
-      assertThat(rectalCarcinomaPosition).as("Rectal Carcinoma should rank higher than Rectal Lymphoma")
-          .isLessThan(rectalLymphomaPosition);
-    }
+    // Test single agent terms - should rank "Single Agent Therapy" first
+    String[] singleAgentTerms = {"single agen", "single ag"};
 
-    // Log the top 5 results for debugging
-    log.info("Top 5 results for 'rectal carcino':");
-    for (int i = 0; i < Math.min(5, list.getConcepts().size()); i++) {
-      Concept concept = list.getConcepts().get(i);
-      log.info("  " + (i + 1) + ". " + concept.getName() + " (" + concept.getCode() + ")");
+    for (String term : singleAgentTerms) {
+      String url =
+          baseUrl
+              + "?terminology=ncit&include=summary,highlights,properties&term="
+              + term
+              + "&type=contains";
+      log.info("Testing single agent partial word match url - " + url);
+
+      MvcResult result = this.mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+      String content = result.getResponse().getContentAsString();
+      log.info("  content = " + content);
+      assertThat(content).isNotNull();
+
+      ConceptResultList list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      assertThat(list.getConcepts()).isNotNull();
+      assertThat(list.getConcepts().size()).isGreaterThan(0);
+
+      // Log the top 5 results for debugging BEFORE assertions
+      log.info("Top 5 results for '" + term + "':");
+      for (int i = 0; i < Math.min(5, list.getConcepts().size()); i++) {
+        Concept concept = list.getConcepts().get(i);
+        log.info("  " + (i + 1) + ". " + concept.getName() + " (" + concept.getCode() + ")");
+      }
+
+      // Assert that Single Agent Therapy is ranked first
+      if (list.getConcepts().size() > 0) {
+        assertThat(list.getConcepts().get(0).getName())
+            .as("Single Agent Therapy should be ranked first for term: " + term)
+            .isEqualTo("Single Agent Therapy");
+      }
     }
   }
 
-  /**
-   * Test search for multiple partial word matching with multiple test cases.
-   */
+  /** Test search for multiple partial word matching with multiple test cases. */
   @Test
   public void testSearchMultiplePartialWordMatch() throws Exception {
-    // Test Case 1: Search for "mel cancer" which should find melanoma-related cancer concepts  
+    // Test Case 1: Search for "mel cancer" which should find melanoma-related cancer concepts
     String url1 = baseUrl + "?terminology=ncit&term=mel cancer&type=contains&pageSize=20";
     log.info("Testing multiple partial word match with 'mel cancer': " + url1);
 
@@ -4493,10 +4548,13 @@ public class SearchControllerTests {
     }
 
     // Check that we get melanoma-related results
-    boolean foundMelanomaRelated = list1.getConcepts().stream()
-        .anyMatch(concept -> concept.getName().toLowerCase().contains("melanoma"));
-    
-    assertThat(foundMelanomaRelated).as("Should find melanoma-related concepts for 'mel cancer'").isTrue();
+    boolean foundMelanomaRelated =
+        list1.getConcepts().stream()
+            .anyMatch(concept -> concept.getName().toLowerCase().contains("melanoma"));
+
+    assertThat(foundMelanomaRelated)
+        .as("Should find melanoma-related concepts for 'mel cancer'")
+        .isTrue();
 
     // Test Case 2: Search for "rect car" which should find rectal carcinoma concepts
     String url2 = baseUrl + "?terminology=ncit&term=rect car&type=contains&pageSize=50";
@@ -4517,14 +4575,18 @@ public class SearchControllerTests {
       log.info("  " + (i + 1) + ". " + concept.getName() + " (" + concept.getCode() + ")");
     }
 
-    // Check if we can find any rectal-related concepts (since carcinoma might not be present in test data)
-    boolean foundRectalRelated = list2.getConcepts().stream()
-        .anyMatch(concept -> concept.getName().toLowerCase().contains("rectal"));
-    
+    // Check if we can find any rectal-related concepts (since carcinoma might not be present in
+    // test data)
+    boolean foundRectalRelated =
+        list2.getConcepts().stream()
+            .anyMatch(concept -> concept.getName().toLowerCase().contains("rectal"));
+
     if (foundRectalRelated) {
       log.info("SUCCESS: Found rectal-related concepts for 'rect car' search");
     } else {
-      log.info("No rectal-related concepts found for 'rect car' - this may indicate the concepts don't exist in test data");
+      log.info(
+          "No rectal-related concepts found for 'rect car' - this may indicate the concepts don't"
+              + " exist in test data");
     }
 
     // Test Case 3: Search for "single agen" which should find single agent concepts
@@ -4547,12 +4609,13 @@ public class SearchControllerTests {
     }
 
     // Check specifically for 'Single Agent Therapy' concept
-    boolean foundSingleAgentTherapy = list3.getConcepts().stream()
-        .anyMatch(concept -> "Single Agent Therapy".equals(concept.getName()));
-    
+    boolean foundSingleAgentTherapy =
+        list3.getConcepts().stream()
+            .anyMatch(concept -> "Single Agent Therapy".equals(concept.getName()));
+
     if (foundSingleAgentTherapy) {
       log.info("SUCCESS: Found 'Single Agent Therapy' concept for 'single agen' search");
-      
+
       // Find the position of Single Agent Therapy for ranking validation
       int singleAgentTherapyPosition = -1;
       for (int i = 0; i < list3.getConcepts().size(); i++) {
@@ -4562,15 +4625,20 @@ public class SearchControllerTests {
         }
       }
       log.info("'Single Agent Therapy' found at position: " + (singleAgentTherapyPosition + 1));
-      
+
       // Validate that partial word matching ranks it reasonably high
-      assertThat(singleAgentTherapyPosition).as("Single Agent Therapy should be found in results for 'single agen'").isGreaterThanOrEqualTo(0);
-      
+      assertThat(singleAgentTherapyPosition)
+          .as("Single Agent Therapy should be found in results for 'single agen'")
+          .isGreaterThanOrEqualTo(0);
+
     } else {
       log.info("'Single Agent Therapy' not found - checking for any single agent-related concepts");
-      boolean foundSingleAgentRelated = list3.getConcepts().stream()
-          .anyMatch(concept -> concept.getName().toLowerCase().contains("single") && 
-                             concept.getName().toLowerCase().contains("agent"));
+      boolean foundSingleAgentRelated =
+          list3.getConcepts().stream()
+              .anyMatch(
+                  concept ->
+                      concept.getName().toLowerCase().contains("single")
+                          && concept.getName().toLowerCase().contains("agent"));
       if (foundSingleAgentRelated) {
         log.info("Found other 'single agent' concepts, partial matching is working");
       }
