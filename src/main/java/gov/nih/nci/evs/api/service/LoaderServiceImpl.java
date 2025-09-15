@@ -220,12 +220,12 @@ public class LoaderServiceImpl {
           logger.warn("No indexed terminologies found, nothing to do.");
           return;
         }
+        final Set<String> removed = loadService.cleanStaleIndexes();
         for (Terminology terminology : terms) {
           logger.info(
               "Cleaning stale indexes/Updating flags for terminology: {}-{}",
               terminology.getTerminology(),
               terminology.getVersion());
-          final Set<String> removed = loadService.cleanStaleIndexes(terminology);
           loadService.updateLatestFlag(terminology, removed);
         }
         System.exit(0);
