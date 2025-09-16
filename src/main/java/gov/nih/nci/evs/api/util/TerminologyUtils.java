@@ -81,7 +81,9 @@ public final class TerminologyUtils {
       throws Exception {
     // get index metadata for terminologies completely loaded in es
     List<IndexMetadata> iMetas = osQueryService.getIndexMetadata(true);
-    if (CollectionUtils.isEmpty(iMetas)) return Collections.emptyList();
+    if (CollectionUtils.isEmpty(iMetas)) {
+      return Collections.emptyList();
+    }
 
     return iMetas.stream().map(m -> m.getTerminology()).collect(Collectors.toList());
   }
@@ -96,7 +98,6 @@ public final class TerminologyUtils {
    */
   public List<IndexMetadata> getStaleGraphTerminologies(
       final List<String> dbs,
-      final Terminology terminology,
       SparqlQueryManagerService sparqlQueryManagerService,
       OpensearchQueryService osQueryService)
       throws Exception {
@@ -119,8 +120,7 @@ public final class TerminologyUtils {
     return iMetas.stream()
         .filter(
             m ->
-                m.getTerminology().getTerminology().equals(terminology.getTerminology())
-                    && !m.getTerminology().getMetadata().getLoader().equals("rrf")
+                !m.getTerminology().getMetadata().getLoader().equals("rrf")
                     && !graphMap.containsKey(m.getTerminologyVersion()))
         .collect(Collectors.toList());
   }
@@ -308,7 +308,9 @@ public final class TerminologyUtils {
           break;
         case 'd': // monthly version, if month has only 4 days of week (for ex:
           // Monday) only
-          if (maxDayOfWeek == 4) monthly = true;
+          if (maxDayOfWeek == 4) {
+            monthly = true;
+          }
           break;
         default: // case a,b,c
           break;

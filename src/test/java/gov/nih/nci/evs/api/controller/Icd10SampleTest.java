@@ -55,14 +55,14 @@ public class Icd10SampleTest extends SampleTest {
     Concept concept = null;
 
     // Test active
-    url = "/api/v1/concept/icd10/A00-A09";
+    url = "/api/v1/concept/icd10/M14.6";
     log.info("Testing url - " + url);
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("A00-A09");
+    assertThat(concept.getCode()).isEqualTo("M14.6");
     assertThat(concept.getTerminology()).isEqualTo("icd10");
     assertThat(concept.getActive()).isTrue();
   }

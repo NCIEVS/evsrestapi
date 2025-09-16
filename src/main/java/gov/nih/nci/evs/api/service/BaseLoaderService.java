@@ -13,10 +13,8 @@ import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -159,18 +157,18 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
   }
 
   /**
-   * Clean stale indexes.
+   * Identify all RDF terminologies that have indexes but do no exist in sparql.
    *
    * @param terminology the terminology
    * @return the sets the
    * @throws Exception the exception
    */
   @Override
-  public Set<String> cleanStaleIndexes(final Terminology terminology) throws Exception {
+  public Set<String> cleanStaleIndexes() throws Exception {
 
     List<IndexMetadata> iMetas =
         termUtils.getStaleGraphTerminologies(
-            Arrays.asList(dbs.split(",")), terminology, sparqlQueryManagerService, osQueryService);
+            Arrays.asList(dbs.split(",")), sparqlQueryManagerService, osQueryService);
     if (CollectionUtils.isEmpty(iMetas)) {
       logger.info("NO stale terminologies to remove");
       return new HashSet<>(0);
@@ -201,7 +199,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
             operationsService,
             "DeleteIndexFailed",
             "cleanStaleIndexes",
-            terminology.getTerminology(),
+            objectIndexName,
             "Deleting objects index " + objectIndexName + " failed!",
             "WARN");
         continue;
@@ -217,7 +215,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
             operationsService,
             "WARN",
             "cleanStaleIndexes",
-            terminology.getTerminology(),
+            indexName,
             "Deleting concepts index " + objectIndexName + " failed!",
             "WARN");
         continue;
@@ -253,18 +251,17 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
       return;
     }
 
-    // Copy to allow modification
-    iMetas = new ArrayList<>(iMetas);
-    // Reverse sort (latest versions first)
-    Collections.sort(
-        iMetas,
-        new Comparator<IndexMetadata>() {
-          @Override
-          public int compare(IndexMetadata o1, IndexMetadata o2) {
-            return -1
-                * o1.getTerminology().getVersion().compareTo(o2.getTerminology().getVersion());
-          }
-        });
+    // filter to match this terminology, reverse sort on version
+    iMetas =
+        iMetas.stream()
+            .filter(
+                iMeta ->
+                    iMeta.getTerminology().getTerminology().equals(terminology.getTerminology()))
+            .sorted(
+                (a, b) ->
+                    b.getTerminology().getVersion().compareTo(a.getTerminology().getVersion()))
+            .collect(Collectors.toList());
+
     logger.info(
         "  iMetas = "
             + iMetas.stream()
@@ -275,11 +272,6 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     boolean latestFound = false;
 
     for (final IndexMetadata iMeta : iMetas) {
-
-      // Skip terminologies for a different loader
-      if (!iMeta.getTerminology().getTerminology().equals(terminology.getTerminology())) {
-        continue;
-      }
 
       final boolean monthly = iMeta.getTerminology().getTags().containsKey("monthly");
       final boolean weekly = iMeta.getTerminology().getTags().containsKey("weekly");
@@ -312,13 +304,14 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
         iMeta.getTerminology().setLatest(true);
         latestFound = true;
       }
-      // Else change nothing
+      // Else not latest
       else {
         logger.info("  " + iMeta.getTerminologyVersion() + " = latest false");
         iMeta.getTerminology().setLatest(false);
       }
 
       // see if Concept Statuses needs to be updated
+      // NOt sure why we need this here, but if we do, we need to use "indexAndWait" below
       if (!iMeta
           .getTerminology()
           .getMetadata()
@@ -332,7 +325,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
       }
     }
 
-    operationsService.bulkIndex(
+    operationsService.bulkIndexAndWait(
         iMetas, OpensearchOperationsService.METADATA_INDEX, IndexMetadata.class);
   }
 
