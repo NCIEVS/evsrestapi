@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -13,12 +14,16 @@ import static org.mockito.Mockito.when;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
+import gov.nih.nci.evs.api.controller.TermSuggestionFormController;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import jakarta.mail.internet.MimeMessage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -28,11 +33,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.HttpStatus;
 import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.server.ResponseStatusException;
 
 /** Test class for the email form service class. */
 @SpringBootTest
@@ -236,6 +245,86 @@ public class TermSuggestionFormServiceTest {
       // ASSERT
       verify(javaMailSender, times(0)).send(any(SimpleMailMessage.class));
     }
+  }
+
+  /** Check that blank excel form attachment fails validation. */
+  @Test
+  public void blankFormSubmissionFailsValidation() throws Exception {
+    // SET UP
+    Path p = Paths.get("src/test/resources/formSamples/blank-form-submission.xls");
+    byte[] content = Files.readAllBytes(p);
+    MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
+
+    // ACT & ASSERT
+    assertFalse(termFormService.validateFileAttachment(testFile));
+  }
+
+  /** Check that blank excel file attachment fails validation. */
+  @Test
+  public void blankSpreadsheetSubmissionFailsValidation() throws Exception {
+    // SET UP
+    Path p = Paths.get("src/test/resources/formSamples/blank-spreadsheet-submission.xls");
+    byte[] content = Files.readAllBytes(p);
+    MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
+
+    // ACT & ASSERT
+    assertFalse(termFormService.validateFileAttachment(testFile));
+  }
+
+  /** Check that fake excel file attachment fails validation. */
+  @Test
+  public void FakeExcelSubmissionFailsValidation() throws Exception {
+    // SET UP
+    Path p = Paths.get("src/test/resources/formSamples/fake-excel-submission.xls");
+    byte[] content = Files.readAllBytes(p);
+    MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
+
+    // ACT & ASSERT
+    assertFalse(termFormService.validateFileAttachment(testFile));
+  }
+
+  /** Check that filled out form attachment passes validation. */
+  @Test
+  public void filledFormSubmissionPassesValidation() throws Exception {
+    // SET UP
+    Path p = Paths.get("src/test/resources/formSamples/filled-form-submission.xls");
+    byte[] content = Files.readAllBytes(p);
+    MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
+
+    // ACT & ASSERT
+    assertTrue(termFormService.validateFileAttachment(testFile));
+  }
+
+  /**
+   * Test that TermSuggestionFormController.suggestWithAttachment throws EXPECTATION_FAILED when the
+   * service's validateFileAttachment returns false.
+   */
+  @Test
+  public void suggestWithAttachmentInvalidAttachmentThrowsExpectationFailed() throws Exception {
+    // SET UP controller with mocked service and captcha
+    TermSuggestionFormServiceImpl mockedService = mock(TermSuggestionFormServiceImpl.class);
+    CaptchaService mockedCaptcha = mock(CaptchaService.class);
+
+    TermSuggestionFormController controller =
+        new TermSuggestionFormController(mockedService, mockedCaptcha);
+
+    // Prepare inputs
+    JsonNode formData = new ObjectMapper().createObjectNode();
+    MultipartFile file = new MockMultipartFile("file.xlsx", new byte[] {1, 2, 3});
+
+    // Mock captcha to succeed
+    when(mockedCaptcha.verifyRecaptcha(any())).thenReturn(true);
+    // Mock validateFileAttachment to return false
+    when(mockedService.validateFileAttachment(file)).thenReturn(false);
+
+    // ACT & ASSERT: calling suggestWithAttachment should raise ResponseStatusException
+    ResponseStatusException ex =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> controller.suggestWithAttachment(formData, file, null, "token"));
+
+    // Verify we got the EXPECTATION_FAILED status
+    assertTrue(ex.getStatusCode() == HttpStatus.EXPECTATION_FAILED);
   }
 
   /**
