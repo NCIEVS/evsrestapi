@@ -85,6 +85,8 @@ dependencies {
 
   implementation "org.springframework.boot:spring-boot-devtools"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
+  // Explicit patch for spring-core to mitigate CVE-2025-41249
+  implementation 'org.springframework:spring-core:6.2.11'
   implementation "org.springframework.boot:spring-boot-starter-cache"
   implementation "org.springframework.boot:spring-boot-properties-migrator"
   implementation "org.springframework:spring-aop"
