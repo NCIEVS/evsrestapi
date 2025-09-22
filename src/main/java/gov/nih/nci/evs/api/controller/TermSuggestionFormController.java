@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.service.CaptchaService;
-import gov.nih.nci.evs.api.service.TermSuggestionFormServiceImpl;
+import gov.nih.nci.evs.api.service.TermSuggestionFormService;
 import io.swagger.v3.oas.annotations.Hidden;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +33,7 @@ public class TermSuggestionFormController extends BaseController {
 
   /** The email service. */
   // term form email service
-  private final TermSuggestionFormServiceImpl formService;
+  private final TermSuggestionFormService formService;
 
   private final CaptchaService captchaService;
 
@@ -43,7 +43,7 @@ public class TermSuggestionFormController extends BaseController {
    * @param emailService Form Email Service dependency
    */
   public TermSuggestionFormController(
-      TermSuggestionFormServiceImpl emailService, CaptchaService captchaService) {
+      TermSuggestionFormService emailService, CaptchaService captchaService) {
     this.formService = emailService;
     this.captchaService = captchaService;
   }
@@ -73,7 +73,7 @@ public class TermSuggestionFormController extends BaseController {
     } catch (Exception e) {
       logger.error("Error reading form template: {}", formType, e);
       handleException(e, null);
-      return null;
+      throw e;
     }
   }
 
@@ -97,7 +97,7 @@ public class TermSuggestionFormController extends BaseController {
       // Verify our captcha token
       if (!captchaService.verifyRecaptcha(captchaToken)) {
         logger.error("Failed to verify the submitted Recaptcha!");
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to submit form\n");
+        throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Unable to submit form\n");
       }
 
       // convert the form data into our email details object
@@ -140,7 +140,6 @@ public class TermSuggestionFormController extends BaseController {
         throw new ResponseStatusException(
             HttpStatus.EXPECTATION_FAILED, "Invalid attachment file, does not match the template.");
       }
-
       // convert the form data into our email details object
       EmailDetails emailDetails = EmailDetails.generateEmailDetails(formData);
       if (!"CDISC".equals(emailDetails.getSource())) {

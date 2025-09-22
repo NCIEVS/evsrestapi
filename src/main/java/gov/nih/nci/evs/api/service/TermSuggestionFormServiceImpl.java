@@ -48,6 +48,10 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
   /** The object mapper to read the config url with readTree. */
   private final ObjectMapper mapper;
 
+  /** Pattern for optional instruction sheets with date suffix */
+  private static final Pattern INSTRUCTION_PATTERN =
+      Pattern.compile(".*\\d{4}_\\d{2}_\\d{2} Instructions$");
+
   /**
    * Constructor: Instantiates dependencies.
    *
@@ -128,7 +132,8 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       message.setRecipients(RecipientType.TO, emailDetails.getToEmail());
       message.setFrom(new InternetAddress(emailDetails.getFromEmail()));
       message.setSubject(emailDetails.getSubject());
-      if (emailDetails.getMsgBody().contains("<html")) {
+      if (emailDetails.getMsgBody() != null
+          && emailDetails.getMsgBody().toLowerCase().contains("<html")) {
         message.setContent(emailDetails.getMsgBody(), "text/html; charset=utf-8");
       } else {
         message.setText(String.valueOf(emailDetails.getMsgBody()));
@@ -170,7 +175,8 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       helper.setTo(emailDetails.getToEmail());
       helper.setFrom(emailDetails.getFromEmail());
       helper.setSubject(emailDetails.getSubject());
-      if (emailDetails.getMsgBody().contains("<html")) {
+      if (emailDetails.getMsgBody() != null
+          && emailDetails.getMsgBody().toLowerCase().contains("<html")) {
         helper.setText(emailDetails.getMsgBody(), true);
       } else {
         helper.setText(emailDetails.getMsgBody(), false);
@@ -202,16 +208,18 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       // No file attached/empty file
       return false;
     }
+
     // Check file extension - expect .xls/xlsx (case-insensitive)
     String filename = file.getOriginalFilename();
-    if (file.getOriginalFilename().isBlank()) {
+    if (filename == null || filename.isBlank()) {
       filename = file.getName();
     }
     if (filename == null
-        || !filename.toLowerCase().endsWith(".xls") && !filename.toLowerCase().endsWith(".xlsx")) {
+        || !(filename.toLowerCase().endsWith(".xls") || filename.toLowerCase().endsWith(".xlsx"))) {
       return false;
     }
-    // Try to open the workbook to ensure it's a valid Excel file and collect sheet names
+
+    // Try to open the workbook once to ensure it's a valid Excel file and collect sheet names
     final java.util.Set<String> sheets = new java.util.HashSet<>();
     try (final java.io.InputStream is = file.getInputStream();
         final Workbook wb = WorkbookFactory.create(is)) {
@@ -223,51 +231,48 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       for (int i = 0; i < wb.getNumberOfSheets(); i++) {
         sheets.add(wb.getSheetName(i));
       }
-    } catch (IOException e) {
-      logger.warn("Invalid excel file uploaded: {}", filename, e);
-      return false;
-    }
 
-    // Pattern for the optional instruction sheet suffix: yyyy_mm_dd Instructions
-    final Pattern instructionPattern = Pattern.compile(".*\\d{4}_\\d{2}_\\d{2} Instructions$");
+      // Build a set of expected names
+      final java.util.Set<String> expectedSet =
+          new java.util.HashSet<>(
+              Arrays.asList(
+                  "Exist Codelist - New Test PARM",
+                  "Exist Codelist - New Term",
+                  "Changes to Existing Term",
+                  "New Codelist - Test or PARM",
+                  "New Codelist - New Terms"));
 
-    // Build a set of expected names
-    final java.util.Set<String> expectedSet =
-        new java.util.HashSet<>(
-            Arrays.asList(
-                "Exist Codelist - New Test PARM",
-                "Exist Codelist - New Term",
-                "Changes to Existing Term",
-                "New Codelist - Test or PARM",
-                "New Codelist - New Terms"));
-
-    // We do NOT require that all expected sheets exist.
-    // Instead, every sheet present in the workbook must either be one of the expected
-    // sheet names or match the instructions date pattern.
-    for (String actual : sheets) {
-      if (expectedSet.contains(actual)) {
-        continue;
+      // We do NOT require that all expected sheets exist.
+      // Instead, every sheet present in the workbook must either be one of the expected
+      // sheet names or match the instructions date pattern.
+      for (String actual : sheets) {
+        if (expectedSet.contains(actual)) {
+          continue;
+        }
+        Matcher m = INSTRUCTION_PATTERN.matcher(actual);
+        if (m.find()) {
+          continue;
+        }
+        logger.warn("Unexpected sheet '{}' found in uploaded workbook: {}", actual, filename);
+        return false;
       }
-      Matcher m = instructionPattern.matcher(actual);
-      if (m.find()) {
-        continue;
-      }
-      logger.warn("Unexpected sheet '{}' found in uploaded workbook: {}", actual, filename);
-      return false;
-    }
-    // We do require New Codelist - Test or PARM exists.
-    if (!sheets.contains("New Codelist - Test or PARM")) {
 
-      logger.warn(
-          "Required sheet 'New Codelist - Test or PARM' not found in uploaded workbook: {}",
-          filename);
-      return false;
-    }
-    // Validate that the New Codelist - Test or PARM sheet has all the necessary information
-    try (final java.io.InputStream is = file.getInputStream();
-        final Workbook wb = WorkbookFactory.create(is)) {
+      // We do require New Codelist - Test or PARM exists.
+      if (!sheets.contains("New Codelist - Test or PARM")) {
+        logger.warn(
+            "Required sheet 'New Codelist - Test or PARM' not found in uploaded workbook: {}",
+            filename);
+        return false;
+      }
+
+      // Validate that the New Codelist - Test or PARM sheet has all the necessary information
       final String sheetName = "New Codelist - Test or PARM";
       final org.apache.poi.ss.usermodel.Sheet metaSheet = wb.getSheet(sheetName);
+      if (metaSheet == null) {
+        logger.warn(
+            "Required sheet '{}' missing content in uploaded workbook: {}", sheetName, filename);
+        return false;
+      }
       final org.apache.poi.ss.usermodel.DataFormatter formatter =
           new org.apache.poi.ss.usermodel.DataFormatter();
 
@@ -297,7 +302,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
         }
       }
     } catch (IOException e) {
-      logger.warn("Failed to validate metadata cells in uploaded workbook: {}", filename, e);
+      logger.warn("Invalid excel file uploaded or failed to validate workbook: {}", filename, e);
       return false;
     }
 
