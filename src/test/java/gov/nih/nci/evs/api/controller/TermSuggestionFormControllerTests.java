@@ -433,6 +433,55 @@ public class TermSuggestionFormControllerTests {
             .andReturn();
   }
 
+  @Test
+  public void integrationTestSubmitFormWithAttachment() throws Exception {
+    // SET UP
+    baseUrl = "/api/v1/suggestWithAttachment";
+    final String formPath = "formSamples/submissionFormTestCDISC.json";
+    JsonNode formData = createForm(formPath);
+
+    // Mock the RecaptchaService to always return true for verifyRecaptcha
+    when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
+
+    if (!hasSmtpConfig()) {
+      // If no configuration, bail
+      return;
+    } else {
+      // If smtp is configured, we will actually send the email
+      log.info("SMTP is configured.");
+      // Set credentials in the form data
+      formData = setCredentials(formData, false);
+    }
+
+    // Prepare multipart file from resources
+    final org.springframework.mock.web.MockMultipartFile attachment;
+    try (final InputStream is =
+        getClass().getClassLoader().getResourceAsStream("formSamples/filled-form-submission.xls")) {
+      if (is == null) {
+        fail("Test attachment not found in resources");
+        return;
+      }
+      attachment =
+          new org.springframework.mock.web.MockMultipartFile(
+              "file", "filled-form-submission.xls", "application/vnd.ms-excel", is);
+    }
+
+    // formData part as application/json
+    final org.springframework.mock.web.MockMultipartFile jsonPart =
+        new org.springframework.mock.web.MockMultipartFile(
+            "formData", "formData", "application/json", objectMapper.writeValueAsBytes(formData));
+
+    // ACT & ASSERT - perform multipart request
+    this.mvc
+        .perform(
+            MockMvcRequestBuilders.multipart(baseUrl)
+                .file(attachment)
+                .file(jsonPart)
+                .header("Captcha-Token", recaptchaToken)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+        .andExpect(status().isOk());
+  }
+
   /**
    * Helper method for creating a JsonNode from a Json file.
    *
@@ -450,10 +499,10 @@ public class TermSuggestionFormControllerTests {
   }
 
   private boolean hasSmtpConfig() {
-    // check that MAIL_USERNAME and MAIL_PASSWORD are set
+    // check that MAIL_USER and MAIL_PASSWORD are set
     // as environment variables
-    if (System.getenv("MAIL_USERNAME") == null) {
-      log.info(" MAIL_USERNAME not set, skipping test");
+    if (System.getenv("MAIL_USER") == null) {
+      log.info(" MAIL_USER not set, skipping test");
       return false;
     }
     // to generate a valid MAIL_PASSWORD, you need to set up an App Password

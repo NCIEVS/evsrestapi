@@ -283,6 +283,30 @@ public class TermSuggestionFormServiceTest {
     assertFalse(termFormService.validateFileAttachment(testFile));
   }
 
+  /** Check that extra sheet added to the attachment fails validation. */
+  @Test
+  public void ExtraSheetAddedFailsValidation() throws Exception {
+    // SET UP
+    Path p = Paths.get("src/test/resources/formSamples/extra-sheets-submission.xls");
+    byte[] content = Files.readAllBytes(p);
+    MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
+
+    // ACT & ASSERT
+    assertFalse(termFormService.validateFileAttachment(testFile));
+  }
+
+  /** Check that changed sheet name in the attachment fails validation. */
+  @Test
+  public void ChangedSheetNameFailsValidation() throws Exception {
+    // SET UP
+    Path p = Paths.get("src/test/resources/formSamples/changed-sheets-submission.xls");
+    byte[] content = Files.readAllBytes(p);
+    MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
+
+    // ACT & ASSERT
+    assertFalse(termFormService.validateFileAttachment(testFile));
+  }
+
   /** Check that filled out form attachment passes validation. */
   @Test
   public void filledFormSubmissionPassesValidation() throws Exception {

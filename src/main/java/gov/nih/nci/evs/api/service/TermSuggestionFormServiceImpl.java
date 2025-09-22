@@ -203,7 +203,10 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       return false;
     }
     // Check file extension - expect .xls/xlsx (case-insensitive)
-    final String filename = file.getOriginalFilename();
+    String filename = file.getOriginalFilename();
+    if (file.getOriginalFilename().isBlank()) {
+      filename = file.getName();
+    }
     if (filename == null
         || !filename.toLowerCase().endsWith(".xls") && !filename.toLowerCase().endsWith(".xlsx")) {
       return false;
