@@ -341,11 +341,11 @@ public class TermSuggestionFormServiceTest {
     // Mock validateFileAttachment to return false
     when(mockedService.validateFileAttachment(file)).thenReturn(false);
 
-    // ACT & ASSERT: calling suggestWithAttachment should raise ResponseStatusException
+    // ACT & ASSERT: calling submitWithAttachment should raise ResponseStatusException
     ResponseStatusException ex =
         assertThrows(
             ResponseStatusException.class,
-            () -> controller.suggestWithAttachment(formData, file, null, "token"));
+            () -> controller.submitWithAttachment(formData, file, null, "token"));
 
     // Verify we got the EXPECTATION_FAILED status
     assertTrue(ex.getStatusCode() == HttpStatus.EXPECTATION_FAILED);

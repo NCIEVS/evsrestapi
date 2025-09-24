@@ -112,7 +112,7 @@ public class TermSuggestionFormControllerTests {
   /** Setup method to create a mock request for testing. */
   @BeforeEach
   public void setUp() {
-    baseUrl = "/api/v1/suggest/";
+    baseUrl = "/api/v1/submit/";
     //    termSuggestionFormController =
     //        new TermSuggestionFormController(termFormService, captchaService);
     request = new MockHttpServletRequest();
@@ -401,7 +401,7 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void integrationTestSubmitForm() throws Exception {
     // SET UP
-    baseUrl = "/api/v1/suggest";
+    baseUrl = "/api/v1/submit";
     final String formPath = "formSamples/submissionFormTest.json";
     JsonNode formData = createForm(formPath);
 
@@ -436,7 +436,7 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void integrationTestSubmitFormWithAttachment() throws Exception {
     // SET UP
-    baseUrl = "/api/v1/suggestWithAttachment";
+    baseUrl = "/api/v1/submitWithAttachment";
     final String formPath = "formSamples/submissionFormTestCDISC.json";
     JsonNode formData = createForm(formPath);
 

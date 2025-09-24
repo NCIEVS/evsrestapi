@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-/** Controller for /suggest endpoints. Hidden from Swagger/OpenAPI. */
+/** Controller for /submit endpoints. Hidden from Swagger/OpenAPI. */
 @Hidden
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
@@ -56,7 +56,7 @@ public class TermSuggestionFormController extends BaseController {
    * @return Response status and form, if successful
    * @throws Exception exception/ioexception
    */
-  @GetMapping("/suggest/{formType}")
+  @GetMapping("/submit/{formType}")
   @RecordMetric
   public ResponseEntity<?> getForm(
       @PathVariable(value = "formType") final String formType,
@@ -85,7 +85,7 @@ public class TermSuggestionFormController extends BaseController {
    * @return ResponseEntity the response
    * @throws Exception the exception
    */
-  @PostMapping("/suggest")
+  @PostMapping("/submit")
   @RecordMetric
   public void submitForm(
       @RequestBody JsonNode formData,
@@ -117,10 +117,10 @@ public class TermSuggestionFormController extends BaseController {
    * named `file`.
    */
   @PostMapping(
-      path = "/suggestWithAttachment",
+      path = "/submitWithAttachment",
       consumes = {"multipart/form-data"})
   @RecordMetric
-  public void suggestWithAttachment(
+  public void submitWithAttachment(
       @RequestPart("formData") JsonNode formData,
       @RequestPart(name = "file", required = false) MultipartFile file,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license,
