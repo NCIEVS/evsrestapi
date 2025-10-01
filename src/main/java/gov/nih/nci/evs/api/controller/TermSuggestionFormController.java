@@ -1,11 +1,5 @@
 package gov.nih.nci.evs.api.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import gov.nih.nci.evs.api.aop.RecordMetric;
-import gov.nih.nci.evs.api.model.EmailDetails;
-import gov.nih.nci.evs.api.service.CaptchaService;
-import gov.nih.nci.evs.api.service.TermSuggestionFormService;
-import io.swagger.v3.oas.annotations.Hidden;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -20,6 +14,14 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.fasterxml.jackson.databind.JsonNode;
+
+import gov.nih.nci.evs.api.aop.RecordMetric;
+import gov.nih.nci.evs.api.model.EmailDetails;
+import gov.nih.nci.evs.api.service.CaptchaService;
+import gov.nih.nci.evs.api.service.TermSuggestionFormService;
+import io.swagger.v3.oas.annotations.Hidden;
 
 /** Controller for /submit endpoints. Hidden from Swagger/OpenAPI. */
 @Hidden
@@ -113,8 +115,23 @@ public class TermSuggestionFormController extends BaseController {
   /**
    * Submit form data with an optional attachment.
    *
+   * <p>Sample call in curl form:
+   *
+   * <pre>
+   * curl -X POST "http://localhost:8082/submitWithAttachment" \
+   *  -H "Captcha-Token: your-captcha-token" \
+   *  -F 'formData=@src/test/resources/formSamples/testCDISC.json;type-application/json' \
+   *  -F "file=@src/test/resources/formSamples/submissionFormTestCDISC.xlsx"
+   * </pre>
+   *
    * <p>Accepts multipart/form-data with a JSON part named `formData` and an optional file part
    * named `file`.
+   *
+   * @param formData the form data
+   * @param file the file
+   * @param license the license
+   * @param captchaToken the captcha token
+   * @throws Exception the exception
    */
   @PostMapping(
       path = "/submitWithAttachment",
