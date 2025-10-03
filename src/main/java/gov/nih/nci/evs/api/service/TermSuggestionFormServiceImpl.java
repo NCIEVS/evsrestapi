@@ -124,6 +124,16 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     try {
       // Create the MimeMessage
       final MimeMessage message = mailSender.createMimeMessage();
+
+      // If application properties has an override for the mail recipient, use it
+      // this is to allow dev testing to send to a different account than specified
+      // in the form.  This also ensures in deployment environment that random
+      // emails cannot be specified in the form as a way to spam
+      if (applicationProperties.getMailRecipient() != null
+          && !applicationProperties.getMailRecipient().isEmpty()) {
+        emailDetails.setToEmail(applicationProperties.getMailRecipient());
+      }
+
       logger.info(
           "   Sending email for {} form to {}",
           emailDetails.getSource(),
@@ -166,12 +176,23 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     }
     try {
       final MimeMessage message = mailSender.createMimeMessage();
-      // true indicates multipart message
-      final MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+
+      // If application properties has an override for the mail recipient, use it
+      // this is to allow dev testing to send to a different account than specified
+      // in the form.  This also ensures in deployment environment that random
+      // emails cannot be specified in the form as a way to spam
+      if (applicationProperties.getMailRecipient() != null
+          && !applicationProperties.getMailRecipient().isEmpty()) {
+        emailDetails.setToEmail(applicationProperties.getMailRecipient());
+      }
+
       logger.info(
           "   Sending email for {} form to {}",
           emailDetails.getSource(),
           emailDetails.getToEmail());
+
+      // true indicates multipart message
+      final MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
       helper.setTo(emailDetails.getToEmail());
       helper.setFrom(emailDetails.getFromEmail());
       helper.setSubject(emailDetails.getSubject());
@@ -320,17 +341,25 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     for (final org.apache.poi.ss.util.CellRangeAddress region : sheet.getMergedRegions()) {
       if (region.isInRange(rowIndex, colIndex)) {
         final org.apache.poi.ss.usermodel.Row firstRow = sheet.getRow(region.getFirstRow());
-        if (firstRow == null) return "";
+        if (firstRow == null) {
+          return "";
+        }
         final org.apache.poi.ss.usermodel.Cell firstCell =
             firstRow.getCell(region.getFirstColumn());
-        if (firstCell == null) return "";
+        if (firstCell == null) {
+          return "";
+        }
         return formatter.formatCellValue(firstCell).trim();
       }
     }
     final org.apache.poi.ss.usermodel.Row row = sheet.getRow(rowIndex);
-    if (row == null) return "";
+    if (row == null) {
+      return "";
+    }
     final org.apache.poi.ss.usermodel.Cell cell = row.getCell(colIndex);
-    if (cell == null) return "";
+    if (cell == null) {
+      return "";
+    }
     return formatter.formatCellValue(cell).trim();
   }
 }

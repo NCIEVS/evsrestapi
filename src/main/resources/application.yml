@@ -24,7 +24,7 @@ spring:
   # Term Form Mail Server Properties
   mail:
     host: ${MAIL_HOST:mailfwd.nih.gov}
-    port: 25
+    port: ${MAIL_PORT:25}
     username: ${MAIL_USER:REPLACE_WITH_USERNAME}
     password: ${MAIL_PASSWORD:REPLACE_WITH_PASSWORD}
     properties:
@@ -78,6 +78,7 @@ nci:
     application:
       adminKey: ${NCI_EVS_ADMIN_KEY:Default}
       contextPath: ${NCI_EVS_API_PATH:/api/v1}
+      mailRecipient: ${MAIL_RECIPIENT:NciEvsCdiscHelp@mail.nih.gov}
       metricsEnabled: ${METRICS_ENABLED:false}
       metricsDir: ${METRICS_DIR}
       configBaseUri: ${CONFIG_BASE_URI:https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata}

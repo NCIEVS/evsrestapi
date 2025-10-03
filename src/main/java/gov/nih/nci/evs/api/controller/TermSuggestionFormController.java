@@ -1,5 +1,11 @@
 package gov.nih.nci.evs.api.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import gov.nih.nci.evs.api.aop.RecordMetric;
+import gov.nih.nci.evs.api.model.EmailDetails;
+import gov.nih.nci.evs.api.service.CaptchaService;
+import gov.nih.nci.evs.api.service.TermSuggestionFormService;
+import io.swagger.v3.oas.annotations.Hidden;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -14,14 +20,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import gov.nih.nci.evs.api.aop.RecordMetric;
-import gov.nih.nci.evs.api.model.EmailDetails;
-import gov.nih.nci.evs.api.service.CaptchaService;
-import gov.nih.nci.evs.api.service.TermSuggestionFormService;
-import io.swagger.v3.oas.annotations.Hidden;
 
 /** Controller for /submit endpoints. Hidden from Swagger/OpenAPI. */
 @Hidden
