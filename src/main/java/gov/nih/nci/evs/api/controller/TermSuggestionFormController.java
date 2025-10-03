@@ -1,19 +1,5 @@
 package gov.nih.nci.evs.api.controller;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import gov.nih.nci.evs.api.aop.RecordMetric;
-import gov.nih.nci.evs.api.model.EmailDetails;
-import gov.nih.nci.evs.api.service.CaptchaService;
-import gov.nih.nci.evs.api.service.TermSuggestionFormServiceImpl;
-import io.swagger.v3.oas.annotations.Hidden;
-import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -24,14 +10,23 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
 
-/** Controller for /suggest endpoints. */
+import com.fasterxml.jackson.databind.JsonNode;
+
+import gov.nih.nci.evs.api.aop.RecordMetric;
+import gov.nih.nci.evs.api.model.EmailDetails;
+import gov.nih.nci.evs.api.service.CaptchaService;
+import gov.nih.nci.evs.api.service.TermSuggestionFormService;
+import io.swagger.v3.oas.annotations.Hidden;
+
+/** Controller for /submit endpoints. Hidden from Swagger/OpenAPI. */
 @Hidden
 @RestController
 @RequestMapping("${nci.evs.application.contextPath}")
-@Tag(name = "Terminology form endpoints")
 public class TermSuggestionFormController extends BaseController {
 
   /** The Constant logger. */
@@ -40,7 +35,7 @@ public class TermSuggestionFormController extends BaseController {
 
   /** The email service. */
   // term form email service
-  private final TermSuggestionFormServiceImpl formService;
+  private final TermSuggestionFormService formService;
 
   private final CaptchaService captchaService;
 
@@ -50,7 +45,7 @@ public class TermSuggestionFormController extends BaseController {
    * @param emailService Form Email Service dependency
    */
   public TermSuggestionFormController(
-      TermSuggestionFormServiceImpl emailService, CaptchaService captchaService) {
+      TermSuggestionFormService emailService, CaptchaService captchaService) {
     this.formService = emailService;
     this.captchaService = captchaService;
   }
@@ -63,50 +58,7 @@ public class TermSuggestionFormController extends BaseController {
    * @return Response status and form, if successful
    * @throws Exception exception/ioexception
    */
-  @Operation(summary = "Get the suggestion form based on type parameter")
-  @ApiResponses({
-    @ApiResponse(
-        responseCode = "200",
-        description = "Successfully retrieved the requested information"),
-    @ApiResponse(
-        responseCode = "400",
-        description = "Bad request",
-        content =
-            @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = RestException.class))),
-    @ApiResponse(
-        responseCode = "404",
-        description = "Resource not found",
-        content =
-            @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = RestException.class))),
-    @ApiResponse(
-        responseCode = "417",
-        description = "Expectation failed",
-        content =
-            @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = RestException.class)))
-  })
-  @Parameters({
-    @Parameter(
-        name = "formType",
-        description = "type of form, e.g. ncit-form, cdisc-form",
-        required = true,
-        schema = @Schema(implementation = String.class),
-        example = "ncit-form"),
-    @Parameter(
-        name = "X-EVSRESTAPI-License-Key",
-        description =
-            "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
-                + " target='_blank'>See here for detailed information</a>.",
-        required = false,
-        schema = @Schema(implementation = String.class))
-  })
-  @GetMapping("/suggest/{formType}")
+  @GetMapping("/submit/{formType}")
   @RecordMetric
   public ResponseEntity<?> getForm(
       @PathVariable(value = "formType") final String formType,
@@ -123,7 +75,7 @@ public class TermSuggestionFormController extends BaseController {
     } catch (Exception e) {
       logger.error("Error reading form template: {}", formType, e);
       handleException(e, null);
-      return null;
+      throw e;
     }
   }
 
@@ -135,51 +87,7 @@ public class TermSuggestionFormController extends BaseController {
    * @return ResponseEntity the response
    * @throws Exception the exception
    */
-  @Operation(
-      summary =
-          "Receives the suggestion formData as JsonNode, converts to EmailDetails object and "
-              + "sends the email")
-  @ApiResponses({
-    @ApiResponse(
-        responseCode = "200",
-        description = "Successfully retrieved the requested information"),
-    @ApiResponse(
-        responseCode = "400",
-        description = "Bad request",
-        content =
-            @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = RestException.class))),
-    @ApiResponse(
-        responseCode = "404",
-        description = "Resource not found",
-        content =
-            @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = RestException.class))),
-    @ApiResponse(
-        responseCode = "417",
-        description = "Expectation failed",
-        content =
-            @Content(
-                mediaType = "application/json",
-                schema = @Schema(implementation = RestException.class)))
-  })
-  @io.swagger.v3.oas.annotations.parameters.RequestBody(
-      description = "The required suggestion term form filled out",
-      required = true,
-      content = @Content(schema = @Schema(implementation = JsonNode.class)))
-  @Parameters({
-    @Parameter(
-        name = "X-EVSRESTAPI-License-Key",
-        description =
-            "Required license information for restricted terminologies. <a"
-                + " href='https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/LICENSE.md'"
-                + " target='_blank'>See here for detailed information</a>.",
-        required = false,
-        schema = @Schema(implementation = String.class))
-  })
-  @PostMapping("/suggest")
+  @PostMapping("/submit")
   @RecordMetric
   public void submitForm(
       @RequestBody JsonNode formData,
@@ -191,7 +99,7 @@ public class TermSuggestionFormController extends BaseController {
       // Verify our captcha token
       if (!captchaService.verifyRecaptcha(captchaToken)) {
         logger.error("Failed to verify the submitted Recaptcha!");
-        throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Unable to submit form\n");
+        throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, "Unable to submit form\n");
       }
 
       // convert the form data into our email details object
@@ -200,6 +108,66 @@ public class TermSuggestionFormController extends BaseController {
       formService.sendEmail(emailDetails);
     } catch (Exception e) {
       logger.error("Error creating email details or sending email", e);
+      handleException(e, null);
+    }
+  }
+
+  /**
+   * Submit form data with an optional attachment.
+   *
+   * <p>Sample call in curl form:
+   *
+   * <pre>
+   * curl -X POST "http://localhost:8082/submitWithAttachment" \
+   *  -H "Captcha-Token: your-captcha-token" \
+   *  -F 'formData=@src/test/resources/formSamples/testCDISC.json;type-application/json' \
+   *  -F "file=@src/test/resources/formSamples/submissionFormTestCDISC.xlsx"
+   * </pre>
+   *
+   * <p>Accepts multipart/form-data with a JSON part named `formData` and an optional file part
+   * named `file`.
+   *
+   * @param formData the form data
+   * @param file the file
+   * @param license the license
+   * @param captchaToken the captcha token
+   * @throws Exception the exception
+   */
+  @PostMapping(
+      path = "/submitWithAttachment",
+      consumes = {"multipart/form-data"})
+  @RecordMetric
+  public void submitWithAttachment(
+      @RequestPart("formData") JsonNode formData,
+      @RequestPart(name = "file", required = false) MultipartFile file,
+      @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license,
+      @RequestHeader(name = "Captcha-Token") final String captchaToken)
+      throws Exception {
+    try {
+      // Verify our captcha token
+      if (!captchaService.verifyRecaptcha(captchaToken)) {
+        logger.error("Failed to verify the submitted Recaptcha!");
+        throw new ResponseStatusException(
+            HttpStatus.EXPECTATION_FAILED,
+            "Unable to submit form. Failed to verify the submitted Recaptcha!");
+      }
+
+      if (!formService.validateFileAttachment(file)) {
+        logger.error("Invalid attachment file, does not match the template.");
+        throw new ResponseStatusException(
+            HttpStatus.EXPECTATION_FAILED, "Invalid attachment file, does not match the template.");
+      }
+      // convert the form data into our email details object
+      EmailDetails emailDetails = EmailDetails.generateEmailDetails(formData);
+      if (!"CDISC".equals(emailDetails.getSource())) {
+        logger.error("Form type is not valid for attachment. Must be CDISC.");
+        throw new ResponseStatusException(
+            HttpStatus.EXPECTATION_FAILED, "Invalid form type for attachment. Must be CDISC.");
+      }
+      // Send the email with optional attachment
+      formService.sendEmailWithAttachment(emailDetails, file);
+    } catch (Exception e) {
+      logger.error("Error creating email details or sending email with attachment", e);
       handleException(e, null);
     }
   }

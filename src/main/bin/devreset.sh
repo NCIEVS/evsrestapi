@@ -151,6 +151,13 @@ if [[ ! -e "$dir/NDFRT/NDFRT_Public_2018.02.05_Inferred.owl" ]]; then
     exit 1
 fi
 
+# Check CTCAE6
+echo "    check CTCAE6"
+if [[ ! -e "$dir/CTCAE/ctcae6.owl" ]]; then
+    echo "ERROR: unexpectedly missing CTCAE/ctcae6.owl file"
+    exit 1
+fi
+
 # check status
 check_status() {
     local retval=$1
@@ -330,6 +337,7 @@ load_data(){
     load_terminology_data NCIT2 http://Canmed CanMed/CANMED.202506.owl
     load_terminology_data NCIT2 http://MEDRT MED-RT/MEDRT.2025-06-02.owl
     load_terminology_data NCIT2 http://CTCAE CTCAE/ctcae5.owl
+    load_terminology_data NCIT2 http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl CTCAE/ctcae6.owl
     load_terminology_data NCIT2 http://DUO_monthly DUO/duo_Feb21.owl
     load_terminology_data NCIT2 http://DUO_monthly DUO/iao_Dec20.owl
     load_terminology_data NCIT2 http://OBI_monthly OBI/obi_2022_07.owl

@@ -447,19 +447,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       if (ip.isChildren()) {
-        concept.setChildren(getChildren(conceptCode, terminology));
+        concept.setChildren(getChildren(concept.getCode(), terminology));
       }
 
       if (ip.isParents()) {
-        concept.setParents(getParents(conceptCode, terminology));
+        concept.setParents(getParents(concept.getCode(), terminology));
       }
 
       if (ip.isAssociations()) {
-        concept.setAssociations(getAssociations(conceptCode, terminology));
+        concept.setAssociations(getAssociations(concept.getCode(), terminology));
       }
 
       if (ip.isInverseAssociations()) {
-        concept.setInverseAssociations(getInverseAssociations(conceptCode, terminology));
+        concept.setInverseAssociations(getInverseAssociations(concept.getCode(), terminology));
       }
 
       // Only "concept" types have roles
