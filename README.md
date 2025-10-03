@@ -9,10 +9,12 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Before cloning the repo, make sure that the command `git config core.autocrlf` returns `false`. Change it to `false` using `git config --global core.autocrlf false` if necessary
 * Clone the project - [https://github.com/NCIEVS/evsrestapi](https://github.com/NCIEVS/evsrestapi)
 * Create a local data directory and set a `$dir` variable in your terminal. This `$dir` variable will be referenced multiple times in upcoming steps.
-  * `export set dir=C:/Users/carlsenbr/eclipse-workspace/data`
+  * Bash (Git Bash / WSL): `export dir="/c/Users/carlsenbr/eclipse-workspace/data"`
+  * Windows CMD: `set dir=C:\Users\carlsenbr\eclipse-workspace\data`
 * Execute `mkdir -p $dir/opensearch/data`
-* * Set a new variable `$ES_DIR` to the new directory just created. This `$ES_DIR` will be referenced in upcoming steps.
-* `export set ES_DIR=$dir/opensearch/data`
+- Set a new variable `$ES_DIR` to the new directory just created. This `$ES_DIR` will be referenced in upcoming steps.
+  * Bash: `export ES_DIR="$dir/opensearch/data"`
+  * Windows CMD: `set ES_DIR=%dir%\\opensearch\\data`
 * Download the "Unit Test Data" folder from <https://drive.google.com/drive/u/1/folders/11RcXLTsbOZ34_7ofKdVxLKHp_8aJGgTI>.  Unpack it to your `$dir` folder (so that `$dir/UnitTestData` exists)
   * run `prep.sh`
 
@@ -36,7 +38,7 @@ Information on the build and deployment process for the EVSRESTAPI project
   * MAIL_AUTH=true
   * MAIL_TLS=true
   * RECAPTCHA_KEY=<SITE_KEY_FROM_RECAPTCHA>
-  * {RECAPTCHA_SECRET=<SECRET_KEY_FROM_RECAPTCHA>
+  * RECAPTCHA_SECRET=<SECRET_KEY_FROM_RECAPTCHA>
 
 * Load the UnitTestData set by running `prep.sh`
   * Make sure that you can run all programs in `bash`, especially if on Mac which defaults to `zsh`
@@ -65,7 +67,7 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Set the "Main Class" to `gov.nih.nci.evs.api.Application`
 * In the "Arguments" tab, add to "VM Arguments" the value `-Dspring.profiles.active=local`
 * In the Environment variables add the email credentials and settings for testing:
-  * e.g. `AUTH=true;MAIL_USER=<testUserEmail@domain.com;TLS=true;MAIL_PASSWORD=#########;RECAPTCHA_KEY:########;RECAPTCHA_SECRET=#######`
+  * e.g. `AUTH=true;MAIL_USER=<testUserEmail@domain.com>;TLS=true;MAIL_PASSWORD=#########;RECAPTCHA_KEY=########;RECAPTCHA_SECRET=########`
 * Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui/index.html#/](http://localhost:8082/swagger-ui/index.html#/)
 
 ### Run application in IntelliJ
@@ -80,4 +82,4 @@ Information on the build and deployment process for the EVSRESTAPI project
 * Test that it's up by looking for swagger docs: [http://localhost:8082/swagger-ui/index.html#/](http://localhost:8082/swagger-ui/index.html#/)
 
 ### Run application from command line
-* Run with `java -Xmx4096 -Dspring.profiles.active=local -jar build/libs/evsrestapi*jar`
+* Run with `java -Xmx4096 -Dspring.profiles.active=local -jar build/libs/evsrestapi*.jar`
