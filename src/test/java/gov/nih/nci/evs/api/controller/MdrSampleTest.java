@@ -4,19 +4,13 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.model.TerminologyMetadata;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeAll;
@@ -31,6 +25,15 @@ import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
+
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 
 /** NCIt samples test. */
 @ExtendWith(SpringExtension.class)
@@ -178,10 +181,9 @@ public class MdrSampleTest extends SampleTest {
 
     assertThat(mdr.getLatest()).isTrue();
 
-    // Load from config
+    // Load from config (verify this works)
     final JsonNode node = getMetadataAsNode("mdr");
-    final TerminologyMetadata metadata =
-        new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
+    new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
   }
 
   /**
