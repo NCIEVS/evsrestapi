@@ -4,6 +4,8 @@ import com.fasterxml.jackson.databind.JsonNode;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 /**
  * EmailDetails model, created from a JsonObject data form. This allows us to handle the form data
@@ -148,28 +150,28 @@ public class EmailDetails extends BaseModel {
     } else {
       final EmailDetails emailDetails = new EmailDetails();
       // Set the values from the form data
-      final String formName = formData.get("formName").textValue();
-      final String recipientEmail = formData.get("recipientEmail").textValue();
-      final String businessEmail = formData.get("businessEmail").textValue();
-      final String subject = formData.get("subject").textValue();
+      final String formName = formData.path("formName").asText(null);
+      final String recipientEmail = formData.path("recipientEmail").asText(null);
+      final String businessEmail = formData.path("businessEmail").asText(null);
+      final String subject = formData.path("subject").asText(null);
 
       // format the json object to a string
-      final String body = generateHtmlEmailBody(formData.get("body"));
+      final String body = generateHtmlEmailBody(formData.path("body"));
 
       if (formName == null
           || formName.isEmpty()
           || recipientEmail == null
           || recipientEmail.isEmpty()) {
-        throw new Exception(nullError);
+        throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, nullError);
       }
       if (businessEmail == null || businessEmail.isEmpty()) {
-        throw new Exception(nullError);
+        throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, nullError);
       }
       if (subject == null || subject.isEmpty()) {
-        throw new Exception(nullError);
+        throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, nullError);
       }
       if (body == null || body.isEmpty()) {
-        throw new Exception(nullError);
+        throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, nullError);
       }
 
       // populate the emailDetails
@@ -253,9 +255,15 @@ public class EmailDetails extends BaseModel {
   /* see superclass */
   @Override
   public boolean equals(Object obj) {
-    if (this == obj) return true;
-    if (obj == null) return false;
-    if (getClass() != obj.getClass()) return false;
+    if (this == obj) {
+      return true;
+    }
+    if (obj == null) {
+      return false;
+    }
+    if (getClass() != obj.getClass()) {
+      return false;
+    }
     EmailDetails other = (EmailDetails) obj;
     return Objects.equals(fromEmail, other.fromEmail)
         && Objects.equals(msgBody, other.msgBody)

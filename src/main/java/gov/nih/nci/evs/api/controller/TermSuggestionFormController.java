@@ -1,5 +1,11 @@
 package gov.nih.nci.evs.api.controller;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import gov.nih.nci.evs.api.aop.RecordMetric;
+import gov.nih.nci.evs.api.model.EmailDetails;
+import gov.nih.nci.evs.api.service.CaptchaService;
+import gov.nih.nci.evs.api.service.TermSuggestionFormService;
+import io.swagger.v3.oas.annotations.Hidden;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -14,14 +20,6 @@ import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
-
-import com.fasterxml.jackson.databind.JsonNode;
-
-import gov.nih.nci.evs.api.aop.RecordMetric;
-import gov.nih.nci.evs.api.model.EmailDetails;
-import gov.nih.nci.evs.api.service.CaptchaService;
-import gov.nih.nci.evs.api.service.TermSuggestionFormService;
-import io.swagger.v3.oas.annotations.Hidden;
 
 /** Controller for /submit endpoints. Hidden from Swagger/OpenAPI. */
 @Hidden
@@ -118,10 +116,10 @@ public class TermSuggestionFormController extends BaseController {
    * <p>Sample call in curl form:
    *
    * <pre>
-   * curl -X POST "http://localhost:8082/submitWithAttachment" \
-   *  -H "Captcha-Token: your-captcha-token" \
-   *  -F 'formData=@src/test/resources/formSamples/testCDISC.json;type-application/json' \
-   *  -F "file=@src/test/resources/formSamples/submissionFormTestCDISC.xlsx"
+   * curl -X POST "http://localhost:8082/api/v1/submitWithAttachment" \
+   * -H "Captcha-Token: TEST-KEY" \
+   * -F 'formData=@src/test/resources/formSamples/submissionFormTestCDISC.json;type=application/json' \
+   * -F "file=@src/test/resources/formSamples/filled-form-submission.xls"
    * </pre>
    *
    * <p>Accepts multipart/form-data with a JSON part named `formData` and an optional file part
@@ -144,6 +142,7 @@ public class TermSuggestionFormController extends BaseController {
       @RequestHeader(name = "Captcha-Token") final String captchaToken)
       throws Exception {
     try {
+
       // Verify our captcha token
       if (!captchaService.verifyRecaptcha(captchaToken)) {
         logger.error("Failed to verify the submitted Recaptcha!");
