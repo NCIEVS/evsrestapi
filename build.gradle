@@ -38,7 +38,8 @@ repositories {
   mavenCentral()
 }
 
-ext['log4j2.version'] = '2.25.0'
+// Avoid specifying version unless needed
+// ext['log4j2.version'] = '2.25.0'
 
 // Extra Properties
 ext {
