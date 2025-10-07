@@ -337,7 +337,7 @@ load_data(){
     load_terminology_data NCIT2 http://Canmed CanMed/CANMED.202506.owl
     load_terminology_data NCIT2 http://MEDRT MED-RT/MEDRT.2025-06-02.owl
     load_terminology_data NCIT2 http://CTCAE CTCAE/ctcae5.owl
-    load_terminology_data NCIT2 http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl CTCAE/ctcae6.owl
+    load_terminology_data NCIT2 http://CTCAE6 CTCAE/ctcae6.owl
     load_terminology_data NCIT2 http://DUO_monthly DUO/duo_Feb21.owl
     load_terminology_data NCIT2 http://DUO_monthly DUO/iao_Dec20.owl
     load_terminology_data NCIT2 http://OBI_monthly OBI/obi_2022_07.owl
