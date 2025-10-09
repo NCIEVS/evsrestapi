@@ -187,6 +187,7 @@ public class RrfSampleGenerator {
       codesabs.addAll(srcCodesabs);
       logger.info("    with src codes count = " + codesabs.size());
 
+      // Walk to root
       int prevCt = -1;
       do {
         prevCt = codesabs.size();
@@ -228,6 +229,26 @@ public class RrfSampleGenerator {
       // Add descendants of original code list back in here (empty if false)
       codesabs.addAll(
           descendants.stream().map(a -> auiCodesabMap.get(a)).collect(Collectors.toSet()));
+
+      // Now, for each codesab, find the CUIs that it is part of
+      // If those CUIs have any codesabs, include them as well before
+      // we get the final CUI list.  We are not gathering any extra
+      // descendants/parents/distance one, just making sure every
+      // codesab has the CUI containing its "preferred name"
+      logger.info("  Compute closure on final codesabs set");
+      prevCt = -1;
+      do {
+        prevCt = codesabs.size();
+
+        for (final String codesab : new HashSet<>(codesabs)) {
+          for (final String cui : codesabCuisMap.get(codesab)) {
+            codesabs.addAll(cuiCodesabsMap.get(cui));
+          }
+        }
+        logger.info("    count (after closure) = " + codesabs.size());
+        logger.info("    prev count = " + prevCt);
+
+      } while (codesabs.size() != prevCt);
 
       // Map codes to CUIs (this will pick up some source codes in extra
       // CUIs that are not themselves in codesabs and so we wind up with

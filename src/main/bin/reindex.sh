@@ -362,6 +362,7 @@ download_ncit_history() {
   # Prep dir
   /bin/rm -rf $DIR/NCIT_HISTORY
   mkdir $DIR/NCIT_HISTORY
+  echo "CD $DIR/NCIT_HISTORY"
   cd $DIR/NCIT_HISTORY
 
   # Download file (try 5 times)
@@ -384,15 +385,14 @@ download_ncit_history() {
         -H 'accept: application/json')
       if [[ $? -ne 0 ]]; then
           echo "ERROR: Failed to get latest terminology from http://localhost:${serverPort}/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
-          cd - > /dev/null 2> /dev/null
-          if [[ serverPort -eq 8082 ]]; then
+          if [[ $serverPort -eq 8082 ]]; then
               echo "  Setting default history version on local to 25.06e"
               prev_version="25.06e"
           else
               echo "  Failed to find terminology version on non-local server, exiting"
-              cd - > /dev/null
-              return 1
           fi
+          cd - > /dev/null
+          return 1
 
       fi
       echo "      response = $response"
@@ -514,6 +514,7 @@ for x in `cat /tmp/y.$$.txt`; do
         echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
         java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
         if [[ $? -ne 0 ]]; then
+            echo "pwd = `pwd`"
             echo "ERROR: unexpected error building indexes"
             exit 1
         fi
@@ -606,9 +607,8 @@ done
 # regardless of whether there was new data
 echo "    RECONCILE ALL stale indexes and update flags"
 export EVS_SERVER_PORT="8083"
-java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology reconcile --skipLoad > /tmp/x.$$.log 2>&1 
+java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology reconcile --skipLoad
 if [[ $? -ne 0 ]]; then
-    cat /tmp/x.$$.log | sed 's/^/    /'
     echo "ERROR: unexpected error reconciling indexes"
     exit 1
 fi

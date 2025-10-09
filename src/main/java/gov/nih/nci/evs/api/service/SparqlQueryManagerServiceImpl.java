@@ -195,19 +195,23 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // Extract a version if a owl:versionIRI was used
       term.setVersion(b.getVersion().getValue().replaceFirst(".*/([\\d-]+)/[a-zA-Z]+.owl", "$1"));
       // term.setName(TerminologyUtils.constructName(comment, version));
-      log.debug(
-          "setting date in Sparql from "
-              + ((b.getDate() == null) ? term.getVersion() : b.getDate().getValue()));
-      log.debug(
-          "setting date in Sparql to "
-              + FhirUtility.convertToYYYYMMDD(
-                  (b.getDate() == null) ? term.getVersion() : b.getDate().getValue()));
-      term.setDate(
-          FhirUtility.convertToYYYYMMDD(
-              (b.getDate() == null) ? term.getVersion() : b.getDate().getValue()));
       term.setGraph(graphName);
       term.setSource(b.getSource().getValue());
       term.setTerminology(getTerm(term.getSource()));
+
+      final String startDate =
+          FhirUtility.convertToYYYYMMDD(
+              (b.getDate() == null) ? term.getVersion() : b.getDate().getValue());
+      //      log.debug(
+      //          "    "
+      //              + term.getTerminology()
+      //              + " start date = "
+      //              + startDate
+      //              + " ("
+      //              + ((b.getDate() == null) ? term.getVersion() : b.getDate().getValue())
+      //              + ")");
+      term.setDate(startDate);
+
       termList.add(term);
     }
 
@@ -443,19 +447,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       if (ip.isChildren()) {
-        concept.setChildren(getChildren(conceptCode, terminology));
+        concept.setChildren(getChildren(concept.getCode(), terminology));
       }
 
       if (ip.isParents()) {
-        concept.setParents(getParents(conceptCode, terminology));
+        concept.setParents(getParents(concept.getCode(), terminology));
       }
 
       if (ip.isAssociations()) {
-        concept.setAssociations(getAssociations(conceptCode, terminology));
+        concept.setAssociations(getAssociations(concept.getCode(), terminology));
       }
 
       if (ip.isInverseAssociations()) {
-        concept.setInverseAssociations(getInverseAssociations(conceptCode, terminology));
+        concept.setInverseAssociations(getInverseAssociations(concept.getCode(), terminology));
       }
 
       // Only "concept" types have roles

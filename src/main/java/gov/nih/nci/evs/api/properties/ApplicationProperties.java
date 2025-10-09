@@ -11,6 +11,9 @@ public class ApplicationProperties {
   /** The context path. */
   private String contextPath;
 
+  /** The mail recipient. */
+  private String mailRecipient;
+
   /** The metric log switch. */
   private Boolean metricsEnabled;
 
@@ -73,6 +76,24 @@ public class ApplicationProperties {
    */
   public void setContextPath(final String contextPath) {
     this.contextPath = contextPath;
+  }
+
+  /**
+   * Gets the mail recipient.
+   *
+   * @return the mail recipient
+   */
+  public String getMailRecipient() {
+    return mailRecipient;
+  }
+
+  /**
+   * Sets the mail recipient.
+   *
+   * @param mailRecipient the new mail recipient
+   */
+  public void setMailRecipient(final String mailRecipient) {
+    this.mailRecipient = mailRecipient;
   }
 
   /**

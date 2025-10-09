@@ -8,7 +8,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - FHIR improvements (improved param support, improved swagger, improved metadata, more tests)
 - Improvements to computed childhood neoplasm subsets
-- Improved handling of complex defintions
+- Improved handling of complex definitions
 - Improved handling of NCI Thesaurus cumulative history
 
 ## [2.1.1.RELEASE] - 2025-04-30
@@ -98,7 +98,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added an additional "value" parameter that works with "property" and can also work with "term" 
 - Added "has terminology hierarchy" info to terminology metadata to allow setting hierarchy links for terms that have a valid hierarchy
-- Loading/Indexing of the Chebi terminologyI.
+- Loading/Indexing of the ChEBI terminology.
 - Loading/Indexing of the HGNC terminology.
 - Loading/Indexing of the GO terminology.
 - Add API endpoint for terminology "welcome text"

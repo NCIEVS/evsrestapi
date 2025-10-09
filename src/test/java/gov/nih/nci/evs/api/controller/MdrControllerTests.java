@@ -177,7 +177,7 @@ public class MdrControllerTests {
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("10009802");
-    assertThat(concept.getAssociations().size()).isEqualTo(8);
+    assertThat(concept.getAssociations().size()).isEqualTo(11);
     assertThat(
             concept.getAssociations().stream()
                 .filter(a -> a.getRelatedCode().equals("10013206"))
@@ -192,7 +192,7 @@ public class MdrControllerTests {
                 .getType())
         .isEqualTo("RQ");
 
-    assertThat(concept.getInverseAssociations().size()).isEqualTo(8);
+    assertThat(concept.getInverseAssociations().size()).isEqualTo(11);
     assertThat(
             concept.getInverseAssociations().stream()
                 .filter(a -> a.getRelatedCode().equals("10064732"))
@@ -209,7 +209,7 @@ public class MdrControllerTests {
             .getValue()
             .equals("classified_as"));
 
-    assertThat(concept.getChildren().size()).isEqualTo(8);
+    assertThat(concept.getChildren().size()).isEqualTo(10);
     // single source children don't have terminology/version
     assertThat(concept.getChildren().get(0).getTerminology()).isNull();
     assertThat(concept.getChildren().get(0).getVersion()).isNull();
@@ -460,7 +460,7 @@ public class MdrControllerTests {
                 new TypeReference<List<Concept>>() {
                   // n/a
                 });
-    assertThat(list).isEmpty();
+    assertThat(list).isNotEmpty();
 
     // Handle definitionTypes
     url = base + "/definitionTypes";
@@ -478,7 +478,7 @@ public class MdrControllerTests {
                 new TypeReference<List<Concept>>() {
                   // n/a
                 });
-    assertThat(list.size()).isEqualTo(0);
+    assertThat(list.size()).isEqualTo(1);
     // No definitions in MDR
     // assertThat(list.get(0).getCode()).isEqualTo("DEFINITION");
 
@@ -597,7 +597,7 @@ public class MdrControllerTests {
                   // n/a
                 });
     assertThat(list).isNotEmpty();
-    assertThat(list.size()).isEqualTo(10);
+    assertThat(list.size()).isEqualTo(15);
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("LLT");
     assertThat(list.stream().map(c -> c.getCode()).collect(Collectors.toSet())).contains("PT");
   }
@@ -616,7 +616,7 @@ public class MdrControllerTests {
     List<String> list = null;
 
     // NCIM qualifier values
-    url = "/api/v1/metadata/mdr/qualifier/SMQ_TERM_LEVEL/values";
+    url = "/api/v1/metadata/mdr/qualifier/SMQ_TERM_CAT/values";
     log.info("Testing url - " + url);
     result =
         mvc.perform(get(url).header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense()))
@@ -632,7 +632,7 @@ public class MdrControllerTests {
                   // n/a
                 });
     assertThat(list).isNotNull();
-    assertThat(list.size()).isEqualTo(2);
+    assertThat(list.size()).isEqualTo(10);
   }
 
   /**
