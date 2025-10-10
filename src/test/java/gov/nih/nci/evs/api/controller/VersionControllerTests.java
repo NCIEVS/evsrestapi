@@ -154,6 +154,9 @@ public class VersionControllerTests {
     String path = "src/main/resources/META-INF/resources/webjars/swagger-ui/" + swaggerUiVersion;
 
     // Check if the path exists and the versions match
+    // If this does NOT match, you need to do a "find" in the "src/main/resources/META-INF"
+    // for the old swagger version in all files and replace with the new one.
+    // And also add src/main/resources/META-INF/resources/webjars/swagger-ui/<new-version>
     assertThat(Files.exists(Paths.get(path)))
         .withFailMessage(
             "The Swagger UI version does not match the folder structure: expected version %s at"
