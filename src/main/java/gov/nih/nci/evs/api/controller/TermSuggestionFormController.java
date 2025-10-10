@@ -56,7 +56,7 @@ public class TermSuggestionFormController extends BaseController {
    * @return Response status and form, if successful
    * @throws Exception exception/ioexception
    */
-  @GetMapping("/submit/{formType}")
+  @GetMapping("/form/suggest/{formType}")
   @RecordMetric
   public ResponseEntity<?> getForm(
       @PathVariable(value = "formType") final String formType,
@@ -85,7 +85,7 @@ public class TermSuggestionFormController extends BaseController {
    * @return ResponseEntity the response
    * @throws Exception the exception
    */
-  @PostMapping("/submit")
+  @PostMapping("/form/submit")
   @RecordMetric
   public void submitForm(
       @RequestBody JsonNode formData,
@@ -132,7 +132,7 @@ public class TermSuggestionFormController extends BaseController {
    * @throws Exception the exception
    */
   @PostMapping(
-      path = "/submitWithAttachment",
+      path = "/form/submitWithAttachment",
       consumes = {"multipart/form-data"})
   @RecordMetric
   public void submitWithAttachment(
