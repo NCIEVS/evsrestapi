@@ -1,5 +1,23 @@
 package gov.nih.nci.evs.api.service;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.ApplicationContext;
+import org.springframework.core.env.Environment;
+import org.springframework.stereotype.Service;
+
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Mapping;
@@ -11,23 +29,6 @@ import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.IntStream;
-import org.apache.tomcat.util.buf.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationContext;
-import org.springframework.core.env.Environment;
-import org.springframework.stereotype.Service;
 
 /**
  * The implementation for {@link BaseLoaderService}.
@@ -247,8 +248,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
     final String mappingUri = uri.replaceFirst("config/metadata", "data/mappings/");
     final String mapsetMetadataUri = uri + "/mapsetMetadata.txt";
     logger.info("  Download mapset metadata = " + mapsetMetadataUri);
-    final String rawMetadata =
-        StringUtils.join(EVSUtils.getValueFromFile(mapsetMetadataUri, "mapsetMetadataUri"), '\n');
+    final String rawMetadata = EVSUtils.getValueFromFile(mapsetMetadataUri);
     List<String> allLines = Arrays.asList(rawMetadata.split("\n"));
     allLines = allLines.subList(1, allLines.size());
 
@@ -354,7 +354,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       // Get the welcome text
       if (metadata[3] != null && !metadata[3].isEmpty() && metadata[3].length() > 1) {
         final String welcomeText =
-            String.join("\n", EVSUtils.getValueFromFile(uri + "/" + metadata[3], "welcomeText"));
+            String.join("\n", EVSUtils.getValueFromFile(uri + "/" + metadata[3]));
 
         // Configure source/target terminology and version
         map.getProperties().add(new Property("welcomeText", welcomeText));
@@ -374,8 +374,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                 + map.getName()
                 + (map.getVersion() != null ? ("_" + map.getVersion()) : "")
                 + ".txt";
-        final String mappingData =
-            StringUtils.join(EVSUtils.getValueFromFile(mappingDataUri, "mappingDataUri"), '\n');
+        final String mappingData = EVSUtils.getValueFromFile(mappingDataUri);
         map.setMaps(buildMaps(mappingData, metadata));
       }
 
@@ -394,8 +393,7 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
                   + (map.getVersion() != null ? ("_" + map.getVersion()) : "")
                   + ".csv";
 
-          final String mappingData =
-              StringUtils.join(EVSUtils.getValueFromFile(mappingDataUri, "mappingDataUri"), '\n');
+          final String mappingData = EVSUtils.getValueFromFile(mappingDataUri);
           map.setMaps(buildMaps(mappingData, metadata));
         }
       } else {

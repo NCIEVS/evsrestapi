@@ -97,11 +97,11 @@ public class FhirR4ConceptMapReadSearchTests {
   @Test
   public void testConceptMapSearch() throws Exception {
     // Arrange
-    String content = this.restTemplate.getForObject(localHost + port + fhirCMPath, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
+    final String content = this.restTemplate.getForObject(localHost + port + fhirCMPath, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
 
     // Act
-    List<Resource> conceptMaps =
+    final List<Resource> conceptMaps =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     // Verify things about this one
@@ -112,9 +112,9 @@ public class FhirR4ConceptMapReadSearchTests {
 
     // Assert
     assertFalse(conceptMaps.isEmpty());
-    for (Resource cm : conceptMaps) {
+    for (final Resource cm : conceptMaps) {
       log.info("  concept map = " + parser.encodeResourceToString(cm));
-      ConceptMap cmm = (ConceptMap) cm;
+      final ConceptMap cmm = (ConceptMap) cm;
       assertNotNull(cmm);
       assertEquals(ResourceType.ConceptMap, cmm.getResourceType());
       assertNotNull(cmm.getIdPart());
@@ -136,18 +136,18 @@ public class FhirR4ConceptMapReadSearchTests {
   @Test
   public void testConceptMapRead() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirCMPath;
+    final String endpoint = localHost + port + fhirCMPath;
 
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> conceptMaps =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> conceptMaps =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     // Act
-    String firstConceptMapId = conceptMaps.get(0).getIdPart();
+    final String firstConceptMapId = conceptMaps.get(0).getIdPart();
     // reassign content
     content = this.restTemplate.getForObject(endpoint + "/" + firstConceptMapId, String.class);
-    ConceptMap conceptMap = parser.parseResource(ConceptMap.class, content);
+    final ConceptMap conceptMap = parser.parseResource(ConceptMap.class, content);
 
     // Assert
     assertNotNull(conceptMap);
@@ -166,12 +166,12 @@ public class FhirR4ConceptMapReadSearchTests {
   @Test
   public void testConceptMapReadStaticId() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirCMPath;
-    String conceptMapId = "icd10_to_meddra_mapping_july2021";
+    final String endpoint = localHost + port + fhirCMPath;
+    final String conceptMapId = "icd10_to_meddra_mapping_july2021";
 
     // Act
-    String content = this.restTemplate.getForObject(endpoint + "/" + conceptMapId, String.class);
-    ConceptMap conceptMap = parser.parseResource(ConceptMap.class, content);
+    final String content = this.restTemplate.getForObject(endpoint + "/" + conceptMapId, String.class);
+    final ConceptMap conceptMap = parser.parseResource(ConceptMap.class, content);
 
     // Assert
     assertNotNull(conceptMap);
@@ -197,15 +197,15 @@ public class FhirR4ConceptMapReadSearchTests {
   @Test
   public void testConceptMapReadBadId() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirCMPath;
-    String invalidId = "invalid_id";
-    String messageNotFound = "Concept map not found = " + invalidId;
-    String errorCode = "not-found";
+    final String endpoint = localHost + port + fhirCMPath;
+    final String invalidId = "invalid_id";
+    final String messageNotFound = "Concept map not found = " + invalidId;
+    final String errorCode = "not-found";
 
     // Act
-    String content = this.restTemplate.getForObject(endpoint + "/" + invalidId, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final String content = this.restTemplate.getForObject(endpoint + "/" + invalidId, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -220,7 +220,7 @@ public class FhirR4ConceptMapReadSearchTests {
   @Test
   public void testConceptMapSearchWithParameters() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirCMPath;
+    final String endpoint = localHost + port + fhirCMPath;
 
     // Test 1: All valid parameters
     UriComponentsBuilder builder =
@@ -309,8 +309,8 @@ public class FhirR4ConceptMapReadSearchTests {
    * @param expectResults the expect results
    */
   // Helper method to validate results
-  private void validateConceptMapResults(Bundle data, boolean expectResults) {
-    List<Resource> conceptMaps =
+  private void validateConceptMapResults(final Bundle data, final boolean expectResults) {
+    final List<Resource> conceptMaps =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     if (expectResults) {
@@ -319,9 +319,9 @@ public class FhirR4ConceptMapReadSearchTests {
       final Set<String> urls =
           new HashSet<>(Set.of("http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping"));
 
-      for (Resource cm : conceptMaps) {
+      for (final Resource cm : conceptMaps) {
         log.info(" concept map = " + parser.encodeResourceToString(cm));
-        ConceptMap cmm = (ConceptMap) cm;
+        final ConceptMap cmm = (ConceptMap) cm;
         assertNotNull(cmm);
         assertEquals(ResourceType.ConceptMap, cmm.getResourceType());
         assertNotNull(cmm.getIdPart());
@@ -346,44 +346,44 @@ public class FhirR4ConceptMapReadSearchTests {
   @Test
   public void testConceptMapSearchPagination() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirCMPath;
+    final String endpoint = localHost + port + fhirCMPath;
 
     // Test 1: Get default results without pagination
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle defaultData = parser.parseResource(Bundle.class, content);
-    List<Resource> defaultConceptMaps =
+    final Bundle defaultData = parser.parseResource(Bundle.class, content);
+    final List<Resource> defaultConceptMaps =
         defaultData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Test 2: Get first page (count=2)
-    UriComponentsBuilder firstPageBuilder =
+    final UriComponentsBuilder firstPageBuilder =
         UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2");
 
     content =
         this.restTemplate.getForObject(firstPageBuilder.build().encode().toUri(), String.class);
-    Bundle firstPageData = parser.parseResource(Bundle.class, content);
-    List<Resource> firstPageMaps =
+    final Bundle firstPageData = parser.parseResource(Bundle.class, content);
+    final List<Resource> firstPageMaps =
         firstPageData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Test 3: Get second page (count=2, offset=2)
-    UriComponentsBuilder secondPageBuilder =
+    final UriComponentsBuilder secondPageBuilder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2")
             .queryParam("_offset", "2");
 
     content =
         this.restTemplate.getForObject(secondPageBuilder.build().encode().toUri(), String.class);
-    Bundle secondPageData = parser.parseResource(Bundle.class, content);
-    List<Resource> secondPageMaps =
+    final Bundle secondPageData = parser.parseResource(Bundle.class, content);
+    final List<Resource> secondPageMaps =
         secondPageData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Test 4: Try to exceed maximum count (should return all)
-    UriComponentsBuilder maxExceededBuilder =
+    final UriComponentsBuilder maxExceededBuilder =
         UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "10000");
 
     content =
         this.restTemplate.getForObject(maxExceededBuilder.build().encode().toUri(), String.class);
-    Bundle maxPageData = parser.parseResource(Bundle.class, content);
-    List<Resource> maxPageMaps =
+    final Bundle maxPageData = parser.parseResource(Bundle.class, content);
+    final List<Resource> maxPageMaps =
         maxPageData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Assertions for pagination
@@ -393,13 +393,13 @@ public class FhirR4ConceptMapReadSearchTests {
     assertTrue(defaultConceptMaps.size() <= maxPageMaps.size());
 
     // Verify that concatenated pages equal first 4 of full results
-    List<String> fourIds =
+    final List<String> fourIds =
         defaultConceptMaps.subList(0, 4).stream()
             .map(resource -> resource.getIdPart())
             .sorted()
             .toList();
 
-    List<String> paginatedIds =
+    final List<String> paginatedIds =
         Stream.concat(firstPageMaps.stream(), secondPageMaps.stream())
             .map(resource -> resource.getIdPart())
             .sorted()
@@ -408,7 +408,7 @@ public class FhirR4ConceptMapReadSearchTests {
     assertEquals(fourIds, paginatedIds);
 
     // Verify content of individual resources
-    for (Resource cs : defaultConceptMaps) {
+    for (final Resource cs : defaultConceptMaps) {
       validateConceptMapPagination((ConceptMap) cs);
     }
   }
@@ -418,7 +418,7 @@ public class FhirR4ConceptMapReadSearchTests {
    *
    * @param cm the cm
    */
-  private void validateConceptMapPagination(ConceptMap cm) {
+  private void validateConceptMapPagination(final ConceptMap cm) {
     assertNotNull(cm);
     assertEquals(ResourceType.ConceptMap, cm.getResourceType());
     assertNotNull(cm.getIdPart());
@@ -442,95 +442,95 @@ public class FhirR4ConceptMapReadSearchTests {
   @Test
   public void testConceptMapSearchVariantsWithParameters() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirCMPath;
+    final String endpoint = localHost + port + fhirCMPath;
 
     // Test 1: Get initial list of ConceptMaps
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> conceptMaps =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> conceptMaps =
         data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
-    ConceptMap firstConceptMap = (ConceptMap) conceptMaps.get(0);
-    String firstConceptMapName = firstConceptMap.getName();
+    final ConceptMap firstConceptMap = (ConceptMap) conceptMaps.get(0);
+    final String firstConceptMapName = firstConceptMap.getName();
 
     // Test 2: Basic name search (without modifier)
-    String basicNameUrl =
+    final String basicNameUrl =
         endpoint + "?name=" + URLEncoder.encode(firstConceptMapName, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(basicNameUrl, String.class);
-    Bundle basicNameBundle = parser.parseResource(Bundle.class, content);
+    final Bundle basicNameBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(basicNameBundle.getEntry());
     assertFalse(basicNameBundle.getEntry().isEmpty());
-    ConceptMap basicMatchMap = (ConceptMap) basicNameBundle.getEntry().get(0).getResource();
+    final ConceptMap basicMatchMap = (ConceptMap) basicNameBundle.getEntry().get(0).getResource();
     assertEquals(firstConceptMapName, basicMatchMap.getName());
 
     // Test 3: Exact match (case insensitive)
-    String upperCaseName = firstConceptMapName.toUpperCase();
-    String exactMatchUrl =
+    final String upperCaseName = firstConceptMapName.toUpperCase();
+    final String exactMatchUrl =
         endpoint + "?name:exact=" + URLEncoder.encode(upperCaseName, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(exactMatchUrl, String.class);
-    Bundle exactMatchBundle = parser.parseResource(Bundle.class, content);
+    final Bundle exactMatchBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(exactMatchBundle.getEntry());
     assertFalse(exactMatchBundle.getEntry().isEmpty());
-    ConceptMap exactMatchMap = (ConceptMap) exactMatchBundle.getEntry().get(0).getResource();
+    final ConceptMap exactMatchMap = (ConceptMap) exactMatchBundle.getEntry().get(0).getResource();
     assertTrue(exactMatchMap.getName().equalsIgnoreCase(upperCaseName));
 
     // Test 4: Contains search
-    String partialName = firstConceptMapName.substring(1, firstConceptMapName.length() - 1);
-    String containsUrl =
+    final String partialName = firstConceptMapName.substring(1, firstConceptMapName.length() - 1);
+    final String containsUrl =
         endpoint + "?name:contains=" + URLEncoder.encode(partialName, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(containsUrl, String.class);
-    Bundle containsBundle = parser.parseResource(Bundle.class, content);
+    final Bundle containsBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(containsBundle.getEntry());
     assertFalse(containsBundle.getEntry().isEmpty());
-    boolean foundContainsMatch =
+    final boolean foundContainsMatch =
         containsBundle.getEntry().stream()
             .map(entry -> ((ConceptMap) entry.getResource()).getName())
             .anyMatch(name -> name.toLowerCase().contains(partialName.toLowerCase()));
     assertTrue(foundContainsMatch);
 
     // Test 5: Starts with search
-    String namePrefix = firstConceptMapName.substring(0, 3);
-    String startsWithUrl =
+    final String namePrefix = firstConceptMapName.substring(0, 3);
+    final String startsWithUrl =
         endpoint + "?name:startsWith=" + URLEncoder.encode(namePrefix, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(startsWithUrl, String.class);
-    Bundle startsWithBundle = parser.parseResource(Bundle.class, content);
+    final Bundle startsWithBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(startsWithBundle.getEntry());
     assertFalse(startsWithBundle.getEntry().isEmpty());
-    boolean foundStartsWithMatch =
+    final boolean foundStartsWithMatch =
         startsWithBundle.getEntry().stream()
             .map(entry -> ((ConceptMap) entry.getResource()).getName())
             .anyMatch(name -> name.toLowerCase().startsWith(namePrefix.toLowerCase()));
     assertTrue(foundStartsWithMatch);
 
     // Test 6: Negative test - non-existent name
-    String nonExistentName = "NonExistentConceptMap" + UUID.randomUUID();
-    String negativeTestUrl =
+    final String nonExistentName = "NonExistentConceptMap" + UUID.randomUUID();
+    final String negativeTestUrl =
         endpoint + "?name:exact=" + URLEncoder.encode(nonExistentName, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(negativeTestUrl, String.class);
-    Bundle emptyBundle = parser.parseResource(Bundle.class, content);
+    final Bundle emptyBundle = parser.parseResource(Bundle.class, content);
 
     assertTrue(emptyBundle.getEntry() == null || emptyBundle.getEntry().isEmpty());
 
     // Test 7: Mixed case search (to verify case insensitivity)
-    String mixedCaseName =
+    final String mixedCaseName =
         firstConceptMapName.substring(0, firstConceptMapName.length() / 2).toLowerCase()
             + firstConceptMapName.substring(firstConceptMapName.length() / 2).toUpperCase();
-    String mixedCaseUrl =
+    final String mixedCaseUrl =
         endpoint + "?name:exact=" + URLEncoder.encode(mixedCaseName, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(mixedCaseUrl, String.class);
-    Bundle mixedCaseBundle = parser.parseResource(Bundle.class, content);
+    final Bundle mixedCaseBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(mixedCaseBundle.getEntry());
     assertFalse(mixedCaseBundle.getEntry().isEmpty());
-    ConceptMap mixedCaseMatch = (ConceptMap) mixedCaseBundle.getEntry().get(0).getResource();
+    final ConceptMap mixedCaseMatch = (ConceptMap) mixedCaseBundle.getEntry().get(0).getResource();
     assertTrue(mixedCaseMatch.getName().equalsIgnoreCase(mixedCaseName));
 
     // Test 8: All parameters test (original test case)
-    UriComponentsBuilder builder =
+    final UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_id", "icd10_to_meddra_mapping_july2021")
             .queryParam("name", "ICD10_to_MedDRA_Mapping")
@@ -538,7 +538,7 @@ public class FhirR4ConceptMapReadSearchTests {
             .queryParam("version", "July2021");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
-    Bundle allParamsData = parser.parseResource(Bundle.class, content);
+    final Bundle allParamsData = parser.parseResource(Bundle.class, content);
     validateVariantConceptMapResults(allParamsData, true);
   }
 
@@ -548,7 +548,7 @@ public class FhirR4ConceptMapReadSearchTests {
    * @param bundle the bundle
    * @param expectResults the expect results
    */
-  private void validateVariantConceptMapResults(Bundle bundle, boolean expectResults) {
+  private void validateVariantConceptMapResults(final Bundle bundle, final boolean expectResults) {
     assertNotNull(bundle);
     if (expectResults) {
       assertFalse(bundle.getEntry() == null || bundle.getEntry().isEmpty());
@@ -556,7 +556,7 @@ public class FhirR4ConceptMapReadSearchTests {
           .getEntry()
           .forEach(
               entry -> {
-                ConceptMap cm = (ConceptMap) entry.getResource();
+                final ConceptMap cm = (ConceptMap) entry.getResource();
                 assertNotNull(cm);
                 assertEquals(ResourceType.ConceptMap, cm.getResourceType());
               });
@@ -569,19 +569,19 @@ public class FhirR4ConceptMapReadSearchTests {
   public void testConceptMapHistory() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirCMPath;
+    final String endpoint = localHost + port + fhirCMPath;
 
     // Act - First get list of ConceptMaps to find a valid ID
     content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> conceptMaps =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> conceptMaps =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
-    String firstConceptMapId = conceptMaps.get(0).getIdPart();
+    final String firstConceptMapId = conceptMaps.get(0).getIdPart();
 
     // Act - Get history for the first ConceptMap
-    String historyEndpoint = endpoint + "/" + firstConceptMapId + "/_history";
+    final String historyEndpoint = endpoint + "/" + firstConceptMapId + "/_history";
     content = this.restTemplate.getForObject(historyEndpoint, String.class);
-    Bundle historyBundle = parser.parseResource(Bundle.class, content);
+    final Bundle historyBundle = parser.parseResource(Bundle.class, content);
 
     // Assert
     assertNotNull(historyBundle);
@@ -590,11 +590,11 @@ public class FhirR4ConceptMapReadSearchTests {
     assertFalse(historyBundle.getEntry().isEmpty());
 
     // Verify each entry in history is a ConceptMap with the same ID
-    for (Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
+    for (final Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
       assertNotNull(entry.getResource());
       assertEquals(ResourceType.ConceptMap, entry.getResource().getResourceType());
 
-      ConceptMap historyConceptMap = (ConceptMap) entry.getResource();
+      final ConceptMap historyConceptMap = (ConceptMap) entry.getResource();
       assertEquals(firstConceptMapId, historyConceptMap.getIdPart());
 
       // Verify metadata is properly set
@@ -607,17 +607,17 @@ public class FhirR4ConceptMapReadSearchTests {
   @Test
   public void testConceptMapHistoryNotFound() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirCMPath;
-    String invalidId = "nonexistent-conceptMap-id";
-    String historyEndpoint = endpoint + "/" + invalidId + "/_history";
+    final String endpoint = localHost + port + fhirCMPath;
+    final String invalidId = "nonexistent-conceptMap-id";
+    final String historyEndpoint = endpoint + "/" + invalidId + "/_history";
 
-    String messageNotFound = "Concept map not found = " + invalidId;
-    String errorCode = "not-found";
+    final String messageNotFound = "Concept map not found = " + invalidId;
+    final String errorCode = "not-found";
 
     // Act
-    String content = this.restTemplate.getForObject(historyEndpoint, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final String content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -628,19 +628,19 @@ public class FhirR4ConceptMapReadSearchTests {
   public void testConceptMapVread() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirCMPath;
+    final String endpoint = localHost + port + fhirCMPath;
 
     // Act - First get list of ConceptMaps to find a valid ID
     content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> conceptMaps =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> conceptMaps =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
-    String firstConceptMapId = conceptMaps.get(0).getIdPart();
+    final String firstConceptMapId = conceptMaps.get(0).getIdPart();
 
     // Act - Get specific version (assuming version 1 exists)
-    String versionEndpoint = endpoint + "/" + firstConceptMapId + "/_history/1";
+    final String versionEndpoint = endpoint + "/" + firstConceptMapId + "/_history/1";
     content = this.restTemplate.getForObject(versionEndpoint, String.class);
-    ConceptMap versionedConceptMap = parser.parseResource(ConceptMap.class, content);
+    final ConceptMap versionedConceptMap = parser.parseResource(ConceptMap.class, content);
 
     // Assert
     assertNotNull(versionedConceptMap);
@@ -653,7 +653,7 @@ public class FhirR4ConceptMapReadSearchTests {
     assertNotNull(versionedConceptMap.getMeta().getLastUpdated());
 
     // Compare with original ConceptMap
-    ConceptMap originalConceptMap = (ConceptMap) conceptMaps.get(0);
+    final ConceptMap originalConceptMap = (ConceptMap) conceptMaps.get(0);
     assertEquals(originalConceptMap.getUrl(), versionedConceptMap.getUrl());
     assertEquals(originalConceptMap.getName(), versionedConceptMap.getName());
     assertEquals(originalConceptMap.getPublisher(), versionedConceptMap.getPublisher());
@@ -662,18 +662,18 @@ public class FhirR4ConceptMapReadSearchTests {
   @Test
   public void testConceptMapVreadNotFound() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirCMPath;
-    String invalidId = "nonexistent-conceptMap-id";
-    String versionEndpoint = endpoint + "/" + invalidId + "/_history/1";
+    final String endpoint = localHost + port + fhirCMPath;
+    final String invalidId = "nonexistent-conceptMap-id";
+    final String versionEndpoint = endpoint + "/" + invalidId + "/_history/1";
 
     // Act & Assert
-    String messageNotFound = "Concept map version not found: nonexistent-conceptMap-id version 1";
-    String errorCode = "not-found";
+    final String messageNotFound = "Concept map version not found: nonexistent-conceptMap-id version 1";
+    final String errorCode = "not-found";
 
     // Act
-    String content = this.restTemplate.getForObject(versionEndpoint, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final String content = this.restTemplate.getForObject(versionEndpoint, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -684,24 +684,24 @@ public class FhirR4ConceptMapReadSearchTests {
   public void testConceptMapVreadInvalidVersion() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirCMPath;
+    final String endpoint = localHost + port + fhirCMPath;
 
     // Act - First get list of ConceptMaps to find a valid ID
     content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> conceptMaps =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> conceptMaps =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
-    String firstConceptMapId = conceptMaps.get(0).getIdPart();
+    final String firstConceptMapId = conceptMaps.get(0).getIdPart();
 
     // Act & Assert - Try to get a version that doesn't exist
-    String invalidVersionEndpoint = endpoint + "/" + firstConceptMapId + "/_history/999";
-    String messageNotFound = "Concept map version not found: " + firstConceptMapId + " version 999";
-    String errorCode = "not-found";
+    final String invalidVersionEndpoint = endpoint + "/" + firstConceptMapId + "/_history/999";
+    final String messageNotFound = "Concept map version not found: " + firstConceptMapId + " version 999";
+    final String errorCode = "not-found";
 
     // Act
     content = this.restTemplate.getForObject(invalidVersionEndpoint, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -712,28 +712,28 @@ public class FhirR4ConceptMapReadSearchTests {
   public void testConceptMapHistoryMetadataConsistency() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirCMPath;
+    final String endpoint = localHost + port + fhirCMPath;
 
     // Act - Get a ConceptMap and its history
     content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> conceptMaps =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> conceptMaps =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
-    String firstConceptMapId = conceptMaps.get(0).getIdPart();
+    final String firstConceptMapId = conceptMaps.get(0).getIdPart();
 
     // Get history
-    String historyEndpoint = endpoint + "/" + firstConceptMapId + "/_history";
+    final String historyEndpoint = endpoint + "/" + firstConceptMapId + "/_history";
     content = this.restTemplate.getForObject(historyEndpoint, String.class);
-    Bundle historyBundle = parser.parseResource(Bundle.class, content);
+    final Bundle historyBundle = parser.parseResource(Bundle.class, content);
 
     // Get current version
     content = this.restTemplate.getForObject(endpoint + "/" + firstConceptMapId, String.class);
-    ConceptMap currentConceptMap = parser.parseResource(ConceptMap.class, content);
+    final ConceptMap currentConceptMap = parser.parseResource(ConceptMap.class, content);
 
     // Assert - Verify history contains current version
     boolean foundCurrentVersion = false;
-    for (Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
-      ConceptMap historyVersion = (ConceptMap) entry.getResource();
+    for (final Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
+      final ConceptMap historyVersion = (ConceptMap) entry.getResource();
       if (currentConceptMap.getUrl().equals(historyVersion.getUrl())
           && currentConceptMap.getName().equals(historyVersion.getName())) {
         foundCurrentVersion = true;
@@ -747,27 +747,27 @@ public class FhirR4ConceptMapReadSearchTests {
   public void testConceptMapVreadMatchesHistoryEntry() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirCMPath;
+    final String endpoint = localHost + port + fhirCMPath;
 
     // Act - Get history first
     content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> conceptMaps =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> conceptMaps =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
-    String firstConceptMapId = conceptMaps.get(0).getIdPart();
+    final String firstConceptMapId = conceptMaps.get(0).getIdPart();
 
-    String historyEndpoint = endpoint + "/" + firstConceptMapId + "/_history";
+    final String historyEndpoint = endpoint + "/" + firstConceptMapId + "/_history";
     content = this.restTemplate.getForObject(historyEndpoint, String.class);
-    Bundle historyBundle = parser.parseResource(Bundle.class, content);
+    final Bundle historyBundle = parser.parseResource(Bundle.class, content);
 
     // Get first version from history
-    ConceptMap firstHistoryVersion = (ConceptMap) historyBundle.getEntry().get(0).getResource();
-    String versionId = firstHistoryVersion.getMeta().getVersionId();
+    final ConceptMap firstHistoryVersion = (ConceptMap) historyBundle.getEntry().get(0).getResource();
+    final String versionId = firstHistoryVersion.getMeta().getVersionId();
 
     // Act - Get the same version using vread
-    String vreadEndpoint = endpoint + "/" + firstConceptMapId + "/_history/" + versionId;
+    final String vreadEndpoint = endpoint + "/" + firstConceptMapId + "/_history/" + versionId;
     content = this.restTemplate.getForObject(vreadEndpoint, String.class);
-    ConceptMap vreadConceptMap = parser.parseResource(ConceptMap.class, content);
+    final ConceptMap vreadConceptMap = parser.parseResource(ConceptMap.class, content);
 
     // Assert - Both should be identical
     // assertEquals(firstHistoryVersion.getId(), vreadConceptMap.getId());
@@ -781,7 +781,7 @@ public class FhirR4ConceptMapReadSearchTests {
   @Test
   public void testConceptMapSearchWithDateFocus() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirCMPath;
+    final String endpoint = localHost + port + fhirCMPath;
 
     // Test 1: All valid parameters
     UriComponentsBuilder builder =
@@ -847,8 +847,8 @@ public class FhirR4ConceptMapReadSearchTests {
     validateMaToNcitConceptMapResults(data, true);
   }
 
-  private void validateMaToNcitConceptMapResults(Bundle data, boolean expectResults) {
-    List<Resource> conceptMaps =
+  private void validateMaToNcitConceptMapResults(final Bundle data, final boolean expectResults) {
+    final List<Resource> conceptMaps =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     if (expectResults) {
@@ -857,9 +857,9 @@ public class FhirR4ConceptMapReadSearchTests {
       final Set<String> urls =
           new HashSet<>(Set.of("http://hl7.org/fhir/sid/icd-10?fhir_cm=ICD10_to_MedDRA_Mapping"));
 
-      for (Resource cm : conceptMaps) {
+      for (final Resource cm : conceptMaps) {
         log.info(" concept map = " + parser.encodeResourceToString(cm));
-        ConceptMap cmm = (ConceptMap) cm;
+        final ConceptMap cmm = (ConceptMap) cm;
         assertNotNull(cmm);
         assertEquals(ResourceType.ConceptMap, cmm.getResourceType());
         assertNotNull(cmm.getIdPart());
@@ -884,12 +884,12 @@ public class FhirR4ConceptMapReadSearchTests {
   @Test
   public void testConceptMapSearchSortByName() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirCMPath + "?_sort=name&_count=100";
+    final String endpoint = localHost + port + fhirCMPath + "?_sort=name&_count=100";
 
     // Act
-    String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<ConceptMap> conceptMaps =
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<ConceptMap> conceptMaps =
         data.getEntry().stream()
             .map(entry -> (ConceptMap) entry.getResource())
             .filter(cm -> cm.getName() != null)
@@ -898,8 +898,8 @@ public class FhirR4ConceptMapReadSearchTests {
     // Assert - verify ascending sort
     assertFalse(conceptMaps.isEmpty());
     for (int i = 1; i < conceptMaps.size(); i++) {
-      String previousName = conceptMaps.get(i - 1).getName().toLowerCase();
-      String currentName = conceptMaps.get(i).getName().toLowerCase();
+      final String previousName = conceptMaps.get(i - 1).getName().toLowerCase();
+      final String currentName = conceptMaps.get(i).getName().toLowerCase();
       assertTrue(
           previousName.compareTo(currentName) <= 0,
           String.format(
@@ -911,12 +911,12 @@ public class FhirR4ConceptMapReadSearchTests {
   @Test
   public void testConceptMapSearchSortByNameDescending() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirCMPath + "?_sort=-name&_count=100";
+    final String endpoint = localHost + port + fhirCMPath + "?_sort=-name&_count=100";
 
     // Act
-    String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<ConceptMap> conceptMaps =
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<ConceptMap> conceptMaps =
         data.getEntry().stream()
             .map(entry -> (ConceptMap) entry.getResource())
             .filter(cm -> cm.getName() != null)
@@ -925,8 +925,8 @@ public class FhirR4ConceptMapReadSearchTests {
     // Assert - verify descending sort
     assertFalse(conceptMaps.isEmpty());
     for (int i = 1; i < conceptMaps.size(); i++) {
-      String previousName = conceptMaps.get(i - 1).getName().toLowerCase();
-      String currentName = conceptMaps.get(i).getName().toLowerCase();
+      final String previousName = conceptMaps.get(i - 1).getName().toLowerCase();
+      final String currentName = conceptMaps.get(i).getName().toLowerCase();
       assertTrue(
           previousName.compareTo(currentName) >= 0,
           String.format(
@@ -938,12 +938,12 @@ public class FhirR4ConceptMapReadSearchTests {
   @Test
   public void testConceptMapSearchSortByTitle() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirCMPath + "?_sort=title&_count=100";
+    final String endpoint = localHost + port + fhirCMPath + "?_sort=title&_count=100";
 
     // Act
-    String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<ConceptMap> conceptMaps =
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<ConceptMap> conceptMaps =
         data.getEntry().stream()
             .map(entry -> (ConceptMap) entry.getResource())
             .filter(cm -> cm.getTitle() != null)
@@ -952,8 +952,8 @@ public class FhirR4ConceptMapReadSearchTests {
     // Assert - verify ascending sort
     assertFalse(conceptMaps.isEmpty());
     for (int i = 1; i < conceptMaps.size(); i++) {
-      String previousTitle = conceptMaps.get(i - 1).getTitle().toLowerCase();
-      String currentTitle = conceptMaps.get(i).getTitle().toLowerCase();
+      final String previousTitle = conceptMaps.get(i - 1).getTitle().toLowerCase();
+      final String currentTitle = conceptMaps.get(i).getTitle().toLowerCase();
       assertTrue(
           previousTitle.compareTo(currentTitle) <= 0,
           String.format(
@@ -965,12 +965,12 @@ public class FhirR4ConceptMapReadSearchTests {
   @Test
   public void testConceptMapSearchSortByTitleDescending() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirCMPath + "?_sort=-title&_count=100";
+    final String endpoint = localHost + port + fhirCMPath + "?_sort=-title&_count=100";
 
     // Act
-    String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<ConceptMap> conceptMaps =
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<ConceptMap> conceptMaps =
         data.getEntry().stream()
             .map(entry -> (ConceptMap) entry.getResource())
             .filter(cm -> cm.getTitle() != null)
@@ -979,8 +979,8 @@ public class FhirR4ConceptMapReadSearchTests {
     // Assert - verify descending sort
     assertFalse(conceptMaps.isEmpty());
     for (int i = 1; i < conceptMaps.size(); i++) {
-      String previousTitle = conceptMaps.get(i - 1).getTitle().toLowerCase();
-      String currentTitle = conceptMaps.get(i).getTitle().toLowerCase();
+      final String previousTitle = conceptMaps.get(i - 1).getTitle().toLowerCase();
+      final String currentTitle = conceptMaps.get(i).getTitle().toLowerCase();
       assertTrue(
           previousTitle.compareTo(currentTitle) >= 0,
           String.format(
@@ -992,12 +992,12 @@ public class FhirR4ConceptMapReadSearchTests {
   @Test
   public void testConceptMapSearchSortByPublisher() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirCMPath + "?_sort=publisher&_count=100";
+    final String endpoint = localHost + port + fhirCMPath + "?_sort=publisher&_count=100";
 
     // Act
-    String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<ConceptMap> conceptMaps =
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<ConceptMap> conceptMaps =
         data.getEntry().stream()
             .map(entry -> (ConceptMap) entry.getResource())
             .filter(cm -> cm.getPublisher() != null)
@@ -1006,8 +1006,8 @@ public class FhirR4ConceptMapReadSearchTests {
     // Assert - verify ascending sort
     assertFalse(conceptMaps.isEmpty());
     for (int i = 1; i < conceptMaps.size(); i++) {
-      String previousPublisher = conceptMaps.get(i - 1).getPublisher().toLowerCase();
-      String currentPublisher = conceptMaps.get(i).getPublisher().toLowerCase();
+      final String previousPublisher = conceptMaps.get(i - 1).getPublisher().toLowerCase();
+      final String currentPublisher = conceptMaps.get(i).getPublisher().toLowerCase();
       assertTrue(
           previousPublisher.compareTo(currentPublisher) <= 0,
           String.format(
@@ -1019,11 +1019,11 @@ public class FhirR4ConceptMapReadSearchTests {
   @Test
   public void testConceptMapSearchSortInvalidField() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirCMPath + "?_sort=invalid_field";
+    final String endpoint = localHost + port + fhirCMPath + "?_sort=invalid_field";
 
     // Act
-    String content = this.restTemplate.getForObject(endpoint, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
 
     // Assert
     assertNotNull(outcome);

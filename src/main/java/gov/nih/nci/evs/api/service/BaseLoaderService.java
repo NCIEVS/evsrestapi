@@ -470,8 +470,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
             + termUtils.getTerminologyName(terminology)
             + ".json";
     logger.info("  get config for " + terminology + " = " + uri);
-    return new ObjectMapper()
-        .readTree(StringUtils.join(EVSUtils.getValueFromFile(uri, "metadata info"), '\n'));
+    return new ObjectMapper().readTree(EVSUtils.getValueFromFile(uri));
   }
 
   /**
@@ -486,8 +485,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     // If terminology is {term}_{version} -> strip the version
     final String uri = "src/test/resources/" + termUtils.getTerminologyName(terminology) + ".json";
     logger.info("  get config for " + terminology + " = " + uri);
-    return new ObjectMapper()
-        .readTree(StringUtils.join(EVSUtils.getValueFromFile(uri, "metadata info"), '\n'));
+    return new ObjectMapper().readTree(StringUtils.join(EVSUtils.getValueFromFile(uri), '\n'));
   }
 
   /**
@@ -506,7 +504,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
             + termUtils.getTerminologyName(terminology)
             + ".html";
     logger.info("  get welcome text for " + terminology + " = " + uri);
-    return StringUtils.join(EVSUtils.getValueFromFile(uri, "welcome text"), '\n');
+    return StringUtils.join(EVSUtils.getValueFromFile(uri), '\n');
   }
 
   /* see superclass */

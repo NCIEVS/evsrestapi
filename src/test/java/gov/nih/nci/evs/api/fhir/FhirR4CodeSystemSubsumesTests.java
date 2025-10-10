@@ -88,16 +88,16 @@ public class FhirR4CodeSystemSubsumesTests {
   public void testCodeSystemSubsumedByImplicit() throws Exception {
     // Arrange
     String content;
-    String activeCodeB = "448772000";
-    String activeCodeA = "271860004";
-    String url = "http://snomed.info/sct";
-    String outcome = "subsumed-by";
-    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
-    String parameters = "?system=" + url + "&codeA=" + activeCodeA + "&codeB=" + activeCodeB;
+    final String activeCodeB = "448772000";
+    final String activeCodeA = "271860004";
+    final String url = "http://snomed.info/sct";
+    final String outcome = "subsumed-by";
+    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
+    final String parameters = "?system=" + url + "&codeA=" + activeCodeA + "&codeB=" + activeCodeB;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
@@ -112,17 +112,17 @@ public class FhirR4CodeSystemSubsumesTests {
   public void testCodeSystemMissingInput() throws Exception {
     // Arrange
     String content;
-    String activeCodeA = "271860004";
-    String url = "http://snomed.info/sct";
-    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
-    String parameters = "?system=" + url + "&codeA=" + activeCodeA;
-    String errorCode = "exception";
-    String messageNotFound = "No codeB parameter provided in request";
+    final String activeCodeA = "271860004";
+    final String url = "http://snomed.info/sct";
+    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
+    final String parameters = "?system=" + url + "&codeA=" + activeCodeA;
+    final String errorCode = "exception";
+    final String messageNotFound = "No codeB parameter provided in request";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -138,16 +138,16 @@ public class FhirR4CodeSystemSubsumesTests {
   public void testCodeSystemSubsumesImplicit() throws Exception {
     // Arrange
     String content;
-    String activeCodeA = "448772000";
-    String activeCodeB = "271860004";
-    String url = "http://snomed.info/sct";
-    String outcome = "subsumes";
-    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
-    String parameters = "?system=" + url + "&codeA=" + activeCodeA + "&codeB=" + activeCodeB;
+    final String activeCodeA = "448772000";
+    final String activeCodeB = "271860004";
+    final String url = "http://snomed.info/sct";
+    final String outcome = "subsumes";
+    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
+    final String parameters = "?system=" + url + "&codeA=" + activeCodeA + "&codeB=" + activeCodeB;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
@@ -162,18 +162,18 @@ public class FhirR4CodeSystemSubsumesTests {
   public void testCodeSystemSubsumesInstance() throws Exception {
     // Arrange
     String content;
-    String activeCodeB = "448772000";
-    String activeCodeA = "271860004";
-    String activeId = "snomedct_us_2020_09_01";
-    String url = "http://snomed.info/sct";
-    String outcome = "subsumed-by";
-    String endpoint =
+    final String activeCodeB = "448772000";
+    final String activeCodeA = "271860004";
+    final String activeId = "snomedct_us_2020_09_01";
+    final String url = "http://snomed.info/sct";
+    final String outcome = "subsumed-by";
+    final String endpoint =
         localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES;
-    String parameters = "?system=" + url + "&codeA=" + activeCodeA + "&codeB=" + activeCodeB;
+    final String parameters = "?system=" + url + "&codeA=" + activeCodeA + "&codeB=" + activeCodeB;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
@@ -188,17 +188,17 @@ public class FhirR4CodeSystemSubsumesTests {
   public void testCodeSystemCodeNotFound() throws Exception {
     // Arrange
     String content;
-    String codeNotFound = "T10";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
-    String messageNotFound = "Failed to check if A subsumes B";
-    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
-    String parameters = "?system=" + url + "&codeA=" + codeNotFound + "&codeB=" + codeNotFound;
-    String errorCode = "exception";
+    final String codeNotFound = "T10";
+    final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    final String messageNotFound = "Failed to check if A subsumes B";
+    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
+    final String parameters = "?system=" + url + "&codeA=" + codeNotFound + "&codeB=" + codeNotFound;
+    final String errorCode = "exception";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -214,16 +214,16 @@ public class FhirR4CodeSystemSubsumesTests {
   public void testCodeSystemRetiredCode() throws Exception {
     // Arrange
     String content;
-    String retiredCodeB = "C45683";
-    String activeCodeA = "C17966";
-    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
-    String outcome = "no-subsumption-relationship";
-    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
-    String parameters = "?system=" + url + "&codeA=" + activeCodeA + "&codeB=" + retiredCodeB;
+    final String retiredCodeB = "C45683";
+    final String activeCodeA = "C17966";
+    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
+    final String outcome = "no-subsumption-relationship";
+    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
+    final String parameters = "?system=" + url + "&codeA=" + activeCodeA + "&codeB=" + retiredCodeB;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
@@ -238,18 +238,18 @@ public class FhirR4CodeSystemSubsumesTests {
   public void testCodeSystemBadImplicit() throws Exception {
     // Arrange
     String content;
-    String codeA = "2222222222222222222";
-    String codeB = "3333333333333333333";
-    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/TheBadTest.owl";
-    String messageNotFound = "Unable to find matching code system";
-    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
-    String parameters = "?codeA=" + codeA + "&codeB=" + codeB + "&system=" + url;
-    String errorCode = "not-found";
+    final String codeA = "2222222222222222222";
+    final String codeB = "3333333333333333333";
+    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/TheBadTest.owl";
+    final String messageNotFound = "Unable to find matching code system";
+    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
+    final String parameters = "?codeA=" + codeA + "&codeB=" + codeB + "&system=" + url;
+    final String errorCode = "not-found";
 
     // Act
     content = restTemplate.getForObject(endpoint + parameters, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -265,20 +265,20 @@ public class FhirR4CodeSystemSubsumesTests {
   public void testCodeSystemBadInstance() throws Exception {
     // Arrange
     String content;
-    String codeA = "2222222222222222222";
-    String codeB = "3333333333333333333";
-    String activeId = "snomedct_us_2020_09_01";
-    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/TheBadTest.owl";
-    String messageNotFound = "Unable to find matching code system";
-    String endpoint =
+    final String codeA = "2222222222222222222";
+    final String codeB = "3333333333333333333";
+    final String activeId = "snomedct_us_2020_09_01";
+    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/TheBadTest.owl";
+    final String messageNotFound = "Unable to find matching code system";
+    final String endpoint =
         localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES;
-    String parameters = "?codeA=" + codeA + "&codeB=" + codeB + "&system=" + url;
-    String errorCode = "not-found";
+    final String parameters = "?codeA=" + codeA + "&codeB=" + codeB + "&system=" + url;
+    final String errorCode = "not-found";
 
     // Act
     content = restTemplate.getForObject(endpoint + parameters, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -294,9 +294,9 @@ public class FhirR4CodeSystemSubsumesTests {
   public void testCodeSystemPostRejectsImplicit() throws Exception {
     // Arrange
     ResponseEntity<String> content;
-    String message = "POST method not supported for " + JpaConstants.OPERATION_SUBSUMES;
-    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
-    String parameters = "?codeA=" + null + "&codeB=" + null + "&system=" + null;
+    final String message = "POST method not supported for " + JpaConstants.OPERATION_SUBSUMES;
+    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
+    final String parameters = "?codeA=" + null + "&codeB=" + null + "&system=" + null;
 
     // Act
     content = this.restTemplate.postForEntity(endpoint + parameters, null, String.class);
@@ -317,11 +317,11 @@ public class FhirR4CodeSystemSubsumesTests {
   public void testCodeSystemPostRejectsInstance() throws Exception {
     // Arrange
     ResponseEntity<String> content;
-    String message = "POST method not supported for " + JpaConstants.OPERATION_SUBSUMES;
-    String activeId = "snomedct_us_2020_09_01";
-    String endpoint =
+    final String message = "POST method not supported for " + JpaConstants.OPERATION_SUBSUMES;
+    final String activeId = "snomedct_us_2020_09_01";
+    final String endpoint =
         localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES;
-    String parameters = "?codeA=" + null + "&codeB=" + null + "&system=" + null;
+    final String parameters = "?codeA=" + null + "&codeB=" + null + "&system=" + null;
 
     // Act
     content = this.restTemplate.postForEntity(endpoint + parameters, null, String.class);
@@ -341,26 +341,26 @@ public class FhirR4CodeSystemSubsumesTests {
   @Test
   public void testCodeSystemSubsumesImplicitWithCoding() throws Exception {
     // Arrange
-    String url = "http://snomed.info/sct";
-    String activeCodeA = "448772000";
-    String activeCodeB = "271860004";
-    String outcome = "subsumes";
-    String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
+    final String url = "http://snomed.info/sct";
+    final String activeCodeA = "448772000";
+    final String activeCodeB = "271860004";
+    final String outcome = "subsumes";
+    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
 
     // Create Coding objects
-    Coding codingA = new Coding(url, activeCodeA, null);
-    Coding codingB = new Coding(url, activeCodeB, null);
+    final Coding codingA = new Coding(url, activeCodeA, null);
+    final Coding codingB = new Coding(url, activeCodeB, null);
 
     // Construct the GET request URI with codingA and codingB parameters
-    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    final UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
     builder.queryParam("codingA", codingA.getSystem() + "|" + codingA.getCode());
     builder.queryParam("codingB", codingB.getSystem() + "|" + codingB.getCode());
 
-    URI getUri = builder.build().toUri();
+    final URI getUri = builder.build().toUri();
 
     // Act
-    String content = this.restTemplate.getForObject(getUri, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final String content = this.restTemplate.getForObject(getUri, String.class);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
@@ -369,28 +369,28 @@ public class FhirR4CodeSystemSubsumesTests {
   @Test
   public void testCodeSystemSubsumesInstanceWithCoding() throws Exception {
     // Arrange
-    String url = "http://snomed.info/sct";
-    String activeId = "snomedct_us_2020_09_01";
-    String activeCodeA = "448772000";
-    String activeCodeB = "271860004";
-    String outcome = "subsumes";
-    String endpoint =
+    final String url = "http://snomed.info/sct";
+    final String activeId = "snomedct_us_2020_09_01";
+    final String activeCodeA = "448772000";
+    final String activeCodeB = "271860004";
+    final String outcome = "subsumes";
+    final String endpoint =
         localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES;
 
     // Create Coding objects
-    Coding codingA = new Coding(url, activeCodeA, null);
-    Coding codingB = new Coding(url, activeCodeB, null);
+    final Coding codingA = new Coding(url, activeCodeA, null);
+    final Coding codingB = new Coding(url, activeCodeB, null);
 
     // Construct the GET request URI with codingA and codingB parameters
-    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    final UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
     builder.queryParam("codingA", codingA.getSystem() + "|" + codingA.getCode());
     builder.queryParam("codingB", codingB.getSystem() + "|" + codingB.getCode());
 
-    URI getUri = builder.build().toUri();
+    final URI getUri = builder.build().toUri();
 
     // Act
-    String content = this.restTemplate.getForObject(getUri, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final String content = this.restTemplate.getForObject(getUri, String.class);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
@@ -404,15 +404,15 @@ public class FhirR4CodeSystemSubsumesTests {
   @Test
   public void testCodeSystemSubsumesImplicitWithBothCodeAndCoding() throws Exception {
     // Arrange
-    String url = "http://snomed.info/sct";
-    String activeCodeA = "448772000";
-    String activeCodeB = "271860004";
-    Coding codingA = new Coding(url, activeCodeA, null);
+    final String url = "http://snomed.info/sct";
+    final String activeCodeA = "448772000";
+    final String activeCodeB = "271860004";
+    final Coding codingA = new Coding(url, activeCodeA, null);
 
     //    String messageNotSupported = "Use one of 'codingA' or 'codeA' parameters.";
-    String errorCode = "invariant";
+    final String errorCode = "invariant";
 
-    UriComponentsBuilder builder =
+    final UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(
             localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES);
     builder.queryParam("codeA", activeCodeA);
@@ -420,12 +420,12 @@ public class FhirR4CodeSystemSubsumesTests {
     builder.queryParam("codingA", codingA.getSystem() + "|" + codingA.getCode());
     builder.queryParam("codeB", activeCodeB);
     builder.queryParam("systemB", url);
-    URI getUri = builder.build().toUri();
+    final URI getUri = builder.build().toUri();
 
     // Act
-    String content = this.restTemplate.getForObject(getUri, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final String content = this.restTemplate.getForObject(getUri, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -439,26 +439,26 @@ public class FhirR4CodeSystemSubsumesTests {
   @Test
   public void testCodeSystemSubsumesImplicitWithCodeANoSystem() throws Exception {
     // Arrange
-    String activeCodeA = "448772000";
-    String activeCodeB = "271860004";
-    String url = "http://snomed.info/sct";
+    final String activeCodeA = "448772000";
+    final String activeCodeB = "271860004";
+    final String url = "http://snomed.info/sct";
 
-    String messageNotSupported =
+    final String messageNotSupported =
         "Input parameter 'codeA' can only be used in conjunction with parameter 'system'.";
-    String errorCode = "invariant";
+    final String errorCode = "invariant";
 
-    UriComponentsBuilder builder =
+    final UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(
             localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES);
     builder.queryParam("codeA", activeCodeA);
     builder.queryParam("codeB", activeCodeB);
     builder.queryParam("systemB", url);
-    URI getUri = builder.build().toUri();
+    final URI getUri = builder.build().toUri();
 
     // Act
-    String content = this.restTemplate.getForObject(getUri, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final String content = this.restTemplate.getForObject(getUri, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
