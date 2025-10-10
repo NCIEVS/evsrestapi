@@ -434,6 +434,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     QueryStringQueryBuilder partialWordSynonymQuery = null;
     NestedQueryBuilder nestedPartialWordSynonymQuery = null;
 
+    // This is a very targeted approach to a particular set of cases
+    // but does achieve support for searches like "rectal car"
+
     // build partial word query if we have partial/short words
     if ("contains".equalsIgnoreCase(type)) {
       String[] tokens = normTerm.split("\\s+");
