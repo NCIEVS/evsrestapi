@@ -92,7 +92,8 @@ public class FhirR4ValueSetValidateTests {
     final String activeCode = "T100";
     final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     final String displayString = "Age Group";
-    final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     final String parameters = "?url=" + url + "&code=" + activeCode;
 
     // Act
@@ -111,7 +112,8 @@ public class FhirR4ValueSetValidateTests {
     final String activeCode = "T100";
     final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     final String displayString = "Age Group";
-    final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
 
     // Create the Coding object
     final Coding coding = new Coding(url, activeCode, null);
@@ -172,8 +174,10 @@ public class FhirR4ValueSetValidateTests {
     String content;
     final String activeCode = "T100";
     final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
-    final String parameters = "?url=" + url + "&code=" + activeCode + "&displayLanguage=not_supported";
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String parameters =
+        "?url=" + url + "&code=" + activeCode + "&displayLanguage=not_supported";
 
     final String errorCode = "not-supported";
     final String messageNotSupported = "Input parameter 'displayLanguage' is not supported.";
@@ -199,7 +203,8 @@ public class FhirR4ValueSetValidateTests {
     String content;
     final String activeCode = "T100";
     // String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     final String parameters = "?code=" + activeCode + "&displayLanguage=not_supported";
 
     final String errorCode = "invariant";
@@ -319,7 +324,8 @@ public class FhirR4ValueSetValidateTests {
     final String activeCode = "T100";
     final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     final String displayString = "Age Group";
-    final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     final String parameters = "?url=" + url + "&code=" + activeCode + "&display=" + displayString;
 
     // Act
@@ -344,7 +350,8 @@ public class FhirR4ValueSetValidateTests {
     final String codeNotFound = "T10";
     final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     final String messageNotFound = "The code '" + codeNotFound + "' was not found.";
-    final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     final String parameters = "?url=" + url + "&code=" + codeNotFound;
 
     // Act
@@ -370,7 +377,8 @@ public class FhirR4ValueSetValidateTests {
     final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
     final String displayString = "Age Group";
     final String messageNotFound = "The code '" + codeNotFound + "' was not found.";
-    final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     final String parameters = "?url=" + url + "&code=" + codeNotFound + "&display=" + displayString;
 
     // Act
@@ -423,7 +431,8 @@ public class FhirR4ValueSetValidateTests {
     final String retiredCode = "C45683";
     final String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
     final String retiredName = "ABCB1 1 Allele";
-    final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     final String parameters = "?url=" + retiredUrl + "&code=" + retiredCode;
 
     // Act
@@ -447,8 +456,10 @@ public class FhirR4ValueSetValidateTests {
     final String retiredCode = "C45683";
     final String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
     final String retiredName = "ABCB1 1 Allele";
-    final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
-    final String parameters = "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String parameters =
+        "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -480,7 +491,8 @@ public class FhirR4ValueSetValidateTests {
             + retiredId
             + "/"
             + JpaConstants.OPERATION_VALIDATE_CODE;
-    final String parameters = "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
+    final String parameters =
+        "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);

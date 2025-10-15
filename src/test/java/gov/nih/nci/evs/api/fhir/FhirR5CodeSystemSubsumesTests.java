@@ -255,7 +255,8 @@ public class FhirR5CodeSystemSubsumesTests {
     final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     final String messageNotFound = "Failed to check if A subsumes B";
     final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
-    final String parameters = "?system=" + url + "&codeA=" + codeNotFound + "&codeB=" + codeNotFound;
+    final String parameters =
+        "?system=" + url + "&codeA=" + codeNotFound + "&codeB=" + codeNotFound;
     final String errorCode = "exception";
 
     // Act

@@ -554,11 +554,13 @@ class FhirR5CodeSystemReadSearchTests {
 
     assertNotNull(exactMatchBundle.getEntry());
     assertFalse(exactMatchBundle.getEntry().isEmpty());
-    final CodeSystem exactMatchSystem = (CodeSystem) exactMatchBundle.getEntry().get(0).getResource();
+    final CodeSystem exactMatchSystem =
+        (CodeSystem) exactMatchBundle.getEntry().get(0).getResource();
     assertEquals(firstCodeSystemTitle, exactMatchSystem.getTitle());
 
     // Test 4: Search by title (contains)
-    final String partialTitle = firstCodeSystemTitle.substring(1, firstCodeSystemTitle.length() - 1);
+    final String partialTitle =
+        firstCodeSystemTitle.substring(1, firstCodeSystemTitle.length() - 1);
     final String titleContainsUrl =
         endpoint + "?title:contains=" + URLEncoder.encode(partialTitle, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(titleContainsUrl, String.class);
@@ -713,7 +715,8 @@ class FhirR5CodeSystemReadSearchTests {
     final String versionEndpoint = endpoint + "/" + invalidId + "/_history/1";
 
     // Act & Assert
-    final String messageNotFound = "Code system version not found: nonexistent-codesystem-id version 1";
+    final String messageNotFound =
+        "Code system version not found: nonexistent-codesystem-id version 1";
     final String errorCode = "not-found";
 
     // Act
@@ -741,7 +744,8 @@ class FhirR5CodeSystemReadSearchTests {
 
     // Act & Assert - Try to get a version that doesn't exist
     final String invalidVersionEndpoint = endpoint + "/" + firstCodeSystemId + "/_history/999";
-    final String messageNotFound = "Code system version not found: " + firstCodeSystemId + " version 999";
+    final String messageNotFound =
+        "Code system version not found: " + firstCodeSystemId + " version 999";
     final String errorCode = "not-found";
 
     // Act
@@ -807,7 +811,8 @@ class FhirR5CodeSystemReadSearchTests {
     final Bundle historyBundle = parser.parseResource(Bundle.class, content);
 
     // Get first version from history
-    final CodeSystem firstHistoryVersion = (CodeSystem) historyBundle.getEntry().get(0).getResource();
+    final CodeSystem firstHistoryVersion =
+        (CodeSystem) historyBundle.getEntry().get(0).getResource();
     final String versionId = firstHistoryVersion.getMeta().getVersionId();
 
     // Act - Get the same version using vread

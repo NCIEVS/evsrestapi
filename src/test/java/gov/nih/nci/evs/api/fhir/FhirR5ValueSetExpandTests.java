@@ -258,8 +258,7 @@ public class FhirR5ValueSetExpandTests {
       if (paramName.equals("property")) {
         // Handle multiple property parameters
         @SuppressWarnings("unchecked")
-        final
-        List<String> properties =
+        final List<String> properties =
             (List<String>) paramMap.getOrDefault("property", new ArrayList<String>());
         properties.add(((StringType) param.getValue()).getValue());
         paramMap.put("property", properties);
@@ -295,8 +294,7 @@ public class FhirR5ValueSetExpandTests {
     // Verify property parameters
     assertTrue(paramMap.containsKey("property"));
     @SuppressWarnings("unchecked")
-    final
-    List<String> returnedProperties = (List<String>) paramMap.get("property");
+    final List<String> returnedProperties = (List<String>) paramMap.get("property");
     assertEquals(2, returnedProperties.size());
     assertTrue(returnedProperties.contains(property1));
     assertTrue(returnedProperties.contains(property2));
@@ -320,7 +318,8 @@ public class FhirR5ValueSetExpandTests {
       if (includeDesignations && firstContains.hasDesignation()) {
         assertTrue(firstContains.getDesignation().size() > 0);
         // Verify designation structure
-        final ConceptReferenceDesignationComponent designation = firstContains.getDesignation().get(0);
+        final ConceptReferenceDesignationComponent designation =
+            firstContains.getDesignation().get(0);
         assertNotNull(designation.getValue());
         assertNotNull(designation.getUse());
       }
@@ -390,8 +389,7 @@ public class FhirR5ValueSetExpandTests {
       if (paramName.equals("property")) {
         // Handle multiple property parameters
         @SuppressWarnings("unchecked")
-        final
-        List<String> properties =
+        final List<String> properties =
             (List<String>) paramMap.getOrDefault("property", new ArrayList<String>());
         properties.add(((StringType) param.getValue()).getValue());
         paramMap.put("property", properties);
@@ -427,8 +425,7 @@ public class FhirR5ValueSetExpandTests {
     // Verify property parameters
     assertTrue(paramMap.containsKey("property"));
     @SuppressWarnings("unchecked")
-    final
-    List<String> returnedProperties = (List<String>) paramMap.get("property");
+    final List<String> returnedProperties = (List<String>) paramMap.get("property");
     assertEquals(2, returnedProperties.size());
     assertTrue(returnedProperties.contains(property1));
     assertTrue(returnedProperties.contains(property2));
@@ -455,7 +452,8 @@ public class FhirR5ValueSetExpandTests {
       if (includeDesignations && firstContains.hasDesignation()) {
         assertTrue(firstContains.getDesignation().size() > 0);
         // Verify designation structure
-        final ConceptReferenceDesignationComponent designation = firstContains.getDesignation().get(0);
+        final ConceptReferenceDesignationComponent designation =
+            firstContains.getDesignation().get(0);
         assertNotNull(designation.getValue());
         assertNotNull(designation.getUse());
         assertEquals("en", designation.getLanguage());
@@ -873,7 +871,8 @@ public class FhirR5ValueSetExpandTests {
     final String activeCode = "C48672";
     final String parentCode = "#C48670";
     final String propertyValue = "FDA";
-    final String expectedDefinition = "A category of drugs not considered legitimate for medical use.";
+    final String expectedDefinition =
+        "A category of drugs not considered legitimate for medical use.";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -1288,7 +1287,8 @@ public class FhirR5ValueSetExpandTests {
     final String activeCode = "C48672";
     final String parentCode = "#C48670";
     final String propertyValue = "FDA";
-    final String expectedDefinition = "A category of drugs not considered legitimate for medical use.";
+    final String expectedDefinition =
+        "A category of drugs not considered legitimate for medical use.";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -1433,7 +1433,8 @@ public class FhirR5ValueSetExpandTests {
    * @return the value set
    */
   // Helper method to create the common NCI ValueSet for testing
-  private ValueSet createNCITestValueSet(final String id, final String name, final String title, final String description) {
+  private ValueSet createNCITestValueSet(
+      final String id, final String name, final String title, final String description) {
     final ValueSet inputValueSet = new ValueSet();
     inputValueSet.setId(id);
     inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
@@ -1449,7 +1450,8 @@ public class FhirR5ValueSetExpandTests {
     nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
 
     // Valid active concept
-    final ValueSet.ConceptReferenceComponent diseaseOrDisorder = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent diseaseOrDisorder =
+        new ValueSet.ConceptReferenceComponent();
     diseaseOrDisorder.setCode("C2991");
     diseaseOrDisorder.setDisplay("Disease or Disorder");
     nciInclude.addConcept(diseaseOrDisorder);
@@ -1461,13 +1463,15 @@ public class FhirR5ValueSetExpandTests {
     nciInclude.addConcept(gene);
 
     // Inactive concept
-    final ValueSet.ConceptReferenceComponent inactiveConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent inactiveConcept =
+        new ValueSet.ConceptReferenceComponent();
     inactiveConcept.setCode("C176707");
     inactiveConcept.setDisplay("Physical Examination Finding - Inactive Test Concept");
     nciInclude.addConcept(inactiveConcept);
 
     // Invalid/bogus concept
-    final ValueSet.ConceptReferenceComponent invalidConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent invalidConcept =
+        new ValueSet.ConceptReferenceComponent();
     invalidConcept.setCode("INVALID123");
     invalidConcept.setDisplay("This is an invalid concept code");
     nciInclude.addConcept(invalidConcept);
@@ -2392,7 +2396,8 @@ public class FhirR5ValueSetExpandTests {
     nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
 
     // Valid active concept
-    final ValueSet.ConceptReferenceComponent diseaseOrDisorder = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent diseaseOrDisorder =
+        new ValueSet.ConceptReferenceComponent();
     diseaseOrDisorder.setCode("C2991");
     diseaseOrDisorder.setDisplay("Disease or Disorder");
     nciInclude.addConcept(diseaseOrDisorder);
@@ -2404,13 +2409,15 @@ public class FhirR5ValueSetExpandTests {
     nciInclude.addConcept(gene);
 
     // Inactive concept
-    final ValueSet.ConceptReferenceComponent inactiveConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent inactiveConcept =
+        new ValueSet.ConceptReferenceComponent();
     inactiveConcept.setCode("C176707");
     inactiveConcept.setDisplay("Physical Examination Finding - Inactive Test Concept");
     nciInclude.addConcept(inactiveConcept);
 
     // Invalid/bogus concept
-    final ValueSet.ConceptReferenceComponent invalidConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent invalidConcept =
+        new ValueSet.ConceptReferenceComponent();
     invalidConcept.setCode("INVALID123");
     invalidConcept.setDisplay("This is an invalid concept code");
     nciInclude.addConcept(invalidConcept);
@@ -2475,7 +2482,8 @@ public class FhirR5ValueSetExpandTests {
     directInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
 
     // Valid active concept
-    final ValueSet.ConceptReferenceComponent diseaseOrDisorder = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent diseaseOrDisorder =
+        new ValueSet.ConceptReferenceComponent();
     diseaseOrDisorder.setCode("C2991");
     diseaseOrDisorder.setDisplay("Disease or Disorder");
     directInclude.addConcept(diseaseOrDisorder);
@@ -2487,13 +2495,15 @@ public class FhirR5ValueSetExpandTests {
     directInclude.addConcept(gene);
 
     // Inactive concept
-    final ValueSet.ConceptReferenceComponent inactiveConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent inactiveConcept =
+        new ValueSet.ConceptReferenceComponent();
     inactiveConcept.setCode("C176707");
     inactiveConcept.setDisplay("Physical Examination Finding - Inactive Test Concept");
     directInclude.addConcept(inactiveConcept);
 
     // Invalid/bogus concept
-    final ValueSet.ConceptReferenceComponent invalidConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent invalidConcept =
+        new ValueSet.ConceptReferenceComponent();
     invalidConcept.setCode("INVALID123");
     invalidConcept.setDisplay("This is an invalid concept code");
     directInclude.addConcept(invalidConcept);
@@ -2778,7 +2788,8 @@ public class FhirR5ValueSetExpandTests {
     directInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
 
     // Valid active concept
-    final ValueSet.ConceptReferenceComponent diseaseOrDisorder = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent diseaseOrDisorder =
+        new ValueSet.ConceptReferenceComponent();
     diseaseOrDisorder.setCode("C2991");
     diseaseOrDisorder.setDisplay("Disease or Disorder");
     directInclude.addConcept(diseaseOrDisorder);
@@ -2790,13 +2801,15 @@ public class FhirR5ValueSetExpandTests {
     directInclude.addConcept(gene);
 
     // Inactive concept
-    final ValueSet.ConceptReferenceComponent inactiveConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent inactiveConcept =
+        new ValueSet.ConceptReferenceComponent();
     inactiveConcept.setCode("C176707");
     inactiveConcept.setDisplay("Physical Examination Finding - Inactive Test Concept");
     directInclude.addConcept(inactiveConcept);
 
     // Invalid/bogus concept
-    final ValueSet.ConceptReferenceComponent invalidConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent invalidConcept =
+        new ValueSet.ConceptReferenceComponent();
     invalidConcept.setCode("INVALID123");
     invalidConcept.setDisplay("This is an invalid concept code");
     directInclude.addConcept(invalidConcept);
@@ -3085,7 +3098,8 @@ public class FhirR5ValueSetExpandTests {
     directInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
 
     // Valid active concept (this will be duplicated by the "in" filter above)
-    final ValueSet.ConceptReferenceComponent diseaseOrDisorder = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent diseaseOrDisorder =
+        new ValueSet.ConceptReferenceComponent();
     diseaseOrDisorder.setCode("C2991");
     diseaseOrDisorder.setDisplay("Disease or Disorder");
     directInclude.addConcept(diseaseOrDisorder);
@@ -3097,13 +3111,15 @@ public class FhirR5ValueSetExpandTests {
     directInclude.addConcept(gene);
 
     // Inactive concept
-    final ValueSet.ConceptReferenceComponent inactiveConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent inactiveConcept =
+        new ValueSet.ConceptReferenceComponent();
     inactiveConcept.setCode("C176707");
     inactiveConcept.setDisplay("Physical Examination Finding - Inactive Test Concept");
     directInclude.addConcept(inactiveConcept);
 
     // Invalid/bogus concept
-    final ValueSet.ConceptReferenceComponent invalidConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent invalidConcept =
+        new ValueSet.ConceptReferenceComponent();
     invalidConcept.setCode("INVALID123");
     invalidConcept.setDisplay("This is an invalid concept code");
     directInclude.addConcept(invalidConcept);
@@ -3365,7 +3381,8 @@ public class FhirR5ValueSetExpandTests {
             .anyMatch(
                 comp -> {
                   // Check if any concepts appear to be from a cancer/disease-related ValueSet
-                  final String display = comp.getDisplay() != null ? comp.getDisplay().toLowerCase() : "";
+                  final String display =
+                      comp.getDisplay() != null ? comp.getDisplay().toLowerCase() : "";
                   return display.contains("cancer")
                       || display.contains("neoplasm")
                       || display.contains("disease")
@@ -3413,7 +3430,8 @@ public class FhirR5ValueSetExpandTests {
 
     // Add filter for concepts that "generalize" Lyase Gene (C21282) - i.e., ancestors + the concept
     // itself
-    final ValueSet.ConceptSetFilterComponent generalizesFilter = new ValueSet.ConceptSetFilterComponent();
+    final ValueSet.ConceptSetFilterComponent generalizesFilter =
+        new ValueSet.ConceptSetFilterComponent();
     generalizesFilter.setProperty("concept");
     generalizesFilter.setOp(
         Enumerations.FilterOperator.GENERALIZES); // "generalizes" - ancestors + self
@@ -3427,7 +3445,8 @@ public class FhirR5ValueSetExpandTests {
     directInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
 
     // Valid active concept
-    final ValueSet.ConceptReferenceComponent diseaseOrDisorder = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent diseaseOrDisorder =
+        new ValueSet.ConceptReferenceComponent();
     diseaseOrDisorder.setCode("C2991");
     diseaseOrDisorder.setDisplay("Disease or Disorder");
     directInclude.addConcept(diseaseOrDisorder);
@@ -3439,13 +3458,15 @@ public class FhirR5ValueSetExpandTests {
     directInclude.addConcept(gene);
 
     // Inactive concept
-    final ValueSet.ConceptReferenceComponent inactiveConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent inactiveConcept =
+        new ValueSet.ConceptReferenceComponent();
     inactiveConcept.setCode("C176707");
     inactiveConcept.setDisplay("Physical Examination Finding - Inactive Test Concept");
     directInclude.addConcept(inactiveConcept);
 
     // Invalid/bogus concept
-    final ValueSet.ConceptReferenceComponent invalidConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent invalidConcept =
+        new ValueSet.ConceptReferenceComponent();
     invalidConcept.setCode("INVALID123");
     invalidConcept.setDisplay("This is an invalid concept code");
     directInclude.addConcept(invalidConcept);
@@ -3538,7 +3559,8 @@ public class FhirR5ValueSetExpandTests {
             .filter(
                 comp -> {
                   // Look for broader concepts that would be ancestors of Lyase Gene
-                  final String display = comp.getDisplay() != null ? comp.getDisplay().toLowerCase() : "";
+                  final String display =
+                      comp.getDisplay() != null ? comp.getDisplay().toLowerCase() : "";
                   final String code = comp.getCode();
                   // Include the target concept itself and potential parent concepts
                   return code.equals("C21282")
@@ -3686,7 +3708,8 @@ public class FhirR5ValueSetExpandTests {
             .filter(comp -> !comp.getCode().equals("C21282")) // Exclude the target concept
             .filter(
                 comp -> {
-                  final String display = comp.getDisplay() != null ? comp.getDisplay().toLowerCase() : "";
+                  final String display =
+                      comp.getDisplay() != null ? comp.getDisplay().toLowerCase() : "";
                   // Look for broader concepts that could be ancestors
                   return display.contains("enzyme")
                       || display.contains("protein")
@@ -3794,7 +3817,8 @@ public class FhirR5ValueSetExpandTests {
                     "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl".equals(comp.getSystem()))
             .filter(
                 comp -> {
-                  final String display = comp.getDisplay() != null ? comp.getDisplay().toLowerCase() : "";
+                  final String display =
+                      comp.getDisplay() != null ? comp.getDisplay().toLowerCase() : "";
                   // String code = comp.getCode();
                   // Look for gene concepts that could be children of Lyase Gene
                   return display.contains("gene") || display.contains("lyase");
@@ -3892,7 +3916,8 @@ public class FhirR5ValueSetExpandTests {
     childOfInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
 
     // Add filter for concepts that are "child-of" Lyase Gene (C21282) - i.e., direct children only
-    final ValueSet.ConceptSetFilterComponent childOfFilter = new ValueSet.ConceptSetFilterComponent();
+    final ValueSet.ConceptSetFilterComponent childOfFilter =
+        new ValueSet.ConceptSetFilterComponent();
     childOfFilter.setProperty("concept");
     childOfFilter.setOp(Enumerations.FilterOperator.CHILDOF); // "child-of" - direct children only
     childOfFilter.setValue("C21282"); // Lyase Gene
@@ -3933,13 +3958,15 @@ public class FhirR5ValueSetExpandTests {
 
     // Add concepts that we know have different Contributing_Source values
     // C48672 (Schedule I Substance) has Contributing_Source = "FDA"
-    final ValueSet.ConceptReferenceComponent scheduleIConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent scheduleIConcept =
+        new ValueSet.ConceptReferenceComponent();
     scheduleIConcept.setCode("C48672");
     scheduleIConcept.setDisplay("Schedule I Substance");
     nciInclude.addConcept(scheduleIConcept);
 
     // C2991 (Disease or Disorder) - should not have Contributing_Source = "FDA"
-    final ValueSet.ConceptReferenceComponent diseaseConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent diseaseConcept =
+        new ValueSet.ConceptReferenceComponent();
     diseaseConcept.setCode("C2991");
     diseaseConcept.setDisplay("Disease or Disorder");
     nciInclude.addConcept(diseaseConcept);
@@ -3952,13 +3979,15 @@ public class FhirR5ValueSetExpandTests {
 
     // Add more concepts from the C54459 subset that might have Contributing_Source = "FDA"
     // C48670 (Controlled Substance) - might have Contributing_Source = "FDA"
-    final ValueSet.ConceptReferenceComponent controlledConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent controlledConcept =
+        new ValueSet.ConceptReferenceComponent();
     controlledConcept.setCode("C48670");
     controlledConcept.setDisplay("Schedule of Controlled Substances");
     nciInclude.addConcept(controlledConcept);
 
     // Now add the property equals filter to filter for Contributing_Source = "FDA"
-    final ValueSet.ConceptSetFilterComponent propertyFilter = new ValueSet.ConceptSetFilterComponent();
+    final ValueSet.ConceptSetFilterComponent propertyFilter =
+        new ValueSet.ConceptSetFilterComponent();
     propertyFilter.setProperty("Contributing_Source");
     propertyFilter.setOp(Enumerations.FilterOperator.EQUAL); // "=" operation
     propertyFilter.setValue("FDA"); // Filter for Contributing_Source = "FDA"
@@ -3982,7 +4011,11 @@ public class FhirR5ValueSetExpandTests {
    * @return the value set
    */
   private ValueSet createNCITestValueSetWithPropertyExistsFilter(
-      final String id, final String name, final String title, final String description, final boolean shouldExist) {
+      final String id,
+      final String name,
+      final String title,
+      final String description,
+      final boolean shouldExist) {
     final ValueSet inputValueSet = new ValueSet();
     inputValueSet.setId(id);
     inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
@@ -4002,14 +4035,16 @@ public class FhirR5ValueSetExpandTests {
     // Add concepts with known Contributing_Source property patterns
 
     // C48672 (Schedule I Substance) - HAS Contributing_Source = "FDA"
-    final ValueSet.ConceptReferenceComponent scheduleIConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent scheduleIConcept =
+        new ValueSet.ConceptReferenceComponent();
     scheduleIConcept.setCode("C48672");
     scheduleIConcept.setDisplay("Schedule I Substance");
     nciInclude.addConcept(scheduleIConcept);
 
     // C2991 (Disease or Disorder) - HAS Contributing_Source = "CDISC-GLOSS", "CTDC", "CTRP", "GDC",
     // "NICHD"
-    final ValueSet.ConceptReferenceComponent diseaseConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent diseaseConcept =
+        new ValueSet.ConceptReferenceComponent();
     diseaseConcept.setCode("C2991");
     diseaseConcept.setDisplay("Disease or Disorder");
     nciInclude.addConcept(diseaseConcept);
@@ -4017,13 +4052,15 @@ public class FhirR5ValueSetExpandTests {
     // Add concepts that do NOT have Contributing_Source property
 
     // C48670 (Controlled Substance) - does NOT have Contributing_Source property
-    final ValueSet.ConceptReferenceComponent controlledConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent controlledConcept =
+        new ValueSet.ConceptReferenceComponent();
     controlledConcept.setCode("C48670");
     controlledConcept.setDisplay("Schedule of Controlled Substances");
     nciInclude.addConcept(controlledConcept);
 
     // C21282 (Lyase Gene) - gene concept, does not have Contributing_Source
-    final ValueSet.ConceptReferenceComponent lyaseConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent lyaseConcept =
+        new ValueSet.ConceptReferenceComponent();
     lyaseConcept.setCode("C21282");
     lyaseConcept.setDisplay("Lyase Gene");
     nciInclude.addConcept(lyaseConcept);
@@ -4035,7 +4072,8 @@ public class FhirR5ValueSetExpandTests {
     nciInclude.addConcept(geneConcept);
 
     // Add the property exists filter
-    final ValueSet.ConceptSetFilterComponent propertyFilter = new ValueSet.ConceptSetFilterComponent();
+    final ValueSet.ConceptSetFilterComponent propertyFilter =
+        new ValueSet.ConceptSetFilterComponent();
     propertyFilter.setProperty("Contributing_Source");
     propertyFilter.setOp(Enumerations.FilterOperator.EXISTS); // "exists" operation
     propertyFilter.setValue(shouldExist ? "true" : "false"); // Filter for property existence
@@ -4708,7 +4746,8 @@ public class FhirR5ValueSetExpandTests {
     exclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
 
     // Add specific concepts to exclude
-    final ValueSet.ConceptReferenceComponent excludeConcept1 = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent excludeConcept1 =
+        new ValueSet.ConceptReferenceComponent();
     excludeConcept1.setCode("C48672"); // Schedule I Substance
     excludeConcept1.setDisplay("Schedule I Substance");
     exclude.addConcept(excludeConcept1);
@@ -4800,7 +4839,8 @@ public class FhirR5ValueSetExpandTests {
     includeOnlyValueSet.setUrl("http://example.org/fhir/ValueSet/nci-include-only-test");
     includeOnlyValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
 
-    final ValueSet.ValueSetComposeComponent includeOnlyCompose = new ValueSet.ValueSetComposeComponent();
+    final ValueSet.ValueSetComposeComponent includeOnlyCompose =
+        new ValueSet.ValueSetComposeComponent();
     final ValueSet.ConceptSetComponent includeOnly = new ValueSet.ConceptSetComponent();
     includeOnly.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
     includeOnly.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54452");
@@ -4906,7 +4946,8 @@ public class FhirR5ValueSetExpandTests {
     include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
 
     // Add a concept that won't be in C54459
-    final ValueSet.ConceptReferenceComponent includeConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent includeConcept =
+        new ValueSet.ConceptReferenceComponent();
     includeConcept.setCode("C2991"); // Disease or Disorder
     includeConcept.setDisplay("Disease or Disorder");
     include.addConcept(includeConcept);
@@ -4982,7 +5023,8 @@ public class FhirR5ValueSetExpandTests {
     final ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
     include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
 
-    final ValueSet.ConceptReferenceComponent includeConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent includeConcept =
+        new ValueSet.ConceptReferenceComponent();
     includeConcept.setCode("C2991"); // Disease or Disorder
     includeConcept.setDisplay("Disease or Disorder");
     include.addConcept(includeConcept);
@@ -5019,7 +5061,8 @@ public class FhirR5ValueSetExpandTests {
     assertNotNull(operationOutcome);
     assertTrue(operationOutcome.hasIssue());
 
-    final OperationOutcome.OperationOutcomeIssueComponent issue = operationOutcome.getIssueFirstRep();
+    final OperationOutcome.OperationOutcomeIssueComponent issue =
+        operationOutcome.getIssueFirstRep();
     assertEquals(OperationOutcome.IssueType.NOTFOUND, issue.getCode());
     assertTrue(issue.getDiagnostics().contains("Referenced ValueSet not found"));
     assertTrue(issue.getDiagnostics().contains("INVALID999"));
@@ -5039,7 +5082,11 @@ public class FhirR5ValueSetExpandTests {
    */
   // Helper method to create ValueSet with specific NCIt version
   private ValueSet createNCITestValueSetWithVersion(
-      final String id, final String name, final String title, final String description, final String ncitVersion) {
+      final String id,
+      final String name,
+      final String title,
+      final String description,
+      final String ncitVersion) {
     final ValueSet inputValueSet = new ValueSet();
     inputValueSet.setId(id);
     inputValueSet.setUrl("http://example.org/fhir/ValueSet/" + id);
@@ -5060,7 +5107,8 @@ public class FhirR5ValueSetExpandTests {
     }
 
     // Valid active concept
-    final ValueSet.ConceptReferenceComponent diseaseOrDisorder = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent diseaseOrDisorder =
+        new ValueSet.ConceptReferenceComponent();
     diseaseOrDisorder.setCode("C2991");
     diseaseOrDisorder.setDisplay("Disease or Disorder");
     nciInclude.addConcept(diseaseOrDisorder);
@@ -5072,13 +5120,15 @@ public class FhirR5ValueSetExpandTests {
     nciInclude.addConcept(gene);
 
     // Inactive concept
-    final ValueSet.ConceptReferenceComponent inactiveConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent inactiveConcept =
+        new ValueSet.ConceptReferenceComponent();
     inactiveConcept.setCode("C176707");
     inactiveConcept.setDisplay("Physical Examination Finding - Inactive Test Concept");
     nciInclude.addConcept(inactiveConcept);
 
     // Invalid/bogus concept
-    final ValueSet.ConceptReferenceComponent invalidConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent invalidConcept =
+        new ValueSet.ConceptReferenceComponent();
     invalidConcept.setCode("INVALID123");
     invalidConcept.setDisplay("This is an invalid concept code");
     nciInclude.addConcept(invalidConcept);
@@ -5137,7 +5187,8 @@ public class FhirR5ValueSetExpandTests {
     // log.info("History bundle contains {} entries", historyBundle.getEntry().size());
 
     // Create expand endpoint
-    final String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    final String expandEndpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
 
     // Create the ValueSet with specific NCIt version using helper method
     final ValueSet inputValueSet =
@@ -5336,19 +5387,22 @@ public class FhirR5ValueSetExpandTests {
 
     // Include several concepts to test exclusion
     // C48670 (Controlled Substance) - should be included (not in exclusion list)
-    final ValueSet.ConceptReferenceComponent controlledConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent controlledConcept =
+        new ValueSet.ConceptReferenceComponent();
     controlledConcept.setCode("C48670");
     controlledConcept.setDisplay("Schedule of Controlled Substances");
     nciInclude.addConcept(controlledConcept);
 
     // C2991 (Disease or Disorder) - will be excluded via filter
-    final ValueSet.ConceptReferenceComponent diseaseConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent diseaseConcept =
+        new ValueSet.ConceptReferenceComponent();
     diseaseConcept.setCode("C2991");
     diseaseConcept.setDisplay("Disease or Disorder");
     nciInclude.addConcept(diseaseConcept);
 
     // C48672 (Schedule I Substance) - will be excluded via filter
-    final ValueSet.ConceptReferenceComponent scheduleIConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent scheduleIConcept =
+        new ValueSet.ConceptReferenceComponent();
     scheduleIConcept.setCode("C48672");
     scheduleIConcept.setDisplay("Schedule I Substance");
     nciInclude.addConcept(scheduleIConcept);
@@ -5402,7 +5456,8 @@ public class FhirR5ValueSetExpandTests {
 
     // Include gene and non-gene concepts to test exclusion
     // C21282 (Lyase Gene) - will be excluded (is-a Gene)
-    final ValueSet.ConceptReferenceComponent lyaseConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent lyaseConcept =
+        new ValueSet.ConceptReferenceComponent();
     lyaseConcept.setCode("C21282");
     lyaseConcept.setDisplay("Lyase Gene");
     nciInclude.addConcept(lyaseConcept);
@@ -5414,25 +5469,29 @@ public class FhirR5ValueSetExpandTests {
     nciInclude.addConcept(geneConcept);
 
     // C48672 (Schedule I Substance) - should be included (not a gene)
-    final ValueSet.ConceptReferenceComponent scheduleIConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent scheduleIConcept =
+        new ValueSet.ConceptReferenceComponent();
     scheduleIConcept.setCode("C48672");
     scheduleIConcept.setDisplay("Schedule I Substance");
     nciInclude.addConcept(scheduleIConcept);
 
     // C2991 (Disease or Disorder) - should be included (not a gene)
-    final ValueSet.ConceptReferenceComponent diseaseConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent diseaseConcept =
+        new ValueSet.ConceptReferenceComponent();
     diseaseConcept.setCode("C2991");
     diseaseConcept.setDisplay("Disease or Disorder");
     nciInclude.addConcept(diseaseConcept);
 
     // C48670 (Controlled Substance) - should be included (not a gene)
-    final ValueSet.ConceptReferenceComponent controlledConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent controlledConcept =
+        new ValueSet.ConceptReferenceComponent();
     controlledConcept.setCode("C48670");
     controlledConcept.setDisplay("Schedule of Controlled Substances");
     nciInclude.addConcept(controlledConcept);
 
     // Add the 'is-not-a' filter to exclude gene concepts
-    final ValueSet.ConceptSetFilterComponent isNotAFilter = new ValueSet.ConceptSetFilterComponent();
+    final ValueSet.ConceptSetFilterComponent isNotAFilter =
+        new ValueSet.ConceptSetFilterComponent();
     isNotAFilter.setProperty("concept");
     isNotAFilter.setOp(Enumerations.FilterOperator.ISNOTA); // "is-not-a" operation
     isNotAFilter.setValue("C16612"); // Exclude concepts that are-a Gene (C16612)
@@ -5647,7 +5706,8 @@ public class FhirR5ValueSetExpandTests {
     nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
 
     // Include various concepts including genes and non-genes
-    final ValueSet.ConceptReferenceComponent lyaseConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent lyaseConcept =
+        new ValueSet.ConceptReferenceComponent();
     lyaseConcept.setCode("C21282");
     lyaseConcept.setDisplay("Lyase Gene");
     nciInclude.addConcept(lyaseConcept);
@@ -5657,12 +5717,14 @@ public class FhirR5ValueSetExpandTests {
     geneConcept.setDisplay("Gene");
     nciInclude.addConcept(geneConcept);
 
-    final ValueSet.ConceptReferenceComponent scheduleIConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent scheduleIConcept =
+        new ValueSet.ConceptReferenceComponent();
     scheduleIConcept.setCode("C48672");
     scheduleIConcept.setDisplay("Schedule I Substance");
     nciInclude.addConcept(scheduleIConcept);
 
-    final ValueSet.ConceptReferenceComponent diseaseConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent diseaseConcept =
+        new ValueSet.ConceptReferenceComponent();
     diseaseConcept.setCode("C2991");
     diseaseConcept.setDisplay("Disease or Disorder");
     nciInclude.addConcept(diseaseConcept);
@@ -5714,17 +5776,20 @@ public class FhirR5ValueSetExpandTests {
     nciInclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
 
     // Include concepts with different Contributing_Source properties
-    final ValueSet.ConceptReferenceComponent scheduleIConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent scheduleIConcept =
+        new ValueSet.ConceptReferenceComponent();
     scheduleIConcept.setCode("C48672");
     scheduleIConcept.setDisplay("Schedule I Substance");
     nciInclude.addConcept(scheduleIConcept);
 
-    final ValueSet.ConceptReferenceComponent diseaseConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent diseaseConcept =
+        new ValueSet.ConceptReferenceComponent();
     diseaseConcept.setCode("C2991");
     diseaseConcept.setDisplay("Disease or Disorder");
     nciInclude.addConcept(diseaseConcept);
 
-    final ValueSet.ConceptReferenceComponent controlledConcept = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent controlledConcept =
+        new ValueSet.ConceptReferenceComponent();
     controlledConcept.setCode("C48670");
     controlledConcept.setDisplay("Schedule of Controlled Substances");
     nciInclude.addConcept(controlledConcept);
@@ -5755,7 +5820,8 @@ public class FhirR5ValueSetExpandTests {
     nciExclude.addConcept(excludeControlledConcept);
 
     // Add property equals filter to exclude
-    final ValueSet.ConceptSetFilterComponent propertyFilter = new ValueSet.ConceptSetFilterComponent();
+    final ValueSet.ConceptSetFilterComponent propertyFilter =
+        new ValueSet.ConceptSetFilterComponent();
     propertyFilter.setProperty("Contributing_Source");
     propertyFilter.setOp(Enumerations.FilterOperator.EQUAL); // "=" operation
     propertyFilter.setValue("FDA"); // Exclude concepts with Contributing_Source = "FDA"
@@ -5806,7 +5872,8 @@ public class FhirR5ValueSetExpandTests {
     }
     log.info("Using current NCIt version: {} for include.version test", currentNCItVersion);
 
-    final String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    final String expandEndpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
 
     // Create the ValueSet using current version - should return concepts
     final ValueSet inputValueSet = createNCITestValueSetWithIncludeVersion(currentNCItVersion);
@@ -5865,7 +5932,8 @@ public class FhirR5ValueSetExpandTests {
   @Test
   public void testValueSetExpandWithIncludeVersionDirectConceptsOld() throws Exception {
     // Arrange
-    final String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    final String expandEndpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
     final String oldVersion = "20.03d"; // Old version that shouldn't be available on server
 
     // Create the ValueSet using old version - should return no concepts
@@ -5949,7 +6017,8 @@ public class FhirR5ValueSetExpandTests {
     log.info("Using current NCIt version: {} for include.version filter test", currentNCItVersion);
 
     // Create the ValueSet using current version and filters
-    final ValueSet inputValueSet = createNCITestValueSetWithIncludeVersionAndFilters(currentNCItVersion);
+    final ValueSet inputValueSet =
+        createNCITestValueSetWithIncludeVersionAndFilters(currentNCItVersion);
 
     // Create Parameters resource with both ValueSet and other parameters
     final Parameters parameters = new Parameters();
@@ -5968,7 +6037,8 @@ public class FhirR5ValueSetExpandTests {
     final HttpEntity<String> entity = new HttpEntity<>(parametersJson, headers);
 
     // Act
-    final ResponseEntity<String> response = restTemplate.postForEntity(endpoint, entity, String.class);
+    final ResponseEntity<String> response =
+        restTemplate.postForEntity(endpoint, entity, String.class);
     log.info("  response = " + JsonUtils.prettyPrint(response.getBody()));
 
     // Assert - Should return 200 OK
@@ -6001,7 +6071,8 @@ public class FhirR5ValueSetExpandTests {
   @Test
   public void testValueSetExpandWithIncludeVersionFilterBasedOld() throws Exception {
     // Arrange
-    final String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    final String expandEndpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
     final String oldVersion = "20.03d"; // Old version that shouldn't be available on server
 
     // Create the ValueSet using old version and filters - should return no concepts
@@ -6073,17 +6144,20 @@ public class FhirR5ValueSetExpandTests {
     nciInclude.setVersion(version); // Set specific version
 
     // Add some known NCI concepts
-    final ValueSet.ConceptReferenceComponent conceptNeoplasm = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent conceptNeoplasm =
+        new ValueSet.ConceptReferenceComponent();
     conceptNeoplasm.setCode("C3262");
     conceptNeoplasm.setDisplay("Neoplasm");
     nciInclude.addConcept(conceptNeoplasm);
 
-    final ValueSet.ConceptReferenceComponent conceptCarcinoma = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent conceptCarcinoma =
+        new ValueSet.ConceptReferenceComponent();
     conceptCarcinoma.setCode("C2916");
     conceptCarcinoma.setDisplay("Carcinoma");
     nciInclude.addConcept(conceptCarcinoma);
 
-    final ValueSet.ConceptReferenceComponent conceptMalignant = new ValueSet.ConceptReferenceComponent();
+    final ValueSet.ConceptReferenceComponent conceptMalignant =
+        new ValueSet.ConceptReferenceComponent();
     conceptMalignant.setCode("C9305");
     conceptMalignant.setDisplay("Malignant Neoplasm");
     nciInclude.addConcept(conceptMalignant);
@@ -6119,14 +6193,16 @@ public class FhirR5ValueSetExpandTests {
     nciInclude.setVersion(version); // Set specific version
 
     // Add child-of filter instead of is-a to limit the number of concepts
-    final ValueSet.ConceptSetFilterComponent childOfFilter = new ValueSet.ConceptSetFilterComponent();
+    final ValueSet.ConceptSetFilterComponent childOfFilter =
+        new ValueSet.ConceptSetFilterComponent();
     childOfFilter.setProperty("concept");
     childOfFilter.setOp(Enumerations.FilterOperator.CHILDOF); // "child-of" operation
     childOfFilter.setValue("C3262"); // Neoplasm children only (much smaller set)
     nciInclude.addFilter(childOfFilter);
 
     // Add property filter
-    final ValueSet.ConceptSetFilterComponent propertyFilter = new ValueSet.ConceptSetFilterComponent();
+    final ValueSet.ConceptSetFilterComponent propertyFilter =
+        new ValueSet.ConceptSetFilterComponent();
     propertyFilter.setProperty("Contributing_Source");
     propertyFilter.setOp(Enumerations.FilterOperator.EQUAL); // "=" operation
     propertyFilter.setValue("CTRP"); // Include concepts with Contributing_Source = "CTRP"
@@ -6147,7 +6223,8 @@ public class FhirR5ValueSetExpandTests {
   @Test
   public void testValueSetExpandTooCostlyError() throws Exception {
     // Arrange
-    final String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    final String expandEndpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
 
     // Get current NCIt version from server
     final String endpoint =
@@ -6187,7 +6264,8 @@ public class FhirR5ValueSetExpandTests {
     // assertNotNull(response.getBody());
 
     // Parse the OperationOutcome from the response body
-    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, response.getBody());
+    final OperationOutcome outcome =
+        parser.parseResource(OperationOutcome.class, response.getBody());
     final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Verify the error code and message
@@ -6228,7 +6306,8 @@ public class FhirR5ValueSetExpandTests {
     nciInclude.addFilter(isAFilter);
 
     // Add property filter to trigger property filtering on the large set
-    final ValueSet.ConceptSetFilterComponent propertyFilter = new ValueSet.ConceptSetFilterComponent();
+    final ValueSet.ConceptSetFilterComponent propertyFilter =
+        new ValueSet.ConceptSetFilterComponent();
     propertyFilter.setProperty("Semantic_Type");
     propertyFilter.setOp(Enumerations.FilterOperator.EQUAL);
     propertyFilter.setValue("Disease or Syndrome"); // Some semantic type filter
@@ -6248,7 +6327,8 @@ public class FhirR5ValueSetExpandTests {
   @Test
   public void testValueSetExpandWithIncludeValueSet() throws Exception {
     // Create a ValueSet that includes another ValueSet by URL
-    final String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    final String expandEndpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
 
     final ValueSet inputValueSet = createNCITestValueSetWithIncludeValueSet();
     final Parameters parameters = new Parameters();
@@ -6304,7 +6384,8 @@ public class FhirR5ValueSetExpandTests {
   @Test
   public void testValueSetExpandWithIncludeValueSetPaging() throws Exception {
     // Create a ValueSet that includes another ValueSet by URL
-    final String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    final String expandEndpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
 
     final ValueSet inputValueSet = createNCITestValueSetWithIncludeValueSet();
 
@@ -6413,7 +6494,8 @@ public class FhirR5ValueSetExpandTests {
   @Test
   public void testValueSetExpandWithIncludeValueSetDefinitionsDesignations() throws Exception {
     // Create a ValueSet that includes another ValueSet by URL
-    final String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    final String expandEndpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
 
     final ValueSet inputValueSet = createNCITestValueSetWithIncludeValueSet();
     final Parameters parameters = new Parameters();
@@ -6527,7 +6609,8 @@ public class FhirR5ValueSetExpandTests {
   @Test
   public void testValueSetExpandWithIncludeValueSetNotFound() throws Exception {
     // Create a ValueSet that includes a non-existent ValueSet by URL
-    final String expandEndpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    final String expandEndpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
 
     final ValueSet inputValueSet = createNCITestValueSetWithIncludeValueSetNotFound();
     final Parameters parameters = new Parameters();
@@ -6552,7 +6635,8 @@ public class FhirR5ValueSetExpandTests {
         "Should return 4xx error for missing ValueSet, got: " + response.getStatusCode());
 
     // Parse the response as an OperationOutcome
-    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, response.getBody());
+    final OperationOutcome outcome =
+        parser.parseResource(OperationOutcome.class, response.getBody());
 
     // Verify the OperationOutcome has the expected error
     assertTrue(outcome.hasIssue());

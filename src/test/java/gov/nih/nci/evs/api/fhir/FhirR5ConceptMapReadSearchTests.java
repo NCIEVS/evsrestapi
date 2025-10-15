@@ -85,7 +85,8 @@ class FhirR5ConceptMapReadSearchTests {
   @Test
   public void testConceptMapSearch() throws Exception {
     // Arrange
-    final String content = this.restTemplate.getForObject(localHost + port + fhirCMPath, String.class);
+    final String content =
+        this.restTemplate.getForObject(localHost + port + fhirCMPath, String.class);
     final Bundle data = parser.parseResource(Bundle.class, content);
 
     // Act
@@ -170,7 +171,8 @@ class FhirR5ConceptMapReadSearchTests {
     final String conceptMapId = "icd10_to_meddra_mapping_july2021";
 
     // Act
-    final String content = this.restTemplate.getForObject(endpoint + "/" + conceptMapId, String.class);
+    final String content =
+        this.restTemplate.getForObject(endpoint + "/" + conceptMapId, String.class);
     final ConceptMap conceptMap = parser.parseResource(ConceptMap.class, content);
 
     // Assert
@@ -670,7 +672,8 @@ class FhirR5ConceptMapReadSearchTests {
     final String versionEndpoint = endpoint + "/" + invalidId + "/_history/1";
 
     // Act & Assert
-    final String messageNotFound = "Concept map version not found: nonexistent-conceptMap-id version 1";
+    final String messageNotFound =
+        "Concept map version not found: nonexistent-conceptMap-id version 1";
     final String errorCode = "not-found";
 
     // Act
@@ -698,7 +701,8 @@ class FhirR5ConceptMapReadSearchTests {
 
     // Act & Assert - Try to get a version that doesn't exist
     final String invalidVersionEndpoint = endpoint + "/" + firstConceptMapId + "/_history/999";
-    final String messageNotFound = "Concept map version not found: " + firstConceptMapId + " version 999";
+    final String messageNotFound =
+        "Concept map version not found: " + firstConceptMapId + " version 999";
     final String errorCode = "not-found";
 
     // Act
@@ -764,7 +768,8 @@ class FhirR5ConceptMapReadSearchTests {
     final Bundle historyBundle = parser.parseResource(Bundle.class, content);
 
     // Get first version from history
-    final ConceptMap firstHistoryVersion = (ConceptMap) historyBundle.getEntry().get(0).getResource();
+    final ConceptMap firstHistoryVersion =
+        (ConceptMap) historyBundle.getEntry().get(0).getResource();
     final String versionId = firstHistoryVersion.getMeta().getVersionId();
 
     // Act - Get the same version using vread

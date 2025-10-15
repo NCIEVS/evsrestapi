@@ -106,8 +106,7 @@ class FhirR5ClientSDKTests {
       connection.setRequestProperty("User-Agent", "Java Application");
 
       @SuppressWarnings("resource")
-      final
-      JsonNode rootNode = objectMapper.readTree(connection.getInputStream());
+      final JsonNode rootNode = objectMapper.readTree(connection.getInputStream());
 
       // Extract all name-raw pairs
       extractNameRawPairs(rootNode);
@@ -280,7 +279,8 @@ class FhirR5ClientSDKTests {
    * @param rawEndpoint the raw endpoint URL from Postman collection
    * @throws Exception if the test fails
    */
-  private void executeEndpointTest(final String testName, final String rawEndpoint) throws Exception {
+  private void executeEndpointTest(final String testName, final String rawEndpoint)
+      throws Exception {
     // Replace {{baseUrl}} with actual base URL
     final String baseUrl = "http://localhost:" + port;
     final String endpoint = rawEndpoint.replace("{{baseUrl}}", baseUrl);

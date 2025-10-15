@@ -547,7 +547,7 @@ public class MapsetControllerTests {
   @Test
   public void testMapsetsWithSNOMEDMappingExists() throws Exception {
     // Arrange
-    String path = "SNOMEDCT_US_2020_09_01_to_ICD10CM_2021_Mappings/maps";
+    String path = "SNOMEDCT_US_2025_03_01_to_ICD10CM_2025_Mappings/maps";
 
     // Act
     MvcResult result =
@@ -567,7 +567,7 @@ public class MapsetControllerTests {
   @Test
   public void testMapsetsWithSNOMEDMappingANDTermExists() throws Exception {
     // Arrange
-    String path = "SNOMEDCT_US_2020_09_01_to_ICD10CM_2021_Mappings/maps";
+    String path = "SNOMEDCT_US_2025_03_01_to_ICD10CM_2025_Mappings/maps";
     String params = "?term=AIDS";
 
     // Act
@@ -589,7 +589,7 @@ public class MapsetControllerTests {
   @Test
   public void testMapsetsWithSNOMEDMappingsANDCodeExists() throws Exception {
     // Arrange
-    String path = "SNOMEDCT_US_2020_09_01_to_ICD10CM_2021_Mappings/maps";
+    String path = "SNOMEDCT_US_2025_03_01_to_ICD10CM_2025_Mappings/maps";
     String params = "?term=62479008";
 
     // Act
@@ -611,7 +611,7 @@ public class MapsetControllerTests {
   @Test
   public void testMapsetsWithSNOMEDANDSortAscendingTrue() throws Exception {
     // Arrange
-    String path = "SNOMEDCT_US_2020_09_01_to_ICD10CM_2021_Mappings/maps";
+    String path = "SNOMEDCT_US_2025_03_01_to_ICD10CM_2025_Mappings/maps";
     String params = "?sort=sourceName&ascending=true";
 
     // Act
@@ -640,7 +640,7 @@ public class MapsetControllerTests {
   @Test
   public void testMapsetsWithSNOMEDANDSortDescendingTrue() throws Exception {
     // Arrange
-    String path = "SNOMEDCT_US_2020_09_01_to_ICD10CM_2021_Mappings/maps";
+    String path = "SNOMEDCT_US_2025_03_01_to_ICD10CM_2025_Mappings/maps";
     String params = "?sort=sourceName&ascending=false";
 
     // Act

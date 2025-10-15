@@ -124,6 +124,12 @@ public class RrfFileCopier {
       while ((line = in.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
 
+        // If MRCUI and it is a DEL entry, then keep
+        if (key == Keys.MRCUI && "DEL".equals(fields[2])) {
+          out.print(line + "\n");
+          continue;
+        }
+
         // Skip non-matching CUI
         if (cuiFields != null && cuis != null && !cuis.isEmpty()) {
           for (final int i : cuiFields) {

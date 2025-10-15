@@ -965,7 +965,8 @@ public class FhirR4ValueSetReadSearchTests {
 
     // Act & Assert - Try to get a version that doesn't exist
     final String invalidVersionEndpoint = endpoint + "/" + firstValueSetId + "/_history/999";
-    final String messageNotFound = "Value set version not found: " + firstValueSetId + " version 999";
+    final String messageNotFound =
+        "Value set version not found: " + firstValueSetId + " version 999";
     final String errorCode = "not-found";
 
     // Act

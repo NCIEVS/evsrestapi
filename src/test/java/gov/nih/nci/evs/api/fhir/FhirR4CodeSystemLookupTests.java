@@ -338,7 +338,8 @@ public class FhirR4CodeSystemLookupTests {
     final String messageNotFound = "Failed to lookup code";
     final String endpoint =
         localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_LOOKUP;
-    final String parameters = "?system=" + url + "&code=" + codeNotFound + "$display" + displayString;
+    final String parameters =
+        "?system=" + url + "&code=" + codeNotFound + "$display" + displayString;
     final String errorCode = "exception";
 
     // Act

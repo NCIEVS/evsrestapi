@@ -90,7 +90,8 @@ public class FhirR4CodeSystemValidateTests {
     final String activeCode = "T100";
     final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     final String displayString = "Age Group";
-    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String endpoint =
+        localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     final String parameters = "?url=" + url + "&code=" + activeCode;
 
     // Act
@@ -117,7 +118,8 @@ public class FhirR4CodeSystemValidateTests {
     final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     final String displayString = "Age Group";
     final String version = "2023AA";
-    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String endpoint =
+        localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
 
     // Create the Coding object
     final Coding coding = new Coding(url, activeCode, null);
@@ -190,7 +192,8 @@ public class FhirR4CodeSystemValidateTests {
     String content;
     final String activeCode = "T100";
     final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
-    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String endpoint =
+        localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     final String parameters = "?url=" + url + "&code=" + activeCode + "&displayLanguage=notfound";
 
     final String messageNotSupported = "Input parameter 'displayLanguage' is not supported.";
@@ -307,7 +310,8 @@ public class FhirR4CodeSystemValidateTests {
     final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     final String messageNotFound =
         "The code does not exist for the supplied code system url and/or version";
-    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String endpoint =
+        localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     final String parameters = "?url=" + url + "&code=" + codeNotFound;
 
     // Act
@@ -359,7 +363,8 @@ public class FhirR4CodeSystemValidateTests {
     final String retiredCode = "C45683";
     final String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     final String retiredName = "ABCB1 1 Allele";
-    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String endpoint =
+        localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     final String parameters = "?url=" + retiredUrl + "&code=" + retiredCode;
 
     // Act
@@ -394,7 +399,8 @@ public class FhirR4CodeSystemValidateTests {
             + retiredId
             + "/"
             + JpaConstants.OPERATION_VALIDATE_CODE;
-    final String parameters = "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
+    final String parameters =
+        "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -418,7 +424,8 @@ public class FhirR4CodeSystemValidateTests {
     String content;
     final String code = "C3224";
     final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/TheBadTest.owl";
-    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String endpoint =
+        localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     final String parameters = "?code=" + code + "&url=" + url;
     final String messageNotFound = "Unable to find matching code system";
     final String errorCode = "not-found";
@@ -443,7 +450,8 @@ public class FhirR4CodeSystemValidateTests {
     // Arrange
     ResponseEntity<String> content;
     final String message = "POST method not supported for " + JpaConstants.OPERATION_VALIDATE_CODE;
-    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String endpoint =
+        localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     final String parameters = "?code=" + null + "&system=" + null;
 
     // Act
