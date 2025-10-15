@@ -133,34 +133,50 @@ fi
 
 metadata_config_url=${CONFIG_BASE_URI:-"https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/main/config/metadata"}
 
-get_databases(){
-
-  # Hardcode database names for now
-  cat > /tmp/db.$$.txt << EOF
-CTRP
-NCIT2
-EOF
-
-  # The following code requires "admin" call to Jena which is only allowed
-  # in deployment environments from "localhost".  Thus the evsrestapi server
-  # is not allowed to make this call.
-  #
-  ## this was put back to perl because we don't have python3 on the evsrestapi machines
-  #curl -w "\n%{http_code}" -s -g -u "${l_graph_db_username}:$l_graph_db_password" \
-  #    "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/\$/datasets" 2> /dev/null > /tmp/x.$$
-  #check_status $? "GET /admin/databases failed to list databases"
-  #check_http_status 200 "GET /admin/databases expecting 200"
-  #sed '$d' /tmp/x.$$ | $jq | grep 'ds.name' | perl -pe 's/.*ds.name.*\///; s/",.*//;' > /tmp/db.$$.txt
-  #echo "  databases = " `cat /tmp/db.$$.txt`
-  #ct=`cat /tmp/db.$$.txt | wc -l`
-  #if [[ $ct -eq 0 ]]; then
-  #    echo "ERROR: no graph databases, this is unexpected"
-  #    exit 1
-  #fi
+validate_and_populate_dbs(){
+  echo "  Getting databases from configuration index ...$(/bin/date)"
+  if [[ -z $(curl -s "$ES/configuration/_search?size=1" | jq -r '.hits.hits[0]') ]]; then
+    echo "ERROR: configuration index does not exist. Run init.sh in evsrestapi-operations first."
+    exit 1
+  fi
+  str_weekly_dbs=$(curl -s "$ES/configuration/_search" | jq -r '[.hits.hits[] | select(._source.weekly==true) | ._source.name] | join(",")')
+  IFS=',' read -r -a weekly_dbs <<<"$str_weekly_dbs"
+  if [[ $? -ne 0 ]]; then
+      echo "ERROR: unexpected problem listing weekly databases. Try running init.sh in evsrestapi-operations first."
+      exit 1
+  fi
+  if [[ ${#weekly_dbs[@]} -gt 1 ]]; then
+    echo "ERROR: More than one weekly is not supported: $str_weekly_dbs"
+    exit 1
+  fi
+  if [[ ${#weekly_dbs[@]} -eq 0 ]]; then
+    echo "ERROR: No weekly database found in configuration index"
+    exit 1
+  fi
+  str_non_weekly_dbs=$(curl -s "$ES/configuration/_search" | jq -r '[.hits.hits[] | select(._source.weekly==false) | ._source.name] | join(",")')
+  IFS=',' read -r -a non_weekly_dbs <<<"$str_non_weekly_dbs"
+  if [[ $? -ne 0 ]]; then
+      echo "ERROR: unexpected problem listing non-weekly databases. Try running init.sh in evsrestapi-operations first."
+      exit 1
+  fi
+  if [[ ${#non_weekly_dbs[@]} -gt 1 ]]; then
+    echo "ERROR: More than one non-weekly is not supported: $str_non_weekly_dbs"
+    exit 1
+  fi
+  if [[ ${#non_weekly_dbs[@]} -eq 0 ]]; then
+    echo "ERROR: No non-weekly database found in configuration index"
+    exit 1
+  fi
+  databases=("${weekly_dbs[@]}" "${non_weekly_dbs[@]}")
+  weekly_db=${weekly_dbs[0]}
+  non_weekly_db=${non_weekly_dbs[0]}
+  echo "  weekly db: $weekly_db"
+  echo "  non-weekly db: $non_weekly_db"
 }
 
 
-get_databases
+validate_and_populate_dbs
+
 # Open a new file descriptor that redirects to stdout:
 exec 3>&1
 
@@ -249,7 +265,7 @@ get_graphs(){
   /bin/rm -f /tmp/y.$$.txt
   touch /tmp/y.$$.txt
   # this was put back to perl because we don't have python3 on the evsrestapi machines
-  for db in `cat /tmp/db.$$.txt`; do
+  for db in "${databases[@]}"; do
       curl -w "\n%{http_code}"  -s -g -u "${l_graph_db_username}:$l_graph_db_password" \
           http://${l_graph_db_host}:${l_graph_db_port}/$db/query \
           --data-urlencode "$query" -H "Accept: application/sparql-results+json" 2> /dev/null > /tmp/x.$$
@@ -417,7 +433,6 @@ download_ncit_history() {
           download_and_unpack "$prev_version"
       fi
   fi
-
   # cd back out
   cd - > /dev/null
   return 0
@@ -511,7 +526,8 @@ for x in `cat /tmp/y.$$.txt`; do
             historyClause=" -d $historyFile"
         fi
 
-        echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
+        echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
+        pwd
         java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
         if [[ $? -ne 0 ]]; then
             echo "pwd = `pwd`"
@@ -637,7 +653,7 @@ if [[ `curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_mappings/_settings" | grep -c
 fi
 
 # Cleanup
-/bin/rm -f /tmp/[xy].$$.txt /tmp/db.$$.txt /tmp/x.$$
+/bin/rm -f /tmp/[xy].$$.txt /tmp/x.$$
 
 echo ""
 echo "--------------------------------------------------"
