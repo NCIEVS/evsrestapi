@@ -428,6 +428,55 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(39f),
             ScoreMode.Max);
 
+    // Partial word match queries - boost higher than phrase but lower than exact
+    // Only apply for "contains" type queries, not for "phrase" queries
+    QueryStringQueryBuilder partialWordNameQuery = null;
+    QueryStringQueryBuilder partialWordSynonymQuery = null;
+    NestedQueryBuilder nestedPartialWordSynonymQuery = null;
+
+    // This is a very targeted approach to a particular set of cases
+    // but does achieve support for searches like "rectal car"
+
+    // build partial word query if we have partial/short words
+    if ("contains".equalsIgnoreCase(type)) {
+      String[] tokens = normTerm.split("\\s+");
+      boolean hasPartialWord = false;
+      String[] partialTokens = new String[tokens.length];
+
+      for (int i = 0; i < tokens.length; i++) {
+        String token = tokens[i];
+        boolean isPartialWord =
+            (token.length() >= 2 && token.length() <= 4)
+                || (i == tokens.length - 1 && token.length() >= 2 && token.length() <= 5);
+
+        if (isPartialWord) {
+          partialTokens[i] = token + "*";
+          hasPartialWord = true;
+        } else {
+          partialTokens[i] = token;
+        }
+      }
+
+      // Only create partial word queries if we actually have partial words
+      if (hasPartialWord) {
+        partialWordNameQuery =
+            QueryBuilders.queryStringQuery(String.join(" AND ", partialTokens))
+                .field("name")
+                .defaultOperator(Operator.AND)
+                .analyzeWildcard(true)
+                .boost(35f);
+
+        partialWordSynonymQuery =
+            QueryBuilders.queryStringQuery(String.join(" AND ", partialTokens))
+                .field("synonyms.name")
+                .defaultOperator(Operator.AND)
+                .analyzeWildcard(true)
+                .boost(34f);
+        nestedPartialWordSynonymQuery =
+            QueryBuilders.nestedQuery("synonyms", partialWordSynonymQuery, ScoreMode.Max);
+      }
+    }
+
     // Boosting matches with words next to each other
     final QueryStringQueryBuilder phraseNormNameQuery =
         QueryBuilders.queryStringQuery("\"" + term + "\"").field("name").boost(30f);
@@ -494,6 +543,12 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       synonymFixNormNameQuery.fuzziness(Fuzziness.ONE);
       synonymStemNameQuery.fuzziness(Fuzziness.ONE);
       definitionQuery.fuzziness(Fuzziness.ONE);
+      if (partialWordNameQuery != null) {
+        partialWordNameQuery.fuzziness(Fuzziness.ONE);
+      }
+      if (partialWordSynonymQuery != null) {
+        partialWordSynonymQuery.fuzziness(Fuzziness.ONE);
+      }
     } else {
       fixNameQuery.fuzziness(Fuzziness.ZERO);
       fixNormNameQuery.fuzziness(Fuzziness.ZERO);
@@ -502,6 +557,12 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       synonymFixNormNameQuery.fuzziness(Fuzziness.ZERO);
       synonymStemNameQuery.fuzziness(Fuzziness.ZERO);
       definitionQuery.fuzziness(Fuzziness.ZERO);
+      if (partialWordNameQuery != null) {
+        partialWordNameQuery.fuzziness(Fuzziness.ZERO);
+      }
+      if (partialWordSynonymQuery != null) {
+        partialWordSynonymQuery.fuzziness(Fuzziness.ZERO);
+      }
     }
 
     // -- wildcard search is assumed to be a term search or phrase search
@@ -543,6 +604,14 @@ public class OpenSearchServiceImpl implements OpenSearchService {
           // Text queries on "norm name" and synonym "norm name"
           .should(normNameQuery)
           .should(nestedSynonymNormNameQuery);
+    }
+
+    // Add partial word queries (boost between exact and phrase) - only for contains type
+    if (partialWordNameQuery != null) {
+      termQuery.should(partialWordNameQuery);
+    }
+    if (nestedPartialWordSynonymQuery != null) {
+      termQuery.should(nestedPartialWordSynonymQuery);
     }
 
     // Use phrase queries with higher boost than fixname queries
@@ -854,7 +923,6 @@ public class OpenSearchServiceImpl implements OpenSearchService {
   /**
    * builds nested query for subset criteria on value field for given types.
    *
-   * @param term the term
    * @param searchCriteria the search criteria
    * @return the nested query
    */

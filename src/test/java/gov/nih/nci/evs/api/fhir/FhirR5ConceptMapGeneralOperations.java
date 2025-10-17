@@ -54,7 +54,7 @@ class FhirR5ConceptMapGeneralOperations {
   @BeforeEach
   public void setUp() {
     // the object mapper
-    ObjectMapper objectMapper = new ObjectMapper();
+    final ObjectMapper objectMapper = new ObjectMapper();
     JacksonTester.initFields(this, objectMapper);
   }
 
@@ -67,18 +67,18 @@ class FhirR5ConceptMapGeneralOperations {
   public void testConceptMapValidate() throws Exception {
     // Arrange
     String content;
-    String conceptMapId = "icd10_to_meddra_mapping_july2023";
-    String endpoint = localHost + port + fhirCMPath;
+    final String conceptMapId = "icd10_to_meddra_mapping_july2023";
+    final String endpoint = localHost + port + fhirCMPath;
 
-    String messageNotFound =
+    final String messageNotFound =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ConceptMap/$validate] with parameters [[]]";
-    String messageNotFoundWithId =
+    final String messageNotFoundWithId =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ConceptMap/"
             + conceptMapId
             + "/$validate] with parameters [[]]";
-    String errorCode = "not-supported";
+    final String errorCode = "not-supported";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + "/$validate", String.class);
@@ -108,18 +108,18 @@ class FhirR5ConceptMapGeneralOperations {
   public void testConceptMapMeta() throws Exception {
     // Arrange
     String content;
-    String conceptMapId = "icd10_to_meddra_mapping_july2023";
-    String endpoint = localHost + port + fhirCMPath;
+    final String conceptMapId = "icd10_to_meddra_mapping_july2023";
+    final String endpoint = localHost + port + fhirCMPath;
 
-    String messageNotFound =
+    final String messageNotFound =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ConceptMap/$meta] with parameters [[]]";
-    String messageNotFoundWithId =
+    final String messageNotFoundWithId =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ConceptMap/"
             + conceptMapId
             + "/$meta] with parameters [[]]";
-    String errorCode = "not-supported";
+    final String errorCode = "not-supported";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + "/$meta", String.class);
@@ -150,18 +150,18 @@ class FhirR5ConceptMapGeneralOperations {
   public void testConceptMapGraphql() throws Exception {
     // Arrange
     String content;
-    String conceptMapId = "icd10_to_meddra_mapping_july2023";
-    String endpoint = localHost + port + fhirCMPath;
+    final String conceptMapId = "icd10_to_meddra_mapping_july2023";
+    final String endpoint = localHost + port + fhirCMPath;
 
-    String messageNotFound =
+    final String messageNotFound =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ConceptMap/$graphql] with parameters [[]]";
-    String messageNotFoundWithId =
+    final String messageNotFoundWithId =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ConceptMap/"
             + conceptMapId
             + "/$graphql] with parameters [[]]";
-    String errorCode = "not-supported";
+    final String errorCode = "not-supported";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + "/$graphql", String.class);
@@ -192,21 +192,21 @@ class FhirR5ConceptMapGeneralOperations {
   public void testConceptMapGraph() throws Exception {
     // Arrange
     String content;
-    String conceptMapId = "icd10_to_meddra_mapping_july2023";
-    String endpoint = localHost + port + fhirCMPath;
+    final String conceptMapId = "icd10_to_meddra_mapping_july2023";
+    final String endpoint = localHost + port + fhirCMPath;
 
-    String messageNotFoundWithId =
+    final String messageNotFoundWithId =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ConceptMap/"
             + conceptMapId
             + "/$graph] with parameters [[]]";
-    String errorCode = "not-supported";
+    final String errorCode = "not-supported";
 
     // Act
     content =
         this.restTemplate.getForObject(endpoint + "/" + conceptMapId + "/$graph", String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -222,20 +222,20 @@ class FhirR5ConceptMapGeneralOperations {
   public void testConceptMapAdd() throws Exception {
     // Arrange
     String content;
-    String conceptMapId = "icd10_to_meddra_mapping_july2023";
-    String endpoint = localHost + port + fhirCMPath;
+    final String conceptMapId = "icd10_to_meddra_mapping_july2023";
+    final String endpoint = localHost + port + fhirCMPath;
 
-    String messageNotFoundWithId =
+    final String messageNotFoundWithId =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ConceptMap/"
             + conceptMapId
             + "/$add] with parameters [[]]";
-    String errorCode = "not-supported";
+    final String errorCode = "not-supported";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + "/" + conceptMapId + "/$add", String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -251,21 +251,21 @@ class FhirR5ConceptMapGeneralOperations {
   public void testConceptMapRemove() throws Exception {
     // Arrange
     String content;
-    String conceptMapId = "icd10_to_meddra_mapping_july2023";
-    String endpoint = localHost + port + fhirCMPath;
+    final String conceptMapId = "icd10_to_meddra_mapping_july2023";
+    final String endpoint = localHost + port + fhirCMPath;
 
-    String messageNotFoundWithId =
+    final String messageNotFoundWithId =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ConceptMap/"
             + conceptMapId
             + "/$remove] with parameters [[]]";
-    String errorCode = "not-supported";
+    final String errorCode = "not-supported";
 
     // Act
     content =
         this.restTemplate.getForObject(endpoint + "/" + conceptMapId + "/$remove", String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -281,21 +281,21 @@ class FhirR5ConceptMapGeneralOperations {
   public void testConceptMapFilter() throws Exception {
     // Arrange
     String content;
-    String conceptMapId = "icd10_to_meddra_mapping_july2023";
-    String endpoint = localHost + port + fhirCMPath;
+    final String conceptMapId = "icd10_to_meddra_mapping_july2023";
+    final String endpoint = localHost + port + fhirCMPath;
 
-    String messageNotFoundWithId =
+    final String messageNotFoundWithId =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ConceptMap/"
             + conceptMapId
             + "/$filter] with parameters [[]]";
-    String errorCode = "not-supported";
+    final String errorCode = "not-supported";
 
     // Act
     content =
         this.restTemplate.getForObject(endpoint + "/" + conceptMapId + "/$filter", String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());

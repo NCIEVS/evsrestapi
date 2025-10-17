@@ -177,7 +177,7 @@ public class MdrControllerTests {
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("10009802");
-    assertThat(concept.getAssociations().size()).isEqualTo(11);
+    assertThat(concept.getAssociations().size()).isEqualTo(17);
     assertThat(
             concept.getAssociations().stream()
                 .filter(a -> a.getRelatedCode().equals("10013206"))
@@ -192,7 +192,7 @@ public class MdrControllerTests {
                 .getType())
         .isEqualTo("RQ");
 
-    assertThat(concept.getInverseAssociations().size()).isEqualTo(11);
+    assertThat(concept.getInverseAssociations().size()).isEqualTo(17);
     assertThat(
             concept.getInverseAssociations().stream()
                 .filter(a -> a.getRelatedCode().equals("10064732"))
@@ -209,7 +209,7 @@ public class MdrControllerTests {
             .getValue()
             .equals("classified_as"));
 
-    assertThat(concept.getChildren().size()).isEqualTo(10);
+    assertThat(concept.getChildren().size()).isEqualTo(16);
     // single source children don't have terminology/version
     assertThat(concept.getChildren().get(0).getTerminology()).isNull();
     assertThat(concept.getChildren().get(0).getVersion()).isNull();
@@ -320,7 +320,7 @@ public class MdrControllerTests {
                 get(url)
                     .header("X-EVSRESTAPI-License-Key", appProperties.getUiLicense())
                     .param("terminology", "mdr")
-                    .param("term", "Coagulation")
+                    .param("term", "Stenosis")
                     .param("pageSize", "10")
                     .param("type", "contains")
                     .param("include", "synonyms"))
@@ -331,10 +331,10 @@ public class MdrControllerTests {
     log.info(" content = " + content);
     list = new ObjectMapper().readValue(content, ConceptResultList.class);
     assertThat(list).isNotNull();
-    // Look for the Aspirin CUI.
+    // Look for the Stenosis code
     assertThat(
             list.getConcepts().stream()
-                .filter(c -> c.getCode().equals("10009729"))
+                .filter(c -> c.getCode().equals("10076711"))
                 .collect(Collectors.toList())
                 .size())
         .isEqualTo(1);

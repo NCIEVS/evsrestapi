@@ -26,11 +26,17 @@ import gov.nih.nci.evs.api.model.sparql.Bindings;
 import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.GraphProperties;
-import gov.nih.nci.evs.api.util.*;
+import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.EVSUtils;
+import gov.nih.nci.evs.api.util.FhirUtility;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.RESTUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -2653,7 +2659,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String uri = applicationProperties.getConfigBaseUri() + "/ignore-source.txt";
     if (StringUtils.isNotBlank(uri)) {
       log.info("Ignore source file URL:{}", uri);
-      return EVSUtils.getValueFromFile(uri, "ignore sources from file");
+      return Arrays.asList(EVSUtils.getValueFromFile(uri).split("\\n"));
     }
     return Collections.emptyList();
   }

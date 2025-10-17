@@ -38,7 +38,8 @@ repositories {
   mavenCentral()
 }
 
-ext['log4j2.version'] = '2.25.0'
+// Avoid specifying version unless needed
+// ext['log4j2.version'] = '2.25.0'
 
 // Extra Properties
 ext {
@@ -166,15 +167,16 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-test") {
     exclude group: "net.minidev", module: "json-smart"
   }
-  testImplementation "org.opensearch.client:spring-data-opensearch-test-autoconfigure:1.6.0"
-  testImplementation "org.junit.jupiter:junit-jupiter-params:5.10.5"
-  testImplementation "org.junit.jupiter:junit-jupiter-api:5.10.5"
-  testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.10.5"
-  testRuntimeOnly "org.junit.platform:junit-platform-commons:1.10.0"
-  testRuntimeOnly "org.junit.platform:junit-platform-runner:1.10.0"
+  // Use spring-boot-starter-test defaults
+  // testImplementation "org.opensearch.client:spring-data-opensearch-test-autoconfigure:1.6.0"
+  // testImplementation "org.junit.jupiter:junit-jupiter-params:5.10.5"
+  // testImplementation "org.junit.jupiter:junit-jupiter-api:5.10.5"
+  // testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:5.10.5"
+  // testRuntimeOnly "org.junit.platform:junit-platform-commons:1.10.0"
+  // testRuntimeOnly "org.junit.platform:junit-platform-runner:1.10.0"
   // (avoid using lombok for now)
-  //testCompileOnly "org.projectlombok:lombok:1.18.32"
-  //testAnnotationProcessor "org.projectlombok:lombok:1.18.32"
+  // testCompileOnly "org.projectlombok:lombok:1.18.32"
+  // testAnnotationProcessor "org.projectlombok:lombok:1.18.32"
 
 }
 

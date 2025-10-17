@@ -47,6 +47,12 @@ public class CaptchaService {
    * @return verification response True or False
    */
   public Boolean verifyRecaptcha(String captchaToken) throws NullPointerException {
+
+    // For testing, bypass recaptcha if the default properties settings are in place
+    if ("TEST-KEY".equals(captchaToken) && "TEST-SECRET".equals(recaptchaSecret)) {
+      return true;
+    }
+
     // check if the recaptcha server url is set
     if (recaptchaServerUrl == null || recaptchaServerUrl.isBlank()) {
       logger.error("Recaptcha server URL is not specified");

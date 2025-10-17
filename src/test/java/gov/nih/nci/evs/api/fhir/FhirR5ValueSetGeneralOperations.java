@@ -54,7 +54,7 @@ class FhirR5ValueSetGeneralOperations {
   @BeforeEach
   public void setUp() {
     // the object mapper
-    ObjectMapper objectMapper = new ObjectMapper();
+    final ObjectMapper objectMapper = new ObjectMapper();
     JacksonTester.initFields(this, objectMapper);
   }
 
@@ -67,16 +67,16 @@ class FhirR5ValueSetGeneralOperations {
   public void testValueSetValidate() throws Exception {
     // Arrange
     String content;
-    String valueSetId = "umlssemnet_2023aa";
-    String endpoint = localHost + port + fhirVSPath;
+    final String valueSetId = "umlssemnet_2023aa";
+    final String endpoint = localHost + port + fhirVSPath;
 
-    String messageNotFound =
+    final String messageNotFound =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ValueSet/$validate] with parameters [[]]";
-    String messageNotFoundWithId =
+    final String messageNotFoundWithId =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ValueSet/umlssemnet_2023aa/$validate] with parameters [[]]";
-    String errorCode = "not-supported";
+    final String errorCode = "not-supported";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + "/$validate", String.class);
@@ -106,16 +106,16 @@ class FhirR5ValueSetGeneralOperations {
   public void testValueSetMeta() throws Exception {
     // Arrange
     String content;
-    String valueSetId = "umlssemnet_2023aa";
-    String endpoint = localHost + port + fhirVSPath;
+    final String valueSetId = "umlssemnet_2023aa";
+    final String endpoint = localHost + port + fhirVSPath;
 
-    String messageNotFound =
+    final String messageNotFound =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ValueSet/$meta] with parameters [[]]";
-    String messageNotFoundWithId =
+    final String messageNotFoundWithId =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ValueSet/umlssemnet_2023aa/$meta] with parameters [[]]";
-    String errorCode = "not-supported";
+    final String errorCode = "not-supported";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + "/$meta", String.class);
@@ -145,16 +145,16 @@ class FhirR5ValueSetGeneralOperations {
   public void testValueSetGraphql() throws Exception {
     // Arrange
     String content;
-    String valueSetId = "umlssemnet_2023aa";
-    String endpoint = localHost + port + fhirVSPath;
+    final String valueSetId = "umlssemnet_2023aa";
+    final String endpoint = localHost + port + fhirVSPath;
 
-    String messageNotFound =
+    final String messageNotFound =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ValueSet/$graphql] with parameters [[]]";
-    String messageNotFoundWithId =
+    final String messageNotFoundWithId =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ValueSet/umlssemnet_2023aa/$graphql] with parameters [[]]";
-    String errorCode = "not-supported";
+    final String errorCode = "not-supported";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + "/$graphql", String.class);
@@ -185,18 +185,18 @@ class FhirR5ValueSetGeneralOperations {
   public void testValueSetGraph() throws Exception {
     // Arrange
     String content;
-    String valueSetId = "umlssemnet_2023aa";
-    String endpoint = localHost + port + fhirVSPath;
+    final String valueSetId = "umlssemnet_2023aa";
+    final String endpoint = localHost + port + fhirVSPath;
 
-    String messageNotFoundWithId =
+    final String messageNotFoundWithId =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ValueSet/umlssemnet_2023aa/$graph] with parameters [[]]";
-    String errorCode = "not-supported";
+    final String errorCode = "not-supported";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + "/" + valueSetId + "/$graph", String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -212,18 +212,18 @@ class FhirR5ValueSetGeneralOperations {
   public void testValueSetAdd() throws Exception {
     // Arrange
     String content;
-    String valueSetId = "umlssemnet_2023aa";
-    String endpoint = localHost + port + fhirVSPath;
+    final String valueSetId = "umlssemnet_2023aa";
+    final String endpoint = localHost + port + fhirVSPath;
 
-    String messageNotFoundWithId =
+    final String messageNotFoundWithId =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ValueSet/umlssemnet_2023aa/$add] with parameters [[]]";
-    String errorCode = "not-supported";
+    final String errorCode = "not-supported";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + "/" + valueSetId + "/$add", String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -239,19 +239,19 @@ class FhirR5ValueSetGeneralOperations {
   public void testValueSetRemove() throws Exception {
     // Arrange
     String content;
-    String valueSetId = "umlssemnet_2023aa";
-    String endpoint = localHost + port + fhirVSPath;
+    final String valueSetId = "umlssemnet_2023aa";
+    final String endpoint = localHost + port + fhirVSPath;
 
-    String messageNotFoundWithId =
+    final String messageNotFoundWithId =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ValueSet/umlssemnet_2023aa/$remove] with parameters [[]]";
-    String errorCode = "not-supported";
+    final String errorCode = "not-supported";
 
     // Act
     content =
         this.restTemplate.getForObject(endpoint + "/" + valueSetId + "/$remove", String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -267,19 +267,19 @@ class FhirR5ValueSetGeneralOperations {
   public void testValueSetFilter() throws Exception {
     // Arrange
     String content;
-    String valueSetId = "umlssemnet_2023aa";
-    String endpoint = localHost + port + fhirVSPath;
+    final String valueSetId = "umlssemnet_2023aa";
+    final String endpoint = localHost + port + fhirVSPath;
 
-    String messageNotFoundWithId =
+    final String messageNotFoundWithId =
         "Invalid request: The FHIR endpoint on this server does not know how to handle GET"
             + " operation[ValueSet/umlssemnet_2023aa/$filter] with parameters [[]]";
-    String errorCode = "not-supported";
+    final String errorCode = "not-supported";
 
     // Act
     content =
         this.restTemplate.getForObject(endpoint + "/" + valueSetId + "/$filter", String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());

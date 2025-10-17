@@ -78,7 +78,7 @@ class FhirR5ClientSDKTests {
   @BeforeEach
   public void setUp() throws IOException {
     // the object mapper
-    ObjectMapper objectMapper = new ObjectMapper();
+    final ObjectMapper objectMapper = new ObjectMapper();
     JacksonTester.initFields(this, objectMapper);
 
     // Initialize the map
@@ -94,19 +94,19 @@ class FhirR5ClientSDKTests {
    * @param objectMapper the Jackson ObjectMapper
    * @throws IOException if file reading fails
    */
-  private void parsePostmanCollectionAndExtractRawUrlValues(ObjectMapper objectMapper)
+  private void parsePostmanCollectionAndExtractRawUrlValues(final ObjectMapper objectMapper)
       throws IOException {
     try {
       // Load the Postman collection JSON file from evsrestapi-client-SDK
       final String uri = applicationProperties.getSdkBaseUri();
-      URL url = new URL(uri + "/fhir-examples/EVSRESTAPI-FHIR-R5.postman_collection.json");
-      URLConnection connection = url.openConnection();
+      final URL url = new URL(uri + "/fhir-examples/EVSRESTAPI-FHIR-R5.postman_collection.json");
+      final URLConnection connection = url.openConnection();
 
       // Optional: Set User-Agent header (some servers require this)
       connection.setRequestProperty("User-Agent", "Java Application");
 
       @SuppressWarnings("resource")
-      JsonNode rootNode = objectMapper.readTree(connection.getInputStream());
+      final JsonNode rootNode = objectMapper.readTree(connection.getInputStream());
 
       // Extract all name-raw pairs
       extractNameRawPairs(rootNode);
@@ -117,7 +117,7 @@ class FhirR5ClientSDKTests {
       System.out.println();
 
       int counter = 1;
-      for (Map.Entry<String, String> entry : postmanNameToRawMap.entrySet()) {
+      for (final Map.Entry<String, String> entry : postmanNameToRawMap.entrySet()) {
         System.out.println(counter + ". Name: \"" + entry.getKey() + "\"");
         System.out.println("   Raw:  \"" + entry.getValue() + "\"");
         System.out.println();
@@ -125,7 +125,7 @@ class FhirR5ClientSDKTests {
       }
 
       System.out.println("=== End of Name-Raw Pairs ===");
-    } catch (IOException e) {
+    } catch (final IOException e) {
       System.err.println("Failed to load or parse Postman collection file: " + e.getMessage());
       throw e;
     }
@@ -137,7 +137,7 @@ class FhirR5ClientSDKTests {
    *
    * @param node the JSON node to search
    */
-  private void extractNameRawPairs(JsonNode node) {
+  private void extractNameRawPairs(final JsonNode node) {
     if (node == null) {
       return;
     }
@@ -145,23 +145,23 @@ class FhirR5ClientSDKTests {
     if (node.isObject()) {
       // Check if this object has a 'name' field and a 'request' field
       if (node.has("name") && node.has("request")) {
-        JsonNode nameNode = node.get("name");
-        JsonNode requestNode = node.get("request");
+        final JsonNode nameNode = node.get("name");
+        final JsonNode requestNode = node.get("request");
 
         if (nameNode.isTextual() && requestNode.isObject()) {
-          String nameValue = nameNode.asText();
+          final String nameValue = nameNode.asText();
 
           // Look for the raw URL in request.url.raw
           if (requestNode.has("url")) {
-            JsonNode urlNode = requestNode.get("url");
+            final JsonNode urlNode = requestNode.get("url");
             if (urlNode.isObject() && urlNode.has("raw")) {
-              JsonNode rawNode = urlNode.get("raw");
+              final JsonNode rawNode = urlNode.get("raw");
               if (rawNode.isTextual()) {
-                String rawValue = rawNode.asText();
+                final String rawValue = rawNode.asText();
 
                 if (!nameValue.isEmpty() && !rawValue.isEmpty()) {
                   // Convert name to camelCase while preserving uppercase letters
-                  String camelCaseName = convertToCamelCase(nameValue);
+                  final String camelCaseName = convertToCamelCase(nameValue);
                   postmanNameToRawMap.put(camelCaseName, rawValue);
                 }
               }
@@ -178,7 +178,7 @@ class FhirR5ClientSDKTests {
               });
     } else if (node.isArray()) {
       // Recursively process all elements in the array
-      for (JsonNode arrayElement : node) {
+      for (final JsonNode arrayElement : node) {
         extractNameRawPairs(arrayElement);
       }
     }
@@ -190,17 +190,17 @@ class FhirR5ClientSDKTests {
    * @param input the input string to convert
    * @return the camelCase version of the string
    */
-  private String convertToCamelCase(String input) {
+  private String convertToCamelCase(final String input) {
     if (input == null || input.isEmpty()) {
       return input;
     }
 
     // Split on whitespace, punctuation, and special characters but preserve the delimiters info
-    String[] words = input.split("[\\s\\-_.$]+");
-    StringBuilder camelCase = new StringBuilder();
+    final String[] words = input.split("[\\s\\-_.$]+");
+    final StringBuilder camelCase = new StringBuilder();
 
     for (int i = 0; i < words.length; i++) {
-      String word = words[i];
+      final String word = words[i];
       if (word.isEmpty()) {
         continue;
       }
@@ -241,12 +241,12 @@ class FhirR5ClientSDKTests {
    * @param word the word to check
    * @return true if the word is all uppercase letters
    */
-  private boolean isAllUpperCase(String word) {
+  private boolean isAllUpperCase(final String word) {
     if (word == null || word.isEmpty()) {
       return false;
     }
 
-    for (char c : word.toCharArray()) {
+    for (final char c : word.toCharArray()) {
       if (Character.isLetter(c) && !Character.isUpperCase(c)) {
         return false;
       }
@@ -279,24 +279,25 @@ class FhirR5ClientSDKTests {
    * @param rawEndpoint the raw endpoint URL from Postman collection
    * @throws Exception if the test fails
    */
-  private void executeEndpointTest(String testName, String rawEndpoint) throws Exception {
+  private void executeEndpointTest(final String testName, final String rawEndpoint)
+      throws Exception {
     // Replace {{baseUrl}} with actual base URL
-    String baseUrl = "http://localhost:" + port;
-    String endpoint = rawEndpoint.replace("{{baseUrl}}", baseUrl);
+    final String baseUrl = "http://localhost:" + port;
+    final String endpoint = rawEndpoint.replace("{{baseUrl}}", baseUrl);
 
     System.out.println("Executing test: " + testName);
     System.out.println("Endpoint: " + endpoint);
 
     try {
       // Act
-      String content = this.restTemplate.getForObject(endpoint, String.class);
+      final String content = this.restTemplate.getForObject(endpoint, String.class);
 
       // Parse the response as a generic FHIR Resource
       if (content != null && !content.isEmpty()) {
 
         try {
           // Parse as generic Resource - this will work for any valid FHIR resource
-          Resource resource = (Resource) parser.parseResource(content);
+          final Resource resource = (Resource) parser.parseResource(content);
           System.out.println("Successfully parsed as FHIR Resource for test: " + testName);
           System.out.println("Resource type: " + resource.getResourceType());
 
@@ -321,7 +322,7 @@ class FhirR5ClientSDKTests {
           // Handle specific resource types with type-specific validations
           switch (resource.getResourceType()) {
             case Parameters:
-              Parameters params = (Parameters) resource;
+              final Parameters params = (Parameters) resource;
               System.out.println("Processing as Parameters for test: " + testName);
 
               // Only check the result parameter if it exists
@@ -338,7 +339,7 @@ class FhirR5ClientSDKTests {
               break;
 
             case CodeSystem:
-              CodeSystem codeSystem = (CodeSystem) resource;
+              final CodeSystem codeSystem = (CodeSystem) resource;
               System.out.println("Processing as CodeSystem for test: " + testName);
               assertNotNull(codeSystem);
               assertNotNull(codeSystem.getId());
@@ -362,7 +363,7 @@ class FhirR5ClientSDKTests {
                     codeSystem.getConcept().isEmpty(),
                     "CodeSystem concepts should not be empty if present for " + testName);
                 // Validate first concept has required fields
-                var firstConcept = codeSystem.getConcept().get(0);
+                final var firstConcept = codeSystem.getConcept().get(0);
                 assertNotNull(
                     firstConcept.getCode(), "Concept code should not be null for " + testName);
                 assertNotNull(
@@ -381,10 +382,10 @@ class FhirR5ClientSDKTests {
               break;
 
             case Bundle:
-              Bundle bundle = (Bundle) resource;
+              final Bundle bundle = (Bundle) resource;
               System.out.println("Processing as Bundle for test: " + testName);
               // Act
-              List<Resource> resourceList =
+              final List<Resource> resourceList =
                   bundle.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
               assertFalse(resourceList.isEmpty());
 
@@ -406,9 +407,9 @@ class FhirR5ClientSDKTests {
                         });
               }
 
-              for (Resource rs : resourceList) {
+              for (final Resource rs : resourceList) {
                 System.out.println("  resource = " + parser.encodeResourceToString(rs));
-                ResourceType rType = rs.getResourceType();
+                final ResourceType rType = rs.getResourceType();
                 assertNotNull(rs);
                 assertNotNull(rs.getId());
                 assertNotNull(rs.getIdPart());
@@ -422,7 +423,7 @@ class FhirR5ClientSDKTests {
                 }
 
                 if (rType == ResourceType.CodeSystem) {
-                  CodeSystem css = (CodeSystem) rs;
+                  final CodeSystem css = (CodeSystem) rs;
                   assertNotNull(css.getPublisher());
                   assertNotNull(css.getUrl());
                   assertNotNull(css.getName());
@@ -431,7 +432,7 @@ class FhirR5ClientSDKTests {
                   assertNotNull(
                       css.getStatus(), "CodeSystem status should not be null for " + testName);
                 } else if (rType == ResourceType.ConceptMap) {
-                  ConceptMap cm = (ConceptMap) rs;
+                  final ConceptMap cm = (ConceptMap) rs;
                   assertNotNull(cm.getPublisher());
                   assertNotNull(cm.getUrl());
                   assertNotNull(cm.getName());
@@ -440,7 +441,7 @@ class FhirR5ClientSDKTests {
                   assertNotNull(
                       cm.getStatus(), "ConceptMap status should not be null for " + testName);
                 } else if (rType == ResourceType.ValueSet) {
-                  ValueSet vs = (ValueSet) rs;
+                  final ValueSet vs = (ValueSet) rs;
                   assertNotNull(vs.getPublisher());
                   assertNotNull(vs.getUrl());
                   assertNotNull(vs.getName());
@@ -454,7 +455,7 @@ class FhirR5ClientSDKTests {
 
             case ValueSet:
               System.out.println("Processing as ValueSet for test: " + testName);
-              ValueSet valueset = (ValueSet) resource;
+              final ValueSet valueset = (ValueSet) resource;
               assertNotNull(valueset);
               assertNotNull(valueset.getId());
               assertNotNull(valueset.getIdPart());
@@ -506,7 +507,7 @@ class FhirR5ClientSDKTests {
 
             case ConceptMap:
               System.out.println("Processing as ConceptMap for test: " + testName);
-              ConceptMap conceptMap = (ConceptMap) resource;
+              final ConceptMap conceptMap = (ConceptMap) resource;
               assertNotNull(conceptMap);
               assertNotNull(conceptMap.getId());
               assertNotNull(conceptMap.getIdPart());
@@ -558,7 +559,7 @@ class FhirR5ClientSDKTests {
               break;
 
             case OperationOutcome:
-              OperationOutcome operationOutcome = (OperationOutcome) resource;
+              final OperationOutcome operationOutcome = (OperationOutcome) resource;
               System.out.println("Processing as OperationOutcome for test: " + testName);
 
               // Log the operation outcome details
@@ -566,7 +567,7 @@ class FhirR5ClientSDKTests {
                 System.out.println(
                     "OperationOutcome has " + operationOutcome.getIssue().size() + " issue(s):");
                 for (int i = 0; i < operationOutcome.getIssue().size(); i++) {
-                  var issue = operationOutcome.getIssue().get(i);
+                  final var issue = operationOutcome.getIssue().get(i);
                   System.out.println(
                       "  Issue "
                           + (i + 1)
@@ -599,7 +600,7 @@ class FhirR5ClientSDKTests {
 
           System.out.println("Test passed: " + testName);
 
-        } catch (Exception e) {
+        } catch (final Exception e) {
           throw new Exception(
               "Failed to parse response as FHIR Resource for "
                   + testName
@@ -612,7 +613,7 @@ class FhirR5ClientSDKTests {
         throw new Exception("Empty response received for test: " + testName);
       }
 
-    } catch (Exception e) {
+    } catch (final Exception e) {
       System.err.println("Test failed for " + testName + ": " + e.getMessage());
       throw new Exception("Test failed for endpoint " + testName + ": " + e.getMessage(), e);
     }
