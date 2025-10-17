@@ -2021,6 +2021,7 @@ public class MetadataControllerTests {
     // valid source stats
     result = mvc.perform(get(url + "/ncim/stats/AOD")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
+    log.info("content = " + content);
     Map<String, List<StatisticsEntry>> sourceStats =
         new ObjectMapper()
             .readValue(
