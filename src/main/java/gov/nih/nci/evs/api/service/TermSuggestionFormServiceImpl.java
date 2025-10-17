@@ -5,12 +5,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.util.EVSUtils;
 import jakarta.mail.Message.RecipientType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Properties;
@@ -62,7 +62,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
   public TermSuggestionFormServiceImpl(
       final JavaMailSender mailSender,
       final ApplicationProperties applicationProperties,
-      ObjectMapper mapper) {
+      final ObjectMapper mapper) {
     this.mailSender = mailSender;
     this.applicationProperties = applicationProperties;
     this.mapper = mapper;
@@ -74,23 +74,22 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    *
    * @param formType form template to load
    * @return JsonNode
-   * @throws IllegalArgumentException the illegal argument exception
-   * @throws IOException io exception
+   * @throws Exception the exception
    */
   @Override
-  public JsonNode getFormTemplate(final String formType)
-      throws IllegalArgumentException, IOException, MalformedURLException {
+  public JsonNode getFormTemplate(final String formType) throws Exception {
     // Set the form file path based on the formType passed. If we receive an invalid path, throw
     // exception
     if (formType == null || formType.isEmpty() || formType.isBlank()) {
       throw new IllegalArgumentException("Invalid form template provided");
-    } else {
-      formFilePath = new URL(applicationProperties.getConfigBaseUri() + "/" + formType + ".json");
     }
     // Create objectMapper. Read file and return JsonNode
-    JsonNode termForm = mapper.readTree(formFilePath);
+    final JsonNode termForm =
+        mapper.readTree(
+            EVSUtils.getValueFromFile(
+                applicationProperties.getConfigBaseUri() + "/" + formType + ".json"));
     // Get the recaptcha_site_key from application properties
-    String recaptchaSiteKey = applicationProperties.getRecaptchaSiteKey();
+    final String recaptchaSiteKey = applicationProperties.getRecaptchaSiteKey();
 
     // Check our termForm is an object node to safely add properties
     if (termForm.isObject()) {
@@ -149,7 +148,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
         message.setText(String.valueOf(emailDetails.getMsgBody()));
       }
       mailSender.send(message);
-    } catch (MessagingException e) {
+    } catch (final MessagingException e) {
       throw new MessagingException("Failed to send email", e);
     }
   }
@@ -206,13 +205,13 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       if (file != null && !file.isEmpty()) {
         try {
           helper.addAttachment(file.getOriginalFilename(), file);
-        } catch (MessagingException me) {
+        } catch (final MessagingException me) {
           throw new MessagingException("Failed to attach file to email", me);
         }
       }
 
       mailSender.send(message);
-    } catch (MessagingException e) {
+    } catch (final MessagingException e) {
       throw new MessagingException("Failed to send email", e);
     }
   }
@@ -224,7 +223,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @return true, if successful
    */
   @Override
-  public boolean validateFileAttachment(MultipartFile file) {
+  public boolean validateFileAttachment(final MultipartFile file) {
     if (file == null || file.isEmpty()) {
       // No file attached/empty file
       return false;
@@ -266,11 +265,11 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       // We do NOT require that all expected sheets exist.
       // Instead, every sheet present in the workbook must either be one of the expected
       // sheet names or match the instructions date pattern.
-      for (String actual : sheets) {
+      for (final String actual : sheets) {
         if (expectedSet.contains(actual)) {
           continue;
         }
-        Matcher m = INSTRUCTION_PATTERN.matcher(actual);
+        final Matcher m = INSTRUCTION_PATTERN.matcher(actual);
         if (m.find()) {
           continue;
         }
@@ -299,7 +298,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
 
       // Handle merged cells for C3:F3, C4:F4, C5:F5 by checking the merged region's first cell
       for (int r = 2; r <= 4; r++) {
-        String cellValue = getMergedCellValue(metaSheet, r, 2, formatter);
+        final String cellValue = getMergedCellValue(metaSheet, r, 2, formatter);
         if (cellValue == null || cellValue.isEmpty()) {
           logger.warn(
               "Required metadata missing in sheet '{}' at C{} in uploaded workbook: {}",
@@ -312,7 +311,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
 
       // Check that A8..E8 (columns 0..4, row index 7) are filled out
       for (int c = 0; c <= 4; c++) {
-        String v = getMergedCellValue(metaSheet, 7, c, formatter);
+        final String v = getMergedCellValue(metaSheet, 7, c, formatter);
         if (v == null || v.isEmpty()) {
           logger.warn(
               "Required row 8 column {} missing in sheet '{}' in uploaded workbook: {}",
@@ -322,7 +321,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
           return false;
         }
       }
-    } catch (IOException e) {
+    } catch (final IOException e) {
       logger.warn("Invalid excel file uploaded or failed to validate workbook: {}", filename, e);
       return false;
     }

@@ -553,20 +553,19 @@ public class EVSUtils {
    * returns the read value from the given uri (local or repository file).
    *
    * @param uri the uri to read from
-   * @param info the info
    * @return the value from file
    * @info the info needing to be read (mostly for error message specificity)
    */
-  public static List<String> getValueFromFile(String uri, String info) throws Exception {
+  public static String getValueFromFile(String uri) throws Exception {
     try {
       try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
-        return IOUtils.readLines(is, "UTF-8");
+        return String.join("\n", IOUtils.readLines(is, "UTF-8"));
       }
     } catch (final Throwable t) {
       try {
         // Try to open URI as a file
         final File file = new File(uri.replaceFirst("file://", ""));
-        return FileUtils.readLines(file, "UTF-8");
+        return FileUtils.readFileToString(file, "UTF-8");
       } catch (Exception e2) {
         throw new Exception("Unable to get data from = " + uri, e2);
       }

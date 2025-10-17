@@ -102,7 +102,7 @@ CONCEPT C3908
   "isDiseaseGrade" : false,
   "isDiseaseStage" : false,
   "isMainType" : true,
-  "isSubtype" : false,
+  "isSubtype" : true,
   "isBiomarker" : false,
   "isReferenceGene" : false,
   "mainMenuAncestors" : [ ]
@@ -309,7 +309,7 @@ CONCEPT C9039
   "isDiseaseGrade" : false,
   "isDiseaseStage" : false,
   "isMainType" : true,
-  "isSubtype" : false,
+  "isSubtype" : true,
   "isBiomarker" : false,
   "isReferenceGene" : false,
   "mainMenuAncestors" : [ ]
@@ -1279,7 +1279,7 @@ CONCEPT C2926
 CONCEPT C4917
 {
   "isDisease" : true,
-  "isDiseaseGrade" : true,
+  "isDiseaseGrade" : false,
   "isDiseaseStage" : false,
   "isMainType" : true,
   "isSubtype" : true,
@@ -1424,10 +1424,10 @@ CONCEPT C3230
 }
 CONCEPT C3234
 {
-  "isDisease" : true,
+  "isDisease" : false,
   "isDiseaseGrade" : false,
   "isDiseaseStage" : false,
-  "isMainType" : true,
+  "isMainType" : false,
   "isSubtype" : false,
   "isBiomarker" : false,
   "isReferenceGene" : false,
