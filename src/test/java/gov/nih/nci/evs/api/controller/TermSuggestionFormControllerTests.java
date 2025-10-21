@@ -218,7 +218,7 @@ public class TermSuggestionFormControllerTests {
     // SET UP - create our form data JsonNode
     final String formPath = "formSamples/submissionFormNullTest.json";
     final JsonNode formData = createForm(formPath);
-    final String expectedResponse = "500 INTERNAL_SERVER_ERROR";
+    final String expectedResponse = "417 EXPECTATION_FAILED";
 
     // Mock the RecaptchaService to always return true for verifyRecaptcha
     when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
@@ -359,7 +359,7 @@ public class TermSuggestionFormControllerTests {
       termSuggestionFormController.submitForm(formData, null, recaptchaToken);
       fail("Expected a ResponseStatusException to be thrown");
     } catch (ResponseStatusException e) {
-      assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+      assertEquals(HttpStatus.EXPECTATION_FAILED, e.getStatusCode());
     }
   }
 
@@ -373,7 +373,7 @@ public class TermSuggestionFormControllerTests {
   public void integrationTestGetFormTemplate() throws Exception {
     // SET UP
     final String formType = "ncit-form";
-    final String url = baseUrl + formType;
+    final String url = "/api/v1/form/suggest/" + formType;
     JsonNode form;
 
     // ACT
@@ -401,7 +401,7 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void integrationTestSubmitForm() throws Exception {
     // SET UP
-    baseUrl = "/api/v1/submit";
+    baseUrl = "/api/v1/form/submit";
     final String formPath = "formSamples/submissionFormTest.json";
     JsonNode formData = createForm(formPath);
 
@@ -436,7 +436,7 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void integrationTestSubmitFormWithAttachment() throws Exception {
     // SET UP
-    baseUrl = "/api/v1/submitWithAttachment";
+    baseUrl = "/api/v1/form/submitWithAttachment";
     final String formPath = "formSamples/submissionFormTestCDISC.json";
     JsonNode formData = createForm(formPath);
 
