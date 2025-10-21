@@ -17,6 +17,7 @@ import gov.nih.nci.evs.api.configuration.TestConfiguration;
 import gov.nih.nci.evs.api.controller.TermSuggestionFormController;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.util.EVSUtils;
 import jakarta.mail.internet.MimeMessage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -28,6 +29,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
@@ -116,16 +119,18 @@ public class TermSuggestionFormServiceTest {
     // SET UP
     String formType = "none-form";
 
-    when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
-    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json")))
-        .thenThrow(IOException.class);
+    String filePath = configUrl + "/" + formType + ".json";
 
-    // ACT & ASSERT
-    assertThrows(
-        IOException.class,
-        () -> {
-          termFormService.getFormTemplate(formType);
-        });
+    when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
+
+    try (MockedStatic<EVSUtils> mockedUtils = Mockito.mockStatic(EVSUtils.class)) {
+      mockedUtils
+          .when(() -> EVSUtils.getValueFromFile(filePath))
+          .thenThrow(new IOException("IO Exception reading file: " + filePath));
+
+      // ACT & ASSERT
+      assertThrows(IOException.class, () -> termFormService.getFormTemplate(formType));
+    }
   }
 
   /** Test getFormTemplate throws an exception with an empty formType string */
@@ -177,18 +182,18 @@ public class TermSuggestionFormServiceTest {
   public void testGetFormTemplateThrowsFileNotFound() throws Exception {
     // SET UP - create an invalid term form object
     String formType = "invalid-form";
-    //    JsonNode termForm = new ObjectMapper().createArrayNode();
+    String filePath = configUrl + "/" + formType + ".json";
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
-    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json")))
-        .thenThrow(FileNotFoundException.class);
 
-    // ACT & ASSERT
-    assertThrows(
-        FileNotFoundException.class,
-        () -> {
-          termFormService.getFormTemplate(formType);
-        });
+    try (MockedStatic<EVSUtils> mockedUtils = Mockito.mockStatic(EVSUtils.class)) {
+      mockedUtils
+          .when(() -> EVSUtils.getValueFromFile(filePath))
+          .thenThrow(new FileNotFoundException("File not found: " + filePath));
+
+      // ACT & ASSERT
+      assertThrows(FileNotFoundException.class, () -> termFormService.getFormTemplate(formType));
+    }
   }
 
   /**
@@ -201,19 +206,24 @@ public class TermSuggestionFormServiceTest {
     // SET UP - create an invalid term form object
     String formType = "invalid-form";
     JsonNode termForm = new ObjectMapper().createArrayNode();
+    String filePath = configUrl + "/" + formType + ".json";
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
     when(objectMapper.readTree(any(URL.class))).thenReturn(termForm);
 
     // ACT & ASSERT
-    Exception exception =
-        assertThrows(
-            IllegalArgumentException.class,
-            () -> {
-              termFormService.getFormTemplate(formType);
-            });
 
-    assertTrue(exception.getMessage().contains("Invalid form template."));
+    try (MockedStatic<EVSUtils> mockedUtils = Mockito.mockStatic(EVSUtils.class)) {
+      mockedUtils
+          .when(() -> EVSUtils.getValueFromFile(filePath))
+          .thenThrow(new IllegalArgumentException("Invalid form template."));
+
+      // ACT & ASSERT
+      Exception exception =
+          assertThrows(
+              IllegalArgumentException.class, () -> termFormService.getFormTemplate(formType));
+      assertTrue(exception.getMessage().contains("Invalid form template."));
+    }
   }
 
   /** Test sending an email */

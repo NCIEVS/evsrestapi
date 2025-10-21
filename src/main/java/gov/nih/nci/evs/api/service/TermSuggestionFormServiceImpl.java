@@ -10,6 +10,7 @@ import jakarta.mail.Message.RecipientType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
+import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
@@ -84,22 +85,27 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       throw new IllegalArgumentException("Invalid form template provided");
     }
     // Create objectMapper. Read file and return JsonNode
-    final JsonNode termForm =
-        mapper.readTree(
-            EVSUtils.getValueFromFile(
-                applicationProperties.getConfigBaseUri() + "/" + formType + ".json"));
-    // Get the recaptcha_site_key from application properties
-    final String recaptchaSiteKey = applicationProperties.getRecaptchaSiteKey();
+    try {
+      final JsonNode termForm =
+          mapper.readTree(
+              EVSUtils.getValueFromFile(
+                  applicationProperties.getConfigBaseUri() + "/" + formType + ".json"));
+      // Get the recaptcha_site_key from application properties
+      final String recaptchaSiteKey = applicationProperties.getRecaptchaSiteKey();
 
-    // Check our termForm is an object node to safely add properties
-    if (termForm.isObject()) {
-      ((ObjectNode) termForm).put("recaptchaSiteKey", recaptchaSiteKey);
-    } else {
-      logger.error("Cannot add recaptcha site key. Form template is not a JSON object.");
-      throw new IllegalArgumentException("Invalid form template.");
+      // Check our termForm is an object node to safely add properties
+      if (termForm.isObject()) {
+        ((ObjectNode) termForm).put("recaptchaSiteKey", recaptchaSiteKey);
+      } else {
+        logger.error("Cannot add recaptcha site key. Form template is not a JSON object.");
+        throw new IllegalArgumentException("Invalid form template.");
+      }
+
+      return termForm;
+    } catch (FileNotFoundException e) {
+      logger.error("Form template file not found for type: {}", formType, e);
+      throw e;
     }
-
-    return termForm;
   }
 
   /**
