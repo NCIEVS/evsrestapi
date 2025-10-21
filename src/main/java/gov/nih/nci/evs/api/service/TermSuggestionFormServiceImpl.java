@@ -11,7 +11,6 @@ import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Properties;
@@ -47,7 +46,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
   URL formFilePath;
 
   /** The object mapper to read the config url with readTree. */
-  private final ObjectMapper mapper;
+  private final ObjectMapper mapper = new ObjectMapper();
 
   /** Pattern for optional instruction sheets with date suffix */
   private static final Pattern INSTRUCTION_PATTERN =
@@ -66,7 +65,6 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       final ObjectMapper mapper) {
     this.mailSender = mailSender;
     this.applicationProperties = applicationProperties;
-    this.mapper = mapper;
   }
 
   /**
@@ -86,10 +84,12 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     }
     // Create objectMapper. Read file and return JsonNode
     try {
-      final JsonNode termForm =
-          mapper.readTree(
-              EVSUtils.getValueFromFile(
-                  applicationProperties.getConfigBaseUri() + "/" + formType + ".json"));
+      String json =
+          EVSUtils.getValueFromFile(
+              applicationProperties.getConfigBaseUri() + "/" + formType + ".json");
+      logger.info("Length: " + json.length());
+      logger.info("Starts with: [" + json.substring(0, Math.min(10, json.length())) + "]");
+      final JsonNode termForm = mapper.readTree(json);
       // Get the recaptcha_site_key from application properties
       final String recaptchaSiteKey = applicationProperties.getRecaptchaSiteKey();
 
@@ -327,7 +327,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
           return false;
         }
       }
-    } catch (final IOException e) {
+    } catch (final Exception e) {
       logger.warn("Invalid excel file uploaded or failed to validate workbook: {}", filename, e);
       return false;
     }
