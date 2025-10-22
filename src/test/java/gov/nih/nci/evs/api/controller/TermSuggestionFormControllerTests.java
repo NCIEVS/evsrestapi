@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.nih.nci.evs.api.model.EmailDetails;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.service.CaptchaService;
 import gov.nih.nci.evs.api.service.TermSuggestionFormServiceImpl;
 import java.io.FileNotFoundException;
@@ -39,6 +40,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -286,6 +288,15 @@ public class TermSuggestionFormControllerTests {
 
     // ASSERT
     final JsonNode formDataFinal = formData;
+    // create a props object that returns no override
+    ApplicationProperties props = new ApplicationProperties();
+    props.setMailRecipient("");
+
+    // find the formService instance used by the controller
+    Object form = ReflectionTestUtils.getField(termSuggestionFormController, "formService");
+
+    // set the applicationProperties on THAT instance
+    ReflectionTestUtils.setField(form, "applicationProperties", props);
     final Exception exception =
         assertThrows(
             Exception.class,
