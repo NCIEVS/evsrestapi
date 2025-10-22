@@ -87,8 +87,6 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       String json =
           EVSUtils.getValueFromFile(
               applicationProperties.getConfigBaseUri() + "/" + formType + ".json");
-      logger.info("Length: " + json.length());
-      logger.info("Starts with: [" + json.substring(0, Math.min(10, json.length())) + "]");
       final JsonNode termForm = mapper.readTree(json);
       // Get the recaptcha_site_key from application properties
       final String recaptchaSiteKey = applicationProperties.getRecaptchaSiteKey();
