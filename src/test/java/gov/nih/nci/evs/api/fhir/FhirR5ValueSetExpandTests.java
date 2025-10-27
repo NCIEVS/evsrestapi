@@ -4797,18 +4797,17 @@ public class FhirR5ValueSetExpandTests {
   }
 
   /**
-   * Test value set expand with include C138216and exclude C115302 ValueSets.
+   * Test value set expand with include C54452 and exclude C54459 ValueSets.
    *
    * @throws Exception the exception
    */
-  // TODO: times out in test framework, but completes in curl call
-  // @Test
+  @Test
   public void testValueSetExpandWithIncludeAndExcludeValueSet() throws Exception {
     // Arrange
     final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
-    log.info("  parameters = include C138216, exclude C115302");
+    log.info("  parameters = include C54452, exclude C54459");
 
-    // Create the ValueSet with include.valueSet C138216and exclude.valueSet C115302
+    // Create the ValueSet with include.valueSet C54452 and exclude.valueSet C54459
     final ValueSet inputValueSet = new ValueSet();
     inputValueSet.setId("nci-include-exclude-valueset-test");
     inputValueSet.setUrl("http://example.org/fhir/ValueSet/nci-include-exclude-valueset-test");
@@ -4816,25 +4815,25 @@ public class FhirR5ValueSetExpandTests {
     inputValueSet.setName("NCIIncludeExcludeValueSetTest");
     inputValueSet.setTitle("NCI Thesaurus Include and Exclude ValueSet Test");
     inputValueSet.setStatus(Enumerations.PublicationStatus.ACTIVE);
-    inputValueSet.setDescription("Test ValueSet with include C138216and exclude C115302 ValueSets");
+    inputValueSet.setDescription("Test ValueSet with include C54452 and exclude C54459 ValueSets");
 
     final ValueSet.ValueSetComposeComponent compose = new ValueSet.ValueSetComposeComponent();
 
-    // Include ValueSet C138216
+    // Include ValueSet C54452
     final ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
     include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    include.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C138216");
+    include.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54452");
     compose.addInclude(include);
 
-    // Exclude ValueSet C115302
+    // Exclude ValueSet C54459
     final ValueSet.ConceptSetComponent exclude = new ValueSet.ConceptSetComponent();
     exclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    exclude.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C115302");
+    exclude.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459");
     compose.addExclude(exclude);
 
     inputValueSet.setCompose(compose);
 
-    // First, get the count of C138216alone for comparison
+    // First, get the count of C54452 alone for comparison
     final ValueSet includeOnlyValueSet = new ValueSet();
     includeOnlyValueSet.setId("nci-include-only-test");
     includeOnlyValueSet.setUrl("http://example.org/fhir/ValueSet/nci-include-only-test");
@@ -4844,7 +4843,7 @@ public class FhirR5ValueSetExpandTests {
         new ValueSet.ValueSetComposeComponent();
     final ValueSet.ConceptSetComponent includeOnly = new ValueSet.ConceptSetComponent();
     includeOnly.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    includeOnly.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C138216");
+    includeOnly.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54452");
     includeOnlyCompose.addInclude(includeOnly);
     includeOnlyValueSet.setCompose(includeOnlyCompose);
 
@@ -4862,7 +4861,7 @@ public class FhirR5ValueSetExpandTests {
     final ValueSet includeOnlyExpandedValueSet =
         parser.parseResource(ValueSet.class, includeOnlyResponse.getBody());
     final int originalCount = includeOnlyExpandedValueSet.getExpansion().getTotal();
-    log.info("  C138216original count: {}", originalCount);
+    log.info("  C54452 original count: {}", originalCount);
 
     // Convert to JSON for POST request
     final String requestBody = parser.encodeResourceToString(inputValueSet);
@@ -4894,29 +4893,29 @@ public class FhirR5ValueSetExpandTests {
     final int finalCount = expansion.getTotal();
     final int excludedCount = originalCount - finalCount;
 
-    log.info("  C138216original count: {}", originalCount);
-    log.info("  Final count after excluding C115302: {}", finalCount);
+    log.info("  C54452 original count: {}", originalCount);
+    log.info("  Final count after excluding C54459: {}", finalCount);
     log.info("  Excluded concept count: {}", excludedCount);
 
-    // Assert - C138216should NOT be in the expansion (correctly excluded per FHIR spec)
-    final ValueSet.ValueSetExpansionContainsComponent C138216Result =
-        contains.stream().filter(comp -> "C138216".equals(comp.getCode())).findFirst().orElse(null);
+    // Assert - C54452 should NOT be in the expansion (correctly excluded per FHIR spec)
+    final ValueSet.ValueSetExpansionContainsComponent c54452Result =
+        contains.stream().filter(comp -> "C54452".equals(comp.getCode())).findFirst().orElse(null);
     assertNull(
-        C138216Result,
-        "C138216should be excluded since it appears in both include and exclude ValueSets");
+        c54452Result,
+        "C54452 should be excluded since it appears in both include and exclude ValueSets");
 
     // Assert - Total count should decrease by exactly 5 (as specified by user)
     assertEquals(
         5,
         excludedCount,
-        "Total count should decrease by exactly 5 concepts due to overlap between C138216and"
-            + " C115302");
+        "Total count should decrease by exactly 5 concepts due to overlap between C54452 and"
+            + " C54459");
 
     assertTrue(finalCount > 0, "Final expansion should contain concepts");
     assertTrue(
         finalCount < originalCount, "Final count should be less than original due to exclusion");
 
-    log.info("Include C138216and exclude C115302 ValueSet test completed successfully");
+    log.info("Include C54452 and exclude C54459 ValueSet test completed successfully");
   }
 
   /**
@@ -6492,8 +6491,7 @@ public class FhirR5ValueSetExpandTests {
    *
    * @throws Exception the exception
    */
-  // TODO timing out
-  // @Test
+  @Test
   public void testValueSetExpandWithIncludeValueSetDefinitionsDesignations() throws Exception {
     // Create a ValueSet that includes another ValueSet by URL
     final String expandEndpoint =

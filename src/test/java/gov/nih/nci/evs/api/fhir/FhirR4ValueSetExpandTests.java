@@ -4243,8 +4243,7 @@ public class FhirR4ValueSetExpandTests {
    *
    * @throws Exception the exception
    */
-  // TODO: times out in test framework, but completes in curl call
-  // @Test
+  @Test
   public void testValueSetExpandWithIncludeAndExcludeValueSet() throws Exception {
     // Arrange
     final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
