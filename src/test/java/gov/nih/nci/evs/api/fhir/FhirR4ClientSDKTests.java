@@ -460,7 +460,7 @@ class FhirR4ClientSDKTests {
               assertNotNull(valueset);
               assertNotNull(valueset.getId());
               assertNotNull(valueset.getIdPart());
-              // assertNotNull(valueset.getPublisher());
+              assertNotNull(valueset.getPublisher());
               assertNotNull(valueset.getUrl());
               assertNotNull(valueset.getName());
               assertNotNull(valueset.getVersion());

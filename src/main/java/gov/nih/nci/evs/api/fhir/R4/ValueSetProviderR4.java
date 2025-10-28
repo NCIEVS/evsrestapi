@@ -1178,6 +1178,7 @@ public class ValueSetProviderR4 implements IResourceProvider {
       expandedValueSet.setName(vs.getName());
       expandedValueSet.setTitle(vs.getTitle());
       expandedValueSet.setStatus(vs.getStatus());
+      expandedValueSet.setPublisher(vs.getPublisher());
       expandedValueSet.setDescription(vs.getDescription());
       expandedValueSet.setExpansion(vsExpansion);
       return expandedValueSet;

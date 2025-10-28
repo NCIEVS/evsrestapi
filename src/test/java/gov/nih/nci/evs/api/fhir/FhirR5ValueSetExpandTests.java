@@ -773,9 +773,9 @@ public class FhirR5ValueSetExpandTests {
   public void testValueSetExpandImplicitSubset() throws Exception {
     // Arrange
     String content;
-    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C115302";
-    final String displayString = "SPPB Version 1.2 - Tandem Stand Score";
-    final String activeCode = "C170697";
+    final String activeCode = "C48672";
+    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
+    final String displayString = "Schedule I Substance";
     final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
     final String parameters = "?url=" + url;
 
@@ -803,15 +803,15 @@ public class FhirR5ValueSetExpandTests {
   public void testValueSetExpandImplicitSubsetWithProperties() throws Exception {
     // Arrange
     String content;
-    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C115302";
+    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
     final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
     final String propertyName = "Contributing_Source";
     final String parameters = "?url=" + url + "&property=parent" + "&property=" + propertyName;
 
-    final String displayString = "SPPB Version 1.2 - Tandem Stand Score";
-    final String activeCode = "C170697";
-    final String parentCode = "#C170532";
-    final String propertyValue = "CDISC";
+    final String displayString = "Schedule I Substance";
+    final String activeCode = "C48672";
+    final String parentCode = "#C48670";
+    final String propertyValue = "FDA";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -856,7 +856,7 @@ public class FhirR5ValueSetExpandTests {
   public void testValueSetExpandImplicitSubsetWithDefinitions() throws Exception {
     // Arrange
     String content;
-    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C115302";
+    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
     final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
     final String propertyName = "Contributing_Source";
     final String parameters =
@@ -867,12 +867,12 @@ public class FhirR5ValueSetExpandTests {
             + propertyName
             + "&includeDefinition=true";
 
-    final String displayString = "SPPB Version 1.2 - Tandem Stand Score";
-    final String activeCode = "C170697";
-    final String parentCode = "#C170532";
-    final String propertyValue = "CDISC";
+    final String displayString = "Schedule I Substance";
+    final String activeCode = "C48672";
+    final String parentCode = "#C48670";
+    final String propertyValue = "FDA";
     final String expectedDefinition =
-        "Short Physical Performance Battery V1.2 - Tandem Stand: Tandem stand score.";
+        "A category of drugs not considered legitimate for medical use.";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -931,7 +931,7 @@ public class FhirR5ValueSetExpandTests {
   public void testValueSetExpandImplicitSubsetWithDesignations() throws Exception {
     // Arrange
     String content;
-    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C115302";
+    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
     final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
     final String propertyName = "Contributing_Source";
     final String parameters =
@@ -942,12 +942,12 @@ public class FhirR5ValueSetExpandTests {
             + propertyName
             + "&includeDesignations=true";
 
-    final String displayString = "SPPB Version 1.2 - Tandem Stand Score";
-    final String activeCode = "C170697";
-    final String parentCode = "#C170532";
-    final String propertyValue = "CDISC";
-    final String expectedDesignation = "SPPB1-Tandem Stand Score";
-    final String expectedTty = "PT";
+    final String displayString = "Schedule I Substance";
+    final String activeCode = "C48672";
+    final String parentCode = "#C48670";
+    final String propertyValue = "FDA";
+    final String expectedDesignation = "Schedule I Controlled Substance";
+    final String expectedTty = "SY";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -1016,7 +1016,7 @@ public class FhirR5ValueSetExpandTests {
   public void testValueSetExpandImplicitSubsetNoDesignations() throws Exception {
     // Arrange
     String content;
-    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C115302";
+    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
     final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
     final String propertyName = "Contributing_Source";
     final String parameters =
@@ -1216,17 +1216,17 @@ public class FhirR5ValueSetExpandTests {
   public void testValueSetExpandInstanceSubsetWithProperties() throws Exception {
     // Arrange
     String content;
-    final String activeID = "ncit_c115302";
-    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C115302";
+    final String activeID = "ncit_c54459";
+    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
     final String endpoint =
         localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
     final String propertyName = "Contributing_Source";
     final String parameters = "?url=" + url + "&property=parent" + "&property=" + propertyName;
 
-    final String displayString = "SPPB Version 1.2 - Tandem Stand Score";
-    final String activeCode = "C170697";
-    final String parentCode = "#C170532";
-    final String propertyValue = "CDISC";
+    final String displayString = "Schedule I Substance";
+    final String activeCode = "C48672";
+    final String parentCode = "#C48670";
+    final String propertyValue = "FDA";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -1270,8 +1270,8 @@ public class FhirR5ValueSetExpandTests {
   public void testValueSetExpandInstanceSubsetWithDefinitions() throws Exception {
     // Arrange
     String content;
-    final String activeID = "ncit_c115302";
-    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C115302";
+    final String activeID = "ncit_c54459";
+    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
     final String endpoint =
         localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
     final String propertyName = "Contributing_Source";
@@ -1283,12 +1283,12 @@ public class FhirR5ValueSetExpandTests {
             + propertyName
             + "&includeDefinition=true";
 
-    final String displayString = "SPPB Version 1.2 - Tandem Stand Score";
-    final String activeCode = "C170697";
-    final String parentCode = "#C170532";
-    final String propertyValue = "CDISC";
+    final String displayString = "Schedule I Substance";
+    final String activeCode = "C48672";
+    final String parentCode = "#C48670";
+    final String propertyValue = "FDA";
     final String expectedDefinition =
-        "Short Physical Performance Battery V1.2 - Tandem Stand: Tandem stand score.";
+        "A category of drugs not considered legitimate for medical use.";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -1347,8 +1347,8 @@ public class FhirR5ValueSetExpandTests {
   public void testValueSetExpandInstanceSubsetWithDesignations() throws Exception {
     // Arrange
     String content;
-    final String activeID = "ncit_c115302";
-    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C115302";
+    final String activeID = "ncit_c54459";
+    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
     final String endpoint =
         localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_EXPAND;
     final String propertyName = "Contributing_Source";
@@ -1360,12 +1360,12 @@ public class FhirR5ValueSetExpandTests {
             + propertyName
             + "&includeDesignations=true";
 
-    final String displayString = "SPPB Version 1.2 - Tandem Stand Score";
-    final String activeCode = "C170697";
-    final String parentCode = "#C170532";
-    final String propertyValue = "CDISC";
-    final String expectedDesignation = "SPPB1-Tandem Stand Score";
-    final String expectedTty = "PT";
+    final String displayString = "Schedule I Substance";
+    final String activeCode = "C48672";
+    final String parentCode = "#C48670";
+    final String propertyValue = "FDA";
+    final String expectedDesignation = "Schedule I Controlled Substance";
+    final String expectedTty = "SY";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -3977,7 +3977,7 @@ public class FhirR5ValueSetExpandTests {
     geneConcept.setDisplay("Gene");
     nciInclude.addConcept(geneConcept);
 
-    // Add more concepts from the C115302 subset that might have Contributing_Source = "FDA"
+    // Add more concepts from the C54459 subset that might have Contributing_Source = "FDA"
     // C48670 (Controlled Substance) - might have Contributing_Source = "FDA"
     final ValueSet.ConceptReferenceComponent controlledConcept =
         new ValueSet.ConceptReferenceComponent();
@@ -4738,7 +4738,7 @@ public class FhirR5ValueSetExpandTests {
     // Include a ValueSet
     final ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
     include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    include.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C115302");
+    include.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459");
     compose.addInclude(include);
 
     // Exclude a smaller subset using direct concepts (to ensure some overlap)
@@ -4945,7 +4945,7 @@ public class FhirR5ValueSetExpandTests {
     final ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
     include.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
 
-    // Add a concept that won't be in C115302
+    // Add a concept that won't be in C54459
     final ValueSet.ConceptReferenceComponent includeConcept =
         new ValueSet.ConceptReferenceComponent();
     includeConcept.setCode("C2991"); // Disease or Disorder
@@ -4957,7 +4957,7 @@ public class FhirR5ValueSetExpandTests {
     // Exclude a ValueSet that shouldn't have C2991
     final ValueSet.ConceptSetComponent exclude = new ValueSet.ConceptSetComponent();
     exclude.setSystem("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl");
-    exclude.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C115302");
+    exclude.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459");
     compose.addExclude(exclude);
 
     inputValueSet.setCompose(compose);
@@ -6668,7 +6668,7 @@ public class FhirR5ValueSetExpandTests {
     // Include a ValueSet by canonical URL
     final ValueSet.ConceptSetComponent include = new ValueSet.ConceptSetComponent();
     // Use the NCI Thesaurus ValueSet URL and the UMLS semnet set
-    include.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C115302");
+    include.addValueSet("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459");
     include.addValueSet("http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs");
 
     compose.addInclude(include);
