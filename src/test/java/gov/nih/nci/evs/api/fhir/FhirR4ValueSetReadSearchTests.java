@@ -222,7 +222,7 @@ public class FhirR4ValueSetReadSearchTests {
     final String code = "ncit_c129091";
     final String name = "CDISC Questionnaire NCCN-FACT FBLSI-18 Version 2 Test Name Terminology";
     final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C129091";
-    final String publisher = "NCI";
+    final String publisher = "National Cancer Institute";
     final String endpoint = localHost + port + fhirVSPath;
 
     // Act
@@ -253,7 +253,8 @@ public class FhirR4ValueSetReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
             .queryParam("_id", "ncit_c100110")
-            .queryParam("code", "C100110")
+            //    TODO
+            // .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")

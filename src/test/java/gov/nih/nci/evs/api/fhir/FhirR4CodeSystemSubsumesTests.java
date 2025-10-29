@@ -32,6 +32,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.util.UriComponentsBuilder;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
  * ValueSet, and ConceptMap. All passed ids MUST be lowercase, so they match our internally set id's
@@ -164,7 +165,7 @@ public class FhirR4CodeSystemSubsumesTests {
     String content;
     final String activeCodeB = "448772000";
     final String activeCodeA = "271860004";
-    final String activeId = "snomedct_us_2020_09_01";
+    final String activeId = "snomedct_us_2025_03_01";
     final String url = "http://snomed.info/sct";
     final String outcome = "subsumed-by";
     final String endpoint =
@@ -371,7 +372,7 @@ public class FhirR4CodeSystemSubsumesTests {
   public void testCodeSystemSubsumesInstanceWithCoding() throws Exception {
     // Arrange
     final String url = "http://snomed.info/sct";
-    final String activeId = "snomedct_us_2020_09_01";
+    final String activeId = "snomedct_us_2025_03_01";
     final String activeCodeA = "448772000";
     final String activeCodeB = "271860004";
     final String outcome = "subsumes";

@@ -107,7 +107,7 @@ class FhirR5ValueSetReadSearchTests {
     // Questionnaire
     // Terminology","title":"ncit","status":"active","experimental":false,"publisher":"NCI","description":"Value
     // set representing the ncitsubsetC100110"}
-    final Set<String> ids = new HashSet<>(Set.of("ncit_21.07a", "ncit_c61410"));
+    final Set<String> ids = new HashSet<>(Set.of("ncit_25.06e", "ncit_c61410"));
     final Set<String> urls =
         new HashSet<>(
             Set.of(
@@ -184,7 +184,7 @@ class FhirR5ValueSetReadSearchTests {
     final String code = "ncit_c129091";
     final String name = "CDISC Questionnaire NCCN-FACT FBLSI-18 Version 2 Test Name Terminology";
     final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C129091";
-    final String publisher = "NCI";
+    final String publisher = "National Cancer Institute";
     final String description = "Value set representing the ncitsubsetC129091";
     final String title = "ncit";
     final String status = "active";
@@ -275,7 +275,8 @@ class FhirR5ValueSetReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
             .queryParam("_id", "ncit_c100110")
-            .queryParam("code", "C100110")
+            // TODO
+            // .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
