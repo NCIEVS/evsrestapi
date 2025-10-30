@@ -14,6 +14,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.nih.nci.evs.api.model.EmailDetails;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.service.CaptchaService;
 import gov.nih.nci.evs.api.service.TermSuggestionFormServiceImpl;
 import java.io.FileNotFoundException;
@@ -39,6 +40,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
@@ -218,7 +220,7 @@ public class TermSuggestionFormControllerTests {
     // SET UP - create our form data JsonNode
     final String formPath = "formSamples/submissionFormNullTest.json";
     final JsonNode formData = createForm(formPath);
-    final String expectedResponse = "500 INTERNAL_SERVER_ERROR";
+    final String expectedResponse = "417 EXPECTATION_FAILED";
 
     // Mock the RecaptchaService to always return true for verifyRecaptcha
     when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
@@ -286,6 +288,15 @@ public class TermSuggestionFormControllerTests {
 
     // ASSERT
     final JsonNode formDataFinal = formData;
+    // create a props object that returns no override
+    ApplicationProperties props = new ApplicationProperties();
+    props.setMailRecipient("");
+
+    // find the formService instance used by the controller
+    Object form = ReflectionTestUtils.getField(termSuggestionFormController, "formService");
+
+    // set the applicationProperties on THAT instance
+    ReflectionTestUtils.setField(form, "applicationProperties", props);
     final Exception exception =
         assertThrows(
             Exception.class,
@@ -359,7 +370,7 @@ public class TermSuggestionFormControllerTests {
       termSuggestionFormController.submitForm(formData, null, recaptchaToken);
       fail("Expected a ResponseStatusException to be thrown");
     } catch (ResponseStatusException e) {
-      assertEquals(HttpStatus.BAD_REQUEST, e.getStatusCode());
+      assertEquals(HttpStatus.EXPECTATION_FAILED, e.getStatusCode());
     }
   }
 
@@ -373,7 +384,7 @@ public class TermSuggestionFormControllerTests {
   public void integrationTestGetFormTemplate() throws Exception {
     // SET UP
     final String formType = "ncit-form";
-    final String url = baseUrl + formType;
+    final String url = "/api/v1/form/suggest/" + formType;
     JsonNode form;
 
     // ACT
@@ -401,7 +412,7 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void integrationTestSubmitForm() throws Exception {
     // SET UP
-    baseUrl = "/api/v1/submit";
+    baseUrl = "/api/v1/form/submit";
     final String formPath = "formSamples/submissionFormTest.json";
     JsonNode formData = createForm(formPath);
 
@@ -436,7 +447,7 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void integrationTestSubmitFormWithAttachment() throws Exception {
     // SET UP
-    baseUrl = "/api/v1/submitWithAttachment";
+    baseUrl = "/api/v1/form/submitWithAttachment";
     final String formPath = "formSamples/submissionFormTestCDISC.json";
     JsonNode formData = createForm(formPath);
 

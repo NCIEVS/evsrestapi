@@ -141,5 +141,5 @@
 			]
 		}
 	],
-	"recaptchaSiteKey": "REPLACE_WITH_KEY"
+	"recaptchaSiteKey": "TEST-KEY"
 }
