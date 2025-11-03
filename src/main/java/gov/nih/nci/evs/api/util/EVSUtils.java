@@ -10,6 +10,7 @@ import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
@@ -565,6 +566,9 @@ public class EVSUtils {
       try {
         // Try to open URI as a file
         final File file = new File(uri.replaceFirst("file://", ""));
+        if (!file.exists()) {
+          throw new FileNotFoundException("File not found: " + file.getAbsolutePath());
+        }
         return FileUtils.readFileToString(file, "UTF-8");
       } catch (Exception e2) {
         throw new Exception("Unable to get data from = " + uri, e2);
