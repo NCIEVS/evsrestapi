@@ -10,7 +10,6 @@ import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.dnault.xmlpatch.internal.Log;
-
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import java.io.IOException;
 import java.net.URL;
