@@ -9,7 +9,6 @@ import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.dnault.xmlpatch.internal.Log;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import java.io.IOException;
 import java.net.URL;
@@ -107,7 +106,6 @@ class FhirR4ClientSDKTests {
       throws Exception {
     // Load the Postman collection JSON file from evsrestapi-client-SDK
     final String uri = applicationProperties.getSdkBaseUri();
-    Log.info("XXX sdk uri  = " + uri);
     final URL url = new URL(uri + "/fhir-examples/EVSRESTAPI-FHIR-R4.postman_collection.json");
     final URLConnection connection = url.openConnection();
 
