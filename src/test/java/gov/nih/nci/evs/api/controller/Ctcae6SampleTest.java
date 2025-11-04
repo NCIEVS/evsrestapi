@@ -116,7 +116,7 @@ public class Ctcae6SampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C221229");
     assertThat(concept.getName())
-        .isEqualTo("Grade 4 Immune Effector Cell-Associated Neurotoxicity Syndrome, CTCAE");
+        .isEqualTo("Grade 4 Immune effector cell-associated neurotoxicity syndrome");
     assertThat(concept.getTerminology()).isEqualTo("ctcae6");
     assertThat(concept.getActive()).isTrue();
   }
