@@ -201,9 +201,9 @@ public class TermSuggestionFormControllerTests {
       return;
     } else {
       // If smtp is configured, we will actually send the email
-      log.info("SMTP is configured, will send email to: {}", expectedEmailDetails.getToEmail());
       formData = setCredentials(formData, false);
       expectedEmailDetails = EmailDetails.generateEmailDetails(formData);
+      log.info("    SMTP is configured, will send email to: {}", expectedEmailDetails.getToEmail());
     }
 
     // ACT
@@ -392,7 +392,7 @@ public class TermSuggestionFormControllerTests {
     final MvcResult mvcResult =
         this.mvc.perform(MockMvcRequestBuilders.get(url)).andExpect(status().isOk()).andReturn();
     form = objectMapper.readTree(mvcResult.getResponse().getContentAsString());
-    log.info("Form = {}", form);
+    log.info("    Form = {}", form);
 
     // ASSERT
     assertNotNull(form);

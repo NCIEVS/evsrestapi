@@ -1390,9 +1390,15 @@ public class SearchControllerTests {
     for (final Concept concept : list.getConcepts()) {
       for (final Synonym syn : concept.getSynonyms()) {
         if (syn.getName().contains("DNA")) {
-          if (!found) found = "SY".equals(syn.getTermType());
-          if (!found1) found1 = "PT".equals(syn.getTermType());
-          if (found && found1) break;
+          if (!found) {
+            found = "SY".equals(syn.getTermType());
+          }
+          if (!found1) {
+            found1 = "PT".equals(syn.getTermType());
+          }
+          if (found && found1) {
+            break;
+          }
         }
       }
     }
@@ -1719,12 +1725,14 @@ public class SearchControllerTests {
               .collect(Collectors.toList())
               .isEmpty()) {
         // check still in front
-        if (!currentExact)
+        if (!currentExact) {
           // exact matches not inorder
           fail("Exact Matches not in order");
-      } else
+        }
+      } else {
         // should be at end of exact matches
         currentExact = false;
+      }
     }
 
     // phrase term check
@@ -1778,10 +1786,13 @@ public class SearchControllerTests {
               .collect(Collectors.toList())
               .isEmpty()) { // found
         // match
-        if (!currentExact) // check still in front
-        fail("Exact Matches not in order"); // exact matches not in
-        // order
-      } else currentExact = false; // should be at end of exact matches
+        if (!currentExact) { // check still in front
+          fail("Exact Matches not in order"); // exact matches not in
+          // order
+        }
+      } else {
+        currentExact = false; // should be at end of exact matches
+      }
     }
   }
 
@@ -1871,6 +1882,41 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test search contains bone cancer.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testSearchContainsBoneCancer() throws Exception {
+    String url = baseUrl;
+    MvcResult result = null;
+    String content = null;
+    ConceptResultList list = null;
+
+    // Find corona
+    log.info(
+        "Testing url - " + url + "?include=synonyms&term=bone cancer&type=contains&pageSize=50");
+    result =
+        mvc.perform(
+                get(url)
+                    .param("terminology", "ncit")
+                    .param("term", "bone cancer")
+                    .param("type", "contains")
+                    .param("pageSize", "50")
+                    .param("include", "synonyms"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    assertThat(content).isNotEmpty();
+    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    // The first one should contain the word "corona" (e.g. crown, corona
+    // dentist)
+    assertThat(list.getConcepts().get(0).getCode()).isEqualTo("C4016");
+  }
+
+  /**
    * Test search phrase.
    *
    * @throws Exception the exception
@@ -1919,9 +1965,12 @@ public class SearchControllerTests {
               .collect(Collectors.toList())
               .isEmpty()) { // found
         // match
-        if (!currentExact) // check still in front
-        fail("Exact Matches not in order");
-      } else currentExact = false; // should be at end of exact matches
+        if (!currentExact) { // check still in front
+          fail("Exact Matches not in order");
+        }
+      } else {
+        currentExact = false; // should be at end of exact matches
+      }
     }
 
     // another valid test for bug fixing
@@ -2288,7 +2337,9 @@ public class SearchControllerTests {
       boolean found = false;
       if (concept.getName().toLowerCase().contains("malignant")
           || concept.getName().toLowerCase().contains("bone")
-          || concept.getName().toLowerCase().contains("neoplasm")) continue;
+          || concept.getName().toLowerCase().contains("neoplasm")) {
+        continue;
+      }
       for (Synonym syn : concept.getSynonyms()) {
         if (syn.getName().toLowerCase().contains("malignant")
             || syn.getName().toLowerCase().contains("bone")
@@ -2296,7 +2347,9 @@ public class SearchControllerTests {
           found = true;
         }
       }
-      if (found) continue;
+      if (found) {
+        continue;
+      }
       for (Property prop : concept.getProperties()) {
         if (prop.getValue().toLowerCase().contains("malignant")
             || prop.getValue().toLowerCase().contains("bone")
@@ -2304,7 +2357,9 @@ public class SearchControllerTests {
           found = true;
         }
       }
-      if (found) continue;
+      if (found) {
+        continue;
+      }
       for (Definition def : concept.getDefinitions()) {
         if (def.getDefinition().toLowerCase().contains("malignant")
             || def.getDefinition().toLowerCase().contains("bone")
@@ -2312,7 +2367,9 @@ public class SearchControllerTests {
           found = true;
         }
       }
-      if (!found) assertThat(found);
+      if (!found) {
+        assertThat(found);
+      }
     }
   }
 
@@ -3170,9 +3227,10 @@ public class SearchControllerTests {
               .collect(Collectors.toList())
               .isEmpty()) {
         // check still in front
-        if (!currentExact)
+        if (!currentExact) {
           // exact matches not inorder
           fail("Matches with both 'double' and 'lymphoma' not before others");
+        }
       } else {
         // should be at end of exact matches
         currentExact = false;
@@ -3222,9 +3280,10 @@ public class SearchControllerTests {
               .collect(Collectors.toList())
               .isEmpty()) {
         // check still in front
-        if (!currentExact)
+        if (!currentExact) {
           // exact matches not inorder
           fail("Matches with both 'breast cancer' not before others");
+        }
       } else {
         // should be at end of exact matches
         currentExact = false;

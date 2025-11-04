@@ -138,7 +138,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       }
 
       logger.info(
-          "   Sending email for {} form to {}",
+          "    Sending email for {} form to {}",
           emailDetails.getSource(),
           emailDetails.getToEmail());
       // Set the email details
@@ -190,7 +190,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       }
 
       logger.info(
-          "   Sending email for {} form to {}",
+          "    Sending email for {} form to {}",
           emailDetails.getSource(),
           emailDetails.getToEmail());
 

@@ -464,14 +464,14 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 .field("name")
                 .defaultOperator(Operator.AND)
                 .analyzeWildcard(true)
-                .boost(35f);
+                .boost(25f);
 
         partialWordSynonymQuery =
             QueryBuilders.queryStringQuery(String.join(" AND ", partialTokens))
                 .field("synonyms.name")
                 .defaultOperator(Operator.AND)
                 .analyzeWildcard(true)
-                .boost(34f);
+                .boost(24f);
         nestedPartialWordSynonymQuery =
             QueryBuilders.nestedQuery("synonyms", partialWordSynonymQuery, ScoreMode.Max);
       }
