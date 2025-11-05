@@ -477,6 +477,13 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       }
     }
 
+    // Boost exact matches
+    final NestedQueryBuilder nestedSynonymExactQuery =
+        QueryBuilders.nestedQuery(
+            "synonyms",
+            QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(40f),
+            ScoreMode.Max);
+
     // Boosting matches with words next to each other
     final QueryStringQueryBuilder phraseNormNameQuery =
         QueryBuilders.queryStringQuery("\"" + term + "\"").field("name").boost(30f);
@@ -620,6 +627,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     // contains, and/or
     if (!"phrase".equals(type.toLowerCase())) {
       termQuery
+
+          // Exact query
+          .should(nestedSynonymExactQuery)
 
           // Text queries on "name" and "norm name" and "stem name" using fix names
           .should(fixNameQuery)
