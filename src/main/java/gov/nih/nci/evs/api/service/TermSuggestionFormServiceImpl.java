@@ -10,7 +10,7 @@ import jakarta.mail.Message.RecipientType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
 import jakarta.mail.internet.MimeMessage;
-import java.io.IOException;
+import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Properties;
@@ -46,7 +46,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
   URL formFilePath;
 
   /** The object mapper to read the config url with readTree. */
-  private final ObjectMapper mapper;
+  private final ObjectMapper mapper = new ObjectMapper();
 
   /** Pattern for optional instruction sheets with date suffix */
   private static final Pattern INSTRUCTION_PATTERN =
@@ -65,7 +65,6 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       final ObjectMapper mapper) {
     this.mailSender = mailSender;
     this.applicationProperties = applicationProperties;
-    this.mapper = mapper;
   }
 
   /**
@@ -84,22 +83,27 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       throw new IllegalArgumentException("Invalid form template provided");
     }
     // Create objectMapper. Read file and return JsonNode
-    final JsonNode termForm =
-        mapper.readTree(
-            EVSUtils.getValueFromFile(
-                applicationProperties.getConfigBaseUri() + "/" + formType + ".json"));
-    // Get the recaptcha_site_key from application properties
-    final String recaptchaSiteKey = applicationProperties.getRecaptchaSiteKey();
+    try {
+      String json =
+          EVSUtils.getValueFromFile(
+              applicationProperties.getConfigBaseUri() + "/" + formType + ".json");
+      final JsonNode termForm = mapper.readTree(json);
+      // Get the recaptcha_site_key from application properties
+      final String recaptchaSiteKey = applicationProperties.getRecaptchaSiteKey();
 
-    // Check our termForm is an object node to safely add properties
-    if (termForm.isObject()) {
-      ((ObjectNode) termForm).put("recaptchaSiteKey", recaptchaSiteKey);
-    } else {
-      logger.error("Cannot add recaptcha site key. Form template is not a JSON object.");
-      throw new IllegalArgumentException("Invalid form template.");
+      // Check our termForm is an object node to safely add properties
+      if (termForm.isObject()) {
+        ((ObjectNode) termForm).put("recaptchaSiteKey", recaptchaSiteKey);
+      } else {
+        logger.error("Cannot add recaptcha site key. Form template is not a JSON object.");
+        throw new IllegalArgumentException("Invalid form template.");
+      }
+
+      return termForm;
+    } catch (FileNotFoundException e) {
+      logger.error("Form template file not found for type: {}", formType, e);
+      throw e;
     }
-
-    return termForm;
   }
 
   /**
@@ -134,7 +138,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       }
 
       logger.info(
-          "   Sending email for {} form to {}",
+          "    Sending email for {} form to {}",
           emailDetails.getSource(),
           emailDetails.getToEmail());
       // Set the email details
@@ -186,7 +190,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       }
 
       logger.info(
-          "   Sending email for {} form to {}",
+          "    Sending email for {} form to {}",
           emailDetails.getSource(),
           emailDetails.getToEmail());
 
@@ -321,7 +325,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
           return false;
         }
       }
-    } catch (final IOException e) {
+    } catch (final Exception e) {
       logger.warn("Invalid excel file uploaded or failed to validate workbook: {}", filename, e);
       return false;
     }

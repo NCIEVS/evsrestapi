@@ -181,7 +181,7 @@ class FhirR5CodeSystemReadSearchTests {
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
             .queryParam("version", "25.06e")
             .queryParam("title", "ncit")
-            .queryParam("publisher", "NCI")
+            .queryParam("publisher", "National Cancer Institute")
             .queryParam("name", "NCI Thesaurus 25.06e");
 
     // Test successful case with all parameters

@@ -35,6 +35,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.util.UriComponentsBuilder;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
  * ValueSet, and ConceptMap. All passed ids MUST be lowercase, so they match our internally set id's
@@ -534,7 +535,7 @@ public class FhirR4ValueSetValidateTests {
     final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
     final Coding coding = new Coding(url, activeCode, null);
 
-    final String messageNotSupported = "Must use one of 'code' or 'coding' parameters";
+    final String messageNotSupported = "Use one of 'code' or 'coding' parameters.";
     final String errorCode = "invariant";
 
     final UriComponentsBuilder builder =

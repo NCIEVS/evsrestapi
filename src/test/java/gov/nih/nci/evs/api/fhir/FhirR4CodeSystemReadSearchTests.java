@@ -188,7 +188,7 @@ public class FhirR4CodeSystemReadSearchTests {
     // Test 2: Invalid date
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
-            .queryParam("date", "ge2025-01") // Future
+            .queryParam("date", "ge2035-01") // Future
             // date
             .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
             .queryParam("version", "25.06e")
