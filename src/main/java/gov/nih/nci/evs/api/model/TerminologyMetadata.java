@@ -281,6 +281,51 @@ public class TerminologyMetadata extends BaseModel {
   }
 
   /**
+   * Cleans for API return
+   * 
+   * @return the terminology
+   */
+  public void cleanForApi() {
+    // hide anything that doesn't need to be sent through the API
+    this.setWelcomeText(null);
+    this.setExtraSubsets(null);
+    this.setSources(null);
+    this.setDefinitionSourceSet(null);
+    this.setSynonymSourceSet(null);
+    this.setSubsetPrefix(null);
+    this.setSparqlPrefix(null);
+    this.setSourcesToRemove(null);
+    this.setSubsetMember(null);
+    this.setUnpublished(null);
+    this.setMonthlyDb(null);
+    this.setLicenseCheck(null);
+    this.setMapsets(null);
+    this.setRelationshipToTarget(null);
+    this.setCode(null);
+    this.setConceptStatus(null);
+    this.setPreferredName(null);
+    this.setSynonym(null);
+    this.setSynonymTermType(null);
+    this.setSynonymSource(null);
+    this.setSynonymCode(null);
+    this.setSynonymSubSource(null);
+    this.setDefinitionSource(null);
+    this.setDefinition(null);
+    this.setFhirPublisher(null);
+    this.setFhirUri(null);
+    this.setMapRelation(null);
+    this.setMap(null);
+    this.setMapTarget(null);
+    this.setMapTargetTermType(null);
+    this.setMapTargetTermGroup(null);
+    this.setMapTargetTerminology(null);
+    this.setMapTargetTerminologyVersion(null);
+    this.setTermTypes(null);
+    this.setPreferredTermTypes(null);
+    this.setSubset(null);
+  }
+
+  /**
    * Returns the relationship to target.
    *
    * @return the relationship to target

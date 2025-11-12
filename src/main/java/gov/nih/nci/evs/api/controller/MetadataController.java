@@ -137,44 +137,7 @@ public class MetadataController extends BaseController {
         final TerminologyMetadata meta = term.getMetadata();
         // Some terminologies may not have metadata
         if (meta != null) {
-
-          // Various other metadata things (schema=hidden)
-          meta.setWelcomeText(null);
-          meta.setExtraSubsets(null);
-          meta.setSources(null);
-          meta.setDefinitionSourceSet(null);
-          meta.setSynonymSourceSet(null);
-          meta.setSubsetPrefix(null);
-          meta.setSparqlPrefix(null);
-          meta.setSourcesToRemove(null);
-          meta.setSubsetMember(null);
-          meta.setUnpublished(null);
-          meta.setMonthlyDb(null);
-          meta.setLicenseCheck(null);
-          meta.setMapsets(null);
-          meta.setRelationshipToTarget(null);
-          meta.setCode(null);
-          meta.setConceptStatus(null);
-          meta.setPreferredName(null);
-          meta.setSynonym(null);
-          meta.setSynonymTermType(null);
-          meta.setSynonymSource(null);
-          meta.setSynonymCode(null);
-          meta.setSynonymSubSource(null);
-          meta.setDefinitionSource(null);
-          meta.setDefinition(null);
-          meta.setFhirPublisher(null);
-          meta.setFhirUri(null);
-          meta.setMapRelation(null);
-          meta.setMap(null);
-          meta.setMapTarget(null);
-          meta.setMapTargetTermType(null);
-          meta.setMapTargetTermGroup(null);
-          meta.setMapTargetTerminology(null);
-          meta.setMapTargetTerminologyVersion(null);
-          meta.setTermTypes(null);
-          meta.setPreferredTermTypes(null);
-          meta.setSubset(null);
+          meta.cleanForApi();
         }
       }
 
