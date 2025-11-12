@@ -1382,4 +1382,197 @@ class FhirR5ValueSetReadSearchTests {
     assertEquals(OperationOutcome.IssueSeverity.ERROR, issue.getSeverity());
     assertTrue(issue.getDiagnostics().contains("Unsupported sort field"));
   }
+
+  /**
+   * Test value set search with :missing modifier on string parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchWithMissingModifierOnStringParams() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // Test 1: Find ValueSets WITH a name (name:missing=false)
+    String url = endpoint + "?name:missing=false&_count=100";
+    String content = this.restTemplate.getForObject(url, String.class);
+    Bundle bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should have a name
+    assertNotNull(bundle);
+    assertTrue(bundle.hasEntry(), "Should find ValueSets with names");
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      ValueSet vs = (ValueSet) entry.getResource();
+      assertNotNull(vs.getName(), "ValueSet should have a name when name:missing=false");
+      assertFalse(vs.getName().isEmpty(), "ValueSet name should not be empty");
+    }
+
+    // Test 2: Find ValueSets WITHOUT a name (name:missing=true)
+    url = endpoint + "?name:missing=true&_count=100";
+    content = this.restTemplate.getForObject(url, String.class);
+    bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should NOT have a name
+    assertNotNull(bundle);
+    // Note: May be empty if all ValueSets have names
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      ValueSet vs = (ValueSet) entry.getResource();
+      assertTrue(
+          vs.getName() == null || vs.getName().isEmpty(),
+          "ValueSet should not have a name when name:missing=true");
+    }
+  }
+
+  /**
+   * Test value set search with :missing modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchWithUrlMissingModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // Test 1: Find ValueSets WITH a url (url:missing=false)
+    String url = endpoint + "?url:missing=false&_count=100";
+    String content = this.restTemplate.getForObject(url, String.class);
+    Bundle bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should have a url
+    assertNotNull(bundle);
+    assertTrue(bundle.hasEntry(), "Should find ValueSets with urls");
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      ValueSet vs = (ValueSet) entry.getResource();
+      assertNotNull(vs.getUrl(), "ValueSet should have a url when url:missing=false");
+      assertFalse(vs.getUrl().isEmpty(), "ValueSet url should not be empty");
+    }
+
+    // Test 2: Find ValueSets WITHOUT a url (url:missing=true)
+    url = endpoint + "?url:missing=true&_count=100";
+    content = this.restTemplate.getForObject(url, String.class);
+    bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should NOT have a url
+    assertNotNull(bundle);
+    // Note: May be empty if all ValueSets have urls
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      ValueSet vs = (ValueSet) entry.getResource();
+      assertTrue(
+          vs.getUrl() == null || vs.getUrl().isEmpty(),
+          "ValueSet should not have a url when url:missing=true");
+    }
+  }
+
+  /**
+   * Test value set search with :contains modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchWithUrlContainsModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // Test: Find ValueSets where URL contains "ncit"
+    String url = endpoint + "?url:contains=ncit&_count=100";
+    String content = this.restTemplate.getForObject(url, String.class);
+    Bundle bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should have "ncit" in their URL
+    assertNotNull(bundle);
+    if (bundle.hasEntry()) {
+      for (BundleEntryComponent entry : bundle.getEntry()) {
+        ValueSet vs = (ValueSet) entry.getResource();
+        assertNotNull(vs.getUrl(), "ValueSet should have a url");
+        assertTrue(
+            vs.getUrl().toLowerCase().contains("ncit"),
+            "ValueSet url should contain 'ncit': " + vs.getUrl());
+      }
+    }
+  }
+
+  /**
+   * Test value set search with :below modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchWithUrlBelowModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // First, get a known ValueSet with a URL
+    String content = this.restTemplate.getForObject(endpoint + "?_count=1", String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    assertTrue(data.hasEntry(), "Should have at least one ValueSet");
+    ValueSet firstVs = (ValueSet) data.getEntry().get(0).getResource();
+    String baseUrl = firstVs.getUrl();
+
+    // Test: Find ValueSets where URL is at or below the base URL
+    // For example, if baseUrl is "http://example.com/fhir/ValueSet/123"
+    // we'll search for everything below "http://example.com/fhir"
+    if (baseUrl != null && baseUrl.contains("/")) {
+      // Get parent URL (remove last path segment)
+      String parentUrl = baseUrl.substring(0, baseUrl.lastIndexOf("/"));
+
+      String url = endpoint + "?url:below=" + URLEncoder.encode(parentUrl, StandardCharsets.UTF_8);
+      content = this.restTemplate.getForObject(url, String.class);
+      Bundle bundle = parser.parseResource(Bundle.class, content);
+
+      // Assert - all returned resources should have URL at or below parent URL
+      assertNotNull(bundle);
+      if (bundle.hasEntry()) {
+        for (BundleEntryComponent entry : bundle.getEntry()) {
+          ValueSet vs = (ValueSet) entry.getResource();
+          assertNotNull(vs.getUrl(), "ValueSet should have a url");
+          assertTrue(
+              vs.getUrl().startsWith(parentUrl) || vs.getUrl().equals(parentUrl),
+              "ValueSet url should be at or below '" + parentUrl + "': " + vs.getUrl());
+        }
+      }
+    }
+  }
+
+  /**
+   * Test value set search with :above modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchWithUrlAboveModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // First, get a known ValueSet with a URL
+    String content = this.restTemplate.getForObject(endpoint + "?_count=1", String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    assertTrue(data.hasEntry(), "Should have at least one ValueSet");
+    ValueSet firstVs = (ValueSet) data.getEntry().get(0).getResource();
+    String childUrl = firstVs.getUrl();
+
+    // Test: Find ValueSets where URL is at or above the child URL
+    // This should return ValueSets whose URLs are parents (or exact match) of the search value
+    if (childUrl != null) {
+      String url = endpoint + "?url:above=" + URLEncoder.encode(childUrl, StandardCharsets.UTF_8);
+      content = this.restTemplate.getForObject(url, String.class);
+      Bundle bundle = parser.parseResource(Bundle.class, content);
+
+      // Assert - all returned resources should have URL at or above child URL
+      // This means the search value should start with the resource URL
+      assertNotNull(bundle);
+      if (bundle.hasEntry()) {
+        for (BundleEntryComponent entry : bundle.getEntry()) {
+          ValueSet vs = (ValueSet) entry.getResource();
+          assertNotNull(vs.getUrl(), "ValueSet should have a url");
+          assertTrue(
+              childUrl.startsWith(vs.getUrl()) || childUrl.equals(vs.getUrl()),
+              "Search url '"
+                  + childUrl
+                  + "' should be at or below ValueSet url '"
+                  + vs.getUrl()
+                  + "'");
+        }
+      }
+    }
+  }
 }
