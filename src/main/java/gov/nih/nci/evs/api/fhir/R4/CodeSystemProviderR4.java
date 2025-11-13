@@ -777,7 +777,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           logger.debug("  SKIP system mismatch = " + cs.getUrl());
           continue;
         }
-        if (url != null && !url.getValue().equals(cs.getUrl())) {
+        if (url != null && !FhirUtility.compareUri(url, cs.getUrl())) {
           logger.debug("  SKIP url mismatch = " + cs.getUrl());
           continue;
         }
