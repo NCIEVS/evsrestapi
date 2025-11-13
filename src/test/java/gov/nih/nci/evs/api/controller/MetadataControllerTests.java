@@ -2045,7 +2045,7 @@ public class MetadataControllerTests {
                 });
     assertThat(sourceStats.isEmpty());
   }
-  
+
   /**
    * Test that terminology metadata fields are cleaned for API responses
    *
@@ -2112,5 +2112,4 @@ public class MetadataControllerTests {
       assertThat(md.getDefinition()).isEmpty();
     }
   }
-
 }

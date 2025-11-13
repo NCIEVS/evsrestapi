@@ -282,7 +282,7 @@ public class TerminologyMetadata extends BaseModel {
 
   /**
    * Cleans for API return
-   * 
+   *
    * @return the terminology
    */
   public void cleanForApi() {
