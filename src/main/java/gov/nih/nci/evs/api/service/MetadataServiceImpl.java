@@ -312,6 +312,26 @@ public class MetadataServiceImpl implements MetadataService {
   }
 
   /**
+   * Returns the property values list.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the property values list
+   * @throws Exception the exception
+   */
+  @Override
+  public Optional<List<String>> getPropertyValues(String terminology, String code)
+      throws Exception {
+    final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService, true);
+    final Map<String, Set<String>> map = osQueryService.getPropertyValues(term);
+    if (map == null || !map.containsKey(code)) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found");
+    }
+
+    return Optional.ofNullable(map.get(code).stream().sorted().collect(Collectors.toList()));
+  }
+
+  /**
    * Returns the term types.
    *
    * @param terminology the terminology

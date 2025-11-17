@@ -546,6 +546,17 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
     return esObject.get().getMap();
   }
 
+  /* see superclass */
+  @Override
+  public Map<String, Set<String>> getPropertyValues(Terminology terminology) throws Exception {
+    Optional<OpensearchObject> esObject = getOpensearchObject("propertyValues", terminology);
+    if (!esObject.isPresent()) {
+      return new HashMap<>();
+    }
+
+    return esObject.get().getMap();
+  }
+
   /**
    * see superclass *.
    *

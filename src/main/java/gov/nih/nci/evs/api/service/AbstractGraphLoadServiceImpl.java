@@ -441,6 +441,27 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     operationsService.index(propertiesObject, indexName, OpensearchObject.class);
     logger.info("  Properties loaded");
 
+    // Build property values map by code and by property name and index it
+    final Map<String, Set<String>> propertyMap = new HashMap<>();
+    for (final Concept property : properties) {
+      for (final String value :
+          sparqlQueryManagerService.getPropertyValues(property.getCode(), terminology)) {
+        if (!propertyMap.containsKey(property.getCode())) {
+          propertyMap.put(property.getCode(), new HashSet<>());
+        }
+        propertyMap.get(property.getCode()).add(value);
+        if (!propertyMap.containsKey(property.getName())) {
+          propertyMap.put(property.getName(), new HashSet<>());
+        }
+        propertyMap.get(property.getName()).add(value);
+      }
+    }
+    ConceptUtils.limitQualMap(propertyMap, 1000);
+    OpensearchObject propertyValuesObject = new OpensearchObject("propertyValues");
+    propertyValuesObject.setMap(propertyMap);
+    operationsService.index(propertyValuesObject, indexName, OpensearchObject.class);
+    logger.info("  Property values loaded");
+
     List<Concept> associations =
         sparqlQueryManagerService.getAllAssociations(terminology, new IncludeParam("full"));
     OpensearchObject associationsObject = new OpensearchObject("associations");
