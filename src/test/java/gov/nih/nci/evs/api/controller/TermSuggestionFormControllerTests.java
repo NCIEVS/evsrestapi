@@ -31,9 +31,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 
-/**
- * Test class for the Term Form Controller. This test mocks the email and captcha services.
- */
+/** Test class for the Term Form Controller. This test mocks the email and captcha services. */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc

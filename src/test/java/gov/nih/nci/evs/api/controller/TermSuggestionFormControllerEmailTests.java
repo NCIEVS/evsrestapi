@@ -24,8 +24,9 @@ import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 
 /**
- * Test class for the Term Form Controller. Unlike TermSuggestionFormControllerTests here we call real captcha and email service.
- * So to run this you need to set some stuff up. Otherwise these tests will be skipped.
+ * Test class for the Term Form Controller. Unlike TermSuggestionFormControllerTests here we call
+ * real captcha and email service. So to run this you need to set some stuff up. Otherwise these
+ * tests will be skipped.
  *
  * <pre>
  * Uses the following env vars (if not set, tests do not run):
