@@ -444,6 +444,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     // Build property values map by code and by property name and index it
     final Map<String, Set<String>> propertyMap = new HashMap<>();
     for (final Concept property : properties) {
+      // skip any remodeled properties
+      if (terminology.getMetadata().isRemodeledProperty(property.getCode())) {
+        continue;
+      }
       for (final String value :
           sparqlQueryManagerService.getPropertyValues(property.getCode(), terminology)) {
         if (!propertyMap.containsKey(property.getCode())) {

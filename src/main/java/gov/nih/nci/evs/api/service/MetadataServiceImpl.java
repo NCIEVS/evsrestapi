@@ -323,6 +323,10 @@ public class MetadataServiceImpl implements MetadataService {
   public Optional<List<String>> getPropertyValues(String terminology, String code)
       throws Exception {
     final Terminology term = termUtils.getIndexedTerminology(terminology, osQueryService, true);
+    // 404 out remodeled properties
+    if (term.getMetadata().isRemodeledProperty(code)) {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not valid for this endpoint as it is a remodeled property.");
+    }
     final Map<String, Set<String>> map = osQueryService.getPropertyValues(term);
     if (map == null || !map.containsKey(code)) {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found");

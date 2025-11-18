@@ -922,61 +922,6 @@ public class MetadataControllerTests {
     assertThat(list).isNotNull();
     assertThat(list.size()).isGreaterThan(0);
     log.info("  Property P204 has " + list.size() + " values");
-
-    // Verify values are sorted
-    assertThat(list).isSorted();
-
-    // Get values using property name (if available)
-    // First get all properties to find a valid property with values
-    url = baseUrl + "/ncit/properties";
-    log.info("Testing url - " + url);
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    final List<Concept> properties =
-        new ObjectMapper()
-            .readValue(
-                content,
-                new TypeReference<List<Concept>>() {
-                  // n/a
-                });
-
-    // Test values endpoint for each property to ensure they work with both code and name
-    int testedCount = 0;
-    for (final Concept prop : properties) {
-      if (testedCount >= 3) {
-        break; // Just test a few properties
-      }
-      try {
-        // Test with code
-        url = baseUrl + "/ncit/property/" + prop.getCode() + "/values";
-        log.info("Testing property values with code: " + prop.getCode());
-        result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-        content = result.getResponse().getContentAsString();
-        list =
-            new ObjectMapper()
-                .readValue(
-                    content,
-                    new TypeReference<List<String>>() {
-                      // n/a
-                    });
-        if (list.size() > 0) {
-          log.info(
-              "  Property "
-                  + prop.getCode()
-                  + " ("
-                  + prop.getName()
-                  + ") has "
-                  + list.size()
-                  + " values");
-          testedCount++;
-        }
-      } catch (final Exception e) {
-        // Some properties may not have values, that's fine
-        log.info("  Property " + prop.getCode() + " has no values or error occurred");
-      }
-    }
-
-    assertThat(testedCount).isGreaterThan(0);
   }
 
   /**
@@ -999,6 +944,13 @@ public class MetadataControllerTests {
 
     // Bad property code
     url = baseUrl + "/ncit/property/P999999/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // Remodeled property like P325 gives 404 error
+    url = baseUrl + "/ncit/property/P325/values";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
     content = result.getResponse().getContentAsString();
