@@ -11,7 +11,9 @@ import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -44,6 +46,12 @@ public class MetadataControllerTests {
 
   /** The mvc. */
   @Autowired private MockMvc mvc;
+
+  /** The term utils. */
+  @Autowired private TerminologyUtils termUtils;
+
+  /** The os query service. */
+  @Autowired private OpensearchQueryService osQueryService;
 
   /** The test properties. */
   @Autowired TestProperties testProperties;
@@ -922,6 +930,23 @@ public class MetadataControllerTests {
     assertThat(list).isNotNull();
     assertThat(list.size()).isGreaterThan(0);
     log.info("  Property P204 has " + list.size() + " values");
+
+    // Get values for Semantic_Type property using name
+    url = baseUrl + "/ncit/property/OLD_ROLE/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content length = " + content.length());
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<String>>() {
+                  // n/a
+                });
+    assertThat(list).isNotNull();
+    assertThat(list.size()).isGreaterThan(0);
+    log.info("  Property OLD_ROLE has " + list.size() + " values");
   }
 
   /**
@@ -950,11 +975,60 @@ public class MetadataControllerTests {
     log.info("  content = " + content);
 
     // Remodeled property like P325 gives 404 error
-    url = baseUrl + "/ncit/property/P325/values";
+    url = baseUrl + "/ncit/property/NHC0/values";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
+  }
+
+  /*
+   * Test all that all properties can retrieve property values with code or name
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPropertyValuesWithCodeAndName() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> properties = null;
+
+    // Get all properties
+    url = baseUrl + "/ncit/properties";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    properties =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+
+    // get ncit terminology
+    Terminology term = termUtils.getIndexedTerminology("ncit", osQueryService, true);
+    for (Concept property : properties) {
+      // filter out remodeled properties because those should 404
+      if (term.getMetadata().isRemodeledProperty(property.getCode())
+          || term.getMetadata().isRemodeledProperty(property.getName())) {
+        continue;
+      }
+      // Try to get property values by code
+      url = baseUrl + "/ncit/property/" + property.getCode() + "/values";
+      log.info("Testing url - " + url);
+      result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+      content = result.getResponse().getContentAsString();
+      log.info("  content length = " + content.length());
+
+      // Try to get property values by name
+      url = baseUrl + "/ncit/property/" + property.getName() + "/values";
+      log.info("Testing url - " + url);
+      result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+      content = result.getResponse().getContentAsString();
+      log.info("  content length = " + content.length());
+    }
   }
 
   /**
