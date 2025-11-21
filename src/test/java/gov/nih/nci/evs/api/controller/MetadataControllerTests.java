@@ -10,6 +10,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import java.util.ArrayList;
@@ -2043,5 +2044,72 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(sourceStats.isEmpty());
+  }
+
+  /**
+   * Test that terminology metadata fields are cleaned for API responses
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testTerminologyMetadataFieldsCleared() throws Exception {
+    final String url = baseUrl + "/terminologies?terminology=ncit&tag=monthly&latest=true";
+    log.info("Testing url - " + url);
+
+    final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // Parse into objects and check metadata has been cleaned (fields either null or empty)
+    final List<Terminology> list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Terminology>>() {
+                  // n/a
+                });
+
+    assertThat(list).isNotEmpty();
+
+    for (final Terminology term : list) {
+      final TerminologyMetadata md = term.getMetadata();
+      assertThat(md).isNotNull();
+
+      // String fields that are nulled by cleanForApi
+      assertThat(md.getWelcomeText()).isNull();
+      assertThat(md.getSparqlPrefix()).isNull();
+      assertThat(md.getMonthlyDb()).isNull();
+      assertThat(md.getLicenseCheck()).isNull();
+      assertThat(md.getRelationshipToTarget()).isNull();
+      assertThat(md.getCode()).isNull();
+      assertThat(md.getConceptStatus()).isNull();
+      assertThat(md.getPreferredName()).isNull();
+      assertThat(md.getSynonymTermType()).isNull();
+      assertThat(md.getSynonymSource()).isNull();
+      assertThat(md.getSynonymCode()).isNull();
+      assertThat(md.getSynonymSubSource()).isNull();
+      assertThat(md.getDefinitionSource()).isNull();
+      assertThat(md.getFhirPublisher()).isNull();
+      assertThat(md.getFhirUri()).isNull();
+      assertThat(md.getMapRelation()).isNull();
+      assertThat(md.getMap()).isNull();
+      assertThat(md.getMapTarget()).isNull();
+      assertThat(md.getMapTargetTermType()).isNull();
+      assertThat(md.getMapTargetTerminology()).isNull();
+      assertThat(md.getMapTargetTerminologyVersion()).isNull();
+
+      // Collections / maps are expected to be empty (getters return empty container when null)
+      assertThat(md.getExtraSubsets()).isEmpty();
+      assertThat(md.getSources()).isEmpty();
+      assertThat(md.getDefinitionSourceSet()).isEmpty();
+      assertThat(md.getSynonymSourceSet()).isEmpty();
+      assertThat(md.getSubsetMember()).isEmpty();
+      assertThat(md.getUnpublished()).isEmpty();
+      assertThat(md.getSubset()).isEmpty();
+      assertThat(md.getTermTypes()).isEmpty();
+      assertThat(md.getPreferredTermTypes()).isEmpty();
+      assertThat(md.getSynonym()).isEmpty();
+      assertThat(md.getDefinition()).isEmpty();
+    }
   }
 }

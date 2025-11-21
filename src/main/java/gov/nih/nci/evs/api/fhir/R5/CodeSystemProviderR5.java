@@ -128,7 +128,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
 
         // Skip non-matching
         if ((id != null && !id.getValue().equals(cs.getIdPart()))
-            || (url != null && !url.getValue().equals(cs.getUrl()))) {
+            || (url != null && !FhirUtility.compareUri(url, cs.getUrl()))) {
           logger.debug("  SKIP url mismatch = " + cs.getUrl());
           continue;
         }

@@ -9,10 +9,7 @@ import ca.uhn.fhir.rest.annotation.OperationParam;
 import ca.uhn.fhir.rest.annotation.OptionalParam;
 import ca.uhn.fhir.rest.annotation.Read;
 import ca.uhn.fhir.rest.annotation.Search;
-import ca.uhn.fhir.rest.param.DateRangeParam;
-import ca.uhn.fhir.rest.param.NumberParam;
-import ca.uhn.fhir.rest.param.StringParam;
-import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.param.*;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
@@ -126,7 +123,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OptionalParam(name = "code") final StringParam code,
       @OptionalParam(name = "name") final StringParam name,
       @OptionalParam(name = "title") final StringParam title,
-      @OptionalParam(name = "url") final StringParam url,
+      @OptionalParam(name = "url") final UriParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
           final NumberParam count,
@@ -154,7 +151,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
           logger.debug("  SKIP date mismatch = " + vs.getDate());
           continue;
         }
-        if (url != null && !url.getValue().equals(vs.getUrl())) {
+        if (url != null && !FhirUtility.compareUri(url, vs.getUrl())) {
           logger.debug("  SKIP url mismatch = " + vs.getUrl());
           continue;
         }
@@ -188,7 +185,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         logger.debug("  SKIP date mismatch = " + vs.getDate());
         continue;
       }
-      if (url != null && !url.getValue().equals(vs.getUrl())) {
+      if (url != null && !FhirUtility.compareUri(url, vs.getUrl())) {
         logger.debug("  SKIP url mismatch = " + vs.getUrl());
         continue;
       }
