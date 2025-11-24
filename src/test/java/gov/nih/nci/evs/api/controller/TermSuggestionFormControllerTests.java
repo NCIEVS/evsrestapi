@@ -186,7 +186,7 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void testSubmitForm() throws Exception {
     // SET UP - create our form data JsonNode
-    final String formPath = "formSamples/submissionFormTest.json";
+    final String formPath = "formSamples/submissionFormTest-ncit.json";
     JsonNode formData = createForm(formPath);
     // Create expected EmailDetails
     EmailDetails expectedEmailDetails = EmailDetails.generateEmailDetails(formData);
@@ -267,7 +267,7 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void testSubmitFormThrowsExceptionWhenSendEmailFails() throws Exception {
     // SET UP - create our form data JsonNode
-    final String formPath = "formSamples/submissionFormTest.json";
+    final String formPath = "formSamples/submissionFormTest-ncit.json";
     JsonNode formData = createForm(formPath);
     final String expectedResponse = "500 INTERNAL_SERVER_ERROR";
 
@@ -316,7 +316,7 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void testSubmitFormRecaptchaVerificationPasses() throws Exception {
     // SET UP
-    final String formPath = "formSamples/submissionFormTest.json";
+    final String formPath = "formSamples/submissionFormTest-ncit.json";
     JsonNode formData = createForm(formPath);
 
     // Mock the RecaptchaService to always return true for verifyRecaptcha
@@ -348,7 +348,7 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void testSubmitFormRecaptchaVerificationFails() throws Exception {
     // SET UP
-    final String formPath = "formSamples/submissionFormTest.json";
+    final String formPath = "formSamples/submissionFormTest-ncit.json";
     JsonNode formData = createForm(formPath);
     // Create expected EmailDetails
 
@@ -413,7 +413,7 @@ public class TermSuggestionFormControllerTests {
   public void integrationTestSubmitForm() throws Exception {
     // SET UP
     baseUrl = "/api/v1/form/submit";
-    final String formPath = "formSamples/submissionFormTest.json";
+    final String formPath = "formSamples/submissionFormTest-ncit.json";
     JsonNode formData = createForm(formPath);
 
     // Mock the RecaptchaService to always return true for verifyRecaptcha
@@ -448,7 +448,7 @@ public class TermSuggestionFormControllerTests {
   public void integrationTestSubmitFormWithAttachment() throws Exception {
     // SET UP
     baseUrl = "/api/v1/form/submitWithAttachment";
-    final String formPath = "formSamples/submissionFormTestCDISC.json";
+    final String formPath = "formSamples/submissionFormTest-cdisc.json";
     JsonNode formData = createForm(formPath);
 
     // Mock the RecaptchaService to always return true for verifyRecaptcha
@@ -467,14 +467,67 @@ public class TermSuggestionFormControllerTests {
     // Prepare multipart file from resources
     final org.springframework.mock.web.MockMultipartFile attachment;
     try (final InputStream is =
-        getClass().getClassLoader().getResourceAsStream("formSamples/filled-form-submission.xls")) {
+        getClass()
+            .getClassLoader()
+            .getResourceAsStream("formSamples/filled-form-submission-cdisc.xls")) {
       if (is == null) {
         fail("Test attachment not found in resources");
         return;
       }
       attachment =
           new org.springframework.mock.web.MockMultipartFile(
-              "file", "filled-form-submission.xls", "application/vnd.ms-excel", is);
+              "file", "filled-form-submission-cdisc.xls", "application/vnd.ms-excel", is);
+    }
+
+    // formData part as application/json
+    final org.springframework.mock.web.MockMultipartFile jsonPart =
+        new org.springframework.mock.web.MockMultipartFile(
+            "formData", "formData", "application/json", objectMapper.writeValueAsBytes(formData));
+
+    // ACT & ASSERT - perform multipart request
+    this.mvc
+        .perform(
+            MockMvcRequestBuilders.multipart(baseUrl)
+                .file(attachment)
+                .file(jsonPart)
+                .header("Captcha-Token", recaptchaToken)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+        .andExpect(status().isOk());
+  }
+
+  @Test
+  public void integrationTestSubmitFormWithAttachmentNCIT() throws Exception {
+    // SET UP
+    baseUrl = "/api/v1/form/submitWithAttachment";
+    final String formPath = "formSamples/testNCIT.json";
+    JsonNode formData = createForm(formPath);
+
+    // Mock the RecaptchaService to always return true for verifyRecaptcha
+    when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
+
+    if (!hasSmtpConfig()) {
+      // If no configuration, bail
+      return;
+    } else {
+      // If smtp is configured, we will actually send the email
+      log.info("SMTP is configured.");
+      // Set credentials in the form data
+      formData = setCredentials(formData, false);
+    }
+
+    // Prepare NCIT multipart file from resources
+    final org.springframework.mock.web.MockMultipartFile attachment;
+    try (final InputStream is =
+        getClass()
+            .getClassLoader()
+            .getResourceAsStream("formSamples/filled-form-submission-ncit.xls")) {
+      if (is == null) {
+        fail("NCIT test attachment not found in resources");
+        return;
+      }
+      attachment =
+          new org.springframework.mock.web.MockMultipartFile(
+              "file", "filled-form-submission-ncit.xls", "application/vnd.ms-excel", is);
     }
 
     // formData part as application/json
