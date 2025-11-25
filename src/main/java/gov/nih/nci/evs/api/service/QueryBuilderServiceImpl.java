@@ -36,23 +36,26 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * Construct SPARQL prefix declarations for a terminology's queries.
    *
    * <p>This method implements the dual-prefix strategy used throughout the system:
+   *
    * <ol>
-   * <li><b>Terminology-specific prefixes:</b> If the terminology metadata defines a custom
-   * sparqlPrefix field (e.g., for CTCAE6, ChEBI, GO), that takes precedence and is prepended
-   * to the query. This handles ontologies that reference external namespaces or use non-standard
-   * namespace patterns.</li>
-   * <li><b>Default graph prefix:</b> If no custom sparqlPrefix is defined, uses the prefix.graph
-   * template which declares the ontology's default namespace as PREFIX : and PREFIX base:.</li>
-   * <li><b>Common prefixes:</b> Always appends prefix.common which declares standard W3C and OBO
-   * namespaces (owl:, rdf:, rdfs:, xsd:, dc:, oboInOwl:, xml:) that are universally available.</li>
+   *   <li><b>Terminology-specific prefixes:</b> If the terminology metadata defines a custom
+   *       sparqlPrefix field (e.g., for CTCAE6, ChEBI, GO), that takes precedence and is prepended
+   *       to the query. This handles ontologies that reference external namespaces or use
+   *       non-standard namespace patterns.
+   *   <li><b>Default graph prefix:</b> If no custom sparqlPrefix is defined, uses the prefix.graph
+   *       template which declares the ontology's default namespace as PREFIX : and PREFIX base:.
+   *   <li><b>Common prefixes:</b> Always appends prefix.common which declares standard W3C and OBO
+   *       namespaces (owl:, rdf:, rdfs:, xsd:, dc:, oboInOwl:, xml:) that are universally
+   *       available.
    * </ol>
    *
    * <p><b>Examples:</b>
+   *
    * <ul>
-   * <li><b>CTCAE6</b> (external dependency): Uses custom sparqlPrefix to declare both local
-   * ctcae6.owl namespace AND external ncit: namespace for NCIt Thesaurus properties</li>
-   * <li><b>CTCAE5</b> (self-contained): No custom sparqlPrefix, uses default graph template</li>
-   * <li><b>ChEBI</b> (OBO standard): Uses custom sparqlPrefix for OBO Foundation namespaces</li>
+   *   <li><b>CTCAE6</b> (external dependency): Uses custom sparqlPrefix to declare both local
+   *       ctcae6.owl namespace AND external ncit: namespace for NCIt Thesaurus properties
+   *   <li><b>CTCAE5</b> (self-contained): No custom sparqlPrefix, uses default graph template
+   *   <li><b>ChEBI</b> (OBO standard): Uses custom sparqlPrefix for OBO Foundation namespaces
    * </ul>
    *
    * <p><b>Why this design:</b> Separates configuration (what namespaces are needed) from query

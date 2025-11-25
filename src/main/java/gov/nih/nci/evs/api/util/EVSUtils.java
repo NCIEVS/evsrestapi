@@ -359,25 +359,27 @@ public class EVSUtils {
    * SPARQL queries into the qualified codes used in metadata configuration and API responses.
    *
    * <p><b>Conversion Rules:</b>
+   *
    * <ol>
-   * <li>Extract the fragment after the last "/" in the URI</li>
-   * <li>Normalize rdfs namespace: "rdf-schema" → "rdfs"</li>
-   * <li>If fragment contains "." (e.g., "HGNC.owl#P108"), strip everything before "#"</li>
-   * <li>Otherwise, convert "#" to ":" to create qualified form</li>
+   *   <li>Extract the fragment after the last "/" in the URI
+   *   <li>Normalize rdfs namespace: "rdf-schema" → "rdfs"
+   *   <li>If fragment contains "." (e.g., "HGNC.owl#P108"), strip everything before "#"
+   *   <li>Otherwise, convert "#" to ":" to create qualified form
    * </ol>
    *
    * <p><b>Examples:</b>
+   *
    * <ul>
-   * <li>Input: {@code http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P108}<br>
-   *     Output: {@code ncit:P108} (qualified form)</li>
-   * <li>Input: {@code http://www.w3.org/2000/01/rdf-schema#label}<br>
-   *     Output: {@code rdfs:label} (normalized)</li>
-   * <li>Input: {@code http://purl.obolibrary.org/obo/chebi.owl#12345}<br>
-   *     Output: {@code chebi:12345}</li>
+   *   <li>Input: {@code http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P108}<br>
+   *       Output: {@code ncit:P108} (qualified form)
+   *   <li>Input: {@code http://www.w3.org/2000/01/rdf-schema#label}<br>
+   *       Output: {@code rdfs:label} (normalized)
+   *   <li>Input: {@code http://purl.obolibrary.org/obo/chebi.owl#12345}<br>
+   *       Output: {@code chebi:12345}
    * </ul>
    *
-   * <p><b>Used by:</b> Axiom processing, property code extraction, qualifier identification.
-   * This method PRESERVES namespace information as a prefix, unlike {@link #getCodeFromUri(String)}
+   * <p><b>Used by:</b> Axiom processing, property code extraction, qualifier identification. This
+   * method PRESERVES namespace information as a prefix, unlike {@link #getCodeFromUri(String)}
    * which fully strips the namespace.
    *
    * <p><b>Design rationale:</b> Property codes need namespace context to match against metadata
