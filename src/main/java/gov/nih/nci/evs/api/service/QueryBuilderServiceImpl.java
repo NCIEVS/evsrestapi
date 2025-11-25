@@ -33,10 +33,36 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   @Autowired Environment env;
 
   /**
-   * Contruct prefix.
+   * Construct SPARQL prefix declarations for a terminology's queries.
    *
-   * @param terminology the terminology
-   * @return the string
+   * <p>This method implements the dual-prefix strategy used throughout the system:
+   * <ol>
+   * <li><b>Terminology-specific prefixes:</b> If the terminology metadata defines a custom
+   * sparqlPrefix field (e.g., for CTCAE6, ChEBI, GO), that takes precedence and is prepended
+   * to the query. This handles ontologies that reference external namespaces or use non-standard
+   * namespace patterns.</li>
+   * <li><b>Default graph prefix:</b> If no custom sparqlPrefix is defined, uses the prefix.graph
+   * template which declares the ontology's default namespace as PREFIX : and PREFIX base:.</li>
+   * <li><b>Common prefixes:</b> Always appends prefix.common which declares standard W3C and OBO
+   * namespaces (owl:, rdf:, rdfs:, xsd:, dc:, oboInOwl:, xml:) that are universally available.</li>
+   * </ol>
+   *
+   * <p><b>Examples:</b>
+   * <ul>
+   * <li><b>CTCAE6</b> (external dependency): Uses custom sparqlPrefix to declare both local
+   * ctcae6.owl namespace AND external ncit: namespace for NCIt Thesaurus properties</li>
+   * <li><b>CTCAE5</b> (self-contained): No custom sparqlPrefix, uses default graph template</li>
+   * <li><b>ChEBI</b> (OBO standard): Uses custom sparqlPrefix for OBO Foundation namespaces</li>
+   * </ul>
+   *
+   * <p><b>Why this design:</b> Separates configuration (what namespaces are needed) from query
+   * logic (how to retrieve data). Enables one set of generic SPARQL query templates to work across
+   * all terminologies by substituting property codes from metadata.
+   *
+   * <p>See: config/metadata/README.md for detailed configuration patterns and examples.
+   *
+   * @param terminology the terminology with metadata containing optional sparqlPrefix
+   * @return the complete SPARQL prefix declarations to prepend to queries
    */
   @Override
   public String constructPrefix(final Terminology terminology) {
