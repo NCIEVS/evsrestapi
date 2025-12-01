@@ -37,49 +37,41 @@
 					]
 				},
 				{
-					"name": "other",
-					"label": "Other",
-					"type": "textarea",
+					"name": "name",
+					"label": "Name",
+					"type": "text",
 					"value": "",
-					"placeholder": "Enter additional contact information"
+					"placeholder": "Enter your name"
 				}
 			]
 		},
 		{
-			"name": "termInfo",
-			"label": "Term Information",
+			"name": "requestType",
+			"label": "Request Type",
 			"instructions": {
 				"parts": [
 					{
-						"text": "Fill in the following fields as appropriate. For multiple terms, please consider emailing an Excel, delimited text, or similar file to"
-					},
-					{
-						"text": "ncithesaurus@mail.nih.gov",
-						"link": "mailto:ncithesaurus@mail.nih.gov?Subject=NCIt%20New%20Term%20Request%20File"
-					},
-					{
-						"text": ", which can also respond to any questions."
+						"text": "Please select the type of request and fill in the appropriate fields below."
 					}
 				]
 			},
 			"fields": [
 				{
-					"name": "vocabulary",
-					"label": "Vocabulary",
+					"name": "requestTypeSelection",
+					"label": "Please select",
 					"type": "dropdown",
 					"value": "",
 					"options": [
-						"NCI Thesaurus",
-						"NCI Metathesaurus",
-						"NPO",
-						"Other"
+						"Proposed New Concept",
+						"Proposed Modification to Existing Concept",
+						"Inquiry"
 					],
-					"placeholder": "Select vocabulary",
+					"placeholder": "Select request type",
 					"validations": [
 						{
 							"name": "required",
 							"validator": "required",
-							"message": "Vocabulary is required"
+							"message": "Request type is required"
 						}
 					]
 				},
@@ -88,35 +80,110 @@
 					"label": "Term",
 					"type": "textarea",
 					"value": "",
-					"placeholder": "Enter the term(s)",
+					"placeholder": "Enter the term",
+					"conditionalDisplay": {
+						"dependsOn": "requestTypeSelection",
+						"showWhen": "Proposed New Concept"
+					},
 					"validations": [
 						{
-							"name": "required",
-							"validator": "required",
-							"message": "Term is required"
+							"name": "requiredIf",
+							"validator": "requiredIf",
+							"condition": {
+								"field": "requestTypeSelection",
+								"value": "Proposed New Concept"
+							},
+							"message": "Term is required for new concept proposals"
 						}
 					]
 				},
 				{
 					"name": "synonym",
-					"label": "Synonym(s)",
+					"label": "Synonym",
 					"type": "textarea",
 					"value": "",
-					"placeholder": "Enter synonyms (if any)"
+					"placeholder": "Enter synonym(s)",
+					"conditionalDisplay": {
+						"dependsOn": "requestTypeSelection",
+						"showWhen": "Proposed New Concept"
+					}
 				},
 				{
-					"name": "nearestCode",
-					"label": "Nearest Code/CUI",
+					"name": "definition",
+					"label": "Definition",
 					"type": "textarea",
 					"value": "",
-					"placeholder": "Enter nearest code/CUI"
+					"placeholder": "Enter the definition",
+					"conditionalDisplay": {
+						"dependsOn": "requestTypeSelection",
+						"showWhen": "Proposed New Concept"
+					}
 				},
 				{
-					"name": "other",
-					"label": "Definition/Other",
+					"name": "currentCCode",
+					"label": "Current C-Code",
+					"type": "text",
+					"value": "",
+					"placeholder": "Enter current C-Code (e.g., C12345)",
+					"conditionalDisplay": {
+						"dependsOn": "requestTypeSelection",
+						"showWhen": "Proposed Modification to Existing Concept"
+					},
+					"validations": [
+						{
+							"name": "requiredIf",
+							"validator": "requiredIf",
+							"condition": {
+								"field": "requestTypeSelection",
+								"value": "Proposed Modification to Existing Concept"
+							},
+							"message": "C-Code is required for concept modification requests"
+						}
+					]
+				},
+				{
+					"name": "newSynonym",
+					"label": "New Synonym",
 					"type": "textarea",
 					"value": "",
-					"placeholder": "Enter definition/other information"
+					"placeholder": "Enter new synonym(s)",
+					"conditionalDisplay": {
+						"dependsOn": "requestTypeSelection",
+						"showWhen": "Proposed Modification to Existing Concept"
+					}
+				},
+				{
+					"name": "changeToDefinition",
+					"label": "Change to Definition",
+					"type": "textarea",
+					"value": "",
+					"placeholder": "Enter proposed changes to definition",
+					"conditionalDisplay": {
+						"dependsOn": "requestTypeSelection",
+						"showWhen": "Proposed Modification to Existing Concept"
+					}
+				},
+				{
+					"name": "detailedDescription",
+					"label": "Detailed Description",
+					"type": "textarea",
+					"value": "",
+					"placeholder": "Enter detailed description of your inquiry",
+					"conditionalDisplay": {
+						"dependsOn": "requestTypeSelection",
+						"showWhen": "Inquiry"
+					},
+					"validations": [
+						{
+							"name": "requiredIf",
+							"validator": "requiredIf",
+							"condition": {
+								"field": "requestTypeSelection",
+								"value": "Inquiry"
+							},
+							"message": "Detailed description is required for inquiries"
+						}
+					]
 				}
 			]
 		},
@@ -125,18 +192,39 @@
 			"label": "Additional Information",
 			"fields": [
 				{
-					"name": "project",
-					"label": "Project/Product term needed for",
-					"type": "textarea",
+					"name": "organization",
+					"label": "Organization",
+					"type": "text",
 					"value": "",
-					"placeholder": "Enter project/product term"
+					"placeholder": "Enter your organization",
+					"validations": [
+						{
+							"name": "required",
+							"validator": "required",
+							"message": "Organization is required"
+						}
+					]
 				},
 				{
-					"name": "reason",
-					"label": "Reason for suggestion or any additional information",
+					"name": "project",
+					"label": "Project",
 					"type": "textarea",
 					"value": "",
-					"placeholder": "Enter reason for suggestion or any additional information that may help us"
+					"placeholder": "Enter project name",
+					"validations": [
+						{
+							"name": "required",
+							"validator": "required",
+							"message": "Project is required"
+						}
+					]
+				},
+				{
+					"name": "additionalInfo",
+					"label": "Additional Information",
+					"type": "textarea",
+					"value": "",
+					"placeholder": "Enter any additional information that may be helpful"
 				}
 			]
 		}

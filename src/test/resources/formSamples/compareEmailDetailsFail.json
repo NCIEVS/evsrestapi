@@ -3,5 +3,5 @@
   "recipientEmail": "agarcia@nih.gov",
   "businessEmail": "bcarlsen@nih.gov",
   "subject": "New Term: Test ",
-  "body": {"Contact Information": { "Business Email": "fakeEmail@email.com", "Other": "Test" }, "Term Information": { "Vocabulary": "NCI Metathesaurus", "Term": "C9864583", "Synonym(s)": "C9874354, C35468", "Nearest Code/CUI": "code test", "Definition/Other": "different def" }, "Additional Information": { "Project/Product term needed for": "Fail Form", "Reason for suggestion or any additional information": "nothing" } }
+  "body": {"Contact Information": { "Business Email": "fakeEmail@email.com", "Name": "Jane Smith" }, "Request Type": { "Please select": "Proposed New Concept", "Term": "DifferentTermName", "Synonym": "DifferentSynonym1", "Definition": "This is a different definition" }, "Additional Information": { "Organization": "Different Organization", "Project": "Different Project", "Additional Information": "Different notes" } }
 }
