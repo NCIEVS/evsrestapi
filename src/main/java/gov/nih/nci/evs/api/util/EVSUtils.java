@@ -353,10 +353,43 @@ public class EVSUtils {
   }
 
   /**
-   * Returns the qualified code from uri.
+   * Converts a full RDF property URI to qualified (prefixed) form.
    *
-   * @param uri the uri
-   * @return the qualified code from uri
+   * <p>This is a key method in the prefix handling strategy. It converts full URIs returned from
+   * SPARQL queries into the qualified codes used in metadata configuration and API responses.
+   *
+   * <p><b>Conversion Rules:</b>
+   *
+   * <ol>
+   *   <li>Extract the fragment after the last "/" in the URI
+   *   <li>Normalize rdfs namespace: "rdf-schema" → "rdfs"
+   *   <li>If fragment contains "." (e.g., "HGNC.owl#P108"), strip everything before "#"
+   *   <li>Otherwise, convert "#" to ":" to create qualified form
+   * </ol>
+   *
+   * <p><b>Examples:</b>
+   *
+   * <ul>
+   *   <li>Input: {@code http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P108}<br>
+   *       Output: {@code ncit:P108} (qualified form)
+   *   <li>Input: {@code http://www.w3.org/2000/01/rdf-schema#label}<br>
+   *       Output: {@code rdfs:label} (normalized)
+   *   <li>Input: {@code http://purl.obolibrary.org/obo/chebi.owl#12345}<br>
+   *       Output: {@code chebi:12345}
+   * </ul>
+   *
+   * <p><b>Used by:</b> Axiom processing, property code extraction, qualifier identification. This
+   * method PRESERVES namespace information as a prefix, unlike {@link #getCodeFromUri(String)}
+   * which fully strips the namespace.
+   *
+   * <p><b>Design rationale:</b> Property codes need namespace context to match against metadata
+   * configuration (e.g., matching "ncit:P108" in axioms against "ncit:P108" in ctcae6.json).
+   * Concept codes don't need namespace context, so they use getCodeFromUri() instead.
+   *
+   * @param uri the full RDF property URI
+   * @return the qualified code with namespace prefix (e.g., "ncit:P108", "rdfs:label")
+   * @see #getCodeFromUri(String) for fully stripping prefixes from concept codes
+   * @see #getLabelFromUri(String) for extracting human-readable labels
    */
   public static String getQualifiedCodeFromUri(final String uri) {
     // Replace up to the last slash and fix rdfs
