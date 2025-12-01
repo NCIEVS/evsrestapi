@@ -175,7 +175,7 @@ public class TermSuggestionFormControllerTests {
     JsonNode contactFields = sections.get(0).get("fields");
     assertEquals(2, contactFields.size());
     assertEquals("email", contactFields.get(0).get("name").asText());
-    assertEquals("name", contactFields.get(1).get("name").asText());  // NEW FIELD
+    assertEquals("name", contactFields.get(1).get("name").asText()); // NEW FIELD
 
     // 4. Validate Request Type dropdown options (most critical new feature)
     JsonNode requestTypeFields = sections.get(1).get("fields");
@@ -204,7 +204,8 @@ public class TermSuggestionFormControllerTests {
     assertEquals("requestTypeSelection", termConditionalDisplay.get("dependsOn").asText());
     assertEquals("Proposed New Concept", termConditionalDisplay.get("showWhen").asText());
 
-    // Find the "currentCCode" field (conditionally displayed for "Proposed Modification to Existing Concept")
+    // Find the "currentCCode" field (conditionally displayed for "Proposed Modification to Existing
+    // Concept")
     JsonNode currentCCodeField = null;
     for (JsonNode field : requestTypeFields) {
       if ("currentCCode".equals(field.get("name").asText())) {
@@ -216,7 +217,9 @@ public class TermSuggestionFormControllerTests {
     JsonNode codeConditionalDisplay = currentCCodeField.get("conditionalDisplay");
     assertNotNull(codeConditionalDisplay);
     assertEquals("requestTypeSelection", codeConditionalDisplay.get("dependsOn").asText());
-    assertEquals("Proposed Modification to Existing Concept", codeConditionalDisplay.get("showWhen").asText());
+    assertEquals(
+        "Proposed Modification to Existing Concept",
+        codeConditionalDisplay.get("showWhen").asText());
 
     // Find the "detailedDescription" field (conditionally displayed for "Inquiry")
     JsonNode detailedDescField = null;
@@ -249,7 +252,7 @@ public class TermSuggestionFormControllerTests {
     assertTrue(project.get("validations").toString().contains("required"));
 
     // 7. Validate count of conditional fields (validates all request type scenarios)
-    assertEquals(8, requestTypeFields.size());  // 1 dropdown + 7 conditional fields
+    assertEquals(8, requestTypeFields.size()); // 1 dropdown + 7 conditional fields
 
     // Final assertion - overall JSON equality
     assertEquals(expectedResponse, responseBody);
