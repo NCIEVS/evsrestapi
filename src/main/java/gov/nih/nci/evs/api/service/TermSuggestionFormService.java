@@ -29,6 +29,14 @@ public interface TermSuggestionFormService {
   boolean validateFileAttachment(MultipartFile file);
 
   /**
+   * Validate file attachment and return a failure reason message when invalid.
+   *
+   * @param file the file
+   * @return null when valid, otherwise a human-readable failure reason matching the logged warning
+   */
+  String validateFileAttachmentReason(MultipartFile file);
+
+  /**
    * Sends an email with the formatted form data and an optional attachment
    *
    * @param emailDetails details of the email created from the form data

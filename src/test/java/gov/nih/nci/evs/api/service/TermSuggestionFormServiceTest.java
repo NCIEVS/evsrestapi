@@ -348,8 +348,10 @@ public class TermSuggestionFormServiceTest {
 
     // Mock captcha to succeed
     when(mockedCaptcha.verifyRecaptcha(any())).thenReturn(true);
-    // Mock validateFileAttachment to return false
-    when(mockedService.validateFileAttachment(file)).thenReturn(false);
+    // Mock validateFileAttachmentReason to return a specific failure reason
+    final String failureReason = "Attachment validation failed: Unexpected sheet 'X' found";
+    // Mock validateFileAttachment to return failureReason
+    when(mockedService.validateFileAttachmentReason(file)).thenReturn(failureReason);
 
     // ACT & ASSERT: calling submitWithAttachment should raise ResponseStatusException
     ResponseStatusException ex =
@@ -357,8 +359,9 @@ public class TermSuggestionFormServiceTest {
             ResponseStatusException.class,
             () -> controller.submitWithAttachment(formData, file, null, "token"));
 
-    // Verify we got the EXPECTATION_FAILED status
+    // Verify we got the EXPECTATION_FAILED status and message contains our reason
     assertTrue(ex.getStatusCode() == HttpStatus.EXPECTATION_FAILED);
+    assertTrue(ex.getReason() != null && ex.getReason().contains("Unexpected sheet 'X'"));
   }
 
   /**

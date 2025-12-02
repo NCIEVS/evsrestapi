@@ -151,10 +151,10 @@ public class TermSuggestionFormController extends BaseController {
             "Unable to submit form. Failed to verify the submitted Recaptcha!");
       }
 
-      if (!formService.validateFileAttachment(file)) {
-        logger.error("Invalid attachment file, does not match the template.");
-        throw new ResponseStatusException(
-            HttpStatus.EXPECTATION_FAILED, "Invalid attachment file, does not match the template.");
+      final String invalidReason = formService.validateFileAttachmentReason(file);
+      if (invalidReason != null) {
+        logger.error("Invalid attachment file: {}", invalidReason);
+        throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, invalidReason);
       }
       // convert the form data into our email details object
       EmailDetails emailDetails = EmailDetails.generateEmailDetails(formData);

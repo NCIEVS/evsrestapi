@@ -228,9 +228,21 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    */
   @Override
   public boolean validateFileAttachment(final MultipartFile file) {
-    if (file == null || file.isEmpty()) {
-      // No file attached/empty file
+    final String reason = validateFileAttachmentReason(file);
+    if (reason != null) {
+      logger.warn(reason);
       return false;
+    }
+    return true;
+  }
+
+  @Override
+  public String validateFileAttachmentReason(final MultipartFile file) {
+    final String prefix = "Attachment is invalid: ";
+
+    // No file attached / empty file
+    if (file == null || file.isEmpty()) {
+      return "No file attached or file is empty";
     }
 
     // Check file extension - expect .xls/xlsx (case-insensitive)
@@ -240,7 +252,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     }
     if (filename == null
         || !(filename.toLowerCase().endsWith(".xls") || filename.toLowerCase().endsWith(".xlsx"))) {
-      return false;
+      return prefix + "Invalid file extension; expected .xls or .xlsx";
     }
 
     // Try to open the workbook once to ensure it's a valid Excel file and collect sheet names
@@ -249,8 +261,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
         final Workbook wb = WorkbookFactory.create(is)) {
       // too many sheets, no reason to have extras
       if (wb.getNumberOfSheets() > 6) {
-        logger.warn("Too many sheets (>6) in uploaded workbook: {}", filename);
-        return false;
+        return prefix + String.format("Too many sheets (>6) in uploaded workbook: %s", filename);
       }
       for (int i = 0; i < wb.getNumberOfSheets(); i++) {
         sheets.add(wb.getSheetName(i));
@@ -277,25 +288,27 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
         if (m.find()) {
           continue;
         }
-        logger.warn("Unexpected sheet '{}' found in uploaded workbook: {}", actual, filename);
-        return false;
+        return prefix
+            + String.format(
+                "Unexpected sheet '%s' found in uploaded workbook: %s", actual, filename);
       }
 
       // We do require New Codelist - Test or PARM exists.
       if (!sheets.contains("New Codelist - Test or PARM")) {
-        logger.warn(
-            "Required sheet 'New Codelist - Test or PARM' not found in uploaded workbook: {}",
-            filename);
-        return false;
+        return prefix
+            + String.format(
+                "Required sheet 'New Codelist - Test or PARM' not found in uploaded workbook: %s",
+                filename);
       }
 
       // Validate that the New Codelist - Test or PARM sheet has all the necessary information
       final String sheetName = "New Codelist - Test or PARM";
       final org.apache.poi.ss.usermodel.Sheet metaSheet = wb.getSheet(sheetName);
       if (metaSheet == null) {
-        logger.warn(
-            "Required sheet '{}' missing content in uploaded workbook: {}", sheetName, filename);
-        return false;
+        return prefix
+            + String.format(
+                "Required sheet '%s' missing content in uploaded workbook: %s",
+                sheetName, filename);
       }
       final org.apache.poi.ss.usermodel.DataFormatter formatter =
           new org.apache.poi.ss.usermodel.DataFormatter();
@@ -304,12 +317,10 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       for (int r = 2; r <= 4; r++) {
         final String cellValue = getMergedCellValue(metaSheet, r, 2, formatter);
         if (cellValue == null || cellValue.isEmpty()) {
-          logger.warn(
-              "Required metadata missing in sheet '{}' at C{} in uploaded workbook: {}",
-              sheetName,
-              r + 1,
-              filename);
-          return false;
+          return prefix
+              + String.format(
+                  "Required metadata missing in sheet '%s' at C%d in uploaded workbook: %s",
+                  sheetName, r + 1, filename);
         }
       }
 
@@ -317,20 +328,20 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       for (int c = 0; c <= 4; c++) {
         final String v = getMergedCellValue(metaSheet, 7, c, formatter);
         if (v == null || v.isEmpty()) {
-          logger.warn(
-              "Required row 8 column {} missing in sheet '{}' in uploaded workbook: {}",
-              c + 1,
-              sheetName,
-              filename);
-          return false;
+          return prefix
+              + String.format(
+                  "Required row 8 column %d missing in sheet '%s' in uploaded workbook: %s",
+                  c + 1, sheetName, filename);
         }
       }
     } catch (final Exception e) {
-      logger.warn("Invalid excel file uploaded or failed to validate workbook: {}", filename, e);
-      return false;
+      return prefix
+          + String.format(
+              "Invalid excel file uploaded or failed to validate workbook: %s - %s",
+              filename, e.getMessage());
     }
 
-    return true;
+    return null;
   }
 
   /**
