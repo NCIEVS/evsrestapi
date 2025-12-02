@@ -106,6 +106,17 @@ public interface SparqlQueryManagerService {
       throws Exception;
 
   /**
+   * Returns the distinct values used for a given property across concepts.
+   *
+   * @param propertyCode the property code
+   * @param terminology the terminology
+   * @return the property values
+   * @throws Exception the exception
+   */
+  public List<String> getPropertyValues(String propertyCode, Terminology terminology)
+      throws Exception;
+
+  /**
    * Returns the subset members.
    *
    * @param subsetCode the subset code

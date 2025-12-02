@@ -2055,6 +2055,31 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return propertyValues;
   }
 
+  /* see superclass */
+  @Override
+  public List<String> getPropertyValues(final String propertyCode, final Terminology terminology)
+      throws Exception {
+    final String queryPrefix = queryBuilderService.constructPrefix(terminology);
+    final Map<String, String> values =
+        ConceptUtils.asMap("propertyCode", propertyCode, "namedGraph", terminology.getGraph());
+    final String query =
+        queryBuilderService.constructQuery("concept.property.values", terminology, values);
+    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+
+    final ObjectMapper mapper = new ObjectMapper();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    final List<String> propertyValues = new ArrayList<>();
+
+    final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    for (final Bindings b : bindings) {
+      final String propertyValue = b.getPropertyValue().getValue();
+      propertyValues.add(propertyValue);
+    }
+
+    return propertyValues;
+  }
+
   /**
    * Returns the subset members.
    *
