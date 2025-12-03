@@ -89,7 +89,7 @@ public class TermSuggestionFormControllerTests {
         .andExpect(status().isOk()) // Check for HTTP 200
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(
-            jsonPath("$.formName").value("NCIt Term Suggestion Request")) // Verify JSON content
+            jsonPath("$.formName").value("NCIT")) // Verify JSON content
         .andExpect(jsonPath("$.formType").value("NCIT"));
   }
 
@@ -123,7 +123,7 @@ public class TermSuggestionFormControllerTests {
   @Test
   void testSubmitForm() throws Exception {
     // Create a mock JSON payload that will pass validation
-    JsonNode formData = createForm("formSamples/submissionFormTest.json");
+    JsonNode formData = createForm("formSamples/submissionFormTest-ncit.json");
     ArgumentCaptor<EmailDetails> emailDetailsCaptor = ArgumentCaptor.forClass(EmailDetails.class);
 
     // Mock the service calls
@@ -205,7 +205,7 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void testSubmitFormThrowsExceptionWhenSendEmailFails() throws Exception {
     // SET UP - create our form data JsonNode
-    final String formPath = "formSamples/submissionFormTest.json";
+    final String formPath = "formSamples/submissionFormTest-ncit.json";
     JsonNode formData = createForm(formPath);
     final String expectedResponse = "500 INTERNAL_SERVER_ERROR";
 
@@ -233,7 +233,7 @@ public class TermSuggestionFormControllerTests {
   @Test
   public void testSubmitFormRecaptchaVerificationFails() throws Exception {
     // SET UP
-    final String formPath = "formSamples/submissionFormTest.json";
+    final String formPath = "formSamples/submissionFormTest-ncit.json";
     JsonNode formData = createForm(formPath);
     // Create expected EmailDetails
 
