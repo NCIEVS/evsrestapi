@@ -221,13 +221,25 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
   }
 
   /**
-   * Validate file attachment.
+   * Validate file attachment (defaults to CDISC for backward compatibility).
    *
    * @param file the file
    * @return true, if successful
    */
   @Override
   public boolean validateFileAttachment(final MultipartFile file) {
+    // Default to CDISC for backward compatibility
+    return validateFileAttachment(file, "CDISC");
+  }
+
+  /**
+   * Validate file attachment based on form type.
+   *
+   * @param file the file
+   * @param formType the form type (CDISC or NCIT)
+   * @return true, if successful
+   */
+  public boolean validateFileAttachment(final MultipartFile file, final String formType) {
     if (file == null || file.isEmpty()) {
       // No file attached/empty file
       return false;
@@ -243,6 +255,25 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       return false;
     }
 
+    // Route to appropriate validation method based on form type
+    if ("CDISC".equalsIgnoreCase(formType)) {
+      return validateCDISCAttachment(file, filename);
+    } else if ("NCIT".equalsIgnoreCase(formType)) {
+      return validateNCITAttachment(file, filename);
+    } else {
+      logger.warn("Unknown form type '{}' for file validation: {}", formType, filename);
+      return false;
+    }
+  }
+
+  /**
+   * Validate CDISC file attachment.
+   *
+   * @param file the file
+   * @param filename the filename
+   * @return true, if successful
+   */
+  private boolean validateCDISCAttachment(final MultipartFile file, final String filename) {
     // Try to open the workbook once to ensure it's a valid Excel file and collect sheet names
     final java.util.Set<String> sheets = new java.util.HashSet<>();
     try (final java.io.InputStream is = file.getInputStream();
@@ -327,6 +358,161 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       }
     } catch (final Exception e) {
       logger.warn("Invalid excel file uploaded or failed to validate workbook: {}", filename, e);
+      return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Validate NCIT file attachment.
+   *
+   * @param file the file
+   * @param filename the filename
+   * @return true, if successful
+   */
+  private boolean validateNCITAttachment(final MultipartFile file, final String filename) {
+    try (final java.io.InputStream is = file.getInputStream();
+        final Workbook wb = WorkbookFactory.create(is)) {
+
+      // NCIT template should have exactly 1 sheet
+      if (wb.getNumberOfSheets() != 1) {
+        logger.warn(
+            "NCIT template should have exactly 1 sheet, found {} sheets in uploaded workbook: {}",
+            wb.getNumberOfSheets(),
+            filename);
+        return false;
+      }
+
+      final org.apache.poi.ss.usermodel.Sheet sheet = wb.getSheetAt(0);
+      final org.apache.poi.ss.usermodel.DataFormatter formatter =
+          new org.apache.poi.ss.usermodel.DataFormatter();
+
+      // Expected headers in row 1 (index 0)
+      final String[] expectedHeaders = {
+        "Requested Term", "Use Case", "NCIt Code", "NCIt PT", "NCIt SY", "NCIt DEF"
+      };
+
+      // Validate header row
+      final org.apache.poi.ss.usermodel.Row headerRow = sheet.getRow(0);
+      if (headerRow == null) {
+        logger.warn("Header row missing in NCIT uploaded workbook: {}", filename);
+        return false;
+      }
+
+      for (int col = 0; col < expectedHeaders.length; col++) {
+        final String cellValue = getMergedCellValue(sheet, 0, col, formatter);
+        if (!expectedHeaders[col].equals(cellValue)) {
+          logger.warn(
+              "Header mismatch at column {}: expected '{}', found '{}' in uploaded workbook: {}",
+              (char) ('A' + col),
+              expectedHeaders[col],
+              cellValue,
+              filename);
+          return false;
+        }
+      }
+
+      // Validate data rows (starting from row 2, index 1)
+      // Pattern for NCIt Code: C followed by digits
+      final java.util.regex.Pattern ncitCodePattern = java.util.regex.Pattern.compile("^C\\d+$");
+
+      boolean hasDataRows = false;
+      for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+        final org.apache.poi.ss.usermodel.Row row = sheet.getRow(rowIndex);
+        if (row == null) {
+          continue;
+        }
+
+        // Check if row has any data in columns A-F
+        boolean rowHasData = false;
+        for (int col = 0; col < 6; col++) {
+          final String cellValue = getMergedCellValue(sheet, rowIndex, col, formatter);
+          if (cellValue != null && !cellValue.isEmpty()) {
+            rowHasData = true;
+            break;
+          }
+        }
+
+        if (!rowHasData) {
+          continue; // Skip empty rows
+        }
+
+        hasDataRows = true;
+
+        // Column A (Requested Term) - must have text
+        final String colA = getMergedCellValue(sheet, rowIndex, 0, formatter);
+        if (colA == null || colA.trim().isEmpty()) {
+          logger.warn(
+              "Column A (Requested Term) is empty at row {} in uploaded workbook: {}",
+              rowIndex + 1,
+              filename);
+          return false;
+        }
+
+        // Column B (Use Case) - must have text
+        final String colB = getMergedCellValue(sheet, rowIndex, 1, formatter);
+        if (colB == null || colB.trim().isEmpty()) {
+          logger.warn(
+              "Column B (Use Case) is empty at row {} in uploaded workbook: {}",
+              rowIndex + 1,
+              filename);
+          return false;
+        }
+
+        // Column C (NCIt Code) - must match pattern C\d+
+        final String colC = getMergedCellValue(sheet, rowIndex, 2, formatter);
+        if (colC == null || !ncitCodePattern.matcher(colC.trim()).matches()) {
+          logger.warn(
+              "Column C (NCIt Code) invalid or missing at row {}: '{}' (expected format: C followed"
+                  + " by digits) in uploaded workbook: {}",
+              rowIndex + 1,
+              colC,
+              filename);
+          return false;
+        }
+
+        // Column D (NCIt PT) - must have text
+        final String colD = getMergedCellValue(sheet, rowIndex, 3, formatter);
+        if (colD == null || colD.trim().isEmpty()) {
+          logger.warn(
+              "Column D (NCIt PT) is empty at row {} in uploaded workbook: {}",
+              rowIndex + 1,
+              filename);
+          return false;
+        }
+
+        // Column E (NCIt SY) - optional, but if present should be semicolon-separated
+        // We just log a warning if it doesn't contain semicolons but has commas
+        final String colE = getMergedCellValue(sheet, rowIndex, 4, formatter);
+        if (colE != null && !colE.trim().isEmpty() && colE.contains(",") && !colE.contains(";")) {
+          logger.warn(
+              "Column E (NCIt SY) at row {} contains commas but no semicolons. Expected"
+                  + " semicolon-separated values in uploaded workbook: {}",
+              rowIndex + 1,
+              filename);
+          // Not a fatal error, just a warning
+        }
+
+        // Column F (NCIt DEF) - must have text
+        final String colF = getMergedCellValue(sheet, rowIndex, 5, formatter);
+        if (colF == null || colF.trim().isEmpty()) {
+          logger.warn(
+              "Column F (NCIt DEF) is empty at row {} in uploaded workbook: {}",
+              rowIndex + 1,
+              filename);
+          return false;
+        }
+      }
+
+      if (!hasDataRows) {
+        logger.warn("No data rows found in NCIT uploaded workbook: {}", filename);
+        return false;
+      }
+
+    } catch (final Exception e) {
+      logger.warn(
+          "Invalid excel file uploaded or failed to validate NCIT workbook: {}", filename, e);
       return false;
     }
 

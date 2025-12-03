@@ -29,6 +29,15 @@ public interface TermSuggestionFormService {
   boolean validateFileAttachment(MultipartFile file);
 
   /**
+   * Validate file attachment with form type.
+   *
+   * @param file the file
+   * @param formType the form type (CDISC or NCIT)
+   * @return true, if successful
+   */
+  boolean validateFileAttachment(MultipartFile file, String formType);
+
+  /**
    * Sends an email with the formatted form data and an optional attachment
    *
    * @param emailDetails details of the email created from the form data
