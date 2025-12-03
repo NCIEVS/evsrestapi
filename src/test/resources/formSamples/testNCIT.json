@@ -1,7 +1,8 @@
 {
-	"formName": "NCIt Term Suggestion Request",
+	"formName": "NCIT",
 	"formType": "NCIT",
 	"recipientEmail": "ncithesaurus@mail.nih.gov",
+	"businessEmail": "test@test.com",
 	"sections": [
 		{
 			"name": "contact",
@@ -141,5 +142,7 @@
 			]
 		}
 	],
-	"recaptchaSiteKey": "TEST-KEY"
+	"recaptchaSiteKey": "TEST-KEY",
+	"subject": "NCIT Term Suggestion Request",
+	"body": "Test"
 }

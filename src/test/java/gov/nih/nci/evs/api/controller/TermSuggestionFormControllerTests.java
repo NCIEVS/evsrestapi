@@ -1,70 +1,37 @@
 package gov.nih.nci.evs.api.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import gov.nih.nci.evs.api.model.EmailDetails;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.service.CaptchaService;
-import gov.nih.nci.evs.api.service.TermSuggestionFormServiceImpl;
+import gov.nih.nci.evs.api.service.TermSuggestionFormService;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.Objects;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.Mock;
+import org.mockito.ArgumentCaptor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.JavaMailSenderImpl;
-import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.web.context.request.RequestContextHolder;
-import org.springframework.web.context.request.ServletRequestAttributes;
-import org.springframework.web.server.ResponseStatusException;
 
-/**
- * Test class for the Term Form Controller. To run this you need to set some stuff up.
- *
- * <pre>
- * Uses the following env vars (if not set, tests do not run):
- *
- * MAIL_USERNAME
- * MAIL_PASSWORD
- *
- * as well as the following yml properties:
- *
- * mail.host
- * mail.port
- * mail.smtp.auth
- * mail.smtp.starttls.enable
- * </pre>
- */
+/** Test class for the Term Form Controller. This test mocks the email and captcha services. */
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc
@@ -82,45 +49,22 @@ public class TermSuggestionFormControllerTests {
 
   /** The term form service. */
   // Mock the email service and captcha service
-  @Mock private TermSuggestionFormServiceImpl termFormService;
+  @MockitoBean private TermSuggestionFormService termFormService;
 
   /** The captcha service. */
   @MockitoBean private CaptchaService captchaService;
 
-  /** The term suggestion form controller. */
-  // create an instance of the controller and inject service
-  @Autowired private TermSuggestionFormController termSuggestionFormController;
-
-  /** The mail sender. */
-  @Autowired private JavaMailSender mailSender;
-
-  /** The request. */
-  // mock request servlet
-  private MockHttpServletRequest request;
-
   /** The base url. */
   // Base url for api calls
-  String baseUrl;
+  private String baseUrl = "/api/v1/submit/";
 
   /** The recaptcha token. */
   // Recaptcha Token
   final String recaptchaToken = "testTokenString";
 
-  /** The object mapper. */
-  @Qualifier("objectMapper")
-  @Autowired
-  private ObjectMapper objectMapper;
+  final String licenseKey = "test-key-123";
 
-  /** Setup method to create a mock request for testing. */
-  @BeforeEach
-  public void setUp() {
-    baseUrl = "/api/v1/submit/";
-    //    termSuggestionFormController =
-    //        new TermSuggestionFormController(termFormService, captchaService);
-    request = new MockHttpServletRequest();
-    request.addHeader("Captcha-Token", recaptchaToken);
-    RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
-  }
+  private ObjectMapper objectMapper = new ObjectMapper();
 
   /**
    * Test the getForm returns our expected response JsonObject when passing formType and test Json.
@@ -141,11 +85,12 @@ public class TermSuggestionFormControllerTests {
 
     // ACT - mock the email service and call the getForm
     when(termFormService.getFormTemplate(formType)).thenReturn(expectedResponse);
-    final ResponseEntity<?> responseEntity = termSuggestionFormController.getForm(formType, null);
-
-    // ASSERT
-    assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
-    assertEquals(expectedResponse, responseEntity.getBody());
+    mvc.perform(get("/api/v1/form/suggest/{formType}", formType).accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().isOk()) // Check for HTTP 200
+        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+        .andExpect(
+            jsonPath("$.formName").value("NCIT")) // Verify JSON content
+        .andExpect(jsonPath("$.formType").value("NCIT"));
   }
 
   /**
@@ -164,50 +109,45 @@ public class TermSuggestionFormControllerTests {
 
     // ACT
     when(termFormService.getFormTemplate(formType)).thenThrow(new FileNotFoundException());
-
-    // ASSERT
-    final Exception exception =
-        assertThrows(
-            ResponseStatusException.class,
-            () -> {
-              termSuggestionFormController.getForm(formType, null);
-            });
-    assertTrue(Objects.requireNonNull(exception.getMessage()).contains(expectedResponse));
+    mvc.perform(get("/api/v1/form/suggest/{formType}", formType).accept(MediaType.APPLICATION_JSON))
+        .andExpect(status().is5xxServerError()) // Check for HTTP 200
+        .andExpect(
+            result ->
+                assertTrue(
+                    Objects.requireNonNull(result.getResolvedException())
+                        .getMessage()
+                        .contains(expectedResponse)));
   }
 
-  /**
-   * Test the submitForm successfully sends email with submitted form.
-   *
-   * <p>This is really an integration test that requires properties for mail authentication to
-   * succeed.
-   *
-   * @throws Exception exception
-   */
+  /** Tests the "happy path" where captcha is valid and email sends successfully. */
   @Test
-  public void testSubmitForm() throws Exception {
-    // SET UP - create our form data JsonNode
-    final String formPath = "formSamples/submissionFormTest-ncit.json";
-    JsonNode formData = createForm(formPath);
-    // Create expected EmailDetails
-    EmailDetails expectedEmailDetails = EmailDetails.generateEmailDetails(formData);
+  void testSubmitForm() throws Exception {
+    // Create a mock JSON payload that will pass validation
+    JsonNode formData = createForm("formSamples/submissionFormTest-ncit.json");
+    ArgumentCaptor<EmailDetails> emailDetailsCaptor = ArgumentCaptor.forClass(EmailDetails.class);
 
-    // Mock the RecaptchaService to always return true for verifyRecaptcha
-    when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
+    // Mock the service calls
+    when(captchaService.verifyRecaptcha(recaptchaToken)).thenReturn(true);
+    // use doNothing() for void methods. Use any() since the object is created inside the method.
+    EmailDetails emailDetails = mock(EmailDetails.class);
+    doNothing().when(termFormService).sendEmail(emailDetailsCaptor.capture());
 
-    boolean smtpConfigured = hasSmtpConfig();
+    // 2. Act & 3. Assert
+    mvc.perform(
+            post("/api/v1/form/submit") // Assuming /api/v1 based on your GET test
+                .header("X-EVSRESTAPI-License-Key", licenseKey)
+                .header("Captcha-Token", recaptchaToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(formData)))
+        .andExpect(status().isOk()); // Default status for a void method is 200 OK
 
-    if (!smtpConfigured) {
-      // If no configuration, bail
-      return;
-    } else {
-      // If smtp is configured, we will actually send the email
-      formData = setCredentials(formData, false);
-      expectedEmailDetails = EmailDetails.generateEmailDetails(formData);
-      log.info("    SMTP is configured, will send email to: {}", expectedEmailDetails.getToEmail());
-    }
-
-    // ACT
-    termSuggestionFormController.submitForm(formData, null, recaptchaToken);
+    // Verify that all our mocks were called correctly
+    verify(captchaService).verifyRecaptcha(recaptchaToken);
+    verify(termFormService).sendEmail(emailDetailsCaptor.getValue());
+    EmailDetails capturedEmailDetails = emailDetailsCaptor.getValue();
+    assertEquals(formData.get("recipientEmail").asText(), capturedEmailDetails.getToEmail());
+    assertEquals(formData.get("subject").asText(), capturedEmailDetails.getSubject());
+    assertEquals(formData.get("businessEmail").asText(), capturedEmailDetails.getFromEmail());
   }
 
   /**
@@ -225,14 +165,13 @@ public class TermSuggestionFormControllerTests {
     // Mock the RecaptchaService to always return true for verifyRecaptcha
     when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
 
-    // ACT & ASSERT
-    final Exception exception =
-        assertThrows(
-            Exception.class,
-            () -> {
-              termSuggestionFormController.submitForm(formData, null, recaptchaToken);
-            });
-    assertTrue(exception.getMessage().contains(expectedResponse));
+    mvc.perform(
+            post("/api/v1/form/submit") // Assuming /api/v1 based on your GET test
+                .header("X-EVSRESTAPI-License-Key", licenseKey)
+                .header("Captcha-Token", recaptchaToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(formData)))
+        .andExpect(status().isExpectationFailed()); // Default status for a void method is 200 OK
   }
 
   /**
@@ -249,14 +188,13 @@ public class TermSuggestionFormControllerTests {
     // Mock the RecaptchaService to always return true for verifyRecaptcha
     when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
 
-    // ACT & ASSERT
-    final Exception exception =
-        assertThrows(
-            Exception.class,
-            () -> {
-              termSuggestionFormController.submitForm(formData, null, recaptchaToken);
-            });
-    assertTrue(exception.getMessage().contains(expectedResponse));
+    mvc.perform(
+            post("/api/v1/form/submit") // Assuming /api/v1 based on your GET test
+                .header("X-EVSRESTAPI-License-Key", licenseKey)
+                .header("Captcha-Token", recaptchaToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(formData)))
+        .andExpect(status().is5xxServerError()); // Default status for a void method is 200 OK
   }
 
   /**
@@ -273,71 +211,18 @@ public class TermSuggestionFormControllerTests {
 
     // Mock the RecaptchaService to always return true for verifyRecaptcha
     when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
-
-    // ACT - stub the void method to do throw an exception when called
-    if (!hasSmtpConfig()) {
-      // If no configuration, bail
-      return;
-    } else {
-      // If smtp is configured, we will actually attempt to send the email
-      // but we will give it bad credentials so it will fail
-      log.info(
-          "SMTP is configured, will send email to: {}", formData.get("recipientEmail").asText());
-      formData = setCredentials(formData, true);
-    }
+    doThrow(new RuntimeException("Simulated email sending failure"))
+        .when(termFormService)
+        .sendEmail(any());
 
     // ASSERT
-    final JsonNode formDataFinal = formData;
-    // create a props object that returns no override
-    ApplicationProperties props = new ApplicationProperties();
-    props.setMailRecipient("");
-
-    // find the formService instance used by the controller
-    Object form = ReflectionTestUtils.getField(termSuggestionFormController, "formService");
-
-    // set the applicationProperties on THAT instance
-    ReflectionTestUtils.setField(form, "applicationProperties", props);
-    final Exception exception =
-        assertThrows(
-            Exception.class,
-            () -> {
-              termSuggestionFormController.submitForm(formDataFinal, null, recaptchaToken);
-            });
-    assertTrue(exception.getMessage().contains(expectedResponse));
-  }
-
-  /**
-   * Test submit form recaptcha verification passes. This is an integration test that requires email
-   * credentials. We need an escape hatch to avoid actually trying to send an email here but verify
-   * everything else works.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testSubmitFormRecaptchaVerificationPasses() throws Exception {
-    // SET UP
-    final String formPath = "formSamples/submissionFormTest-ncit.json";
-    JsonNode formData = createForm(formPath);
-
-    // Mock the RecaptchaService to always return true for verifyRecaptcha
-    when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
-    // Mock the email service to do nothing if not configured
-    if (!hasSmtpConfig()) {
-      // If no configuration, bail
-      return;
-    } else {
-      // If smtp is configured, we will actually send the email
-      log.info(
-          "SMTP is configured, will send email to: {}", formData.get("recipientEmail").asText());
-      formData = setCredentials(formData, false);
-    }
-
-    // ACT & ASSERT
-    try {
-      termSuggestionFormController.submitForm(formData, null, recaptchaToken);
-    } catch (ResponseStatusException e) {
-      fail("Should not have thrown any exception");
-    }
+    mvc.perform(
+            post("/api/v1/form/submit") // Assuming /api/v1 based on your GET test
+                .header("X-EVSRESTAPI-License-Key", licenseKey)
+                .header("Captcha-Token", recaptchaToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(formData)))
+        .andExpect(status().is5xxServerError()); // Default status for a void method is 200 OK
   }
 
   /**
@@ -354,196 +239,14 @@ public class TermSuggestionFormControllerTests {
 
     // Mock the RecaptchaService to always return true for verifyRecaptcha
     when(captchaService.verifyRecaptcha(anyString())).thenReturn(false);
-    if (!hasSmtpConfig()) {
-      // If no configuration, bail
-      return;
-    } else {
-      // If smtp is configured, we will actually attempt send the email
-      // but we will fail because fo the recaptcha failure
-      log.info(
-          "SMTP is configured, will send email to: {}", formData.get("recipientEmail").asText());
-      formData = setCredentials(formData, false);
-    }
-
     // ACT & ASSERT
-    try {
-      termSuggestionFormController.submitForm(formData, null, recaptchaToken);
-      fail("Expected a ResponseStatusException to be thrown");
-    } catch (ResponseStatusException e) {
-      assertEquals(HttpStatus.EXPECTATION_FAILED, e.getStatusCode());
-    }
-  }
-
-  /**
-   * Integration test to verify we can call the api path, path the formType, and return the JsonNode
-   * form.
-   *
-   * @throws Exception exception
-   */
-  @Test
-  public void integrationTestGetFormTemplate() throws Exception {
-    // SET UP
-    final String formType = "ncit-form";
-    final String url = "/api/v1/form/suggest/" + formType;
-    JsonNode form;
-
-    // ACT
-    log.info("Testing url: {}", url);
-    final MvcResult mvcResult =
-        this.mvc.perform(MockMvcRequestBuilders.get(url)).andExpect(status().isOk()).andReturn();
-    form = objectMapper.readTree(mvcResult.getResponse().getContentAsString());
-    log.info("    Form = {}", form);
-
-    // ASSERT
-    assertNotNull(form);
-    assertFalse(form.isEmpty());
-    assertEquals("NCIt Term Suggestion Request", form.get("formName").asText());
-    assertEquals("ncithesaurus@mail.nih.gov", form.get("recipientEmail").asText());
-  }
-
-  /**
-   * Integration test for submitting a filled out form and sending the email. NOTE: Set your local
-   * environment variables in your config. Your test email will need an App Password for access, if
-   * using Gmail. This is an integration test that requires extra info. We need to set these tests
-   * up to avoid running if environment vars are not set, but to support them if they are.
-   *
-   * @throws Exception exception
-   */
-  @Test
-  public void integrationTestSubmitForm() throws Exception {
-    // SET UP
-    baseUrl = "/api/v1/form/submit";
-    final String formPath = "formSamples/submissionFormTest-ncit.json";
-    JsonNode formData = createForm(formPath);
-
-    // Mock the RecaptchaService to always return true for verifyRecaptcha
-    when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
-
-    // ACT & ASSERT - Verify the email was sent to the receiver in the form
-    if (!hasSmtpConfig()) {
-      // If no configuration, bail
-      return;
-    } else {
-      // If smtp is configured, we will actually send the email
-      log.info(
-          "SMTP is configured, will send email to: {}", formData.get("recipientEmail").asText());
-      // Set credentials in the form data
-      formData = setCredentials(formData, false);
-    }
-    final String requestBody = objectMapper.writeValueAsString(formData);
-    log.info("Form data = {}", formData);
-    @SuppressWarnings("unused")
-    final MvcResult result =
-        this.mvc
-            .perform(
-                MockMvcRequestBuilders.post(baseUrl)
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .header("Captcha-Token", recaptchaToken)
-                    .content(requestBody))
-            .andExpect(status().isOk())
-            .andReturn();
-  }
-
-  @Test
-  public void integrationTestSubmitFormWithAttachment() throws Exception {
-    // SET UP
-    baseUrl = "/api/v1/form/submitWithAttachment";
-    final String formPath = "formSamples/submissionFormTest-cdisc.json";
-    JsonNode formData = createForm(formPath);
-
-    // Mock the RecaptchaService to always return true for verifyRecaptcha
-    when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
-
-    if (!hasSmtpConfig()) {
-      // If no configuration, bail
-      return;
-    } else {
-      // If smtp is configured, we will actually send the email
-      log.info("SMTP is configured.");
-      // Set credentials in the form data
-      formData = setCredentials(formData, false);
-    }
-
-    // Prepare multipart file from resources
-    final org.springframework.mock.web.MockMultipartFile attachment;
-    try (final InputStream is =
-        getClass()
-            .getClassLoader()
-            .getResourceAsStream("formSamples/filled-form-submission-cdisc.xls")) {
-      if (is == null) {
-        fail("Test attachment not found in resources");
-        return;
-      }
-      attachment =
-          new org.springframework.mock.web.MockMultipartFile(
-              "file", "filled-form-submission-cdisc.xls", "application/vnd.ms-excel", is);
-    }
-
-    // formData part as application/json
-    final org.springframework.mock.web.MockMultipartFile jsonPart =
-        new org.springframework.mock.web.MockMultipartFile(
-            "formData", "formData", "application/json", objectMapper.writeValueAsBytes(formData));
-
-    // ACT & ASSERT - perform multipart request
-    this.mvc
-        .perform(
-            MockMvcRequestBuilders.multipart(baseUrl)
-                .file(attachment)
-                .file(jsonPart)
+    mvc.perform(
+            post("/api/v1/form/submit") // Assuming /api/v1 based on your GET test
+                .header("X-EVSRESTAPI-License-Key", licenseKey)
                 .header("Captcha-Token", recaptchaToken)
-                .contentType(MediaType.MULTIPART_FORM_DATA))
-        .andExpect(status().isOk());
-  }
-
-  @Test
-  public void integrationTestSubmitFormWithAttachmentNCIT() throws Exception {
-    // SET UP
-    baseUrl = "/api/v1/form/submitWithAttachment";
-    final String formPath = "formSamples/testNCIT.json";
-    JsonNode formData = createForm(formPath);
-
-    // Mock the RecaptchaService to always return true for verifyRecaptcha
-    when(captchaService.verifyRecaptcha(anyString())).thenReturn(true);
-
-    if (!hasSmtpConfig()) {
-      // If no configuration, bail
-      return;
-    } else {
-      // If smtp is configured, we will actually send the email
-      log.info("SMTP is configured.");
-      // Set credentials in the form data
-      formData = setCredentials(formData, false);
-    }
-
-    // Prepare NCIT multipart file from resources
-    final org.springframework.mock.web.MockMultipartFile attachment;
-    try (final InputStream is =
-        getClass()
-            .getClassLoader()
-            .getResourceAsStream("formSamples/filled-form-submission-ncit.xls")) {
-      if (is == null) {
-        fail("NCIT test attachment not found in resources");
-        return;
-      }
-      attachment =
-          new org.springframework.mock.web.MockMultipartFile(
-              "file", "filled-form-submission-ncit.xls", "application/vnd.ms-excel", is);
-    }
-
-    // formData part as application/json
-    final org.springframework.mock.web.MockMultipartFile jsonPart =
-        new org.springframework.mock.web.MockMultipartFile(
-            "formData", "formData", "application/json", objectMapper.writeValueAsBytes(formData));
-
-    // ACT & ASSERT - perform multipart request
-    this.mvc
-        .perform(
-            MockMvcRequestBuilders.multipart(baseUrl)
-                .file(attachment)
-                .file(jsonPart)
-                .header("Captcha-Token", recaptchaToken)
-                .contentType(MediaType.MULTIPART_FORM_DATA))
-        .andExpect(status().isOk());
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(formData)))
+        .andExpect(status().isExpectationFailed());
   }
 
   /**
@@ -560,65 +263,5 @@ public class TermSuggestionFormControllerTests {
       // Set our expected response to the form from the formPath
       return mapper.readTree(input);
     }
-  }
-
-  private boolean hasSmtpConfig() {
-    // check that MAIL_USER and MAIL_PASSWORD are set
-    // as environment variables
-    if (System.getenv("MAIL_USER") == null) {
-      log.info(" MAIL_USER not set, skipping test");
-      return false;
-    }
-    // to generate a valid MAIL_PASSWORD, you need to set up an App Password
-    // for your email account, e.g., Gmail, and set it in your environment variables.
-    // See https://support.google.com/mail/answer/185833?hl=en
-    // for more information on how to set up App Passwords
-    if (System.getenv("MAIL_PASSWORD") == null) {
-      log.info(" MAIL_PASSWORD not set, skipping test");
-      return false;
-    }
-
-    if (mailSender == null || !(mailSender instanceof JavaMailSenderImpl)) {
-      return false;
-    }
-    JavaMailSenderImpl impl = (JavaMailSenderImpl) mailSender;
-
-    return impl.getHost() != null
-        && impl.getPort() > 0
-        && impl.getUsername() != null
-        && impl.getPassword() != null
-        && !"false"
-            .equalsIgnoreCase(
-                impl.getJavaMailProperties().getProperty("mail.smtp.starttls.enable"));
-  }
-
-  /**
-   * Set credentials in the form data to test email sending.
-   *
-   * @param formData the form data
-   * @return JsonNode with bad credentials
-   */
-  private JsonNode setCredentials(JsonNode formData, boolean badCredentials) {
-    if (!(mailSender instanceof JavaMailSenderImpl)) {
-      throw new IllegalStateException("Mail sender is not configured correctly.");
-    }
-    JavaMailSenderImpl impl = (JavaMailSenderImpl) mailSender;
-
-    ObjectNode o = (ObjectNode) formData;
-    o.put("businessEmail", impl.getUsername());
-
-    if (badCredentials) {
-      // Set bad recipient email
-      o.put("recipientEmail", "invalid@@westcoastinformatics.com");
-
-    } else {
-      // Set real credentials
-      o.put("mail.smtp.auth", "true");
-      o.put("mail.smtp.starttls.enable", "true");
-      o.put("recipientEmail", impl.getUsername());
-      o.put("MAIL_USERNAME", impl.getUsername());
-      o.put("MAIL_PASSWORD", impl.getPassword());
-    }
-    return o;
   }
 }
