@@ -1,6 +1,6 @@
  buildscript {
   ext {
-    springBootVersion = '3.4.10'
+    springBootVersion = '3.4.12'
     // Remove this line to see what version is favored by springBootVersion
     // and the version brought in by spring-data-elasticsearch
     set('elasticsearch.version', '7.12.1')
@@ -96,7 +96,11 @@ dependencies {
   // implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.44"
 
   //implementation "org.springframework.data:spring-data-elasticsearch:4.2.12"
-  implementation "org.opensearch.client:spring-data-opensearch-starter:1.6.0"
+  implementation "org.opensearch.client:spring-data-opensearch-starter:1.7.1"
+
+  // Explicit override for vulnerability still present in spring-data-opensearch-starter:1.7.1
+  // and spring-data-opensearch-starter:1.8.2, but both use 2.19.x as a basis
+  implementation "org.opensearch:opensearch-common:2.19.4"
 
   //Java Mail Sender dependency
   implementation "org.springframework.boot:spring-boot-starter-mail"
