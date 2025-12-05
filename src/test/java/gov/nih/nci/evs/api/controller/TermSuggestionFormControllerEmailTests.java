@@ -137,32 +137,32 @@ public class TermSuggestionFormControllerEmailTests {
     // Prepare multipart file from resources
     final org.springframework.mock.web.MockMultipartFile attachment;
     try (final InputStream is =
-                 getClass()
-                         .getClassLoader()
-                         .getResourceAsStream("formSamples/filled-form-submission-cdisc.xls")) {
+        getClass()
+            .getClassLoader()
+            .getResourceAsStream("formSamples/filled-form-submission-cdisc.xls")) {
       if (is == null) {
         fail("Test attachment not found in resources");
         return;
       }
       attachment =
           new org.springframework.mock.web.MockMultipartFile(
-                  "file", "filled-form-submission-cdisc.xls", "application/vnd.ms-excel", is);
+              "file", "filled-form-submission-cdisc.xls", "application/vnd.ms-excel", is);
     }
 
     // formData part as application/json
     final org.springframework.mock.web.MockMultipartFile jsonPart =
-            new org.springframework.mock.web.MockMultipartFile(
-                    "formData", "formData", "application/json", objectMapper.writeValueAsBytes(formData));
+        new org.springframework.mock.web.MockMultipartFile(
+            "formData", "formData", "application/json", objectMapper.writeValueAsBytes(formData));
 
     // ACT & ASSERT - perform multipart request
     this.mvc
-            .perform(
-                    MockMvcRequestBuilders.multipart(baseUrl)
-                            .file(attachment)
-                            .file(jsonPart)
-                            .header("Captcha-Token", recaptchaToken)
-                            .contentType(MediaType.MULTIPART_FORM_DATA))
-            .andExpect(status().isOk());
+        .perform(
+            MockMvcRequestBuilders.multipart(baseUrl)
+                .file(attachment)
+                .file(jsonPart)
+                .header("Captcha-Token", recaptchaToken)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+        .andExpect(status().isOk());
   }
 
   @Test
@@ -175,32 +175,32 @@ public class TermSuggestionFormControllerEmailTests {
     // Prepare NCIT multipart file from resources
     final org.springframework.mock.web.MockMultipartFile attachment;
     try (final InputStream is =
-                 getClass()
-                         .getClassLoader()
-                         .getResourceAsStream("formSamples/filled-form-submission-ncit.xls")) {
+        getClass()
+            .getClassLoader()
+            .getResourceAsStream("formSamples/filled-form-submission-ncit.xls")) {
       if (is == null) {
         fail("NCIT test attachment not found in resources");
         return;
       }
       attachment =
-              new org.springframework.mock.web.MockMultipartFile(
-                      "file", "filled-form-submission-ncit.xls", "application/vnd.ms-excel", is);
+          new org.springframework.mock.web.MockMultipartFile(
+              "file", "filled-form-submission-ncit.xls", "application/vnd.ms-excel", is);
     }
 
     // formData part as application/json
     final org.springframework.mock.web.MockMultipartFile jsonPart =
-            new org.springframework.mock.web.MockMultipartFile(
-                    "formData", "formData", "application/json", objectMapper.writeValueAsBytes(formData));
+        new org.springframework.mock.web.MockMultipartFile(
+            "formData", "formData", "application/json", objectMapper.writeValueAsBytes(formData));
 
     // ACT & ASSERT - perform multipart request
     this.mvc
-            .perform(
-                    MockMvcRequestBuilders.multipart(baseUrl)
-                            .file(attachment)
-                            .file(jsonPart)
-                            .header("Captcha-Token", recaptchaToken)
-                            .contentType(MediaType.MULTIPART_FORM_DATA))
-            .andExpect(status().isOk());
+        .perform(
+            MockMvcRequestBuilders.multipart(baseUrl)
+                .file(attachment)
+                .file(jsonPart)
+                .header("Captcha-Token", recaptchaToken)
+                .contentType(MediaType.MULTIPART_FORM_DATA))
+        .andExpect(status().isOk());
   }
 
   /**

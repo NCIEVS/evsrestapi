@@ -48,7 +48,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
   /** The object mapper to read the config url with readTree. */
   private final ObjectMapper mapper = new ObjectMapper();
 
-  /** Pattern for optional instruction sheets with date suffix */
+  /** Pattern for optional instruction sheets with date suffix. */
   private static final Pattern INSTRUCTION_PATTERN =
       Pattern.compile(".*\\d{4}_\\d{2}_\\d{2} Instructions$");
 
@@ -111,6 +111,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    *
    * @param emailDetails details of the email created from the form data
    * @throws MessagingException the messaging exception
+   * @throws Exception the exception
    */
   @Override
   public void sendEmail(final EmailDetails emailDetails) throws MessagingException, Exception {
@@ -163,6 +164,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @param emailDetails details of the email created from the form data
    * @param file optional multipart file to attach
    * @throws MessagingException the messaging exception
+   * @throws Exception the exception
    */
   @Override
   public void sendEmailWithAttachment(final EmailDetails emailDetails, final MultipartFile file)
@@ -239,6 +241,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @param formType the form type (CDISC or NCIT)
    * @return true, if successful
    */
+  @Override
   public boolean validateFileAttachment(final MultipartFile file, final String formType) {
     if (file == null || file.isEmpty()) {
       // No file attached/empty file
@@ -521,6 +524,12 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
 
   /**
    * Read a cell value and correctly handle merged regions. Returns trimmed string or empty string.
+   *
+   * @param sheet the sheet
+   * @param rowIndex the row index
+   * @param colIndex the col index
+   * @param formatter the formatter
+   * @return the merged cell value
    */
   private String getMergedCellValue(
       final org.apache.poi.ss.usermodel.Sheet sheet,
