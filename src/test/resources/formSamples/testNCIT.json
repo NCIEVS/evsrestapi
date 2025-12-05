@@ -1,235 +1,233 @@
 {
-	"formName": "NCIt Term Suggestion Request",
-	"formType": "NCIT",
-	"recipientEmail": "ncithesaurus@mail.nih.gov",
-	"businessEmail": "test@test.com",
-	"sections": [
-		{
-			"name": "contact",
-			"label": "Contact Information",
-			"instructions": {
-				"parts": [
-					{
-						"text": "Privacy Notice:"
-					},
-					{
-						"text": "For term submission purposes we request business contact information only, not personal information. Your business email, and any other business contact information that you enter, will only be used to contact you about this topic if any clarifications are needed. This information will not be disseminated to others outside the EVS group of the NCI, or stored except as part of the email communications on this topic."
-					}
-				]
-			},
-			"fields": [
-				{
-					"name": "email",
-					"label": "Business Email",
-					"type": "text",
-					"value": "",
-					"placeholder": "Enter your business email",
-					"validations": [
-						{
-							"name": "required",
-							"validator": "required",
-							"message": "Email is required"
-						},
-						{
-							"name": "pattern",
-							"validator": "email",
-							"message": "Invalid email format"
-						}
-					]
-				},
-				{
-					"name": "name",
-					"label": "Name",
-					"type": "text",
-					"value": "",
-					"placeholder": "Enter your name"
-				}
-			]
-		},
-		{
-			"name": "requestType",
-			"label": "Request Type",
-			"instructions": {
-				"parts": [
-					{
-						"text": "Please select the type of request and fill in the appropriate fields below."
-					}
-				]
-			},
-			"fields": [
-				{
-					"name": "requestTypeSelection",
-					"label": "Please select",
-					"type": "dropdown",
-					"value": "",
-					"options": [
-						"Proposed New Concept",
-						"Proposed Modification to Existing Concept",
-						"Inquiry"
-					],
-					"placeholder": "Select request type",
-					"validations": [
-						{
-							"name": "required",
-							"validator": "required",
-							"message": "Request type is required"
-						}
-					]
-				},
-				{
-					"name": "term",
-					"label": "Term",
-					"type": "textarea",
-					"value": "",
-					"placeholder": "Enter the term",
-					"conditionalDisplay": {
-						"dependsOn": "requestTypeSelection",
-						"showWhen": "Proposed New Concept"
-					},
-					"validations": [
-						{
-							"name": "requiredIf",
-							"validator": "requiredIf",
-							"condition": {
-								"field": "requestTypeSelection",
-								"value": "Proposed New Concept"
-							},
-							"message": "Term is required for new concept proposals"
-						}
-					]
-				},
-				{
-					"name": "synonym",
-					"label": "Synonym",
-					"type": "textarea",
-					"value": "",
-					"placeholder": "Enter synonym(s)",
-					"conditionalDisplay": {
-						"dependsOn": "requestTypeSelection",
-						"showWhen": "Proposed New Concept"
-					}
-				},
-				{
-					"name": "definition",
-					"label": "Definition",
-					"type": "textarea",
-					"value": "",
-					"placeholder": "Enter the definition",
-					"conditionalDisplay": {
-						"dependsOn": "requestTypeSelection",
-						"showWhen": "Proposed New Concept"
-					}
-				},
-				{
-					"name": "currentCCode",
-					"label": "Current C-Code",
-					"type": "text",
-					"value": "",
-					"placeholder": "Enter current C-Code (e.g., C12345)",
-					"conditionalDisplay": {
-						"dependsOn": "requestTypeSelection",
-						"showWhen": "Proposed Modification to Existing Concept"
-					},
-					"validations": [
-						{
-							"name": "requiredIf",
-							"validator": "requiredIf",
-							"condition": {
-								"field": "requestTypeSelection",
-								"value": "Proposed Modification to Existing Concept"
-							},
-							"message": "C-Code is required for concept modification requests"
-						}
-					]
-				},
-				{
-					"name": "newSynonym",
-					"label": "New Synonym",
-					"type": "textarea",
-					"value": "",
-					"placeholder": "Enter new synonym(s)",
-					"conditionalDisplay": {
-						"dependsOn": "requestTypeSelection",
-						"showWhen": "Proposed Modification to Existing Concept"
-					}
-				},
-				{
-					"name": "changeToDefinition",
-					"label": "Change to Definition",
-					"type": "textarea",
-					"value": "",
-					"placeholder": "Enter proposed changes to definition",
-					"conditionalDisplay": {
-						"dependsOn": "requestTypeSelection",
-						"showWhen": "Proposed Modification to Existing Concept"
-					}
-				},
-				{
-					"name": "detailedDescription",
-					"label": "Detailed Description",
-					"type": "textarea",
-					"value": "",
-					"placeholder": "Enter detailed description of your inquiry",
-					"conditionalDisplay": {
-						"dependsOn": "requestTypeSelection",
-						"showWhen": "Inquiry"
-					},
-					"validations": [
-						{
-							"name": "requiredIf",
-							"validator": "requiredIf",
-							"condition": {
-								"field": "requestTypeSelection",
-								"value": "Inquiry"
-							},
-							"message": "Detailed description is required for inquiries"
-						}
-					]
-				}
-			]
-		},
-		{
-			"name": "additionalInfo",
-			"label": "Additional Information",
-			"fields": [
-				{
-					"name": "organization",
-					"label": "Organization",
-					"type": "text",
-					"value": "",
-					"placeholder": "Enter your organization",
-					"validations": [
-						{
-							"name": "required",
-							"validator": "required",
-							"message": "Organization is required"
-						}
-					]
-				},
-				{
-					"name": "project",
-					"label": "Project",
-					"type": "textarea",
-					"value": "",
-					"placeholder": "Enter project name",
-					"validations": [
-						{
-							"name": "required",
-							"validator": "required",
-							"message": "Project is required"
-						}
-					]
-				},
-				{
-					"name": "additionalInfo",
-					"label": "Additional Information",
-					"type": "textarea",
-					"value": "",
-					"placeholder": "Enter any additional information that may be helpful"
-				}
-			]
-		}
-	],
-	"subject": "NCIT Term Suggestion Request",
-	"body": "Test"
+  "formName": "NCIt Term Suggestion Request",
+  "formType": "NCIT",
+  "recipientEmail": "ncithesaurus@mail.nih.gov",
+  "sections": [
+    {
+      "name": "contact",
+      "label": "Contact Information",
+      "instructions": {
+        "parts": [
+          {
+            "text": "Privacy Notice:"
+          },
+          {
+            "text": "For term submission purposes we request business contact information only, not personal information. Your business email, and any other business contact information that you enter, will only be used to contact you about this topic if any clarifications are needed. This information will not be disseminated to others outside the EVS group of the NCI, or stored except as part of the email communications on this topic."
+          }
+        ]
+      },
+      "fields": [
+        {
+          "name": "email",
+          "label": "Business Email",
+          "type": "text",
+          "value": "",
+          "placeholder": "Enter your business email",
+          "validations": [
+            {
+              "name": "required",
+              "validator": "required",
+              "message": "Email is required"
+            },
+            {
+              "name": "pattern",
+              "validator": "email",
+              "message": "Invalid email format"
+            }
+          ]
+        },
+        {
+          "name": "name",
+          "label": "Name",
+          "type": "text",
+          "value": "",
+          "placeholder": "Enter your name"
+        }
+      ]
+    },
+    {
+      "name": "requestType",
+      "label": "Request Type",
+      "instructions": {
+        "parts": [
+          {
+            "text": "Please select the type of request and fill in the appropriate fields below."
+          }
+        ]
+      },
+      "fields": [
+        {
+          "name": "requestTypeSelection",
+          "label": "Please select",
+          "type": "dropdown",
+          "value": "",
+          "options": [
+            "Proposed New Concept",
+            "Proposed Modification to Existing Concept",
+            "Inquiry"
+          ],
+          "placeholder": "Select request type",
+          "validations": [
+            {
+              "name": "required",
+              "validator": "required",
+              "message": "Request type is required"
+            }
+          ]
+        },
+        {
+          "name": "term",
+          "label": "Term",
+          "type": "textarea",
+          "value": "",
+          "placeholder": "Enter the term",
+          "conditionalDisplay": {
+            "dependsOn": "requestTypeSelection",
+            "showWhen": "Proposed New Concept"
+          },
+          "validations": [
+            {
+              "name": "requiredIf",
+              "validator": "requiredIf",
+              "condition": {
+                "field": "requestTypeSelection",
+                "value": "Proposed New Concept"
+              },
+              "message": "Term is required for new concept proposals"
+            }
+          ]
+        },
+        {
+          "name": "synonym",
+          "label": "Synonym",
+          "type": "textarea",
+          "value": "",
+          "placeholder": "Enter synonym(s)",
+          "conditionalDisplay": {
+            "dependsOn": "requestTypeSelection",
+            "showWhen": "Proposed New Concept"
+          }
+        },
+        {
+          "name": "definition",
+          "label": "Definition",
+          "type": "textarea",
+          "value": "",
+          "placeholder": "Enter the definition",
+          "conditionalDisplay": {
+            "dependsOn": "requestTypeSelection",
+            "showWhen": "Proposed New Concept"
+          }
+        },
+        {
+          "name": "currentCCode",
+          "label": "Current C-Code",
+          "type": "text",
+          "value": "",
+          "placeholder": "Enter current C-Code (e.g., C12345)",
+          "conditionalDisplay": {
+            "dependsOn": "requestTypeSelection",
+            "showWhen": "Proposed Modification to Existing Concept"
+          },
+          "validations": [
+            {
+              "name": "requiredIf",
+              "validator": "requiredIf",
+              "condition": {
+                "field": "requestTypeSelection",
+                "value": "Proposed Modification to Existing Concept"
+              },
+              "message": "C-Code is required for concept modification requests"
+            }
+          ]
+        },
+        {
+          "name": "newSynonym",
+          "label": "New Synonym",
+          "type": "textarea",
+          "value": "",
+          "placeholder": "Enter new synonym(s)",
+          "conditionalDisplay": {
+            "dependsOn": "requestTypeSelection",
+            "showWhen": "Proposed Modification to Existing Concept"
+          }
+        },
+        {
+          "name": "changeToDefinition",
+          "label": "Change to Definition",
+          "type": "textarea",
+          "value": "",
+          "placeholder": "Enter proposed changes to definition",
+          "conditionalDisplay": {
+            "dependsOn": "requestTypeSelection",
+            "showWhen": "Proposed Modification to Existing Concept"
+          }
+        },
+        {
+          "name": "detailedDescription",
+          "label": "Detailed Description",
+          "type": "textarea",
+          "value": "",
+          "placeholder": "Enter detailed description of your inquiry",
+          "conditionalDisplay": {
+            "dependsOn": "requestTypeSelection",
+            "showWhen": "Inquiry"
+          },
+          "validations": [
+            {
+              "name": "requiredIf",
+              "validator": "requiredIf",
+              "condition": {
+                "field": "requestTypeSelection",
+                "value": "Inquiry"
+              },
+              "message": "Detailed description is required for inquiries"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "additionalInfo",
+      "label": "Additional Information",
+      "fields": [
+        {
+          "name": "organization",
+          "label": "Organization",
+          "type": "text",
+          "value": "",
+          "placeholder": "Enter your organization",
+          "validations": [
+            {
+              "name": "required",
+              "validator": "required",
+              "message": "Organization is required"
+            }
+          ]
+        },
+        {
+          "name": "project",
+          "label": "Project",
+          "type": "textarea",
+          "value": "",
+          "placeholder": "Enter project name",
+          "validations": [
+            {
+              "name": "required",
+              "validator": "required",
+              "message": "Project is required"
+            }
+          ]
+        },
+        {
+          "name": "additionalInfo",
+          "label": "Additional Information",
+          "type": "textarea",
+          "value": "",
+          "placeholder": "Enter any additional information that may be helpful"
+        }
+      ]
+    }
+  ],
+  "recaptchaSiteKey": "TEST-KEY"
 }

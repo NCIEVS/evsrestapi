@@ -1,21 +1,12 @@
 package gov.nih.nci.evs.api.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import gov.nih.nci.evs.api.model.EmailDetails;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.util.EVSUtils;
-import jakarta.mail.Message.RecipientType;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
 import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
@@ -25,6 +16,18 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import gov.nih.nci.evs.api.model.EmailDetails;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.util.EVSUtils;
+import jakarta.mail.Message.RecipientType;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 
 /** Implementation class for the terminology suggestion form service. */
 @Service
@@ -222,30 +225,31 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     }
   }
 
-  /**
-   * Validate file attachment (defaults to CDISC for backward compatibility).
-   *
-   * @param file the file
-   * @return true, if successful
-   */
+  /* see superclass */
   @Override
-  public boolean validateFileAttachment(final MultipartFile file) {
-    // Default to CDISC for backward compatibility
-    return validateFileAttachment(file, "CDISC");
+  public boolean validateFileAttachment(final MultipartFile file, final String formType) {
+    final String reason = validateFileAttachmentReason(file, formType);
+    if (reason != null) {
+      logger.warn(reason);
+      return false;
+    }
+    return true;
   }
 
   /**
-   * Validate file attachment based on form type.
+   * Validate file attachment reason.
    *
    * @param file the file
-   * @param formType the form type (CDISC or NCIT)
-   * @return true, if successful
+   * @param formType the form type
+   * @return the string
    */
   @Override
-  public boolean validateFileAttachment(final MultipartFile file, final String formType) {
+  public String validateFileAttachmentReason(final MultipartFile file, final String formType) {
+    final String prefix = "Attachment is invalid: ";
+
+    // No file attached / empty file
     if (file == null || file.isEmpty()) {
-      // No file attached/empty file
-      return false;
+      return "No file attached or file is empty";
     }
 
     // Check file extension - expect .xls/xlsx (case-insensitive)
@@ -255,7 +259,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     }
     if (filename == null
         || !(filename.toLowerCase().endsWith(".xls") || filename.toLowerCase().endsWith(".xlsx"))) {
-      return false;
+      return prefix + "Invalid file extension; expected .xls or .xlsx";
     }
 
     // Route to appropriate validation method based on form type
@@ -264,8 +268,8 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     } else if ("NCIT".equalsIgnoreCase(formType)) {
       return validateNCITAttachment(file, filename);
     } else {
-      logger.warn("Unknown form type '{}' for file validation: {}", formType, filename);
-      return false;
+      return prefix
+          + String.format("Unknown form type '{}' for file validation: {}", formType, filename);
     }
   }
 
@@ -276,15 +280,15 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @param filename the filename
    * @return true, if successful
    */
-  private boolean validateCDISCAttachment(final MultipartFile file, final String filename) {
+  private String validateCDISCAttachment(final MultipartFile file, final String filename) {
+    final String prefix = "Attachment is invalid: ";
     // Try to open the workbook once to ensure it's a valid Excel file and collect sheet names
     final java.util.Set<String> sheets = new java.util.HashSet<>();
     try (final java.io.InputStream is = file.getInputStream();
         final Workbook wb = WorkbookFactory.create(is)) {
       // too many sheets, no reason to have extras
       if (wb.getNumberOfSheets() > 6) {
-        logger.warn("Too many sheets (>6) in uploaded workbook: {}", filename);
-        return false;
+        return prefix + String.format("Too many sheets (>6) in uploaded workbook: %s", filename);
       }
       for (int i = 0; i < wb.getNumberOfSheets(); i++) {
         sheets.add(wb.getSheetName(i));
@@ -311,25 +315,27 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
         if (m.find()) {
           continue;
         }
-        logger.warn("Unexpected sheet '{}' found in uploaded workbook: {}", actual, filename);
-        return false;
+        return prefix
+            + String.format(
+                "Unexpected sheet '%s' found in uploaded workbook: %s", actual, filename);
       }
 
       // We do require New Codelist - Test or PARM exists.
       if (!sheets.contains("New Codelist - Test or PARM")) {
-        logger.warn(
-            "Required sheet 'New Codelist - Test or PARM' not found in uploaded workbook: {}",
-            filename);
-        return false;
+        return prefix
+            + String.format(
+                "Required sheet 'New Codelist - Test or PARM' not found in uploaded workbook: %s",
+                filename);
       }
 
       // Validate that the New Codelist - Test or PARM sheet has all the necessary information
       final String sheetName = "New Codelist - Test or PARM";
       final org.apache.poi.ss.usermodel.Sheet metaSheet = wb.getSheet(sheetName);
       if (metaSheet == null) {
-        logger.warn(
-            "Required sheet '{}' missing content in uploaded workbook: {}", sheetName, filename);
-        return false;
+        return prefix
+            + String.format(
+                "Required sheet '%s' missing content in uploaded workbook: %s",
+                sheetName, filename);
       }
       final org.apache.poi.ss.usermodel.DataFormatter formatter =
           new org.apache.poi.ss.usermodel.DataFormatter();
@@ -338,12 +344,10 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       for (int r = 2; r <= 4; r++) {
         final String cellValue = getMergedCellValue(metaSheet, r, 2, formatter);
         if (cellValue == null || cellValue.isEmpty()) {
-          logger.warn(
-              "Required metadata missing in sheet '{}' at C{} in uploaded workbook: {}",
-              sheetName,
-              r + 1,
-              filename);
-          return false;
+          return prefix
+              + String.format(
+                  "Required metadata missing in sheet '%s' at C%d in uploaded workbook: %s",
+                  sheetName, r + 1, filename);
         }
       }
 
@@ -351,20 +355,20 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       for (int c = 0; c <= 4; c++) {
         final String v = getMergedCellValue(metaSheet, 7, c, formatter);
         if (v == null || v.isEmpty()) {
-          logger.warn(
-              "Required row 8 column {} missing in sheet '{}' in uploaded workbook: {}",
-              c + 1,
-              sheetName,
-              filename);
-          return false;
+          return prefix
+              + String.format(
+                  "Required row 8 column %d missing in sheet '%s' in uploaded workbook: %s",
+                  c + 1, sheetName, filename);
         }
       }
     } catch (final Exception e) {
-      logger.warn("Invalid excel file uploaded or failed to validate workbook: {}", filename, e);
-      return false;
+      return prefix
+          + String.format(
+              "Invalid excel file uploaded or failed to validate workbook: %s - %s",
+              filename, e.getMessage());
     }
 
-    return true;
+    return null;
   }
 
   /**
@@ -374,17 +378,19 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @param filename the filename
    * @return true, if successful
    */
-  private boolean validateNCITAttachment(final MultipartFile file, final String filename) {
+  private String validateNCITAttachment(final MultipartFile file, final String filename) {
+    final String prefix = "Attachment is invalid: ";
+
     try (final java.io.InputStream is = file.getInputStream();
         final Workbook wb = WorkbookFactory.create(is)) {
 
       // NCIT template should have exactly 1 sheet
       if (wb.getNumberOfSheets() != 1) {
-        logger.warn(
-            "NCIT template should have exactly 1 sheet, found {} sheets in uploaded workbook: {}",
-            wb.getNumberOfSheets(),
-            filename);
-        return false;
+        return prefix
+            + String.format(
+                "NCIT template should have exactly 1 sheet, found {} sheets in uploaded workbook: {}",
+                wb.getNumberOfSheets(),
+                filename);
       }
 
       final org.apache.poi.ss.usermodel.Sheet sheet = wb.getSheetAt(0);
@@ -399,20 +405,19 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       // Validate header row
       final org.apache.poi.ss.usermodel.Row headerRow = sheet.getRow(0);
       if (headerRow == null) {
-        logger.warn("Header row missing in NCIT uploaded workbook: {}", filename);
-        return false;
+        return prefix + String.format("Header row missing in NCIT uploaded workbook: {}", filename);
       }
 
       for (int col = 0; col < expectedHeaders.length; col++) {
         final String cellValue = getMergedCellValue(sheet, 0, col, formatter);
         if (!expectedHeaders[col].equals(cellValue)) {
-          logger.warn(
-              "Header mismatch at column {}: expected '{}', found '{}' in uploaded workbook: {}",
-              (char) ('A' + col),
-              expectedHeaders[col],
-              cellValue,
-              filename);
-          return false;
+          return prefix
+              + String.format(
+                  "Header mismatch at column {}: expected '{}', found '{}' in uploaded workbook: {}",
+                  (char) ('A' + col),
+                  expectedHeaders[col],
+                  cellValue,
+                  filename);
         }
       }
 
@@ -446,43 +451,43 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
         // Column A (Requested Term) - must have text
         final String colA = getMergedCellValue(sheet, rowIndex, 0, formatter);
         if (colA == null || colA.trim().isEmpty()) {
-          logger.warn(
-              "Column A (Requested Term) is empty at row {} in uploaded workbook: {}",
-              rowIndex + 1,
-              filename);
-          return false;
+          return prefix
+              + String.format(
+                  "Column A (Requested Term) is empty at row {} in uploaded workbook: {}",
+                  rowIndex + 1,
+                  filename);
         }
 
         // Column B (Use Case) - must have text
         final String colB = getMergedCellValue(sheet, rowIndex, 1, formatter);
         if (colB == null || colB.trim().isEmpty()) {
-          logger.warn(
-              "Column B (Use Case) is empty at row {} in uploaded workbook: {}",
-              rowIndex + 1,
-              filename);
-          return false;
+          return prefix
+              + String.format(
+                  "Column B (Use Case) is empty at row {} in uploaded workbook: {}",
+                  rowIndex + 1,
+                  filename);
         }
 
         // Column C (NCIt Code) - must match pattern C\d+
         final String colC = getMergedCellValue(sheet, rowIndex, 2, formatter);
         if (colC == null || !ncitCodePattern.matcher(colC.trim()).matches()) {
-          logger.warn(
-              "Column C (NCIt Code) invalid or missing at row {}: '{}' (expected format: C followed"
-                  + " by digits) in uploaded workbook: {}",
-              rowIndex + 1,
-              colC,
-              filename);
-          return false;
+          return prefix
+              + String.format(
+                  "Column C (NCIt Code) invalid or missing at row {}: '{}' (expected format: C followed"
+                      + " by digits) in uploaded workbook: {}",
+                  rowIndex + 1,
+                  colC,
+                  filename);
         }
 
         // Column D (NCIt PT) - must have text
         final String colD = getMergedCellValue(sheet, rowIndex, 3, formatter);
         if (colD == null || colD.trim().isEmpty()) {
-          logger.warn(
-              "Column D (NCIt PT) is empty at row {} in uploaded workbook: {}",
-              rowIndex + 1,
-              filename);
-          return false;
+          return prefix
+              + String.format(
+                  "Column D (NCIt PT) is empty at row {} in uploaded workbook: {}",
+                  rowIndex + 1,
+                  filename);
         }
 
         // Column E (NCIt SY) - optional, but if present should be semicolon-separated
@@ -500,26 +505,25 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
         // Column F (NCIt DEF) - must have text
         final String colF = getMergedCellValue(sheet, rowIndex, 5, formatter);
         if (colF == null || colF.trim().isEmpty()) {
-          logger.warn(
-              "Column F (NCIt DEF) is empty at row {} in uploaded workbook: {}",
-              rowIndex + 1,
-              filename);
-          return false;
+          return prefix
+              + String.format(
+                  "Column F (NCIt DEF) is empty at row {} in uploaded workbook: {}",
+                  rowIndex + 1,
+                  filename);
         }
       }
 
       if (!hasDataRows) {
-        logger.warn("No data rows found in NCIT uploaded workbook: {}", filename);
-        return false;
+        return prefix + String.format("No data rows found in NCIT uploaded workbook: {}", filename);
       }
 
     } catch (final Exception e) {
-      logger.warn(
-          "Invalid excel file uploaded or failed to validate NCIT workbook: {}", filename, e);
-      return false;
+      return prefix
+          + String.format(
+              "Invalid excel file uploaded or failed to validate NCIT workbook: {}", filename, e);
     }
 
-    return true;
+    return null;
   }
 
   /**

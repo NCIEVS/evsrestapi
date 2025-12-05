@@ -153,6 +153,14 @@ public class TermSuggestionFormController extends BaseController {
 
       // Convert the form data into our email details object first to get form type
       EmailDetails emailDetails = EmailDetails.generateEmailDetails(formData);
+      final String invalidReason =
+          formService.validateFileAttachmentReason(file, emailDetails.getSource());
+      if (invalidReason != null) {
+        logger.error("Invalid attachment file: {}", invalidReason);
+        throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, invalidReason);
+      }
+
+      // convert the form data into our email details object
       if (!"CDISC".equals(emailDetails.getSource()) && !"NCIT".equals(emailDetails.getSource())) {
         logger.error("Form type is not valid for attachment. Must be CDISC or NCIT.");
         throw new ResponseStatusException(
