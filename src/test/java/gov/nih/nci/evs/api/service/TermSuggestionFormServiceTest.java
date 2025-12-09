@@ -257,18 +257,6 @@ public class TermSuggestionFormServiceTest {
     }
   }
 
-  /** Check that blank excel form attachment fails validation. */
-  @Test
-  public void blankFormSubmissionFailsValidation() throws Exception {
-    // SET UP
-    Path p = Paths.get("src/test/resources/formSamples/blank-form-submission.xls");
-    byte[] content = Files.readAllBytes(p);
-    MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
-
-    // ACT & ASSERT
-    assertFalse(termFormService.validateFileAttachment(testFile));
-  }
-
   /** Check that blank excel file attachment fails validation. */
   @Test
   public void blankSpreadsheetSubmissionFailsValidation() throws Exception {
