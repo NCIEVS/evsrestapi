@@ -935,7 +935,7 @@ public class Concept extends ConceptMinimal {
    *
    * @return the extensions
    */
-  @Schema(hidden = true)
+  @Schema(description = "Generally unset, this is used for certain special cases", required = false)
   public Extensions getExtensions() {
     return extensions;
   }

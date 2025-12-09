@@ -464,18 +464,25 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 .field("name")
                 .defaultOperator(Operator.AND)
                 .analyzeWildcard(true)
-                .boost(35f);
+                .boost(20f);
 
         partialWordSynonymQuery =
             QueryBuilders.queryStringQuery(String.join(" AND ", partialTokens))
                 .field("synonyms.name")
                 .defaultOperator(Operator.AND)
                 .analyzeWildcard(true)
-                .boost(34f);
+                .boost(19f);
         nestedPartialWordSynonymQuery =
             QueryBuilders.nestedQuery("synonyms", partialWordSynonymQuery, ScoreMode.Max);
       }
     }
+
+    // Boost exact matches
+    final NestedQueryBuilder nestedSynonymExactQuery =
+        QueryBuilders.nestedQuery(
+            "synonyms",
+            QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(40f),
+            ScoreMode.Max);
 
     // Boosting matches with words next to each other
     final QueryStringQueryBuilder phraseNormNameQuery =
@@ -620,6 +627,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     // contains, and/or
     if (!"phrase".equals(type.toLowerCase())) {
       termQuery
+
+          // Exact query
+          .should(nestedSynonymExactQuery)
 
           // Text queries on "name" and "norm name" and "stem name" using fix names
           .should(fixNameQuery)

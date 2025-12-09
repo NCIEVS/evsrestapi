@@ -4,6 +4,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.4.0.RELEASE] - 2025-MM-DD
+### Changed
+- TBD
+
+## [2.3.0.RELEASE] - 2025-11-04
+### Changed
+- Various minor bug fixes and typo corrections
+- FHIR improvements (resource _history, improved parameter support, POST call support for adhoc value sets, set dates properly on ConceptMap)
+- On Reindex, handle "updates" to latest versions only once rather than for each terminology one at a time
+- Ensure old mapsets get removed on reindex
+- Update unit test data to newer versions and update corresponding sampling files
+- Address CodeQL, dependabot, and trivy reported vulnerability issues
+- Support viewable maps the NCI Thesaurus mappings
+- Bring online support for CTCAE6
+- Improve term form to support attachments in the style of the CDISC template
+- Better handling of NPO complex definitions
+- Swagger version update
+
 ## [2.2.0.RELEASE] - 2025-06-10
 ### Changed
 - FHIR improvements (improved param support, improved swagger, improved metadata, more tests)
@@ -120,3 +138,5 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [1.5.0-SNAPSHOT and prior]
 ### No change log for earlier releases
+
+

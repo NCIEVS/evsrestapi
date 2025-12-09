@@ -137,43 +137,7 @@ public class MetadataController extends BaseController {
         final TerminologyMetadata meta = term.getMetadata();
         // Some terminologies may not have metadata
         if (meta != null) {
-
-          // Various other metadata things (schema=hidden)
-          meta.setWelcomeText(null);
-          meta.setSources(null);
-          meta.setDefinitionSourceSet(null);
-          meta.setSynonymSourceSet(null);
-          meta.setSubsetPrefix(null);
-          meta.setSparqlPrefix(null);
-          meta.setSourcesToRemove(null);
-          meta.setSubsetMember(null);
-          meta.setUnpublished(null);
-          meta.setMonthlyDb(null);
-          meta.setLicenseCheck(null);
-          meta.setMapsets(null);
-          meta.setRelationshipToTarget(null);
-          meta.setCode(null);
-          meta.setConceptStatus(null);
-          meta.setPreferredName(null);
-          meta.setSynonym(null);
-          meta.setSynonymTermType(null);
-          meta.setSynonymSource(null);
-          meta.setSynonymCode(null);
-          meta.setSynonymSubSource(null);
-          meta.setDefinitionSource(null);
-          meta.setDefinition(null);
-          meta.setFhirPublisher(null);
-          meta.setFhirUri(null);
-          meta.setMapRelation(null);
-          meta.setMap(null);
-          meta.setMapTarget(null);
-          meta.setMapTargetTermType(null);
-          meta.setMapTargetTermGroup(null);
-          meta.setMapTargetTerminology(null);
-          meta.setMapTargetTerminologyVersion(null);
-          meta.setTermTypes(null);
-          meta.setPreferredTermTypes(null);
-          meta.setSubset(null);
+          meta.cleanForApi();
         }
       }
 
@@ -441,9 +405,10 @@ public class MetadataController extends BaseController {
       }
 
       Optional<Concept> concept = metadataService.getAssociation(terminology, code, include);
-      if (!concept.isPresent())
+      if (!concept.isPresent()) {
         throw new ResponseStatusException(
             HttpStatus.NOT_FOUND, "Association " + code + " not found");
+      }
 
       return concept.get();
     } catch (Exception e) {
@@ -593,8 +558,9 @@ public class MetadataController extends BaseController {
       }
 
       Optional<Concept> concept = metadataService.getRole(terminology, code, include);
-      if (!concept.isPresent())
+      if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Role " + code + " not found");
+      }
 
       return concept.get();
     } catch (Exception e) {
@@ -837,8 +803,9 @@ public class MetadataController extends BaseController {
       }
 
       Optional<Concept> concept = metadataService.getQualifier(terminology, code, include);
-      if (!concept.isPresent())
+      if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Qualifier " + code + " not found");
+      }
 
       return concept.get();
     } catch (Exception e) {
@@ -1013,8 +980,9 @@ public class MetadataController extends BaseController {
       }
 
       Optional<Concept> concept = metadataService.getProperty(terminology, code, include);
-      if (!concept.isPresent())
+      if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found");
+      }
 
       return concept.get();
     } catch (Exception e) {
@@ -1216,8 +1184,75 @@ public class MetadataController extends BaseController {
       }
 
       Optional<List<String>> result = metadataService.getQualifierValues(terminology, code);
-      if (!result.isPresent())
+      if (!result.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Qualifier " + code + " not found");
+      }
+
+      return result.get();
+    } catch (Exception e) {
+      handleException(e, terminology);
+      return null;
+    }
+  }
+
+  /**
+   * Returns the property values list.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the property values list
+   * @throws Exception the exception
+   */
+  @Operation(summary = "Get property values for the specified terminology and code/name")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Successfully retrieved the requested information"),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Resource not found",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+    @Parameter(
+        name = "terminology",
+        description =
+            "Terminology, e.g. 'ncit' or 'ncim' (<a"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
+                + " here for complete list</a>)",
+        required = true,
+        schema = @Schema(implementation = String.class),
+        example = "ncit"),
+    @Parameter(
+        name = "codeOrName",
+        description =
+            "Property code (or name), e.g."
+                + "<ul><li>'P216' or 'BioCarta_ID' for <i>ncit</i></li>"
+                + "<li>'Semantic_Type' for <i>ncim</i></li></ul>",
+        required = true,
+        schema = @Schema(implementation = String.class))
+  })
+  @RecordMetric
+  @GetMapping(
+      value = "/metadata/{terminology}/property/{codeOrName}/values",
+      produces = "application/json")
+  public @ResponseBody List<String> getPropertyValues(
+      @PathVariable(value = "terminology") final String terminology,
+      @PathVariable(value = "codeOrName") final String code)
+      throws Exception {
+    try {
+      // If the code contains a comma, just bail
+      if (code.contains(",")) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found");
+      }
+
+      Optional<List<String>> result = metadataService.getPropertyValues(terminology, code);
+      if (!result.isPresent()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found");
+      }
 
       return result.get();
     } catch (Exception e) {
@@ -1386,9 +1421,10 @@ public class MetadataController extends BaseController {
       }
 
       Optional<Concept> concept = metadataService.getSynonymType(terminology, code, include);
-      if (!concept.isPresent())
+      if (!concept.isPresent()) {
         throw new ResponseStatusException(
             HttpStatus.NOT_FOUND, "Synonym type " + code + " not found");
+      }
 
       return concept.get();
     } catch (Exception e) {
@@ -1557,9 +1593,10 @@ public class MetadataController extends BaseController {
       }
 
       Optional<Concept> concept = metadataService.getDefinitionType(terminology, code, include);
-      if (!concept.isPresent())
+      if (!concept.isPresent()) {
         throw new ResponseStatusException(
             HttpStatus.NOT_FOUND, "Defininition type " + code + " not found");
+      }
 
       return concept.get();
     } catch (Exception e) {
@@ -1716,8 +1753,9 @@ public class MetadataController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset " + code + " not found");
       }
       Optional<Concept> concept = metadataService.getSubset(terminology, code, include);
-      if (!concept.isPresent())
+      if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset " + code + " not found");
+      }
       return concept.get();
     } catch (Exception e) {
       handleException(e, terminology);

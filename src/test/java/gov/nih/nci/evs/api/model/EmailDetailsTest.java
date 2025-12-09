@@ -54,7 +54,7 @@ public class EmailDetailsTest {
   @Test
   public void testGenerateEmailDetailsPasses() throws Exception {
     // SETUP - create JsonObject from the json test form
-    String formPath = "formSamples/submissionFormTest.json";
+    String formPath = "formSamples/submissionFormTest-ncit.json";
     testFormObject = createJsonNode(formPath);
     assertNotNull(testFormObject);
 
@@ -78,7 +78,7 @@ public class EmailDetailsTest {
   @Test
   public void testGenerateHtmlEmailBodyHandlesArray() throws Exception {
     // SETUP - create JsonObject
-    String formPath = "formSamples/submissionFormWithArrayList.json";
+    String formPath = "formSamples/submissionFormWithArrayList-cdisc.json";
     testFormObject = createJsonNode(formPath);
     assertNotNull(testFormObject);
 
@@ -160,7 +160,7 @@ public class EmailDetailsTest {
   @Test
   public void testEqualsWithEqualEmailDetails() throws Exception {
     // SETUP
-    String formPath1 = "formSamples/submissionFormTest.json";
+    String formPath1 = "formSamples/submissionFormTest-ncit.json";
     testFormObject = createJsonNode(formPath1);
     JsonNode compTestFormObject = createJsonNode(formPath1);
 
@@ -185,7 +185,7 @@ public class EmailDetailsTest {
   @Test
   public void testEqualWithDifferentEmailDetails() throws Exception {
     // SETUP
-    String formPath1 = "formSamples/submissionFormTest.json";
+    String formPath1 = "formSamples/submissionFormTest-ncit.json";
     String formPath2 = "formSamples/compareEmailDetailsFail.json";
     testFormObject = createJsonNode(formPath1);
     JsonNode compTestFormObject = createJsonNode(formPath2);
@@ -211,7 +211,7 @@ public class EmailDetailsTest {
   @Test
   public void testEqualWithNullEmailDetails() throws Exception {
     // SETUP
-    String formPath1 = "formSamples/submissionFormTest.json";
+    String formPath1 = "formSamples/submissionFormTest-ncit.json";
     testFormObject = createJsonNode(formPath1);
 
     // ACT - populate Email details

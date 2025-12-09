@@ -270,8 +270,15 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     boolean latestMonthlyFound = false;
     boolean latestWeeklyFound = false;
     boolean latestFound = false;
+    final Set<String> seen = new HashSet<>();
 
     for (final IndexMetadata iMeta : iMetas) {
+
+      // skip if seen
+      if (seen.contains(iMeta.getTerminology().getTerminology())) {
+        continue;
+      }
+      seen.add(iMeta.getTerminology().getTerminology());
 
       final boolean monthly = iMeta.getTerminology().getTags().containsKey("monthly");
       final boolean weekly = iMeta.getTerminology().getTags().containsKey("weekly");
@@ -470,8 +477,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
             + termUtils.getTerminologyName(terminology)
             + ".json";
     logger.info("  get config for " + terminology + " = " + uri);
-    return new ObjectMapper()
-        .readTree(StringUtils.join(EVSUtils.getValueFromFile(uri, "metadata info"), '\n'));
+    return new ObjectMapper().readTree(EVSUtils.getValueFromFile(uri));
   }
 
   /**
@@ -486,8 +492,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     // If terminology is {term}_{version} -> strip the version
     final String uri = "src/test/resources/" + termUtils.getTerminologyName(terminology) + ".json";
     logger.info("  get config for " + terminology + " = " + uri);
-    return new ObjectMapper()
-        .readTree(StringUtils.join(EVSUtils.getValueFromFile(uri, "metadata info"), '\n'));
+    return new ObjectMapper().readTree(StringUtils.join(EVSUtils.getValueFromFile(uri), '\n'));
   }
 
   /**
@@ -506,7 +511,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
             + termUtils.getTerminologyName(terminology)
             + ".html";
     logger.info("  get welcome text for " + terminology + " = " + uri);
-    return StringUtils.join(EVSUtils.getValueFromFile(uri, "welcome text"), '\n');
+    return StringUtils.join(EVSUtils.getValueFromFile(uri), '\n');
   }
 
   /* see superclass */

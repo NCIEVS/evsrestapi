@@ -383,10 +383,10 @@ public class NcimControllerTests {
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C0242354");
-    assertThat(concept.getChildren().size()).isEqualTo(7);
+    assertThat(concept.getChildren().size()).isEqualTo(20);
     assertThat(concept.getChildren().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .contains("CL979355");
-    assertThat(concept.getParents().size()).isEqualTo(3);
+    assertThat(concept.getParents().size()).isEqualTo(4);
     assertThat(concept.getParents().stream().map(c -> c.getCode()).collect(Collectors.toSet()))
         .contains("C0012634");
   }
@@ -500,15 +500,15 @@ public class NcimControllerTests {
         .isEqualTo(1);
 
     // random concept in MRSAT
-    url = baseUrl + "/ncim/C0000658";
+    url = baseUrl + "/ncim/C0000578";
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     concept = new ObjectMapper().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
-    assertThat(concept.getCode()).isEqualTo("C0000658");
-    assertThat(concept.getName()).isEqualTo("Dihomo-gamma-linolenic Acid");
+    assertThat(concept.getCode()).isEqualTo("C0000578");
+    assertThat(concept.getName()).isEqualTo("Oxitriptan");
     assertThat(concept.getProperties().size()).isGreaterThan(1);
     assertThat(
             concept.getProperties().stream()

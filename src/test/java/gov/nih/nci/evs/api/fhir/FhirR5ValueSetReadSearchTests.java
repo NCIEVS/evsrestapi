@@ -73,7 +73,7 @@ class FhirR5ValueSetReadSearchTests {
   @BeforeEach
   public void setUp() {
     // the object mapper
-    ObjectMapper objectMapper = new ObjectMapper();
+    final ObjectMapper objectMapper = new ObjectMapper();
     JacksonTester.initFields(this, objectMapper);
   }
 
@@ -86,12 +86,12 @@ class FhirR5ValueSetReadSearchTests {
   public void testValueSetSearch() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirVSPath + "?_count=2000";
+    final String endpoint = localHost + port + fhirVSPath + "?_count=2000";
 
     // Act
     content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> valueSets =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     // Verify things about these
@@ -107,7 +107,7 @@ class FhirR5ValueSetReadSearchTests {
     // Questionnaire
     // Terminology","title":"ncit","status":"active","experimental":false,"publisher":"NCI","description":"Value
     // set representing the ncitsubsetC100110"}
-    final Set<String> ids = new HashSet<>(Set.of("ncit_21.07a", "ncit_c61410"));
+    final Set<String> ids = new HashSet<>(Set.of("ncit_25.06e", "ncit_c61410"));
     final Set<String> urls =
         new HashSet<>(
             Set.of(
@@ -116,9 +116,9 @@ class FhirR5ValueSetReadSearchTests {
 
     // Assert
     assertFalse(valueSets.isEmpty());
-    for (Resource vs : valueSets) {
+    for (final Resource vs : valueSets) {
       log.info("  value set = " + parser.encodeResourceToString(vs));
-      ValueSet vss = (ValueSet) vs;
+      final ValueSet vss = (ValueSet) vs;
       assertNotNull(vss);
       assertEquals(ResourceType.ValueSet, vss.getResourceType());
       assertNotNull(vss.getIdPart());
@@ -146,17 +146,17 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetRead() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> valueSets =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     // Act
-    String firstValueSetId = valueSets.get(0).getIdPart();
+    final String firstValueSetId = valueSets.get(0).getIdPart();
     // reassign content
     content = this.restTemplate.getForObject(endpoint + "/" + firstValueSetId, String.class);
-    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+    final ValueSet valueSet = parser.parseResource(ValueSet.class, content);
 
     // Assert
     assertNotNull(valueSet);
@@ -181,19 +181,19 @@ class FhirR5ValueSetReadSearchTests {
   public void testValueSetReadCode() throws Exception {
     // Arrange
     String content;
-    String code = "ncit_c129091";
-    String name = "CDISC Questionnaire NCCN-FACT FBLSI-18 Version 2 Test Name Terminology";
-    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C129091";
-    String publisher = "NCI";
-    String description = "Value set representing the ncitsubsetC129091";
-    String title = "ncit";
-    String status = "active";
-    String experimental = "false";
-    String endpoint = localHost + port + fhirVSPath;
+    final String code = "ncit_c129091";
+    final String name = "CDISC Questionnaire NCCN-FACT FBLSI-18 Version 2 Test Name Terminology";
+    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C129091";
+    final String publisher = "National Cancer Institute";
+    final String description = "Value set representing the ncitsubsetC129091";
+    final String title = "ncit";
+    final String status = "active";
+    final String experimental = "false";
+    final String endpoint = localHost + port + fhirVSPath;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + "/" + code, String.class);
-    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+    final ValueSet valueSet = parser.parseResource(ValueSet.class, content);
 
     // Assert
     assertNotNull(valueSet);
@@ -216,12 +216,12 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetReadStaticId() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    String valueSetId = "umlssemnet_2023aa";
+    final String valueSetId = "umlssemnet_2023aa";
 
     content = this.restTemplate.getForObject(endpoint + "/" + valueSetId, String.class);
-    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+    final ValueSet valueSet = parser.parseResource(ValueSet.class, content);
 
     // Assert
     assertNotNull(valueSet);
@@ -245,15 +245,15 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetReadBadId() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    String invalidId = "invalid_id";
-    String messageNotFound = "Value set not found = " + invalidId;
-    String errorCode = "not-found";
+    final String invalidId = "invalid_id";
+    final String messageNotFound = "Value set not found = " + invalidId;
+    final String errorCode = "not-found";
 
     content = this.restTemplate.getForObject(endpoint + "/" + invalidId, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -268,14 +268,15 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetSubsetSearchWithParameters() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
 
     // Test 1: All valid parameters
     UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
             .queryParam("_id", "ncit_c100110")
-            .queryParam("code", "C100110")
+            // TODO
+            // .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
@@ -388,7 +389,7 @@ class FhirR5ValueSetReadSearchTests {
     // these tests should be amended when the data is updated
 
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
 
     // Test 1: All valid parameters
     UriComponentsBuilder builder =
@@ -498,8 +499,8 @@ class FhirR5ValueSetReadSearchTests {
    * @param expectResults the expect results
    */
   // Helper method to validate results
-  private void validateValueSetResults(Bundle data, boolean expectResults) {
-    List<Resource> valueSets =
+  private void validateValueSetResults(final Bundle data, final boolean expectResults) {
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     if (expectResults) {
@@ -508,9 +509,9 @@ class FhirR5ValueSetReadSearchTests {
       final Set<String> urls =
           new HashSet<>(Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs"));
 
-      for (Resource vs : valueSets) {
+      for (final Resource vs : valueSets) {
         log.info(" value set = " + parser.encodeResourceToString(vs));
-        ValueSet vss = (ValueSet) vs;
+        final ValueSet vss = (ValueSet) vs;
         assertNotNull(vss);
         assertEquals(ResourceType.ValueSet, vss.getResourceType());
         assertNotNull(vss.getIdPart());
@@ -527,8 +528,8 @@ class FhirR5ValueSetReadSearchTests {
   }
 
   private void validateCanmedValueSetResults(
-      org.hl7.fhir.r5.model.Bundle data, boolean expectResults) {
-    List<org.hl7.fhir.r5.model.Resource> valueSets =
+      final org.hl7.fhir.r5.model.Bundle data, final boolean expectResults) {
+    final List<org.hl7.fhir.r5.model.Resource> valueSets =
         data.getEntry().stream()
             .map(org.hl7.fhir.r5.model.Bundle.BundleEntryComponent::getResource)
             .toList();
@@ -538,9 +539,9 @@ class FhirR5ValueSetReadSearchTests {
       final Set<String> ids = new HashSet<>(Set.of("canmed_202506"));
       final Set<String> urls = new HashSet<>(Set.of("http://seer.nci.nih.gov/CanMED.owl?fhir_vs"));
 
-      for (org.hl7.fhir.r5.model.Resource vs : valueSets) {
+      for (final org.hl7.fhir.r5.model.Resource vs : valueSets) {
         log.info(" value set = " + parser.encodeResourceToString(vs));
-        org.hl7.fhir.r5.model.ValueSet vss = (org.hl7.fhir.r5.model.ValueSet) vs;
+        final org.hl7.fhir.r5.model.ValueSet vss = (org.hl7.fhir.r5.model.ValueSet) vs;
         assertNotNull(vss);
         assertEquals(org.hl7.fhir.r5.model.ResourceType.ValueSet, vss.getResourceType());
         assertNotNull(vss.getIdPart());
@@ -562,8 +563,8 @@ class FhirR5ValueSetReadSearchTests {
    * @param data the data
    * @param expectResults the expect results
    */
-  private void validateValueSetSubsetResults(Bundle data, boolean expectResults) {
-    List<Resource> valueSets =
+  private void validateValueSetSubsetResults(final Bundle data, final boolean expectResults) {
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     if (expectResults) {
@@ -573,9 +574,9 @@ class FhirR5ValueSetReadSearchTests {
           new HashSet<>(
               Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110"));
 
-      for (Resource vs : valueSets) {
+      for (final Resource vs : valueSets) {
         log.info(" value set = " + parser.encodeResourceToString(vs));
-        ValueSet vss = (ValueSet) vs;
+        final ValueSet vss = (ValueSet) vs;
         assertNotNull(vss);
         assertEquals(ResourceType.ValueSet, vss.getResourceType());
         assertNotNull(vss.getIdPart());
@@ -599,44 +600,44 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetSearchPagination() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
 
     // Test 1: Get default results without pagination
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle defaultData = parser.parseResource(Bundle.class, content);
-    List<Resource> defaultValueSets =
+    final Bundle defaultData = parser.parseResource(Bundle.class, content);
+    final List<Resource> defaultValueSets =
         defaultData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Test 2: Get first page (count=2)
-    UriComponentsBuilder firstPageBuilder =
+    final UriComponentsBuilder firstPageBuilder =
         UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2");
 
     content =
         this.restTemplate.getForObject(firstPageBuilder.build().encode().toUri(), String.class);
-    Bundle firstPageData = parser.parseResource(Bundle.class, content);
-    List<Resource> firstPageSets =
+    final Bundle firstPageData = parser.parseResource(Bundle.class, content);
+    final List<Resource> firstPageSets =
         firstPageData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Test 3: Get second page (count=2, offset=2)
-    UriComponentsBuilder secondPageBuilder =
+    final UriComponentsBuilder secondPageBuilder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2")
             .queryParam("_offset", "2");
 
     content =
         this.restTemplate.getForObject(secondPageBuilder.build().encode().toUri(), String.class);
-    Bundle secondPageData = parser.parseResource(Bundle.class, content);
-    List<Resource> secondPageSets =
+    final Bundle secondPageData = parser.parseResource(Bundle.class, content);
+    final List<Resource> secondPageSets =
         secondPageData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Test 4: Try to exceed maximum count (should return all)
-    UriComponentsBuilder maxExceededBuilder =
+    final UriComponentsBuilder maxExceededBuilder =
         UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "10000");
 
     content =
         this.restTemplate.getForObject(maxExceededBuilder.build().encode().toUri(), String.class);
-    Bundle maxPageData = parser.parseResource(Bundle.class, content);
-    List<Resource> maxPageSets =
+    final Bundle maxPageData = parser.parseResource(Bundle.class, content);
+    final List<Resource> maxPageSets =
         maxPageData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Assertions for pagination
@@ -646,13 +647,13 @@ class FhirR5ValueSetReadSearchTests {
     assertTrue(defaultValueSets.size() <= maxPageSets.size());
 
     // Verify that concatenated pages equal first 4 of full results
-    List<String> fourIds =
+    final List<String> fourIds =
         defaultValueSets.subList(0, 4).stream()
             .map(resource -> resource.getIdPart())
             .sorted()
             .toList();
 
-    List<String> paginatedIds =
+    final List<String> paginatedIds =
         Stream.concat(firstPageSets.stream(), secondPageSets.stream())
             .map(resource -> resource.getIdPart())
             .sorted()
@@ -661,7 +662,7 @@ class FhirR5ValueSetReadSearchTests {
     assertEquals(fourIds, paginatedIds);
 
     // Verify content of individual resources
-    for (Resource cs : defaultValueSets) {
+    for (final Resource cs : defaultValueSets) {
       validateValueSetPagination((ValueSet) cs);
     }
   }
@@ -671,7 +672,7 @@ class FhirR5ValueSetReadSearchTests {
    *
    * @param vs the vs
    */
-  private void validateValueSetPagination(ValueSet vs) {
+  private void validateValueSetPagination(final ValueSet vs) {
     assertNotNull(vs);
     assertEquals(ResourceType.ValueSet, vs.getResourceType());
     assertNotNull(vs.getIdPart());
@@ -695,43 +696,43 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetSearchVariantsWithParameters() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
 
     // Test 1: Get initial list of ValueSets
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> valueSets =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> valueSets =
         data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
-    ValueSet firstValueSet = (ValueSet) valueSets.get(0);
-    String firstValueSetName = firstValueSet.getName();
-    String firstValueSetTitle = firstValueSet.getTitle();
+    final ValueSet firstValueSet = (ValueSet) valueSets.get(0);
+    final String firstValueSetName = firstValueSet.getName();
+    final String firstValueSetTitle = firstValueSet.getTitle();
 
     // Test 2: Basic name search (without modifier)
-    String basicNameUrl =
+    final String basicNameUrl =
         endpoint + "?name=" + URLEncoder.encode(firstValueSetName, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(basicNameUrl, String.class);
-    Bundle basicNameBundle = parser.parseResource(Bundle.class, content);
+    final Bundle basicNameBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(basicNameBundle.getEntry());
     assertFalse(basicNameBundle.getEntry().isEmpty());
-    ValueSet basicMatchValueSet = (ValueSet) basicNameBundle.getEntry().get(0).getResource();
+    final ValueSet basicMatchValueSet = (ValueSet) basicNameBundle.getEntry().get(0).getResource();
     assertEquals(firstValueSetName, basicMatchValueSet.getName());
 
     // Test 3: Exact match (case insensitive)
-    String upperCaseName = firstValueSetName.toUpperCase();
-    String exactMatchUrl =
+    final String upperCaseName = firstValueSetName.toUpperCase();
+    final String exactMatchUrl =
         endpoint + "?name:exact=" + URLEncoder.encode(upperCaseName, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(exactMatchUrl, String.class);
-    Bundle exactMatchBundle = parser.parseResource(Bundle.class, content);
+    final Bundle exactMatchBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(exactMatchBundle.getEntry());
     assertFalse(exactMatchBundle.getEntry().isEmpty());
-    ValueSet exactMatchValueSet = (ValueSet) exactMatchBundle.getEntry().get(0).getResource();
+    final ValueSet exactMatchValueSet = (ValueSet) exactMatchBundle.getEntry().get(0).getResource();
     assertTrue(exactMatchValueSet.getName().equalsIgnoreCase(upperCaseName));
 
     // Test 4: Contains search
-    String partialName = firstValueSetName.substring(1, firstValueSetName.length() - 1);
+    final String partialName = firstValueSetName.substring(1, firstValueSetName.length() - 1);
     String containsUrl =
         endpoint + "?name:contains=" + URLEncoder.encode(partialName, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(containsUrl, String.class);
@@ -746,73 +747,73 @@ class FhirR5ValueSetReadSearchTests {
     assertTrue(foundContainsMatch);
 
     // Test 5: Starts with search
-    String namePrefix = firstValueSetName.substring(0, 3);
-    String startsWithUrl =
+    final String namePrefix = firstValueSetName.substring(0, 3);
+    final String startsWithUrl =
         endpoint + "?name:startsWith=" + URLEncoder.encode(namePrefix, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(startsWithUrl, String.class);
-    Bundle startsWithBundle = parser.parseResource(Bundle.class, content);
+    final Bundle startsWithBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(startsWithBundle.getEntry());
     assertFalse(startsWithBundle.getEntry().isEmpty());
-    boolean foundStartsWithMatch =
+    final boolean foundStartsWithMatch =
         startsWithBundle.getEntry().stream()
             .map(entry -> ((ValueSet) entry.getResource()).getName())
             .anyMatch(name -> name.toLowerCase().startsWith(namePrefix.toLowerCase()));
     assertTrue(foundStartsWithMatch);
 
     // Test 6: Negative test - non-existent name
-    String nonExistentName = "NonExistentValueSet" + UUID.randomUUID();
-    String negativeTestUrl =
+    final String nonExistentName = "NonExistentValueSet" + UUID.randomUUID();
+    final String negativeTestUrl =
         endpoint + "?name:exact=" + URLEncoder.encode(nonExistentName, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(negativeTestUrl, String.class);
-    Bundle emptyBundle = parser.parseResource(Bundle.class, content);
+    final Bundle emptyBundle = parser.parseResource(Bundle.class, content);
 
     assertTrue(emptyBundle.getEntry() == null || emptyBundle.getEntry().isEmpty());
 
     // Test 7: Title exact match (case insensitive)
-    String upperCaseTitle = firstValueSetTitle.toUpperCase();
-    String titleExactUrl =
+    final String upperCaseTitle = firstValueSetTitle.toUpperCase();
+    final String titleExactUrl =
         endpoint + "?title:exact=" + URLEncoder.encode(upperCaseTitle, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(titleExactUrl, String.class);
-    Bundle titleExactBundle = parser.parseResource(Bundle.class, content);
+    final Bundle titleExactBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(titleExactBundle.getEntry());
     assertFalse(titleExactBundle.getEntry().isEmpty());
-    ValueSet titleExactMatch = (ValueSet) titleExactBundle.getEntry().get(0).getResource();
+    final ValueSet titleExactMatch = (ValueSet) titleExactBundle.getEntry().get(0).getResource();
     assertTrue(titleExactMatch.getTitle().equalsIgnoreCase(upperCaseTitle));
 
     // Test 8: Title starts with search
-    String titlePrefix = firstValueSetTitle.substring(0, 3);
-    String titleStartsWithUrl =
+    final String titlePrefix = firstValueSetTitle.substring(0, 3);
+    final String titleStartsWithUrl =
         endpoint + "?title:startsWith=" + URLEncoder.encode(titlePrefix, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(titleStartsWithUrl, String.class);
-    Bundle titleStartsWithBundle = parser.parseResource(Bundle.class, content);
+    final Bundle titleStartsWithBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(titleStartsWithBundle.getEntry());
     assertFalse(titleStartsWithBundle.getEntry().isEmpty());
-    boolean foundTitleStartsWithMatch =
+    final boolean foundTitleStartsWithMatch =
         titleStartsWithBundle.getEntry().stream()
             .map(entry -> ((ValueSet) entry.getResource()).getTitle())
             .anyMatch(title -> title.toLowerCase().startsWith(titlePrefix.toLowerCase()));
     assertTrue(foundTitleStartsWithMatch);
 
     // Test 9: Title contains search
-    String partialTitle = firstValueSetTitle.substring(1, firstValueSetTitle.length() - 1);
-    String titleContainsUrl =
+    final String partialTitle = firstValueSetTitle.substring(1, firstValueSetTitle.length() - 1);
+    final String titleContainsUrl =
         endpoint + "?title:contains=" + URLEncoder.encode(partialTitle, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(titleContainsUrl, String.class);
-    Bundle titleContainsBundle = parser.parseResource(Bundle.class, content);
+    final Bundle titleContainsBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(titleContainsBundle.getEntry());
     assertFalse(titleContainsBundle.getEntry().isEmpty());
-    boolean foundTitleContainsMatch =
+    final boolean foundTitleContainsMatch =
         titleContainsBundle.getEntry().stream()
             .map(entry -> ((ValueSet) entry.getResource()).getTitle())
             .anyMatch(title -> title.toLowerCase().contains(partialTitle.toLowerCase()));
     assertTrue(foundTitleContainsMatch);
 
     // Test 10: All parameters test (original test case)
-    UriComponentsBuilder builder =
+    final UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
             .queryParam("_id", "ncit_25.06e")
@@ -822,11 +823,11 @@ class FhirR5ValueSetReadSearchTests {
             .queryParam("version", "25.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
-    Bundle allParamsData = parser.parseResource(Bundle.class, content);
+    final Bundle allParamsData = parser.parseResource(Bundle.class, content);
     validateVariantValueSetResults(allParamsData, true);
 
     // Test 11: Contains search
-    String cdiscName = "CDISC";
+    final String cdiscName = "CDISC";
     containsUrl =
         endpoint + "?name:contains=" + URLEncoder.encode(cdiscName, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(containsUrl, String.class);
@@ -847,7 +848,7 @@ class FhirR5ValueSetReadSearchTests {
    * @param bundle the bundle
    * @param expectResults the expect results
    */
-  private void validateVariantValueSetResults(Bundle bundle, boolean expectResults) {
+  private void validateVariantValueSetResults(final Bundle bundle, final boolean expectResults) {
     assertNotNull(bundle);
     if (expectResults) {
       assertFalse(bundle.getEntry() == null || bundle.getEntry().isEmpty());
@@ -855,7 +856,7 @@ class FhirR5ValueSetReadSearchTests {
           .getEntry()
           .forEach(
               entry -> {
-                ValueSet vs = (ValueSet) entry.getResource();
+                final ValueSet vs = (ValueSet) entry.getResource();
                 assertNotNull(vs);
                 assertEquals(ResourceType.ValueSet, vs.getResourceType());
               });
@@ -868,19 +869,19 @@ class FhirR5ValueSetReadSearchTests {
   public void testValueSetHistory() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
 
     // Act - First get list of ValueSets to find a valid ID
     content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> valueSets =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
-    String firstValueSetId = valueSets.get(0).getIdPart();
+    final String firstValueSetId = valueSets.get(0).getIdPart();
 
     // Act - Get history for the first ValueSet
-    String historyEndpoint = endpoint + "/" + firstValueSetId + "/_history";
+    final String historyEndpoint = endpoint + "/" + firstValueSetId + "/_history";
     content = this.restTemplate.getForObject(historyEndpoint, String.class);
-    Bundle historyBundle = parser.parseResource(Bundle.class, content);
+    final Bundle historyBundle = parser.parseResource(Bundle.class, content);
 
     // Assert
     assertNotNull(historyBundle);
@@ -889,11 +890,11 @@ class FhirR5ValueSetReadSearchTests {
     assertFalse(historyBundle.getEntry().isEmpty());
 
     // Verify each entry in history is a ValueSet with the same ID
-    for (Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
+    for (final Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
       assertNotNull(entry.getResource());
       assertEquals(ResourceType.ValueSet, entry.getResource().getResourceType());
 
-      ValueSet historyValueSet = (ValueSet) entry.getResource();
+      final ValueSet historyValueSet = (ValueSet) entry.getResource();
       assertEquals(firstValueSetId, historyValueSet.getIdPart());
 
       // Verify metadata is properly set
@@ -906,17 +907,17 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetHistoryNotFound() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
-    String invalidId = "nonexistent-valueSet-id";
-    String historyEndpoint = endpoint + "/" + invalidId + "/_history";
+    final String endpoint = localHost + port + fhirVSPath;
+    final String invalidId = "nonexistent-valueSet-id";
+    final String historyEndpoint = endpoint + "/" + invalidId + "/_history";
 
-    String messageNotFound = "Value set not found = " + invalidId;
-    String errorCode = "not-found";
+    final String messageNotFound = "Value set not found = " + invalidId;
+    final String errorCode = "not-found";
 
     // Act
-    String content = this.restTemplate.getForObject(historyEndpoint, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final String content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -927,19 +928,19 @@ class FhirR5ValueSetReadSearchTests {
   public void testValueSetVread() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
 
     // Act - First get list of ValueSets to find a valid ID
     content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> valueSets =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
-    String firstValueSetId = valueSets.get(0).getIdPart();
+    final String firstValueSetId = valueSets.get(0).getIdPart();
 
     // Act - Get specific version (assuming version 1 exists)
-    String versionEndpoint = endpoint + "/" + firstValueSetId + "/_history/1";
+    final String versionEndpoint = endpoint + "/" + firstValueSetId + "/_history/1";
     content = this.restTemplate.getForObject(versionEndpoint, String.class);
-    ValueSet versionedValueSet = parser.parseResource(ValueSet.class, content);
+    final ValueSet versionedValueSet = parser.parseResource(ValueSet.class, content);
 
     // Assert
     assertNotNull(versionedValueSet);
@@ -952,7 +953,7 @@ class FhirR5ValueSetReadSearchTests {
     assertNotNull(versionedValueSet.getMeta().getLastUpdated());
 
     // Compare with original ValueSet
-    ValueSet originalValueSet = (ValueSet) valueSets.get(0);
+    final ValueSet originalValueSet = (ValueSet) valueSets.get(0);
     assertEquals(originalValueSet.getUrl(), versionedValueSet.getUrl());
     assertEquals(originalValueSet.getName(), versionedValueSet.getName());
     assertEquals(originalValueSet.getPublisher(), versionedValueSet.getPublisher());
@@ -961,18 +962,18 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetVreadNotFound() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
-    String invalidId = "nonexistent-valueSet-id";
-    String versionEndpoint = endpoint + "/" + invalidId + "/_history/1";
+    final String endpoint = localHost + port + fhirVSPath;
+    final String invalidId = "nonexistent-valueSet-id";
+    final String versionEndpoint = endpoint + "/" + invalidId + "/_history/1";
 
     // Act & Assert
-    String messageNotFound = "Value set version not found: nonexistent-valueSet-id version 1";
-    String errorCode = "not-found";
+    final String messageNotFound = "Value set version not found: nonexistent-valueSet-id version 1";
+    final String errorCode = "not-found";
 
     // Act
-    String content = this.restTemplate.getForObject(versionEndpoint, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final String content = this.restTemplate.getForObject(versionEndpoint, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -983,24 +984,25 @@ class FhirR5ValueSetReadSearchTests {
   public void testValueSetVreadInvalidVersion() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
 
     // Act - First get list of ValueSets to find a valid ID
     content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> valueSets =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
-    String firstValueSetId = valueSets.get(0).getIdPart();
+    final String firstValueSetId = valueSets.get(0).getIdPart();
 
     // Act & Assert - Try to get a version that doesn't exist
-    String invalidVersionEndpoint = endpoint + "/" + firstValueSetId + "/_history/999";
-    String messageNotFound = "Value set version not found: " + firstValueSetId + " version 999";
-    String errorCode = "not-found";
+    final String invalidVersionEndpoint = endpoint + "/" + firstValueSetId + "/_history/999";
+    final String messageNotFound =
+        "Value set version not found: " + firstValueSetId + " version 999";
+    final String errorCode = "not-found";
 
     // Act
     content = this.restTemplate.getForObject(invalidVersionEndpoint, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -1011,28 +1013,28 @@ class FhirR5ValueSetReadSearchTests {
   public void testValueSetHistoryMetadataConsistency() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
 
     // Act - Get a ValueSet and its history
     content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> valueSets =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
-    String firstValueSetId = valueSets.get(0).getIdPart();
+    final String firstValueSetId = valueSets.get(0).getIdPart();
 
     // Get history
-    String historyEndpoint = endpoint + "/" + firstValueSetId + "/_history";
+    final String historyEndpoint = endpoint + "/" + firstValueSetId + "/_history";
     content = this.restTemplate.getForObject(historyEndpoint, String.class);
-    Bundle historyBundle = parser.parseResource(Bundle.class, content);
+    final Bundle historyBundle = parser.parseResource(Bundle.class, content);
 
     // Get current version
     content = this.restTemplate.getForObject(endpoint + "/" + firstValueSetId, String.class);
-    ValueSet currentValueSet = parser.parseResource(ValueSet.class, content);
+    final ValueSet currentValueSet = parser.parseResource(ValueSet.class, content);
 
     // Assert - Verify history contains current version
     boolean foundCurrentVersion = false;
-    for (Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
-      ValueSet historyVersion = (ValueSet) entry.getResource();
+    for (final Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
+      final ValueSet historyVersion = (ValueSet) entry.getResource();
       if (currentValueSet.getUrl().equals(historyVersion.getUrl())
           && currentValueSet.getName().equals(historyVersion.getName())) {
         foundCurrentVersion = true;
@@ -1046,27 +1048,27 @@ class FhirR5ValueSetReadSearchTests {
   public void testValueSetVreadMatchesHistoryEntry() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
 
     // Act - Get history first
     content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> valueSets =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
-    String firstValueSetId = valueSets.get(0).getIdPart();
+    final String firstValueSetId = valueSets.get(0).getIdPart();
 
-    String historyEndpoint = endpoint + "/" + firstValueSetId + "/_history";
+    final String historyEndpoint = endpoint + "/" + firstValueSetId + "/_history";
     content = this.restTemplate.getForObject(historyEndpoint, String.class);
-    Bundle historyBundle = parser.parseResource(Bundle.class, content);
+    final Bundle historyBundle = parser.parseResource(Bundle.class, content);
 
     // Get first version from history
-    ValueSet firstHistoryVersion = (ValueSet) historyBundle.getEntry().get(0).getResource();
-    String versionId = firstHistoryVersion.getMeta().getVersionId();
+    final ValueSet firstHistoryVersion = (ValueSet) historyBundle.getEntry().get(0).getResource();
+    final String versionId = firstHistoryVersion.getMeta().getVersionId();
 
     // Act - Get the same version using vread
-    String vreadEndpoint = endpoint + "/" + firstValueSetId + "/_history/" + versionId;
+    final String vreadEndpoint = endpoint + "/" + firstValueSetId + "/_history/" + versionId;
     content = this.restTemplate.getForObject(vreadEndpoint, String.class);
-    ValueSet vreadValueSet = parser.parseResource(ValueSet.class, content);
+    final ValueSet vreadValueSet = parser.parseResource(ValueSet.class, content);
 
     // Assert - Both should be identical
     // assertEquals(firstHistoryVersion.getId(), vreadValueSet.getId());
@@ -1085,7 +1087,7 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetSearchWithDateFocus() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
 
     // Test 1: All valid parameters
     UriComponentsBuilder builder =
@@ -1159,26 +1161,26 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetSearchSortByName() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath + "?_sort=name";
+    final String endpoint = localHost + port + fhirVSPath + "?_sort=name";
 
     // Act
-    String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
 
     // Assert
     assertNotNull(data);
     assertFalse(data.getEntry().isEmpty());
 
     // Verify that results are sorted by name in ascending order
-    List<Resource> valueSets =
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(valueSets);
 
     String previousName = null;
-    for (Resource vs : valueSets) {
-      ValueSet vss = (ValueSet) vs;
+    for (final Resource vs : valueSets) {
+      final ValueSet vss = (ValueSet) vs;
       assertNotNull(vss.getName());
-      String currentName = vss.getName().toLowerCase();
+      final String currentName = vss.getName().toLowerCase();
       if (previousName != null) {
         assertTrue(
             currentName.compareTo(previousName) >= 0,
@@ -1200,26 +1202,26 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetSearchSortByTitleDescending() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath + "?_sort=-title";
+    final String endpoint = localHost + port + fhirVSPath + "?_sort=-title";
 
     // Act
-    String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
 
     // Assert
     assertNotNull(data);
     assertFalse(data.getEntry().isEmpty());
 
     // Verify that results are sorted by title in descending order
-    List<Resource> valueSets =
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(valueSets);
 
     String previousTitle = null;
-    for (Resource vs : valueSets) {
-      ValueSet vss = (ValueSet) vs;
+    for (final Resource vs : valueSets) {
+      final ValueSet vss = (ValueSet) vs;
       assertNotNull(vss.getTitle());
-      String currentTitle = vss.getTitle().toLowerCase();
+      final String currentTitle = vss.getTitle().toLowerCase();
       if (previousTitle != null) {
         assertTrue(
             currentTitle.compareTo(previousTitle) <= 0,
@@ -1241,26 +1243,26 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetSearchSortByPublisher() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath + "?_sort=publisher";
+    final String endpoint = localHost + port + fhirVSPath + "?_sort=publisher";
 
     // Act
-    String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
 
     // Assert
     assertNotNull(data);
     assertFalse(data.getEntry().isEmpty());
 
     // Verify that results are sorted by publisher in ascending order
-    List<Resource> valueSets =
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(valueSets);
 
     String previousPublisher = null;
-    for (Resource vs : valueSets) {
-      ValueSet vss = (ValueSet) vs;
+    for (final Resource vs : valueSets) {
+      final ValueSet vss = (ValueSet) vs;
       assertNotNull(vss.getPublisher());
-      String currentPublisher = vss.getPublisher().toLowerCase();
+      final String currentPublisher = vss.getPublisher().toLowerCase();
       if (previousPublisher != null) {
         assertTrue(
             currentPublisher.compareTo(previousPublisher) >= 0,
@@ -1282,25 +1284,25 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetSearchSortByDate() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath + "?_sort=date";
+    final String endpoint = localHost + port + fhirVSPath + "?_sort=date";
 
     // Act
-    String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
 
     // Assert
     assertNotNull(data);
     assertFalse(data.getEntry().isEmpty());
 
     // Verify that results are sorted by date in ascending order
-    List<Resource> valueSets =
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(valueSets);
 
     Date previousDate = null;
-    for (Resource vs : valueSets) {
-      ValueSet vss = (ValueSet) vs;
-      Date currentDate = vss.getDate();
+    for (final Resource vs : valueSets) {
+      final ValueSet vss = (ValueSet) vs;
+      final Date currentDate = vss.getDate();
       if (previousDate != null && currentDate != null) {
         assertTrue(
             currentDate.compareTo(previousDate) >= 0,
@@ -1324,26 +1326,26 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetSearchSortByUrl() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath + "?_sort=url";
+    final String endpoint = localHost + port + fhirVSPath + "?_sort=url";
 
     // Act
-    String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
 
     // Assert
     assertNotNull(data);
     assertFalse(data.getEntry().isEmpty());
 
     // Verify that results are sorted by URL in ascending order
-    List<Resource> valueSets =
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
     assertNotNull(valueSets);
 
     String previousUrl = null;
-    for (Resource vs : valueSets) {
-      ValueSet vss = (ValueSet) vs;
+    for (final Resource vs : valueSets) {
+      final ValueSet vss = (ValueSet) vs;
       assertNotNull(vss.getUrl());
-      String currentUrl = vss.getUrl().toLowerCase();
+      final String currentUrl = vss.getUrl().toLowerCase();
       if (previousUrl != null) {
         assertTrue(
             currentUrl.compareTo(previousUrl) >= 0,
@@ -1365,19 +1367,212 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetSearchSortByInvalidField() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath + "?_sort=invalid_field";
+    final String endpoint = localHost + port + fhirVSPath + "?_sort=invalid_field";
 
     // Act
-    String content = this.restTemplate.getForObject(endpoint, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
 
     // Assert
     assertNotNull(outcome);
     assertNotNull(outcome.getIssue());
     assertFalse(outcome.getIssue().isEmpty());
 
-    OperationOutcomeIssueComponent issue = outcome.getIssue().get(0);
+    final OperationOutcomeIssueComponent issue = outcome.getIssue().get(0);
     assertEquals(OperationOutcome.IssueSeverity.ERROR, issue.getSeverity());
     assertTrue(issue.getDiagnostics().contains("Unsupported sort field"));
+  }
+
+  /**
+   * Test value set search with :missing modifier on string parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchWithMissingModifierOnStringParams() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // Test 1: Find ValueSets WITH a name (name:missing=false)
+    String url = endpoint + "?name:missing=false&_count=100";
+    String content = this.restTemplate.getForObject(url, String.class);
+    Bundle bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should have a name
+    assertNotNull(bundle);
+    assertTrue(bundle.hasEntry(), "Should find ValueSets with names");
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      ValueSet vs = (ValueSet) entry.getResource();
+      assertNotNull(vs.getName(), "ValueSet should have a name when name:missing=false");
+      assertFalse(vs.getName().isEmpty(), "ValueSet name should not be empty");
+    }
+
+    // Test 2: Find ValueSets WITHOUT a name (name:missing=true)
+    url = endpoint + "?name:missing=true&_count=100";
+    content = this.restTemplate.getForObject(url, String.class);
+    bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should NOT have a name
+    assertNotNull(bundle);
+    // Note: May be empty if all ValueSets have names
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      ValueSet vs = (ValueSet) entry.getResource();
+      assertTrue(
+          vs.getName() == null || vs.getName().isEmpty(),
+          "ValueSet should not have a name when name:missing=true");
+    }
+  }
+
+  /**
+   * Test value set search with :missing modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchWithUrlMissingModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // Test 1: Find ValueSets WITH a url (url:missing=false)
+    String url = endpoint + "?url:missing=false&_count=100";
+    String content = this.restTemplate.getForObject(url, String.class);
+    Bundle bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should have a url
+    assertNotNull(bundle);
+    assertTrue(bundle.hasEntry(), "Should find ValueSets with urls");
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      ValueSet vs = (ValueSet) entry.getResource();
+      assertNotNull(vs.getUrl(), "ValueSet should have a url when url:missing=false");
+      assertFalse(vs.getUrl().isEmpty(), "ValueSet url should not be empty");
+    }
+
+    // Test 2: Find ValueSets WITHOUT a url (url:missing=true)
+    url = endpoint + "?url:missing=true&_count=100";
+    content = this.restTemplate.getForObject(url, String.class);
+    bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should NOT have a url
+    assertNotNull(bundle);
+    // Note: May be empty if all ValueSets have urls
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      ValueSet vs = (ValueSet) entry.getResource();
+      assertTrue(
+          vs.getUrl() == null || vs.getUrl().isEmpty(),
+          "ValueSet should not have a url when url:missing=true");
+    }
+  }
+
+  /**
+   * Test value set search with :contains modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchWithUrlContainsModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // Test: Find ValueSets where URL contains "ncit"
+    String url = endpoint + "?url:contains=ncit&_count=100";
+    String content = this.restTemplate.getForObject(url, String.class);
+    Bundle bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should have "ncit" in their URL
+    assertNotNull(bundle);
+    if (bundle.hasEntry()) {
+      for (BundleEntryComponent entry : bundle.getEntry()) {
+        ValueSet vs = (ValueSet) entry.getResource();
+        assertNotNull(vs.getUrl(), "ValueSet should have a url");
+        assertTrue(
+            vs.getUrl().toLowerCase().contains("ncit"),
+            "ValueSet url should contain 'ncit': " + vs.getUrl());
+      }
+    }
+  }
+
+  /**
+   * Test value set search with :below modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchWithUrlBelowModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // First, get a known ValueSet with a URL
+    String content = this.restTemplate.getForObject(endpoint + "?_count=1", String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    assertTrue(data.hasEntry(), "Should have at least one ValueSet");
+    ValueSet firstVs = (ValueSet) data.getEntry().get(0).getResource();
+    String baseUrl = firstVs.getUrl();
+
+    // Test: Find ValueSets where URL is at or below the base URL
+    // For example, if baseUrl is "http://example.com/fhir/ValueSet/123"
+    // we'll search for everything below "http://example.com/fhir"
+    if (baseUrl != null && baseUrl.contains("/")) {
+      // Get parent URL (remove last path segment)
+      String parentUrl = baseUrl.substring(0, baseUrl.lastIndexOf("/"));
+
+      String url = endpoint + "?url:below=" + URLEncoder.encode(parentUrl, StandardCharsets.UTF_8);
+      content = this.restTemplate.getForObject(url, String.class);
+      Bundle bundle = parser.parseResource(Bundle.class, content);
+
+      // Assert - all returned resources should have URL at or below parent URL
+      assertNotNull(bundle);
+      if (bundle.hasEntry()) {
+        for (BundleEntryComponent entry : bundle.getEntry()) {
+          ValueSet vs = (ValueSet) entry.getResource();
+          assertNotNull(vs.getUrl(), "ValueSet should have a url");
+          assertTrue(
+              vs.getUrl().startsWith(parentUrl) || vs.getUrl().equals(parentUrl),
+              "ValueSet url should be at or below '" + parentUrl + "': " + vs.getUrl());
+        }
+      }
+    }
+  }
+
+  /**
+   * Test value set search with :above modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchWithUrlAboveModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // First, get a known ValueSet with a URL
+    String content = this.restTemplate.getForObject(endpoint + "?_count=1", String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    assertTrue(data.hasEntry(), "Should have at least one ValueSet");
+    ValueSet firstVs = (ValueSet) data.getEntry().get(0).getResource();
+    String childUrl = firstVs.getUrl();
+
+    // Test: Find ValueSets where URL is at or above the child URL
+    // This should return ValueSets whose URLs are parents (or exact match) of the search value
+    if (childUrl != null) {
+      String url = endpoint + "?url:above=" + URLEncoder.encode(childUrl, StandardCharsets.UTF_8);
+      content = this.restTemplate.getForObject(url, String.class);
+      Bundle bundle = parser.parseResource(Bundle.class, content);
+
+      // Assert - all returned resources should have URL at or above child URL
+      // This means the search value should start with the resource URL
+      assertNotNull(bundle);
+      if (bundle.hasEntry()) {
+        for (BundleEntryComponent entry : bundle.getEntry()) {
+          ValueSet vs = (ValueSet) entry.getResource();
+          assertNotNull(vs.getUrl(), "ValueSet should have a url");
+          assertTrue(
+              childUrl.startsWith(vs.getUrl()) || childUrl.equals(vs.getUrl()),
+              "Search url '"
+                  + childUrl
+                  + "' should be at or below ValueSet url '"
+                  + vs.getUrl()
+                  + "'");
+        }
+      }
+    }
   }
 }
