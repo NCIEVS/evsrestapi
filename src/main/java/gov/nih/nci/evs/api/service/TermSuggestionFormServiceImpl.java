@@ -1,12 +1,21 @@
 package gov.nih.nci.evs.api.service;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import gov.nih.nci.evs.api.model.EmailDetails;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.util.EVSUtils;
+import jakarta.mail.Message.RecipientType;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.Arrays;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
@@ -16,18 +25,6 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
-
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-
-import gov.nih.nci.evs.api.model.EmailDetails;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.util.EVSUtils;
-import jakarta.mail.Message.RecipientType;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
 
 /** Implementation class for the terminology suggestion form service. */
 @Service
@@ -388,7 +385,8 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       if (wb.getNumberOfSheets() != 1) {
         return prefix
             + String.format(
-                "NCIT template should have exactly 1 sheet, found {} sheets in uploaded workbook: {}",
+                "NCIT template should have exactly 1 sheet, found {} sheets in uploaded workbook:"
+                    + " {}",
                 wb.getNumberOfSheets(),
                 filename);
       }
@@ -413,7 +411,8 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
         if (!expectedHeaders[col].equals(cellValue)) {
           return prefix
               + String.format(
-                  "Header mismatch at column {}: expected '{}', found '{}' in uploaded workbook: {}",
+                  "Header mismatch at column {}: expected '{}', found '{}' in uploaded workbook:"
+                      + " {}",
                   (char) ('A' + col),
                   expectedHeaders[col],
                   cellValue,
@@ -473,8 +472,8 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
         if (colC == null || !ncitCodePattern.matcher(colC.trim()).matches()) {
           return prefix
               + String.format(
-                  "Column C (NCIt Code) invalid or missing at row {}: '{}' (expected format: C followed"
-                      + " by digits) in uploaded workbook: {}",
+                  "Column C (NCIt Code) invalid or missing at row {}: '{}' (expected format: C"
+                      + " followed by digits) in uploaded workbook: {}",
                   rowIndex + 1,
                   colC,
                   filename);
