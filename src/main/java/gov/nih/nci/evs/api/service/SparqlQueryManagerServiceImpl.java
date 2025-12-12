@@ -205,6 +205,13 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       term.setSource(b.getSource().getValue());
       term.setTerminology(getTerm(term.getSource()));
 
+      // Special handling for chebi to avoid "247.0" as a version
+      // We are doing this to avoid a much more complicated sparql-queries.properties file
+      // but may want to do something about this going forward.
+      if (term.getTerminology().equals("chebi")) {
+        term.setVersion(term.getVersion().replaceFirst(".0$", ""));
+      }
+
       final String startDate =
           FhirUtility.convertToYYYYMMDD(
               (b.getDate() == null) ? term.getVersion() : b.getDate().getValue());
