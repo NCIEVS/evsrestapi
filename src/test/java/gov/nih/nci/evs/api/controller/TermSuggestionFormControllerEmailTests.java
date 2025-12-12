@@ -1,6 +1,9 @@
 package gov.nih.nci.evs.api.controller;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
@@ -62,8 +65,8 @@ public class TermSuggestionFormControllerEmailTests {
   /** The base url. */
   // Base url for api calls
   private String baseUrl = "/api/v1/submit/";
-  ;
 
+  /** The recaptcha token. */
   private String recaptchaToken = "TEST-KEY";
 
   /** The object mapper. */
@@ -127,6 +130,11 @@ public class TermSuggestionFormControllerEmailTests {
             .andReturn();
   }
 
+  /**
+   * Integration test submit form with attachment.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void integrationTestSubmitFormWithAttachment() throws Exception {
     // SET UP
@@ -165,6 +173,11 @@ public class TermSuggestionFormControllerEmailTests {
         .andExpect(status().isOk());
   }
 
+  /**
+   * Integration test submit form with attachment NCIT.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void integrationTestSubmitFormWithAttachmentNCIT() throws Exception {
     // SET UP
