@@ -384,7 +384,7 @@ class FhirR5ValueSetReadSearchTests {
    */
   @Test
   public void testValueSetSearchWithParameters() throws Exception {
-    // TODO: currently data doesn't have the system data and only subsets have
+    // NOTE: currently data doesn't have the system data and only subsets have
     // the code
     // these tests should be amended when the data is updated
 

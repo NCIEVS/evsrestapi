@@ -41,14 +41,6 @@ management:
         include: heapdump,liquibase,loggers,prometheus,threaddump,info,metrics,health
 
 #
-# TODO: need to inject this into the application and use in VersionController, currently ignored
-#
-info:
-  app:
-    name: NCI EVS API
-    version: 1.1.2.RELEASE
-
-#
 # Logging Properties
 #
 logging:

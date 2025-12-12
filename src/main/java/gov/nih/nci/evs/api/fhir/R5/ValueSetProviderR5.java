@@ -982,7 +982,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyRequired("system", system, "systemVersion", systemVersion);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
 
-      // TODO: not sure that "version" should be in this list
       for (final String param :
           new String[] {
             "context",
@@ -1114,7 +1113,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
 
-      // TODO: not sure that "version" should be in this list
       for (final String param :
           new String[] {
             "context",

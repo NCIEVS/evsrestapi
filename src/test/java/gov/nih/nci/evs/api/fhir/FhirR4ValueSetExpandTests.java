@@ -53,8 +53,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-// TODO: Auto-generated Javadoc
-
 /**
  * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
  * ValueSet, and ConceptMap. All passed ids MUST be lowercase, so they match our internally set id's
