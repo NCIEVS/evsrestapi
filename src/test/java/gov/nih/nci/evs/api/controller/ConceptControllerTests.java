@@ -175,18 +175,11 @@ public class ConceptControllerTests {
    * @throws Exception the exception
    */
   @Test
-  @Disabled("The extra mappings are blocked off until we figure out versioning")
   public void testGetConceptExtraMappings() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
     Concept concept = null;
-
-    // TODO: if there was a case of a map that had a P375 in the owl (mapsTo) and ALSO
-    // was represented in an explicit viewable map - then we could test that concept
-    // details properly de-duplicates that.  But we don't have any such data at the moment.
-
-    //
 
     // Verify this concept has a "maps to" to an HGNC code
     // This comes from the independent NCI-HGNC map distributed by Liz
@@ -205,6 +198,23 @@ public class ConceptControllerTests {
                             && m.getMapsetCode().equals("NCIt_to_HGNC_Mapping")
                             && m.getSourceCode().equals("C143031")
                             && m.getTargetCode().equals("HGNC:24086"))
+                .count())
+        .isEqualTo(1);
+
+    // check for duplicate maps because of ncit
+    url = baseUrl + "/ncit/C82547?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getMaps().size()).isGreaterThan(0);
+    assertThat(
+            concept.getMaps().stream()
+                .filter(
+                    m ->
+                        m.getTargetCode().equals("R83")
+                            && m.getTargetTerminology().startsWith("ICD10CM")
+                            && m.getType().equals("Broader Than"))
                 .count())
         .isEqualTo(1);
   }
@@ -1893,11 +1903,17 @@ public class ConceptControllerTests {
    * @return boolean true if hierarchy has a leaf node, else false
    */
   private boolean hasLeafNode(List<HierarchyNode> list) {
-    if (CollectionUtils.isEmpty(list)) return false;
+    if (CollectionUtils.isEmpty(list)) {
+      return false;
+    }
     for (HierarchyNode node : list) {
-      if (node.getLeaf() != null && node.getLeaf()) return true;
+      if (node.getLeaf() != null && node.getLeaf()) {
+        return true;
+      }
       if (!CollectionUtils.isEmpty(node.getChildren())) {
-        if (hasLeafNode(node.getChildren())) return true;
+        if (hasLeafNode(node.getChildren())) {
+          return true;
+        }
       }
     }
 
