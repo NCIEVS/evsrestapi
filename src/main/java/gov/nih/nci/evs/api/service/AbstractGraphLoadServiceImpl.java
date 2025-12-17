@@ -2,6 +2,8 @@ package gov.nih.nci.evs.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.dnault.xmlpatch.internal.Log;
+
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.Audit;
@@ -220,7 +222,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     ExecutorService executor = Executors.newFixedThreadPool(10);
     try {
       while (start < total) {
-        if (total - start <= DOWNLOAD_BATCH_SIZE) end = total.intValue();
+        if (total - start <= DOWNLOAD_BATCH_SIZE) {
+          end = total.intValue();
+        }
 
         logger.info("  Processing {} to {}", start + 1, end);
         logger.info("    start reading {} to {}", start + 1, end);
@@ -285,7 +289,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         Double indexTotal = (double) concepts.size();
         final List<Future<Void>> futures = new ArrayList<>();
         while (indexStart < indexTotal) {
-          if (indexTotal - indexStart <= INDEX_BATCH_SIZE) indexEnd = indexTotal.intValue();
+          if (indexTotal - indexStart <= INDEX_BATCH_SIZE) {
+            indexEnd = indexTotal.intValue();
+          }
 
           futures.add(
               executor.submit(
@@ -444,10 +450,18 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     // Build property values map by code and by property name and index it
     final Map<String, Set<String>> propertyMap = new HashMap<>();
     for (final Concept property : properties) {
+
       // skip any remodeled properties
       if (terminology.getMetadata().isRemodeledProperty(property.getCode())) {
         continue;
       }
+      if (terminology.getMetadata().isRemodeledQualifier(property.getCode())) {
+        continue;
+      }
+      if (terminology.getMetadata().isRemodeledQualifier(property.getCode())) {
+        continue;
+      }
+
       for (final String value :
           sparqlQueryManagerService.getPropertyValues(property.getCode(), terminology)) {
         if (!propertyMap.containsKey(property.getCode())) {
@@ -511,7 +525,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     for (Concept association : associations) {
       logger.info(association.getName());
       entries = new ArrayList<>();
-      if (association.getName().equals("Concept_In_Subset")) continue;
+      if (association.getName().equals("Concept_In_Subset")) {
+        continue;
+      }
       for (String conceptCode : hierarchy.getAssociationMap().keySet()) {
         List<Association> conceptAssociations = hierarchy.getAssociationMap().get(conceptCode);
         for (Association conceptAssociation : conceptAssociations) {
