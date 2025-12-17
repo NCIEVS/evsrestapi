@@ -182,12 +182,6 @@ public class ConceptControllerTests {
     String content = null;
     Concept concept = null;
 
-    // TODO: if there was a case of a map that had a P375 in the owl (mapsTo) and ALSO
-    // was represented in an explicit viewable map - then we could test that concept
-    // details properly de-duplicates that.  But we don't have any such data at the moment.
-
-    //
-
     // Verify this concept has a "maps to" to an HGNC code
     // This comes from the independent NCI-HGNC map distributed by Liz
     // and isn't in the owl file itself.

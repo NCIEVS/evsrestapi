@@ -253,7 +253,7 @@ public class FhirR4ValueSetReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
             .queryParam("_id", "ncit_c100110")
-            //    TODO
+            // NOTE  investigate on ticket EVSRESTAPI-699
             // .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
             .queryParam("title", "ncit")

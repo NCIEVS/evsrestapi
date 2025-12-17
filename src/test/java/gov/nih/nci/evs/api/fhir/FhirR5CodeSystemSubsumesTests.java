@@ -31,7 +31,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.util.UriComponentsBuilder;
 
-// TODO: Auto-generated Javadoc
 /**
  * Class tests for FhirR5Tests. Tests the functionality of the FHIR R5 endpoints, CodeSystem,
  * ValueSet, and ConceptMap. All passed ids MUST be lowercase, so they match our internally set id's
@@ -76,8 +75,6 @@ public class FhirR5CodeSystemSubsumesTests {
     objectMapper = new ObjectMapper();
     JacksonTester.initFields(this, objectMapper);
   }
-
-  // TODO: test invalid parameter such as url instead of system
 
   /**
    * Test code system lookup code.
@@ -455,6 +452,75 @@ public class FhirR5CodeSystemSubsumesTests {
     builder.queryParam("codeA", activeCodeA);
     builder.queryParam("codeB", activeCodeB);
     builder.queryParam("systemB", url);
+    final URI getUri = builder.build().toUri();
+
+    // Act
+    final String content = this.restTemplate.getForObject(getUri, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, component.getDiagnostics());
+  }
+
+  /**
+   * Test subsumes operation with url parameter instead of system (implicit).
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemSubsumesImplicitWithUrlInsteadOfSystem() throws Exception {
+    // Arrange
+    final String activeCodeA = "448772000";
+    final String activeCodeB = "271860004";
+    final String url = "http://snomed.info/sct";
+
+    final String messageNotSupported =
+        "Input parameter 'codeA' can only be used in conjunction with parameter 'system'.";
+    final String errorCode = "invariant";
+
+    final UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(
+            localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES);
+    builder.queryParam("codeA", activeCodeA);
+    builder.queryParam("codeB", activeCodeB);
+    builder.queryParam("url", url); // Using 'url' instead of 'system'
+    final URI getUri = builder.build().toUri();
+
+    // Act
+    final String content = this.restTemplate.getForObject(getUri, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotSupported, component.getDiagnostics());
+  }
+
+  /**
+   * Test subsumes operation with url parameter instead of system (instance).
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemSubsumesInstanceWithUrlInsteadOfSystem() throws Exception {
+    // Arrange
+    final String activeCodeA = "448772000";
+    final String activeCodeB = "271860004";
+    final String activeId = "snomedct_us_2025_03_01";
+    final String url = "http://snomed.info/sct";
+
+    final String messageNotSupported =
+        "Input parameter 'codeA' can only be used in conjunction with parameter 'system'.";
+    final String errorCode = "invariant";
+
+    final UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(
+            localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES);
+    builder.queryParam("codeA", activeCodeA);
+    builder.queryParam("codeB", activeCodeB);
+    builder.queryParam("url", url); // Using 'url' instead of 'system'
     final URI getUri = builder.build().toUri();
 
     // Act
