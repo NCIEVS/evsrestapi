@@ -48,7 +48,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
   /** The object mapper to read the config url with readTree. */
   private final ObjectMapper mapper = new ObjectMapper();
 
-  /** Pattern for optional instruction sheets with date suffix */
+  /** Pattern for optional instruction sheets with date suffix. */
   private static final Pattern INSTRUCTION_PATTERN =
       Pattern.compile(".*\\d{4}_\\d{2}_\\d{2} Instructions$");
 
@@ -111,6 +111,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    *
    * @param emailDetails details of the email created from the form data
    * @throws MessagingException the messaging exception
+   * @throws Exception the exception
    */
   @Override
   public void sendEmail(final EmailDetails emailDetails) throws MessagingException, Exception {
@@ -163,6 +164,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @param emailDetails details of the email created from the form data
    * @param file optional multipart file to attach
    * @throws MessagingException the messaging exception
+   * @throws Exception the exception
    */
   @Override
   public void sendEmailWithAttachment(final EmailDetails emailDetails, final MultipartFile file)
@@ -220,15 +222,10 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     }
   }
 
-  /**
-   * Validate file attachment.
-   *
-   * @param file the file
-   * @return true, if successful
-   */
+  /* see superclass */
   @Override
-  public boolean validateFileAttachment(final MultipartFile file) {
-    final String reason = validateFileAttachmentReason(file);
+  public boolean validateFileAttachment(final MultipartFile file, final String formType) {
+    final String reason = validateFileAttachmentReason(file, formType);
     if (reason != null) {
       logger.warn(reason);
       return false;
@@ -236,8 +233,15 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     return true;
   }
 
+  /**
+   * Validate file attachment reason.
+   *
+   * @param file the file
+   * @param formType the form type
+   * @return the string
+   */
   @Override
-  public String validateFileAttachmentReason(final MultipartFile file) {
+  public String validateFileAttachmentReason(final MultipartFile file, final String formType) {
     final String prefix = "Attachment is invalid: ";
 
     // No file attached / empty file
@@ -255,6 +259,26 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       return prefix + "Invalid file extension; expected .xls or .xlsx";
     }
 
+    // Route to appropriate validation method based on form type
+    if ("CDISC".equalsIgnoreCase(formType)) {
+      return validateCDISCAttachment(file, filename);
+    } else if ("NCIT".equalsIgnoreCase(formType)) {
+      return validateNCITAttachment(file, filename);
+    } else {
+      return prefix
+          + String.format("Unknown form type '{}' for file validation: {}", formType, filename);
+    }
+  }
+
+  /**
+   * Validate CDISC file attachment.
+   *
+   * @param file the file
+   * @param filename the filename
+   * @return true, if successful
+   */
+  private String validateCDISCAttachment(final MultipartFile file, final String filename) {
+    final String prefix = "Attachment is invalid: ";
     // Try to open the workbook once to ensure it's a valid Excel file and collect sheet names
     final java.util.Set<String> sheets = new java.util.HashSet<>();
     try (final java.io.InputStream is = file.getInputStream();
@@ -321,7 +345,170 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
   }
 
   /**
+   * Validate NCIT file attachment.
+   *
+   * @param file the file
+   * @param filename the filename
+   * @return true, if successful
+   */
+  private String validateNCITAttachment(final MultipartFile file, final String filename) {
+    final String prefix = "Attachment is invalid: ";
+
+    try (final java.io.InputStream is = file.getInputStream();
+        final Workbook wb = WorkbookFactory.create(is)) {
+
+      // NCIT template should have exactly 1 sheet
+      if (wb.getNumberOfSheets() != 1) {
+        return prefix
+            + String.format(
+                "NCIT template should have exactly 1 sheet, found {} sheets in uploaded workbook:"
+                    + " {}",
+                wb.getNumberOfSheets(),
+                filename);
+      }
+
+      final org.apache.poi.ss.usermodel.Sheet sheet = wb.getSheetAt(0);
+      final org.apache.poi.ss.usermodel.DataFormatter formatter =
+          new org.apache.poi.ss.usermodel.DataFormatter();
+
+      // Expected headers in row 1 (index 0)
+      final String[] expectedHeaders = {
+        "Requested Term", "Use Case", "NCIt Code", "NCIt PT", "NCIt SY", "NCIt DEF"
+      };
+
+      // Validate header row
+      final org.apache.poi.ss.usermodel.Row headerRow = sheet.getRow(0);
+      if (headerRow == null) {
+        return prefix + String.format("Header row missing in NCIT uploaded workbook: {}", filename);
+      }
+
+      for (int col = 0; col < expectedHeaders.length; col++) {
+        final String cellValue = getMergedCellValue(sheet, 0, col, formatter);
+        if (!expectedHeaders[col].equals(cellValue)) {
+          return prefix
+              + String.format(
+                  "Header mismatch at column {}: expected '{}', found '{}' in uploaded workbook:"
+                      + " {}",
+                  (char) ('A' + col),
+                  expectedHeaders[col],
+                  cellValue,
+                  filename);
+        }
+      }
+
+      // Validate data rows (starting from row 2, index 1)
+      // Pattern for NCIt Code: C followed by digits
+      final java.util.regex.Pattern ncitCodePattern = java.util.regex.Pattern.compile("^C\\d+$");
+
+      boolean hasDataRows = false;
+      for (int rowIndex = 1; rowIndex <= sheet.getLastRowNum(); rowIndex++) {
+        final org.apache.poi.ss.usermodel.Row row = sheet.getRow(rowIndex);
+        if (row == null) {
+          continue;
+        }
+
+        // Check if row has any data in columns A-F
+        boolean rowHasData = false;
+        for (int col = 0; col < 6; col++) {
+          final String cellValue = getMergedCellValue(sheet, rowIndex, col, formatter);
+          if (cellValue != null && !cellValue.isEmpty()) {
+            rowHasData = true;
+            break;
+          }
+        }
+
+        if (!rowHasData) {
+          continue; // Skip empty rows
+        }
+
+        hasDataRows = true;
+
+        // Column A (Requested Term) - must have text
+        final String colA = getMergedCellValue(sheet, rowIndex, 0, formatter);
+        if (colA == null || colA.trim().isEmpty()) {
+          return prefix
+              + String.format(
+                  "Column A (Requested Term) is empty at row {} in uploaded workbook: {}",
+                  rowIndex + 1,
+                  filename);
+        }
+
+        // Column B (Use Case) - must have text
+        final String colB = getMergedCellValue(sheet, rowIndex, 1, formatter);
+        if (colB == null || colB.trim().isEmpty()) {
+          return prefix
+              + String.format(
+                  "Column B (Use Case) is empty at row {} in uploaded workbook: {}",
+                  rowIndex + 1,
+                  filename);
+        }
+
+        // Column C (NCIt Code) - must match pattern C\d+
+        final String colC = getMergedCellValue(sheet, rowIndex, 2, formatter);
+        if (colC == null || !ncitCodePattern.matcher(colC.trim()).matches()) {
+          return prefix
+              + String.format(
+                  "Column C (NCIt Code) invalid or missing at row {}: '{}' (expected format: C"
+                      + " followed by digits) in uploaded workbook: {}",
+                  rowIndex + 1,
+                  colC,
+                  filename);
+        }
+
+        // Column D (NCIt PT) - must have text
+        final String colD = getMergedCellValue(sheet, rowIndex, 3, formatter);
+        if (colD == null || colD.trim().isEmpty()) {
+          return prefix
+              + String.format(
+                  "Column D (NCIt PT) is empty at row {} in uploaded workbook: {}",
+                  rowIndex + 1,
+                  filename);
+        }
+
+        // Column E (NCIt SY) - optional, but if present should be semicolon-separated
+        // We just log a warning if it doesn't contain semicolons but has commas
+        final String colE = getMergedCellValue(sheet, rowIndex, 4, formatter);
+        if (colE != null && !colE.trim().isEmpty() && colE.contains(",") && !colE.contains(";")) {
+          logger.warn(
+              "Column E (NCIt SY) at row {} contains commas but no semicolons. Expected"
+                  + " semicolon-separated values in uploaded workbook: {}",
+              rowIndex + 1,
+              filename);
+          // Not a fatal error, just a warning
+        }
+
+        // Column F (NCIt DEF) - must have text
+        final String colF = getMergedCellValue(sheet, rowIndex, 5, formatter);
+        if (colF == null || colF.trim().isEmpty()) {
+          return prefix
+              + String.format(
+                  "Column F (NCIt DEF) is empty at row {} in uploaded workbook: {}",
+                  rowIndex + 1,
+                  filename);
+        }
+      }
+
+      if (!hasDataRows) {
+        return prefix + String.format("No data rows found in NCIT uploaded workbook: {}", filename);
+      }
+
+    } catch (final Exception e) {
+      return prefix
+          + String.format(
+              "Invalid excel file uploaded or failed to validate NCIT workbook: {}", filename, e);
+    }
+
+    return null;
+  }
+
+  /**
    * Read a cell value and correctly handle merged regions. Returns trimmed string or empty string.
+   *
+   * @param sheet the sheet
+   * @param rowIndex the row index
+   * @param colIndex the col index
+   * @param formatter the formatter
+   * @return the merged cell value
    */
   private String getMergedCellValue(
       final org.apache.poi.ss.usermodel.Sheet sheet,

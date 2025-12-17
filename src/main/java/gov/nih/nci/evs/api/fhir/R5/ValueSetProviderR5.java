@@ -9,10 +9,7 @@ import ca.uhn.fhir.rest.annotation.OperationParam;
 import ca.uhn.fhir.rest.annotation.OptionalParam;
 import ca.uhn.fhir.rest.annotation.Read;
 import ca.uhn.fhir.rest.annotation.Search;
-import ca.uhn.fhir.rest.param.DateRangeParam;
-import ca.uhn.fhir.rest.param.NumberParam;
-import ca.uhn.fhir.rest.param.StringParam;
-import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.param.*;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.exceptions.InternalErrorException;
 import ca.uhn.fhir.rest.server.exceptions.InvalidRequestException;
@@ -126,7 +123,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
       @OptionalParam(name = "code") final StringParam code,
       @OptionalParam(name = "name") final StringParam name,
       @OptionalParam(name = "title") final StringParam title,
-      @OptionalParam(name = "url") final StringParam url,
+      @OptionalParam(name = "url") final UriParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
           final NumberParam count,
@@ -154,7 +151,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
           logger.debug("  SKIP date mismatch = " + vs.getDate());
           continue;
         }
-        if (url != null && !url.getValue().equals(vs.getUrl())) {
+        if (url != null && !FhirUtility.compareUri(url, vs.getUrl())) {
           logger.debug("  SKIP url mismatch = " + vs.getUrl());
           continue;
         }
@@ -188,7 +185,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
         logger.debug("  SKIP date mismatch = " + vs.getDate());
         continue;
       }
-      if (url != null && !url.getValue().equals(vs.getUrl())) {
+      if (url != null && !FhirUtility.compareUri(url, vs.getUrl())) {
         logger.debug("  SKIP url mismatch = " + vs.getUrl());
         continue;
       }
@@ -359,10 +356,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
           includeDefinitionValue,
           activeOnlyValue);
     }
-
-    // TODO add more test cases for exclude, after adding filter is-a
-    // TODO add remainder of parameters to expandValueSet
-    // TODO add include.version processing (use latest if not specified)
 
     // check if request is a post, throw exception as we don't support post
     // calls
@@ -985,7 +978,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyRequired("system", system, "systemVersion", systemVersion);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
 
-      // TODO: not sure that "version" should be in this list
       for (final String param :
           new String[] {
             "context",
@@ -1117,7 +1109,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyExclusive("code", code, "coding", coding);
       FhirUtilityR5.mutuallyRequired("display", display, "code", code);
 
-      // TODO: not sure that "version" should be in this list
       for (final String param :
           new String[] {
             "context",

@@ -10,8 +10,11 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -44,6 +47,12 @@ public class MetadataControllerTests {
 
   /** The mvc. */
   @Autowired private MockMvc mvc;
+
+  /** The term utils. */
+  @Autowired private TerminologyUtils termUtils;
+
+  /** The os query service. */
+  @Autowired private OpensearchQueryService osQueryService;
 
   /** The test properties. */
   @Autowired TestProperties testProperties;
@@ -891,6 +900,136 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
+  }
+
+  /**
+   * Test get property values.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetPropertyValues() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<String> list = null;
+
+    // Get values for Semantic_Type property using code
+    url = baseUrl + "/ncit/property/P204/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content length = " + content.length());
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<String>>() {
+                  // n/a
+                });
+    assertThat(list).isNotNull();
+    assertThat(list.size()).isGreaterThan(0);
+    log.info("  Property P204 has " + list.size() + " values");
+
+    // Get values for Semantic_Type property using name
+    url = baseUrl + "/ncit/property/OLD_ROLE/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content length = " + content.length());
+    list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<String>>() {
+                  // n/a
+                });
+    assertThat(list).isNotNull();
+    assertThat(list.size()).isGreaterThan(0);
+    log.info("  Property OLD_ROLE has " + list.size() + " values");
+  }
+
+  /**
+   * Test bad get property values.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testBadGetPropertyValues() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    // Bad terminology
+    url = baseUrl + "/ncitXXX/property/P204/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // Bad property code
+    url = baseUrl + "/ncit/property/P999999/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // Remodeled property like P325 gives 404 error
+    url = baseUrl + "/ncit/property/NHC0/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+  }
+
+  /*
+   * Test all that all properties can retrieve property values with code or name
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPropertyValuesWithCodeAndName() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> properties = null;
+
+    // Get all properties
+    url = baseUrl + "/ncit/properties";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    properties =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+
+    // get ncit terminology
+    Terminology term = termUtils.getIndexedTerminology("ncit", osQueryService, true);
+    for (Concept property : properties) {
+      // filter out remodeled properties because those should 404
+      if (term.getMetadata().isRemodeledProperty(property.getCode())
+          || term.getMetadata().isRemodeledProperty(property.getName())) {
+        continue;
+      }
+      // Try to get property values by code
+      url = baseUrl + "/ncit/property/" + property.getCode() + "/values";
+      log.info("Testing url - " + url);
+      result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+      content = result.getResponse().getContentAsString();
+      log.info("  content length = " + content.length());
+
+      // Try to get property values by name
+      url = baseUrl + "/ncit/property/" + property.getName() + "/values";
+      log.info("Testing url - " + url);
+      result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+      content = result.getResponse().getContentAsString();
+      log.info("  content length = " + content.length());
+    }
   }
 
   /**
@@ -2043,5 +2182,72 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(sourceStats.isEmpty());
+  }
+
+  /**
+   * Test that terminology metadata fields are cleaned for API responses
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testTerminologyMetadataFieldsCleared() throws Exception {
+    final String url = baseUrl + "/terminologies?terminology=ncit&tag=monthly&latest=true";
+    log.info("Testing url - " + url);
+
+    final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // Parse into objects and check metadata has been cleaned (fields either null or empty)
+    final List<Terminology> list =
+        new ObjectMapper()
+            .readValue(
+                content,
+                new TypeReference<List<Terminology>>() {
+                  // n/a
+                });
+
+    assertThat(list).isNotEmpty();
+
+    for (final Terminology term : list) {
+      final TerminologyMetadata md = term.getMetadata();
+      assertThat(md).isNotNull();
+
+      // String fields that are nulled by cleanForApi
+      assertThat(md.getWelcomeText()).isNull();
+      assertThat(md.getSparqlPrefix()).isNull();
+      assertThat(md.getMonthlyDb()).isNull();
+      assertThat(md.getLicenseCheck()).isNull();
+      assertThat(md.getRelationshipToTarget()).isNull();
+      assertThat(md.getCode()).isNull();
+      assertThat(md.getConceptStatus()).isNull();
+      assertThat(md.getPreferredName()).isNull();
+      assertThat(md.getSynonymTermType()).isNull();
+      assertThat(md.getSynonymSource()).isNull();
+      assertThat(md.getSynonymCode()).isNull();
+      assertThat(md.getSynonymSubSource()).isNull();
+      assertThat(md.getDefinitionSource()).isNull();
+      assertThat(md.getFhirPublisher()).isNull();
+      assertThat(md.getFhirUri()).isNull();
+      assertThat(md.getMapRelation()).isNull();
+      assertThat(md.getMap()).isNull();
+      assertThat(md.getMapTarget()).isNull();
+      assertThat(md.getMapTargetTermType()).isNull();
+      assertThat(md.getMapTargetTerminology()).isNull();
+      assertThat(md.getMapTargetTerminologyVersion()).isNull();
+
+      // Collections / maps are expected to be empty (getters return empty container when null)
+      assertThat(md.getExtraSubsets()).isEmpty();
+      assertThat(md.getSources()).isEmpty();
+      assertThat(md.getDefinitionSourceSet()).isEmpty();
+      assertThat(md.getSynonymSourceSet()).isEmpty();
+      assertThat(md.getSubsetMember()).isEmpty();
+      assertThat(md.getUnpublished()).isEmpty();
+      assertThat(md.getSubset()).isEmpty();
+      assertThat(md.getTermTypes()).isEmpty();
+      assertThat(md.getPreferredTermTypes()).isEmpty();
+      assertThat(md.getSynonym()).isEmpty();
+      assertThat(md.getDefinition()).isEmpty();
+    }
   }
 }

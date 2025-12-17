@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
@@ -257,64 +258,138 @@ public class TermSuggestionFormServiceTest {
     }
   }
 
-  /** Check that blank excel file attachment fails validation. */
+
+  /** Check that blank excel form attachment fails validation. */
   @Test
-  public void blankSpreadsheetSubmissionFailsValidation() throws Exception {
+  public void blankFormSubmissionFailsValidation() throws Exception {
     // SET UP
-    Path p = Paths.get("src/test/resources/formSamples/blank-spreadsheet-submission.xls");
+    Path p = Paths.get("src/test/resources/formSamples/blank-form-submission-cdisc.xls");
     byte[] content = Files.readAllBytes(p);
     MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
 
     // ACT & ASSERT
-    assertFalse(termFormService.validateFileAttachment(testFile));
+    assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
+  }
+
+
+  /** Check that blank excel file attachment fails validation. */
+  @Test
+  public void blankSpreadsheetSubmissionFailsValidation() throws Exception {
+    // SET UP
+    Path p = Paths.get("src/test/resources/formSamples/blank-spreadsheet-submission-cdisc.xls");
+    byte[] content = Files.readAllBytes(p);
+    MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
+
+    // ACT & ASSERT
+    assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
 
   /** Check that fake excel file attachment fails validation. */
   @Test
   public void FakeExcelSubmissionFailsValidation() throws Exception {
     // SET UP
-    Path p = Paths.get("src/test/resources/formSamples/fake-excel-submission.xls");
+    Path p = Paths.get("src/test/resources/formSamples/fake-excel-submission-cdisc.xls");
     byte[] content = Files.readAllBytes(p);
     MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
 
     // ACT & ASSERT
-    assertFalse(termFormService.validateFileAttachment(testFile));
+    assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
 
   /** Check that extra sheet added to the attachment fails validation. */
   @Test
   public void ExtraSheetAddedFailsValidation() throws Exception {
     // SET UP
-    Path p = Paths.get("src/test/resources/formSamples/extra-sheets-submission.xls");
+    Path p = Paths.get("src/test/resources/formSamples/extra-sheets-submission-cdisc.xls");
     byte[] content = Files.readAllBytes(p);
     MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
 
     // ACT & ASSERT
-    assertFalse(termFormService.validateFileAttachment(testFile));
+    assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
 
   /** Check that changed sheet name in the attachment fails validation. */
   @Test
   public void ChangedSheetNameFailsValidation() throws Exception {
     // SET UP
-    Path p = Paths.get("src/test/resources/formSamples/changed-sheets-submission.xls");
+    Path p = Paths.get("src/test/resources/formSamples/changed-sheets-submission-cdisc.xls");
     byte[] content = Files.readAllBytes(p);
     MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
 
     // ACT & ASSERT
-    assertFalse(termFormService.validateFileAttachment(testFile));
+    assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
 
   /** Check that filled out form attachment passes validation. */
   @Test
   public void filledFormSubmissionPassesValidation() throws Exception {
     // SET UP
-    Path p = Paths.get("src/test/resources/formSamples/filled-form-submission.xls");
+    Path p = Paths.get("src/test/resources/formSamples/filled-form-submission-cdisc.xls");
     byte[] content = Files.readAllBytes(p);
     MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
 
     // ACT & ASSERT
-    assertTrue(termFormService.validateFileAttachment(testFile));
+    assertTrue(termFormService.validateFileAttachment(testFile, "CDISC"));
+  }
+
+  /** Check that filled out NCIT form attachment passes validation. */
+  @Test
+  public void filledFormSubmissionNCITPassesValidation() throws Exception {
+    // SET UP
+    Path p = Paths.get("src/test/resources/formSamples/filled-form-submission-ncit.xls");
+    byte[] content = Files.readAllBytes(p);
+    MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
+
+    // ACT & ASSERT - Using the form-type-aware version
+    assertTrue(termFormService.validateFileAttachment(testFile, "NCIT"));
+  }
+
+  /** Check that blank NCIT form attachment fails validation. */
+  @Test
+  public void blankFormSubmissionNCITFailsValidation() throws Exception {
+    // SET UP
+    Path p = Paths.get("src/test/resources/formSamples/blank-form-submission-ncit.xls");
+    byte[] content = Files.readAllBytes(p);
+    MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
+
+    // ACT & ASSERT - Should fail because there are no data rows
+    assertFalse(termFormService.validateFileAttachment(testFile, "NCIT"));
+  }
+
+  /** Check that NCIT form with invalid C-code format fails validation. */
+  @Test
+  public void invalidCodeFormatNCITFailsValidation() throws Exception {
+    // SET UP
+    Path p = Paths.get("src/test/resources/formSamples/invalid-code-ncit.xls");
+    byte[] content = Files.readAllBytes(p);
+    MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
+
+    // ACT & ASSERT - Should fail because C-code format is invalid
+    assertFalse(termFormService.validateFileAttachment(testFile, "NCIT"));
+  }
+
+  /** Check that NCIT form with missing required columns fails validation. */
+  @Test
+  public void missingRequiredColumnsNCITFailsValidation() throws Exception {
+    // SET UP
+    Path p = Paths.get("src/test/resources/formSamples/missing-columns-ncit.xls");
+    byte[] content = Files.readAllBytes(p);
+    MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
+
+    // ACT & ASSERT - Should fail because required column D is empty
+    assertFalse(termFormService.validateFileAttachment(testFile, "NCIT"));
+  }
+
+  /** Check that NCIT form with wrong header fails validation. */
+  @Test
+  public void invalidHeaderRowNCITFailsValidation() throws Exception {
+    // SET UP
+    Path p = Paths.get("src/test/resources/formSamples/invalid-header-ncit.xls");
+    byte[] content = Files.readAllBytes(p);
+    MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
+
+    // ACT & ASSERT - Should fail because headers don't match
+    assertFalse(termFormService.validateFileAttachment(testFile, "NCIT"));
   }
 
   /**
@@ -330,16 +405,18 @@ public class TermSuggestionFormServiceTest {
     TermSuggestionFormController controller =
         new TermSuggestionFormController(mockedService, mockedCaptcha);
 
-    // Prepare inputs
-    JsonNode formData = new ObjectMapper().createObjectNode();
+    // Prepare inputs - Load a valid form JSON
+    Path p = Paths.get("src/test/resources/formSamples/testNCIT.json");
+    String formJsonString = Files.readString(p);
+    JsonNode formData = new ObjectMapper().readTree(formJsonString);
     MultipartFile file = new MockMultipartFile("file.xlsx", new byte[] {1, 2, 3});
 
     // Mock captcha to succeed
     when(mockedCaptcha.verifyRecaptcha(any())).thenReturn(true);
-    // Mock validateFileAttachmentReason to return a specific failure reason
-    final String failureReason = "Attachment validation failed: Unexpected sheet 'X' found";
-    // Mock validateFileAttachment to return failureReason
-    when(mockedService.validateFileAttachmentReason(file)).thenReturn(failureReason);
+
+    // Mock validateFileAttachment with form type to return false
+    when(mockedService.validateFileAttachment(any(MultipartFile.class), anyString()))
+        .thenReturn(false);
 
     // ACT & ASSERT: calling submitWithAttachment should raise ResponseStatusException
     ResponseStatusException ex =

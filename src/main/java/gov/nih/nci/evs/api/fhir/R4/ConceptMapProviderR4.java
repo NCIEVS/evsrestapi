@@ -15,6 +15,7 @@ import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.param.UriParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.model.Concept;
@@ -109,7 +110,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final HttpServletResponse response,
       final ServletRequestDetails details,
       @IdParam final IdType id,
-      @OperationParam(name = "url") final UriType url,
+      @OperationParam(name = "url") final UriParam url,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
@@ -248,7 +249,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final HttpServletRequest request,
       final HttpServletResponse response,
       final ServletRequestDetails details,
-      @OperationParam(name = "url") final UriType url,
+      @OperationParam(name = "url") final UriParam url,
       @OperationParam(name = "conceptMapVersion") final StringType conceptMapVersion,
       @OperationParam(name = "code") final CodeType code,
       @OperationParam(name = "system") final UriType system,
@@ -391,7 +392,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       @OptionalParam(name = "_id") final TokenParam id,
       @OptionalParam(name = "date") final DateRangeParam date,
       @OptionalParam(name = "name") final StringParam name,
-      @OptionalParam(name = "url") final StringParam url,
+      @OptionalParam(name = "url") final UriParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
           final NumberParam count,
@@ -425,7 +426,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
                 map.get(mapset.getPropertyValue("targetTerminology")),
                 mapset);
         // Skip non-matching
-        if (url != null && !url.getValue().equals(cm.getUrl())) {
+        if (url != null && !FhirUtility.compareUri(url, cm.getUrl())) {
           logger.debug("  SKIP url mismatch = " + cm.getUrl());
           continue;
         }
@@ -481,7 +482,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       final IdType id,
       final DateRangeParam date,
       final UriType system,
-      final UriType url,
+      final UriParam url,
       final StringType version,
       final UriType source,
       final UriType target,
@@ -515,7 +516,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
                 map.get(mapset.getPropertyValue("targetTerminology")),
                 mapset);
         // Skip non-matching
-        if (url != null && !url.getValue().equals(cm.getUrl())) {
+        if (url != null && !FhirUtility.compareUri(url, cm.getUrl())) {
           logger.debug("  SKIP url mismatch = " + cm.getUrl());
           continue;
         }
