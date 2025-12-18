@@ -193,35 +193,36 @@ echo "Ignored source URLs:${ignored_sources}"
 echo "  Lookup terminology, version info in graph db"
 get_graph_query(){
 if [ -n "$ignored_sources" ];then
-cat > /tmp/x.$$.txt << EOF
+    # NOTE: the query must return ?source, ?graphName, and ?version with those names
+    cat > /tmp/x.$$.txt << EOF
 query=PREFIX owl:<http://www.w3.org/2002/07/owl#>
 PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>
 PREFIX dc:<http://purl.org/dc/elements/1.1/>
 PREFIX xml:<http://www.w3.org/2001/XMLSchema>
-SELECT DISTINCT ?source ?graphName (STR(?safeVersion) AS ?versionString) WHERE {
+SELECT DISTINCT ?source ?graphName (STR(?safeVersion) AS ?version) WHERE {
   graph ?graphName {
     {
       ?source a owl:Ontology .
-      ?source owl:versionInfo ?version .
+      ?source owl:versionInfo ?x_version .
       FILTER (?source NOT IN ($ignored_sources))
     }
     UNION
     {
       ?source a owl:Ontology .
-      ?source owl:versionIRI ?version .
+      ?source owl:versionIRI ?x_version .
       FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo } .
       FILTER (?source NOT IN ($ignored_sources))
     }
     BIND (
         IF(
-            isURI(?version),
-            ?version,
+            isURI(?x_version),
+            ?x_version,
             IF(
-                DATATYPE(?version) = xsd:decimal,
-                xsd:integer(?version),
-                ?version
+                DATATYPE(?x_version) = xsd:decimal,
+                xsd:integer(?x_version),
+                ?x_version
             )
         ) AS ?safeVersion
     )
@@ -229,33 +230,34 @@ SELECT DISTINCT ?source ?graphName (STR(?safeVersion) AS ?versionString) WHERE {
 }
 EOF
 else
-cat > /tmp/x.$$.txt << EOF
+    # NOTE: the query must return ?source, ?graphName, and ?version with those names
+    cat > /tmp/x.$$.txt << EOF
 query=PREFIX owl:<http://www.w3.org/2002/07/owl#>
 PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>
 PREFIX dc:<http://purl.org/dc/elements/1.1/>
 PREFIX xml:<http://www.w3.org/2001/XMLSchema>
-SELECT DISTINCT ?source ?graphName (STR(?safeVersion) AS ?versionString) WHERE {
+SELECT DISTINCT ?source ?graphName (STR(?safeVersion) AS ?version) WHERE {
   graph ?graphName {
     {
       ?source a owl:Ontology .
-      ?source owl:versionInfo ?version .
+      ?source owl:versionInfo ?x_version .
     }
     UNION
     {
       ?source a owl:Ontology .
-      ?source owl:versionIRI ?version .
+      ?source owl:versionIRI ?x_version .
       FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo } .
     }
     BIND (
         IF(
-            isURI(?version),
-            ?version,
+            isURI(?x_version),
+            ?x_version,
             IF(
-                DATATYPE(?version) = xsd:decimal,
-                xsd:integer(?version),
-                ?version
+                DATATYPE(?x_version) = xsd:decimal,
+                xsd:integer(?x_version),
+                ?x_version
             )
         ) AS ?safeVersion
     )
@@ -610,6 +612,8 @@ done
 
 # Remove indexes not found in triple store
 echo "  Remove unused indexes"
+echo "    all_indexes = $all_indexes"
+echo "    valid_keys = $valid_keys"
 for idx in $all_indexes; do
   keep=0
   for v in $valid_keys; do
