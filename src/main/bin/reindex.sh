@@ -200,7 +200,7 @@ PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>
 PREFIX dc:<http://purl.org/dc/elements/1.1/>
 PREFIX xml:<http://www.w3.org/2001/XMLSchema>
-select distinct ?source ?graphName ?version where {
+SELECT DISTINCT ?source ?graphName (STR(?safeVersion) AS ?versionString) WHERE {
   graph ?graphName {
     {
       ?source a owl:Ontology .
@@ -214,6 +214,17 @@ select distinct ?source ?graphName ?version where {
       FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo } .
       FILTER (?source NOT IN ($ignored_sources))
     }
+    BIND (
+        IF(
+            isURI(?version),
+            ?version,
+            IF(
+                DATATYPE(?version) = xsd:decimal,
+                xsd:integer(?version),
+                ?version
+            )
+        ) AS ?safeVersion
+    )
   }
 }
 EOF
@@ -225,7 +236,7 @@ PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>
 PREFIX dc:<http://purl.org/dc/elements/1.1/>
 PREFIX xml:<http://www.w3.org/2001/XMLSchema>
-select distinct ?source ?graphName ?version where {
+SELECT DISTINCT ?source ?graphName (STR(?safeVersion) AS ?versionString) WHERE {
   graph ?graphName {
     {
       ?source a owl:Ontology .
@@ -237,6 +248,17 @@ select distinct ?source ?graphName ?version where {
       ?source owl:versionIRI ?version .
       FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo } .
     }
+    BIND (
+        IF(
+            isURI(?version),
+            ?version,
+            IF(
+                DATATYPE(?version) = xsd:decimal,
+                xsd:integer(?version),
+                ?version
+            )
+        ) AS ?safeVersion
+    )
   }
 }
 EOF
