@@ -400,7 +400,10 @@ public class EVSUtils {
    */
   public static String getQualifiedCodeFromUri(final String terminology, final String uri) {
     // Replace up to the last slash and fix rdfs
-    String code = uri.replaceFirst(".*\\/", "").replaceFirst("rdf-schema", "rdfs");
+    String code =
+        uri.replaceFirst("/skos/core", "/skos")
+            .replaceFirst(".*\\/", "")
+            .replaceFirst("rdf-schema", "rdfs");
 
     // If ..../npo#DesignNote => :DesignNote
     if (code.startsWith(terminology + "#")) {
