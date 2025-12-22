@@ -610,23 +610,53 @@ for t in $ncim_terms; do
 concept_${t_lc}_"
 done
 
+# For "rdf" or "rrf", get the indexed terminologies
+get_indexed_terminologies() {
+    local type=$1	
+    echo $(curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_search?size=1000" | jq -r '.hits.hits[]._source.terminology | select(.metadata.loader == "'"$type"'") | .terminologyVersion' | sed 's/^/concept_/')
+}
+
+# Takes a raw version and cleans it up for use
+get_version() {
+    local ver="$1"
+    echo $ver | cut -d\| -f 1 | perl -ne 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#; print lc($_)'
+}
+
 # Remove indexes not found in triple store
-echo "  Remove unused indexes"
-echo "    all_indexes = $all_indexes"
-echo "    valid_keys = $valid_keys"
-for idx in $all_indexes; do
-  keep=0
-  for v in $valid_keys; do
-    if [[ "$idx" == "$v"* ]]; then
-      keep=1
-      break
-    fi
-  done
-  if [[ $keep -eq 0 ]]; then
-    echo "      Removing unused index: $idx"
-    curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$idx" > /dev/null
-  fi
-done
+# Remove unused indexes
+# Things loaded via RDF in the indexes that are no longer in graphdb
+remove_unused_indexes() {
+
+    echo "    Remove rdf terminologies no longer in graphdb ...`/bin/date`"
+    # Get all currently indexed terminologies
+    rdf_terms=$(get_indexed_terminologies "rdf")
+    echo "      rdf = $rdf_terms"
+
+    # Get all valid terminology keys from the currently loaded graph db triples
+    graphdb_terms=$(cut -d'|' -f1,3 /tmp/y.$$.txt | while IFS='|' read -r version iri; do
+        term=$(get_terminology "$iri")
+        version=$(get_version "$version")
+        echo -n " concept_${term}_${version}"
+done)
+    echo "      graphdb = $graphdb_terms"
+
+    # Remove indexes not found in triple store
+    for index in $rdf_terms; do
+        keep=0
+        for v in $graphdb_terms; do
+            if [[ "$index" == "$v" ]]; then
+                keep=1
+                break
+            fi
+        done
+        if [[ $keep -eq 0 ]]; then
+            echo "      remove $index"
+            #curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$index" > /dev/null
+        fi
+    done	
+	
+}
+remove_unused_indexes
 
 # Stale indexes are automatically cleaned up by the indexing process
 # It checks against graph db and reconciles everything and updates latest flags
