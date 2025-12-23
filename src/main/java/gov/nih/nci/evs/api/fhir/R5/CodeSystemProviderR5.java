@@ -252,7 +252,9 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         // Fetch concept with properties, synonyms, and definitions
         final Optional<Concept> conceptOpt =
             osQueryService.getConcept(
-                codeToLookup, term, new IncludeParam("parents,children,properties,synonyms,definitions"));
+                codeToLookup,
+                term,
+                new IncludeParam("parents,children,properties,synonyms,definitions"));
         if (!conceptOpt.isPresent()) {
           throw FhirUtilityR5.exception("Failed to lookup code", IssueType.EXCEPTION, 500);
         }
@@ -314,8 +316,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
                       "http://terminology.hl7.org/CodeSystem/designation-usage",
                       "definition",
                       "Definition");
-              params.addParameter(
-                  FhirUtilityR5.createDesignation("en", use, def.getDefinition()));
+              params.addParameter(FhirUtilityR5.createDesignation("en", use, def.getDefinition()));
             }
           }
         }
@@ -415,7 +416,9 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         // Fetch concept with properties, synonyms, and definitions
         final Optional<Concept> conceptOpt =
             osQueryService.getConcept(
-                codeToLookup, term, new IncludeParam("parents,children,properties,synonyms,definitions"));
+                codeToLookup,
+                term,
+                new IncludeParam("parents,children,properties,synonyms,definitions"));
         if (!conceptOpt.isPresent()) {
           throw FhirUtilityR5.exception("Failed to lookup code", IssueType.EXCEPTION, 500);
         }
@@ -477,8 +480,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
                       "http://terminology.hl7.org/CodeSystem/designation-usage",
                       "definition",
                       "Definition");
-              params.addParameter(
-                  FhirUtilityR5.createDesignation("en", use, def.getDefinition()));
+              params.addParameter(FhirUtilityR5.createDesignation("en", use, def.getDefinition()));
             }
           }
         }
@@ -1227,10 +1229,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
   }
 
   /**
-   * Helper method to determine if a hardcoded property should be included based on the property filter.
-   * The 'active' property is always included per FHIR spec.
-   * The 'parent' and 'child' properties are only included if no filter is specified OR
-   * if the filter explicitly includes them.
+   * Helper method to determine if a hardcoded property should be included based on the property
+   * filter. The 'active' property is always included per FHIR spec. The 'parent' and 'child'
+   * properties are only included if no filter is specified OR if the filter explicitly includes
+   * them.
    *
    * @param propertyName the name of the hardcoded property (active, parent, or child)
    * @param requestedProperties the list of requested property codes from the property parameter

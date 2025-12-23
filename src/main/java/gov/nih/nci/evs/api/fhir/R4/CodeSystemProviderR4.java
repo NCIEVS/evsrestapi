@@ -147,7 +147,9 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         // Fetch concept with properties, synonyms, and definitions
         final Optional<Concept> conceptOpt =
             osQueryService.getConcept(
-                codeToLookup, term, new IncludeParam("parents,children,properties,synonyms,definitions"));
+                codeToLookup,
+                term,
+                new IncludeParam("parents,children,properties,synonyms,definitions"));
         if (!conceptOpt.isPresent()) {
           throw FhirUtilityR4.exception(
               "Failed to lookup code", OperationOutcome.IssueType.EXCEPTION, 500);
@@ -312,7 +314,9 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         // Fetch concept with properties, synonyms, and definitions
         final Optional<Concept> conceptOpt =
             osQueryService.getConcept(
-                codeToLookup, term, new IncludeParam("parents,children,properties,synonyms,definitions"));
+                codeToLookup,
+                term,
+                new IncludeParam("parents,children,properties,synonyms,definitions"));
         if (!conceptOpt.isPresent()) {
           throw FhirUtilityR4.exception(
               "Failed to lookup code", OperationOutcome.IssueType.EXCEPTION, 500);
@@ -1232,10 +1236,10 @@ public class CodeSystemProviderR4 implements IResourceProvider {
   }
 
   /**
-   * Helper method to determine if a hardcoded property should be included based on the property filter.
-   * The 'active' property is always included per FHIR spec.
-   * The 'parent' and 'child' properties are only included if no filter is specified OR
-   * if the filter explicitly includes them.
+   * Helper method to determine if a hardcoded property should be included based on the property
+   * filter. The 'active' property is always included per FHIR spec. The 'parent' and 'child'
+   * properties are only included if no filter is specified OR if the filter explicitly includes
+   * them.
    *
    * @param propertyName the name of the hardcoded property (active, parent, or child)
    * @param requestedProperties the list of requested property codes from the property parameter

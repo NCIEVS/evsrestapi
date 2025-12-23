@@ -616,24 +616,39 @@ public class FhirR5CodeSystemLookupTests {
             .collect(Collectors.toList());
 
     // Verify active is present (always included)
-    boolean hasActive = properties.stream()
-        .anyMatch(prop -> prop.getPart().stream()
-            .anyMatch(part -> part.getName().equals("code")
-                && ((CodeType) part.getValue()).getValue().equals("active")));
+    boolean hasActive =
+        properties.stream()
+            .anyMatch(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("active")));
     assertTrue(hasActive, "Should always have 'active' property");
 
     // Verify parent is present (requested)
-    boolean hasParent = properties.stream()
-        .anyMatch(prop -> prop.getPart().stream()
-            .anyMatch(part -> part.getName().equals("code")
-                && ((CodeType) part.getValue()).getValue().equals("parent")));
+    boolean hasParent =
+        properties.stream()
+            .anyMatch(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("parent")));
     assertTrue(hasParent, "Should have 'parent' property when requested");
 
     // Verify child is NOT present (not requested)
-    boolean hasChild = properties.stream()
-        .anyMatch(prop -> prop.getPart().stream()
-            .anyMatch(part -> part.getName().equals("code")
-                && ((CodeType) part.getValue()).getValue().equals("child")));
+    boolean hasChild =
+        properties.stream()
+            .anyMatch(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("child")));
     assertFalse(hasChild, "Should NOT have 'child' property when not requested");
 
     // Test 2: Request only active property
@@ -641,27 +656,43 @@ public class FhirR5CodeSystemLookupTests {
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
     params = parser.parseResource(Parameters.class, content);
 
-    properties = params.getParameter().stream()
-        .filter(p -> p.getName().equals("property"))
-        .collect(Collectors.toList());
+    properties =
+        params.getParameter().stream()
+            .filter(p -> p.getName().equals("property"))
+            .collect(Collectors.toList());
 
     // Should only have active, not parent or child
-    hasActive = properties.stream()
-        .anyMatch(prop -> prop.getPart().stream()
-            .anyMatch(part -> part.getName().equals("code")
-                && ((CodeType) part.getValue()).getValue().equals("active")));
+    hasActive =
+        properties.stream()
+            .anyMatch(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("active")));
     assertTrue(hasActive, "Should have 'active' property");
 
-    hasParent = properties.stream()
-        .anyMatch(prop -> prop.getPart().stream()
-            .anyMatch(part -> part.getName().equals("code")
-                && ((CodeType) part.getValue()).getValue().equals("parent")));
+    hasParent =
+        properties.stream()
+            .anyMatch(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("parent")));
     assertFalse(hasParent, "Should NOT have 'parent' when not requested");
 
-    hasChild = properties.stream()
-        .anyMatch(prop -> prop.getPart().stream()
-            .anyMatch(part -> part.getName().equals("code")
-                && ((CodeType) part.getValue()).getValue().equals("child")));
+    hasChild =
+        properties.stream()
+            .anyMatch(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("child")));
     assertFalse(hasChild, "Should NOT have 'child' when not requested");
   }
 
