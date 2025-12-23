@@ -258,7 +258,6 @@ public class TermSuggestionFormServiceTest {
     }
   }
 
-
   /** Check that blank excel form attachment fails validation. */
   @Test
   public void blankFormSubmissionFailsValidation() throws Exception {
@@ -270,7 +269,6 @@ public class TermSuggestionFormServiceTest {
     // ACT & ASSERT
     assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
-
 
   /** Check that blank excel file attachment fails validation. */
   @Test
