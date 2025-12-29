@@ -6,6 +6,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -78,7 +79,7 @@ public class DocumentationPayloadExamplesTests {
       log.info("Testing url - " + url);
       result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
       content = result.getResponse().getContentAsString();
-      final ObjectMapper mapper = new ObjectMapper();
+      final ObjectMapper mapper = ThreadLocalMapper.get();
       mapper.setSerializationInclusion(Include.NON_EMPTY);
       log.info(
           " content = "

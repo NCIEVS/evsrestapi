@@ -4,7 +4,6 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.BaseModel;
 import gov.nih.nci.evs.api.model.Concept;
@@ -12,6 +11,7 @@ import gov.nih.nci.evs.api.model.ConceptMinimal;
 import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -209,7 +209,7 @@ public class OpensearchObject extends BaseModel {
       return new HashMap<>();
     }
     // Turn back into a map
-    return new ObjectMapper()
+    return ThreadLocalMapper.get()
         .readValue(
             mapString.substring(1),
             new TypeReference<Map<String, Set<String>>>() {
@@ -229,7 +229,7 @@ public class OpensearchObject extends BaseModel {
     } else {
       // The X is to trick opensearch into avoiding trying to index this like
       // a map
-      this.mapString = "X" + new ObjectMapper().writeValueAsString(map);
+      this.mapString = "X" + ThreadLocalMapper.get().writeValueAsString(map);
     }
   }
 

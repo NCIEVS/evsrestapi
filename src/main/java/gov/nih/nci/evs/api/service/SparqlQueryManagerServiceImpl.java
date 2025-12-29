@@ -32,6 +32,7 @@ import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import jakarta.annotation.PostConstruct;
 import java.io.IOException;
 import java.text.ParseException;
@@ -149,7 +150,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
     log.debug("getAllGraphNames response - " + res);
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
@@ -183,7 +184,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     // if (log.isDebugEnabled()) {
     // log.debug("getTerminologies response - " + res);
     // }
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Terminology> termList = new ArrayList<>();
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
@@ -765,7 +766,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("properties", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Property> properties = new ArrayList<>();
 
@@ -814,7 +815,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructBatchQuery("properties.batch", terminology, conceptCodes);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Property>> resultMap = new HashMap<>();
 
@@ -853,7 +854,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("children", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Concept> children = new ArrayList<>();
 
@@ -907,7 +908,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("parents", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Concept> parents = new ArrayList<>();
 
@@ -962,7 +963,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructQuery("associations", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Association> associations = new ArrayList<>();
 
@@ -995,7 +996,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructBatchQuery("associations.batch", terminology, conceptCodes);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Association>> resultMap = new HashMap<>();
 
@@ -1032,7 +1033,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructBatchQuery("associations.all", terminology, new ArrayList<>());
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Association>> resultMap = new HashMap<>();
 
@@ -1073,7 +1074,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructQuery("inverse.associations", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Association> associations = new ArrayList<>();
 
@@ -1108,7 +1109,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             "inverse.associations.batch", terminology, conceptCodes);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Association>> resultMap = new HashMap<>();
 
@@ -1145,7 +1146,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     // log.info("INVERSE ROLE REPORT QUERY = {}", query);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Role> roles = new ArrayList<>();
 
@@ -1191,7 +1192,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Role>> resultMap = new HashMap<>();
 
@@ -1235,7 +1236,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("roles", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Role> roles = new ArrayList<>();
 
@@ -1281,7 +1282,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructBatchQuery("roles.batch", terminology, conceptCodes);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Role>> resultMap = new HashMap<>();
 
@@ -1333,7 +1334,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     }
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Role>> resultMap = new HashMap<>();
 
@@ -1392,7 +1393,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructQuery("disjoint.with", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<DisjointWith> disjointWithList = new ArrayList<>();
 
@@ -1424,7 +1425,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructBatchQuery("disjoint.with.batch", terminology, conceptCodes);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<DisjointWith>> resultMap = new HashMap<>();
 
@@ -1458,7 +1459,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("axioms", terminology, conceptCode);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Axiom> axioms = new ArrayList<>();
 
@@ -1507,7 +1508,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructBatchQuery("axioms.batch", terminology, conceptCodes);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
     // log.info("AXIOM QUERY: {}", queryPrefix + query);
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final Map<String, List<Axiom>> resultMap = new HashMap<>();
 
@@ -1784,7 +1785,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("all.properties", terminology);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Property> properties = new ArrayList<>();
     final List<Concept> concepts = new ArrayList<>();
@@ -1870,7 +1871,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("all.properties", terminology);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Property> properties = new ArrayList<>();
     final List<Concept> concepts = new ArrayList<>();
@@ -1919,7 +1920,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructQuery("all.properties.never.used", terminology);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Property> properties = new ArrayList<>();
     final List<Concept> concepts = new ArrayList<>();
@@ -1980,7 +1981,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructQuery("distinct.property.values", terminology, values);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<String> propertyValues = new ArrayList<>();
 
@@ -2002,7 +2003,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("all.qualifiers", terminology);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Qualifier> qualifiers = new ArrayList<>();
     final List<Concept> concepts = new ArrayList<>();
@@ -2048,7 +2049,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("axiom.qualifier", terminology, values);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<String> propertyValues = new ArrayList<>();
 
@@ -2073,7 +2074,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         queryBuilderService.constructQuery("concept.property.values", terminology, values);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<String> propertyValues = new ArrayList<>();
 
@@ -2112,7 +2113,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("subset", terminology, values);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Concept> subsetMembers = new ArrayList<>();
 
@@ -2136,7 +2137,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Association> associations = new ArrayList<>();
     final List<Concept> concepts = new ArrayList<>();
@@ -2174,7 +2175,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final String query = queryBuilderService.constructQuery("all.roles", terminology);
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<Role> roles = new ArrayList<>();
     final List<Concept> concepts = new ArrayList<>();
@@ -2387,7 +2388,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                 terminology.getMetadata().getRetiredStatusValue()));
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<ConceptMinimal> sources = new ArrayList<>();
     final Map<String, String> map = terminology.getMetadata().getSources();
@@ -2436,7 +2437,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                 terminology.getMetadata().getRetiredStatusValue()));
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<ConceptMinimal> sources = new ArrayList<>();
     final Map<String, String> map = terminology.getMetadata().getTermTypes();
@@ -2483,7 +2484,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                 terminology.getMetadata().getRetiredStatusValue()));
     final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<ConceptMinimal> sources = new ArrayList<>();
     // Documentation on source definitions
@@ -2518,7 +2519,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String res = null;
     res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
@@ -2554,7 +2555,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String res = null;
     res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
@@ -2643,7 +2644,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     String res = null;
     res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     final List<AssociationEntry> entries = new ArrayList<>();
     Sparql sparqlResult = null;

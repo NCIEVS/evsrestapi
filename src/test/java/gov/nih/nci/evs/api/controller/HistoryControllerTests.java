@@ -6,9 +6,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.History;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.Arrays;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -42,18 +41,12 @@ public class HistoryControllerTests {
   /** The test properties. */
   @Autowired TestProperties testProperties;
 
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
-
   /** The base url. */
   private String baseUrl = "";
 
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-
-    objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1";
   }
@@ -93,11 +86,12 @@ public class HistoryControllerTests {
     String content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     List<History> list =
-        objectMapper.readValue(
-            content,
-            new TypeReference<List<History>>() {
-              // n/a
-            });
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<History>>() {
+                  // n/a
+                });
 
     // Assert
     assertNotNull(list);
@@ -132,7 +126,7 @@ public class HistoryControllerTests {
     String content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     List<History> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<History>>() {
@@ -175,7 +169,7 @@ public class HistoryControllerTests {
     String content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     List<History> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<History>>() {

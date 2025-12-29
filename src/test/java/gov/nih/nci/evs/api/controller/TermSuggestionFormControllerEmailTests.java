@@ -5,6 +5,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.InputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -211,7 +212,7 @@ public class TermSuggestionFormControllerEmailTests {
    * @throws Exception exception
    */
   private JsonNode createForm(final String path) throws Exception {
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     // read the file as an Input Stream
     try (final InputStream input = getClass().getClassLoader().getResourceAsStream(path); ) {
       // Set our expected response to the form from the formPath

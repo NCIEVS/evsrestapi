@@ -10,6 +10,7 @@ import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.MainTypeHierarchy;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +40,7 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
   private static final Logger logger = LoggerFactory.getLogger(GraphReportLoadServiceImpl.class);
 
   /** The mapper. */
-  private ObjectMapper mapper = new ObjectMapper();
+  private ObjectMapper mapper = ThreadLocalMapper.get();
 
   /** The lines. */
   private List<String> lines = new ArrayList<>();

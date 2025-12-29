@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.fail;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -34,7 +34,6 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
@@ -79,15 +78,12 @@ class FhirR5ClientSDKTests {
    */
   @BeforeEach
   public void setUp() throws IOException {
-    // the object mapper
-    final ObjectMapper objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
 
     // Initialize the map
     postmanNameToRawMap = new HashMap<>();
 
     // Parse Postman collection and extract raw values
-    parsePostmanCollectionAndExtractRawUrlValues(objectMapper);
+    parsePostmanCollectionAndExtractRawUrlValues();
   }
 
   /**
@@ -96,8 +92,7 @@ class FhirR5ClientSDKTests {
    * @param objectMapper the Jackson ObjectMapper
    * @throws IOException if file reading fails
    */
-  private void parsePostmanCollectionAndExtractRawUrlValues(final ObjectMapper objectMapper)
-      throws IOException {
+  private void parsePostmanCollectionAndExtractRawUrlValues() throws IOException {
     try {
       // Load the Postman collection JSON file from evsrestapi-client-SDK
       final String uri = applicationProperties.getSdkBaseUri();
@@ -108,7 +103,7 @@ class FhirR5ClientSDKTests {
       connection.setRequestProperty("User-Agent", "Java Application");
 
       @SuppressWarnings("resource")
-      final JsonNode rootNode = objectMapper.readTree(connection.getInputStream());
+      final JsonNode rootNode = ThreadLocalMapper.get().readTree(connection.getInputStream());
 
       // Extract all name-raw pairs
       extractNameRawPairs(rootNode);

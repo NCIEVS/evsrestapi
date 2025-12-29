@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
@@ -15,6 +14,7 @@ import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -118,15 +118,15 @@ public class ConceptSampleTester {
             .andReturn();
     content = result.getResponse().getContentAsString();
     List<String> associations =
-        new ObjectMapper()
-                .readValue(
-                    content,
-                    new TypeReference<List<Concept>>() {
-                      // n/a
-                    })
-                .stream()
-                .map(entry -> entry.getCode())
-                .collect(Collectors.toList());
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                })
+            .stream()
+            .map(entry -> entry.getCode())
+            .collect(Collectors.toList());
 
     // get qualifiers
     url = baseMetadataUrl + term + "/qualifiers?include=minimal";
@@ -136,7 +136,7 @@ public class ConceptSampleTester {
             .andReturn();
     content = result.getResponse().getContentAsString();
     List<Concept> qualifiers =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -176,15 +176,15 @@ public class ConceptSampleTester {
             .andReturn();
     content = result.getResponse().getContentAsString();
     List<String> roles =
-        new ObjectMapper()
-                .readValue(
-                    content,
-                    new TypeReference<List<Concept>>() {
-                      // n/a
-                    })
-                .stream()
-                .map(entry -> entry.getCode())
-                .collect(Collectors.toList());
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                })
+            .stream()
+            .map(entry -> entry.getCode())
+            .collect(Collectors.toList());
 
     // get synonym term types
     url = baseMetadataUrl + term + "/termTypes?include=minimal";
@@ -194,15 +194,15 @@ public class ConceptSampleTester {
             .andReturn();
     content = result.getResponse().getContentAsString();
     List<String> termTypes =
-        new ObjectMapper()
-                .readValue(
-                    content,
-                    new TypeReference<List<Concept>>() {
-                      // n/a
-                    })
-                .stream()
-                .map(entry -> entry.getCode())
-                .collect(Collectors.toList());
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                })
+            .stream()
+            .map(entry -> entry.getCode())
+            .collect(Collectors.toList());
 
     // get synonym sources
     url = baseMetadataUrl + term + "/synonymSources?include=minimal";
@@ -212,15 +212,15 @@ public class ConceptSampleTester {
             .andReturn();
     content = result.getResponse().getContentAsString();
     List<String> synonymSources =
-        new ObjectMapper()
-                .readValue(
-                    content,
-                    new TypeReference<List<Concept>>() {
-                      // n/a
-                    })
-                .stream()
-                .map(entry -> entry.getCode())
-                .collect(Collectors.toList());
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                })
+            .stream()
+            .map(entry -> entry.getCode())
+            .collect(Collectors.toList());
 
     // get definition types
     url = baseMetadataUrl + term + "/definitionTypes?include=minimal";
@@ -230,15 +230,15 @@ public class ConceptSampleTester {
             .andReturn();
     content = result.getResponse().getContentAsString();
     List<String> definitionTypes =
-        new ObjectMapper()
-                .readValue(
-                    content,
-                    new TypeReference<List<Concept>>() {
-                      // n/a
-                    })
-                .stream()
-                .map(entry -> entry.getCode())
-                .collect(Collectors.toList());
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                })
+            .stream()
+            .map(entry -> entry.getCode())
+            .collect(Collectors.toList());
 
     // get definition sources
     url = baseMetadataUrl + term + "/definitionSources?include=minimal";
@@ -248,15 +248,15 @@ public class ConceptSampleTester {
             .andReturn();
     content = result.getResponse().getContentAsString();
     List<String> definitionSources =
-        new ObjectMapper()
-                .readValue(
-                    content,
-                    new TypeReference<List<Concept>>() {
-                      // n/a
-                    })
-                .stream()
-                .map(entry -> entry.getCode())
-                .collect(Collectors.toList());
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                })
+            .stream()
+            .map(entry -> entry.getCode())
+            .collect(Collectors.toList());
 
     // get properties
     url = baseMetadataUrl + term + "/properties?include=properties";
@@ -266,7 +266,7 @@ public class ConceptSampleTester {
             .andReturn();
     content = result.getResponse().getContentAsString();
     List<Concept> properties =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -479,7 +479,7 @@ public class ConceptSampleTester {
               .andReturn();
       content = result.getResponse().getContentAsString(StandardCharsets.UTF_8);
       log.info(" content = " + content);
-      concept = new ObjectMapper().readValue(content, Concept.class);
+      concept = ThreadLocalMapper.get().readValue(content, Concept.class);
       assertThat(content).isNotNull();
       log.info(content);
 
@@ -490,7 +490,7 @@ public class ConceptSampleTester {
               .andReturn();
       content = result.getResponse().getContentAsString();
       List<Concept> properties =
-          new ObjectMapper()
+          ThreadLocalMapper.get()
               .readValue(
                   content,
                   new TypeReference<List<Concept>>() {
@@ -507,7 +507,7 @@ public class ConceptSampleTester {
               .andReturn();
       content = result.getResponse().getContentAsString();
       List<Concept> associations =
-          new ObjectMapper()
+          ThreadLocalMapper.get()
               .readValue(
                   content,
                   new TypeReference<List<Concept>>() {
@@ -736,7 +736,7 @@ public class ConceptSampleTester {
               .andExpect(status().isOk())
               .andReturn();
       String content = result.getResponse().getContentAsString();
-      Concept concept = new ObjectMapper().readValue(content, Concept.class);
+      Concept concept = ThreadLocalMapper.get().readValue(content, Concept.class);
       return concept.getSubsetLink().equals(link);
     }
     return false;
@@ -984,7 +984,7 @@ public class ConceptSampleTester {
     if (content.equals("[]")) {
       return false;
     }
-    final Concept otherProperty = new ObjectMapper().readValue(content, Concept.class);
+    final Concept otherProperty = ThreadLocalMapper.get().readValue(content, Concept.class);
 
     url =
         "/api/v1/metadata/"
@@ -999,7 +999,7 @@ public class ConceptSampleTester {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    final Concept otherQualifier = new ObjectMapper().readValue(content, Concept.class);
+    final Concept otherQualifier = ThreadLocalMapper.get().readValue(content, Concept.class);
     return concept.getProperties().stream()
         .filter(
             o ->
@@ -1088,7 +1088,7 @@ public class ConceptSampleTester {
       if (content.equals("[]")) {
         return false;
       }
-      final Concept otherProperty = new ObjectMapper().readValue(content, Concept.class);
+      final Concept otherProperty = ThreadLocalMapper.get().readValue(content, Concept.class);
 
       url =
           "/api/v1/metadata/"
@@ -1103,7 +1103,7 @@ public class ConceptSampleTester {
               .andReturn();
       content = result.getResponse().getContentAsString();
       log.info(" content = " + content);
-      final Concept otherQualifier = new ObjectMapper().readValue(content, Concept.class);
+      final Concept otherQualifier = ThreadLocalMapper.get().readValue(content, Concept.class);
       return concept.getSynonyms().stream()
           .filter(
               o ->
@@ -1345,7 +1345,7 @@ public class ConceptSampleTester {
             .andReturn();
     final String content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    final Concept minMatchedRole = new ObjectMapper().readValue(content, Concept.class);
+    final Concept minMatchedRole = ThreadLocalMapper.get().readValue(content, Concept.class);
     final Role conceptMatchedRole =
         concept.getRoles().stream()
             .filter(
@@ -1410,7 +1410,7 @@ public class ConceptSampleTester {
               .andReturn();
       content = result.getResponse().getContentAsString();
       List<Concept> roots =
-          new ObjectMapper()
+          ThreadLocalMapper.get()
               .readValue(
                   content,
                   new TypeReference<List<Concept>>() {
@@ -1438,7 +1438,7 @@ public class ConceptSampleTester {
       ancestorCode = null;
       List<String> reverseToRootPath = null;
       List<List<Concept>> pathsToRoot =
-          new ObjectMapper()
+          ThreadLocalMapper.get()
               .readValue(
                   content,
                   new TypeReference<List<List<Concept>>>() {
@@ -1490,7 +1490,7 @@ public class ConceptSampleTester {
       List<String> fromRootPath = null;
       Boolean reversePathFound = false;
       List<List<Concept>> pathsFromRoot =
-          new ObjectMapper()
+          ThreadLocalMapper.get()
               .readValue(
                   content,
                   new TypeReference<List<List<Concept>>>() {
@@ -1541,7 +1541,7 @@ public class ConceptSampleTester {
                 .andReturn();
         content = result.getResponse().getContentAsString();
         pathsFromRoot =
-            new ObjectMapper()
+            ThreadLocalMapper.get()
                 .readValue(
                     content,
                     new TypeReference<List<List<Concept>>>() {
@@ -1571,7 +1571,7 @@ public class ConceptSampleTester {
               .andReturn();
       content = result.getResponse().getContentAsString();
       List<List<Concept>> pathsToAncestor =
-          new ObjectMapper()
+          ThreadLocalMapper.get()
               .readValue(
                   content,
                   new TypeReference<List<List<Concept>>>() {
@@ -1610,7 +1610,7 @@ public class ConceptSampleTester {
               .andReturn();
       content = result.getResponse().getContentAsString();
       List<HierarchyNode> subtree =
-          new ObjectMapper()
+          ThreadLocalMapper.get()
               .readValue(
                   content,
                   new TypeReference<List<HierarchyNode>>() {
@@ -1635,7 +1635,7 @@ public class ConceptSampleTester {
                 .andReturn();
         content = result.getResponse().getContentAsString();
         List<HierarchyNode> children =
-            new ObjectMapper()
+            ThreadLocalMapper.get()
                 .readValue(
                     content,
                     new TypeReference<List<HierarchyNode>>() {
@@ -1698,7 +1698,7 @@ public class ConceptSampleTester {
                 .andReturn();
         content = result.getResponse().getContentAsString();
         testConcept =
-            new ObjectMapper()
+            ThreadLocalMapper.get()
                 .readValue(
                     content,
                     new TypeReference<Concept>() {
@@ -1731,7 +1731,7 @@ public class ConceptSampleTester {
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() > 0);
     assertThat(
         list.getConcepts().stream()
@@ -1749,7 +1749,7 @@ public class ConceptSampleTester {
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() > 0);
     assertThat(
         list.getConcepts().stream()
@@ -1768,7 +1768,7 @@ public class ConceptSampleTester {
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() > 0);
     for (Concept conc : list.getConcepts()) {
       assertThat(
@@ -1790,7 +1790,7 @@ public class ConceptSampleTester {
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() > 0);
     for (Concept conc : list.getConcepts()) {
       assertThat(
@@ -1812,7 +1812,7 @@ public class ConceptSampleTester {
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() > 0);
     for (Concept conc : list.getConcepts()) {
       assertThat(
@@ -1834,7 +1834,7 @@ public class ConceptSampleTester {
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() > 0);
     for (Concept conc : list.getConcepts()) {
       assertThat(
@@ -1857,7 +1857,7 @@ public class ConceptSampleTester {
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() > 0);
     for (Concept conc : list.getConcepts()) {
       assertThat(
@@ -1881,7 +1881,7 @@ public class ConceptSampleTester {
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getTotal() > 0);
     assertThat(list.getConcepts().size()).isLessThanOrEqualTo(6);
     if (list.getConcepts().size() > 10) {
@@ -1899,7 +1899,7 @@ public class ConceptSampleTester {
               .andExpect(status().isOk())
               .andReturn();
       content = result.getResponse().getContentAsString();
-      list = new ObjectMapper().readValue(content, ConceptResultList.class);
+      list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
       assertThat(list.getTotal() > 0);
       assertThat(list.getConcepts().get(0)).isEqualTo(eleventhConcept);
     }
@@ -1950,7 +1950,7 @@ public class ConceptSampleTester {
             .andReturn();
     String content = result.getResponse().getContentAsString();
     List<Concept> roots =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1997,7 +1997,7 @@ public class ConceptSampleTester {
                   .andReturn();
           content = result.getResponse().getContentAsString();
           Concept firstLeaf =
-              new ObjectMapper()
+              ThreadLocalMapper.get()
                   .readValue(
                       content,
                       new TypeReference<Concept>() {
@@ -2040,7 +2040,7 @@ public class ConceptSampleTester {
                   .andReturn();
           content = result.getResponse().getContentAsString();
           List<Concept> firstLeafMembers =
-              new ObjectMapper()
+              ThreadLocalMapper.get()
                   .readValue(
                       content,
                       new TypeReference<List<Concept>>() {
@@ -2097,7 +2097,7 @@ public class ConceptSampleTester {
             .andReturn();
     String content = result.getResponse().getContentAsString();
     Concept rootSubset =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<Concept>() {
@@ -2148,7 +2148,7 @@ public class ConceptSampleTester {
     String content = result.getResponse().getContentAsString();
 
     List<Concept> associations =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -2181,7 +2181,7 @@ public class ConceptSampleTester {
             .andReturn();
     content = result.getResponse().getContentAsString();
     AssociationEntryResultList fullFirstAssociationByCode =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<AssociationEntryResultList>() {
@@ -2200,7 +2200,7 @@ public class ConceptSampleTester {
             .andReturn();
     content = result.getResponse().getContentAsString();
     AssociationEntryResultList fullFirstAssociationByName =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<AssociationEntryResultList>() {
@@ -2229,7 +2229,7 @@ public class ConceptSampleTester {
             .andReturn();
     content = result.getResponse().getContentAsString();
     AssociationEntryResultList firstFromRecord =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<AssociationEntryResultList>() {
@@ -2245,7 +2245,7 @@ public class ConceptSampleTester {
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     AssociationEntryResultList secondFromRecord =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<AssociationEntryResultList>() {

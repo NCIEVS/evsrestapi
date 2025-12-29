@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
@@ -23,7 +24,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -43,18 +43,12 @@ public class ConceptControllerExtensionTests {
   /** The test properties. */
   @Autowired TestProperties testProperties;
 
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
-
   /** The base url. */
   private String baseUrl = "";
 
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-
-    objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/concept";
   }
@@ -116,7 +110,7 @@ public class ConceptControllerExtensionTests {
     String content = null;
     Concept concept = null;
     final Map<String, String> map = new HashMap<>();
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     int ct = 0;
     try (final InputStream is = getClass().getClassLoader().getResourceAsStream(codeSetPath)) {
       for (final String code : IOUtils.readLines(is, "UTF-8")) {
@@ -127,7 +121,7 @@ public class ConceptControllerExtensionTests {
         url = baseUrl + "/ncit/" + code + "?include=extensions";
         result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
         content = result.getResponse().getContentAsString();
-        concept = new ObjectMapper().readValue(content, Concept.class);
+        concept = ThreadLocalMapper.get().readValue(content, Concept.class);
         // For comparing main menu ancestors, null all concept fields in paths
         // except for the codes
         concept.getExtensions().getMainMenuAncestors().stream()
@@ -170,7 +164,7 @@ public class ConceptControllerExtensionTests {
     int matchCt = 0;
     int mismatchCt = 0;
     for (final String code : map.keySet()) {
-      final ObjectMapper mapper = new ObjectMapper();
+      final ObjectMapper mapper = ThreadLocalMapper.get();
       final JsonNode node = mapper.readTree(map.get(code));
       final JsonNode cmpNode = mapper.readTree(cmpMap.get(code));
       final StringBuilder sb = new StringBuilder();
@@ -287,7 +281,7 @@ public class ConceptControllerExtensionTests {
   // result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
   // content = result.getResponse().getContentAsString();
   // log.info(" content = " + content);
-  // concept = new ObjectMapper().readValue(content, Concept.class);
+  // concept = ThreadLocalMapper.get().readValue(content, Concept.class);
   // log.info(" extensions = " + concept.getExtensions());
   // assertThat(concept).isNotNull();
   // }
