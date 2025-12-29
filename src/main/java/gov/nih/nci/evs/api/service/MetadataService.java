@@ -154,6 +154,17 @@ public interface MetadataService {
       throws Exception;
 
   /**
+   * Get property values.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the list of property values
+   * @throws Exception the exception
+   */
+  Optional<List<String>> getPropertyValues(final String terminology, final String code)
+      throws Exception;
+
+  /**
    * Get term types.
    *
    * @param terminology the terminology

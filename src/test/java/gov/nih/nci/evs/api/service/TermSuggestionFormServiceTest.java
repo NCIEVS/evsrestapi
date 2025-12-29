@@ -267,7 +267,7 @@ public class TermSuggestionFormServiceTest {
     MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
 
     // ACT & ASSERT
-    assertFalse(termFormService.validateFileAttachment(testFile));
+    assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
 
   /** Check that blank excel file attachment fails validation. */
@@ -279,7 +279,7 @@ public class TermSuggestionFormServiceTest {
     MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
 
     // ACT & ASSERT
-    assertFalse(termFormService.validateFileAttachment(testFile));
+    assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
 
   /** Check that fake excel file attachment fails validation. */
@@ -291,7 +291,7 @@ public class TermSuggestionFormServiceTest {
     MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
 
     // ACT & ASSERT
-    assertFalse(termFormService.validateFileAttachment(testFile));
+    assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
 
   /** Check that extra sheet added to the attachment fails validation. */
@@ -303,7 +303,7 @@ public class TermSuggestionFormServiceTest {
     MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
 
     // ACT & ASSERT
-    assertFalse(termFormService.validateFileAttachment(testFile));
+    assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
 
   /** Check that changed sheet name in the attachment fails validation. */
@@ -315,7 +315,7 @@ public class TermSuggestionFormServiceTest {
     MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
 
     // ACT & ASSERT
-    assertFalse(termFormService.validateFileAttachment(testFile));
+    assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
 
   /** Check that filled out form attachment passes validation. */
@@ -327,7 +327,7 @@ public class TermSuggestionFormServiceTest {
     MultipartFile testFile = new MockMultipartFile(p.getFileName().toString(), content);
 
     // ACT & ASSERT
-    assertTrue(termFormService.validateFileAttachment(testFile));
+    assertTrue(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
 
   /** Check that filled out NCIT form attachment passes validation. */
@@ -411,6 +411,7 @@ public class TermSuggestionFormServiceTest {
 
     // Mock captcha to succeed
     when(mockedCaptcha.verifyRecaptcha(any())).thenReturn(true);
+
     // Mock validateFileAttachment with form type to return false
     when(mockedService.validateFileAttachment(any(MultipartFile.class), anyString()))
         .thenReturn(false);
@@ -421,8 +422,9 @@ public class TermSuggestionFormServiceTest {
             ResponseStatusException.class,
             () -> controller.submitWithAttachment(formData, file, null, "token"));
 
-    // Verify we got the EXPECTATION_FAILED status
+    // Verify we got the EXPECTATION_FAILED status and message contains our reason
     assertTrue(ex.getStatusCode() == HttpStatus.EXPECTATION_FAILED);
+    assertTrue(ex.getReason() != null && ex.getReason().contains("Unexpected sheet 'X'"));
   }
 
   /**

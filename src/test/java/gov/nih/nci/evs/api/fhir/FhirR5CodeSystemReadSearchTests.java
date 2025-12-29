@@ -168,7 +168,7 @@ class FhirR5CodeSystemReadSearchTests {
   @Test
   public void testCodeSystemSearchWithParameters() throws Exception {
 
-    // TODO: currently data doesn't have the code, description or date data
+    // NOTE: currently data doesn't have the code, description or date data
     // these tests should be amended when the data is updated
 
     // Arrange

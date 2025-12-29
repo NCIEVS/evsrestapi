@@ -1196,6 +1196,72 @@ public class MetadataController extends BaseController {
   }
 
   /**
+   * Returns the property values list.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @return the property values list
+   * @throws Exception the exception
+   */
+  @Operation(summary = "Get property values for the specified terminology and code/name")
+  @ApiResponses({
+    @ApiResponse(
+        responseCode = "200",
+        description = "Successfully retrieved the requested information"),
+    @ApiResponse(
+        responseCode = "404",
+        description = "Resource not found",
+        content =
+            @Content(
+                mediaType = "application/json",
+                schema = @Schema(implementation = RestException.class)))
+  })
+  @Parameters({
+    @Parameter(
+        name = "terminology",
+        description =
+            "Terminology, e.g. 'ncit' or 'ncim' (<a"
+                + " href=\"https://github.com/NCIEVS/evsrestapi-client-SDK/blob/main/doc/TERMINOLOGIES.md\">See"
+                + " here for complete list</a>)",
+        required = true,
+        schema = @Schema(implementation = String.class),
+        example = "ncit"),
+    @Parameter(
+        name = "codeOrName",
+        description =
+            "Property code (or name), e.g."
+                + "<ul><li>'P216' or 'BioCarta_ID' for <i>ncit</i></li>"
+                + "<li>'Semantic_Type' for <i>ncim</i></li></ul>",
+        required = true,
+        schema = @Schema(implementation = String.class))
+  })
+  @RecordMetric
+  @GetMapping(
+      value = "/metadata/{terminology}/property/{codeOrName}/values",
+      produces = "application/json")
+  public @ResponseBody List<String> getPropertyValues(
+      @PathVariable(value = "terminology") final String terminology,
+      @PathVariable(value = "codeOrName") final String code)
+      throws Exception {
+    try {
+      // If the code contains a comma, just bail
+      if (code.contains(",")) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found");
+      }
+
+      Optional<List<String>> result = metadataService.getPropertyValues(terminology, code);
+      if (!result.isPresent()) {
+        throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found");
+      }
+
+      return result.get();
+    } catch (Exception e) {
+      handleException(e, terminology);
+      return null;
+    }
+  }
+
+  /**
    * Returns the synonym types.
    *
    * @param terminology the terminology

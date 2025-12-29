@@ -521,7 +521,7 @@ public class NcimControllerTests {
         .isEqualTo(1);
 
     // last concept in MRSTY/MRSAT
-    // TODO: we're ignoring AUI attributes so for the moment this turns up
+    // NOTE: we're ignoring AUI attributes so for the moment this turns up
     // nothing
     // url = baseUrl + "/ncim/CL988043";
     // log.info("Testing url - " + url + "?terminology=ncim&code=CL988043");

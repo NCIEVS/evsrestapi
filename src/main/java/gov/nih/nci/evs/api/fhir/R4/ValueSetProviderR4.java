@@ -1241,7 +1241,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
       FhirUtilityR4.mutuallyRequired("code", code, "system", system, "url", url);
       FhirUtilityR4.mutuallyRequired("system", system, "systemVersion", systemVersion);
 
-      // TODO: not sure that "version" should be in this list
       for (final String param :
           new String[] {
             "context",
@@ -1381,7 +1380,6 @@ public class ValueSetProviderR4 implements IResourceProvider {
       FhirUtilityR4.requireAtLeastOneOf(
           "code", code, "coding", coding, "systemVersion", systemVersion, "url", url);
 
-      // TODO: not sure that "version" should be in this list
       for (final String param :
           new String[] {
             "context",

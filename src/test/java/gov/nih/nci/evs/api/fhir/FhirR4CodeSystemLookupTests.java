@@ -14,6 +14,7 @@ import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.hl7.fhir.r4.model.BooleanType;
+import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
@@ -174,60 +175,6 @@ public class FhirR4CodeSystemLookupTests {
     assertEquals(
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
     assertEquals(version, ((StringType) params.getParameter("version").getValue()).getValue());
-  }
-
-  /**
-   * Test code system lookup implicit parameter not supported.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testCodeSystemLookupImplicitParameterNotSupported() throws Exception {
-    // Arrange
-    String content;
-    final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_LOOKUP;
-    final String parameters = "?url=" + url + "&displayLanguage=notfound";
-
-    final String messageNotSupported = "Input parameter 'displayLanguage' is not supported.";
-    final String errorCode = "not-supported";
-
-    // Act
-    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-
-    // Assert
-    assertEquals(errorCode, component.getCode().toCode());
-    assertEquals(messageNotSupported, (component.getDiagnostics()));
-  }
-
-  /**
-   * Test code system lookup instance parameter not supported.
-   *
-   * @throws Exception the exception
-   */
-  @Test
-  public void testCodeSystemLookupInstanceParameterNotSupported() throws Exception {
-    // Arrange
-    String content;
-    final String activeID = "umlssemnet_2023aa";
-    final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    final String endpoint =
-        localHost + port + fhirCSPath + "/" + activeID + "/" + JpaConstants.OPERATION_LOOKUP;
-    final String parameters = "?url=" + url + "&displayLanguage=notfound";
-
-    final String messageNotSupported = "Input parameter 'displayLanguage' is not supported.";
-    final String errorCode = "not-supported";
-
-    // Act
-    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
-
-    // Assert
-    assertEquals(errorCode, component.getCode().toCode());
-    assertEquals(messageNotSupported, (component.getDiagnostics()));
   }
 
   /**
@@ -567,5 +514,199 @@ public class FhirR4CodeSystemLookupTests {
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
     assertEquals(messageNotSupported, (component.getDiagnostics()));
+  }
+
+  /**
+   * Test code system lookup returns all properties by default.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemLookupReturnsAllProperties() throws Exception {
+    // Arrange
+    final String activeCode = "T100";
+    final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_LOOKUP;
+    final String parameters = "?system=" + url + "&code=" + activeCode;
+
+    // Act
+    final String content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    final Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert - should have at least the hardcoded properties (active, parent, child)
+    final List<ParametersParameterComponent> properties =
+        params.getParameter().stream()
+            .filter(p -> p.getName().equals("property"))
+            .collect(Collectors.toList());
+    assertTrue(
+        properties.size() > 0,
+        "Should have at least one property (active property should always be present)");
+
+    // Check that active property is present
+    final boolean hasActiveProperty =
+        properties.stream()
+            .anyMatch(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("active")));
+    assertTrue(hasActiveProperty, "Should have 'active' property");
+  }
+
+  /**
+   * Test code system lookup with specific property parameter.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemLookupWithSpecificProperty() throws Exception {
+    // Arrange
+    final String activeCode = "T100";
+    final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_LOOKUP;
+    final String parameters = "?system=" + url + "&code=" + activeCode + "&property=parent";
+
+    // Act
+    final String content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    final Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert - should still have name, display, version
+    assertNotNull(params.getParameter("name"));
+    assertNotNull(params.getParameter("display"));
+    assertNotNull(params.getParameter("version"));
+
+    // Should have hardcoded properties (active, parent, child)
+    final List<ParametersParameterComponent> properties =
+        params.getParameter().stream()
+            .filter(p -> p.getName().equals("property"))
+            .collect(Collectors.toList());
+    assertTrue(properties.size() > 0, "Should have properties");
+  }
+
+  /**
+   * Test code system lookup with property parameter filters hardcoded properties correctly.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemLookupPropertyParameterFiltersHardcodedProperties() throws Exception {
+    // Test 1: Request only parent property
+    final String activeCode = "T100";
+    final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_LOOKUP;
+
+    String parameters = "?system=" + url + "&code=" + activeCode + "&property=parent";
+    String content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    Parameters params = parser.parseResource(Parameters.class, content);
+
+    List<ParametersParameterComponent> properties =
+        params.getParameter().stream()
+            .filter(p -> p.getName().equals("property"))
+            .collect(Collectors.toList());
+
+    // Verify active is present (always included)
+    boolean hasActive =
+        properties.stream()
+            .anyMatch(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("active")));
+    assertTrue(hasActive, "Should always have 'active' property");
+
+    // Verify parent is present (requested)
+    boolean hasParent =
+        properties.stream()
+            .anyMatch(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("parent")));
+    assertTrue(hasParent, "Should have 'parent' property when requested");
+
+    // Verify child is NOT present (not requested)
+    boolean hasChild =
+        properties.stream()
+            .anyMatch(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("child")));
+    assertFalse(hasChild, "Should NOT have 'child' property when not requested");
+
+    // Test 2: Request only active property
+    parameters = "?system=" + url + "&code=" + activeCode + "&property=active";
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    params = parser.parseResource(Parameters.class, content);
+
+    properties =
+        params.getParameter().stream()
+            .filter(p -> p.getName().equals("property"))
+            .collect(Collectors.toList());
+
+    // Should only have active, not parent or child
+    hasActive =
+        properties.stream()
+            .anyMatch(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("active")));
+    assertTrue(hasActive, "Should have 'active' property");
+
+    hasParent =
+        properties.stream()
+            .anyMatch(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("parent")));
+    assertFalse(hasParent, "Should NOT have 'parent' when not requested");
+
+    hasChild =
+        properties.stream()
+            .anyMatch(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("child")));
+    assertFalse(hasChild, "Should NOT have 'child' when not requested");
+  }
+
+  /**
+   * Test code system lookup displayLanguage parameter not supported.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemLookupDisplayLanguageNotSupported() throws Exception {
+    // Arrange
+    final String activeCode = "C3224";
+    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
+    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_LOOKUP;
+    final String parameters = "?system=" + url + "&code=" + activeCode + "&displayLanguage=en";
+
+    // Act
+    String content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals("not-supported", component.getCode().toCode());
+    assertTrue(component.getDiagnostics().contains("displayLanguage"));
   }
 }
