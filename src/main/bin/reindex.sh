@@ -218,6 +218,7 @@ SELECT DISTINCT ?source ?graphName (STR(?safeVersion) AS ?version) WHERE {
       ?source owl:versionIRI ?x_version .
       FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo } .
     $clause }
+
     BIND (
         IF(
             isURI(?x_version),
@@ -234,6 +235,7 @@ SELECT DISTINCT ?source ?graphName (STR(?safeVersion) AS ?version) WHERE {
 EOF
 
     graph_query=$(cat /tmp/x.$$.txt)
+
 }
 
 
@@ -310,10 +312,10 @@ download_ncit_history_helper() {
         curl -w "\n%{http_code}" -s -o cumulative_history_$ver.zip "$url" > /tmp/x.$$
         # if curl command fails then try again
         if [[ $? -ne 0 ]]; then
-            echo "ERROR: problem downloading NCIt history (trying again $i)"
+            echo "      ERROR: problem downloading NCIt history (trying again $i)"
         # if status code is not 200, then bail
         elif [[ $(tail -1 /tmp/x.$$) -ne 200 ]]; then
-            echo "ERROR: unexpected status code downloading NCIt history = "$(tail -1 /tmp/x.$$)
+            echo "      ERROR: unexpected status code downloading NCIt history = "$(tail -1 /tmp/x.$$)
             break
         else
             echo "    Unpack NCIt history"
@@ -343,7 +345,6 @@ download_ncit_history() {
   # Prep dir
   /bin/rm -rf $DIR/NCIT_HISTORY
   mkdir $DIR/NCIT_HISTORY
-  echo "CD $DIR/NCIT_HISTORY"
   cd $DIR/NCIT_HISTORY
 
   # Download file (try 5 times)
@@ -460,7 +461,7 @@ echo ""
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
     version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
-    cv=`echo $version | tr '[:upper:]' '[:lower:]' | perl -pe 's/[\.\-]//g;'`
+    cv=`echo $version | perl -ne 's/[\.\-]//g; print lc($_)'`
     db=`echo $x | cut -d\| -f 2`
     uri=`echo $x | cut -d\| -f 3`
     term=$(get_terminology "$uri")
@@ -591,7 +592,6 @@ for x in `cat /tmp/y.$$.txt`; do
         pt=$term
     fi
 done
-
 
 # Stale indexes are automatically cleaned up by the indexing process
 # It checks against graph db and reconciles everything and updates latest flags

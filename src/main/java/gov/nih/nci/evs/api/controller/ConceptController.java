@@ -353,12 +353,18 @@ public class ConceptController extends BaseController {
                 .collect(Collectors.toSet());
 
         // Filter and add only those ConceptMap objects that don't have a match in firstList
+        // Check with terminology+code as well as terminology+version+code
         List<Mapping> mapsToAdd =
             secondList.stream()
                 .filter(
                     cm ->
-                        !existingKeys.contains(
-                            cm.getTargetTerminology() + "_" + cm.getTargetCode()))
+                        !existingKeys.contains(cm.getTargetTerminology() + "_" + cm.getTargetCode())
+                            && !existingKeys.contains(
+                                cm.getTargetTerminology()
+                                    + " "
+                                    + cm.getTargetTerminologyVersion()
+                                    + "_"
+                                    + cm.getTargetCode()))
                 .collect(Collectors.toList());
 
         // Add the filtered list to firstList

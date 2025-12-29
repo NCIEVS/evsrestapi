@@ -230,13 +230,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     return true;
   }
 
-  /**
-   * Validate file attachment reason.
-   *
-   * @param file the file
-   * @param formType the form type
-   * @return the string
-   */
+  /* see superclass */
   @Override
   public String validateFileAttachmentReason(final MultipartFile file, final String formType) {
     final String prefix = "Attachment is invalid: ";
@@ -507,6 +501,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @param formatter the formatter
    * @return the merged cell value
    */
+  @SuppressWarnings("unused")
   private String getMergedCellValue(
       final org.apache.poi.ss.usermodel.Sheet sheet,
       final int rowIndex,
