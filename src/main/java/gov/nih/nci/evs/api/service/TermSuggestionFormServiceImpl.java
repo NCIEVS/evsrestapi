@@ -29,20 +29,17 @@ import org.springframework.web.multipart.MultipartFile;
 /** Implementation class for the terminology suggestion form service. */
 @Service
 public class TermSuggestionFormServiceImpl implements TermSuggestionFormService {
+
   /** The Constant logger. */
-  // Logger
   private static final Logger logger = LoggerFactory.getLogger(TermSuggestionFormServiceImpl.class);
 
   /** The mail sender. */
-  // JavaMailSender
   private final JavaMailSender mailSender;
 
   /** The application properties. */
-  // The application properties
   private final ApplicationProperties applicationProperties;
 
   /** The form file path. */
-  // path for the form file
   URL formFilePath;
 
   /** The object mapper to read the config url with readTree. */
