@@ -53,8 +53,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
-// TODO: Auto-generated Javadoc
-
 /**
  * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
  * ValueSet, and ConceptMap. All passed ids MUST be lowercase, so they match our internally set id's
@@ -3315,7 +3313,7 @@ public class FhirR4ValueSetExpandTests {
       currentNCItVersion = "24.01d"; // Fallback to a recent version
     }
 
-    // TODO: investigate why currentNCItVersion as 25.07b doesn't match concepts
+    // NOTE: new ticket - investigate why currentNCItVersion as 25.07b doesn't match concepts
     currentNCItVersion = "25.06e";
     log.info("Using current NCIt version: {} for R4 include.version test", currentNCItVersion);
 
@@ -3464,7 +3462,7 @@ public class FhirR4ValueSetExpandTests {
       log.warn("Could not determine current NCIt version, using fallback");
       currentNCItVersion = "24.01d"; // Fallback to a recent version
     }
-    // TODO: investigate why currentNCI
+    // NOTE: new ticket - investigate why currentNCI
     currentNCItVersion = "25.06e";
     log.info(
         "Using current NCIt version: {} for R4 include.version filter test", currentNCItVersion);

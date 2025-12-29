@@ -416,7 +416,14 @@ public class EVSUtils {
     }
 
     // otherwise, use what's before the hash as a prefix
+    // xmlns:oboInOwl="http://www.geneontology.org/formats/oboInOwl#" -> "oboInOwl"
     return code.replaceFirst("#", ":");
+
+    // A better long-term solution for this would be to extract the xmls namespace bindings
+    // and create a map.  For example "xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    // would produce the following. (this would require a sparql query that could identify
+    // the namespace bindings to urls
+    // "http://www.w3.org/2000/01/rdf-schema#" -> "rdfs"
   }
 
   /**

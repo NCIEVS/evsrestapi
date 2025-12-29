@@ -838,9 +838,12 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     List<QueryBuilder> queries = new ArrayList<>();
 
     // concept status
-    QueryBuilder conceptStatusQuery = getConceptStatusQueryBuilder(searchCriteria);
-    if (conceptStatusQuery != null) {
-      queries.add(conceptStatusQuery);
+    // check only if ncit
+    if (terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).count() > 0) {
+      QueryBuilder conceptStatusQuery = getConceptStatusQueryBuilder(searchCriteria);
+      if (conceptStatusQuery != null) {
+        queries.add(conceptStatusQuery);
+      }
     }
 
     // property
@@ -917,10 +920,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       }
     }
 
-    // TODO: this shouldn't be hardcoded, but need to read from the particular
-    // terminology
-    // we are searching, or otherwise make this a top-level field of "Concept"
-    // bool query to match property.type and property.value
+    // This query is only meaningful for ncit
     BoolQueryBuilder fieldBoolQuery =
         QueryBuilders.boolQuery()
             .must(QueryBuilders.matchQuery("properties.type", "Concept_Status"))
@@ -1244,7 +1244,6 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     }
 
     String[] indices = new String[terminologies.size()];
-    // TODO: add getTerminologies call to avoid looping
     for (int i = 0; i < terminologies.size(); i++) {
       indices[i] =
           termUtils

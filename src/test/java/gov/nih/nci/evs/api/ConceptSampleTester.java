@@ -1625,25 +1625,27 @@ public class ConceptSampleTester {
                   + term);
         }
       }
-    }
-
-    // subtree/children testing
-    url = "/api/v1/concept/" + terminology.getTerminology() + "/" + parentCode1 + "/subtree";
-    result =
-        testMvc
-            .perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))
-            .andExpect(status().isOk())
-            .andReturn();
-    content = result.getResponse().getContentAsString();
-    List<HierarchyNode> children =
-        new ObjectMapper()
-            .readValue(
-                content,
-                new TypeReference<List<HierarchyNode>>() {
-                  // n/a
-                });
-    if (children.size() < 1) {
-      // TODO: what's supposed to happen here?!
+      // subtree/children testing
+      for (String root : rootCodes) {
+        url = "/api/v1/concept/" + terminology.getTerminology() + "/" + root + "/subtree";
+        result =
+            testMvc
+                .perform(get(url).header("X-EVSRESTAPI-License-Key", licenseKey))
+                .andExpect(status().isOk())
+                .andReturn();
+        content = result.getResponse().getContentAsString();
+        List<HierarchyNode> children =
+            new ObjectMapper()
+                .readValue(
+                    content,
+                    new TypeReference<List<HierarchyNode>>() {
+                      // n/a
+                    });
+        if (children.size() < 1) {
+          errors.add(
+              "ERROR: root is expected to have children " + root + " in terminology " + term);
+        }
+      }
     }
 
     if (errors.size() > 0) {
