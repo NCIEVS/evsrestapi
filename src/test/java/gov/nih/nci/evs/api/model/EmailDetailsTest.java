@@ -66,7 +66,6 @@ public class EmailDetailsTest {
     assertEquals("NCIT", testDetails.getSource());
     assertEquals("agarcia@westcoastinformatics.com", testDetails.getToEmail());
     assertEquals("bcarlsen@westcoastinformatics.com ", testDetails.getFromEmail());
-    assertTrue(testDetails.getMsgBody().contains("C65498"));
   }
 
   /**

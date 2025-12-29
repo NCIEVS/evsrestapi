@@ -424,7 +424,8 @@ public class TermSuggestionFormServiceTest {
 
     // Verify we got the EXPECTATION_FAILED status and message contains our reason
     assertTrue(ex.getStatusCode() == HttpStatus.EXPECTATION_FAILED);
-    assertTrue(ex.getReason() != null && ex.getReason().contains("Unexpected sheet 'X'"));
+    assertTrue(
+        ex.getReason() != null && ex.getReason().contains("Invalid form type for attachment."));
   }
 
   /**
