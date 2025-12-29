@@ -316,6 +316,8 @@ load_terminology_data_in_transaction(){
 }
 
 load_terminology_data(){
+  # e.g. curl -X POST -H 'Content-Type: application/rdf+xml' -T '../data/UnitTestData/UmlsSemNet/umlssemnet.owl' http://localhost:3030/NCIT2/data?graph=http://UmlsSemNet
+  # e.g. curl -X POST -H 'Content-Type: application/rdf+xml' -T '../data/UnitTestData/Mouse_Anatomy/ma_07_27_2016.owl' http://localhost:3030/NCIT2/data?graph=http://MA
   echo "    Loading $3 into $1 ...`/bin/date`"
   echo "      curl -X POST -H 'Content-Type: application/rdf+xml' -T '$dir/$3' http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$1/data?graph=$2"
   $curl_cmd -X POST -H "Content-Type: application/rdf+xml" -T "$dir/$3" "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$1/data?graph=$2" 2> /dev/null > /tmp/x.$$

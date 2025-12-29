@@ -355,10 +355,10 @@ download_and_unpack() {
         curl -w "\n%{http_code}" -s -o cumulative_history_$ver.zip "$url" > /tmp/x.$$
         # if curl command fails then try again
         if [[ $? -ne 0 ]]; then
-            echo "ERROR: problem downloading NCIt history (trying again $i)"
+            echo "      ERROR: problem downloading NCIt history (trying again $i)"
         # if status code is not 200, then bail
         elif [[ $(tail -1 /tmp/x.$$) -ne 200 ]]; then
-            echo "ERROR: unexpected status code downloading NCIt history = "$(tail -1 /tmp/x.$$)
+            echo "      ERROR: unexpected status code downloading NCIt history = "$(tail -1 /tmp/x.$$)
             break
         else
             echo "  Unpack NCIt history"
@@ -386,7 +386,6 @@ download_ncit_history() {
   # Prep dir
   /bin/rm -rf $DIR/NCIT_HISTORY
   mkdir $DIR/NCIT_HISTORY
-  echo "CD $DIR/NCIT_HISTORY"
   cd $DIR/NCIT_HISTORY
 
   # Download file (try 5 times)
@@ -450,7 +449,7 @@ download_ncit_history() {
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
     version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
-    cv=`echo $version | tr '[:upper:]' '[:lower:]' | perl -pe 's/[\.\-]//g;'`
+    cv=`echo $version | perl -ne 's/[\.\-]//g; print lc($_)'`
     db=`echo $x | cut -d\| -f 2`
     uri=`echo $x | cut -d\| -f 3`
     term=$(get_terminology "$uri")
@@ -613,7 +612,7 @@ done
 # For "rdf" or "rrf", get the indexed terminologies
 get_indexed_terminologies() {
     local type=$1	
-    echo $(curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_search?size=1000" | jq -r '.hits.hits[]._source.terminology | select(.metadata.loader == "'"$type"'") | .terminologyVersion' | sed 's/^/concept_/')
+    echo $(curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_search?size=1000" | jq -r '.hits.hits[]._source.terminology | select(.metadata.loader == "'"$type"'") | .terminologyVersion' | perl -ne 's/^/concept_/; print lc($_)')
 }
 
 # Takes a raw version and cleans it up for use
@@ -627,6 +626,9 @@ get_version() {
 # Things loaded via RDF in the indexes that are no longer in graphdb
 remove_unused_indexes() {
 
+    RECONCILE ALL stale indexes and update flags
+
+    # NOTE: this code compares lowercase ${terminology}_${version} without cleanup of [\.\-]
     echo "    Remove rdf terminologies no longer in graphdb ...`/bin/date`"
     # Get all currently indexed terminologies
     rdf_terms=$(get_indexed_terminologies "rdf")
@@ -650,8 +652,25 @@ done)
             fi
         done
         if [[ $keep -eq 0 ]]; then
-            echo "      remove $index"
-            #curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$index" > /dev/null
+            echo "      remove indexes for ${index/concept_/}"
+            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$index" > /tmp/x.$$.txt
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$.txt | sed 's/^/    /'
+                echo "ERROR: error removing index $i"
+                exit 1
+            fi
+            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/${index/concept_/evs_object_}" > /tmp/x.$$.txt
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$.txt | sed 's/^/    /'
+                echo "ERROR: error removing index ${index/concept_/evs_object}"
+                exit 1
+            fi
+            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$index" > /tmp/x.$$.txt
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$.txt | sed 's/^/    /'
+                echo "ERROR: error removing evs_metadata entry for $index"
+                exit 1
+            fi
         fi
     done	
 	
