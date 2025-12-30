@@ -42,6 +42,7 @@ public class LoaderServiceImpl {
   private static String HISTORY_DIR;
 
   @Value("${nci.evs.bulkload.historyDir}")
+  @SuppressWarnings("static-access")
   public void setHistoryDir(String historyDir) {
     HISTORY_DIR = historyDir;
   }
@@ -63,6 +64,7 @@ public class LoaderServiceImpl {
   private static TerminologyUtils staticTermUtils;
 
   @PostConstruct
+  @SuppressWarnings("static-access")
   public void init() {
     staticOperationsService = this.operationsService;
     staticOsQueryService = this.osQueryService;
@@ -170,6 +172,9 @@ public class LoaderServiceImpl {
     ConfigurableApplicationContext app = null;
     try {
       app = SpringApplication.run(Application.class, args);
+      if (app == null) {
+        throw new IllegalStateException("Failed to start Spring application");
+      }
       OpensearchLoadService loadService = null;
 
       // create Audit object

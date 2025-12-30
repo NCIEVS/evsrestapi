@@ -207,7 +207,8 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
 
       if (file != null && !file.isEmpty()) {
         try {
-          helper.addAttachment(file.getOriginalFilename(), file);
+          helper.addAttachment(
+              file.getOriginalFilename() != null ? file.getOriginalFilename() : "attachment", file);
         } catch (final MessagingException me) {
           throw new MessagingException("Failed to attach file to email", me);
         }

@@ -11,6 +11,7 @@ public class StaticContextAccessor implements ApplicationContextAware {
   private static ApplicationContext context;
 
   @Override
+  @SuppressWarnings("static-access")
   public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
     context = applicationContext;
   }

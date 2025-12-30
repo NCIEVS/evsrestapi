@@ -6365,10 +6365,6 @@ public class FhirR5ValueSetExpandTests {
         log.debug("Included concept: {} - {}", concept.getCode(), concept.getDisplay());
       }
 
-      // Basic validation - should have some concepts if the referenced ValueSet was found and
-      // expanded
-      assertTrue(
-          contains.size() >= 0, "Should have concepts when include.valueSet is properly supported");
     } else {
       log.info(
           "Expanded ValueSet with include.valueSet contains no concepts - may indicate referenced"
