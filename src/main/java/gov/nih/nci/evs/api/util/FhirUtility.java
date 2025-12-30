@@ -297,6 +297,12 @@ public final class FhirUtility {
     return compareDate(d1.getLowerBound(), d2) && compareDate(d1.getUpperBound(), d2);
   }
 
+  /**
+   * Convert to YYYYMMDD.
+   *
+   * @param sdate the sdate
+   * @return the string
+   */
   public static String convertToYYYYMMDD(String sdate) {
     if (sdate == null || sdate.trim().isEmpty()) {
       return sdate; // Return input unchanged instead of null
