@@ -420,8 +420,7 @@ public class TermSuggestionFormServiceTest {
     ResponseStatusException ex =
         assertThrows(
             ResponseStatusException.class,
-            () -> controller.submitWithAttachm
-            ent(formData, file, null, "token"));
+            () -> controller.submitWithAttachment(formData, file, null, "token"));
 
     // Verify we got the EXPECTATION_FAILED status and message contains our reason
     assertTrue(ex.getStatusCode() == HttpStatus.EXPECTATION_FAILED);
