@@ -27,6 +27,7 @@ plugins {
   id 'maven-publish'
   // google java format gradle plugin
   id "com.diffplug.spotless" version "6.25.0"
+  id 'com.github.spotbugs' version '6.0.0'
 }
 
 repositories {
@@ -218,6 +219,30 @@ spotless {
   }
 }
 
+// SpotBugs and CheckStyle
+spotbugs {
+    ignoreFailures = false
+    showStackTraces = true
+    showProgress = true
+    excludeFilter = file("config/spotbugs/exclude.xml")
+    // onlyAnalyze = [ "com.foobar.MyClass", "com.foobar.mypkg.*" ]
+    // jvmArgs = [ "-Duser.language=ja" ]
+}
+spotbugsMain {
+    enabled = true
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+spotbugsTest {
+    enabled = true
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+
 // # for this, the cuis with listed sources will have hierarchies computed
 // ./gradlew rrfSample -Pterminology=NCIMTH,MDR,ICD10CM,ICD9CM,LNC,SNOMEDCT_US,RADLEX,PDQ,ICD10,HL7V3.0 -PlistFile=src/main/resources/cuis-202508.txt -PinputPath=../data/NCIM/META
 tasks.register('rrfSample', JavaExec) {
@@ -270,7 +295,7 @@ bootJar {
 }
 
 zipFile.dependsOn = [bootWar, bootJar]
-build.dependsOn = [spotlessCheck, test, bootWar, bootJar, zipFile]
+build.dependsOn = [spotlessCheck, spotbugsMain, spotbugsTest, test, bootWar, bootJar, zipFile]
 publishToMavenLocal.dependsOn = [bootWar, bootJar, zipFile]
 
 dependencyLocking {
