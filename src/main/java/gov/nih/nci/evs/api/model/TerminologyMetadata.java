@@ -1418,7 +1418,8 @@ public class TerminologyMetadata extends BaseModel {
     return getSynonym().contains(code)
         || getDefinition().contains(code)
         || code.equals(this.code)
-        || code.equals(subsetLink);
+        || code.equals(subsetLink)
+        || code.equals(preferredName);
   }
 
   /**
