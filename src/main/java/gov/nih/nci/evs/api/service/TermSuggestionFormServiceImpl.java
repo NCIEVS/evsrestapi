@@ -29,20 +29,17 @@ import org.springframework.web.multipart.MultipartFile;
 /** Implementation class for the terminology suggestion form service. */
 @Service
 public class TermSuggestionFormServiceImpl implements TermSuggestionFormService {
+
   /** The Constant logger. */
-  // Logger
   private static final Logger logger = LoggerFactory.getLogger(TermSuggestionFormServiceImpl.class);
 
   /** The mail sender. */
-  // JavaMailSender
   private final JavaMailSender mailSender;
 
   /** The application properties. */
-  // The application properties
   private final ApplicationProperties applicationProperties;
 
   /** The form file path. */
-  // path for the form file
   URL formFilePath;
 
   /** Pattern for optional instruction sheets with date suffix. */
@@ -227,13 +224,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     return true;
   }
 
-  /**
-   * Validate file attachment reason.
-   *
-   * @param file the file
-   * @param formType the form type
-   * @return the string
-   */
+  /* see superclass */
   @Override
   public String validateFileAttachmentReason(final MultipartFile file, final String formType) {
     final String prefix = "Attachment is invalid: ";
@@ -504,6 +495,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @param formatter the formatter
    * @return the merged cell value
    */
+  @SuppressWarnings("unused")
   private String getMergedCellValue(
       final org.apache.poi.ss.usermodel.Sheet sheet,
       final int rowIndex,
