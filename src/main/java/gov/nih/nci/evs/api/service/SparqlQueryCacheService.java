@@ -199,7 +199,7 @@ public class SparqlQueryCacheService {
       if (b.getPropertyCode() == null) {
         qualifier.setUri(b.getProperty().getValue());
       }
-      qualifier.setCode(EVSUtils.getPropertyCode(b));
+      qualifier.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
       qualifiers.add(qualifier);
     }
 

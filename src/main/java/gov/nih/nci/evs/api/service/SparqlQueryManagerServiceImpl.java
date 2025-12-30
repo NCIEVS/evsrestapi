@@ -358,7 +358,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (conceptType.equals("concept")) {
         concept.setCode(EVSUtils.getCodeFromUri(conceptCode));
       } else {
-        concept.setCode(EVSUtils.getQualifiedCodeFromUri(conceptCode));
+        concept.setCode(
+            EVSUtils.getQualifiedCodeFromUri(terminology.getTerminology(), conceptCode));
       }
     }
 
@@ -785,8 +786,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // continue;
       // }
       final Property property = new Property();
-      property.setCode(EVSUtils.getPropertyCode(b));
-      property.setType(EVSUtils.getPropertyLabel(b));
+      property.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
+      property.setType(EVSUtils.getPropertyLabel(terminology.getTerminology(), b));
       property.setValue(b.getPropertyValue().getValue());
       final String key = property.getCode() + property.getValue();
       if (!seen.contains(key)) {
@@ -833,8 +834,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       final Property property = new Property();
-      property.setCode(EVSUtils.getPropertyCode(b));
-      property.setType(EVSUtils.getPropertyLabel(b));
+      property.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
+      property.setType(EVSUtils.getPropertyLabel(terminology.getTerminology(), b));
       property.setValue(b.getPropertyValue().getValue());
       final String key = conceptCode + property.getCode() + property.getValue();
       if (!seen.contains(key)) {
@@ -971,8 +972,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
       final Association association = new Association();
-      association.setCode(EVSUtils.getRelationshipCode(b));
-      association.setType(EVSUtils.getRelationshipType(b));
+      association.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      association.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
       association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       association.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
       associations.add(association);
@@ -1013,8 +1014,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       final Association association = new Association();
-      association.setCode(EVSUtils.getRelationshipCode(b));
-      association.setType(EVSUtils.getRelationshipType(b));
+      association.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      association.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
 
       association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       association.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
@@ -1048,8 +1049,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       final Association association = new Association();
-      association.setCode(EVSUtils.getRelationshipCode(b));
-      association.setType(EVSUtils.getRelationshipType(b));
+      association.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      association.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
 
       if (inverse) {
         association.setRelatedCode(b.getConceptCode().getValue());
@@ -1082,8 +1083,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
     for (final Bindings b : bindings) {
       final Association association = new Association();
-      association.setCode(EVSUtils.getRelationshipCode(b));
-      association.setType(EVSUtils.getRelationshipType(b));
+      association.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      association.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
       association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       association.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
       associations.add(association);
@@ -1126,8 +1127,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       final Association association = new Association();
-      association.setCode(EVSUtils.getRelationshipCode(b));
-      association.setType(EVSUtils.getRelationshipType(b));
+      association.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      association.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
       association.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       association.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
       resultMap.get(conceptCode).add(association);
@@ -1156,8 +1157,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (final Bindings b : bindings) {
       // log.info("BINDING = {}", b);
       final Role role = new Role();
-      role.setCode(EVSUtils.getRelationshipCode(b));
-      role.setType(EVSUtils.getRelationshipType(b));
+      role.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      role.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
       role.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
 
@@ -1210,8 +1211,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       final Role role = new Role();
-      role.setCode(EVSUtils.getRelationshipCode(b));
-      role.setType(EVSUtils.getRelationshipType(b));
+      role.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      role.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
       role.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
       // distinct roles only
@@ -1245,8 +1246,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
       final Role role = new Role();
-      role.setCode(EVSUtils.getRelationshipCode(b));
-      role.setType(EVSUtils.getRelationshipType(b));
+      role.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      role.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
       role.setRelatedCode(
           b.getRelatedConceptCode() != null
               ? b.getRelatedConceptCode().getValue()
@@ -1300,8 +1301,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       final Role role = new Role();
-      role.setCode(EVSUtils.getRelationshipCode(b));
-      role.setType(EVSUtils.getRelationshipType(b));
+      role.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      role.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
       role.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
 
@@ -1351,8 +1352,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       final Role role = new Role();
-      role.setCode(EVSUtils.getRelationshipCode(b));
-      role.setType(EVSUtils.getRelationshipType(b));
+      role.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
+      role.setType(EVSUtils.getRelationshipType(terminology.getTerminology(), b));
       if (inverseFlag) {
         // reverse code and related code
         role.setRelatedCode(b.getConceptCode().getValue());
@@ -1473,7 +1474,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (final Bindings b : bindings) {
       final String axiom = b.getAxiom().getValue();
       final String propertyUri = b.getAxiomProperty().getValue();
-      final String propertyCode = EVSUtils.getQualifiedCodeFromUri(propertyUri);
+      final String propertyCode =
+          EVSUtils.getQualifiedCodeFromUri(terminology.getTerminology(), propertyUri);
       final String value = b.getAxiomValue().getValue();
       // log.debug(" axiom = " + propertyUri + ", " + value + ", " + axiom);
 
@@ -1547,7 +1549,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         }
         final Axiom axiomObject = axiomMap.get(axiom);
         final String propertyUri = b.getAxiomProperty().getValue();
-        final String propertyCode = EVSUtils.getQualifiedCodeFromUri(propertyUri);
+        final String propertyCode =
+            EVSUtils.getQualifiedCodeFromUri(terminology.getTerminology(), propertyUri);
         final String value = b.getAxiomValue().getValue();
 
         setAxiomProperty(propertyCode, propertyUri, value, qualifierFlag, axiomObject, terminology);
@@ -1600,7 +1603,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         break;
       case "owl:annotatedProperty":
         // Use the code value
-        axiomObject.setAnnotatedProperty(EVSUtils.getQualifiedCodeFromUri(value));
+        axiomObject.setAnnotatedProperty(
+            EVSUtils.getQualifiedCodeFromUri(terminology.getTerminology(), value));
         // log.debug(" annotated property = " + EVSUtils.getQualifiedCodeFromUri(value));
         break;
       default:
@@ -1804,7 +1808,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (b.getPropertyLabel() != null) {
         property.setValue(b.getPropertyLabel().getValue());
       }
-      property.setCode(EVSUtils.getPropertyCode(b));
+      property.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
       if (!seen.contains(property.getCode()) && !excludedProperties.contains(property.getCode())) {
         properties.add(property);
         seen.add(property.getCode());
@@ -1885,7 +1889,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (b.getPropertyCode() == null) {
         property.setUri(b.getProperty().getValue());
       }
-      property.setCode(EVSUtils.getPropertyCode(b));
+      property.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
       if (!seen.contains(property.getCode())) {
         properties.add(property);
         seen.add(property.getCode());
@@ -1933,7 +1937,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (b.getPropertyCode() == null) {
         property.setUri(b.getProperty().getValue());
       }
-      property.setCode(EVSUtils.getPropertyCode(b));
+      property.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
       properties.add(property);
     }
 
@@ -1946,7 +1950,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     for (final Bindings b : bindings2) {
       // This query just looks up the codes
       qualifiers.add(b.getProperty().getValue());
-      qualifiers.add(EVSUtils.getPropertyCode(b));
+      qualifiers.add(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
     }
 
     final TerminologyMetadata md = terminology.getMetadata();
@@ -2015,7 +2019,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (b.getPropertyCode() == null) {
         qualifier.setUri(b.getProperty().getValue());
       }
-      qualifier.setCode(EVSUtils.getPropertyCode(b));
+      qualifier.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
       qualifiers.add(qualifier);
     }
 
@@ -2149,7 +2153,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (b.getPropertyCode() == null) {
         association.setUri(b.getProperty().getValue());
       }
-      association.setCode(EVSUtils.getPropertyCode(b));
+      association.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
       associations.add(association);
     }
 
@@ -2187,7 +2191,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (b.getPropertyCode() == null) {
         role.setUri(b.getProperty().getValue());
       }
-      role.setCode(EVSUtils.getPropertyCode(b));
+      role.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
 
       // Exclude roles remodeled as parent/child
       if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
