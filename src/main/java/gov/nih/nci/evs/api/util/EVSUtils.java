@@ -392,14 +392,27 @@ public class EVSUtils {
    * @see #getLabelFromUri(String) for extracting human-readable labels
    */
   public static String getQualifiedCodeFromUri(final String uri) {
+    // e.g., the URI that comes in here will be something like this:
+    // http://www.w3.org/2000/01/rdf-schema#label
+
     // Replace up to the last slash and fix rdfs
+    // xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#" => "rdfs"
     String code = uri.replaceFirst(".*\\/", "").replaceFirst("rdf-schema", "rdfs");
+
+    // Remove up to the hash if the thing before is like "HGNC.owl"
+    // xmlns="http://purl.obolibrary.org/obo/chebi.owl#" -> ""
     if (code.contains(".")) {
-      // Remove up to the hash if the thing before is like "HGNC.owl"
       return code.replaceFirst(".*#", "");
     }
     // otherwise, use what's before the hash as a prefix
+    // xmlns:oboInOwl="http://www.geneontology.org/formats/oboInOwl#" -> "oboInOwl"
     return code.replaceFirst("#", ":");
+
+    // A better long-term solution for this would be to extract the xmls namespace bindings
+    // and create a map.  For example "xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    // would produce the following. (this would require a sparql query that could identify
+    // the namespace bindings to urls
+    // "http://www.w3.org/2000/01/rdf-schema#" -> "rdfs"
   }
 
   /**

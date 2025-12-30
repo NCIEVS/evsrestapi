@@ -193,50 +193,74 @@ echo "Ignored source URLs:${ignored_sources}"
 echo "  Lookup terminology, version info in graph db"
 get_graph_query(){
 if [ -n "$ignored_sources" ];then
-cat > /tmp/x.$$.txt << EOF
+    # NOTE: the query must return ?source, ?graphName, and ?version with those names
+    cat > /tmp/x.$$.txt << EOF
 query=PREFIX owl:<http://www.w3.org/2002/07/owl#>
 PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>
 PREFIX dc:<http://purl.org/dc/elements/1.1/>
 PREFIX xml:<http://www.w3.org/2001/XMLSchema>
-select distinct ?source ?graphName ?version where {
+SELECT DISTINCT ?source ?graphName (STR(?safeVersion) AS ?version) WHERE {
   graph ?graphName {
     {
       ?source a owl:Ontology .
-      ?source owl:versionInfo ?version .
+      ?source owl:versionInfo ?x_version .
       FILTER (?source NOT IN ($ignored_sources))
     }
     UNION
     {
       ?source a owl:Ontology .
-      ?source owl:versionIRI ?version .
+      ?source owl:versionIRI ?x_version .
       FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo } .
       FILTER (?source NOT IN ($ignored_sources))
     }
+    BIND (
+        IF(
+            isURI(?x_version),
+            ?x_version,
+            IF(
+                DATATYPE(?x_version) = xsd:decimal,
+                xsd:integer(?x_version),
+                ?x_version
+            )
+        ) AS ?safeVersion
+    )
   }
 }
 EOF
 else
-cat > /tmp/x.$$.txt << EOF
+    # NOTE: the query must return ?source, ?graphName, and ?version with those names
+    cat > /tmp/x.$$.txt << EOF
 query=PREFIX owl:<http://www.w3.org/2002/07/owl#>
 PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>
 PREFIX dc:<http://purl.org/dc/elements/1.1/>
 PREFIX xml:<http://www.w3.org/2001/XMLSchema>
-select distinct ?source ?graphName ?version where {
+SELECT DISTINCT ?source ?graphName (STR(?safeVersion) AS ?version) WHERE {
   graph ?graphName {
     {
       ?source a owl:Ontology .
-      ?source owl:versionInfo ?version .
+      ?source owl:versionInfo ?x_version .
     }
     UNION
     {
       ?source a owl:Ontology .
-      ?source owl:versionIRI ?version .
+      ?source owl:versionIRI ?x_version .
       FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo } .
     }
+    BIND (
+        IF(
+            isURI(?x_version),
+            ?x_version,
+            IF(
+                DATATYPE(?x_version) = xsd:decimal,
+                xsd:integer(?x_version),
+                ?x_version
+            )
+        ) AS ?safeVersion
+    )
   }
 }
 EOF
@@ -331,10 +355,10 @@ download_and_unpack() {
         curl -w "\n%{http_code}" -s -o cumulative_history_$ver.zip "$url" > /tmp/x.$$
         # if curl command fails then try again
         if [[ $? -ne 0 ]]; then
-            echo "ERROR: problem downloading NCIt history (trying again $i)"
+            echo "      ERROR: problem downloading NCIt history (trying again $i)"
         # if status code is not 200, then bail
         elif [[ $(tail -1 /tmp/x.$$) -ne 200 ]]; then
-            echo "ERROR: unexpected status code downloading NCIt history = "$(tail -1 /tmp/x.$$)
+            echo "      ERROR: unexpected status code downloading NCIt history = "$(tail -1 /tmp/x.$$)
             break
         else
             echo "  Unpack NCIt history"
@@ -362,7 +386,6 @@ download_ncit_history() {
   # Prep dir
   /bin/rm -rf $DIR/NCIT_HISTORY
   mkdir $DIR/NCIT_HISTORY
-  echo "CD $DIR/NCIT_HISTORY"
   cd $DIR/NCIT_HISTORY
 
   # Download file (try 5 times)
@@ -426,7 +449,7 @@ download_ncit_history() {
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
     version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
-    cv=`echo $version | tr '[:upper:]' '[:lower:]' | perl -pe 's/[\.\-]//g;'`
+    cv=`echo $version | perl -ne 's/[\.\-]//g; print lc($_)'`
     db=`echo $x | cut -d\| -f 2`
     uri=`echo $x | cut -d\| -f 3`
     term=$(get_terminology "$uri")
@@ -586,21 +609,73 @@ for t in $ncim_terms; do
 concept_${t_lc}_"
 done
 
+# For "rdf" or "rrf", get the indexed terminologies
+get_indexed_terminologies() {
+    local type=$1	
+    echo $(curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_search?size=1000" | jq -r '.hits.hits[]._source.terminology | select(.metadata.loader == "'"$type"'") | .terminologyVersion' | perl -ne 's/^/concept_/; print lc($_)')
+}
+
+# Takes a raw version and cleans it up for use
+get_version() {
+    local ver="$1"
+    echo $ver | cut -d\| -f 1 | perl -ne 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#; print lc($_)'
+}
+
 # Remove indexes not found in triple store
-echo "  Remove unused indexes"
-for idx in $all_indexes; do
-  keep=0
-  for v in $valid_keys; do
-    if [[ "$idx" == "$v"* ]]; then
-      keep=1
-      break
-    fi
-  done
-  if [[ $keep -eq 0 ]]; then
-    echo "      Removing unused index: $idx"
-    curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$idx" > /dev/null
-  fi
-done
+# Remove unused indexes
+# Things loaded via RDF in the indexes that are no longer in graphdb
+remove_unused_indexes() {
+
+    RECONCILE ALL stale indexes and update flags
+
+    # NOTE: this code compares lowercase ${terminology}_${version} without cleanup of [\.\-]
+    echo "    Remove rdf terminologies no longer in graphdb ...`/bin/date`"
+    # Get all currently indexed terminologies
+    rdf_terms=$(get_indexed_terminologies "rdf")
+    echo "      rdf = $rdf_terms"
+
+    # Get all valid terminology keys from the currently loaded graph db triples
+    graphdb_terms=$(cut -d'|' -f1,3 /tmp/y.$$.txt | while IFS='|' read -r version iri; do
+        term=$(get_terminology "$iri")
+        version=$(get_version "$version")
+        echo -n " concept_${term}_${version}"
+done)
+    echo "      graphdb = $graphdb_terms"
+
+    # Remove indexes not found in triple store
+    for index in $rdf_terms; do
+        keep=0
+        for v in $graphdb_terms; do
+            if [[ "$index" == "$v" ]]; then
+                keep=1
+                break
+            fi
+        done
+        if [[ $keep -eq 0 ]]; then
+            echo "      remove indexes for ${index/concept_/}"
+            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$index" > /tmp/x.$$.txt
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$.txt | sed 's/^/    /'
+                echo "ERROR: error removing index $i"
+                exit 1
+            fi
+            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/${index/concept_/evs_object_}" > /tmp/x.$$.txt
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$.txt | sed 's/^/    /'
+                echo "ERROR: error removing index ${index/concept_/evs_object}"
+                exit 1
+            fi
+            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$index" > /tmp/x.$$.txt
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$.txt | sed 's/^/    /'
+                echo "ERROR: error removing evs_metadata entry for $index"
+                exit 1
+            fi
+        fi
+    done	
+	
+}
+remove_unused_indexes
 
 # Stale indexes are automatically cleaned up by the indexing process
 # It checks against graph db and reconciles everything and updates latest flags
