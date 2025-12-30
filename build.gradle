@@ -224,8 +224,7 @@ spotbugs {
     ignoreFailures = false
     showStackTraces = true
     showProgress = true
-    excludeFilter = file("config/spotbugs/exclude.xml")
-    // onlyAnalyze = [ "com.foobar.MyClass", "com.foobar.mypkg.*" ]
+    excludeFilter = file("config/spotbugs/excludeFilter.xml")
     // jvmArgs = [ "-Duser.language=ja" ]
 }
 spotbugsMain {
