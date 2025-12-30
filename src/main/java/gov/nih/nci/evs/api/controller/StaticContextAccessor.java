@@ -10,10 +10,13 @@ public class StaticContextAccessor implements ApplicationContextAware {
 
   private static ApplicationContext context;
 
-  @Override
-  @SuppressWarnings("static-access")
-  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+  public static void setContext(ApplicationContext applicationContext) {
     context = applicationContext;
+  }
+
+  @Override
+  public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
+    setContext(applicationContext);
   }
 
   public static <T> T getBean(Class<T> beanClass) {

@@ -163,8 +163,9 @@ dependencies {
   //implementation "org.projectlombok:lombok:1.18.32"
   //annotationProcessor "org.projectlombok:lombok:1.18.32"
   //compileOnly "org.projectlombok:lombok:1.18.32"
-  //  compileOnly "jakarta.servlet:jakarta.servlet-api:6.0.0"
-  //providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
+
+  // SpotBugs annotations
+  compileOnly 'com.github.spotbugs:spotbugs-annotations:4.8.2'
 
   /*
    * Test Dependencies

@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gov.nih.nci.evs.api.Application;
 import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -42,7 +43,7 @@ public class LoaderServiceImpl {
   private static String HISTORY_DIR;
 
   @Value("${nci.evs.bulkload.historyDir}")
-  @SuppressWarnings("static-access")
+  @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   public void setHistoryDir(String historyDir) {
     HISTORY_DIR = historyDir;
   }
@@ -63,12 +64,17 @@ public class LoaderServiceImpl {
   private static OpensearchQueryService staticOsQueryService;
   private static TerminologyUtils staticTermUtils;
 
+  public static void setStaticServices(
+      OpensearchOperationsService ops, OpensearchQueryService query, TerminologyUtils term) {
+    staticOperationsService = ops;
+    staticOsQueryService = query;
+    staticTermUtils = term;
+  }
+
   @PostConstruct
   @SuppressWarnings("static-access")
   public void init() {
-    staticOperationsService = this.operationsService;
-    staticOsQueryService = this.osQueryService;
-    staticTermUtils = this.termUtils;
+    setStaticServices(this.operationsService, this.osQueryService, this.termUtils);
   }
 
   /**
