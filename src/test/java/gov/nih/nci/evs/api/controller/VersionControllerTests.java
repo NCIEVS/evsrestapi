@@ -8,6 +8,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.support.ApplicationVersion;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -54,7 +55,7 @@ public class VersionControllerTests {
     /*
      * Configure the JacksonTester object
      */
-    this.objectMapper = new ObjectMapper();
+    this.objectMapper = ThreadLocalMapper.get();
     JacksonTester.initFields(this, objectMapper);
   }
 
@@ -93,7 +94,8 @@ public class VersionControllerTests {
     result = this.mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     assertThat(content).isNotEmpty();
-    final ApplicationVersion data = new ObjectMapper().readValue(content, ApplicationVersion.class);
+    final ApplicationVersion data =
+        ThreadLocalMapper.get().readValue(content, ApplicationVersion.class);
     final String buildGradleVersion = getBuildGradleVersion();
     assertThat(data.getVersion()).isEqualTo(buildGradleVersion);
   }
