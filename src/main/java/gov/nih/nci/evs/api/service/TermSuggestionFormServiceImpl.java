@@ -29,20 +29,17 @@ import org.springframework.web.multipart.MultipartFile;
 /** Implementation class for the terminology suggestion form service. */
 @Service
 public class TermSuggestionFormServiceImpl implements TermSuggestionFormService {
+
   /** The Constant logger. */
-  // Logger
   private static final Logger logger = LoggerFactory.getLogger(TermSuggestionFormServiceImpl.class);
 
   /** The mail sender. */
-  // JavaMailSender
   private final JavaMailSender mailSender;
 
   /** The application properties. */
-  // The application properties
   private final ApplicationProperties applicationProperties;
 
   /** The form file path. */
-  // path for the form file
   URL formFilePath;
 
   /** The object mapper to read the config url with readTree. */
@@ -233,13 +230,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     return true;
   }
 
-  /**
-   * Validate file attachment reason.
-   *
-   * @param file the file
-   * @param formType the form type
-   * @return the string
-   */
+  /* see superclass */
   @Override
   public String validateFileAttachmentReason(final MultipartFile file, final String formType) {
     final String prefix = "Attachment is invalid: ";
@@ -333,30 +324,6 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
             + String.format(
                 "Required sheet '%s' missing content in uploaded workbook: %s",
                 sheetName, filename);
-      }
-      final org.apache.poi.ss.usermodel.DataFormatter formatter =
-          new org.apache.poi.ss.usermodel.DataFormatter();
-
-      // Handle merged cells for C3:F3, C4:F4, C5:F5 by checking the merged region's first cell
-      for (int r = 2; r <= 4; r++) {
-        final String cellValue = getMergedCellValue(metaSheet, r, 2, formatter);
-        if (cellValue == null || cellValue.isEmpty()) {
-          return prefix
-              + String.format(
-                  "Required metadata missing in sheet '%s' at C%d in uploaded workbook: %s",
-                  sheetName, r + 1, filename);
-        }
-      }
-
-      // Check that A8..E8 (columns 0..4, row index 7) are filled out
-      for (int c = 0; c <= 4; c++) {
-        final String v = getMergedCellValue(metaSheet, 7, c, formatter);
-        if (v == null || v.isEmpty()) {
-          return prefix
-              + String.format(
-                  "Required row 8 column %d missing in sheet '%s' in uploaded workbook: %s",
-                  c + 1, sheetName, filename);
-        }
       }
     } catch (final Exception e) {
       return prefix
@@ -534,6 +501,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @param formatter the formatter
    * @return the merged cell value
    */
+  @SuppressWarnings("unused")
   private String getMergedCellValue(
       final org.apache.poi.ss.usermodel.Sheet sheet,
       final int rowIndex,

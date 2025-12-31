@@ -75,7 +75,6 @@ public class NcimSampleTest extends SampleTest {
     assertThat(concept.getMaps().get(1).getGroup()).isEqualTo("1");
     assertThat(concept.getMaps().get(1).getRank()).isEqualTo("1");
     assertThat(concept.getMaps().get(1).getRule()).isEqualTo("TRUE");
-    // TODO: test what the maps are
   }
 
   /**

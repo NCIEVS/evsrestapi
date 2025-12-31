@@ -80,6 +80,8 @@ public class ChebiSampleTest extends SampleTest {
     final Terminology chebi =
         terminologies.stream().filter(t -> t.getTerminology().equals("chebi")).findFirst().get();
     assertThat(chebi.getTerminology()).isEqualTo("chebi");
+    // Verify not 247.0
+    assertThat(chebi.getVersion()).isEqualTo("247");
     assertThat(chebi.getMetadata().getUiLabel())
         .isEqualTo("ChEBI: Chemical Entities of Biological Interest");
     assertThat(chebi.getName()).isEqualTo("ChEBI: Chemical Entities of Biological Interest 241");

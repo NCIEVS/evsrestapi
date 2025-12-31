@@ -409,7 +409,7 @@ public class FhirR4CodeSystemReadSearchTests {
    */
   @Test
   public void testCodeSystemReadWithParameters() throws Exception {
-    // TODO: implement for date when the CodeSystem data has dates
+    // NOTE: implement for date when the CodeSystem data has dates
     // implement for url when the custom parameter is registered to the HAPI
     // FHIR server
 

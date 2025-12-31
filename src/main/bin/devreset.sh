@@ -24,7 +24,7 @@ dir=${arr[0]}
 # Hardcode the history file
 historyFile=$dir/NCIT/cumulative_history_25.06e.txt
 
-
+databases=("NCIT2" "CTRP")
 curl_cmd='curl -s -w \n%{http_code} -u '"${GRAPH_DB_USERNAME}:${GRAPH_DB_PASSWORD}"
 
 # Set up ability to format json
@@ -65,48 +65,6 @@ elif [[ -z $ES_PORT ]]; then
     echo "ERROR: ES_PORT is not set"
     exit 1
 fi
-ES="$ES_SCHEME://$ES_HOST:$ES_PORT"
-
-validate_and_populate_dbs(){
-  echo "  Getting databases from configuration index ...$(/bin/date)"
-  if [[ -z $(curl -s "$ES/configuration/_search?size=1" | jq -r '.hits.hits[0]') ]]; then
-    echo "ERROR: configuration index does not exist. Run init.sh first."
-    exit 1
-  fi
-  str_weekly_dbs=$(curl -s "$ES/configuration/_search" | jq -r '[.hits.hits[] | select(._source.weekly==true) | ._source.name] | join(",")')
-  IFS=',' read -r -a weekly_dbs <<<"$str_weekly_dbs"
-  if [[ $? -ne 0 ]]; then
-      echo "ERROR: unexpected problem listing weekly databases. Try running init.sh first."
-      exit 1
-  fi
-  if [[ ${#weekly_dbs[@]} -gt 1 ]]; then
-    echo "ERROR: More than one weekly is not supported: $str_weekly_dbs"
-    exit 1
-  fi
-  if [[ ${#weekly_dbs[@]} -eq 0 ]]; then
-    echo "ERROR: No weekly database found in configuration index"
-    exit 1
-  fi
-  str_non_weekly_dbs=$(curl -s "$ES/configuration/_search" | jq -r '[.hits.hits[] | select(._source.weekly==false) | ._source.name] | join(",")')
-  IFS=',' read -r -a non_weekly_dbs <<<"$str_non_weekly_dbs"
-  if [[ $? -ne 0 ]]; then
-      echo "ERROR: unexpected problem listing non-weekly databases. Try running init.sh first."
-      exit 1
-  fi
-  if [[ ${#non_weekly_dbs[@]} -gt 1 ]]; then
-    echo "ERROR: More than one non-weekly is not supported: $str_non_weekly_dbs"
-    exit 1
-  fi
-  if [[ ${#non_weekly_dbs[@]} -eq 0 ]]; then
-    echo "ERROR: No non-weekly database found in configuration index"
-    exit 1
-  fi
-  databases=("${weekly_dbs[@]}" "${non_weekly_dbs[@]}")
-  weekly_db=${weekly_dbs[0]}
-  non_weekly_db=${non_weekly_dbs[0]}
-  echo "  weekly db: $weekly_db"
-  echo "  non-weekly db: $non_weekly_db"
-}
 
 # Prerequisites - check the UnitTest
 echo "  Check prerequisites"
@@ -159,8 +117,8 @@ fi
 
 # Check ChEBI monthly
 echo "    check ChEBI monthly"
-if [[ ! -e "$dir/ChEBI/chebi_241.owl" ]]; then
-    echo "ERROR: unexpectedly missing ChEBI/chebi_241.owl file"
+if [[ ! -e "$dir/ChEBI/chebi_247.owl" ]]; then
+    echo "ERROR: unexpectedly missing ChEBI/chebi_247.owl file"
     exit 1
 fi
 
@@ -237,170 +195,176 @@ check_http_status 200 "GET /_cat/indices expecting 200"
 
 # Remove elasticsearch indexes
 remove_elasticsearch_indexes(){
-  echo "  Remove elasticsearch indexes"
-  curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices" | cut -d\  -f 3 | egrep "metrics|concept|evs" | grep -v "snomed" | cat > /tmp/x.$$.txt
-  if [[ $? -ne 0 ]]; then
-      echo "ERROR: problem connecting to elasticsearch"
-      exit 1
-  fi
-  for i in `cat /tmp/x.$$.txt`; do
-      echo "    remove $i ...`/bin/date`"
-      curl -s -w "\n%{http_code}" -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$i" 2> /dev/null > /tmp/x.$$
-      check_status $? "DELETE /$i failed - problem removing index $i"
-      check_http_status 200 "DELETE /$i expecting 200"
-  done
+    echo "  Remove elasticsearch indexes"
+    curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices" | cut -d\  -f 3 | egrep "metrics|concept|evs" | grep -v "snomed" | cat > /tmp/x.$$.txt
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: problem connecting to elasticsearch"
+        exit 1
+    fi
+    for i in `cat /tmp/x.$$.txt`; do
+        echo "    remove $i ...`/bin/date`"
+        curl -s -w "\n%{http_code}" -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$i" 2> /dev/null > /tmp/x.$$
+        check_status $? "DELETE /$i failed - problem removing index $i"
+        check_http_status 200 "DELETE /$i expecting 200"
+    done
 }
 
 # Load saved maps data to ensure it aligns with testing conditions
 load_mapping(){
-  echo "  Load stock maps aligned with data verions"
-  local="-Dspring.profiles.active=local"
-  jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
-  java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
-  if [[ $? -ne 0 ]]; then
-    echo "ERROR: unexpected error building mapping indexes"
-    exit 1
-  fi
+    echo "  Load stock maps aligned with data verions"
+    local="-Dspring.profiles.active=local"
+    jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
+    java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: unexpected error building mapping indexes"
+        exit 1
+    fi
 }
 
 # Load saved maps data to ensure it aligns with testing conditions
 load_mapping2(){
-  echo "  Load stock map changes"
-  local="-Dspring.profiles.active=local"
-  jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
-  java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
-  if [[ $? -ne 0 ]]; then
-    echo "ERROR: unexpected error building mapping indexes"
-    exit 1
-  fi
+    echo "  Load stock map changes"
+    local="-Dspring.profiles.active=local"
+    jar=build/libs/`ls build/libs/ | grep evsrestapi | grep jar | head -1`
+    java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology mapping
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: unexpected error building mapping indexes"
+        exit 1
+    fi
 }
 
 
-# Reindex ncim - individual terminologies
+# Reindex ncim - individual terminologies from NCIM
 reindex_ncim(){
-  for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V3.0; do
-      # Keep the NCIM folder around while we run
-      echo "  Load $t (from downloaded data) ...`/bin/date`"
-      src/main/bin/ncim-part.sh --noconfig $dir/NCIM --keep --terminology $t > /tmp/x.$$.txt 2>&1
-      if [[ $? -ne 0 ]]; then
-          cat /tmp/x.$$.txt | sed 's/^/    /'
-          echo "ERROR: loading $t"
-          exit 1
-      fi
-  done
-  # Reindex ncim - must run after the prior section so that maps can connect to loaded terminologies
-  echo "  Reindex ncim ...`/bin/date`"
-  src/main/bin/ncim-part.sh --noconfig $dir/NCIM > /tmp/x.$$.txt 2>&1
-  if [[ $? -ne 0 ]]; then
-      cat /tmp/x.$$.txt | sed 's/^/    /'
-      echo "ERROR: problem running ncim-part.sh"
-      exit 1
-  fi
+    for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V3.0; do
+        # Keep the NCIM folder around while we run
+        echo "  Load $t (from downloaded data) ...`/bin/date`"
+        src/main/bin/ncim-part.sh --noconfig $dir/NCIM --keep --terminology $t > /tmp/x.$$.txt 2>&1
+        if [[ $? -ne 0 ]]; then
+            cat /tmp/x.$$.txt | sed 's/^/    /'
+            echo "ERROR: loading $t"
+            exit 1
+        fi
+    done
+    # Reindex ncim - must run after the prior section so that maps can connect to loaded terminologies
+    echo "  Reindex ncim ...`/bin/date`"
+    src/main/bin/ncim-part.sh --noconfig $dir/NCIM > /tmp/x.$$.txt 2>&1
+    if [[ $? -ne 0 ]]; then
+        cat /tmp/x.$$.txt | sed 's/^/    /'
+        echo "ERROR: problem running ncim-part.sh"
+        exit 1
+    fi 
 }
 
-# Reindex ncim - individual terminologies
+# Reindex ncim - individual terminologies from NCIM2
 reindex_ncim2(){
-  echo "  Reindexing ncim2 ...`/bin/date`"
-  for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V3.0; do
-      # Keep the NCIM folder around while we run
-      echo "  Load $t (from ncim2 downloaded data) ...`/bin/date`"
-      src/main/bin/ncim-part.sh --noconfig $dir/NCIM2 --keep --terminology $t > /tmp/x.$$.txt 2>&1
-      if [[ $? -ne 0 ]]; then
-          cat /tmp/x.$$.txt | sed 's/^/    /'
-          echo "ERROR: loading $t"
-          exit 1
-      fi
-  done
-  # Reindex ncim - must run after the prior section so that maps can connect to loaded terminologies
-  echo "  Reindex ncim from ncim2 ...`/bin/date`"
-  src/main/bin/ncim-part.sh --noconfig $dir/NCIM2 > /tmp/x.$$.txt 2>&1
-  if [[ $? -ne 0 ]]; then
-      cat /tmp/x.$$.txt | sed 's/^/    /'
-      echo "ERROR: problem running ncim-part.sh"
-      exit 1
-  fi
+    echo "  Reindexing ncim2 ...`/bin/date`"
+    for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V3.0; do
+        # Keep the NCIM folder around while we run
+        echo "  Load $t (from ncim2 downloaded data) ...`/bin/date`"
+        src/main/bin/ncim-part.sh --noconfig $dir/NCIM2 --keep --terminology $t > /tmp/x.$$.txt 2>&1
+        if [[ $? -ne 0 ]]; then
+            cat /tmp/x.$$.txt | sed 's/^/    /'
+            echo "ERROR: loading $t"
+            exit 1
+        fi
+    done
+    # Reindex ncim - must run after the prior section so that maps can connect to loaded terminologies
+    echo "  Reindex ncim from ncim2 ...`/bin/date`"
+    src/main/bin/ncim-part.sh --noconfig $dir/NCIM2 > /tmp/x.$$.txt 2>&1
+    if [[ $? -ne 0 ]]; then
+        cat /tmp/x.$$.txt | sed 's/^/    /'
+        echo "ERROR: problem running ncim-part.sh"
+        exit 1
+    fi
 }
 
+# drop databases (do not fail)
 drop_databases(){
-  for db in "${databases[@]}"
-  do
-    echo "    Dropping $db ...`/bin/date`"
-    $curl_cmd -X DELETE "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$/datasets/${db}" > /dev/null 2>&1
-    # ok to skip errors, this fails if dbs do not exist yet
-    #if [[ $? -ne 0 ]]; then
-    #    echo "Error occurred when dropping database ${db}. Response:$_"
-    #    exit 1
-    #fi
-  done
+    for db in "${databases[@]}"
+    do
+        echo "    Dropping $db ...`/bin/date`"
+        $curl_cmd -X DELETE "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$/datasets/${db}" > /dev/null 2>&1
+        # ok to skip errors, this fails if dbs do not exist yet
+        #if [[ $? -ne 0 ]]; then
+        #    echo "Error occurred when dropping database ${db}. Response:$_"
+        #    exit 1
+        #fi
+    done
 }
 
+# create databases
 create_databases(){
-  for db in "${databases[@]}"
-  do
-    echo "    Creating $db ...`/bin/date`"
-    $curl_cmd -X POST -d "dbName=${db}&dbType=tdb2" "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$/datasets" 2> /dev/null > /tmp/x.$$
-    check_status $? "POST /$/datasets failed - error creating database ${db}"
-    check_http_status 200 "POST /$/datasets expecting 200"
-  done
+    for db in "${databases[@]}"
+    do
+        echo "    Creating $db ...`/bin/date`"
+        $curl_cmd -X POST -d "dbName=${db}&dbType=tdb2" "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$/datasets" 2> /dev/null > /tmp/x.$$
+        check_status $? "POST /$/datasets failed - error creating database ${db}"
+        check_http_status 200 "POST /$/datasets expecting 200"
+    done
 }
 
 # NOT USED
-load_terminology_data_in_transaction(){
-  echo "    Loading $3 into $1 ...`/bin/date`"
-  tx=$(curl -s -u "${GRAPH_DB_USERNAME}":"${GRAPH_DB_PASSWORD}" -X POST "http://localhost:5820/$1/transaction/begin")
-  curl -s -u "${GRAPH_DB_USERNAME}":"${GRAPH_DB_PASSWORD}" -X POST "http://localhost:5820/$1/${tx}/add?graph-uri=$2" -H "Content-Type: application/rdf+xml" -T - < "$dir/$3"
-  tx=$(curl -s -u "${GRAPH_DB_USERNAME}":"${GRAPH_DB_PASSWORD}" -X POST "http://localhost:5820/{$non_weekly_db}/transaction/commit/${tx}")
-  if [[ $? -ne 0 ]]; then
-      echo "Error occurred when loading data into $1 = $_"
-      exit 1
-  fi
-}
+#load_terminology_data_in_transaction(){
+#    echo "    Loading $3 into $1 ...`/bin/date`"
+#    tx=$(curl -s -u "${GRAPH_DB_USERNAME}":"${GRAPH_DB_PASSWORD}" -X POST "http://localhost:5820/$1/transaction/begin")
+#    curl -s -u "${GRAPH_DB_USERNAME}":"${GRAPH_DB_PASSWORD}" -X POST "http://localhost:5820/$1/${tx}/add?graph-uri=$2" -H "Content-Type: application/rdf+xml" -T - < "$dir/$3"
+#    tx=$(curl -s -u "${GRAPH_DB_USERNAME}":"${GRAPH_DB_PASSWORD}" -X POST "http://localhost:5820/NCIT2/transaction/commit/${tx}")
+#    if [[ $? -ne 0 ]]; then
+#        echo "Error occurred when loading data into $1 = $_"
+#        exit 1
+#    fi
+#}
 
+# load a graph into graphdb
 load_terminology_data(){
-  echo "    Loading $3 into $1 ...`/bin/date`"
-  echo "      curl -X POST -H 'Content-Type: application/rdf+xml' -T '$dir/$3' http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$1/data?graph=$2"
-  $curl_cmd -X POST -H "Content-Type: application/rdf+xml" -T "$dir/$3" "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$1/data?graph=$2" 2> /dev/null > /tmp/x.$$
-  check_status $? "POST /$1/data failed - error loading data $dir/$3"
-  # duo is in 2 parts, the first part returns 201, the second part returns 200, skip this check
-  if [[ ! "$3" =~ DUO* ]]; then
-    check_http_status 201 "POST /$1/data expecting 201"
-  fi
+    # e.g. curl -X POST -H 'Content-Type: application/rdf+xml' -T '../data/UnitTestData/UmlsSemNet/umlssemnet.owl' http://localhost:3030/NCIT2/data?graph=http://UmlsSemNet
+    # e.g. curl -X POST -H 'Content-Type: application/rdf+xml' -T '../data/UnitTestData/Mouse_Anatomy/ma_07_27_2016.owl' http://localhost:3030/NCIT2/data?graph=http://MA
+    echo "    Loading $3 into $1 ...`/bin/date`"
+    echo "      curl -X POST -H 'Content-Type: application/rdf+xml' -T '$dir/$3' http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$1/data?graph=$2"
+    $curl_cmd -X POST -H "Content-Type: application/rdf+xml" -T "$dir/$3" "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$1/data?graph=$2" 2> /dev/null > /tmp/x.$$
+    check_status $? "POST /$1/data failed - error loading data $dir/$3"
+    # duo is in 2 parts, the first part returns 201, the second part returns 200, skip this check
+    if [[ ! "$3" =~ DUO* ]]; then
+        check_http_status 201 "POST /$1/data expecting 201"
+    fi
 }
 
+# Load all graphs into graphdb
 load_data(){
-    load_terminology_data "$weekly_db" http://NCI_T_weekly NCIT/ThesaurusInferred_+1weekly.owl
-    load_terminology_data "$weekly_db" http://NCI_T_monthly NCIT/ThesaurusInferred_monthly.owl
-    load_terminology_data "$non_weekly_db" http://NCI_T_monthly NCIT/ThesaurusInferred_monthly.owl
-    load_terminology_data "$non_weekly_db" http://GO_monthly GO/GO.20250601.owl
-    load_terminology_data "$non_weekly_db" http://HGNC_monthly HGNC/HGNC.202507.owl
-    load_terminology_data "$non_weekly_db" http://ChEBI_monthly ChEBI/chebi_241.owl
-    load_terminology_data "$non_weekly_db" http://UmlsSemNet UmlsSemNet/umlssemnet.owl
-    load_terminology_data "$non_weekly_db" http://Canmed CanMed/CANMED.202506.owl
-    load_terminology_data "$non_weekly_db" http://MEDRT MED-RT/MEDRT.2025-06-02.owl
-    load_terminology_data "$non_weekly_db" http://CTCAE CTCAE/ctcae5.owl
-    load_terminology_data "$non_weekly_db" http://CTCAE6 CTCAE/ctcae6.owl
-    load_terminology_data "$non_weekly_db" http://DUO_monthly DUO/duo_Feb21.owl
-    load_terminology_data "$non_weekly_db" http://DUO_monthly DUO/iao_Dec20.owl
-    load_terminology_data "$non_weekly_db" http://OBI_monthly OBI/obi_2022_07.owl
-    load_terminology_data "$non_weekly_db" http://OBIB OBIB/obib_2021-11.owl
-    load_terminology_data "$non_weekly_db" http://NDFRT2 NDFRT/NDFRT_Public_2018.02.05_Inferred.owl
-    load_terminology_data "$non_weekly_db" http://MGED MGED/MGEDOntology.fix.owl
-    load_terminology_data "$non_weekly_db" http://NPO NPO/npo-2011-12-08_inferred.owl
-    load_terminology_data "$non_weekly_db" http://MA Mouse_Anatomy/ma_07_27_2016.owl
-    load_terminology_data "$non_weekly_db" http://Zebrafish Zebrafish/zfa_2019_08_02.owl
+    load_terminology_data CTRP http://NCI_T_weekly NCIT/ThesaurusInferred_+1weekly.owl
+    load_terminology_data CTRP http://NCI_T_monthly NCIT/ThesaurusInferred_monthly.owl
+    load_terminology_data NCIT2 http://NCI_T_monthly NCIT/ThesaurusInferred_monthly.owl
+    load_terminology_data NCIT2 http://GO_monthly GO/GO.20250601.owl
+    load_terminology_data NCIT2 http://HGNC_monthly HGNC/HGNC.202507.owl
+    load_terminology_data NCIT2 http://ChEBI_monthly ChEBI/chebi_247.owl
+    load_terminology_data NCIT2 http://UmlsSemNet UmlsSemNet/umlssemnet.owl
+    load_terminology_data NCIT2 http://Canmed CanMed/CANMED.202506.owl
+    load_terminology_data NCIT2 http://MEDRT MED-RT/MEDRT.2025-06-02.owl
+    load_terminology_data NCIT2 http://CTCAE CTCAE/ctcae5.owl
+    load_terminology_data NCIT2 http://CTCAE6 CTCAE/ctcae6.owl
+    load_terminology_data NCIT2 http://DUO_monthly DUO/duo_Feb21.owl
+    load_terminology_data NCIT2 http://DUO_monthly DUO/iao_Dec20.owl
+    load_terminology_data NCIT2 http://OBI_monthly OBI/obi_2022_07.owl
+    load_terminology_data NCIT2 http://OBIB OBIB/obib_2021-11.owl
+    load_terminology_data NCIT2 http://NDFRT2 NDFRT/NDFRT_Public_2018.02.05_Inferred.owl
+    load_terminology_data NCIT2 http://MGED MGED/MGEDOntology.fix.owl
+    load_terminology_data NCIT2 http://NPO NPO/npo-2011-12-08_inferred.owl
+    load_terminology_data NCIT2 http://MA Mouse_Anatomy/ma_07_27_2016.owl
+    load_terminology_data NCIT2 http://Zebrafish Zebrafish/zfa_2019_08_02.owl
 }
 
-
-reindex(){
-# Reindex terminologies
-echo "  Reindex terminologies ...`/bin/date`"
-# After this point, the log is stored in the tmp folder unless an error is hit
-echo "    see /tmp/x.$$.txt"
-src/main/bin/reindex.sh --noconfig --history "$historyFile"
-if [[ $? -ne 0 ]]; then
-    echo "ERROR: problem running reindex.sh script"
-    exit 1
-fi
+# Run reindex script but in a way to avoid loading mappings until terminologies are loaded
+reindex() {
+    # Reindex terminologies
+    echo "  Reindex terminologies ...`/bin/date`"
+    # After this point, the log is stored in the tmp folder unless an error is hit
+    echo "    see /tmp/x.$$.txt"
+    src/main/bin/reindex.sh --noconfig --history "$historyFile"
+    if [[ $? -ne 0 ]]; then
+        echo "ERROR: problem running reindex.sh script"
+        exit 1
+    fi
 }
 
 # Clean and load 
@@ -414,7 +378,7 @@ load_data
 # This will load maps from github evsrestapi-operations
 reindex
 # After this, we should load "mappings" and "mappings2" from UnitTestData
-# to control exactly
+# to control exactly what we get
 export CONFIG_BASE_URI=file://$(realpath $dir)/mappings/config/metadata
 load_mapping
 export CONFIG_BASE_URI=file://$(realpath $dir)/mappings2/config/metadata
