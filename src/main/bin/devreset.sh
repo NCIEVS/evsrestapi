@@ -24,7 +24,7 @@ dir=${arr[0]}
 # Hardcode the history file
 historyFile=$dir/NCIT/cumulative_history_25.06e.txt
 
-databases=("NCIT2" "CTRP")
+DEFAULT_DBS=("NCIT2" "CTRP")
 curl_cmd='curl -s -w \n%{http_code} -u '"${GRAPH_DB_USERNAME}:${GRAPH_DB_PASSWORD}"
 
 # Set up ability to format json
@@ -65,6 +65,7 @@ elif [[ -z $ES_PORT ]]; then
     echo "ERROR: ES_PORT is not set"
     exit 1
 fi
+ES="$ES_SCHEME://$ES_HOST:$ES_PORT"
 
 # Prerequisites - check the UnitTest
 echo "  Check prerequisites"
@@ -189,21 +190,21 @@ check_http_status 200 "GET /$/ping expecting 200"
 
 # Verify elasticsearch can be reached
 echo "    verify elasticsearch can be reached"
-curl -s -w "\n%{http_code}" "$ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices" 2> /dev/null > /tmp/x.$$
+curl -s -w "\n%{http_code}" "$ES/_cat/indices" 2> /dev/null > /tmp/x.$$
 check_status $? "GET /_cat/indices failed - problem connecting to elasticsearch"
 check_http_status 200 "GET /_cat/indices expecting 200"
 
 # Remove elasticsearch indexes
 remove_elasticsearch_indexes(){
     echo "  Remove elasticsearch indexes"
-    curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices" | cut -d\  -f 3 | egrep "metrics|concept|evs" | grep -v "snomed" | cat > /tmp/x.$$.txt
+    curl -s "$ES/_cat/indices" | cut -d\  -f 3 | egrep "metrics|concept|evs" | grep -v "snomed" | cat > /tmp/x.$$.txt
     if [[ $? -ne 0 ]]; then
         echo "ERROR: problem connecting to elasticsearch"
         exit 1
     fi
     for i in `cat /tmp/x.$$.txt`; do
         echo "    remove $i ...`/bin/date`"
-        curl -s -w "\n%{http_code}" -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$i" 2> /dev/null > /tmp/x.$$
+        curl -s -w "\n%{http_code}" -X DELETE "$ES/$i" 2> /dev/null > /tmp/x.$$
         check_status $? "DELETE /$i failed - problem removing index $i"
         check_http_status 200 "DELETE /$i expecting 200"
     done
@@ -281,7 +282,7 @@ reindex_ncim2(){
 
 # drop databases (do not fail)
 drop_databases(){
-    for db in "${databases[@]}"
+    for db in "${DEFAULT_DBS[@]}"
     do
         echo "    Dropping $db ...`/bin/date`"
         $curl_cmd -X DELETE "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$/datasets/${db}" > /dev/null 2>&1
@@ -295,7 +296,7 @@ drop_databases(){
 
 # create databases
 create_databases(){
-    for db in "${databases[@]}"
+    for db in "${DEFAULT_DBS[@]}"
     do
         echo "    Creating $db ...`/bin/date`"
         $curl_cmd -X POST -d "dbName=${db}&dbType=tdb2" "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$/datasets" 2> /dev/null > /tmp/x.$$
@@ -367,8 +368,44 @@ reindex() {
     fi
 }
 
+create_configuration_index() {
+  local index_name="configuration"
+  local index_exists=$(curl -s -o /dev/null -w "%{http_code}" "$ES/$index_name")
+  # Drop index if it exists
+  if [[ $index_exists -eq 200 ]]; then
+    echo "  Dropping existing configuration index: $index_name"
+    curl -s -o /dev/null -X DELETE "$ES/$index_name"
+  fi
+  echo "  Creating configuration index: $index_name"
+  curl -s -o /dev/null -X PUT "$ES/$index_name" -H 'Content-Type: application/json' -d '{
+    "mappings": {
+      "properties": {
+        "name": { "type": "keyword" },
+        "weekly": { "type": "boolean" }
+      }
+    }
+  }'
+}
+
+populate_configuration_index() {
+  local index_name="configuration"
+  echo "  Populating configuration index: $index_name"
+  for db in "${DEFAULT_DBS[@]}"; do
+    weekly_value=false
+    if [[ "$db" == "CTRP" ]]; then
+      weekly_value=true
+    fi
+    curl -s -o /dev/null -X POST "$ES/$index_name/_doc" -H 'Content-Type: application/json' -d '{
+      "name": "'$db'",
+      "weekly": '$weekly_value'
+    }'
+  done
+}
+
 # Clean and load 
 echo "  Remove databases and load monthly/weekly ...`/bin/date`"
+create_configuration_index
+populate_configuration_index
 drop_databases
 create_databases
 remove_elasticsearch_indexes
