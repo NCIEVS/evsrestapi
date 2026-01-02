@@ -358,8 +358,6 @@ load_data(){
 reindex() {
     # Reindex terminologies
     echo "  Reindex terminologies ...`/bin/date`"
-    # After this point, the log is stored in the tmp folder unless an error is hit
-    echo "    see /tmp/x.$$.txt"
     src/main/bin/reindex.sh --noconfig --history "$historyFile"
     if [[ $? -ne 0 ]]; then
         echo "ERROR: problem running reindex.sh script"
