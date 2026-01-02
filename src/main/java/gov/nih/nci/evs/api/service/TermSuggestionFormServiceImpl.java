@@ -18,12 +18,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.util.EVSUtils;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import jakarta.mail.Message.RecipientType;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.InternetAddress;
@@ -45,9 +45,6 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
   /** The form file path. */
   URL formFilePath;
 
-  /** The object mapper to read the config url with readTree. */
-  private final ObjectMapper mapper = new ObjectMapper();
-
   /** Pattern for optional instruction sheets with date suffix. */
   private static final Pattern INSTRUCTION_PATTERN =
       Pattern.compile(".*\\d{4}_\\d{2}_\\d{2} Instructions$");
@@ -57,12 +54,9 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    *
    * @param mailSender java mail sender
    * @param applicationProperties the application properties
-   * @param mapper the mapper
    */
   public TermSuggestionFormServiceImpl(
-      final JavaMailSender mailSender,
-      final ApplicationProperties applicationProperties,
-      final ObjectMapper mapper) {
+      final JavaMailSender mailSender, final ApplicationProperties applicationProperties) {
     this.mailSender = mailSender;
     this.applicationProperties = applicationProperties;
   }
@@ -87,7 +81,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       String json =
           EVSUtils.getValueFromFile(
               applicationProperties.getConfigBaseUri() + "/" + formType + ".json");
-      final JsonNode termForm = mapper.readTree(json);
+      final JsonNode termForm = ThreadLocalMapper.get().readTree(json);
       // Get the recaptcha_site_key from application properties
       final String recaptchaSiteKey = applicationProperties.getRecaptchaSiteKey();
 

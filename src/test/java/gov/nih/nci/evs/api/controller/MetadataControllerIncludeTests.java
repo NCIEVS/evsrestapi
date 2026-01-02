@@ -4,9 +4,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -36,18 +35,12 @@ public class MetadataControllerIncludeTests {
   /** The test properties. */
   @Autowired TestProperties testProperties;
 
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
-
   /** The base url. */
   private String baseUrl = "";
 
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-
-    objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/metadata";
   }
@@ -71,7 +64,7 @@ public class MetadataControllerIncludeTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     // Assertions about contents
     assertThat(concept.getName()).isEqualTo("Concept_In_Subset");
     assertThat(concept.getCode()).isEqualTo("A8");
@@ -105,7 +98,7 @@ public class MetadataControllerIncludeTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("Concept_In_Subset");
     assertThat(concept.getCode()).isEqualTo("A8");
     assertThat(concept.getSynonyms()).isNotEmpty();
@@ -161,7 +154,7 @@ public class MetadataControllerIncludeTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("Concept_In_Subset");
     assertThat(concept.getCode()).isEqualTo("A8");
     assertThat(concept.getSynonyms()).isNotEmpty();
@@ -208,7 +201,7 @@ public class MetadataControllerIncludeTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("Concept_In_Subset");
     assertThat(concept.getCode()).isEqualTo("A8");
     assertThat(concept.getSynonyms()).isNotEmpty();
@@ -249,7 +242,7 @@ public class MetadataControllerIncludeTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("Concept_In_Subset");
     assertThat(concept.getCode()).isEqualTo("A8");
     assertThat(concept.getSynonyms()).isEmpty();
@@ -282,7 +275,7 @@ public class MetadataControllerIncludeTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("Concept_In_Subset");
     assertThat(concept.getCode()).isEqualTo("A8");
     assertThat(concept.getSynonyms()).isEmpty();
@@ -323,7 +316,7 @@ public class MetadataControllerIncludeTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("Concept_In_Subset");
     assertThat(concept.getCode()).isEqualTo("A8");
     assertThat(concept.getSynonyms()).isEmpty();
@@ -356,7 +349,7 @@ public class MetadataControllerIncludeTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("Concept_In_Subset");
     assertThat(concept.getCode()).isEqualTo("A8");
     assertThat(concept.getSynonyms()).isNotEmpty();

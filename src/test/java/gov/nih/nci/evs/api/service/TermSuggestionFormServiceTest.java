@@ -19,6 +19,7 @@ import gov.nih.nci.evs.api.controller.TermSuggestionFormController;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.util.EVSUtils;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import jakarta.mail.internet.MimeMessage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -81,8 +82,7 @@ public class TermSuggestionFormServiceTest {
 
   @BeforeEach
   public void setUp() {
-    termFormService =
-        new TermSuggestionFormServiceImpl(javaMailSender, applicationProperties, objectMapper);
+    termFormService = new TermSuggestionFormServiceImpl(javaMailSender, applicationProperties);
   }
 
   /**
@@ -94,7 +94,7 @@ public class TermSuggestionFormServiceTest {
   public void testGetFormTemplate() throws Exception {
     // SET UP
     String formType = "ncit-form";
-    JsonNode termForm = new ObjectMapper().createObjectNode();
+    JsonNode termForm = ThreadLocalMapper.get().createObjectNode();
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
     when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json"))).thenReturn(termForm);
@@ -206,7 +206,7 @@ public class TermSuggestionFormServiceTest {
   public void testGetFormTemplateWhenNotObjectThrowsException() throws Exception {
     // SET UP - create an invalid term form object
     String formType = "invalid-form";
-    JsonNode termForm = new ObjectMapper().createArrayNode();
+    JsonNode termForm = ThreadLocalMapper.get().createArrayNode();
     String filePath = configUrl + "/" + formType + ".json";
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
@@ -406,7 +406,7 @@ public class TermSuggestionFormServiceTest {
     // Prepare inputs - Load a valid form JSON
     Path p = Paths.get("src/test/resources/formSamples/testNCIT.json");
     String formJsonString = Files.readString(p);
-    JsonNode formData = new ObjectMapper().readTree(formJsonString);
+    JsonNode formData = ThreadLocalMapper.get().readTree(formJsonString);
     MultipartFile file = new MockMultipartFile("file.xlsx", new byte[] {1, 2, 3});
 
     // Mock captcha to succeed
@@ -424,7 +424,8 @@ public class TermSuggestionFormServiceTest {
 
     // Verify we got the EXPECTATION_FAILED status and message contains our reason
     assertTrue(ex.getStatusCode() == HttpStatus.EXPECTATION_FAILED);
-    assertTrue(ex.getReason() != null && ex.getReason().contains("Unexpected sheet 'X'"));
+    assertTrue(
+        ex.getReason() != null && ex.getReason().contains("Invalid form type for attachment."));
   }
 
   /**

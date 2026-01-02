@@ -405,7 +405,7 @@ public class TermSuggestionFormControllerTests {
    * @throws Exception exception
    */
   private JsonNode createForm(final String path) throws Exception {
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     // read the file as an Input Stream
     try (final InputStream input = getClass().getClassLoader().getResourceAsStream(path); ) {
       // Set our expected response to the form from the formPath

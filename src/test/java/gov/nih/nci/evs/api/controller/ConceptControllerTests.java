@@ -6,7 +6,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.AssociationEntryResultList;
@@ -22,6 +21,7 @@ import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -36,7 +36,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -63,18 +62,12 @@ public class ConceptControllerTests {
   /** The application properties. */
   @Autowired ApplicationProperties appProperties;
 
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
-
   /** The base url. */
   private String baseUrl = "";
 
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-
-    objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/concept";
   }
@@ -109,7 +102,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C3224");
     assertThat(concept.getName()).isEqualTo("Melanoma");
@@ -143,7 +136,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
 
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C3224");
     assertThat(concept.getName()).isEqualTo("Melanoma");
@@ -187,7 +180,7 @@ public class ConceptControllerTests {
     log.info("Testing url - " + url);
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getMaps().size()).isGreaterThan(0);
     assertThat(
             concept.getMaps().stream()
@@ -320,7 +313,7 @@ public class ConceptControllerTests {
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     final List<Concept> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -361,7 +354,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -402,7 +395,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Association>>() {
@@ -418,7 +411,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Association>>() {
@@ -447,7 +440,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Association>>() {
@@ -464,7 +457,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Association>>() {
@@ -494,7 +487,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Role>>() {
@@ -509,7 +502,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Role>>() {
@@ -539,7 +532,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Role>>() {
@@ -555,7 +548,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Role>>() {
@@ -585,7 +578,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -601,7 +594,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -631,7 +624,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -648,7 +641,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -678,7 +671,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -699,7 +692,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -720,7 +713,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -741,7 +734,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -761,7 +754,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -776,7 +769,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -793,7 +786,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -831,7 +824,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Mapping>>() {
@@ -847,7 +840,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Mapping>>() {
@@ -862,7 +855,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     Concept concept =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<Concept>() {
@@ -878,7 +871,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     List<Concept> conceptList =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -898,7 +891,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     concept =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<Concept>() {
@@ -916,7 +909,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Mapping>>() {
@@ -945,7 +938,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     log.info("  list = " + concept.getHistory().size());
     assertThat(concept.getHistory()).isNotEmpty();
 
@@ -977,7 +970,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     log.info("  list = " + concept.getHistory().size());
     assertThat(concept.getHistory()).isEmpty();
   }
@@ -1003,7 +996,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<DisjointWith>>() {
@@ -1021,7 +1014,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<DisjointWith>>() {
@@ -1051,7 +1044,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1073,7 +1066,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1090,7 +1083,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1136,7 +1129,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<HierarchyNode>>() {
@@ -1192,7 +1185,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<HierarchyNode>>() {
@@ -1241,7 +1234,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1270,7 +1263,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1299,7 +1292,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1319,7 +1312,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     // log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1337,7 +1330,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     // log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1356,7 +1349,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     // log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1375,7 +1368,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     // log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1392,7 +1385,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     // log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1409,7 +1402,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     // log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1441,7 +1434,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1471,7 +1464,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1495,7 +1488,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1514,7 +1507,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     // log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1532,7 +1525,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     // log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1551,7 +1544,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     // log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1570,7 +1563,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     // log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1587,7 +1580,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     // log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1604,7 +1597,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     // log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1635,7 +1628,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1666,7 +1659,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1690,7 +1683,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1713,7 +1706,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1730,7 +1723,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1747,7 +1740,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -1776,7 +1769,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     for (Definition def : concept.getDefinitions()) {
       assertFalse(def.getDefinition().contains("nephron"));
@@ -1788,7 +1781,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     for (Synonym syn : concept.getSynonyms()) {
       assertFalse(syn.getName().contains("nephron"));
@@ -1800,7 +1793,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     for (Definition def : concept.getDefinitions()) {
       assertFalse(def.getDefinition().contains("arrhythmia"));
@@ -1825,7 +1818,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
+    resultList = ThreadLocalMapper.get().readValue(content, AssociationEntryResultList.class);
     assertThat(resultList).isNotNull();
     assertThat(resultList.getTimeTaken()).isGreaterThan(0);
     assertThat(resultList.getTotal()).isGreaterThan(2500);
@@ -1840,7 +1833,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
+    resultList = ThreadLocalMapper.get().readValue(content, AssociationEntryResultList.class);
     assertThat(resultList).isNotNull();
     assertThat(resultList.getTimeTaken()).isGreaterThan(0);
     assertThat(resultList.getTotal()).isGreaterThan(2500);
@@ -1855,7 +1848,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
+    resultList = ThreadLocalMapper.get().readValue(content, AssociationEntryResultList.class);
     assertThat(resultList).isNotNull();
     assertThat(resultList.getTimeTaken()).isGreaterThan(0);
     assertThat(resultList.getTotal()).isLessThan(3000);
@@ -1875,7 +1868,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
+    resultList = ThreadLocalMapper.get().readValue(content, AssociationEntryResultList.class);
     assertThat(resultList).isNotNull();
     assertThat(resultList.getTotal()).isGreaterThan(0);
     assertThat(resultList.getParameters().getTerminology()).contains("12");
@@ -1887,7 +1880,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    resultList = new ObjectMapper().readValue(content, AssociationEntryResultList.class);
+    resultList = ThreadLocalMapper.get().readValue(content, AssociationEntryResultList.class);
     assertThat(resultList).isNotNull();
     assertThat(resultList.getTotal()).isGreaterThan(0);
     assertThat(resultList.getParameters().getTerminology()).contains("1");
@@ -1937,7 +1930,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     subsetMembers =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1951,7 +1944,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     subsetMembers =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1966,7 +1959,7 @@ public class ConceptControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     subsetMembers =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1993,7 +1986,7 @@ public class ConceptControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     Terminology terminology =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -2009,7 +2002,7 @@ public class ConceptControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     List<Concept> conceptResults =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -2019,14 +2012,14 @@ public class ConceptControllerTests {
 
     result = mvc.perform(get(baseWeeklyUrl + "/C3224")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    Concept concept = new ObjectMapper().readValue(content, Concept.class);
+    Concept concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getVersion() == terminology.getVersion());
 
     result =
         mvc.perform(get(baseWeeklyUrl + "/C3224/children")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     conceptResults =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -2051,7 +2044,7 @@ public class ConceptControllerTests {
 
     // very small terminology
     ArrayList<String> terminologyCodes =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<ArrayList<String>>() {
@@ -2064,7 +2057,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologyCodes =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<ArrayList<String>>() {
@@ -2078,7 +2071,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologyCodes =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<ArrayList<String>>() {
@@ -2092,7 +2085,7 @@ public class ConceptControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologyCodes =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<ArrayList<String>>() {
@@ -2119,7 +2112,7 @@ public class ConceptControllerTests {
     url = baseUrl + "/ncit/C101669?include=full";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
 
     assertThat(concept.getSynonyms().get(0).getTypeCode() != null).isTrue();
     assertThat(concept.getDefinitions().get(0).getCode() != null).isTrue();
@@ -2138,7 +2131,7 @@ public class ConceptControllerTests {
     url = baseUrl + "/ncit/C3224?include=full";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
 
     assertThat(concept.getSynonyms().get(0).getTypeCode() != null).isTrue();
     assertThat(concept.getDefinitions().get(0).getCode() != null).isTrue();
