@@ -269,9 +269,9 @@ public class LoaderServiceImpl {
       termAudit.setEndDate(endDate);
       termAudit.setElapsedTime(endDate.getTime() - startDate.getTime());
       termAudit.setLogLevel("INFO");
-      logger.info("Audit: {}", termAudit.toString());
-      // only add new audit if something major has actually happened
-      if (termAudit.getElapsedTime() > 10000 && totalConcepts > 0) {
+      logger.info("  audit = {}", termAudit);
+      // only add new audit if concepts were added
+      if (totalConcepts > 0) {
         addAudit(termAudit);
         // update the metadata with the elapsed time
         term.getMetadata().setIndexRuntime(termAudit.getElapsedTime());
