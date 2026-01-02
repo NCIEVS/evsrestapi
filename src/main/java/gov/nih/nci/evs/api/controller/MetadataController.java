@@ -1,5 +1,24 @@
 package gov.nih.nci.evs.api.controller;
 
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
+
 import gov.nih.nci.evs.api.aop.RecordMetric;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptMinimal;
@@ -17,23 +36,6 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 
 /** Controller for /metadata endpoints. */
 @RestController
@@ -115,17 +117,17 @@ public class MetadataController extends BaseController {
                 .collect(Collectors.toList());
       }
 
-      if (tag.isPresent() && tagList.contains(tag.get())) {
-        terms =
-            terms.stream()
-                .filter(f -> "true".equals(f.getTags().get(tag.get())))
-                .collect(Collectors.toList());
-      }
-
       if (terminology.isPresent()) {
         terms =
             terms.stream()
                 .filter(f -> f.getTerminology().equals(terminology.get()))
+                .collect(Collectors.toList());
+      }
+
+      if (tag.isPresent() && tagList.contains(tag.get())) {
+        terms =
+            terms.stream()
+                .filter(f -> "true".equals(f.getTags().get(tag.get())))
                 .collect(Collectors.toList());
       }
 

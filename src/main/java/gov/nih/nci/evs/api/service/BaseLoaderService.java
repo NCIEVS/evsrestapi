@@ -274,14 +274,15 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
 
     for (final IndexMetadata iMeta : iMetas) {
 
-      // skip if seen
-      if (seen.contains(iMeta.getTerminology().getTerminology())) {
-        continue;
-      }
-      seen.add(iMeta.getTerminology().getTerminology());
-
       final boolean monthly = iMeta.getTerminology().getTags().containsKey("monthly");
       final boolean weekly = iMeta.getTerminology().getTags().containsKey("weekly");
+      final String clause = (monthly ? "monthly" : "") + (weekly ? "weekly" : "");
+
+      // skip if seen
+      if (seen.contains(iMeta.getTerminology().getTerminology() + clause)) {
+        continue;
+      }
+      seen.add(iMeta.getTerminology().getTerminology() + clause);
 
       // Set latest monthly
       if (!latestMonthlyFound && monthly) {
