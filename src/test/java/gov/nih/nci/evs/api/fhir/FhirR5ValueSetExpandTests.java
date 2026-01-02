@@ -7007,7 +7007,8 @@ public class FhirR5ValueSetExpandTests {
             .orElse(null);
 
     assertNotNull(concept, "Concept with code " + activeCode + " should be in the expansion");
-    assertTrue(concept.hasProperty(), "Concept should have properties when property=* is specified");
+    assertTrue(
+        concept.hasProperty(), "Concept should have properties when property=* is specified");
 
     // Verify that multiple property types are returned
     final List<String> propertyNames =
@@ -7032,8 +7033,7 @@ public class FhirR5ValueSetExpandTests {
         valueSet.getExpansion().getParameter().stream()
             .anyMatch(
                 param ->
-                    "property".equals(param.getName())
-                        && "*".equals(param.getValue().toString())),
+                    "property".equals(param.getName()) && "*".equals(param.getValue().toString())),
         "Expansion parameters should include property=*");
 
     // Verify specific properties exist on concept C48672
@@ -7042,17 +7042,17 @@ public class FhirR5ValueSetExpandTests {
         concept.getProperty().stream()
             .filter(prop -> "Contributing_Source".equals(prop.getCode()))
             .collect(Collectors.toList());
-    assertTrue(contributingSourceProps.size() >= 2,
+    assertTrue(
+        contributingSourceProps.size() >= 2,
         "Should have at least 2 Contributing_Source properties");
 
     final List<String> contributingSourceValues =
         contributingSourceProps.stream()
             .map(prop -> prop.getValue().toString())
             .collect(Collectors.toList());
-    assertTrue(contributingSourceValues.contains("FDA"),
-        "Contributing_Source should include FDA");
-    assertTrue(contributingSourceValues.contains("NCPDP"),
-        "Contributing_Source should include NCPDP");
+    assertTrue(contributingSourceValues.contains("FDA"), "Contributing_Source should include FDA");
+    assertTrue(
+        contributingSourceValues.contains("NCPDP"), "Contributing_Source should include NCPDP");
 
     // Legacy Concept Name: Schedule_I_Substance
     final ValueSet.ConceptPropertyComponent legacyConceptName =
@@ -7061,7 +7061,9 @@ public class FhirR5ValueSetExpandTests {
             .findFirst()
             .orElse(null);
     assertNotNull(legacyConceptName, "Should have Legacy Concept Name property");
-    assertEquals("Schedule_I_Substance", legacyConceptName.getValue().toString(),
+    assertEquals(
+        "Schedule_I_Substance",
+        legacyConceptName.getValue().toString(),
         "Legacy Concept Name should be Schedule_I_Substance");
 
     // Semantic_Type: Classification
@@ -7071,7 +7073,9 @@ public class FhirR5ValueSetExpandTests {
             .findFirst()
             .orElse(null);
     assertNotNull(semanticType, "Should have Semantic_Type property");
-    assertEquals("Classification", semanticType.getValue().toString(),
+    assertEquals(
+        "Classification",
+        semanticType.getValue().toString(),
         "Semantic_Type should be Classification");
 
     // UMLS_CUI: C1547546
@@ -7081,7 +7085,6 @@ public class FhirR5ValueSetExpandTests {
             .findFirst()
             .orElse(null);
     assertNotNull(umlsCui, "Should have UMLS_CUI property");
-    assertEquals("C1547546", umlsCui.getValue().toString(),
-        "UMLS_CUI should be C1547546");
+    assertEquals("C1547546", umlsCui.getValue().toString(), "UMLS_CUI should be C1547546");
   }
 }
