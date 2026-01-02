@@ -69,7 +69,9 @@ class FhirR5ValueSetReadSearchTests {
 
   /** Sets the up. */
   @BeforeEach
-  public void setUp() {}
+  public void setUp() {
+    // n/a
+  }
 
   /**
    * Test value set search.

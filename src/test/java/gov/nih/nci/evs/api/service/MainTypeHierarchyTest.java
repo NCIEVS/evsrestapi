@@ -2,14 +2,9 @@ package gov.nih.nci.evs.api.service;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Paths;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.MainTypeHierarchy;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.List;
+
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,6 +13,14 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
+
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Paths;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.MainTypeHierarchy;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /** Unit test for {@link MainTypeHierarchy}. */
 @ExtendWith(SpringExtension.class)

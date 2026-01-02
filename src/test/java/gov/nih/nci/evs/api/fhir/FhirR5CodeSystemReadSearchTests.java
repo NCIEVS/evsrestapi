@@ -73,7 +73,9 @@ class FhirR5CodeSystemReadSearchTests {
 
   /** Sets the up. */
   @BeforeEach
-  public void setUp() {}
+  public void setUp() {
+    // n/a
+  }
 
   /**
    * Test code system search.

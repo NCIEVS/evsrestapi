@@ -70,7 +70,9 @@ public class FhirR5ConceptMapTranslateTests {
 
   /** Sets the up. */
   @BeforeEach
-  public void setUp() {}
+  public void setUp() {
+    // n/a
+  }
 
   /**
    * Test concept map translate with instance system; id, code, and system provided.

@@ -74,7 +74,9 @@ public class FhirR5CodeSystemLookupTests {
 
   /** Sets the up. */
   @BeforeEach
-  public void setUp() {}
+  public void setUp() {
+    // n/a
+  }
 
   /**
    * Test code system lookup code.
