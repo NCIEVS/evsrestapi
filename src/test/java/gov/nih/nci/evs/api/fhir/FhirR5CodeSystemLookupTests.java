@@ -552,6 +552,25 @@ public class FhirR5CodeSystemLookupTests {
             .map(part -> ((CodeType) part.getValue()).getValue())
             .collect(Collectors.toSet());
     assertTrue(propertyNames.contains("active"), "Should include 'active' property");
+    assertTrue(propertyNames.contains("parent"), "Should include 'parent' property");
+
+    // Verify that C9305 (Malignant Neoplasm) is one of the parents of C3224
+    final List<String> parentValues =
+        properties.stream()
+            .filter(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("parent")))
+            .flatMap(prop -> prop.getPart().stream())
+            .filter(part -> part.getName().equals("value"))
+            .map(part -> ((CodeType) part.getValue()).getValue())
+            .collect(Collectors.toList());
+    assertTrue(
+        parentValues.contains("C9305"),
+        "C9305 (Malignant Neoplasm) should be one of the parents of C3224");
   }
 
   /**
@@ -565,7 +584,8 @@ public class FhirR5CodeSystemLookupTests {
     final String activeCode = "C3224";
     final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_LOOKUP;
-    final String parameters = "?system=" + url + "&code=" + activeCode + "&property=Semantic_Type";
+    final String parameters =
+        "?system=" + url + "&code=" + activeCode + "&property=parent&property=Semantic_Type";
 
     // Act
     final String content = this.restTemplate.getForObject(endpoint + parameters, String.class);
@@ -592,6 +612,28 @@ public class FhirR5CodeSystemLookupTests {
     assertTrue(
         propertyNames.contains("active"),
         "Should include hardcoded 'active' property even with filter");
+    assertTrue(propertyNames.contains("parent"), "Should include 'parent' property when requested");
+    assertTrue(
+        propertyNames.contains("Semantic_Type"),
+        "Should include 'Semantic_Type' property when requested");
+
+    // Verify that C9305 (Malignant Neoplasm) is one of the parents of C3224
+    final List<String> parentValues =
+        properties.stream()
+            .filter(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("parent")))
+            .flatMap(prop -> prop.getPart().stream())
+            .filter(part -> part.getName().equals("value"))
+            .map(part -> ((CodeType) part.getValue()).getValue())
+            .collect(Collectors.toList());
+    assertTrue(
+        parentValues.contains("C9305"),
+        "C9305 (Malignant Neoplasm) should be one of the parents of C3224");
   }
 
   /**

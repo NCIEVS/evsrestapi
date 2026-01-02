@@ -6975,4 +6975,113 @@ public class FhirR5ValueSetExpandTests {
     assertTrue(valueSet.hasExpansion());
     // Empty sort parameter should work (ignored, using default sorting)
   }
+
+  /**
+   * Test value set expand with wildcard property parameter. When property=* is specified, all
+   * available properties for each concept should be returned.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetExpandImplicitSubsetWithWildcardProperty() throws Exception {
+    // Arrange
+    String content;
+    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C54459";
+    final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    final String parameters = "?url=" + url + "&property=*";
+
+    final String activeCode = "C48672";
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    final ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertTrue(valueSet.hasExpansion());
+
+    // Find the concept with the active code
+    final ValueSet.ValueSetExpansionContainsComponent concept =
+        valueSet.getExpansion().getContains().stream()
+            .filter(comp -> comp.getCode().equals(activeCode))
+            .findFirst()
+            .orElse(null);
+
+    assertNotNull(concept, "Concept with code " + activeCode + " should be in the expansion");
+    assertTrue(concept.hasProperty(), "Concept should have properties when property=* is specified");
+
+    // Verify that multiple property types are returned
+    final List<String> propertyNames =
+        concept.getProperty().stream()
+            .map(ValueSet.ConceptPropertyComponent::getCode)
+            .collect(Collectors.toList());
+
+    // Should include standard properties like 'active'
+    assertTrue(
+        propertyNames.contains("active"),
+        "Should include 'active' property when property=* is specified");
+
+    // Should include hierarchical properties if available (parent or child)
+    boolean hasHierarchicalProperty =
+        propertyNames.contains("parent") || propertyNames.contains("child");
+    assertTrue(
+        hasHierarchicalProperty,
+        "Should include hierarchical properties (parent/child) when property=* is specified");
+
+    // Verify that the property parameter is included in the expansion parameters
+    assertTrue(
+        valueSet.getExpansion().getParameter().stream()
+            .anyMatch(
+                param ->
+                    "property".equals(param.getName())
+                        && "*".equals(param.getValue().toString())),
+        "Expansion parameters should include property=*");
+
+    // Verify specific properties exist on concept C48672
+    // Contributing_Source: FDA and NCPDP
+    final List<ValueSet.ConceptPropertyComponent> contributingSourceProps =
+        concept.getProperty().stream()
+            .filter(prop -> "Contributing_Source".equals(prop.getCode()))
+            .collect(Collectors.toList());
+    assertTrue(contributingSourceProps.size() >= 2,
+        "Should have at least 2 Contributing_Source properties");
+
+    final List<String> contributingSourceValues =
+        contributingSourceProps.stream()
+            .map(prop -> prop.getValue().toString())
+            .collect(Collectors.toList());
+    assertTrue(contributingSourceValues.contains("FDA"),
+        "Contributing_Source should include FDA");
+    assertTrue(contributingSourceValues.contains("NCPDP"),
+        "Contributing_Source should include NCPDP");
+
+    // Legacy Concept Name: Schedule_I_Substance
+    final ValueSet.ConceptPropertyComponent legacyConceptName =
+        concept.getProperty().stream()
+            .filter(prop -> "Legacy Concept Name".equals(prop.getCode()))
+            .findFirst()
+            .orElse(null);
+    assertNotNull(legacyConceptName, "Should have Legacy Concept Name property");
+    assertEquals("Schedule_I_Substance", legacyConceptName.getValue().toString(),
+        "Legacy Concept Name should be Schedule_I_Substance");
+
+    // Semantic_Type: Classification
+    final ValueSet.ConceptPropertyComponent semanticType =
+        concept.getProperty().stream()
+            .filter(prop -> "Semantic_Type".equals(prop.getCode()))
+            .findFirst()
+            .orElse(null);
+    assertNotNull(semanticType, "Should have Semantic_Type property");
+    assertEquals("Classification", semanticType.getValue().toString(),
+        "Semantic_Type should be Classification");
+
+    // UMLS_CUI: C1547546
+    final ValueSet.ConceptPropertyComponent umlsCui =
+        concept.getProperty().stream()
+            .filter(prop -> "UMLS_CUI".equals(prop.getCode()))
+            .findFirst()
+            .orElse(null);
+    assertNotNull(umlsCui, "Should have UMLS_CUI property");
+    assertEquals("C1547546", umlsCui.getValue().toString(),
+        "UMLS_CUI should be C1547546");
+  }
 }

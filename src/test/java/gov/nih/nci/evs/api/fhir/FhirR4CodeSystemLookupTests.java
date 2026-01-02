@@ -553,6 +553,40 @@ public class FhirR4CodeSystemLookupTests {
                                 part.getName().equals("code")
                                     && ((CodeType) part.getValue()).getValue().equals("active")));
     assertTrue(hasActiveProperty, "Should have 'active' property");
+
+    // Check that parent property is present
+    final boolean hasParentProperty =
+        properties.stream()
+            .anyMatch(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("parent")));
+    assertTrue(hasParentProperty, "Should have 'parent' property");
+
+    // Verify the parent value is T096 (Group)
+    final ParametersParameterComponent parentProperty =
+        properties.stream()
+            .filter(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("parent")))
+            .findFirst()
+            .orElse(null);
+    assertNotNull(parentProperty, "Parent property should exist");
+
+    final String parentValue =
+        parentProperty.getPart().stream()
+            .filter(part -> part.getName().equals("value"))
+            .map(part -> ((CodeType) part.getValue()).getValue())
+            .findFirst()
+            .orElse(null);
+    assertEquals("T096", parentValue, "Parent of T100 should be T096");
   }
 
   /**
@@ -583,6 +617,28 @@ public class FhirR4CodeSystemLookupTests {
             .filter(p -> p.getName().equals("property"))
             .collect(Collectors.toList());
     assertTrue(properties.size() > 0, "Should have properties");
+
+    // Verify the parent value is T096 (Group)
+    final ParametersParameterComponent parentProperty =
+        properties.stream()
+            .filter(
+                prop ->
+                    prop.getPart().stream()
+                        .anyMatch(
+                            part ->
+                                part.getName().equals("code")
+                                    && ((CodeType) part.getValue()).getValue().equals("parent")))
+            .findFirst()
+            .orElse(null);
+    assertNotNull(parentProperty, "Parent property should exist");
+
+    final String parentValue =
+        parentProperty.getPart().stream()
+            .filter(part -> part.getName().equals("value"))
+            .map(part -> ((CodeType) part.getValue()).getValue())
+            .findFirst()
+            .orElse(null);
+    assertEquals("T096", parentValue, "Parent of T100 should be T096");
   }
 
   /**
