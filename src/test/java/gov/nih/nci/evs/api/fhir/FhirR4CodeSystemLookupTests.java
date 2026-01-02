@@ -5,10 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
+import ca.uhn.fhir.parser.IParser;
+import gov.nih.nci.evs.api.properties.TestProperties;
 import java.net.URI;
 import java.util.List;
 import java.util.stream.Collectors;
-
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.Coding;
@@ -31,11 +34,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.util.UriComponentsBuilder;
-
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.jpa.model.util.JpaConstants;
-import ca.uhn.fhir.parser.IParser;
-import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
  * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
