@@ -78,7 +78,9 @@ public class FhirR4ConceptMapReadSearchTests {
 
   /** Sets the up. */
   @BeforeEach
-  public void setUp() {}
+  public void setUp() {
+    // n/a
+  }
 
   /**
    * Test concept map search.

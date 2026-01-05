@@ -1598,6 +1598,7 @@ public class MetadataControllerTests {
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isGreaterThan(10);
 
+    // Keep an older version of CHEBI so we can have a false
     result = mvc.perform(get(url).param("latest", "false")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
@@ -1608,7 +1609,8 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isGreaterThanOrEqualTo(1);
+    assertThat(terminologies.size()).isEqualTo(1);
+    assertThat(terminologies.get(0).getTerminology()).isEqualTo("chebi");
 
     result = mvc.perform(get(url).param("tag", "monthly")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();

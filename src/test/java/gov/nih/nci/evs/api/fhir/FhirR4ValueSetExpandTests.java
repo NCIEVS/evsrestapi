@@ -90,7 +90,9 @@ public class FhirR4ValueSetExpandTests {
 
   /** Sets the up. */
   @BeforeEach
-  public void setUp() {}
+  public void setUp() {
+    // n/a
+  }
 
   /**
    * Helper method to create the common NCI ValueSet for testing.

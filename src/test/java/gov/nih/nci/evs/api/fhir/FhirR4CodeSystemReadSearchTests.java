@@ -78,7 +78,9 @@ public class FhirR4CodeSystemReadSearchTests {
 
   /** Sets the up. */
   @BeforeEach
-  public void setUp() {}
+  public void setUp() {
+    // n/a
+  }
 
   /**
    * Test code system read.
@@ -366,6 +368,12 @@ public class FhirR4CodeSystemReadSearchTests {
     }
   }
 
+  /**
+   * Validate canmed code system results.
+   *
+   * @param data the data
+   * @param expectResults the expect results
+   */
   private void validateCanmedCodeSystemResults(final Bundle data, final boolean expectResults) {
     final List<Resource> codeSystems =
         data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
@@ -696,6 +704,11 @@ public class FhirR4CodeSystemReadSearchTests {
     assertEquals(firstCodeSystemTitle, caseSensitiveMatchSystem.getTitle());
   }
 
+  /**
+   * Test code system history.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemHistory() throws Exception {
     // Arrange
@@ -735,6 +748,11 @@ public class FhirR4CodeSystemReadSearchTests {
     }
   }
 
+  /**
+   * Test code system history not found.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemHistoryNotFound() throws Exception {
     // Arrange
@@ -755,6 +773,11 @@ public class FhirR4CodeSystemReadSearchTests {
     assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
+  /**
+   * Test code system vread.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemVread() throws Exception {
     // Arrange
@@ -790,6 +813,11 @@ public class FhirR4CodeSystemReadSearchTests {
     assertEquals(originalCodeSystem.getPublisher(), versionedCodeSystem.getPublisher());
   }
 
+  /**
+   * Test code system vread not found.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemVreadNotFound() throws Exception {
     // Arrange
@@ -812,6 +840,11 @@ public class FhirR4CodeSystemReadSearchTests {
     assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
+  /**
+   * Test code system vread invalid version.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemVreadInvalidVersion() throws Exception {
     // Arrange
@@ -841,6 +874,11 @@ public class FhirR4CodeSystemReadSearchTests {
     assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
+  /**
+   * Test code system history metadata consistency.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemHistoryMetadataConsistency() throws Exception {
     // Arrange
@@ -877,6 +915,11 @@ public class FhirR4CodeSystemReadSearchTests {
     assertTrue(foundCurrentVersion, "History should contain the current version");
   }
 
+  /**
+   * Test code system vread matches history entry.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemVreadMatchesHistoryEntry() throws Exception {
     // Arrange

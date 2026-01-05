@@ -496,7 +496,6 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
    * @param formatter the formatter
    * @return the merged cell value
    */
-  @SuppressWarnings("unused")
   private String getMergedCellValue(
       final org.apache.poi.ss.usermodel.Sheet sheet,
       final int rowIndex,

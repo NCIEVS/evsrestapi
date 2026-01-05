@@ -232,7 +232,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
   @Override
   public String constructBatchQuery(
       final String queryProp, final Terminology terminology, final List<String> conceptCodes) {
-    final String inClause = getInClause(conceptCodes);
+    final String inClause = getInClause(conceptCodes, "','");
+    final String valuesClause = getInClause(conceptCodes, "' '");
     final String aboutClause = getAboutClause(conceptCodes);
     final Map<String, String> values =
         ConceptUtils.asMap(
@@ -242,6 +243,8 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
             terminology.getGraph(),
             "inClause",
             inClause,
+            "valuesClause",
+            valuesClause,
             "aboutClause",
             aboutClause,
             "preferredNameCode",
@@ -299,13 +302,13 @@ public class QueryBuilderServiceImpl implements QueryBuilderService {
    * @param values the values
    * @return the in clause
    */
-  private String getInClause(List<String> values) {
+  private String getInClause(List<String> values, String delimiter) {
     checkCodes(values);
     return new StringBuilder()
         .append("'")
         .append(
             String.join(
-                "','",
+                delimiter,
                 values.stream().filter(v -> !v.startsWith("http")).collect(Collectors.toList())))
         .append("'")
         .toString();

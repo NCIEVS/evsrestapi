@@ -65,7 +65,9 @@ public class FhirR4CodeSystemSubsumesTests {
 
   /** Sets the up. */
   @BeforeEach
-  public void setUp() {}
+  public void setUp() {
+    // n/a
+  }
 
   /**
    * Test code system lookup code.
@@ -355,6 +357,11 @@ public class FhirR4CodeSystemSubsumesTests {
     assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
   }
 
+  /**
+   * Test code system subsumes instance with coding.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemSubsumesInstanceWithCoding() throws Exception {
     // Arrange

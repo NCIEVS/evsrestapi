@@ -58,7 +58,7 @@ ext {
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
-version = "2.3.0.RELEASE"
+version = "2.4.0.RELEASE"
 
 sourceCompatibility = 17
 targetCompatibility = 17

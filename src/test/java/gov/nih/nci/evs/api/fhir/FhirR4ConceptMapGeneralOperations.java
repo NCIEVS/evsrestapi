@@ -50,7 +50,9 @@ class FhirR4ConceptMapGeneralOperations {
 
   /** Sets the up. */
   @BeforeEach
-  public void setUp() {}
+  public void setUp() {
+    // n/a
+  }
 
   /**
    * Test concept map validate.

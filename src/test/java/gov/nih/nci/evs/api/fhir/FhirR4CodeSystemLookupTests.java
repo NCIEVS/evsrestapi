@@ -71,7 +71,9 @@ public class FhirR4CodeSystemLookupTests {
 
   /** Sets the up. */
   @BeforeEach
-  public void setUp() {}
+  public void setUp() {
+    // n/a
+  }
 
   /**
    * Test code system lookup code.
@@ -136,6 +138,11 @@ public class FhirR4CodeSystemLookupTests {
     assertEquals(version, ((StringType) params.getParameter("version").getValue()).getValue());
   }
 
+  /**
+   * Test code system lookup instance code with coding.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testCodeSystemLookupInstanceCodeWithCoding() throws Exception {
     // Arrange
