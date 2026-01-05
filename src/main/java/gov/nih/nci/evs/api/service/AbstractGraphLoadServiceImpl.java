@@ -1,7 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.Audit;
@@ -18,6 +17,7 @@ import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.support.es.OpensearchObject;
 import gov.nih.nci.evs.api.util.*;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -220,7 +220,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     ExecutorService executor = Executors.newFixedThreadPool(10);
     try {
       while (start < total) {
-        if (total - start <= DOWNLOAD_BATCH_SIZE) end = total.intValue();
+        if (total - start <= DOWNLOAD_BATCH_SIZE) {
+          end = total.intValue();
+        }
 
         logger.info("  Processing {} to {}", start + 1, end);
         logger.info("    start reading {} to {}", start + 1, end);
@@ -285,7 +287,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         Double indexTotal = (double) concepts.size();
         final List<Future<Void>> futures = new ArrayList<>();
         while (indexStart < indexTotal) {
-          if (indexTotal - indexStart <= INDEX_BATCH_SIZE) indexEnd = indexTotal.intValue();
+          if (indexTotal - indexStart <= INDEX_BATCH_SIZE) {
+            indexEnd = indexTotal.intValue();
+          }
 
           futures.add(
               executor.submit(
@@ -444,10 +448,18 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     // Build property values map by code and by property name and index it
     final Map<String, Set<String>> propertyMap = new HashMap<>();
     for (final Concept property : properties) {
+
       // skip any remodeled properties
       if (terminology.getMetadata().isRemodeledProperty(property.getCode())) {
         continue;
       }
+      if (terminology.getMetadata().isRemodeledQualifier(property.getCode())) {
+        continue;
+      }
+      if (terminology.getMetadata().isRemodeledQualifier(property.getCode())) {
+        continue;
+      }
+
       for (final String value :
           sparqlQueryManagerService.getPropertyValues(property.getCode(), terminology)) {
         if (!propertyMap.containsKey(property.getCode())) {
@@ -511,7 +523,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     for (Concept association : associations) {
       logger.info(association.getName());
       entries = new ArrayList<>();
-      if (association.getName().equals("Concept_In_Subset")) continue;
+      if (association.getName().equals("Concept_In_Subset")) {
+        continue;
+      }
       for (String conceptCode : hierarchy.getAssociationMap().keySet()) {
         List<Association> conceptAssociations = hierarchy.getAssociationMap().get(conceptCode);
         for (Association conceptAssociation : conceptAssociations) {
@@ -873,7 +887,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       // Load from config
       final JsonNode node = getMetadataAsNode(terminology.toLowerCase());
       final TerminologyMetadata metadata =
-          new ObjectMapper().treeToValue(node, TerminologyMetadata.class);
+          ThreadLocalMapper.get().treeToValue(node, TerminologyMetadata.class);
 
       // Set term name and description
       term.setName(metadata.getUiLabel() + " " + term.getVersion());
@@ -1057,7 +1071,7 @@ The browser links each mapped concept to that concept's page in the current prod
 
       final String replacementCode = historyItem.get("replacementCode");
 
-      if (replacementCode != null && replacementCode != "") {
+      if (replacementCode != null && !replacementCode.isEmpty()) {
 
         history.setReplacementCode(replacementCode);
         history.setReplacementName(nameMap.get(replacementCode));

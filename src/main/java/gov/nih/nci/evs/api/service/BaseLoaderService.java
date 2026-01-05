@@ -1,7 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Mapping;
@@ -12,6 +11,7 @@ import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
@@ -274,14 +274,15 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
 
     for (final IndexMetadata iMeta : iMetas) {
 
-      // skip if seen
-      if (seen.contains(iMeta.getTerminology().getTerminology())) {
-        continue;
-      }
-      seen.add(iMeta.getTerminology().getTerminology());
-
       final boolean monthly = iMeta.getTerminology().getTags().containsKey("monthly");
       final boolean weekly = iMeta.getTerminology().getTags().containsKey("weekly");
+      final String clause = (monthly ? "monthly" : "") + (weekly ? "weekly" : "");
+
+      // skip if seen
+      if (seen.contains(iMeta.getTerminology().getTerminology() + clause)) {
+        continue;
+      }
+      seen.add(iMeta.getTerminology().getTerminology() + clause);
 
       // Set latest monthly
       if (!latestMonthlyFound && monthly) {
@@ -457,7 +458,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
    * @throws Exception the exception
    */
   public TerminologyMetadata getMetadata(final String terminology) throws Exception {
-    return new ObjectMapper()
+    return ThreadLocalMapper.get()
         .treeToValue(getMetadataAsNode(terminology), TerminologyMetadata.class);
   }
 
@@ -477,7 +478,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
             + termUtils.getTerminologyName(terminology)
             + ".json";
     logger.info("  get config for " + terminology + " = " + uri);
-    return new ObjectMapper().readTree(EVSUtils.getValueFromFile(uri));
+    return ThreadLocalMapper.get().readTree(EVSUtils.getValueFromFile(uri));
   }
 
   /**
@@ -492,7 +493,7 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     // If terminology is {term}_{version} -> strip the version
     final String uri = "src/test/resources/" + termUtils.getTerminologyName(terminology) + ".json";
     logger.info("  get config for " + terminology + " = " + uri);
-    return new ObjectMapper().readTree(StringUtils.join(EVSUtils.getValueFromFile(uri), '\n'));
+    return ThreadLocalMapper.get().readTree(StringUtils.join(EVSUtils.getValueFromFile(uri), '\n'));
   }
 
   /**

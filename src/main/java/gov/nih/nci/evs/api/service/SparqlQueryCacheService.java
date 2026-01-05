@@ -1,6 +1,5 @@
 package gov.nih.nci.evs.api.service;
 
-import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
@@ -14,6 +13,7 @@ import gov.nih.nci.evs.api.model.sparql.Sparql;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -62,8 +62,7 @@ public class SparqlQueryCacheService {
     final String res =
         restUtils.runSPARQL(queryPrefix + query, sparqlQueryManagerService.getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    final ObjectMapper mapper = ThreadLocalMapper.get();
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
@@ -129,8 +128,7 @@ public class SparqlQueryCacheService {
     final String res =
         restUtils.runSPARQL(queryPrefix + query, sparqlQueryManagerService.getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    final ObjectMapper mapper = ThreadLocalMapper.get();
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
@@ -190,8 +188,7 @@ public class SparqlQueryCacheService {
     final String res =
         restUtils.runSPARQL(queryPrefix + query, sparqlQueryManagerService.getQueryURL());
 
-    final ObjectMapper mapper = new ObjectMapper();
-    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     final List<Qualifier> qualifiers = new ArrayList<>();
     final List<Concept> concepts = new ArrayList<>();
 
@@ -202,7 +199,7 @@ public class SparqlQueryCacheService {
       if (b.getPropertyCode() == null) {
         qualifier.setUri(b.getProperty().getValue());
       }
-      qualifier.setCode(EVSUtils.getPropertyCode(b));
+      qualifier.setCode(EVSUtils.getPropertyCode(terminology.getTerminology(), b));
       qualifiers.add(qualifier);
     }
 

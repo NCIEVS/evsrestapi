@@ -10,6 +10,7 @@ import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.IOException;
 import java.net.URL;
 import java.net.URLConnection;
@@ -86,7 +87,7 @@ class FhirR4ClientSDKTests {
   @BeforeEach
   public void setUp() throws Exception {
     // the object mapper
-    final ObjectMapper objectMapper = new ObjectMapper();
+    final ObjectMapper objectMapper = ThreadLocalMapper.get();
     JacksonTester.initFields(this, objectMapper);
 
     // Initialize the map

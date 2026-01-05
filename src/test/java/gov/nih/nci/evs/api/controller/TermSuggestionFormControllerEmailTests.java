@@ -1,10 +1,14 @@
 package gov.nih.nci.evs.api.controller;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.InputStream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
@@ -62,8 +66,8 @@ public class TermSuggestionFormControllerEmailTests {
   /** The base url. */
   // Base url for api calls
   private String baseUrl = "/api/v1/submit/";
-  ;
 
+  /** The recaptcha token. */
   private String recaptchaToken = "TEST-KEY";
 
   /** The object mapper. */
@@ -127,6 +131,11 @@ public class TermSuggestionFormControllerEmailTests {
             .andReturn();
   }
 
+  /**
+   * Integration test submit form with attachment.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void integrationTestSubmitFormWithAttachment() throws Exception {
     // SET UP
@@ -165,6 +174,11 @@ public class TermSuggestionFormControllerEmailTests {
         .andExpect(status().isOk());
   }
 
+  /**
+   * Integration test submit form with attachment NCIT.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void integrationTestSubmitFormWithAttachmentNCIT() throws Exception {
     // SET UP
@@ -211,7 +225,7 @@ public class TermSuggestionFormControllerEmailTests {
    * @throws Exception exception
    */
   private JsonNode createForm(final String path) throws Exception {
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     // read the file as an Input Stream
     try (final InputStream input = getClass().getClassLoader().getResourceAsStream(path); ) {
       // Set our expected response to the form from the formPath

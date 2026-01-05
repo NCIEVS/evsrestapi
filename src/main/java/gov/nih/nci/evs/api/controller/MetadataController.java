@@ -115,17 +115,17 @@ public class MetadataController extends BaseController {
                 .collect(Collectors.toList());
       }
 
-      if (tag.isPresent() && tagList.contains(tag.get())) {
-        terms =
-            terms.stream()
-                .filter(f -> "true".equals(f.getTags().get(tag.get())))
-                .collect(Collectors.toList());
-      }
-
       if (terminology.isPresent()) {
         terms =
             terms.stream()
                 .filter(f -> f.getTerminology().equals(terminology.get()))
+                .collect(Collectors.toList());
+      }
+
+      if (tag.isPresent() && tagList.contains(tag.get())) {
+        terms =
+            terms.stream()
+                .filter(f -> "true".equals(f.getTags().get(tag.get())))
                 .collect(Collectors.toList());
       }
 

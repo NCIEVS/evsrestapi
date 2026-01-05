@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import java.net.URI;
 import org.hl7.fhir.r5.model.Coding;
@@ -23,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
@@ -49,9 +47,6 @@ public class FhirR5CodeSystemSubsumesTests {
   /** The test properties. */
   @Autowired TestProperties testProperties;
 
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
-
   /** local host prefix. */
   private final String localHost = "http://localhost:";
 
@@ -71,9 +66,7 @@ public class FhirR5CodeSystemSubsumesTests {
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-    // The object mapper
-    objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
+    // n/a
   }
 
   /**

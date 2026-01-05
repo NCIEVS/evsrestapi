@@ -1,6 +1,6 @@
 package gov.nih.nci.evs.api.model.sparql;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 
 /** Bindings for sparql queries. */
 public class Bindings {
@@ -307,7 +307,7 @@ public class Bindings {
   @Override
   public String toString() {
     try {
-      return new ObjectMapper().writeValueAsString(this);
+      return ThreadLocalMapper.get().writeValueAsString(this);
     } catch (final Exception e) {
       return e.getMessage();
     }

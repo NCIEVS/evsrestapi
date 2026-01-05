@@ -2,7 +2,6 @@ package gov.nih.nci.evs.api.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.IncludeParam;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -85,7 +84,7 @@ public class TerminologyUtilsTest {
   public void testMetadataReading() throws Exception {
     final String terminology = "ncit";
     final TerminologyMetadata metadata =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .treeToValue(
                 graphOpensearchLoadServiceImpl.getMetadataAsNodeLocal(terminology),
                 TerminologyMetadata.class);

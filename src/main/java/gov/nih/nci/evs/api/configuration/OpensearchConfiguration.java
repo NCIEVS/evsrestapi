@@ -31,9 +31,23 @@ public class OpensearchConfiguration {
   @Bean
   RestHighLevelClient client() {
     final String osHost = env.getProperty("nci.evs.opensearch.server.host");
-    final int osPort = Integer.parseInt(env.getProperty("nci.evs.opensearch.server.port"));
+    if (osHost == null) {
+      throw new IllegalStateException("nci.evs.opensearch.server.host property is required");
+    }
+    final String osPortStr = env.getProperty("nci.evs.opensearch.server.port");
+    if (osPortStr == null) {
+      throw new IllegalStateException("nci.evs.opensearch.server.port property is required");
+    }
+    final int osPort = Integer.parseInt(osPortStr);
     final String osScheme = env.getProperty("nci.evs.opensearch.server.scheme");
-    final int timeout = Integer.parseInt(env.getProperty("nci.evs.opensearch.timeout"));
+    if (osScheme == null) {
+      throw new IllegalStateException("nci.evs.opensearch.server.scheme property is required");
+    }
+    final String timeoutStr = env.getProperty("nci.evs.opensearch.timeout");
+    if (timeoutStr == null) {
+      throw new IllegalStateException("nci.evs.opensearch.timeout property is required");
+    }
+    final int timeout = Integer.parseInt(timeoutStr);
     logger.info(
         String.format("Configuring opensearch client for host %s %s %s", osHost, osPort, timeout));
     return new RestHighLevelClient(

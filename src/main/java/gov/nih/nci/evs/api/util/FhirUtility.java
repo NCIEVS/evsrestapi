@@ -110,7 +110,7 @@ public final class FhirUtility {
 
     // Handle :not modifier (FHIR spec: only for token parameters)
     // Returns resources that do NOT match the value (includes resources without the element)
-    if (t1.getModifier() != null && t1.getModifier().equals(":not")) {
+    if (t1.getModifier() != null && t1.getModifier().getValue().equals(":not")) {
       if (t2 == null || t2.isEmpty()) {
         return true; // Include resources without the element
       }
@@ -297,6 +297,12 @@ public final class FhirUtility {
     return compareDate(d1.getLowerBound(), d2) && compareDate(d1.getUpperBound(), d2);
   }
 
+  /**
+   * Convert to YYYYMMDD.
+   *
+   * @param sdate the sdate
+   * @return the string
+   */
   public static String convertToYYYYMMDD(String sdate) {
     if (sdate == null || sdate.trim().isEmpty()) {
       return sdate; // Return input unchanged instead of null
