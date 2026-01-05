@@ -112,12 +112,13 @@ dependencies {
 
   // Upgrade ecache to use jakarta - https://groups.google.com/g/ehcache-users/c/sKfxWuTpY-U
   // See also: https://stackoverflow.com/questions/75813659/gradle-could-not-find-org-ehcacheehcache-after-upgrading-to-spring-boot-3-0-x
-  implementation "org.ehcache:ehcache:3.10.8:jakarta"
-  // {
-  //  capabilities {
-  //    requireCapability("org.ehcache:ehcache-jakarta")
-  //  }
-  // }
+  // Note: ehcache 3.10.8 uses Jakarta by default, no classifier needed
+  implementation "org.ehcache:ehcache:3.10.8"
+
+  // JAXB dependencies required for ehcache with Java 9+
+  // ehcache 3.10.8 still uses javax.xml.bind internally for XML parsing
+  implementation 'javax.xml.bind:jaxb-api:2.3.1'
+  implementation 'com.sun.xml.bind:jaxb-impl:2.3.3'
 
   // Apache POI for reading .xls and .xlsx files
   implementation 'org.apache.poi:poi:5.2.3'

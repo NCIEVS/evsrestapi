@@ -19,6 +19,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.Definition;
 import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.SearchCriteria;
 import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -519,8 +520,16 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
           // Add properties to the contains component if they were requested
           if (propertyNames != null && !propertyNames.isEmpty()) {
-            for (String propertyName : propertyNames) {
-              addConceptProperty(vsContains, member, propertyName);
+            // Check if '*' is specified to return all properties
+            if (propertyNames.contains("*")) {
+              List<String> allProps = getAllPropertyNames(member);
+              for (String propertyName : allProps) {
+                addConceptProperty(vsContains, member, propertyName);
+              }
+            } else {
+              for (String propertyName : propertyNames) {
+                addConceptProperty(vsContains, member, propertyName);
+              }
             }
           }
           // Add definitions to the contains component if they were requested
@@ -837,8 +846,16 @@ public class ValueSetProviderR5 implements IResourceProvider {
 
           // Add properties to the contains component if they were requested
           if (propertyNames != null && !propertyNames.isEmpty()) {
-            for (String propertyName : propertyNames) {
-              addConceptProperty(vsContains, member, propertyName);
+            // Check if '*' is specified to return all properties
+            if (propertyNames.contains("*")) {
+              List<String> allProps = getAllPropertyNames(member);
+              for (String propertyName : allProps) {
+                addConceptProperty(vsContains, member, propertyName);
+              }
+            } else {
+              for (String propertyName : propertyNames) {
+                addConceptProperty(vsContains, member, propertyName);
+              }
             }
           }
           // Add definitions to the contains component if they were requested
@@ -1355,6 +1372,44 @@ public class ValueSetProviderR5 implements IResourceProvider {
       // notFoundSeen.add(property);
       // }
     }
+  }
+
+  /**
+   * Gets all available property names for a concept.
+   *
+   * @param concept the concept
+   * @return list of all available property names
+   */
+  private List<String> getAllPropertyNames(Concept concept) {
+    List<String> allPropertyNames = new ArrayList<>();
+
+    // Add standard properties
+    allPropertyNames.add("active");
+
+    // Add parent if concept has parents
+    if (concept.getParents() != null && !concept.getParents().isEmpty()) {
+      allPropertyNames.add("parent");
+    }
+
+    // Add child if concept has children
+    if (concept.getChildren() != null && !concept.getChildren().isEmpty()) {
+      allPropertyNames.add("child");
+    }
+
+    // Add definition if concept has definitions
+    if (concept.getDefinitions() != null && !concept.getDefinitions().isEmpty()) {
+      allPropertyNames.add("definition");
+    }
+
+    // Add all custom properties
+    if (concept.getProperties() != null) {
+      concept.getProperties().stream()
+          .map(Property::getType)
+          .distinct()
+          .forEach(allPropertyNames::add);
+    }
+
+    return allPropertyNames;
   }
 
   /**
