@@ -2186,6 +2186,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
+    if (bindings == null) {
+      return concepts;
+    }
     for (final Bindings b : bindings) {
       final Role role = new Role();
       if (b.getPropertyCode() == null) {

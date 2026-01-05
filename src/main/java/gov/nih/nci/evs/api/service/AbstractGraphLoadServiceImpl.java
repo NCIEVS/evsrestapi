@@ -1071,7 +1071,7 @@ The browser links each mapped concept to that concept's page in the current prod
 
       final String replacementCode = historyItem.get("replacementCode");
 
-      if (replacementCode != null && replacementCode != "") {
+      if (replacementCode != null && !replacementCode.isEmpty()) {
 
         history.setReplacementCode(replacementCode);
         history.setReplacementName(nameMap.get(replacementCode));

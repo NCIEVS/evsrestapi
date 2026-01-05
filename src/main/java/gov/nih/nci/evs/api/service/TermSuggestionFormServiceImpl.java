@@ -192,16 +192,17 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       helper.setTo(emailDetails.getToEmail());
       helper.setFrom(emailDetails.getFromEmail());
       helper.setSubject(emailDetails.getSubject());
-      if (emailDetails.getMsgBody() != null
-          && emailDetails.getMsgBody().toLowerCase().contains("<html")) {
-        helper.setText(emailDetails.getMsgBody(), true);
+      final String msgBody = emailDetails.getMsgBody() != null ? emailDetails.getMsgBody() : "";
+      if (msgBody.toLowerCase().contains("<html")) {
+        helper.setText(msgBody, true);
       } else {
-        helper.setText(emailDetails.getMsgBody(), false);
+        helper.setText(msgBody, false);
       }
 
       if (file != null && !file.isEmpty()) {
         try {
-          helper.addAttachment(file.getOriginalFilename(), file);
+          final String filename = file.getOriginalFilename();
+          helper.addAttachment(filename != null ? filename : "attachment", file);
         } catch (final MessagingException me) {
           throw new MessagingException("Failed to attach file to email", me);
         }

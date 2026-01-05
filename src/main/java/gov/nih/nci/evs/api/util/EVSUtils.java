@@ -330,7 +330,8 @@ public class EVSUtils {
    * @param values the values
    * @return the list
    */
-  public static <T> List<T> asList(@SuppressWarnings("unchecked") final T... values) {
+  @SuppressWarnings("unchecked")
+  public static <T> List<T> asList(final T... values) {
     final List<T> list = new ArrayList<>(values.length);
     for (final T value : values) {
       if (value != null) {

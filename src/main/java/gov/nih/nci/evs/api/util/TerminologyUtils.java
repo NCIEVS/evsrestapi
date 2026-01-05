@@ -245,7 +245,8 @@ public final class TerminologyUtils {
    * @param values the values
    * @return the sets the
    */
-  public static <T> Set<T> asSet(@SuppressWarnings("unchecked") final T... values) {
+  @SuppressWarnings("unchecked")
+  public static <T> Set<T> asSet(final T... values) {
     final Set<T> set = new HashSet<>(values.length);
     for (final T value : values) {
       if (value != null) {
