@@ -220,7 +220,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     ExecutorService executor = Executors.newFixedThreadPool(10);
     try {
       while (start < total) {
-        if (total - start <= DOWNLOAD_BATCH_SIZE) end = total.intValue();
+        if (total - start <= DOWNLOAD_BATCH_SIZE) {
+          end = total.intValue();
+        }
 
         logger.info("  Processing {} to {}", start + 1, end);
         logger.info("    start reading {} to {}", start + 1, end);
@@ -285,7 +287,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         Double indexTotal = (double) concepts.size();
         final List<Future<Void>> futures = new ArrayList<>();
         while (indexStart < indexTotal) {
-          if (indexTotal - indexStart <= INDEX_BATCH_SIZE) indexEnd = indexTotal.intValue();
+          if (indexTotal - indexStart <= INDEX_BATCH_SIZE) {
+            indexEnd = indexTotal.intValue();
+          }
 
           futures.add(
               executor.submit(
@@ -486,7 +490,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     for (Concept association : associations) {
       logger.info(association.getName());
       entries = new ArrayList<>();
-      if (association.getName().equals("Concept_In_Subset")) continue;
+      if (association.getName().equals("Concept_In_Subset")) {
+        continue;
+      }
       for (String conceptCode : hierarchy.getAssociationMap().keySet()) {
         List<Association> conceptAssociations = hierarchy.getAssociationMap().get(conceptCode);
         for (Association conceptAssociation : conceptAssociations) {
@@ -972,7 +978,7 @@ The browser links each mapped concept to that concept's page in the current prod
 """
             .formatted(sourceTerminology.getVersion(), targetTermName, termFullNameAndVersion);
     map.getProperties().add(new Property("welcomeText", welcomeText));
-    map.getProperties().add(new Property("sourceTerminology", "NCIt"));
+    map.getProperties().add(new Property("sourceTerminology", "ncit"));
     map.getProperties()
         .add(new Property("sourceTerminologyVersion", sourceTerminology.getVersion()));
     map.getProperties().add(new Property("targetTerminology", targetTermName));
@@ -980,9 +986,12 @@ The browser links each mapped concept to that concept's page in the current prod
         && targetTerminology.getVersion() != null
         && !targetTerminology.getVersion().isEmpty()) {
       map.getProperties()
+          .add(new Property("targetTerminology", targetTerminology.getTerminology()));
+      map.getProperties()
           .add(new Property("targetTerminologyVersion", targetTerminology.getVersion()));
       map.getProperties().add(new Property("targetLoaded", "true"));
     } else {
+      map.getProperties().add(new Property("targetTerminology", targetTermName));
       map.getProperties().add(new Property("targetLoaded", "false"));
     }
     map.getProperties().add(new Property("sourceLoaded", "true"));
