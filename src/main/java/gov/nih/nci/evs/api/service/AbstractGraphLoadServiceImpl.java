@@ -1011,7 +1011,7 @@ The browser links each mapped concept to that concept's page in the current prod
 """
             .formatted(sourceTerminology.getVersion(), targetTermName, termFullNameAndVersion);
     map.getProperties().add(new Property("welcomeText", welcomeText));
-    map.getProperties().add(new Property("sourceTerminology", "NCIt"));
+    map.getProperties().add(new Property("sourceTerminology", "ncit"));
     map.getProperties()
         .add(new Property("sourceTerminologyVersion", sourceTerminology.getVersion()));
     map.getProperties().add(new Property("targetTerminology", targetTermName));
@@ -1019,9 +1019,12 @@ The browser links each mapped concept to that concept's page in the current prod
         && targetTerminology.getVersion() != null
         && !targetTerminology.getVersion().isEmpty()) {
       map.getProperties()
+          .add(new Property("targetTerminology", targetTerminology.getTerminology()));
+      map.getProperties()
           .add(new Property("targetTerminologyVersion", targetTerminology.getVersion()));
       map.getProperties().add(new Property("targetLoaded", "true"));
     } else {
+      map.getProperties().add(new Property("targetTerminology", targetTermName));
       map.getProperties().add(new Property("targetLoaded", "false"));
     }
     map.getProperties().add(new Property("sourceLoaded", "true"));
