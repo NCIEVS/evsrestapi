@@ -131,10 +131,10 @@ public class FhirR4CodeSystemReadSearchTests {
         data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Verify things about this one
-    // {"resourceType":"CodeSystem","id":"ncit_25.06e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"25.06e","name":"NCI
+    // {"resourceType":"CodeSystem","id":"ncit_25.12e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"25.12e","name":"NCI
     // Thesaurus
-    // 25.06e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","hierarchyMeaning":"is-a"}
-    final Set<String> ids = new HashSet<>(Set.of("ncit_25.06e"));
+    // 25.12e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","hierarchyMeaning":"is-a"}
+    final Set<String> ids = new HashSet<>(Set.of("ncit_25.12e"));
     final Set<String> urls =
         new HashSet<>(Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl"));
 
@@ -170,7 +170,7 @@ public class FhirR4CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
             // "ge2021-06")
             .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "25.06e")
+            .queryParam("version", "25.12e")
             .queryParam("title", "ncit");
 
     // Test successful case with all parameters
@@ -184,7 +184,7 @@ public class FhirR4CodeSystemReadSearchTests {
             .queryParam("date", "ge2035-01") // Future
             // date
             .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "25.06e")
+            .queryParam("version", "25.12e")
             .queryParam("title", "ncit");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -196,7 +196,7 @@ public class FhirR4CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("date", "ge2021-06")
             .queryParam("system", "http://invalid.system.url")
-            .queryParam("version", "25.06e")
+            .queryParam("version", "25.12e")
             .queryParam("title", "ncit");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -220,7 +220,7 @@ public class FhirR4CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("date", "ge2021-06")
             .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "25.06e")
+            .queryParam("version", "25.12e")
             .queryParam("title", "invalid_title");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -232,7 +232,7 @@ public class FhirR4CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
             // "ge2021-06")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "25.06e")
+            .queryParam("version", "25.12e")
             .queryParam("title", "ncit");
 
     // Test successful case with all parameters
@@ -246,7 +246,7 @@ public class FhirR4CodeSystemReadSearchTests {
             // "ge2021-06")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
             .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "25.06e")
+            .queryParam("version", "25.12e")
             .queryParam("title", "ncit");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -346,7 +346,7 @@ public class FhirR4CodeSystemReadSearchTests {
 
     if (expectResults) {
       assertFalse(codeSystems.isEmpty());
-      final Set<String> ids = new HashSet<>(Set.of("ncit_25.06e"));
+      final Set<String> ids = new HashSet<>(Set.of("ncit_25.12e"));
       final Set<String> urls =
           new HashSet<>(Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl"));
 
@@ -610,7 +610,7 @@ public class FhirR4CodeSystemReadSearchTests {
     log.info(" code system = " + parser.encodeResourceToString(css));
 
     // Verify specific IDs and URLs if needed
-    if (css.getIdPart().equals("ncit_25.06e")) {
+    if (css.getIdPart().equals("ncit_25.12e")) {
       assertEquals("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl", css.getUrl());
     }
   }

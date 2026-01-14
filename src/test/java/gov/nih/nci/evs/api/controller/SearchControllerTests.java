@@ -3322,9 +3322,9 @@ public class SearchControllerTests {
     ConceptResultList list = null;
 
     // Basic search using the weekly version of NCIt
-    log.info("Testing url - " + url + "?terminology=ncit_25.07b&term=cancer");
+    log.info("Testing url - " + url + "?terminology=ncit_26.01a&term=cancer");
     result =
-        mvc.perform(get(url).param("terminology", "ncit_25.07b").param("term", "cancer"))
+        mvc.perform(get(url).param("terminology", "ncit_26.01a").param("term", "cancer"))
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();

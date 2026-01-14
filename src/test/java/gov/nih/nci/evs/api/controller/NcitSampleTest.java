@@ -84,7 +84,7 @@ public class NcitSampleTest extends SampleTest {
         terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
     assertThat(ncit.getTerminology()).isEqualTo("ncit");
     assertThat(ncit.getMetadata().getUiLabel()).isEqualTo("NCI Thesaurus");
-    assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 25.06e");
+    assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 25.12e");
     assertThat(ncit.getDescription()).isNotEmpty();
 
     assertThat(ncit.getMetadata().getLoader()).isEqualTo("rdf");
@@ -141,7 +141,7 @@ public class NcitSampleTest extends SampleTest {
         terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
     assertThat(ncit.getTerminology()).isEqualTo("ncit");
     assertThat(ncit.getMetadata().getUiLabel()).isEqualTo("NCI Thesaurus");
-    assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 25.07b");
+    assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 26.01a");
     assertThat(ncit.getDescription()).isNotEmpty();
 
     assertThat(ncit.getMetadata().getLoader()).isEqualTo("rdf");
