@@ -439,7 +439,24 @@ done)
         done
         if [[ $keep -eq 0 ]]; then
             echo "      remove $index"
-            #curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$index" > /dev/null
+            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$index" > /tmp/x.$$.txt
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$.txt | sed 's/^/    /'
+                echo "ERROR: error removing index $i"
+                # exit 1
+            fi
+            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/${index/concept_/evs_object_}" > /tmp/x.$$.txt
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$.txt | sed 's/^/    /'
+                echo "ERROR: error removing index ${index/concept_/evs_object}"
+                # exit 1
+            fi
+            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$index" > /tmp/x.$$.txt
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$.txt | sed 's/^/    /'
+                echo "ERROR: error removing evs_metadata entry for $index"
+                # exit 1
+            fi
         fi
     done	
 	
