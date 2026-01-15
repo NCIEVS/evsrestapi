@@ -150,7 +150,7 @@ public class EmailDetails extends BaseModel {
     } else {
       final EmailDetails emailDetails = new EmailDetails();
       // Set the values from the form data
-      final String formName = formData.path("formName").asText(null);
+      final String formType = formData.path("formType").asText(null);
       final String recipientEmail = formData.path("recipientEmail").asText(null);
       final String businessEmail = formData.path("businessEmail").asText(null);
       final String subject = formData.path("subject").asText(null);
@@ -158,10 +158,10 @@ public class EmailDetails extends BaseModel {
       // format the json object to a string
       final String body = generateHtmlEmailBody(formData.path("body"));
 
-      if (formName == null
-          || formName.isEmpty()
-          || recipientEmail == null
-          || recipientEmail.isEmpty()) {
+      if (formType == null || formType.isEmpty()) {
+        throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, nullError);
+      }
+      if (recipientEmail == null || recipientEmail.isEmpty()) {
         throw new ResponseStatusException(HttpStatus.EXPECTATION_FAILED, nullError);
       }
       if (businessEmail == null || businessEmail.isEmpty()) {
@@ -175,7 +175,7 @@ public class EmailDetails extends BaseModel {
       }
 
       // populate the emailDetails
-      emailDetails.setSource(formName);
+      emailDetails.setSource(formType);
       emailDetails.setToEmail(recipientEmail);
       emailDetails.setFromEmail(businessEmail);
       emailDetails.setSubject(subject);

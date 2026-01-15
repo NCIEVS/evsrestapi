@@ -1,5 +1,6 @@
 {
   "formName": "NCIT",
+  "formType": "NCIT",
   "recipientEmail": "agarcia@westcoastinformatics.com",
   "businessEmail": "bcarlsen@westcoastinformatics.com ",
   "subject": "New Terminology Suggestion: TestTermName",

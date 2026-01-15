@@ -1,5 +1,6 @@
 {
   "formName": "CDISC",
+  "formType": "CDISC",
   "recipientEmail": "agarcia@westcoastinformatics.com",
   "businessEmail": "bcarlsen@westcoastinformatics.com ",
   "subject": "New Terminology Suggestion: TestTermName",
