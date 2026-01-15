@@ -1557,7 +1557,7 @@ public class MetadataControllerTests {
    * @throws Exception the exception
    */
   @Test
-  public void testTerminolgyMetadata() throws Exception {
+  public void testTerminologyMetadata() throws Exception {
     String url = baseUrl + "/terminologies";
     MvcResult result = null;
     List<Terminology> terminologies = null;
@@ -1572,7 +1572,7 @@ public class MetadataControllerTests {
                 new TypeReference<List<Terminology>>() {
                   // n/a
                 });
-    assertThat(terminologies != null && terminologies.size() == 2).isTrue();
+    assertThat(terminologies != null && terminologies.size() == 3).isTrue();
 
     result =
         mvc.perform(get(url).param("terminology", "ncim")).andExpect(status().isOk()).andReturn();
@@ -1599,7 +1599,10 @@ public class MetadataControllerTests {
     assertThat(terminologies.size()).isGreaterThan(10);
 
     // Keep an older version of CHEBI so we can have a false
-    result = mvc.perform(get(url).param("latest", "false")).andExpect(status().isOk()).andReturn();
+    result =
+        mvc.perform(get(url).param("terminology", "chebi").param("latest", "false"))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
         ThreadLocalMapper.get()
@@ -1622,7 +1625,7 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(1);
+    assertThat(terminologies.size()).isEqualTo(2);
 
     result = mvc.perform(get(url).param("tag", "weekly")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
@@ -1634,7 +1637,7 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(1);
+    assertThat(terminologies.size()).isEqualTo(2);
 
     result =
         mvc.perform(get(url).param("terminology", "ncit").param("latest", "true"))
@@ -1664,7 +1667,7 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualByComparingTo(0);
+    assertThat(terminologies.size()).isEqualByComparingTo(1);
 
     result =
         mvc.perform(get(url).param("terminology", "ncit").param("tag", "monthly"))
@@ -1679,7 +1682,7 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(1);
+    assertThat(terminologies.size()).isEqualTo(2);
 
     result =
         mvc.perform(get(url).param("terminology", "ncit").param("tag", "weekly"))
@@ -1694,7 +1697,7 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(1);
+    assertThat(terminologies.size()).isEqualTo(2);
 
     result =
         mvc.perform(get(url).param("latest", "true").param("tag", "monthly"))
@@ -1739,7 +1742,7 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(0);
+    assertThat(terminologies.size()).isEqualTo(1);
 
     result =
         mvc.perform(get(url).param("latest", "false").param("tag", "weekly"))
@@ -1754,7 +1757,7 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(0);
+    assertThat(terminologies.size()).isEqualTo(1);
 
     result =
         mvc.perform(get(url).param("terminology", "ncim").param("latest", "true"))
@@ -1871,7 +1874,7 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(0);
+    assertThat(terminologies.size()).isEqualTo(1);
 
     result =
         mvc.perform(
@@ -1890,7 +1893,7 @@ public class MetadataControllerTests {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(0);
+    assertThat(terminologies.size()).isEqualTo(1);
 
     result =
         mvc.perform(
