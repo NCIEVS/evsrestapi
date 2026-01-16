@@ -1683,6 +1683,8 @@ public class MetadataControllerTests {
                 });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(2);
+    assertThat(terminologies.get(0).getVersion()).isEqualTo("25.12e");
+    assertThat(terminologies.get(1).getVersion()).isEqualTo("25.11d");
 
     result =
         mvc.perform(get(url).param("terminology", "ncit").param("tag", "weekly"))
@@ -1713,6 +1715,7 @@ public class MetadataControllerTests {
                 });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(1);
+    assertThat(terminologies.get(0).getVersion()).isEqualTo("25.12e");
 
     result =
         mvc.perform(get(url).param("latest", "true").param("tag", "weekly"))
@@ -1728,6 +1731,7 @@ public class MetadataControllerTests {
                 });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(1);
+    assertThat(terminologies.get(0).getVersion()).isEqualTo("26.01a");
 
     result =
         mvc.perform(get(url).param("latest", "false").param("tag", "monthly"))
@@ -1743,6 +1747,7 @@ public class MetadataControllerTests {
                 });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(1);
+    assertThat(terminologies.get(0).getVersion()).isEqualTo("25.11d");
 
     result =
         mvc.perform(get(url).param("latest", "false").param("tag", "weekly"))
