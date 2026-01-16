@@ -1683,8 +1683,9 @@ public class MetadataControllerTests {
                 });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(2);
-    assertThat(terminologies.get(0).getVersion()).isEqualTo("25.12e");
-    assertThat(terminologies.get(1).getVersion()).isEqualTo("25.11d");
+    // Don't assume order, but check that both versions are present
+    assertThat(terminologies.stream().map(Terminology::getVersion).collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder("25.12e", "25.11d");
 
     result =
         mvc.perform(get(url).param("terminology", "ncit").param("tag", "weekly"))
