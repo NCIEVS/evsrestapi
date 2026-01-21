@@ -22,7 +22,7 @@ if [ $help == 1 ] || [ ${#arr[@]} -ne 1 ]; then
 fi
 dir=${arr[0]}
 # Hardcode the history file
-historyFile=$dir/NCIT/cumulative_history_25.06e.txt
+historyFile=$dir/NCIT/cumulative_history_25.12e.txt
 
 DEFAULT_DBS=("NCIT2" "CTRP")
 curl_cmd='curl -s -w \n%{http_code} -u '"${GRAPH_DB_USERNAME}:${GRAPH_DB_PASSWORD}"
@@ -102,6 +102,13 @@ if [[ ! -e "$dir/NCIT/ThesaurusInferred_monthly.owl" ]]; then
     echo "ERROR: unexpectedly ThesaurusInferred_monthly.owl file"
     exit 1
 fi
+# Check other NCIt monthly
+echo "    check other NCIt monthly"
+if [[ ! -e "$dir/NCIT/ThesaurusInferred_-1monthly.owl" ]]; then
+    echo "ERROR: unexpectedly ThesaurusInferred_-1monthly.owl file"
+    exit 1
+fi
+
 # Check GO monthly
 echo "    check GO monthly"
 if [[ ! -e "$dir/GO/GO.20250601.owl" ]]; then
@@ -334,7 +341,9 @@ load_terminology_data(){
 # Load all graphs into graphdb
 load_data(){
     load_terminology_data CTRP http://NCI_T_weekly NCIT/ThesaurusInferred_+1weekly.owl
+    load_terminology_data CTRP http://NCI_T_prev_monthly NCIT/ThesaurusInferred_-1monthly.owl
     load_terminology_data CTRP http://NCI_T_monthly NCIT/ThesaurusInferred_monthly.owl
+    load_terminology_data NCIT2 http://NCI_T_prev_monthly NCIT/ThesaurusInferred_-1monthly.owl
     load_terminology_data NCIT2 http://NCI_T_monthly NCIT/ThesaurusInferred_monthly.owl
     load_terminology_data NCIT2 http://GO_monthly GO/GO.20250601.owl
     load_terminology_data NCIT2 http://HGNC_monthly HGNC/HGNC.202507.owl

@@ -1853,9 +1853,9 @@ public class ConceptControllerTests {
     assertThat(resultList).isNotNull();
     assertThat(resultList.getTimeTaken()).isGreaterThan(0);
     assertThat(resultList.getTotal()).isLessThan(3000);
-    assertThat(resultList.getParameters().getTerminology()).contains("Has_Salt_Form");
+    assertThat(resultList.getParameters().getTerminology()).contains("Has_Salt_Or_Ester_Form");
     for (AssociationEntry assoc : resultList.getAssociationEntries()) {
-      assertThat(assoc.getAssociation().equals("Has_Salt_Form"));
+      assertThat(assoc.getAssociation().equals("Has_Salt_Or_Ester_Form"));
     }
 
     // Test that concept subset is properly 404'd

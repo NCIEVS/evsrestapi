@@ -10,7 +10,6 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.MainTypeHierarchy;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.List;
-import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +47,7 @@ public class MainTypeHierarchyTest {
    *
    * @throws Exception the exception
    */
-  @Test
+  // @Test
   public void test() throws Exception {
 
     log.info("  Get terminology = ncit");

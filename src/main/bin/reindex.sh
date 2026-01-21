@@ -20,7 +20,7 @@ if [ ${#arr[@]} -ne 0 ]; then
   echo "  e.g. $0"
   echo "  e.g. $0 --noconfig"
   echo "  e.g. $0 --force"
-  echo "  e.g. $0 --noconfig --history ../data/UnitTestData/NCIT/cumulative_history_25.06e.txt"
+  echo "  e.g. $0 --noconfig --history ../data/UnitTestData/NCIT/cumulative_history_25.12e.txt"
   exit 1
 fi
 
@@ -368,8 +368,8 @@ download_ncit_history() {
       if [[ $? -ne 0 ]]; then
           echo "ERROR: Failed to get latest terminology from http://localhost:${serverPort}/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
           if [[ $serverPort -eq 8082 ]]; then
-              echo "  Setting default history version on local to 25.06e"
-              prev_version="25.06e"
+              echo "  Setting default history version on local to 25.12e"
+              prev_version="25.12e"
           else
               echo "  Failed to find terminology version on non-local server, exiting"
           fi
