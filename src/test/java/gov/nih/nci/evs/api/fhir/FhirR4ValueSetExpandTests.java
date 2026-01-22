@@ -3306,8 +3306,8 @@ public class FhirR4ValueSetExpandTests {
       currentNCItVersion = "24.01d"; // Fallback to a recent version
     }
 
-    // NOTE: new ticket - investigate why currentNCItVersion as 25.07b doesn't match concepts
-    currentNCItVersion = "25.06e";
+    // NOTE: new ticket - investigate why currentNCItVersion as 26.01a doesn't match concepts
+    currentNCItVersion = "25.12e";
     log.info("Using current NCIt version: {} for R4 include.version test", currentNCItVersion);
 
     final String expandEndpoint =
@@ -3456,7 +3456,7 @@ public class FhirR4ValueSetExpandTests {
       currentNCItVersion = "24.01d"; // Fallback to a recent version
     }
     // NOTE: new ticket - investigate why currentNCI
-    currentNCItVersion = "25.06e";
+    currentNCItVersion = "25.12e";
     log.info(
         "Using current NCIt version: {} for R4 include.version filter test", currentNCItVersion);
 

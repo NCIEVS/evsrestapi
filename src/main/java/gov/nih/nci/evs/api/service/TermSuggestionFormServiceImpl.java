@@ -251,8 +251,7 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
     } else if ("NCIT".equalsIgnoreCase(formType)) {
       return validateNCITAttachment(file, filename);
     } else {
-      return prefix
-          + String.format("Unknown form type '{}' for file validation: {}", formType, filename);
+      return prefix + "Unknown form type '" + formType + "' for file validation: " + filename;
     }
   }
 

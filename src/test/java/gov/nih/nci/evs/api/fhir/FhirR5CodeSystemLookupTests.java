@@ -309,7 +309,7 @@ public class FhirR5CodeSystemLookupTests {
     final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_LOOKUP;
     final String parameters = "?system=" + retiredUrl + "&code=" + retiredCode;
 
-    final Set<String> sourceVersions = new HashSet<>(Set.of("25.06e", "25.07b"));
+    final Set<String> sourceVersions = new HashSet<>(Set.of("25.12e", "26.01a"));
     final String retiredName = "ABCB1 1 Allele";
 
     // Act
@@ -345,10 +345,10 @@ public class FhirR5CodeSystemLookupTests {
     String content;
     final String retiredCode = "C45683";
     final String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
-    final String retiredId = "ncit_25.06e";
+    final String retiredId = "ncit_25.12e";
     final String retiredName = "ABCB1 1 Allele";
-    final String sourceName = "NCI Thesaurus 25.06e";
-    final String sourceVersion = "25.06e";
+    final String sourceName = "NCI Thesaurus 25.12e";
+    final String sourceVersion = "25.12e";
     final String endpoint =
         localHost + port + fhirCSPath + "/" + retiredId + "/" + JpaConstants.OPERATION_LOOKUP;
     final String parameters =

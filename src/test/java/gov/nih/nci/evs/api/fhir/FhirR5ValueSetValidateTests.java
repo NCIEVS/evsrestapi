@@ -473,7 +473,7 @@ public class FhirR5ValueSetValidateTests {
     String content;
     final String retiredCode = "C45683";
     final String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
-    final String retiredId = "ncit_25.06e";
+    final String retiredId = "ncit_25.12e";
     final String retiredName = "ABCB1 1 Allele";
     final String endpoint =
         localHost

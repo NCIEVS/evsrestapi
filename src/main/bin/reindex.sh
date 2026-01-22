@@ -20,7 +20,7 @@ if [ ${#arr[@]} -ne 0 ]; then
   echo "  e.g. $0"
   echo "  e.g. $0 --noconfig"
   echo "  e.g. $0 --force"
-  echo "  e.g. $0 --noconfig --history ../data/UnitTestData/NCIT/cumulative_history_25.06e.txt"
+  echo "  e.g. $0 --noconfig --history ../data/UnitTestData/NCIT/cumulative_history_25.12e.txt"
   exit 1
 fi
 
@@ -368,8 +368,8 @@ download_ncit_history() {
       if [[ $? -ne 0 ]]; then
           echo "ERROR: Failed to get latest terminology from http://localhost:${serverPort}/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
           if [[ $serverPort -eq 8082 ]]; then
-              echo "  Setting default history version on local to 25.06e"
-              prev_version="25.06e"
+              echo "  Setting default history version on local to 25.12e"
+              prev_version="25.12e"
           else
               echo "  Failed to find terminology version on non-local server, exiting"
           fi
@@ -439,7 +439,24 @@ done)
         done
         if [[ $keep -eq 0 ]]; then
             echo "      remove $index"
-            #curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$index" > /dev/null
+            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$index" > /tmp/x.$$.txt
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$.txt | sed 's/^/    /'
+                echo "ERROR: error removing index $i"
+                # exit 1
+            fi
+            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/${index/concept_/evs_object_}" > /tmp/x.$$.txt
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$.txt | sed 's/^/    /'
+                echo "ERROR: error removing index ${index/concept_/evs_object}"
+                # exit 1
+            fi
+            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$index" > /tmp/x.$$.txt
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$.txt | sed 's/^/    /'
+                echo "ERROR: error removing evs_metadata entry for $index"
+                # exit 1
+            fi
         fi
     done	
 	
