@@ -433,6 +433,12 @@ load_mapping2
 # Cleanup
 /bin/rm -f /tmp/x.$$.txt $dir/x.{sh,txt}
 
+# Report audit data
+echo "  Audit report ...$(/bin/date)"
+# send audit report to csv with date
+./audit.sh load --noconfig > "devreset_terminology_load_audit_$(date +%Y%m%d_%H%M%S).csv"
+
+
 echo ""
 echo "--------------------------------------------------"
 echo "Finished ...`/bin/date`"
