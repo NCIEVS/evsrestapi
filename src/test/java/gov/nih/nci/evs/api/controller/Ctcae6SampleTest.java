@@ -82,7 +82,8 @@ public class Ctcae6SampleTest extends SampleTest {
     assertThat(terminology.getTerminology()).isEqualTo("ctcae6");
     assertThat(terminology.getMetadata().getUiLabel())
         .isEqualTo("CTCAE 6: Common Terminology Criteria for Adverse Events Version 6");
-    assertThat(terminology.getName()).isEqualTo("CTCAE 6 6.0");
+    assertThat(terminology.getName())
+        .isEqualTo("CTCAE 6: Common Terminology Criteria for Adverse Events Version 6 6.0");
     assertThat(terminology.getDescription()).isNotEmpty();
 
     assertThat(terminology.getMetadata().getLoader()).isEqualTo("rdf");

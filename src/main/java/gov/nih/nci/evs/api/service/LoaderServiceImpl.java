@@ -1,17 +1,10 @@
 package gov.nih.nci.evs.api.service;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import gov.nih.nci.evs.api.Application;
-import gov.nih.nci.evs.api.model.Audit;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
-import jakarta.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -26,6 +19,15 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
+
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gov.nih.nci.evs.api.Application;
+import gov.nih.nci.evs.api.model.Audit;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
+import jakarta.annotation.PostConstruct;
 
 /**
  * The implementation for {@link LoaderService}.
@@ -42,6 +44,11 @@ public class LoaderServiceImpl {
   // @Value("${nci.evs.bulkload.historyDir}")
   private static String HISTORY_DIR;
 
+  /**
+   * Sets the history dir.
+   *
+   * @param historyDir the new history dir
+   */
   @Value("${nci.evs.bulkload.historyDir}")
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
   public void setHistoryDir(String historyDir) {
@@ -57,13 +64,26 @@ public class LoaderServiceImpl {
   /** The opensearch service. */
   @Autowired OpensearchQueryService osQueryService;
 
+  /** The term utils. */
   /* The terminology utils */
   @Autowired TerminologyUtils termUtils;
 
+  /** The static operations service. */
   private static OpensearchOperationsService staticOperationsService;
+
+  /** The static os query service. */
   private static OpensearchQueryService staticOsQueryService;
+
+  /** The static term utils. */
   private static TerminologyUtils staticTermUtils;
 
+  /**
+   * Sets the static services.
+   *
+   * @param ops the ops
+   * @param query the query
+   * @param term the term
+   */
   public static void setStaticServices(
       OpensearchOperationsService ops, OpensearchQueryService query, TerminologyUtils term) {
     staticOperationsService = ops;
@@ -71,8 +91,8 @@ public class LoaderServiceImpl {
     staticTermUtils = term;
   }
 
+  /** Inits the. */
   @PostConstruct
-  @SuppressWarnings("static-access")
   public void init() {
     setStaticServices(this.operationsService, this.osQueryService, this.termUtils);
   }
@@ -156,6 +176,7 @@ public class LoaderServiceImpl {
    * the main method to trigger Opensearch load via command line *.
    *
    * @param args the command line arguments
+   * @throws Exception the exception
    */
   @SuppressWarnings("resource")
   public static void main(String[] args) throws Exception {

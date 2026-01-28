@@ -82,7 +82,8 @@ public class CanmedSampleTest extends SampleTest {
     assertThat(terminology.getTerminology()).isEqualTo("canmed");
     assertThat(terminology.getMetadata().getUiLabel())
         .isEqualTo("CanMED: Cancer Medications Enquiry Database");
-    assertThat(terminology.getName()).isEqualTo("CanMED 202506");
+    assertThat(terminology.getName())
+        .isEqualTo("CanMED: Cancer Medications Enquiry Database 202506");
     assertThat(terminology.getDescription()).isNotEmpty();
 
     assertThat(terminology.getMetadata().getLoader()).isEqualTo("rdf");

@@ -82,7 +82,8 @@ public class MedrtSampleTest extends SampleTest {
     assertThat(terminology.getTerminology()).isEqualTo("medrt");
     assertThat(terminology.getMetadata().getUiLabel())
         .isEqualTo("MED-RT: Medication Reference Terminology");
-    assertThat(terminology.getName()).isEqualTo("MED-RT 2025.06.02");
+    assertThat(terminology.getName())
+        .isEqualTo("MED-RT: Medication Reference Terminology 2025.06.02");
     assertThat(terminology.getDescription()).isNotEmpty();
 
     assertThat(terminology.getMetadata().getLoader()).isEqualTo("rdf");

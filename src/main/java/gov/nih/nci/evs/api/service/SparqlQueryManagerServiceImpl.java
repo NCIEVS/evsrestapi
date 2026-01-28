@@ -1,8 +1,34 @@
 package gov.nih.nci.evs.api.service;
 
+import java.io.IOException;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.Sets;
+
 import gov.nih.nci.evs.api.model.Association;
 import gov.nih.nci.evs.api.model.AssociationEntry;
 import gov.nih.nci.evs.api.model.Axiom;
@@ -34,29 +60,6 @@ import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import jakarta.annotation.PostConstruct;
-import java.io.IOException;
-import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Service;
-import org.springframework.util.CollectionUtils;
 
 /**
  * Reference implementation of {@link SparqlQueryManagerService}. Includes hibernate tags for MEME
@@ -136,6 +139,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   // Here check the qualified form as well as the URI
 
+  /* see superclass */
   /* see superclass */
   /* see superclass */
   /* see superclass */
@@ -279,6 +283,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return getConceptByType("concept", conceptCode, terminology, ip);
   }
 
+  /* see superclass */
   @Override
   public Concept getConceptFromOpensearch(
       final String conceptCode, final Terminology terminology, final String include)
@@ -2228,7 +2233,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                 .orElse(null);
       }
       if (concept.getCode().equals(concept.getName())
-          && bindings != null
           && matchConcept != null
           && matchConcept.getPropertyLabel() != null) {
         concept.setName(matchConcept.getPropertyLabel().getValue());
@@ -2694,6 +2698,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the ignore source urls.
    *
    * @return the ignore source urls
+   * @throws Exception the exception
    */
   private List<String> getIgnoreSourceUrls() throws Exception {
     final String uri = applicationProperties.getConfigBaseUri() + "/ignore-source.txt";
