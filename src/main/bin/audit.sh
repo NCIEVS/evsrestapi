@@ -6,6 +6,8 @@
 config=1
 help=0
 arr=()
+output_fmt="tsv"
+output_to_file=0
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
@@ -14,16 +16,26 @@ while [[ "$#" -gt 0 ]]; do
     config=0
     ncflag="--noconfig"
     ;;
+  --tsv)
+    output_to_file=1
+    output_fmt="tsv"
+    ;;
+  --csv)
+    output_to_file=1
+    output_fmt="csv"
+    ;;
   *) arr+=("$1") ;;
   esac
   shift
 done
 
 print_help(){
-  echo "Usage: $0 [--noconfig] [--help] <report: load|error|warning> [terminology]"
+  echo "Usage: $0 [--noconfig] [--help] [--tsv|--csv] <report: load|error|warning|all> [terminology]"
   echo "  e.g. $0 load"
+  echo "  e.g. $0 --csv load"
   echo "  e.g. $0 error ncit"
   echo "  e.g. $0 warning"
+  echo "  e.g. $0 all"
   exit 1
 }
 
@@ -76,33 +88,69 @@ query_es() {
     curl -s -G "$ES/evs_audit/_search" --data-urlencode "size=1000" --data-urlencode "q=$q"
 }
 
+# Output handling
+if [[ $output_to_file -eq 1 ]]; then
+    mkdir -p audit_reports
+    timestamp=$(date +"%Y%m%d_%H%M%S")
+    output_file="audit_reports/${report_type}_${timestamp}.${output_fmt}"
+    exec > "$output_file"
+    # Note: We use tsv internally for jq then convert to csv if needed
+fi
+
 case $report_type in
   load)
-    printf "Terminology\tVersion\tElapsed Time (ms)\tCount\tDate\n"
+    header="Terminology\tVersion\tElapsed Time (ms)\tCount\tDate"
     q="process:(MetaOpensearchLoadServiceImpl OR MetaSourceOpensearchLoadServiceImpl OR LoaderServiceImpl) AND NOT elapsedTime:0"
     if [[ -n $terminology ]]; then
         q="$q AND terminology:$terminology"
     fi
-    query_es "$q" | jq -r '.hits.hits[] | [._source.terminology, ._source.version, ._source.elapsedTime, ._source.count, (._source.date // ._source.startDate)] | @tsv'
+    data=$(query_es "$q" | jq -r '.hits.hits[] | [._source.terminology, ._source.version, ._source.elapsedTime, ._source.count, (._source.date // ._source.startDate)] | @tsv')
     ;;
   error)
-    printf "Terminology\tVersion\tProcess\tDetails\tDate\n"
+    header="Terminology\tVersion\tProcess\tDetails\tDate"
     q="logLevel:ERROR"
     if [[ -n $terminology ]]; then
         q="$q AND terminology:$terminology"
     fi
-    query_es "$q" | jq -r '.hits.hits[] | [._source.terminology, ._source.version, ._source.process, ._source.details, ._source.date] | @tsv'
+    data=$(query_es "$q" | jq -r '.hits.hits[] | [._source.terminology, ._source.version, ._source.process, ._source.details, ._source.date] | @tsv')
     ;;
   warning)
-    printf "Terminology\tVersion\tProcess\tDetails\tDate\n"
+    header="Terminology\tVersion\tProcess\tDetails\tDate"
     q="logLevel:WARN"
     if [[ -n $terminology ]]; then
         q="$q AND terminology:$terminology"
     fi
-    query_es "$q" | jq -r '.hits.hits[] | [._source.terminology, ._source.version, ._source.process, ._source.details, ._source.date] | @tsv'
+    data=$(query_es "$q" | jq -r '.hits.hits[] | [._source.terminology, ._source.version, ._source.process, ._source.details, ._source.date] | @tsv')
+    ;;
+  all)
+    header="Type\tTerminology\tVersion\tProcess\tLogLevel\tDetails\tCount\tElapsed\tDate"
+    q="*:*"
+    if [[ -n $terminology ]]; then
+        q="$q AND terminology:$terminology"
+    fi
+    data=$(query_es "$q" | jq -r '.hits.hits[] | [._source.type, ._source.terminology, ._source.version, ._source.process, ._source.logLevel, ._source.details, ._source.count, ._source.elapsedTime, (._source.date // ._source.startDate)] | @tsv')
     ;;
   *)
     echo "ERROR: Unknown report type: $report_type"
     print_help
     ;;
 esac
+
+# Final output with format conversion if needed
+if [[ -n "$data" ]]; then
+    if [[ "$output_fmt" == "csv" ]]; then
+        echo -e "$header" | sed 's/\t/,/g'
+        echo -e "$data" | sed 's/\t/,/g'
+    else
+        echo -e "$header"
+        echo -e "$data"
+    fi
+else
+    echo "No records found for report: $report_type"
+fi
+
+if [[ $output_to_file -eq 1 ]]; then
+    # Close file and notify on stderr so it shows in console
+    exec >&2
+    echo "Report generated: $output_file"
+fi
