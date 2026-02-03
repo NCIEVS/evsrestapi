@@ -60,8 +60,8 @@ ext {
 group = "gov.nih.nci.evs.api"
 version = "2.4.0.RELEASE"
 
-sourceCompatibility = 17
-targetCompatibility = 17
+sourceCompatibility = 21
+targetCompatibility = 21
 
 springBoot {
   // generate file META-INF/build-info.properties during the build
@@ -72,7 +72,7 @@ springBoot {
 // it will automatically download and install the required version of Java
 java {
   toolchain {
-    languageVersion = JavaLanguageVersion.of(17)
+    languageVersion = JavaLanguageVersion.of(21)
   }
 
 }
@@ -116,9 +116,10 @@ dependencies {
   implementation "org.ehcache:ehcache:3.10.8"
 
   // JAXB dependencies required for ehcache with Java 9+
-  // ehcache 3.10.8 still uses javax.xml.bind internally for XML parsing
-  implementation 'javax.xml.bind:jaxb-api:2.3.1'
-  implementation 'com.sun.xml.bind:jaxb-impl:2.3.3'
+  // ehcache 3.10.8 still uses JAXB internally for XML parsing,
+  // but we prefer Jakarta for better Java 21+ compatibility
+  implementation 'jakarta.xml.bind:jakarta.xml.bind-api:4.0.4'
+  implementation 'org.glassfish.jaxb:jaxb-runtime:4.0.6'
 
   // Apache POI for reading .xls and .xlsx files
   implementation 'org.apache.poi:poi:5.2.3'
