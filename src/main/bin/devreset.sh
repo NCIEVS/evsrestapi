@@ -151,10 +151,24 @@ if [[ ! -e "$dir/OBIB/obib_2021-11.owl" ]]; then
     exit 1
 fi
 
+# Check CanMED
+echo "    check CanMED"
+if [[ ! -e "$dir/CanMED/CANMED.202506.owl" ]]; then
+    echo "ERROR: unexpectedly missing CanMED/CANMED.202506.owl file"
+    exit 1
+fi
+
+# Check MEDRT
+echo "    check MEDRT"
+if [[ ! -e "$dir/MEDRT/MEDRT.20250602.owl" ]]; then
+    echo "ERROR: unexpectedly missing MEDRT/MEDRT.20250602.owl file"
+    exit 1
+fi
+
 # Check NDFRT
 echo "    check NDFRT"
-if [[ ! -e "$dir/NDFRT/NDFRT_Public_2018.02.05_Inferred.owl" ]]; then
-    echo "ERROR: unexpectedly missing NDFRT/NDFRT_Public_2018.02.05_Inferred.owl file"
+if [[ ! -e "$dir/NDFRT/NDFRT.20180205.owl" ]]; then
+    echo "ERROR: unexpectedly missing NDFRT/NDFRT.20180205.owl file"
     exit 1
 fi
 
@@ -162,6 +176,41 @@ fi
 echo "    check CTCAE6"
 if [[ ! -e "$dir/CTCAE/ctcae6.owl" ]]; then
     echo "ERROR: unexpectedly missing CTCAE/ctcae6.owl file"
+    exit 1
+fi
+
+# Check CTCAE5
+echo "    check CTCAE5"
+if [[ ! -e "$dir/CTCAE/ctcae5.owl" ]]; then
+    echo "ERROR: unexpectedly missing CTCAE/ctcae5.owl file"
+    exit 1
+fi
+
+# Check MGED
+echo "    check MGED"
+if [[ ! -e "$dir/MGED/MGED.20070209.owl" ]]; then
+    echo "ERROR: unexpectedly missing MGED/MGED.20070209.owl file"
+    exit 1
+fi
+
+# Check NPO
+echo "    check NPO"
+if [[ ! -e "$dir/NPO/NPO.20111208.owl" ]]; then
+    echo "ERROR: unexpectedly missing NPO/NPO.20111208.owl file"
+    exit 1
+fi
+
+# Check MA
+echo "    check MA"
+if [[ ! -e "$dir/MA/MA.20160727.owl" ]]; then
+    echo "ERROR: unexpectedly missing MA/MA.20160727.owl file"
+    exit 1
+fi
+
+# Check Zebrafish
+echo "    check Zebrafish"
+if [[ ! -e "$dir/Zebrafish/ZFA.20190802.owl" ]]; then
+    echo "ERROR: unexpectedly missing Zebrafish/ZFA.20190802.owl file"
     exit 1
 fi
 
@@ -351,18 +400,18 @@ load_data(){
     load_terminology_data NCIT2 http://ChEBI_old ChEBI/chebi_241.owl
     load_terminology_data NCIT2 http://UmlsSemNet UmlsSemNet/umlssemnet.owl
     load_terminology_data NCIT2 http://Canmed CanMed/CANMED.202506.owl
-    load_terminology_data NCIT2 http://MEDRT MED-RT/MEDRT.2025-06-02.owl
+    load_terminology_data NCIT2 http://MEDRT MED-RT/MEDRT.20250602.owl
     load_terminology_data NCIT2 http://CTCAE CTCAE/ctcae5.owl
     load_terminology_data NCIT2 http://CTCAE6 CTCAE/ctcae6.owl
-    load_terminology_data NCIT2 http://DUO_monthly DUO/duo_Feb21.owl
-    load_terminology_data NCIT2 http://DUO_monthly DUO/iao_Dec20.owl
-    load_terminology_data NCIT2 http://OBI_monthly OBI/obi_2022_07.owl
-    load_terminology_data NCIT2 http://OBIB OBIB/obib_2021-11.owl
-    load_terminology_data NCIT2 http://NDFRT2 NDFRT/NDFRT_Public_2018.02.05_Inferred.owl
-    load_terminology_data NCIT2 http://MGED MGED/MGEDOntology.fix.owl
-    load_terminology_data NCIT2 http://NPO NPO/npo-2011-12-08_inferred.owl
-    load_terminology_data NCIT2 http://MA Mouse_Anatomy/ma_07_27_2016.owl
-    load_terminology_data NCIT2 http://Zebrafish Zebrafish/zfa_2019_08_02.owl
+    load_terminology_data NCIT2 http://DUO_monthly DUO/DUO.202102.owl
+    load_terminology_data NCIT2 http://DUO_monthly DUO/IAO.202012.owl
+    load_terminology_data NCIT2 http://OBI_monthly OBI/OBI.202207.owl
+    load_terminology_data NCIT2 http://OBIB OBIB/OBIB.202111.owl
+    load_terminology_data NCIT2 http://NDFRT2 NDFRT/NDFRT.20180205.owl
+    load_terminology_data NCIT2 http://MGED MGED/MGED.20070209.owl
+    load_terminology_data NCIT2 http://NPO NPO/NPO.20111208.owl
+    load_terminology_data NCIT2 http://MA Mouse_Anatomy/MA.20160727.owl
+    load_terminology_data NCIT2 http://Zebrafish Zebrafish/ZFA.20190802.owl
 }
 
 # Run reindex script but in a way to avoid loading mappings until terminologies are loaded
