@@ -269,19 +269,19 @@ public class CodeSystemProviderR5 implements IResourceProvider {
 
         // Hardcoded properties - active is always included, parent/child are conditionally included
         // Active property is always included as per FHIR spec
-        params.addParameter(FhirUtilityR5.createProperty(concept.getActive(), "active", false));
+        params.addParameter(FhirUtilityR5.createProperty("active", concept.getActive(), false));
 
         // Parent properties - only include if no filter OR filter includes "parent"
         if (shouldIncludeHardcodedProperty("parent", property)) {
           for (final Concept parent : concept.getParents()) {
-            params.addParameter(FhirUtilityR5.createProperty(parent.getCode(), "parent", true));
+            params.addParameter(FhirUtilityR5.createProperty("parent", parent.getCode(), true));
           }
         }
 
         // Child properties - only include if no filter OR filter includes "child"
         if (shouldIncludeHardcodedProperty("child", property)) {
           for (final Concept child : concept.getChildren()) {
-            params.addParameter(FhirUtilityR5.createProperty(child.getCode(), "child", true));
+            params.addParameter(FhirUtilityR5.createProperty("child", child.getCode(), true));
           }
         }
 
@@ -290,7 +290,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           for (final Property prop : concept.getProperties()) {
             if (shouldIncludeProperty(prop, property)) {
               params.addParameter(
-                  FhirUtilityR5.createProperty(prop.getValue(), prop.getType(), false));
+                  FhirUtilityR5.createProperty(prop.getType(), prop.getValue(), false));
             }
           }
         }
@@ -433,19 +433,19 @@ public class CodeSystemProviderR5 implements IResourceProvider {
 
         // Hardcoded properties - active is always included, parent/child are conditionally included
         // Active property is always included as per FHIR spec
-        params.addParameter(FhirUtilityR5.createProperty(concept.getActive(), "active", false));
+        params.addParameter(FhirUtilityR5.createProperty("active", concept.getActive(), false));
 
         // Parent properties - only include if no filter OR filter includes "parent"
         if (shouldIncludeHardcodedProperty("parent", property)) {
           for (final Concept parent : concept.getParents()) {
-            params.addParameter(FhirUtilityR5.createProperty(parent.getCode(), "parent", true));
+            params.addParameter(FhirUtilityR5.createProperty("parent", parent.getCode(), true));
           }
         }
 
         // Child properties - only include if no filter OR filter includes "child"
         if (shouldIncludeHardcodedProperty("child", property)) {
           for (final Concept child : concept.getChildren()) {
-            params.addParameter(FhirUtilityR5.createProperty(child.getCode(), "child", true));
+            params.addParameter(FhirUtilityR5.createProperty("child", child.getCode(), true));
           }
         }
 
@@ -454,7 +454,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           for (final Property prop : concept.getProperties()) {
             if (shouldIncludeProperty(prop, property)) {
               params.addParameter(
-                  FhirUtilityR5.createProperty(prop.getValue(), prop.getType(), false));
+                  FhirUtilityR5.createProperty(prop.getType(), prop.getValue(), false));
             }
           }
         }

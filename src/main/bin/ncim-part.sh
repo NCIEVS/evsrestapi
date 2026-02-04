@@ -156,7 +156,8 @@ export EVS_SERVER_PORT="8083"
 # Compute version (remove '.' from lcterm)
 lcterm=`echo $terminology | perl -ne 's/\.//; print lc($_);'`
 if [[ $terminology == "ncim" ]]; then
-    version=`grep umls.release.name $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
+    # check both places for good measure
+    version=`grep umls.release.name $dir/../release.dat $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
 else
     version=`perl -ne '@_=split/\|/; print "$_[6]\n" if $_[0] && $_[3] eq "'$terminology'";' $dir/MRSAB.RRF`
 fi
