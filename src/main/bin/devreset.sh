@@ -153,15 +153,15 @@ fi
 
 # Check CanMED
 echo "    check CanMED"
-if [[ ! -e "$dir/CanMED/CANMED.202506.owl" ]]; then
-    echo "ERROR: unexpectedly missing CanMED/CANMED.202506.owl file"
+if [[ ! -e "$dir/CanMed/CANMED.202506.owl" ]]; then
+    echo "ERROR: unexpectedly missing CanMed/CANMED.202506.owl file"
     exit 1
 fi
 
 # Check MEDRT
 echo "    check MEDRT"
-if [[ ! -e "$dir/MEDRT/MEDRT.20250602.owl" ]]; then
-    echo "ERROR: unexpectedly missing MEDRT/MEDRT.20250602.owl file"
+if [[ ! -e "$dir/MED-RT/MEDRT.20250602.owl" ]]; then
+    echo "ERROR: unexpectedly missing MED-RT/MEDRT.20250602.owl file"
     exit 1
 fi
 
@@ -201,9 +201,9 @@ if [[ ! -e "$dir/NPO/NPO.20111208.owl" ]]; then
 fi
 
 # Check MA
-echo "    check MA"
-if [[ ! -e "$dir/MA/MA.20160727.owl" ]]; then
-    echo "ERROR: unexpectedly missing MA/MA.20160727.owl file"
+echo "    check Mouse_Anatomy"
+if [[ ! -e "$dir/Mouse_Anatomy/MA.20160727.owl" ]]; then
+    echo "ERROR: unexpectedly missing Mouse_Anatomy/MA.20160727.owl file"
     exit 1
 fi
 
