@@ -132,22 +132,22 @@ fi
 
 # Check DUO
 echo "    check DUO"
-if [[ ! -e "$dir/DUO/duo_Feb21.owl" ]]; then
-    echo "ERROR: unexpectedly missing DUO/duo_Feb21.owl file"
+if [[ ! -e "$dir/DUO/DUO.202102.owl" ]]; then
+    echo "ERROR: unexpectedly missing DUO/DUO.202102.owl file"
     exit 1
 fi
 
 # Check OBI
 echo "    check OBI"
-if [[ ! -e "$dir/OBI/obi_2022_07.owl" ]]; then
-    echo "ERROR: unexpectedly missing OBI/obi_2022_07.owl file"
+if [[ ! -e "$dir/OBI/OBI.202207.owl" ]]; then
+    echo "ERROR: unexpectedly missing OBI/OBI.202207.owl file"
     exit 1
 fi
 
 # Check OBIB
 echo "    check OBIB"
-if [[ ! -e "$dir/OBIB/obib_2021-11.owl" ]]; then
-    echo "ERROR: unexpectedly missing OBI/obib_2021-11.owl file"
+if [[ ! -e "$dir/OBIB/OBIB.202111.owl" ]]; then
+    echo "ERROR: unexpectedly missing OBI/OBIB.202111.owl file"
     exit 1
 fi
 
