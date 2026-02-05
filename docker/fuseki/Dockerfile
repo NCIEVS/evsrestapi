@@ -1,4 +1,4 @@
-FROM bellsoft/liberica-openjre-alpine:21
+FROM bellsoft/liberica-openjre-alpine:21.0.10
 
 # Set environment variables
 ENV FUSEKI_VERSION=5.3.0
