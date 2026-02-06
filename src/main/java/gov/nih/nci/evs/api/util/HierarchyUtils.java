@@ -23,8 +23,12 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
 import org.apache.commons.io.FileUtils;
+import org.mapdb.DB;
+import org.mapdb.DBMaker;
+import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.annotation.Transient;
@@ -74,7 +78,30 @@ public class HierarchyUtils {
    * The path map. NOTE: if we need paths for >1 terminology, this doesn't work. Use a different
    * HierarchyUtils.
    */
-  @Transient private Map<String, Set<String>> pathsMap = new HashMap<>();
+  @Transient private Map<String, Set<String>> pathsMap = getPathsMap();
+
+  /**
+   * Gets the paths map.
+   *
+   * @return the paths map
+   */
+  @SuppressWarnings({"unchecked", "resource"})
+  private static Map<String, Set<String>> getPathsMap() {
+    DB db =
+        DBMaker.fileDB("paths_map.db")
+            // High speed for 64-bit systems
+            .fileMmapEnable()
+            // Ensures files close when process exits
+            .closeOnJvmShutdown()
+            // Optional: prevents corruption on crash
+            .transactionEnable()
+            // Remove files after
+            .fileDeleteAfterClose()
+            .make();
+    ConcurrentMap<String, Set<String>> map =
+        db.hashMap("pathsMap", Serializer.STRING, Serializer.JAVA).createOrOpen();
+    return map;
+  }
 
   /** The roots. */
   @Field(type = FieldType.Object)
@@ -235,8 +262,11 @@ public class HierarchyUtils {
       }
       if (descendantMap.get(child) == null) {
         Concept conc = new Concept(child);
-        if (parent2child.containsKey(child)) conc.setLeaf(false);
-        else conc.setLeaf(true);
+        if (parent2child.containsKey(child)) {
+          conc.setLeaf(false);
+        } else {
+          conc.setLeaf(true);
+        }
         conc.setLevel(level);
         conc.setName(code2label.get(child));
         descendantMap.put(child, conc);
@@ -446,9 +476,24 @@ public class HierarchyUtils {
           }
           if (partCt % 5000 == 0) {
             logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
+            logMemory();
           }
         }
         logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
+        logMemory();
+
+        // Report top 5 keys
+        pathsMap.entrySet().stream()
+            // Sort descending by the size of the Set
+            .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size()))
+            // Take only the top 5
+            .limit(5)
+            // Print the results
+            .forEach(
+                entry -> {
+                  logger.debug("      " + entry.getKey() + " = " + entry.getValue().size());
+                });
+
         FileUtils.deleteQuietly(file);
       }
     }
@@ -709,5 +754,15 @@ public class HierarchyUtils {
 
   public String getConceptNameFromCode(String conceptCode) {
     return this.code2label.get(conceptCode);
+  }
+
+  /** Log memory. */
+  public static void logMemory() {
+
+    logger.info(
+        "   MEMORY: ({} - {}) = {}",
+        Runtime.getRuntime().totalMemory(),
+        Runtime.getRuntime().freeMemory(),
+        (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
   }
 }
