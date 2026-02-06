@@ -118,7 +118,8 @@ public class RrfFileCopier {
 
     // Now, iterate through input file and copy lines with headers
     // or where the "keyMap" field is in concepts/descriptions
-    try (final BufferedReader in = new BufferedReader(new FileReader(inputFile, StandardCharsets.UTF_8));
+    try (final BufferedReader in =
+            new BufferedReader(new FileReader(inputFile, StandardCharsets.UTF_8));
         PrintWriter out = new PrintWriter(new FileWriter(outputFile, StandardCharsets.UTF_8)); ) {
       String line;
       OUTER:

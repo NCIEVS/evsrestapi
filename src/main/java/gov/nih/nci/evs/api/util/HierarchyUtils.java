@@ -423,7 +423,8 @@ public class HierarchyUtils {
       FileUtils.writeLines(file, "UTF-8", paths, "\n", false);
       paths.clear();
       logger.info("    start build paths map");
-      try (final BufferedReader in = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
+      try (final BufferedReader in =
+          new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
         int partCt = 0;
         // Go from the end so we can remove entries as we work through
         String path = null;

@@ -1376,7 +1376,8 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
     }
     try (InputStream input = new FileInputStream(this.getFilepath() + "/release.dat");
         final BufferedReader in =
-            new BufferedReader(new FileReader(this.getFilepath() + "/MRSAB.RRF", StandardCharsets.UTF_8)); ) {
+            new BufferedReader(
+                new FileReader(this.getFilepath() + "/MRSAB.RRF", StandardCharsets.UTF_8)); ) {
 
       String line;
       Terminology term = new Terminology();
