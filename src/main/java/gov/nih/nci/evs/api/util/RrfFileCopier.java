@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.Set;
 import org.apache.commons.io.FileUtils;
 import org.slf4j.Logger;
@@ -117,8 +118,8 @@ public class RrfFileCopier {
 
     // Now, iterate through input file and copy lines with headers
     // or where the "keyMap" field is in concepts/descriptions
-    try (final BufferedReader in = new BufferedReader(new FileReader(inputFile));
-        PrintWriter out = new PrintWriter(new FileWriter(outputFile)); ) {
+    try (final BufferedReader in = new BufferedReader(new FileReader(inputFile, StandardCharsets.UTF_8));
+        PrintWriter out = new PrintWriter(new FileWriter(outputFile, StandardCharsets.UTF_8)); ) {
       String line;
       OUTER:
       while ((line = in.readLine()) != null) {

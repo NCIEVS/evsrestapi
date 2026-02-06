@@ -30,6 +30,7 @@ import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -956,7 +957,7 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
         // get source overlap stats
         String filePath = this.getFilepath() + "/stats/" + source + "/" + source + ".txt";
         // read the source overlap file
-        try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader(filePath, StandardCharsets.UTF_8))) {
           Map<String, List<StatisticsEntry>> sourceStatsEntry = new HashMap<>();
           List<StatisticsEntry> statsList = new ArrayList<StatisticsEntry>();
 
@@ -1496,7 +1497,7 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
     }
     try (InputStream input = new FileInputStream(this.getFilepath() + "/release.dat");
         final BufferedReader in =
-            new BufferedReader(new FileReader(this.getFilepath() + "/MRSAB.RRF")); ) {
+            new BufferedReader(new FileReader(this.getFilepath() + "/MRSAB.RRF", StandardCharsets.UTF_8)); ) {
 
       String line;
       Terminology term = new Terminology();

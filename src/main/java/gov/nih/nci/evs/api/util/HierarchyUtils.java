@@ -11,6 +11,7 @@ import gov.nih.nci.evs.api.model.Terminology;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -422,7 +423,7 @@ public class HierarchyUtils {
       FileUtils.writeLines(file, "UTF-8", paths, "\n", false);
       paths.clear();
       logger.info("    start build paths map");
-      try (final BufferedReader in = new BufferedReader(new FileReader(file))) {
+      try (final BufferedReader in = new BufferedReader(new FileReader(file, StandardCharsets.UTF_8))) {
         int partCt = 0;
         // Go from the end so we can remove entries as we work through
         String path = null;
