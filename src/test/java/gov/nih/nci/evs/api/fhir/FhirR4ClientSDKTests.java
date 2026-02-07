@@ -12,7 +12,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.List;
@@ -106,9 +106,15 @@ class FhirR4ClientSDKTests {
   private void parsePostmanCollectionAndExtractRawUrlValues(final ObjectMapper objectMapper)
       throws Exception {
     // Load the Postman collection JSON file from evsrestapi-client-SDK
-    final String uri = applicationProperties.getSdkBaseUri();
-    final URL url = new URL(uri + "/fhir-examples/EVSRESTAPI-FHIR-R4.postman_collection.json");
-    final URLConnection connection = url.openConnection();
+    final String sdkBaseUri = applicationProperties.getSdkBaseUri();
+    final String uriStr = sdkBaseUri + "/fhir-examples/EVSRESTAPI-FHIR-R4.postman_collection.json";
+    final URI url;
+    try {
+      url = new URI(uriStr);
+    } catch (java.net.URISyntaxException e) {
+      throw new IOException("Invalid URI syntax: " + uriStr, e);
+    }
+    final URLConnection connection = url.toURL().openConnection();
 
     // Optional: Set User-Agent header (some servers require this)
     connection.setRequestProperty("User-Agent", "Java Application");
