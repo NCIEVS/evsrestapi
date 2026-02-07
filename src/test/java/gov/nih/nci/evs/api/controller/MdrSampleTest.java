@@ -14,7 +14,7 @@ import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import org.apache.commons.io.FileUtils;
@@ -192,7 +192,7 @@ public class MdrSampleTest extends SampleTest {
    */
   public JsonNode getMetadataAsNode(final String terminology) throws Exception {
     final String uri = applicationProperties.getConfigBaseUri() + "/" + terminology + ".json";
-    try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
+    try (final InputStream is = new URI(uri).toURL().openConnection().getInputStream()) {
       return ThreadLocalMapper.get().readTree(IOUtils.toString(is, "UTF-8"));
     } catch (Throwable t) { // read as file if no url
       try {
