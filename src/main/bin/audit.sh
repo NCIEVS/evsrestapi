@@ -151,19 +151,7 @@ if [[ -n "$data" ]]; then
         echo -e "$data"
     fi
 else
-    if [[ -n $terminology ]]; then
-        if [[ $recent -eq 1 ]]; then
-            echo "No records found for report: $report_type for terminology: $terminology (last 24 hours)"
-        else
-            echo "No records found for report: $report_type for terminology: $terminology"
-        fi
-    else
-        if [[ $recent -eq 1 ]]; then
-            echo "No records found for report: $report_type (last 24 hours)"
-        else
-            echo "No records found for report: $report_type"
-        fi
-    fi
+    echo "No records found for report: $report_type${terminology:+ for terminology: $terminology}${recent:+ (last 24 hours)}"
 fi
 
 if [[ $output_to_file -eq 1 ]]; then
