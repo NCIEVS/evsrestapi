@@ -24,16 +24,20 @@ while [[ "$#" -gt 0 ]]; do
     output_to_file=1
     output_fmt="csv"
     ;;
+  --recent)
+    recent=1
+    ;;
   *) arr+=("$1") ;;
   esac
   shift
 done
 
 print_help(){
-  echo "Usage: $0 [--noconfig] [--help] [--tsv|--csv] <report: load|error|warning|all> [terminology]"
+  echo "Usage: $0 [--noconfig] [--help] [--tsv|--csv] [--recent] <report: load|error|warning|all> [terminology]"
   echo "  e.g. $0 load"
   echo "  e.g. $0 --csv load"
   echo "  e.g. $0 error ncit"
+  echo "  e.g. $0 --recent error"
   echo "  e.g. $0 warning"
   echo "  e.g. $0 all"
   exit 1
@@ -99,42 +103,43 @@ fi
 
 case $report_type in
   load)
-    header="Terminology\tVersion\tElapsed Time (ms)\tCount\tDate"
-    q="process:(MetaOpensearchLoadServiceImpl OR MetaSourceOpensearchLoadServiceImpl OR LoaderServiceImpl) AND NOT elapsedTime:0"
-    if [[ -n $terminology ]]; then
-        q="$q AND terminology:$terminology"
-    fi
-    data=$(query_es "$q" | jq -r '.hits.hits[] | [._source.terminology, ._source.version, ._source.elapsedTime, ._source.count, (._source.date // ._source.startDate)] | @tsv')
+    header="Terminology\tVersion\tElapsed Time\tCount\tDate"
+    q="process:(MetaOpensearchLoadServiceImpl OR MetaSourceOpensearchLoadServiceImpl OR LoaderServiceImpl OR GraphOpensearchLoadServiceImpl) AND NOT elapsedTime:0"
+    filter='def f: . as $ms | if $ms < 1000 then ($ms|tostring)+"ms" else ($ms/1000|floor) as $s | ($s/3600|floor) as $h | (($s%3600)/60|floor) as $m | ($s%60) as $sec | (if $h>0 then ($h|tostring)+"h " else "" end) + (if $m>0 or $h>0 then ($m|tostring)+"m " else "" end) + ($sec|tostring)+"s" end; .hits.hits[] | [._source.terminology, ._source.version, (._source.elapsedTime | f), ._source.count, (._source.date // ._source.startDate)] | @tsv'
     ;;
   error)
     header="Terminology\tVersion\tProcess\tDetails\tDate"
     q="logLevel:ERROR"
-    if [[ -n $terminology ]]; then
-        q="$q AND terminology:$terminology"
-    fi
-    data=$(query_es "$q" | jq -r '.hits.hits[] | [._source.terminology, ._source.version, ._source.process, ._source.details, ._source.date] | @tsv')
+    filter='.hits.hits[] | [._source.terminology, ._source.version, ._source.process, ._source.details, ._source.date] | @tsv'
     ;;
   warning)
     header="Terminology\tVersion\tProcess\tDetails\tDate"
     q="logLevel:WARN"
-    if [[ -n $terminology ]]; then
-        q="$q AND terminology:$terminology"
-    fi
-    data=$(query_es "$q" | jq -r '.hits.hits[] | [._source.terminology, ._source.version, ._source.process, ._source.details, ._source.date] | @tsv')
+    filter='.hits.hits[] | [._source.terminology, ._source.version, ._source.process, ._source.details, ._source.date] | @tsv'
     ;;
   all)
     header="Type\tTerminology\tVersion\tProcess\tLogLevel\tDetails\tCount\tElapsed\tDate"
     q="*:*"
-    if [[ -n $terminology ]]; then
-        q="$q AND terminology:$terminology"
-    fi
-    data=$(query_es "$q" | jq -r '.hits.hits[] | [._source.type, ._source.terminology, ._source.version, ._source.process, ._source.logLevel, ._source.details, ._source.count, ._source.elapsedTime, (._source.date // ._source.startDate)] | @tsv')
+    filter='def f: . as $ms | if $ms < 1000 then ($ms|tostring)+"ms" else ($ms/1000|floor) as $s | ($s/3600|floor) as $h | (($s%3600)/60|floor) as $m | ($s%60) as $sec | (if $h>0 then ($h|tostring)+"h " else "" end) + (if $m>0 or $h>0 then ($m|tostring)+"m " else "" end) + ($sec|tostring)+"s" end; .hits.hits[] | [._source.type, ._source.terminology, ._source.version, ._source.process, ._source.logLevel, ._source.details, ._source.count, (._source.elapsedTime | f), (._source.date // ._source.startDate)] | @tsv'
     ;;
   *)
     echo "ERROR: Unknown report type: $report_type"
     print_help
     ;;
 esac
+if [[ -n $terminology ]]; then
+    q="$q AND terminology:$terminology"
+fi
+
+
+# recent flag restricts only to audits that happened in the last 24 hours
+if [[ $recent -eq 1 ]]; then
+    start_date=$(date -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+    end_date=$(date +%Y-%m-%dT%H:%M:%SZ)
+    q="$q AND (date:[$start_date TO $end_date] OR startDate:[$start_date TO $end_date])"
+fi
+
+data=$(query_es "$q" | jq -r "$filter")
 
 # Final output with format conversion if needed
 if [[ -n "$data" ]]; then
@@ -146,7 +151,19 @@ if [[ -n "$data" ]]; then
         echo -e "$data"
     fi
 else
-    echo "No records found for report: $report_type"
+    if [[ -n $terminology ]]; then
+        if [[ $recent -eq 1 ]]; then
+            echo "No records found for report: $report_type for terminology: $terminology (last 24 hours)"
+        else
+            echo "No records found for report: $report_type for terminology: $terminology"
+        fi
+    else
+        if [[ $recent -eq 1 ]]; then
+            echo "No records found for report: $report_type (last 24 hours)"
+        else
+            echo "No records found for report: $report_type"
+        fi
+    fi
 fi
 
 if [[ $output_to_file -eq 1 ]]; then
