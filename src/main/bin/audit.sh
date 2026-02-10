@@ -89,8 +89,13 @@ validate_setup
 
 query_es() {
     local q=$1
-    curl -s -G "$ES/evs_audit/_search" --data-urlencode "size=1000" --data-urlencode "q=$q"
+    # Use -f to fail on HTTP errors and -S to show error on stderr
+    if ! curl -s -S -f -G "$ES/evs_audit/_search" --data-urlencode "size=1000" --data-urlencode "q=$q"; then
+      echo "ERROR: Elasticsearch query failed." >&2
+      exit 1
+    fi
 }
+
 
 # Output handling
 if [[ $output_to_file -eq 1 ]]; then
