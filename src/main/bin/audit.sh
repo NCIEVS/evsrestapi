@@ -11,35 +11,57 @@ output_to_file=0
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-  --help) help=1 ;;
-  --noconfig)
+  -h | --help) help=1 ;;
+  -n | --noconfig)
     config=0
     ncflag="--noconfig"
     ;;
-  --tsv)
+  -v | --tsv)
     output_to_file=1
     output_fmt="tsv"
     ;;
-  --csv)
+  -c | --csv)
     output_to_file=1
     output_fmt="csv"
     ;;
-  --recent)
+  -r | --recent)
     recent=1
+    ;;
+  -T | --terminology)
+    shift
+    terminology=$1
     ;;
   *) arr+=("$1") ;;
   esac
   shift
 done
 
-print_help(){
-  echo "Usage: $0 [--noconfig] [--help] [--tsv|--csv] [--recent] <report: load|error|warning|all> [terminology]"
-  echo "  e.g. $0 load"
-  echo "  e.g. $0 --csv load"
-  echo "  e.g. $0 error ncit"
-  echo "  e.g. $0 --recent error"
-  echo "  e.g. $0 warning"
-  echo "  e.g. $0 all"
+print_help() {
+  echo "Audit Script - Query Elasticsearch for audit data"
+  echo ""
+  echo "Usage: $0 [options] <report_type> [terminology]"
+  echo ""
+  echo "Report Types (Required):"
+  echo "  load                Terminology loading and indexing metrics"
+  echo "  error               Audit records with ERROR log level"
+  echo "  warning             Audit records with WARN log level"
+  echo "  all                 All audit records"
+  echo ""
+  echo "Options:"
+  echo "  -h, --help          Show this help message"
+  echo "  -r, --recent        Limit results to the last 24 hours"
+  echo "  -n, --noconfig      Skip sourcing /local/content/evsrestapi/config/setenv.sh"
+  echo "  -T, --terminology   Filter by terminology (can also be 2nd positional argument)"
+  echo ""
+  echo "Output Control (Default is console):"
+  echo "  -c, --csv           Generate a CSV file in audit_reports/"
+  echo "  -v, --tsv           Generate a TSV file in audit_reports/"
+  echo ""
+  echo "Examples:"
+  echo "  $0 load                      # Load report to console"
+  echo "  $0 --csv load ncit           # CSV report for NCIt"
+  echo "  $0 -r -c all                 # Recent records for all types in CSV"
+  echo "  $0 all -T medrt              # Use explicit flag for terminology"
   exit 1
 }
 
@@ -48,7 +70,9 @@ if [[ $help -eq 1 || ${#arr[@]} -eq 0 ]]; then
 fi
 
 report_type=${arr[0]}
-terminology=${arr[1]}
+# Use positional terminology ONLY if not already set by -T flag
+terminology=${terminology:-${arr[1]}}
+
 
 setup_configuration() {
   if [[ $config -eq 1 ]]; then
