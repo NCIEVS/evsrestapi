@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.controller;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -8,21 +9,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.dnault.xmlpatch.internal.Log;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.Mapping;
-import gov.nih.nci.evs.api.model.MappingResultList;
-import gov.nih.nci.evs.api.properties.TestProperties;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvFileSource;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -32,11 +29,23 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.github.dnault.xmlpatch.internal.Log;
+
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.MappingResultList;
+import gov.nih.nci.evs.api.properties.TestProperties;
+
 /** mapset tests. */
 @ExtendWith(SpringExtension.class)
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @AutoConfigureMockMvc
 public class MapsetControllerTests {
+
+  /** The Constant log. */
+  private static final Logger log = LoggerFactory.getLogger(MdrControllerTests.class);
 
   /** The test properties. */
   @Autowired TestProperties testProperties;
@@ -60,7 +69,7 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets with no params passed
+   * Test mapsets with no params passed.
    *
    * @throws Exception the exception
    */
@@ -95,7 +104,7 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test MA_to_NCIt has been removed properly
+   * Test MA_to_NCIt has been removed properly.
    *
    * @throws Exception the exception
    */
@@ -115,7 +124,32 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets with include params
+   * Test MA_to_NCIt has been removed properly.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testNciMeddra() throws Exception {
+    // Arrange
+    String mapping = "NCIt_Maps_To_MedDRA";
+
+    // Act
+    MvcResult result =
+        mvc.perform(get(baseUrl + "/" + mapping + "/maps")).andExpect(status().isOk()).andReturn();
+
+    String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // Assert
+    assertThat(content).isNotNull();
+    MappingResultList maps = new ObjectMapper().readValue(content, MappingResultList.class);
+    assertThat(maps.getTotal()).isGreaterThan(0);
+    assertThat(maps.getMaps().get(0).getTarget()).isEqualTo("mdr");
+    assertThat(maps.getMaps().get(0).getTargetTerminology()).isEqualTo("MedDRA");
+  }
+
+  /**
+   * Test mapsets with include params.
    *
    * @throws Exception the exception
    */
@@ -153,9 +187,9 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets with code params, download = false, include param properties
+   * Test mapsets with code params, download = false, include param properties.
    *
-   * @throws Exception
+   * @throws Exception the exception
    */
   @Test
   public void testMapsetsWithCodeAndIncludeParams() throws Exception {
@@ -192,7 +226,7 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets with code params, download = true, include param maps + properties
+   * Test mapsets with code params, download = true, include param maps + properties.
    *
    * @throws Exception the exception
    */
@@ -235,7 +269,7 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets with code params, download = true, and include param maps + properties
+   * Test mapsets with code params, download = true, and include param maps + properties.
    *
    * @throws Exception the exception
    */
@@ -276,7 +310,7 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets with invalid code params
+   * Test mapsets with invalid code params.
    *
    * @throws Exception the exception
    */
@@ -293,7 +327,7 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets return maps with valid code params and default param values
+   * Test mapsets return maps with valid code params and default param values.
    *
    * @throws Exception the exception
    */
@@ -334,7 +368,7 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets return maps with valid code params and fromRecord = 9 and pageSize is 23
+   * Test mapsets return maps with valid code params and fromRecord = 9 and pageSize is 23.
    *
    * @throws Exception the exception
    */
@@ -364,7 +398,7 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets return maps with valid code params and fromRecord 1 and pageSize of 10
+   * Test mapsets return maps with valid code params and fromRecord 1 and pageSize of 10.
    *
    * @throws Exception the exception
    */
@@ -393,7 +427,7 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets return maps with valid code params and fromRecord 1000
+   * Test mapsets return maps with valid code params and fromRecord 1000.
    *
    * @throws Exception the exception
    */
@@ -414,7 +448,7 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets returns zero matches with an invalid term passed
+   * Test mapsets returns zero matches with an invalid term passed.
    *
    * @throws Exception the exception
    */
@@ -435,7 +469,7 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets returns non-zero matches with a valid term passed
+   * Test mapsets returns non-zero matches with a valid term passed.
    *
    * @throws Exception the exception
    */
@@ -460,7 +494,8 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets returns non-zero matches with a valid term passed with leading and trailing spaces
+   * Test mapsets returns non-zero matches with a valid term passed with leading and trailing
+   * spaces.
    *
    * @throws Exception the exception
    */
@@ -485,7 +520,7 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets returns non-zero matches with a valid term passed with fromRecord and pageSize
+   * Test mapsets returns non-zero matches with a valid term passed with fromRecord and pageSize.
    *
    * @throws Exception the exception
    */
@@ -519,6 +554,11 @@ public class MapsetControllerTests {
     assertEquals(sixFromZero, sixFromThree);
   }
 
+  /**
+   * Test mapsets with maps code success.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testMapsetsWithMapsCodeSuccess() throws Exception {
     // Arrange
@@ -540,7 +580,7 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets with SNOMED mapping exists
+   * Test mapsets with SNOMED mapping exists.
    *
    * @throws Exception the exception
    */
@@ -560,7 +600,7 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets with SNOMED mapping and term exists
+   * Test mapsets with SNOMED mapping and term exists.
    *
    * @throws Exception the exception
    */
@@ -582,7 +622,7 @@ public class MapsetControllerTests {
   }
 
   /**
-   * Test mapsets with SNOMED mapping and code exists
+   * Test mapsets with SNOMED mapping and code exists.
    *
    * @throws Exception the exception
    */
@@ -661,6 +701,11 @@ public class MapsetControllerTests {
     assertEquals(sortedNames, unsortedNames);
   }
 
+  /**
+   * Test nci mapset download.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testNciMapsetDownload() throws Exception {
 
@@ -682,6 +727,11 @@ public class MapsetControllerTests {
     assertEquals(10, mapList.getMaps().size());
   }
 
+  /**
+   * Test nci maps to viewable.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testNciMapsToViewable() throws Exception {
     String path = "NCIt_Maps_To_ICD9CM";
@@ -770,6 +820,8 @@ public class MapsetControllerTests {
   /**
    * Test mapsets with retired concepts.
    *
+   * @param path the path
+   * @param params the params
    * @throws Exception the exception
    */
   @ParameterizedTest
