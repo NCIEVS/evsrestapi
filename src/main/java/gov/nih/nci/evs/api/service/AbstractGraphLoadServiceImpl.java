@@ -264,7 +264,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
                         copy.setSourceName(c.getName());
                         copy.setSource(c.getTerminology());
                         // Set to the terminology name, not to the concept terminology value
-                        copy.setSourceTerminology(terminology.getName());
+                        // (remove version)
+                        copy.setSourceTerminology(
+                            terminology.getName().replaceFirst(" [^ ]+$", ""));
                         if (map.getTargetTerminology().split(" ").length > 1) {
                           // Fix "MedDRA"
                           copy.setTarget(mapterm.toLowerCase().equals("meddra") ? "mdr" : mapterm);
