@@ -269,10 +269,10 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
                             terminology.getName().replaceFirst("(.*) [^ ]+$", "$1"));
                         copy.setSourceTerminologyVersion(
                             terminology.getName().replaceFirst("(.*) ([^ ]+)$", "$2"));
+                        // Fix "MedDRA"
+                        copy.setTarget(mapterm.toLowerCase().equals("meddra") ? "mdr" : mapterm);
+                        copy.setTargetTerminology(mapterm);
                         if (map.getTargetTerminology().split(" ").length > 1) {
-                          // Fix "MedDRA"
-                          copy.setTarget(mapterm.toLowerCase().equals("meddra") ? "mdr" : mapterm);
-                          copy.setTargetTerminology(mapterm);
                           copy.setTargetTerminologyVersion(
                               map.getTargetTerminology().split(" ")[1]);
                         }
