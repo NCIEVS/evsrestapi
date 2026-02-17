@@ -141,23 +141,23 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
             targetName = targetConcept.getName();
           }
 
-          final Mapping conceptToAdd = new Mapping();
-          conceptToAdd.setMapsetCode(metadata[0]);
-          conceptToAdd.setSourceCode(conceptSplit[0].strip());
-          conceptToAdd.setSourceName(sourceName);
-          conceptToAdd.setSource(metadata[5]);
-          conceptToAdd.setSourceTerminology(
+          final Mapping mappingToAdd = new Mapping();
+          mappingToAdd.setMapsetCode(metadata[0]);
+          mappingToAdd.setSourceCode(conceptSplit[0].strip());
+          mappingToAdd.setSourceName(sourceName);
+          mappingToAdd.setSource(metadata[5]);
+          mappingToAdd.setSourceTerminology(
               sourceTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
-          conceptToAdd.setSourceTerminologyVersion(sourceTerminology.getVersion());
-          conceptToAdd.setType("mapsTo");
-          conceptToAdd.setRank("1");
-          conceptToAdd.setTargetCode(conceptSplit[1].strip());
-          conceptToAdd.setTargetName(targetName);
-          conceptToAdd.setTarget(metadata[7]);
-          conceptToAdd.setTargetTerminology(
+          mappingToAdd.setSourceTerminologyVersion(sourceTerminology.getVersion());
+          mappingToAdd.setType("mapsTo");
+          mappingToAdd.setRank("1");
+          mappingToAdd.setTargetCode(conceptSplit[1].strip());
+          mappingToAdd.setTargetName(targetName);
+          mappingToAdd.setTarget(metadata[7]);
+          mappingToAdd.setTargetTerminology(
               targetTerminology.getMetadata().getUiLabel().replaceAll(" ", "_"));
-          conceptToAdd.setTargetTerminologyVersion(targetTerminology.getVersion());
-          maps.add(conceptToAdd);
+          mappingToAdd.setTargetTerminologyVersion(targetTerminology.getVersion());
+          maps.add(mappingToAdd);
         }
       } else {
         logger.info("  line = " + Arrays.asList(mappingDataList[0].split("\t")).toString());
@@ -170,30 +170,30 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
       for (final String conceptMap :
           Arrays.copyOfRange(mappingDataList, 1, mappingDataList.length)) {
         final String[] conceptSplit = conceptMap.split("\",\"");
-        final Mapping conceptToAdd = new Mapping();
-        conceptToAdd.setMapsetCode(metadata[0]);
-        conceptToAdd.setSourceCode(
+        final Mapping mappingToAdd = new Mapping();
+        mappingToAdd.setMapsetCode(metadata[0]);
+        mappingToAdd.setSourceCode(
             !conceptSplit[0].replace("\"", "").isBlank()
                 ? conceptSplit[0].replace("\"", "")
                 : "N/A");
-        conceptToAdd.setSourceName(
+        mappingToAdd.setSourceName(
             !conceptSplit[1].replace("\"", "").isBlank()
                 ? conceptSplit[1].replace("\"", "")
                 : "N/A");
-        conceptToAdd.setType(conceptSplit[2]);
-        conceptToAdd.setTargetCode(
+        mappingToAdd.setType(conceptSplit[2]);
+        mappingToAdd.setTargetCode(
             !conceptSplit[3].replace("\"", "").isBlank()
                 ? conceptSplit[3].replace("\"", "")
                 : "N/A");
-        conceptToAdd.setTargetName(
+        mappingToAdd.setTargetName(
             !conceptSplit[4].replace("\"", "").isBlank()
                 ? conceptSplit[4].replace("\"", "")
                 : "N/A");
-        conceptToAdd.setTargetTermType(conceptSplit[5]);
-        conceptToAdd.setTarget(conceptSplit[6]);
-        conceptToAdd.setTargetTerminology(conceptSplit[6]);
-        conceptToAdd.setTargetTerminologyVersion(conceptSplit[7].replace("\"", ""));
-        maps.add(conceptToAdd);
+        mappingToAdd.setTargetTermType(conceptSplit[5]);
+        mappingToAdd.setTarget(conceptSplit[6]);
+        mappingToAdd.setTargetTerminology(conceptSplit[6]);
+        mappingToAdd.setTargetTerminologyVersion(conceptSplit[7].replace("\"", ""));
+        maps.add(mappingToAdd);
       }
     }
     // ftp format = direct download and no maps
@@ -356,8 +356,10 @@ public class MappingLoaderServiceImpl extends BaseLoaderService {
 
         // Configure source/target terminology and version
         map.getProperties().add(new Property("welcomeText", welcomeText));
+        // sourceTerminology/Version should match what we want to look up
         map.getProperties().add(new Property("sourceTerminology", metadata[5]));
         map.getProperties().add(new Property("sourceTerminologyVersion", metadata[6]));
+        // targetTerminology/Version should match what we want to look up
         map.getProperties().add(new Property("targetTerminology", metadata[7]));
         map.getProperties()
             .add(new Property("targetTerminologyVersion", metadata[8].replaceAll("\\s", "")));
