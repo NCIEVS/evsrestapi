@@ -39,18 +39,18 @@ public class LoaderServiceImpl {
   private static final Logger logger = LoggerFactory.getLogger(LoaderServiceImpl.class);
 
   /** the history download location *. */
-  // @Value("${nci.evs.bulkload.historyDir}")
-  private static String HISTORY_DIR;
+  // @Value("${nci.evs.bulkload.historyFile}")
+  private static String HISTORY_FILE;
 
   /**
    * Sets the history dir.
    *
    * @param historyDir the new history dir
    */
-  @Value("${nci.evs.bulkload.historyDir}")
+  @Value("${nci.evs.bulkload.historyFile}")
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
-  public void setHistoryDir(String historyDir) {
-    HISTORY_DIR = historyDir;
+  public void setHistoryFile(String historyFile) {
+    HISTORY_FILE = historyFile;
   }
 
   /** the environment *. */
@@ -260,7 +260,7 @@ public class LoaderServiceImpl {
         }
         System.exit(0);
       }
-      final OpensearchLoadConfig config = buildConfig(cmd, HISTORY_DIR);
+      final OpensearchLoadConfig config = buildConfig(cmd, HISTORY_FILE);
       final Terminology term =
           loadService.getTerminology(
               app,
