@@ -262,11 +262,17 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
                         final Mapping copy = new Mapping(map);
                         copy.setSourceCode(c.getCode());
                         copy.setSourceName(c.getName());
+                        // source is the abbreviation, sourceTerminology/Version is the name/version
                         copy.setSource(c.getTerminology());
-                        copy.setSourceTerminology(c.getTerminology());
+                        copy.setSourceTerminology(
+                            terminology.getName().replaceFirst("(.*) [^ ]+$", "$1"));
+                        copy.setSourceTerminologyVersion(
+                            terminology.getName().replaceFirst("(.*) ([^ ]+)$", "$2"));
+                        // target is the abbreviation, sourceTerminology/Version is the name/version
+                        // Fix "MedDRA"
+                        copy.setTarget(mapterm.toLowerCase().equals("meddra") ? "mdr" : mapterm);
+                        copy.setTargetTerminology(mapterm);
                         if (map.getTargetTerminology().split(" ").length > 1) {
-                          copy.setTargetTerminology(mapterm);
-                          copy.setTarget(mapterm);
                           copy.setTargetTerminologyVersion(
                               map.getTargetTerminology().split(" ")[1]);
                         }
@@ -978,13 +984,15 @@ The browser links each mapped concept to that concept's page in the current prod
 """
             .formatted(sourceTerminology.getVersion(), targetTermName, termFullNameAndVersion);
     map.getProperties().add(new Property("welcomeText", welcomeText));
+    // sourceTerminology/Version should match what we want to look up
     map.getProperties().add(new Property("sourceTerminology", "ncit"));
     map.getProperties()
         .add(new Property("sourceTerminologyVersion", sourceTerminology.getVersion()));
-    map.getProperties().add(new Property("targetTerminology", targetTermName));
+    // map.getProperties().add(new Property("targetTerminology", targetTermName));
     if (targetTerminology != null
         && targetTerminology.getVersion() != null
         && !targetTerminology.getVersion().isEmpty()) {
+      // targetTerminology/Version should match what we want to look up
       map.getProperties()
           .add(new Property("targetTerminology", targetTerminology.getTerminology()));
       map.getProperties()
