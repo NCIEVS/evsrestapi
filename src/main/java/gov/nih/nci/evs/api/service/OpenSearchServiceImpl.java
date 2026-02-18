@@ -436,47 +436,32 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     // build partial word query if we have partial/short words
     if ("contains".equalsIgnoreCase(type)) {
-      String[] tokens = normTerm.split("\\s+");
+      final String[] tokens = normTerm.split("\\s+");
+      final BoolQueryBuilder nameBool = QueryBuilders.boolQuery();
+      final BoolQueryBuilder synonymBool = QueryBuilders.boolQuery();
+      final StringBuilder regex = new StringBuilder();
       boolean hasPartialWord = false;
-      String[] partialTokens = new String[tokens.length];
 
       for (int i = 0; i < tokens.length; i++) {
-        String token = tokens[i];
-        boolean isPartialWord = token.length() >= 1 && token.length() <= 6;
-        if (isPartialWord) {
-          partialTokens[i] = token + "*";
+        final String token = tokens[i];
+        final boolean isPartial = token.length() >= 1 && token.length() <= 6;
+        final String pToken = isPartial ? token + "*" : token;
+        if (isPartial) {
           hasPartialWord = true;
-        } else {
-          partialTokens[i] = token;
         }
+
+        nameBool.must(QueryBuilders.wildcardQuery("name", pToken));
+        synonymBool.must(QueryBuilders.wildcardQuery("synonyms.name", pToken));
+
+        if (i > 0) {
+          regex.append(" ");
+        }
+        regex.append(token).append("[a-z0-9]*");
       }
 
       // Only create partial word queries if we actually have partial words
       if (hasPartialWord) {
-        // Build a manual BoolQuery with WildcardQuery clauses for reliability.
-        // This ensures that ALL tokens must match at least a part of the 'name' field.
-        BoolQueryBuilder nameBool = QueryBuilders.boolQuery();
-        BoolQueryBuilder synonymBool = QueryBuilders.boolQuery();
-
-        // Regex for "Exact Token Count" match to prioritize terms with no extra words.
-        StringBuilder regex = new StringBuilder();
-
-        for (int i = 0; i < tokens.length; i++) {
-          String token = tokens[i];
-          boolean isPartial = token.length() >= 1 && token.length() <= 6;
-          String pToken = isPartial ? token + "*" : token;
-
-          nameBool.must(QueryBuilders.wildcardQuery("name", pToken));
-          synonymBool.must(QueryBuilders.wildcardQuery("synonyms.name", pToken));
-
-          if (i > 0) {
-            regex.append(" ");
-          }
-          regex.append(token).append("[a-z0-9]*");
-        }
-
         // Exact token count tie-breaker (e.g. ^rect[a-z0-9]* car[a-z0-9]*$)
-        // Lucene Regex is anchored at both ends by default.
         nameBool.should(QueryBuilders.regexpQuery("normName", regex.toString()).boost(100.0f));
         synonymBool.should(
             QueryBuilders.regexpQuery("synonyms.normName", regex.toString()).boost(100.0f));
