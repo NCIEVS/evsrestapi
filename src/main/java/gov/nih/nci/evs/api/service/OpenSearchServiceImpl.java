@@ -420,8 +420,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     // exactTerm).boost(50f);
 
     // Exact match queries
-    final MatchQueryBuilder normNameQuery =
-        QueryBuilders.matchQuery("normName", normTerm).boost(40f);
+    final MatchQueryBuilder normNameQuery = QueryBuilders.matchQuery("normName", normTerm).boost(40f);
     final NestedQueryBuilder nestedSynonymNormNameQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
@@ -431,54 +430,50 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     // Partial word match queries - boost higher than phrase but lower than exact
     // Only apply for "contains" type queries, not for "phrase" queries
     BoolQueryBuilder partialWordNameQuery = null;
-    BoolQueryBuilder partialWordSynonymQuery = null;
     NestedQueryBuilder nestedPartialWordSynonymQuery = null;
 
     // build partial word query if we have partial/short words
     if ("contains".equalsIgnoreCase(type)) {
       final String[] tokens = normTerm.split("\\s+");
-      final BoolQueryBuilder nameBool = QueryBuilders.boolQuery();
-      final BoolQueryBuilder synonymBool = QueryBuilders.boolQuery();
       final StringBuilder regex = new StringBuilder();
       boolean hasPartialWord = false;
 
       for (int i = 0; i < tokens.length; i++) {
-        final String token = tokens[i];
-        final boolean isPartial = token.length() >= 1 && token.length() <= 6;
-        final String pToken = isPartial ? token + "*" : token;
-        if (isPartial) {
+        if (tokens[i].length() >= 1 && tokens[i].length() <= 6) {
           hasPartialWord = true;
         }
-
-        nameBool.must(QueryBuilders.wildcardQuery("name", pToken));
-        synonymBool.must(QueryBuilders.wildcardQuery("synonyms.name", pToken));
-
         if (i > 0) {
           regex.append(" ");
         }
-        regex.append(token).append("[^ ]*");
+        regex.append(tokens[i]).append("[^ ]*");
       }
 
       // Only create partial word queries if we actually have partial words
       if (hasPartialWord) {
-        // Exact token count tie-breaker (e.g. ^rect[^ ]* car[^ ]*$)
-        nameBool.should(QueryBuilders.regexpQuery("normName", regex.toString()).boost(100.0f));
-        synonymBool.should(
-            QueryBuilders.regexpQuery("synonyms.normName", regex.toString()).boost(50.0f));
+        // Name partial word match (must match all tokens, boost exact token count)
+        partialWordNameQuery =
+            QueryBuilders.boolQuery()
+                .must(
+                    QueryBuilders.queryStringQuery(fixNormTerm)
+                        .field("name")
+                        .defaultOperator(Operator.AND))
+                .should(QueryBuilders.regexpQuery("normName", regex.toString()))
+                .boost(35.0f);
 
-        partialWordNameQuery = nameBool.boost(100.0f);
-        partialWordSynonymQuery = synonymBool.boost(50.0f);
+        // Synonym partial word match (must match all tokens in SAME synonym)
         nestedPartialWordSynonymQuery =
-            QueryBuilders.nestedQuery("synonyms", partialWordSynonymQuery, ScoreMode.Max);
+            QueryBuilders.nestedQuery(
+                "synonyms",
+                QueryBuilders.boolQuery()
+                    .must(
+                        QueryBuilders.queryStringQuery(fixNormTerm)
+                            .field("synonyms.name")
+                            .defaultOperator(Operator.AND))
+                    .should(QueryBuilders.regexpQuery("synonyms.normName", regex.toString())),
+                ScoreMode.Max);
+        nestedPartialWordSynonymQuery.boost(34.0f);
       }
     }
-
-    // Boost exact matches
-    final NestedQueryBuilder nestedSynonymExactQuery =
-        QueryBuilders.nestedQuery(
-            "synonyms",
-            QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(40f),
-            ScoreMode.Max);
 
     // Boosting matches with words next to each other
     final QueryStringQueryBuilder phraseNormNameQuery =
@@ -615,9 +610,6 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     // contains, and/or
     if (!"phrase".equals(type.toLowerCase())) {
       termQuery
-
-          // Exact query
-          .should(nestedSynonymExactQuery)
 
           // Text queries on "name" and "norm name" and "stem name" using fix names
           .should(fixNameQuery)
