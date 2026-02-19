@@ -420,7 +420,8 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     // exactTerm).boost(50f);
 
     // Exact match queries
-    final MatchQueryBuilder normNameQuery = QueryBuilders.matchQuery("normName", normTerm).boost(40f);
+    final MatchQueryBuilder normNameQuery =
+        QueryBuilders.matchQuery("normName", normTerm).boost(40f);
     final NestedQueryBuilder nestedSynonymNormNameQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
