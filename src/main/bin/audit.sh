@@ -11,31 +11,57 @@ output_to_file=0
 
 while [[ "$#" -gt 0 ]]; do
   case $1 in
-  --help) help=1 ;;
-  --noconfig)
+  -h | --help) help=1 ;;
+  -n | --noconfig)
     config=0
     ncflag="--noconfig"
     ;;
-  --tsv)
+  -v | --tsv)
     output_to_file=1
     output_fmt="tsv"
     ;;
-  --csv)
+  -c | --csv)
     output_to_file=1
     output_fmt="csv"
+    ;;
+  -r | --recent)
+    recent=1
+    ;;
+  -T | --terminology)
+    shift
+    terminology=$1
     ;;
   *) arr+=("$1") ;;
   esac
   shift
 done
 
-print_help(){
-  echo "Usage: $0 [--noconfig] [--help] [--tsv|--csv] <report: load|error|warning|all> [terminology]"
-  echo "  e.g. $0 load"
-  echo "  e.g. $0 --csv load"
-  echo "  e.g. $0 error ncit"
-  echo "  e.g. $0 warning"
-  echo "  e.g. $0 all"
+print_help() {
+  echo "Audit Script - Query Elasticsearch for audit data"
+  echo ""
+  echo "Usage: $0 [options] <report_type> [terminology]"
+  echo ""
+  echo "Report Types (Required):"
+  echo "  load                Terminology loading and indexing metrics"
+  echo "  error               Audit records with ERROR log level"
+  echo "  warning             Audit records with WARN log level"
+  echo "  all                 All audit records"
+  echo ""
+  echo "Options:"
+  echo "  -h, --help          Show this help message"
+  echo "  -r, --recent        Limit results to the last 24 hours"
+  echo "  -n, --noconfig      Skip sourcing /local/content/evsrestapi/config/setenv.sh"
+  echo "  -T, --terminology   Filter by terminology (can also be 2nd positional argument)"
+  echo ""
+  echo "Output Control (Default is console):"
+  echo "  -c, --csv           Generate a CSV file in audit_reports/"
+  echo "  -v, --tsv           Generate a TSV file in audit_reports/"
+  echo ""
+  echo "Examples:"
+  echo "  $0 load                      # Load report to console"
+  echo "  $0 --csv load ncit           # CSV report for NCIt"
+  echo "  $0 -r -c all                 # Recent records for all types in CSV"
+  echo "  $0 all -T medrt              # Use explicit flag for terminology"
   exit 1
 }
 
@@ -44,7 +70,9 @@ if [[ $help -eq 1 || ${#arr[@]} -eq 0 ]]; then
 fi
 
 report_type=${arr[0]}
-terminology=${arr[1]}
+# Use positional terminology ONLY if not already set by -T flag
+terminology=${terminology:-${arr[1]}}
+
 
 setup_configuration() {
   if [[ $config -eq 1 ]]; then
@@ -85,8 +113,13 @@ validate_setup
 
 query_es() {
     local q=$1
-    curl -s -G "$ES/evs_audit/_search" --data-urlencode "size=1000" --data-urlencode "q=$q"
+    # Use -f to fail on HTTP errors and -S to show error on stderr
+    if ! curl -s -S -f -G "$ES/evs_audit/_search" --data-urlencode "size=1000" --data-urlencode "q=$q"; then
+      echo "ERROR: Elasticsearch query failed." >&2
+      exit 1
+    fi
 }
+
 
 # Output handling
 if [[ $output_to_file -eq 1 ]]; then
@@ -99,42 +132,43 @@ fi
 
 case $report_type in
   load)
-    header="Terminology\tVersion\tElapsed Time (ms)\tCount\tDate"
-    q="process:(MetaOpensearchLoadServiceImpl OR MetaSourceOpensearchLoadServiceImpl OR LoaderServiceImpl) AND NOT elapsedTime:0"
-    if [[ -n $terminology ]]; then
-        q="$q AND terminology:$terminology"
-    fi
-    data=$(query_es "$q" | jq -r '.hits.hits[] | [._source.terminology, ._source.version, ._source.elapsedTime, ._source.count, (._source.date // ._source.startDate)] | @tsv')
+    header="Terminology\tVersion\tElapsed Time\tCount\tDate"
+    q="process:(MetaOpensearchLoadServiceImpl OR MetaSourceOpensearchLoadServiceImpl OR LoaderServiceImpl OR GraphOpensearchLoadServiceImpl) AND NOT elapsedTime:0"
+    filter='def f: . as $ms | if $ms < 1000 then ($ms|tostring)+"ms" else ($ms/1000|floor) as $s | ($s/3600|floor) as $h | (($s%3600)/60|floor) as $m | ($s%60) as $sec | (if $h>0 then ($h|tostring)+"h " else "" end) + (if $m>0 or $h>0 then ($m|tostring)+"m " else "" end) + ($sec|tostring)+"s" end; .hits.hits[] | [._source.terminology, ._source.version, (._source.elapsedTime | f), ._source.count, (._source.date // ._source.startDate)] | @tsv'
     ;;
   error)
     header="Terminology\tVersion\tProcess\tDetails\tDate"
     q="logLevel:ERROR"
-    if [[ -n $terminology ]]; then
-        q="$q AND terminology:$terminology"
-    fi
-    data=$(query_es "$q" | jq -r '.hits.hits[] | [._source.terminology, ._source.version, ._source.process, ._source.details, ._source.date] | @tsv')
+    filter='.hits.hits[] | [._source.terminology, ._source.version, ._source.process, ._source.details, ._source.date] | @tsv'
     ;;
   warning)
     header="Terminology\tVersion\tProcess\tDetails\tDate"
     q="logLevel:WARN"
-    if [[ -n $terminology ]]; then
-        q="$q AND terminology:$terminology"
-    fi
-    data=$(query_es "$q" | jq -r '.hits.hits[] | [._source.terminology, ._source.version, ._source.process, ._source.details, ._source.date] | @tsv')
+    filter='.hits.hits[] | [._source.terminology, ._source.version, ._source.process, ._source.details, ._source.date] | @tsv'
     ;;
   all)
     header="Type\tTerminology\tVersion\tProcess\tLogLevel\tDetails\tCount\tElapsed\tDate"
     q="*:*"
-    if [[ -n $terminology ]]; then
-        q="$q AND terminology:$terminology"
-    fi
-    data=$(query_es "$q" | jq -r '.hits.hits[] | [._source.type, ._source.terminology, ._source.version, ._source.process, ._source.logLevel, ._source.details, ._source.count, ._source.elapsedTime, (._source.date // ._source.startDate)] | @tsv')
+    filter='def f: . as $ms | if $ms < 1000 then ($ms|tostring)+"ms" else ($ms/1000|floor) as $s | ($s/3600|floor) as $h | (($s%3600)/60|floor) as $m | ($s%60) as $sec | (if $h>0 then ($h|tostring)+"h " else "" end) + (if $m>0 or $h>0 then ($m|tostring)+"m " else "" end) + ($sec|tostring)+"s" end; .hits.hits[] | [._source.type, ._source.terminology, ._source.version, ._source.process, ._source.logLevel, ._source.details, ._source.count, (._source.elapsedTime | f), (._source.date // ._source.startDate)] | @tsv'
     ;;
   *)
     echo "ERROR: Unknown report type: $report_type"
     print_help
     ;;
 esac
+if [[ -n $terminology ]]; then
+    q="$q AND terminology:$terminology"
+fi
+
+
+# recent flag restricts only to audits that happened in the last 24 hours
+if [[ $recent -eq 1 ]]; then
+    start_date=$(date -d '24 hours ago' +%Y-%m-%dT%H:%M:%SZ)
+    end_date=$(date +%Y-%m-%dT%H:%M:%SZ)
+    q="$q AND (date:[$start_date TO $end_date] OR startDate:[$start_date TO $end_date])"
+fi
+
+data=$(query_es "$q" | jq -r "$filter")
 
 # Final output with format conversion if needed
 if [[ -n "$data" ]]; then
@@ -146,7 +180,7 @@ if [[ -n "$data" ]]; then
         echo -e "$data"
     fi
 else
-    echo "No records found for report: $report_type"
+    echo "No records found for report: $report_type${terminology:+ for terminology: $terminology}${recent:+ (last 24 hours)}"
 fi
 
 if [[ $output_to_file -eq 1 ]]; then
