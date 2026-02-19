@@ -542,8 +542,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       synonymFixNormNameQuery.fuzziness(Fuzziness.ONE);
       synonymStemNameQuery.fuzziness(Fuzziness.ONE);
       definitionQuery.fuzziness(Fuzziness.ONE);
-      // Note: partialWordNameQuery/partialWordSynonymQuery use wildcard queries - no fuzziness
-      // needed
+      // partials don't use fuzziness anymore
     } else {
       fixNameQuery.fuzziness(Fuzziness.ZERO);
       fixNormNameQuery.fuzziness(Fuzziness.ZERO);
@@ -552,8 +551,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       synonymFixNormNameQuery.fuzziness(Fuzziness.ZERO);
       synonymStemNameQuery.fuzziness(Fuzziness.ZERO);
       definitionQuery.fuzziness(Fuzziness.ZERO);
-      // Note: partialWordNameQuery/partialWordSynonymQuery use wildcard queries - no fuzziness
-      // needed
+      // partials don't use fuzziness anymore
     }
 
     // -- wildcard search is assumed to be a term search or phrase search
