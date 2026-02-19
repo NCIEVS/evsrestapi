@@ -456,15 +456,15 @@ public class OpenSearchServiceImpl implements OpenSearchService {
         if (i > 0) {
           regex.append(" ");
         }
-        regex.append(token).append("[a-z0-9]*");
+        regex.append(token).append("[^ ]*");
       }
 
       // Only create partial word queries if we actually have partial words
       if (hasPartialWord) {
-        // Exact token count tie-breaker (e.g. ^rect[a-z0-9]* car[a-z0-9]*$)
+        // Exact token count tie-breaker (e.g. ^rect[^ ]* car[^ ]*$)
         nameBool.should(QueryBuilders.regexpQuery("normName", regex.toString()).boost(100.0f));
         synonymBool.should(
-            QueryBuilders.regexpQuery("synonyms.normName", regex.toString()).boost(100.0f));
+            QueryBuilders.regexpQuery("synonyms.normName", regex.toString()).boost(50.0f));
 
         partialWordNameQuery = nameBool.boost(100.0f);
         partialWordSynonymQuery = synonymBool.boost(50.0f);
