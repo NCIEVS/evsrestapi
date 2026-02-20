@@ -13,7 +13,9 @@ import jakarta.mail.internet.MimeMessage;
 import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -38,6 +40,9 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
 
   /** The application properties. */
   private final ApplicationProperties applicationProperties;
+
+  /** The valid emails. */
+  private final Set<String> validEmails = new HashSet<>();
 
   /** The form file path. */
   URL formFilePath;
@@ -81,6 +86,11 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       final JsonNode termForm = ThreadLocalMapper.get().readTree(json);
       // Get the recaptcha_site_key from application properties
       final String recaptchaSiteKey = applicationProperties.getRecaptchaSiteKey();
+
+      // Save valid emails from the forms
+      if (termForm.has("recipientEmail")) {
+        validEmails.add(termForm.get("recipientEmail").asText());
+      }
 
       // Check our termForm is an object node to safely add properties
       if (termForm.isObject()) {
@@ -127,12 +137,20 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       if (applicationProperties.getMailRecipient() != null
           && !applicationProperties.getMailRecipient().isEmpty()) {
         emailDetails.setToEmail(applicationProperties.getMailRecipient());
+      } else {
+        if (!validEmails.contains(emailDetails.getToEmail())) {
+          // NOTE: this will get triggered if getFormTemplate has not been called yet
+          throw new Exception(
+              "Unexpected invalid recipient specified = " + emailDetails.getToEmail());
+        }
       }
 
       logger.info(
-          "    Sending email for {} form to {}",
+          "    Sending email for {} form from {} to {}",
           emailDetails.getSource(),
+          emailDetails.getFromEmail(),
           emailDetails.getToEmail());
+
       // Set the email details
       message.setRecipients(RecipientType.TO, emailDetails.getToEmail());
       message.setFrom(new InternetAddress(emailDetails.getFromEmail()));
@@ -180,11 +198,18 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       if (applicationProperties.getMailRecipient() != null
           && !applicationProperties.getMailRecipient().isEmpty()) {
         emailDetails.setToEmail(applicationProperties.getMailRecipient());
+      } else {
+        if (!validEmails.contains(emailDetails.getToEmail())) {
+          // NOTE: this will get triggered if getFormTemplate has not been called yet
+          throw new Exception(
+              "Unexpected invalid recipient specified = " + emailDetails.getToEmail());
+        }
       }
 
       logger.info(
-          "    Sending email for {} form to {}",
+          "    Sending email for {} form from {} to {}",
           emailDetails.getSource(),
+          emailDetails.getFromEmail(),
           emailDetails.getToEmail());
 
       // true indicates multipart message
