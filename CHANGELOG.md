@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Changed
 - TBD
 
-## [2.3.0.RELEASE] - 2025-12-05
+## [2.3.0.RELEASE] - 2026-02-20
 ### Changed
 - Various minor bug fixes and typo corrections
 - FHIR improvements (resource _history, improved parameter support, POST call support for adhoc value sets, set dates properly on ConceptMap)
