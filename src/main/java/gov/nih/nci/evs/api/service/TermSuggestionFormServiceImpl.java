@@ -1,21 +1,14 @@
 package gov.nih.nci.evs.api.service;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import gov.nih.nci.evs.api.model.EmailDetails;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.util.EVSUtils;
-import jakarta.mail.Message.RecipientType;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.InternetAddress;
-import jakarta.mail.internet.MimeMessage;
 import java.io.FileNotFoundException;
 import java.net.URL;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.slf4j.Logger;
@@ -25,6 +18,18 @@ import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import gov.nih.nci.evs.api.model.EmailDetails;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.util.EVSUtils;
+import jakarta.mail.Message.RecipientType;
+import jakarta.mail.MessagingException;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
 
 /** Implementation class for the terminology suggestion form service. */
 @Service
@@ -40,6 +45,9 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
   /** The application properties. */
   // The application properties
   private final ApplicationProperties applicationProperties;
+
+  /** The valid emails. */
+  private final Set<String> validEmails = new HashSet<>();
 
   /** The form file path. */
   // path for the form file
@@ -91,6 +99,11 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       // Get the recaptcha_site_key from application properties
       final String recaptchaSiteKey = applicationProperties.getRecaptchaSiteKey();
 
+      // Save valid emails from the forms
+      if (termForm.has("recipientEmail")) {
+        validEmails.add(termForm.get("recipientEmail").asText());
+      }
+
       // Check our termForm is an object node to safely add properties
       if (termForm.isObject()) {
         ((ObjectNode) termForm).put("recaptchaSiteKey", recaptchaSiteKey);
@@ -136,12 +149,20 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       if (applicationProperties.getMailRecipient() != null
           && !applicationProperties.getMailRecipient().isEmpty()) {
         emailDetails.setToEmail(applicationProperties.getMailRecipient());
+      } else {
+        if (!validEmails.contains(emailDetails.getToEmail())) {
+          // NOTE: this will get triggered if getFormTemplate has not been called yet
+          throw new Exception(
+              "Unexpected invalid recipient specified = " + emailDetails.getToEmail());
+        }
       }
 
       logger.info(
-          "    Sending email for {} form to {}",
+          "    Sending email for {} form from {} to {}",
           emailDetails.getSource(),
+          emailDetails.getFromEmail(),
           emailDetails.getToEmail());
+
       // Set the email details
       message.setRecipients(RecipientType.TO, emailDetails.getToEmail());
       message.setFrom(new InternetAddress(emailDetails.getFromEmail()));
@@ -189,11 +210,18 @@ public class TermSuggestionFormServiceImpl implements TermSuggestionFormService 
       if (applicationProperties.getMailRecipient() != null
           && !applicationProperties.getMailRecipient().isEmpty()) {
         emailDetails.setToEmail(applicationProperties.getMailRecipient());
+      } else {
+        if (!validEmails.contains(emailDetails.getToEmail())) {
+          // NOTE: this will get triggered if getFormTemplate has not been called yet
+          throw new Exception(
+              "Unexpected invalid recipient specified = " + emailDetails.getToEmail());
+        }
       }
 
       logger.info(
-          "    Sending email for {} form to {}",
+          "    Sending email for {} form from {} to {}",
           emailDetails.getSource(),
+          emailDetails.getFromEmail(),
           emailDetails.getToEmail());
 
       // true indicates multipart message
