@@ -78,7 +78,7 @@ public class HierarchyUtils {
    * The path map. NOTE: if we need paths for >1 terminology, this doesn't work. Use a different
    * HierarchyUtils.
    */
-  @Transient private Map<String, Set<String>> pathsMap = getPathsMap();
+  @Transient private Map<String, Set<String>> pathsMap = null;
 
   /**
    * Gets the paths map.
@@ -440,9 +440,11 @@ public class HierarchyUtils {
    * @throws Exception the exception
    */
   public Map<String, Set<String>> getPathsMap(final Terminology terminology) throws Exception {
-    if (pathsMap.isEmpty()
+    if (pathsMap == null
         && terminology.getMetadata().getHierarchy() != null
         && terminology.getMetadata().getHierarchy()) {
+
+      pathsMap = getPathsMap();
 
       // This finds paths for leaf nodes, and we need to turn into full paths
       // for each code. Write to a file because this can be a lot of data.

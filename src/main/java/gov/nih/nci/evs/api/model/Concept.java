@@ -6,6 +6,7 @@ import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.Schema.RequiredMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -935,7 +936,9 @@ public class Concept extends ConceptMinimal {
    *
    * @return the extensions
    */
-  @Schema(description = "Generally unset, this is used for certain special cases", required = false)
+  @Schema(
+      description = "Generally unset, this is used for certain special cases",
+      requiredMode = RequiredMode.NOT_REQUIRED)
   public Extensions getExtensions() {
     return extensions;
   }
