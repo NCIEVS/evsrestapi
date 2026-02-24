@@ -135,7 +135,7 @@ public class MapsetControllerTests {
     assertThat(content).isNotNull();
     MappingResultList maps = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
     assertThat(maps.getTotal()).isGreaterThan(0);
-    assertThat(maps.getMaps().get(0).getSource()).isEqualTo("nci");
+    assertThat(maps.getMaps().get(0).getSource()).isEqualTo("ncit");
     assertThat(maps.getMaps().get(0).getSourceTerminology()).isEqualTo("NCI Thesaurus");
     assertThat(maps.getMaps().get(0).getTarget()).isEqualTo("mdr");
     assertThat(maps.getMaps().get(0).getTargetTerminology()).isEqualTo("MedDRA");
