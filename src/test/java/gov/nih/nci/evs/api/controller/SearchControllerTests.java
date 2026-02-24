@@ -4705,6 +4705,113 @@ public class SearchControllerTests {
   }
 
   /**
+   * Test search for partial word matching with extended cases: partial first word ("rect car"),
+   * full first word with partial second ("rectal car" ranked first), and partial second+third words
+   * ("single agen ther").
+   */
+  @Test
+  public void testSearchPartialWordMatchExtended() throws Exception {
+
+    // Test Case 1: "recta car" - partial FIRST word, should rank "Rectal Carcinoma" first
+    {
+      String term = "recta car";
+      log.info("Testing partial first word match for term - " + term);
+
+      MvcResult result =
+          this.mvc
+              .perform(
+                  get(baseUrl)
+                      .param("terminology", "ncit")
+                      .param("include", "summary")
+                      .param("term", term)
+                      .param("type", "contains"))
+              .andExpect(status().isOk())
+              .andReturn();
+      String content = result.getResponse().getContentAsString();
+      assertThat(content).isNotNull();
+
+      ConceptResultList list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+      assertThat(list.getConcepts()).isNotNull();
+      assertThat(list.getConcepts()).isNotEmpty();
+
+      log.info("Top 10 results for '" + term + "':");
+      for (int i = 0; i < Math.min(10, list.getConcepts().size()); i++) {
+        Concept concept = list.getConcepts().get(i);
+        log.info("  " + (i + 1) + ". " + concept.getName() + " (" + concept.getCode() + ")");
+      }
+
+      assertThat(list.getConcepts().get(0).getName())
+          .as("'Rectal Carcinoma' should be ranked first for term: " + term)
+          .isEqualTo("Rectal Carcinoma");
+    }
+    // Test Case 2: "rectal car" - full first word, partial second word, should rank first
+    {
+      String term = "rectal car";
+      log.info("Testing full+partial word match for term - " + term);
+
+      MvcResult result =
+          this.mvc
+              .perform(
+                  get(baseUrl)
+                      .param("terminology", "ncit")
+                      .param("include", "summary")
+                      .param("term", term)
+                      .param("type", "contains"))
+              .andExpect(status().isOk())
+              .andReturn();
+      String content = result.getResponse().getContentAsString();
+      assertThat(content).isNotNull();
+
+      ConceptResultList list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+      assertThat(list.getConcepts()).isNotNull();
+      assertThat(list.getConcepts()).isNotEmpty();
+
+      log.info("Top 5 results for '" + term + "':");
+      for (int i = 0; i < Math.min(5, list.getConcepts().size()); i++) {
+        Concept concept = list.getConcepts().get(i);
+        log.info("  " + (i + 1) + ". " + concept.getName() + " (" + concept.getCode() + ")");
+      }
+
+      assertThat(list.getConcepts().get(0).getName())
+          .as("'Rectal Carcinoma' should be ranked first (position 0) for term: " + term)
+          .isEqualTo("Rectal Carcinoma");
+    }
+
+    // Test Case 3: "single agen ther" - partial second AND third words
+    {
+      String term = "single agen ther";
+      log.info("Testing partial second+third word match for term - " + term);
+
+      MvcResult result =
+          this.mvc
+              .perform(
+                  get(baseUrl)
+                      .param("terminology", "ncit")
+                      .param("include", "summary")
+                      .param("term", term)
+                      .param("type", "contains"))
+              .andExpect(status().isOk())
+              .andReturn();
+      String content = result.getResponse().getContentAsString();
+      assertThat(content).isNotNull();
+
+      ConceptResultList list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+      assertThat(list.getConcepts()).isNotNull();
+      assertThat(list.getConcepts()).isNotEmpty();
+
+      log.info("Top 5 results for '" + term + "':");
+      for (int i = 0; i < Math.min(5, list.getConcepts().size()); i++) {
+        Concept concept = list.getConcepts().get(i);
+        log.info("  " + (i + 1) + ". " + concept.getName() + " (" + concept.getCode() + ")");
+      }
+
+      assertThat(list.getConcepts().get(0).getName())
+          .as("'Single Agent Therapy' should be ranked first for term: " + term)
+          .isEqualTo("Single Agent Therapy");
+    }
+  }
+
+  /**
    * Removes the time taken.
    *
    * @param response the response
