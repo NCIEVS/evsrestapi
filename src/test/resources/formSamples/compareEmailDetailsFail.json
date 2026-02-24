@@ -1,5 +1,6 @@
 {
   "formName": "NCIT",
+  "formType": "NCIT",
   "recipientEmail": "agarcia@nih.gov",
   "businessEmail": "bcarlsen@nih.gov",
   "subject": "New Term: Test ",

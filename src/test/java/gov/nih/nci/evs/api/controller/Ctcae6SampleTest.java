@@ -80,7 +80,8 @@ public class Ctcae6SampleTest extends SampleTest {
     final Terminology terminology =
         terminologies.stream().filter(t -> t.getTerminology().equals("ctcae6")).findFirst().get();
     assertThat(terminology.getTerminology()).isEqualTo("ctcae6");
-    assertThat(terminology.getMetadata().getUiLabel()).isEqualTo("CTCAE 6");
+    assertThat(terminology.getMetadata().getUiLabel())
+        .isEqualTo("CTCAE 6: Common Terminology Cruteria for Adverse Events Version 6");
     assertThat(terminology.getName()).isEqualTo("CTCAE 6 6.0");
     assertThat(terminology.getDescription()).isNotEmpty();
 

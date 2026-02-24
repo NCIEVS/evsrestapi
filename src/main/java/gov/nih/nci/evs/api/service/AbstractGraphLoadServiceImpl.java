@@ -23,7 +23,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.net.URL;
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
@@ -737,7 +737,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     List<Sheet> sheets = new ArrayList<>();
     Workbook workbook = null;
 
-    try (InputStream inputStream = new URL(url).openStream(); ) {
+    try (InputStream inputStream = URI.create(url).toURL().openStream(); ) {
       // Try downloading the file from the provided URL
       workbook = new HSSFWorkbook(inputStream);
       logger.info("Excel file successfully loaded from URL.");

@@ -12,7 +12,7 @@ import gov.nih.nci.evs.api.model.sparql.Bindings;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.net.URL;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -617,7 +617,7 @@ public class EVSUtils {
    */
   public static String getValueFromFile(String uri) throws Exception {
     try {
-      try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
+      try (final InputStream is = URI.create(uri).toURL().openConnection().getInputStream()) {
         return String.join("\n", IOUtils.readLines(is, "UTF-8"));
       }
     } catch (final Throwable t) {

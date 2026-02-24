@@ -935,7 +935,9 @@ public class Concept extends ConceptMinimal {
    *
    * @return the extensions
    */
-  @Schema(description = "Generally unset, this is used for certain special cases", required = false)
+  @Schema(
+      description = "Generally unset, this is used for certain special cases",
+      requiredMode = Schema.RequiredMode.NOT_REQUIRED)
   public Extensions getExtensions() {
     return extensions;
   }

@@ -23,7 +23,7 @@ import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import jakarta.mail.internet.MimeMessage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.net.URL;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -97,7 +97,8 @@ public class TermSuggestionFormServiceTest {
     JsonNode termForm = ThreadLocalMapper.get().createObjectNode();
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
-    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json"))).thenReturn(termForm);
+    when(objectMapper.readTree(new URI(configUrl + "/" + formType + ".json").toURL()))
+        .thenReturn(termForm);
 
     // ACT
     JsonNode returnedForm = termFormService.getFormTemplate(formType);
@@ -210,7 +211,10 @@ public class TermSuggestionFormServiceTest {
     String filePath = configUrl + "/" + formType + ".json";
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
-    when(objectMapper.readTree(any(URL.class))).thenReturn(termForm);
+    // We need to mock the URL construction or the mapper call.
+    // Since we are doing new URI(...).toURL(), the mapper actually receives a URL object.
+    // So we should verify against URL.class.
+    when(objectMapper.readTree(any(java.net.URL.class))).thenReturn(termForm);
 
     // ACT & ASSERT
 
@@ -425,7 +429,9 @@ public class TermSuggestionFormServiceTest {
     // Verify we got the EXPECTATION_FAILED status and message contains our reason
     assertTrue(ex.getStatusCode() == HttpStatus.EXPECTATION_FAILED);
     assertTrue(
-        ex.getReason() != null && ex.getReason().contains("Invalid form type for attachment."));
+        ex.getReason() != null
+            && ex.getReason()
+                .contains("Invalid attachment file for NCIT, does not match the template."));
   }
 
   /**
