@@ -87,7 +87,7 @@ nci:
     application:
       adminKey: ${NCI_EVS_ADMIN_KEY:Default}
       contextPath: /api/v1
-      mailRecipient: ${MAIL_RECIPIENT:NciEvsCdiscHelp@mail.nih.gov}
+      mailRecipient: ${MAIL_RECIPIENT:}
       metricsEnabled: ${METRICS_ENABLED:true}
       metricsDir: ${METRICS_DIR:/tmp}
       configBaseUri: ${CONFIG_BASE_URI:https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata}
