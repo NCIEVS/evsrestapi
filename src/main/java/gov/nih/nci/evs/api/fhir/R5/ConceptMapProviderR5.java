@@ -633,6 +633,9 @@ public class ConceptMapProviderR5 implements IResourceProvider {
 
         list.add(cm);
       }
+
+      TerminologyUtils.sortVersionsDescending(list, a -> a.getVersion());
+
       return list;
     } catch (final FHIRServerResponseException e) {
       throw e;

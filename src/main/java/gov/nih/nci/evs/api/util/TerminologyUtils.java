@@ -18,6 +18,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.http.HttpEntity;
@@ -476,5 +477,46 @@ public final class TerminologyUtils {
   /** Clear cache. */
   public static void clearCache() {
     licenseCache.clear();
+  }
+
+  /**
+   * Sorts the given list of objects by determining the latest terminology based on the map.
+   *
+   * @param <T> the type parameter
+   * @param list the list
+   * @param map the map of terminology name to Terminology object
+   * @param keyExtractor the function to extract the terminology name from the object
+   */
+  public static <T> void sortLatest(
+      List<T> list, Map<String, Terminology> map, Function<T, String> keyExtractor) {
+    list.sort(
+        (a, b) -> {
+          Terminology termA = map.get(keyExtractor.apply(a));
+          Terminology termB = map.get(keyExtractor.apply(b));
+          if (termA != null && termB != null) {
+            return Boolean.compare(termB.getLatest(), termA.getLatest());
+          }
+          return 0;
+        });
+  }
+
+  /**
+   * Sorts the given list of objects with a version string by version descending.
+   *
+   * @param <T> the type parameter
+   * @param list the list
+   * @param versionExtractor the function to extract the version string from the object
+   */
+  public static <T> void sortVersionsDescending(
+      List<T> list, Function<T, String> versionExtractor) {
+    list.sort(
+        (a, b) -> {
+          String versionA = versionExtractor.apply(a);
+          String versionB = versionExtractor.apply(b);
+          if (versionA != null && versionB != null) {
+            return versionB.compareTo(versionA);
+          }
+          return 0;
+        });
   }
 }
