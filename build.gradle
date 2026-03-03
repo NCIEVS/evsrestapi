@@ -97,7 +97,7 @@ dependencies {
   // implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.44"
 
   // For vulnerability GHSA-72hv-8253-57qq
-  implementation 'com.fasterxml.jackson.core:jackson-databind:2.18.6'
+  implementation 'com.fasterxml.jackson.core:jackson-core:2.18.6'
   // For vulnerability CVE-2026-24400
   implementation 'org.assertj:assertj-core:3.27.7'
 
