@@ -95,6 +95,7 @@ dependencies {
 
   // For vulnerabilities - may not be needed with Spring Boot 3.4.10
   // implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.44"
+  implementation "com.fasterxml.jackson.core:jackson-core:2.18.6"
 
   //implementation "org.springframework.data:spring-data-elasticsearch:4.2.12"
   implementation "org.opensearch.client:spring-data-opensearch-starter:1.7.1"
