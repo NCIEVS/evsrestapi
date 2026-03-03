@@ -707,7 +707,7 @@ class FhirR5ValueSetReadSearchTests {
     // Test 2: Basic name search (without modifier)
     final String basicNameUrl =
         endpoint + "?name=" + URLEncoder.encode(firstValueSetName, StandardCharsets.UTF_8);
-    content = this.restTemplate.getForObject(basicNameUrl, String.class);
+    content = this.restTemplate.getForObject(new java.net.URI(basicNameUrl), String.class);
     final Bundle basicNameBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(basicNameBundle.getEntry());
@@ -719,7 +719,7 @@ class FhirR5ValueSetReadSearchTests {
     final String upperCaseName = firstValueSetName.toUpperCase();
     final String exactMatchUrl =
         endpoint + "?name:exact=" + URLEncoder.encode(upperCaseName, StandardCharsets.UTF_8);
-    content = this.restTemplate.getForObject(exactMatchUrl, String.class);
+    content = this.restTemplate.getForObject(new java.net.URI(exactMatchUrl), String.class);
     final Bundle exactMatchBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(exactMatchBundle.getEntry());
@@ -731,7 +731,7 @@ class FhirR5ValueSetReadSearchTests {
     final String partialName = firstValueSetName.substring(1, firstValueSetName.length() - 1);
     String containsUrl =
         endpoint + "?name:contains=" + URLEncoder.encode(partialName, StandardCharsets.UTF_8);
-    content = this.restTemplate.getForObject(containsUrl, String.class);
+    content = this.restTemplate.getForObject(new java.net.URI(containsUrl), String.class);
     Bundle containsBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(containsBundle.getEntry());
@@ -746,7 +746,7 @@ class FhirR5ValueSetReadSearchTests {
     final String namePrefix = firstValueSetName.substring(0, 3);
     final String startsWithUrl =
         endpoint + "?name:startsWith=" + URLEncoder.encode(namePrefix, StandardCharsets.UTF_8);
-    content = this.restTemplate.getForObject(startsWithUrl, String.class);
+    content = this.restTemplate.getForObject(new java.net.URI(startsWithUrl), String.class);
     final Bundle startsWithBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(startsWithBundle.getEntry());
@@ -761,7 +761,7 @@ class FhirR5ValueSetReadSearchTests {
     final String nonExistentName = "NonExistentValueSet" + UUID.randomUUID();
     final String negativeTestUrl =
         endpoint + "?name:exact=" + URLEncoder.encode(nonExistentName, StandardCharsets.UTF_8);
-    content = this.restTemplate.getForObject(negativeTestUrl, String.class);
+    content = this.restTemplate.getForObject(new java.net.URI(negativeTestUrl), String.class);
     final Bundle emptyBundle = parser.parseResource(Bundle.class, content);
 
     assertTrue(emptyBundle.getEntry() == null || emptyBundle.getEntry().isEmpty());
@@ -770,7 +770,7 @@ class FhirR5ValueSetReadSearchTests {
     final String upperCaseTitle = firstValueSetTitle.toUpperCase();
     final String titleExactUrl =
         endpoint + "?title:exact=" + URLEncoder.encode(upperCaseTitle, StandardCharsets.UTF_8);
-    content = this.restTemplate.getForObject(titleExactUrl, String.class);
+    content = this.restTemplate.getForObject(new java.net.URI(titleExactUrl), String.class);
     final Bundle titleExactBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(titleExactBundle.getEntry());
@@ -782,7 +782,7 @@ class FhirR5ValueSetReadSearchTests {
     final String titlePrefix = firstValueSetTitle.substring(0, 3);
     final String titleStartsWithUrl =
         endpoint + "?title:startsWith=" + URLEncoder.encode(titlePrefix, StandardCharsets.UTF_8);
-    content = this.restTemplate.getForObject(titleStartsWithUrl, String.class);
+    content = this.restTemplate.getForObject(new java.net.URI(titleStartsWithUrl), String.class);
     final Bundle titleStartsWithBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(titleStartsWithBundle.getEntry());
@@ -797,7 +797,7 @@ class FhirR5ValueSetReadSearchTests {
     final String partialTitle = firstValueSetTitle.substring(1, firstValueSetTitle.length() - 1);
     final String titleContainsUrl =
         endpoint + "?title:contains=" + URLEncoder.encode(partialTitle, StandardCharsets.UTF_8);
-    content = this.restTemplate.getForObject(titleContainsUrl, String.class);
+    content = this.restTemplate.getForObject(new java.net.URI(titleContainsUrl), String.class);
     final Bundle titleContainsBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(titleContainsBundle.getEntry());
@@ -826,7 +826,7 @@ class FhirR5ValueSetReadSearchTests {
     final String cdiscName = "CDISC";
     containsUrl =
         endpoint + "?name:contains=" + URLEncoder.encode(cdiscName, StandardCharsets.UTF_8);
-    content = this.restTemplate.getForObject(containsUrl, String.class);
+    content = this.restTemplate.getForObject(new java.net.URI(containsUrl), String.class);
     containsBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(containsBundle.getEntry());
