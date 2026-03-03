@@ -2,8 +2,12 @@
 
 Information on downloading and using OPENSEARCH with EVSRESTAPI.
 
-Verify the $OS_DIR variable points to the correct path set up in previous steps. If not, set it now: </br>`export set
-OS_DIR=c:$dir/opensearch/data`
+Verify the $OS_DIR variable points to the correct path set up in previous steps. If not, set it now.
+
+Examples:
+
+- Bash (Git Bash / WSL): `export OS_DIR="$dir/opensearch/data"`
+- Windows CMD: `set OS_DIR=%dir%\\opensearch\\data`
 
 See https://github.com/opensearch-project/spring-data-opensearch for setting up the project
 
@@ -40,7 +44,7 @@ curl -X PUT $ES/_cluster/settings -H "Content-type: application/json" \
   -d '{  "persistent": { "index.refresh_interval": "60s" } }
 ```
 
-A call like this in AWS needs to be done from a machine with an IAM role l
+A call like this in AWS needs to be done from a machine with an IAM role.
 
 ```
 {

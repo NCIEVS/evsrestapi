@@ -35,6 +35,7 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.util.UriComponentsBuilder;
 
 // TODO: Auto-generated Javadoc
+
 /**
  * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
  * ValueSet, and ConceptMap. All passed ids MUST be lowercase, so they match our internally set id's
@@ -89,15 +90,16 @@ public class FhirR4ValueSetValidateTests {
   public void testValueSetValidateActiveCode() throws Exception {
     // Arrange
     String content;
-    String activeCode = "T100";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    String displayString = "Age Group";
-    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
-    String parameters = "?url=" + url + "&code=" + activeCode;
+    final String activeCode = "T100";
+    final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    final String displayString = "Age Group";
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String parameters = "?url=" + url + "&code=" + activeCode;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
@@ -108,23 +110,24 @@ public class FhirR4ValueSetValidateTests {
   @Test
   public void testValueSetValidateActiveImplicitCodeWithCoding() throws Exception {
     // Arrange
-    String activeCode = "T100";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    String displayString = "Age Group";
-    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String activeCode = "T100";
+    final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    final String displayString = "Age Group";
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
 
     // Create the Coding object
-    Coding coding = new Coding(url, activeCode, null);
+    final Coding coding = new Coding(url, activeCode, null);
 
     // Construct the GET request URI with the coding parameter
-    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    final UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
     builder.queryParam("coding", coding.getSystem() + "|" + coding.getCode());
 
-    URI getUri = builder.build().toUri();
+    final URI getUri = builder.build().toUri();
 
     // Act
-    String content = this.restTemplate.getForObject(getUri, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final String content = this.restTemplate.getForObject(getUri, String.class);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
@@ -135,25 +138,25 @@ public class FhirR4ValueSetValidateTests {
   @Test
   public void testValueSetValidateActiveInstanceCodeWithCoding() throws Exception {
     // Arrange
-    String activeCode = "T100";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    String activeId = "umlssemnet_2023aa";
-    String displayString = "Age Group";
-    String endpoint =
+    final String activeCode = "T100";
+    final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    final String activeId = "umlssemnet_2023aa";
+    final String displayString = "Age Group";
+    final String endpoint =
         localHost + port + fhirVSPath + "/" + activeId + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
 
     // Create the Coding object
-    Coding coding = new Coding(url, activeCode, null);
+    final Coding coding = new Coding(url, activeCode, null);
 
     // Construct the GET request URI with the coding parameter
-    UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
+    final UriComponentsBuilder builder = UriComponentsBuilder.fromUriString(endpoint);
     builder.queryParam("coding", coding.getSystem() + "|" + coding.getCode());
 
-    URI getUri = builder.build().toUri();
+    final URI getUri = builder.build().toUri();
 
     // Act
-    String content = this.restTemplate.getForObject(getUri, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final String content = this.restTemplate.getForObject(getUri, String.class);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
@@ -170,18 +173,20 @@ public class FhirR4ValueSetValidateTests {
   public void testValueSetValidateActiveCodeParameterNotSupported() throws Exception {
     // Arrange
     String content;
-    String activeCode = "T100";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
-    String parameters = "?url=" + url + "&code=" + activeCode + "&displayLanguage=not_supported";
+    final String activeCode = "T100";
+    final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String parameters =
+        "?url=" + url + "&code=" + activeCode + "&displayLanguage=not_supported";
 
-    String errorCode = "not-supported";
-    String messageNotSupported = "Input parameter 'displayLanguage' is not supported.";
+    final String errorCode = "not-supported";
+    final String messageNotSupported = "Input parameter 'displayLanguage' is not supported.";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -197,19 +202,20 @@ public class FhirR4ValueSetValidateTests {
   public void testValueSetValidateActiveCodeInvariantParameters() throws Exception {
     // Arrange
     String content;
-    String activeCode = "T100";
+    final String activeCode = "T100";
     // String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
-    String parameters = "?code=" + activeCode + "&displayLanguage=not_supported";
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String parameters = "?code=" + activeCode + "&displayLanguage=not_supported";
 
-    String errorCode = "invariant";
-    String messageInvariant =
+    final String errorCode = "invariant";
+    final String messageInvariant =
         "Use of input parameter 'code' only allowed if 'system' or 'url' is also present.";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -225,11 +231,11 @@ public class FhirR4ValueSetValidateTests {
   public void testValueSetValidateActiveIdAndActiveCodeAndDisplayString() throws Exception {
     // Arrange
     String content;
-    String activeCode = "T100";
-    String activeID = "umlssemnet_2023aa";
+    final String activeCode = "T100";
+    final String activeID = "umlssemnet_2023aa";
     String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    String displayString = "Age Group";
-    String endpoint =
+    final String displayString = "Age Group";
+    final String endpoint =
         localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
     String parameters = "?url=" + url + "&code=" + activeCode + "&display=" + displayString;
 
@@ -241,6 +247,35 @@ public class FhirR4ValueSetValidateTests {
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
     assertEquals(
         displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+
+    parameters = "?code=" + activeCode + "&display" + displayString;
+
+    // Act - Test 2 with no url
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
+    assertEquals(
+        displayString, ((StringType) params.getParameter("display").getValue()).getValue());
+
+    url = "invalid_url";
+    parameters = "?url=" + url + "&code=" + activeCode + "&display" + displayString;
+    final String messageNotFound =
+        "Supplied url UriType[invalid_url] doesn't match the ValueSet retrieved by the id"
+            + " ValueSet/umlssemnet_2023aa"
+            + " http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    final String errorCode = "exception";
+
+    // Act - Test 3 with invalid url
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
   }
 
   /**
@@ -253,14 +288,14 @@ public class FhirR4ValueSetValidateTests {
       throws Exception {
     // Arrange
     String content;
-    String activeCode = "T100";
-    String activeID = "umlssemnet_2023aa";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    String displayString = "INCORRECT";
-    String endpoint =
+    final String activeCode = "T100";
+    final String activeID = "umlssemnet_2023aa";
+    final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    final String displayString = "INCORRECT";
+    final String endpoint =
         localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
-    String parameters = "?url=" + url + "&code=" + activeCode + "&display=" + displayString;
-    String message =
+    final String parameters = "?url=" + url + "&code=" + activeCode + "&display=" + displayString;
+    final String message =
         "The code '"
             + activeCode
             + "' was found in this value set, however the display '"
@@ -269,7 +304,7 @@ public class FhirR4ValueSetValidateTests {
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
@@ -287,15 +322,16 @@ public class FhirR4ValueSetValidateTests {
   public void testValueSetValidateActiveCodeAndDisplayString() throws Exception {
     // Arrange
     String content;
-    String activeCode = "T100";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    String displayString = "Age Group";
-    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
-    String parameters = "?url=" + url + "&code=" + activeCode + "&display=" + displayString;
+    final String activeCode = "T100";
+    final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    final String displayString = "Age Group";
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String parameters = "?url=" + url + "&code=" + activeCode + "&display=" + displayString;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
@@ -312,15 +348,16 @@ public class FhirR4ValueSetValidateTests {
   public void testValueSetCodeNotFound() throws Exception {
     // Arrange
     String content;
-    String codeNotFound = "T10";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    String messageNotFound = "The code '" + codeNotFound + "' was not found.";
-    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
-    String parameters = "?url=" + url + "&code=" + codeNotFound;
+    final String codeNotFound = "T10";
+    final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    final String messageNotFound = "The code '" + codeNotFound + "' was not found.";
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String parameters = "?url=" + url + "&code=" + codeNotFound;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
@@ -337,16 +374,17 @@ public class FhirR4ValueSetValidateTests {
   public void testValueSetCodeNotFoundAndDisplayString() throws Exception {
     // Arrange
     String content;
-    String codeNotFound = "T10";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    String displayString = "Age Group";
-    String messageNotFound = "The code '" + codeNotFound + "' was not found.";
-    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
-    String parameters = "?url=" + url + "&code=" + codeNotFound + "&display=" + displayString;
+    final String codeNotFound = "T10";
+    final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    final String displayString = "Age Group";
+    final String messageNotFound = "The code '" + codeNotFound + "' was not found.";
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String parameters = "?url=" + url + "&code=" + codeNotFound + "&display=" + displayString;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
@@ -363,18 +401,18 @@ public class FhirR4ValueSetValidateTests {
   public void testValueSetCodeNotFoundActiveIdAndDisplayString() throws Exception {
     // Arrange
     String content;
-    String activeID = "umlssemnet_2023aa";
-    String codeNotFound = "10";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
-    String displayString = "Age Group";
-    String messageNotFound = "The code '" + codeNotFound + "' was not found.";
-    String endpoint =
+    final String activeID = "umlssemnet_2023aa";
+    final String codeNotFound = "10";
+    final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl?fhir_vs";
+    final String displayString = "Age Group";
+    final String messageNotFound = "The code '" + codeNotFound + "' was not found.";
+    final String endpoint =
         localHost + port + fhirVSPath + "/" + activeID + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
-    String parameters = "?url=" + url + "&code=" + codeNotFound + "&display=" + displayString;
+    final String parameters = "?url=" + url + "&code=" + codeNotFound + "&display=" + displayString;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertFalse(((BooleanType) params.getParameter("result").getValue()).getValue());
@@ -391,15 +429,16 @@ public class FhirR4ValueSetValidateTests {
   public void testValueSetRetiredCode() throws Exception {
     // Arrange
     String content;
-    String retiredCode = "C45683";
-    String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
-    String retiredName = "ABCB1 1 Allele";
-    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
-    String parameters = "?url=" + retiredUrl + "&code=" + retiredCode;
+    final String retiredCode = "C45683";
+    final String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
+    final String retiredName = "ABCB1 1 Allele";
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String parameters = "?url=" + retiredUrl + "&code=" + retiredCode;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
@@ -415,15 +454,17 @@ public class FhirR4ValueSetValidateTests {
   public void testValueSetRetiredCodeAndRetireDisplayString() throws Exception {
     // Arrange
     String content;
-    String retiredCode = "C45683";
-    String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
-    String retiredName = "ABCB1 1 Allele";
-    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
-    String parameters = "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
+    final String retiredCode = "C45683";
+    final String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
+    final String retiredName = "ABCB1 1 Allele";
+    final String endpoint =
+        localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE;
+    final String parameters =
+        "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
@@ -439,11 +480,11 @@ public class FhirR4ValueSetValidateTests {
   public void testValueSetRetiredIdRetiredCodeAndRetireDisplayString() throws Exception {
     // Arrange
     String content;
-    String retiredCode = "C45683";
-    String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
-    String retiredId = "ncit_21.06e";
-    String retiredName = "ABCB1 1 Allele";
-    String endpoint =
+    final String retiredCode = "C45683";
+    final String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
+    final String retiredId = "ncit_25.06e";
+    final String retiredName = "ABCB1 1 Allele";
+    final String endpoint =
         localHost
             + port
             + fhirVSPath
@@ -451,11 +492,12 @@ public class FhirR4ValueSetValidateTests {
             + retiredId
             + "/"
             + JpaConstants.OPERATION_VALIDATE_CODE;
-    String parameters = "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
+    final String parameters =
+        "?url=" + retiredUrl + "&code=" + retiredCode + "&display=" + retiredName;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + parameters, String.class);
-    Parameters params = parser.parseResource(Parameters.class, content);
+    final Parameters params = parser.parseResource(Parameters.class, content);
 
     // Assert
     assertTrue(((BooleanType) params.getParameter("result").getValue()).getValue());
@@ -471,10 +513,10 @@ public class FhirR4ValueSetValidateTests {
   public void testValueSetPostRejects() throws Exception {
     // Arrange
     ResponseEntity<String> content;
-    String message = "POST method not supported for " + JpaConstants.OPERATION_EXPAND;
+    final String message = "POST method not supported for " + JpaConstants.OPERATION_EXPAND;
 
-    String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
-    String parameters = "?code=" + null + "&system=" + null;
+    final String endpoint = localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_EXPAND;
+    final String parameters = "?code=" + null + "&system=" + null;
 
     // Act
     content = this.restTemplate.postForEntity(endpoint + parameters, null, String.class);
@@ -489,25 +531,25 @@ public class FhirR4ValueSetValidateTests {
   @Test
   public void testValueSetValidateImplicitCodeWithBothCodeAndCoding() throws Exception {
     // Arrange
-    String activeCode = "T100";
-    String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
-    Coding coding = new Coding(url, activeCode, null);
+    final String activeCode = "T100";
+    final String url = "http://www.nlm.nih.gov/research/umls/umlssemnet.owl";
+    final Coding coding = new Coding(url, activeCode, null);
 
-    String messageNotSupported = "Must use one of 'code' or 'coding' parameters";
-    String errorCode = "invariant";
+    final String messageNotSupported = "Use one of 'code' or 'coding' parameters.";
+    final String errorCode = "invariant";
 
-    UriComponentsBuilder builder =
+    final UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(
             localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE);
     builder.queryParam("code", activeCode);
     builder.queryParam("url", url);
     builder.queryParam("coding", coding.getSystem() + "|" + coding.getCode());
-    URI getUri = builder.build().toUri();
+    final URI getUri = builder.build().toUri();
 
     // Act
-    String content = this.restTemplate.getForObject(getUri, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final String content = this.restTemplate.getForObject(getUri, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -522,22 +564,22 @@ public class FhirR4ValueSetValidateTests {
   @Test
   public void testValueSetValidateImplicitCodeWithNoSystem() throws Exception {
     // Arrange
-    String activeCode = "T100";
+    final String activeCode = "T100";
 
-    String messageNotSupported =
+    final String messageNotSupported =
         "Use of input parameter 'code' only allowed if 'system' or 'url' is also present.";
-    String errorCode = "invariant";
+    final String errorCode = "invariant";
 
-    UriComponentsBuilder builder =
+    final UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(
             localHost + port + fhirVSPath + "/" + JpaConstants.OPERATION_VALIDATE_CODE);
     builder.queryParam("code", activeCode);
-    URI getUri = builder.build().toUri();
+    final URI getUri = builder.build().toUri();
 
     // Act
-    String content = this.restTemplate.getForObject(getUri, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final String content = this.restTemplate.getForObject(getUri, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());

@@ -88,6 +88,17 @@ public interface OpensearchQueryService {
    */
   List<Concept> getDescendants(String code, Terminology terminology);
 
+  List<Concept> getChildren(String code, Terminology terminology);
+
+  /**
+   * Returns ancestor concepts.
+   *
+   * @param code the code of the concept
+   * @param terminology the terminology
+   * @return the list of ancestor concepts
+   */
+  List<Concept> getAncestors(String code, Terminology terminology) throws IOException;
+
   /**
    * Returns parent concepts.
    *
@@ -400,7 +411,8 @@ public interface OpensearchQueryService {
   /**
    * Returns subsets.
    *
-   * @param terminology the terminology
+   * @param term the terminology
+   * @param ip the include param
    * @return the list of subsets
    * @throws JsonProcessingException
    * @throws JsonMappingException

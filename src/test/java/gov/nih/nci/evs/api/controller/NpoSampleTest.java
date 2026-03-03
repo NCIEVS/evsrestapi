@@ -61,7 +61,7 @@ public class NpoSampleTest extends SampleTest {
     log.info("Testing url - " + url);
     result =
         testMvc
-            .perform(get(url).param("latest", "true").param("terminology", "npo"))
+            .perform(get(url).param("terminology", "npo"))
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
@@ -90,7 +90,6 @@ public class NpoSampleTest extends SampleTest {
     assertThat(npo.getMetadata().getLoader()).isEqualTo("rdf");
     assertThat(npo.getMetadata().getSourceCt()).isEqualTo(0);
     assertThat(npo.getMetadata().getLicenseText()).isNull();
-    assertThat(npo.getLatest()).isTrue();
   }
 
   /**

@@ -11,6 +11,7 @@ import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,6 +24,7 @@ import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
 import org.hl7.fhir.r5.model.Resource;
 import org.hl7.fhir.r5.model.ResourceType;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,7 +77,7 @@ class FhirR5CodeSystemReadSearchTests {
   @BeforeEach
   public void setUp() {
     // the object mapper
-    ObjectMapper objectMapper = new ObjectMapper();
+    final ObjectMapper objectMapper = new ObjectMapper();
     JacksonTester.initFields(this, objectMapper);
   }
 
@@ -88,27 +90,27 @@ class FhirR5CodeSystemReadSearchTests {
   public void testCodeSystemSearch() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirCSPath;
+    final String endpoint = localHost + port + fhirCSPath;
 
     // Act
     content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> codeSystems =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> codeSystems =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     // Verify things about this one
-    // {"resourceType":"CodeSystem","id":"ncit_21.06e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"21.06e","name":"NCI
+    // {"resourceType":"CodeSystem","id":"ncit_25.06e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"25.06e","name":"NCI
     // Thesaurus
-    // 21.06e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","hierarchyMeaning":"is-a"}
-    final Set<String> ids = new HashSet<>(Set.of("ncit_21.06e"));
+    // 25.06e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","hierarchyMeaning":"is-a"}
+    final Set<String> ids = new HashSet<>(Set.of("ncit_25.06e"));
     final Set<String> urls =
         new HashSet<>(Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl"));
 
     // Assert
     assertFalse(codeSystems.isEmpty());
-    for (Resource cs : codeSystems) {
+    for (final Resource cs : codeSystems) {
       log.info("  code system = " + parser.encodeResourceToString(cs));
-      CodeSystem css = (CodeSystem) cs;
+      final CodeSystem css = (CodeSystem) cs;
       assertNotNull(css);
       assertEquals(ResourceType.CodeSystem, css.getResourceType());
       assertNotNull(css.getIdPart());
@@ -133,19 +135,19 @@ class FhirR5CodeSystemReadSearchTests {
   public void testCodeSystemRead() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirCSPath;
+    final String endpoint = localHost + port + fhirCSPath;
 
     // Act
     content = this.restTemplate.getForObject(endpoint, String.class);
 
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> codeSystems =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> codeSystems =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
-    String firstCodeSystemId = codeSystems.get(0).getIdPart();
+    final String firstCodeSystemId = codeSystems.get(0).getIdPart();
 
     // reassign content with firstCodeSystemId
     content = this.restTemplate.getForObject(endpoint + "/" + firstCodeSystemId, String.class);
-    CodeSystem codeSystem = parser.parseResource(CodeSystem.class, content);
+    final CodeSystem codeSystem = parser.parseResource(CodeSystem.class, content);
 
     // Assert
     assertNotNull(codeSystem);
@@ -170,17 +172,17 @@ class FhirR5CodeSystemReadSearchTests {
     // these tests should be amended when the data is updated
 
     // Arrange
-    String endpoint = localHost + port + fhirCSPath;
+    final String endpoint = localHost + port + fhirCSPath;
 
     // Test 1: All valid parameters
     UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
             // "ge2021-06")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "21.06e")
+            .queryParam("version", "25.06e")
             .queryParam("title", "ncit")
-            .queryParam("publisher", "NCI")
-            .queryParam("name", "NCI Thesaurus 21.06e");
+            .queryParam("publisher", "National Cancer Institute")
+            .queryParam("name", "NCI Thesaurus 25.06e");
 
     // Test successful case with all parameters
     String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -195,7 +197,7 @@ class FhirR5CodeSystemReadSearchTests {
             // -
             // invalid
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "21.06e")
+            .queryParam("version", "25.06e")
             .queryParam("title", "ncit")
             .queryParam("publisher", "NCI")
             .queryParam("name", "NCI Thesaurus");
@@ -209,7 +211,7 @@ class FhirR5CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
             // "ge2021-06")
             .queryParam("url", "http://invalid.system.url")
-            .queryParam("version", "21.06e")
+            .queryParam("version", "25.06e")
             .queryParam("title", "ncit")
             .queryParam("publisher", "NCI")
             .queryParam("name", "NCI Thesaurus");
@@ -237,7 +239,7 @@ class FhirR5CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
             // "ge2021-06")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "21.06e")
+            .queryParam("version", "25.06e")
             .queryParam("title", "invalid_title")
             .queryParam("publisher", "NCI")
             .queryParam("name", "NCI Thesaurus");
@@ -251,7 +253,7 @@ class FhirR5CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
             // "ge2021-06")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "21.06e")
+            .queryParam("version", "25.06e")
             .queryParam("title", "ncit")
             .queryParam("publisher", "InvalidPublisher")
             .queryParam("name", "NCI Thesaurus");
@@ -265,7 +267,7 @@ class FhirR5CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
             // "ge2021-06")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "21.06e")
+            .queryParam("version", "25.06e")
             .queryParam("title", "ncit")
             .queryParam("publisher", "NCI")
             .queryParam("name", "InvalidName");
@@ -279,7 +281,7 @@ class FhirR5CodeSystemReadSearchTests {
     // .queryParam("date",
     // // "ge2021-06")
     // .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-    // .queryParam("version", "21.06e").queryParam("title",
+    // .queryParam("version", "25.06e").queryParam("title",
     // "ncit").queryParam("publisher", "NCI")
     // .queryParam("name", "NCI Thesaurus");
     //
@@ -294,7 +296,7 @@ class FhirR5CodeSystemReadSearchTests {
     // .queryParam("date",
     // // "ge2021-06")
     // .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-    // .queryParam("version", "21.06e").queryParam("title",
+    // .queryParam("version", "25.06e").queryParam("title",
     // "ncit").queryParam("publisher", "NCI")
     // .queryParam("name", "NCI Thesaurus");
     //
@@ -309,7 +311,7 @@ class FhirR5CodeSystemReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
             // "ge2021-06")
             .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "21.06e")
+            .queryParam("version", "25.06e")
             .queryParam("title", "ncit");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -322,15 +324,15 @@ class FhirR5CodeSystemReadSearchTests {
             // "ge2021-06")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
             .queryParam("system", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "21.06e")
+            .queryParam("version", "25.06e")
             .queryParam("title", "ncit");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
-    String messageNotFound = "Must use one of 'url' or 'system' parameters";
-    String errorCode = "invariant";
+    final String messageNotFound = "Must use one of 'url' or 'system' parameters";
+    final String errorCode = "invariant";
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -343,19 +345,19 @@ class FhirR5CodeSystemReadSearchTests {
    * @param data the data
    * @param expectResults the expect results
    */
-  private void validateCodeSystemResults(Bundle data, boolean expectResults) {
-    List<Resource> codeSystems =
+  private void validateCodeSystemResults(final Bundle data, final boolean expectResults) {
+    final List<Resource> codeSystems =
         data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     if (expectResults) {
       assertFalse(codeSystems.isEmpty());
-      final Set<String> ids = new HashSet<>(Set.of("ncit_21.06e"));
+      final Set<String> ids = new HashSet<>(Set.of("ncit_25.06e"));
       final Set<String> urls =
           new HashSet<>(Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl"));
 
-      for (Resource cs : codeSystems) {
+      for (final Resource cs : codeSystems) {
         log.info(" code system = " + parser.encodeResourceToString(cs));
-        CodeSystem css = (CodeSystem) cs;
+        final CodeSystem css = (CodeSystem) cs;
         assertNotNull(css);
         assertEquals(ResourceType.CodeSystem, css.getResourceType());
         assertNotNull(css.getIdPart());
@@ -380,12 +382,12 @@ class FhirR5CodeSystemReadSearchTests {
   public void testCodeSystemReadStaticId() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirCSPath;
-    String codeSystemId = "umlssemnet_2023aa";
+    final String endpoint = localHost + port + fhirCSPath;
+    final String codeSystemId = "umlssemnet_2023aa";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + "/" + codeSystemId, String.class);
-    CodeSystem codeSystem = parser.parseResource(CodeSystem.class, content);
+    final CodeSystem codeSystem = parser.parseResource(CodeSystem.class, content);
 
     // Assert
     assertNotNull(codeSystem);
@@ -411,15 +413,15 @@ class FhirR5CodeSystemReadSearchTests {
   public void testCodeSystemReadBadId() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirCSPath;
-    String invalidId = "invalid_id";
-    String messageNotFound = "Code system not found = " + invalidId;
-    String errorCode = "not-found";
+    final String endpoint = localHost + port + fhirCSPath;
+    final String invalidId = "invalid_id";
+    final String messageNotFound = "Code system not found = " + invalidId;
+    final String errorCode = "not-found";
 
     // Act
     content = this.restTemplate.getForObject(endpoint + "/" + invalidId, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -434,44 +436,44 @@ class FhirR5CodeSystemReadSearchTests {
   @Test
   public void testCodeSystemSearchPagination() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirCSPath;
+    final String endpoint = localHost + port + fhirCSPath;
 
     // Test 1: Get default results without pagination
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle defaultData = parser.parseResource(Bundle.class, content);
-    List<Resource> defaultCodeSystems =
+    final Bundle defaultData = parser.parseResource(Bundle.class, content);
+    final List<Resource> defaultCodeSystems =
         defaultData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Test 2: Get first page (count=2)
-    UriComponentsBuilder firstPageBuilder =
+    final UriComponentsBuilder firstPageBuilder =
         UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2");
 
     content =
         this.restTemplate.getForObject(firstPageBuilder.build().encode().toUri(), String.class);
-    Bundle firstPageData = parser.parseResource(Bundle.class, content);
-    List<Resource> firstPageSystems =
+    final Bundle firstPageData = parser.parseResource(Bundle.class, content);
+    final List<Resource> firstPageSystems =
         firstPageData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Test 3: Get second page (count=2, offset=2)
-    UriComponentsBuilder secondPageBuilder =
+    final UriComponentsBuilder secondPageBuilder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2")
             .queryParam("_offset", "2");
 
     content =
         this.restTemplate.getForObject(secondPageBuilder.build().encode().toUri(), String.class);
-    Bundle secondPageData = parser.parseResource(Bundle.class, content);
-    List<Resource> secondPageSystems =
+    final Bundle secondPageData = parser.parseResource(Bundle.class, content);
+    final List<Resource> secondPageSystems =
         secondPageData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Test 4: Try to exceed maximum count (should return all)
-    UriComponentsBuilder maxExceededBuilder =
+    final UriComponentsBuilder maxExceededBuilder =
         UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "10000");
 
     content =
         this.restTemplate.getForObject(maxExceededBuilder.build().encode().toUri(), String.class);
-    Bundle maxPageData = parser.parseResource(Bundle.class, content);
-    List<Resource> maxPageSystems =
+    final Bundle maxPageData = parser.parseResource(Bundle.class, content);
+    final List<Resource> maxPageSystems =
         maxPageData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Assertions for pagination
@@ -481,13 +483,13 @@ class FhirR5CodeSystemReadSearchTests {
     assertTrue(defaultCodeSystems.size() <= maxPageSystems.size());
 
     // Verify that concatenated pages equal first 4 of full results
-    List<String> fourIds =
+    final List<String> fourIds =
         defaultCodeSystems.subList(0, 4).stream()
             .map(resource -> resource.getIdPart())
             .sorted()
             .toList();
 
-    List<String> paginatedIds =
+    final List<String> paginatedIds =
         Stream.concat(firstPageSystems.stream(), secondPageSystems.stream())
             .map(resource -> resource.getIdPart())
             .sorted()
@@ -496,7 +498,7 @@ class FhirR5CodeSystemReadSearchTests {
     assertEquals(fourIds, paginatedIds);
 
     // Verify content of individual resources
-    for (Resource cs : defaultCodeSystems) {
+    for (final Resource cs : defaultCodeSystems) {
       validateCodeSystemPagination((CodeSystem) cs);
     }
   }
@@ -506,7 +508,7 @@ class FhirR5CodeSystemReadSearchTests {
    *
    * @param css the css
    */
-  private void validateCodeSystemPagination(CodeSystem css) {
+  private void validateCodeSystemPagination(final CodeSystem css) {
     assertNotNull(css);
     assertEquals(ResourceType.CodeSystem, css.getResourceType());
     assertNotNull(css.getIdPart());
@@ -517,7 +519,7 @@ class FhirR5CodeSystemReadSearchTests {
     log.info(" code system = " + parser.encodeResourceToString(css));
 
     // Verify specific IDs and URLs if needed
-    if (css.getIdPart().equals("ncit_21.06e")) {
+    if (css.getIdPart().equals("ncit_25.06e")) {
       assertEquals("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl", css.getUrl());
     }
   }
@@ -531,81 +533,633 @@ class FhirR5CodeSystemReadSearchTests {
   public void testCodeSystemSearchVariantsWithParameters() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirCSPath;
+    final String endpoint = localHost + port + fhirCSPath;
 
     // Test 1: Get list of CodeSystems first
     content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> codeSystems =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> codeSystems =
         data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
-    CodeSystem firstCodeSystem = (CodeSystem) codeSystems.get(0);
-    String firstCodeSystemTitle = firstCodeSystem.getTitle();
+    final CodeSystem firstCodeSystem = (CodeSystem) codeSystems.get(0);
+    final String firstCodeSystemTitle = firstCodeSystem.getTitle();
 
     // Test 3: Search by title (exact match)
-    String titleExactUrl =
+    final String titleExactUrl =
         endpoint
             + "?title:exact="
             + URLEncoder.encode(firstCodeSystemTitle, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(titleExactUrl, String.class);
-    Bundle exactMatchBundle = parser.parseResource(Bundle.class, content);
+    final Bundle exactMatchBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(exactMatchBundle.getEntry());
     assertFalse(exactMatchBundle.getEntry().isEmpty());
-    CodeSystem exactMatchSystem = (CodeSystem) exactMatchBundle.getEntry().get(0).getResource();
+    final CodeSystem exactMatchSystem =
+        (CodeSystem) exactMatchBundle.getEntry().get(0).getResource();
     assertEquals(firstCodeSystemTitle, exactMatchSystem.getTitle());
 
     // Test 4: Search by title (contains)
-    String partialTitle = firstCodeSystemTitle.substring(1, firstCodeSystemTitle.length() - 1);
-    String titleContainsUrl =
+    final String partialTitle =
+        firstCodeSystemTitle.substring(1, firstCodeSystemTitle.length() - 1);
+    final String titleContainsUrl =
         endpoint + "?title:contains=" + URLEncoder.encode(partialTitle, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(titleContainsUrl, String.class);
-    Bundle containsMatchBundle = parser.parseResource(Bundle.class, content);
+    final Bundle containsMatchBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(containsMatchBundle.getEntry());
     assertFalse(containsMatchBundle.getEntry().isEmpty());
-    boolean foundMatch =
+    final boolean foundMatch =
         containsMatchBundle.getEntry().stream()
             .map(entry -> ((CodeSystem) entry.getResource()).getTitle())
             .anyMatch(title -> title.contains(partialTitle));
     assertTrue(foundMatch);
 
     // Test 5: Search by title (startsWith)
-    String titlePrefix = firstCodeSystemTitle.substring(0, 3);
-    String titleStartsWithUrl =
+    final String titlePrefix = firstCodeSystemTitle.substring(0, 3);
+    final String titleStartsWithUrl =
         endpoint + "?title:startsWith=" + URLEncoder.encode(titlePrefix, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(titleStartsWithUrl, String.class);
-    Bundle startsWithMatchBundle = parser.parseResource(Bundle.class, content);
+    final Bundle startsWithMatchBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(startsWithMatchBundle.getEntry());
     assertFalse(startsWithMatchBundle.getEntry().isEmpty());
-    boolean foundStartsWithMatch =
+    final boolean foundStartsWithMatch =
         startsWithMatchBundle.getEntry().stream()
             .map(entry -> ((CodeSystem) entry.getResource()).getTitle())
             .anyMatch(title -> title.startsWith(titlePrefix));
     assertTrue(foundStartsWithMatch);
 
     // Test 6: Negative test - non-existent title
-    String nonExistentTitle = "NonExistentCodeSystemTitle" + UUID.randomUUID();
-    String negativeTestUrl =
+    final String nonExistentTitle = "NonExistentCodeSystemTitle" + UUID.randomUUID();
+    final String negativeTestUrl =
         endpoint + "?title:exact=" + URLEncoder.encode(nonExistentTitle, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(negativeTestUrl, String.class);
-    Bundle emptyBundle = parser.parseResource(Bundle.class, content);
+    final Bundle emptyBundle = parser.parseResource(Bundle.class, content);
 
     assertTrue(emptyBundle.getEntry() == null || emptyBundle.getEntry().isEmpty());
 
     // Test 7: Case sensitivity test; exact ignores case
-    String upperCaseTitle = firstCodeSystemTitle.toUpperCase();
-    String caseSensitiveUrl =
+    final String upperCaseTitle = firstCodeSystemTitle.toUpperCase();
+    final String caseSensitiveUrl =
         endpoint + "?title:exact=" + URLEncoder.encode(upperCaseTitle, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(caseSensitiveUrl, String.class);
-    Bundle caseSensitiveBundle = parser.parseResource(Bundle.class, content);
+    final Bundle caseSensitiveBundle = parser.parseResource(Bundle.class, content);
 
     // Case-sensitive search returns otherwise exact match
     assertNotNull(caseSensitiveBundle.getEntry());
     assertFalse(caseSensitiveBundle.getEntry().isEmpty());
-    CodeSystem caseSensitiveMatchSystem =
+    final CodeSystem caseSensitiveMatchSystem =
         (CodeSystem) caseSensitiveBundle.getEntry().get(0).getResource();
     assertEquals(firstCodeSystemTitle, caseSensitiveMatchSystem.getTitle());
+  }
+
+  @Test
+  public void testCodeSystemHistory() throws Exception {
+    // Arrange
+    String content;
+    final String endpoint = localHost + port + fhirCSPath;
+
+    // Act - First get list of CodeSystems to find a valid ID
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    final String firstCodeSystemId = codeSystems.get(0).getIdPart();
+
+    // Act - Get history for the first CodeSystem
+    final String historyEndpoint = endpoint + "/" + firstCodeSystemId + "/_history";
+    content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    final Bundle historyBundle = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(historyBundle);
+    assertEquals(ResourceType.Bundle, historyBundle.getResourceType());
+    assertEquals(Bundle.BundleType.HISTORY, historyBundle.getType());
+    assertFalse(historyBundle.getEntry().isEmpty());
+
+    // Verify each entry in history is a CodeSystem with the same ID
+    for (final Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
+      assertNotNull(entry.getResource());
+      assertEquals(ResourceType.CodeSystem, entry.getResource().getResourceType());
+
+      final CodeSystem historyCodeSystem = (CodeSystem) entry.getResource();
+      assertEquals(firstCodeSystemId, historyCodeSystem.getIdPart());
+
+      // Verify metadata is properly set
+      assertNotNull(historyCodeSystem.getMeta());
+      assertNotNull(historyCodeSystem.getMeta().getVersionId());
+      assertNotNull(historyCodeSystem.getMeta().getLastUpdated());
+    }
+  }
+
+  @Test
+  public void testCodeSystemHistoryNotFound() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCSPath;
+    final String invalidId = "nonexistent-codesystem-id";
+    final String historyEndpoint = endpoint + "/" + invalidId + "/_history";
+
+    final String messageNotFound = "Code system not found = " + invalidId;
+    final String errorCode = "not-found";
+
+    // Act
+    final String content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
+  }
+
+  @Test
+  public void testCodeSystemVread() throws Exception {
+    // Arrange
+    String content;
+    final String endpoint = localHost + port + fhirCSPath;
+
+    // Act - First get list of CodeSystems to find a valid ID
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    final String firstCodeSystemId = codeSystems.get(0).getIdPart();
+
+    // Act - Get specific version (assuming version 1 exists)
+    final String versionEndpoint = endpoint + "/" + firstCodeSystemId + "/_history/1";
+    content = this.restTemplate.getForObject(versionEndpoint, String.class);
+    final CodeSystem versionedCodeSystem = parser.parseResource(CodeSystem.class, content);
+
+    // Assert
+    assertNotNull(versionedCodeSystem);
+    assertEquals(ResourceType.CodeSystem, versionedCodeSystem.getResourceType());
+    assertEquals(firstCodeSystemId, versionedCodeSystem.getIdPart());
+
+    // Verify metadata
+    assertNotNull(versionedCodeSystem.getMeta());
+    assertNotNull(versionedCodeSystem.getMeta().getVersionId());
+    assertNotNull(versionedCodeSystem.getMeta().getLastUpdated());
+
+    // Compare with original CodeSystem
+    final CodeSystem originalCodeSystem = (CodeSystem) codeSystems.get(0);
+    assertEquals(originalCodeSystem.getUrl(), versionedCodeSystem.getUrl());
+    assertEquals(originalCodeSystem.getName(), versionedCodeSystem.getName());
+    assertEquals(originalCodeSystem.getPublisher(), versionedCodeSystem.getPublisher());
+  }
+
+  @Test
+  public void testCodeSystemVreadNotFound() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCSPath;
+    final String invalidId = "nonexistent-codesystem-id";
+    final String versionEndpoint = endpoint + "/" + invalidId + "/_history/1";
+
+    // Act & Assert
+    final String messageNotFound =
+        "Code system version not found: nonexistent-codesystem-id version 1";
+    final String errorCode = "not-found";
+
+    // Act
+    final String content = this.restTemplate.getForObject(versionEndpoint, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
+  }
+
+  @Test
+  public void testCodeSystemVreadInvalidVersion() throws Exception {
+    // Arrange
+    String content;
+    final String endpoint = localHost + port + fhirCSPath;
+
+    // Act - First get list of CodeSystems to find a valid ID
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    final String firstCodeSystemId = codeSystems.get(0).getIdPart();
+
+    // Act & Assert - Try to get a version that doesn't exist
+    final String invalidVersionEndpoint = endpoint + "/" + firstCodeSystemId + "/_history/999";
+    final String messageNotFound =
+        "Code system version not found: " + firstCodeSystemId + " version 999";
+    final String errorCode = "not-found";
+
+    // Act
+    content = this.restTemplate.getForObject(invalidVersionEndpoint, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
+  }
+
+  @Test
+  public void testCodeSystemHistoryMetadataConsistency() throws Exception {
+    // Arrange
+    String content;
+    final String endpoint = localHost + port + fhirCSPath;
+
+    // Act - Get a CodeSystem and its history
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    final String firstCodeSystemId = codeSystems.get(0).getIdPart();
+
+    // Get history
+    final String historyEndpoint = endpoint + "/" + firstCodeSystemId + "/_history";
+    content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    final Bundle historyBundle = parser.parseResource(Bundle.class, content);
+
+    // Get current version
+    content = this.restTemplate.getForObject(endpoint + "/" + firstCodeSystemId, String.class);
+    final CodeSystem currentCodeSystem = parser.parseResource(CodeSystem.class, content);
+
+    // Assert - Verify history contains current version
+    boolean foundCurrentVersion = false;
+    for (final Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
+      final CodeSystem historyVersion = (CodeSystem) entry.getResource();
+      if (currentCodeSystem.getUrl().equals(historyVersion.getUrl())
+          && currentCodeSystem.getName().equals(historyVersion.getName())) {
+        foundCurrentVersion = true;
+        break;
+      }
+    }
+    Assertions.assertTrue(foundCurrentVersion, "History should contain the current version");
+  }
+
+  @Test
+  public void testCodeSystemVreadMatchesHistoryEntry() throws Exception {
+    // Arrange
+    String content;
+    final String endpoint = localHost + port + fhirCSPath;
+
+    // Act - Get history first
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    final String firstCodeSystemId = codeSystems.get(0).getIdPart();
+
+    final String historyEndpoint = endpoint + "/" + firstCodeSystemId + "/_history";
+    content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    final Bundle historyBundle = parser.parseResource(Bundle.class, content);
+
+    // Get first version from history
+    final CodeSystem firstHistoryVersion =
+        (CodeSystem) historyBundle.getEntry().get(0).getResource();
+    final String versionId = firstHistoryVersion.getMeta().getVersionId();
+
+    // Act - Get the same version using vread
+    final String vreadEndpoint = endpoint + "/" + firstCodeSystemId + "/_history/" + versionId;
+    content = this.restTemplate.getForObject(vreadEndpoint, String.class);
+    final CodeSystem vreadCodeSystem = parser.parseResource(CodeSystem.class, content);
+
+    // Assert - Both should be identical
+    // assertEquals(firstHistoryVersion.getId(), vreadCodeSystem.getId());
+    assertEquals(firstHistoryVersion.getUrl(), vreadCodeSystem.getUrl());
+    assertEquals(firstHistoryVersion.getName(), vreadCodeSystem.getName());
+    assertEquals(firstHistoryVersion.getVersion(), vreadCodeSystem.getVersion());
+    assertEquals(
+        firstHistoryVersion.getMeta().getVersionId(), vreadCodeSystem.getMeta().getVersionId());
+  }
+
+  /**
+   * Test code system search with parameters - date range related.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemSearchWithDateFocus() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCSPath;
+
+    // Test 1: All valid parameters
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+            // "ge2021-06")
+            .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+            .queryParam("version", "202506")
+            .queryParam("title", "canmed");
+
+    // Test successful case with all parameters
+    String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    org.hl7.fhir.r5.model.Bundle data =
+        parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
+    validateCanmedCodeSystemResults(data, true); // Expecting results
+
+    // Test 2: Invalid date
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2030-01") // Future date
+            .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+            .queryParam("version", "202506")
+            .queryParam("title", "canmed");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
+    validateCanmedCodeSystemResults(data, false); // Expecting no results
+
+    // Test 3: Valid date
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "2025-06-01")
+            .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+            .queryParam("version", "202506")
+            .queryParam("title", "canmed");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
+    validateCanmedCodeSystemResults(data, true);
+
+    // Test 4: Valid date range
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2023-11-01")
+            .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+            .queryParam("version", "202506")
+            .queryParam("title", "canmed");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
+    validateCanmedCodeSystemResults(data, true);
+
+    // Test 5: Valid date range
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2023-11-01")
+            .queryParam("date", "lt2030-11-01")
+            .queryParam("system", "http://seer.nci.nih.gov/CanMED.owl")
+            .queryParam("version", "202506")
+            .queryParam("title", "canmed");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
+    validateCanmedCodeSystemResults(data, true);
+  }
+
+  private void validateCanmedCodeSystemResults(
+      final org.hl7.fhir.r5.model.Bundle data, final boolean expectResults) {
+    final List<org.hl7.fhir.r5.model.Resource> codeSystems =
+        data.getEntry().stream()
+            .map(org.hl7.fhir.r5.model.Bundle.BundleEntryComponent::getResource)
+            .toList();
+
+    if (expectResults) {
+      assertFalse(codeSystems.isEmpty());
+      final Set<String> ids = new HashSet<>(Set.of("canmed_202506"));
+      final Set<String> urls = new HashSet<>(Set.of("http://seer.nci.nih.gov/CanMED.owl"));
+
+      for (final org.hl7.fhir.r5.model.Resource cs : codeSystems) {
+        log.info(" code system = " + parser.encodeResourceToString(cs));
+        final org.hl7.fhir.r5.model.CodeSystem css = (org.hl7.fhir.r5.model.CodeSystem) cs;
+        assertNotNull(css);
+        assertEquals(org.hl7.fhir.r5.model.ResourceType.CodeSystem, css.getResourceType());
+        assertNotNull(css.getIdPart());
+        assertNotNull(css.getPublisher());
+        assertNotNull(css.getUrl());
+        ids.remove(css.getIdPart());
+        urls.remove(css.getUrl());
+      }
+      assertThat(ids).isEmpty();
+      assertThat(urls).isEmpty();
+    } else {
+      assertTrue(data.getEntry().isEmpty() || codeSystems.isEmpty());
+    }
+  }
+
+  /**
+   * Test code system search with sort by name.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByName() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCSPath + "?_sort=name";
+
+    // Act
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by name in ascending order
+    final List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(codeSystems);
+
+    String previousName = null;
+    for (final Resource cs : codeSystems) {
+      final CodeSystem css = (CodeSystem) cs;
+      assertNotNull(css.getName());
+      final String currentName = css.getName().toLowerCase();
+      if (previousName != null) {
+        assertTrue(
+            currentName.compareTo(previousName) >= 0,
+            "Names should be in alphabetical order: '"
+                + previousName
+                + "' should come before '"
+                + currentName
+                + "'");
+      }
+      previousName = currentName;
+    }
+  }
+
+  /**
+   * Test code system search with sort by title descending.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByTitleDescending() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCSPath + "?_sort=-title";
+
+    // Act
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by title in descending order
+    final List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(codeSystems);
+
+    String previousTitle = null;
+    for (final Resource cs : codeSystems) {
+      final CodeSystem css = (CodeSystem) cs;
+      assertNotNull(css.getTitle());
+      final String currentTitle = css.getTitle().toLowerCase();
+      if (previousTitle != null) {
+        assertTrue(
+            currentTitle.compareTo(previousTitle) <= 0,
+            "Titles should be in descending alphabetical order: '"
+                + previousTitle
+                + "' should come after '"
+                + currentTitle
+                + "'");
+      }
+      previousTitle = currentTitle;
+    }
+  }
+
+  /**
+   * Test code system search with sort by publisher.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByPublisher() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCSPath + "?_sort=publisher";
+
+    // Act
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by publisher in ascending order
+    final List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(codeSystems);
+
+    String previousPublisher = null;
+    for (final Resource cs : codeSystems) {
+      final CodeSystem css = (CodeSystem) cs;
+      assertNotNull(css.getPublisher());
+      final String currentPublisher = css.getPublisher().toLowerCase();
+      if (previousPublisher != null) {
+        assertTrue(
+            currentPublisher.compareTo(previousPublisher) >= 0,
+            "Publishers should be in alphabetical order: '"
+                + previousPublisher
+                + "' should come before '"
+                + currentPublisher
+                + "'");
+      }
+      previousPublisher = currentPublisher;
+    }
+  }
+
+  /**
+   * Test code system search with sort by date.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByDate() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCSPath + "?_sort=date";
+
+    // Act
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by date in ascending order
+    final List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(codeSystems);
+
+    Date previousDate = null;
+    for (final Resource cs : codeSystems) {
+      final CodeSystem css = (CodeSystem) cs;
+      final Date currentDate = css.getDate();
+      if (previousDate != null && currentDate != null) {
+        assertTrue(
+            currentDate.compareTo(previousDate) >= 0,
+            "Dates should be in chronological order: '"
+                + previousDate
+                + "' should come before '"
+                + currentDate
+                + "'");
+      }
+      if (currentDate != null) {
+        previousDate = currentDate;
+      }
+    }
+  }
+
+  /**
+   * Test code system search with sort by URL.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByUrl() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCSPath + "?_sort=url";
+
+    // Act
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by URL in ascending order
+    final List<Resource> codeSystems =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(codeSystems);
+
+    String previousUrl = null;
+    for (final Resource cs : codeSystems) {
+      final CodeSystem css = (CodeSystem) cs;
+      assertNotNull(css.getUrl());
+      final String currentUrl = css.getUrl().toLowerCase();
+      if (previousUrl != null) {
+        assertTrue(
+            currentUrl.compareTo(previousUrl) >= 0,
+            "URLs should be in alphabetical order: '"
+                + previousUrl
+                + "' should come before '"
+                + currentUrl
+                + "'");
+      }
+      previousUrl = currentUrl;
+    }
+  }
+
+  /**
+   * Test code system search with invalid sort field.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testCodeSystemSearchSortByInvalidField() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCSPath + "?_sort=invalid_field";
+
+    // Act
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+
+    // Assert
+    assertNotNull(outcome);
+    assertNotNull(outcome.getIssue());
+    assertFalse(outcome.getIssue().isEmpty());
+
+    final OperationOutcomeIssueComponent issue = outcome.getIssue().get(0);
+    assertEquals(OperationOutcome.IssueSeverity.ERROR, issue.getSeverity());
+    assertTrue(issue.getDiagnostics().contains("Unsupported sort field"));
   }
 }

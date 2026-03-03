@@ -1,56 +1,81 @@
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	agr	HGNC:100
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	alias_symbol	BNaC2
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	ccds_id	CCDS44876
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	date_approved_reserved	1997-09-05
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	date_modified	2020-09-17
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	date_name_changed	2015-12-14
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	date_symbol_changed	2012-02-22
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	ena	U78181
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	ensembl_gene_id	ENSG00000110881
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	entrez_id	41
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	gene_group	Acid sensing ion channel subunits
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	gene_group_id	290
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	iuphar	objectId:684
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	location	12q13.12
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	location_sortable	12q13.12
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	locus_group	protein-coding gene
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	locus_type	gene with protein product
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	mane_select	ENST00000447966.7|NM_001095.4
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	mgd_id	MGI:1194915
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	name	acid sensing ion channel subunit 1
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	omim_id	602866
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	prev_name	acid sensing (proton gated) ion channel 1
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	prev_symbol	ACCN2
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	pubmed_id	9037075
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	refseq_accession	NM_020039
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	rgd_id	RGD:71062
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	status	Approved
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	symbol	ASIC1
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	rdfs:label	ASIC1
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	ucsc_id	uc001rvw.5
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	uniprot_ids	P78348
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	vega_id	OTTHUMG00000169812
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_10001	HGNC:10001	gencc	HGNC:10001
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_10004	HGNC:10004	alias_name	regulator of G protein signalling 9
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_10004	HGNC:10004	orphanet	118299
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_10006	HGNC:10006	bioparadigms_slc	SLC42A1
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_10006	HGNC:10006	cd	CD241
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_10006	HGNC:10006	lsdb	&lt;a href=&quot;http://ftp.ebi.ac.uk/pub/databases/lrgex/LRG_822.xml&quot; target=&quot;_blank&quot;&gt;LRG_822&lt;/a&gt;
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_10007	HGNC:10007	enzyme_id	3.4.21.105
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_10007	HGNC:10007	merops	S54.005
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_1001	HGNC:1001	cosmic	BCL6
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_10010	HGNC:10010	pseudogene.org	PGOHUM00000289843
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_10037	HGNC:10037	lncrnadb	7SK
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_10096	HGNC:10096	snornabase	SR0000028
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_10118	HGNC:10118	lncipedia	SNHG3
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_1040	HGNC:1040	intermediate_filament_db	HGNC:1040
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_10541	HGNC:10541	homeodb	8507
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_12029	HGNC:12029	imgt	TRAC
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_12098	HGNC:12098	gtrnadb	tRNA-Ala-TGC-7-1
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_13784	HGNC:13784	mirbase	MI0001641
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_13963	HGNC:13963	horde_id	OR12D3
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	Code	HGNC_5
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	Preferred_Name	alpha-1-B glycoprotein
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	Synonym	A1BG
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	symbol	A1BG
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	name	alpha-1-B glycoprotein
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	locus_group	protein-coding gene
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	locus_type	gene with protein product
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	status	Approved
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	location	19q13.43
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	location_sortable	19q13.43
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	gene_group	Immunoglobulin like domain containing
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	gene_group_id	594
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	date_approved_reserved	1989-06-30
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	date_modified	2023-01-20
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	entrez_id	1
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	ensembl_gene_id	ENSG00000121410
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	vega_id	OTTHUMG00000183507
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	ucsc_id	uc002qsd.5
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	refseq_accession	NM_130786
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	ccds_id	CCDS12976
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	uniprot_ids	P04217
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	pubmed_id	2591067
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	mgd_id	MGI:2152878
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	rgd_id	RGD:69417
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	omim_id	138670
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	merops	I43.950
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	agr	HGNC:5
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	mane_select	ENST00000263100.8
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_37133	HGNC:37133	alias_symbol	FLJ23569
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_37133	HGNC:37133	prev_symbol	NCRNA00181
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_37133	HGNC:37133	prev_name	non-protein coding RNA 181
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_37133	HGNC:37133	date_symbol_changed	2010-11-25
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_37133	HGNC:37133	date_name_changed	2012-08-15
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_37133	HGNC:37133	ena	BC040926
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_37133	HGNC:37133	rna_central_id	URS00007E4F6E
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_37133	HGNC:37133	lncipedia	A1BG-AS1
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_7	HGNC:7	lsdb	LRG_591
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_7	HGNC:7	gencc	HGNC:7
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_23336	HGNC:23336	orphanet	410627
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_8	HGNC:8	pseudogene.org	PGOHUM00000291221
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_30005	HGNC:30005	alias_name	iGb3 synthase
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_18149	HGNC:18149	enzyme_id	2.4.1.228
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_32	HGNC:32	iuphar	objectId:757
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_40	HGNC:40	cd	CD243
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_11320	HGNC:11320	cosmic	ABI1
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_42435	HGNC:42435	lncrnadb	adamts9-as2
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_15766	HGNC:15766	homeodb	8666
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_24682	HGNC:24682	bioparadigms_slc	SLC49A1
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5478	HGNC:5478	imgt	IGHA1
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_31499	HGNC:31499	mirbase	MI0000651
 http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_7475	HGNC:7475	mamit-trnadb	7
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	parent-style1	gene_with_protein_product
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	gene_with_protein_product	child-style1	HGNC:100
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#gene_with_protein_product	gene_with_protein_product	max-children	19235
-http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_100	HGNC:100	parent-count1
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_8179	HGNC:8179	horde_id	OR1A1
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_32555	HGNC:32555	snornabase	SR0000002
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_34914	HGNC:34914	gtrnadb	tRNA-Ala-AGC-1-1
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	parent-style1	gene_with_protein_product
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	gene_with_protein_product	child-style1	HGNC:5
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#gene_with_protein_product	gene_with_protein_product	max-children	19293
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#HGNC_5	HGNC:5	parent-count1
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#immunoglobulin_gene	immunoglobulin_gene	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#complex_locus_constituent	complex_locus_constituent	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#region	region	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#endogenous_retrovirus	endogenous_retrovirus	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#RNA_small_nucleolar	RNA_small_nucleolar	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#RNA_small_nuclear	RNA_small_nuclear	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#unknown	unknown	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#RNA_ribosomal	RNA_ribosomal	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#RNA_transfer	RNA_transfer	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#T_cell_receptor_pseudogene	T_cell_receptor_pseudogene	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#RNA_vault	RNA_vault	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#pseudogene	pseudogene	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#RNA_misc	RNA_misc	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#RNA_cluster	RNA_cluster	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#T_cell_receptor_gene	T_cell_receptor_gene	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#RNA_long_non-coding	RNA_long_non-coding	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#gene_with_protein_product	gene_with_protein_product	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#readthrough	readthrough	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#fragile_site	fragile_site	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#RNA_Y	RNA_Y	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#RNA_micro	RNA_micro	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#virus_integration_site	virus_integration_site	root
+http://ncicb.nci.nih.gov/genenames.org/HGNC.owl#immunoglobulin_pseudogene	immunoglobulin_pseudogene	root

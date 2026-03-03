@@ -113,18 +113,17 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
   @Override
   public List<Concept> getConcepts(
       Collection<String> codes, Terminology terminology, IncludeParam ip) {
-    if (codes == null || codes.size() == 0) {
+    if (codes == null || codes.isEmpty()) {
       return new ArrayList<>();
     }
     NativeSearchQuery query =
         new NativeSearchQueryBuilder()
-            .withFilter(QueryBuilders.termsQuery("_id", codes))
+            .withFilter(QueryBuilders.idsQuery().addIds(codes.toArray(new String[0])))
             .withSourceFilter(new FetchSourceFilter(ip.getIncludedFields(), ip.getExcludedFields()))
             .withPageable(new EVSPageable(0, codes.size(), 0))
             .build();
 
-    List<Concept> concepts = getResults(query, Concept.class, terminology.getIndexName());
-    return concepts;
+    return getResults(query, Concept.class, terminology.getIndexName());
   }
 
   /**
@@ -178,6 +177,57 @@ public class OpensearchQueryServiceImpl implements OpensearchQueryService {
     }
 
     return concept.get().getDescendants();
+  }
+
+  /**
+   * see superclass *.
+   *
+   * @param code the code
+   * @param terminology the terminology
+   * @return the descendants
+   */
+  @Override
+  public List<Concept> getChildren(String code, Terminology terminology) {
+    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("children"));
+    if (!concept.isPresent() || CollectionUtils.isEmpty(concept.get().getDescendants())) {
+      return Collections.emptyList();
+    }
+
+    return concept.get().getChildren();
+  }
+
+  /**
+   * see superclass *.
+   *
+   * @param code the code
+   * @param terminology the terminology
+   * @return the descendants
+   */
+  @Override
+  public List<Concept> getAncestors(String code, Terminology terminology) throws IOException {
+    Optional<Concept> concept = getConcept(code, terminology, new IncludeParam("descendants"));
+    if (!concept.isPresent()) {
+      return new ArrayList<>();
+    }
+    List<Concept> ancestors = new ArrayList<>();
+
+    // find root and add as ancestors all concepts between self and this root
+    for (Concept root : getRootNodes(terminology, new IncludeParam("descendants"))) {
+      boolean foundMatch =
+          root.getDescendants().stream()
+              .anyMatch(descendant -> descendant.getCode().equals(concept.get().getCode()));
+
+      if (foundMatch) {
+        Paths paths = getPathsToParent(code, root.getCode(), terminology);
+        List<Path> pathList = paths.getPaths();
+        for (Path p : pathList) {
+          for (ConceptMinimal cm : p.getConcepts()) {
+            ancestors.add(new Concept(cm));
+          }
+        }
+      }
+    }
+    return ancestors;
   }
 
   /**

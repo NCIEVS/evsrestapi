@@ -2,7 +2,6 @@
 
 # Bash script to run a Postman collection with a dynamically calculated API_URL
 
-# TODO: Calculate or fetch the API_URL
 # Replace this local URL with the actual method to determine API_URL.
 # API_URL="http://localhost:8082/api/v1"  # local URL; update as needed.
 API_URL="https://api-evsrest.nci.nih.gov" # Prod API_URL

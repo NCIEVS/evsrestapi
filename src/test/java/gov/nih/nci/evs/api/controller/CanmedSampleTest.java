@@ -81,7 +81,7 @@ public class CanmedSampleTest extends SampleTest {
         terminologies.stream().filter(t -> t.getTerminology().equals("canmed")).findFirst().get();
     assertThat(terminology.getTerminology()).isEqualTo("canmed");
     assertThat(terminology.getMetadata().getUiLabel()).isEqualTo("CanMED");
-    assertThat(terminology.getName()).isEqualTo("CanMED 202311");
+    assertThat(terminology.getName()).isEqualTo("CanMED 202506");
     assertThat(terminology.getDescription()).isNotEmpty();
 
     assertThat(terminology.getMetadata().getLoader()).isEqualTo("rdf");
@@ -199,6 +199,6 @@ public class CanmedSampleTest extends SampleTest {
     // Case of something with a "" HCPCS code
     url = "/api/v1/concept/canmed/HCPCS_MOMELOTINIB";
     log.info("Testing url - " + url);
-    result = testMvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
   }
 }

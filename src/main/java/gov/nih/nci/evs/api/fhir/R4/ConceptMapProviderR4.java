@@ -4,6 +4,7 @@ import static gov.nih.nci.evs.api.service.OpenSearchServiceImpl.escape;
 
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
+import ca.uhn.fhir.rest.annotation.History;
 import ca.uhn.fhir.rest.annotation.IdParam;
 import ca.uhn.fhir.rest.annotation.Operation;
 import ca.uhn.fhir.rest.annotation.OperationParam;
@@ -22,22 +23,30 @@ import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.service.OpenSearchService;
 import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.FHIRServerResponseException;
 import gov.nih.nci.evs.api.util.FhirUtility;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.hl7.fhir.r4.model.BooleanType;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeType;
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.ConceptMap;
 import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.Meta;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
 import org.hl7.fhir.r4.model.Parameters;
@@ -60,6 +69,9 @@ public class ConceptMapProviderR4 implements IResourceProvider {
 
   /** the opensearch search service. */
   @Autowired OpenSearchService osSearchService;
+
+  /** The term utils. */
+  @Autowired TerminologyUtils termUtils;
 
   /** The code to translate. */
   String codeToTranslate = "";
@@ -86,7 +98,6 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    *     specified, the server should return all known translations, along with their source
    * @param targetSystem identifies a target code system in which a mapping is sought. This
    *     parameter is an alternative to the target parameter.
-   * @param dependency the element for the dependency, may help produce the correct mapping
    * @param reverse This parameter reverses the meaning of the source and target parameters
    * @return the parameters
    * @throws Exception the exception
@@ -225,7 +236,6 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    *     specified, the server should return all known translations, along with their source
    * @param targetSystem identifies a target code system in which a mapping is sought. This
    *     parameter is an alternative to the target parameter.
-   * @param dependency the element for the dependency, may help produce the correct mapping
    * @param reverse This parameter reverses the meaning of the source and target parameters
    * @return the parameters
    * @throws Exception the exception
@@ -348,6 +358,11 @@ public class ConceptMapProviderR4 implements IResourceProvider {
     }
   }
 
+  /**
+   * Gets the resource type.
+   *
+   * @return the resource type
+   */
   /* see superclass */
   @Override
   public Class<ConceptMap> getResourceType() {
@@ -382,11 +397,19 @@ public class ConceptMapProviderR4 implements IResourceProvider {
           final NumberParam count,
       @Description(shortDefinition = "Start offset, used when reading a next page")
           @OptionalParam(name = "_offset")
-          final NumberParam offset)
+          final NumberParam offset,
+      @Description(shortDefinition = "Sort by field (name, title, publisher, date, url)")
+          @OptionalParam(name = "_sort")
+          final StringParam sort)
       throws Exception {
     try {
       FhirUtilityR4.notSupportedSearchParams(request);
 
+      final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+      final Map<String, Terminology> map = new HashMap<>();
+      for (final Terminology terminology : terms) {
+        map.put(terminology.getTerminology(), terminology);
+      }
       final List<Concept> mapsets = osQueryService.getMapsets(new IncludeParam("properties"));
 
       final List<ConceptMap> list = new ArrayList<>();
@@ -396,7 +419,11 @@ public class ConceptMapProviderR4 implements IResourceProvider {
             .anyMatch(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))) {
           continue;
         }
-        final ConceptMap cm = FhirUtilityR4.toR4(mapset);
+        final ConceptMap cm =
+            FhirUtilityR4.toR4(
+                map.get(mapset.getPropertyValue("sourceTerminology")),
+                map.get(mapset.getPropertyValue("targetTerminology")),
+                mapset);
         // Skip non-matching
         if (url != null && !url.getValue().equals(cm.getUrl())) {
           logger.debug("  SKIP url mismatch = " + cm.getUrl());
@@ -422,6 +449,9 @@ public class ConceptMapProviderR4 implements IResourceProvider {
         list.add(cm);
       }
 
+      // Apply sorting if requested
+      applySorting(list, sort);
+
       return FhirUtilityR4.makeBundle(request, list, count, offset);
 
     } catch (final FHIRServerResponseException e) {
@@ -443,6 +473,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    * @param version the version
    * @param source the source
    * @param target the target
+   * @param targetSystem the target system
    * @return the list
    * @throws Exception the exception
    */
@@ -464,6 +495,11 @@ public class ConceptMapProviderR4 implements IResourceProvider {
         return new ArrayList<>(0);
       }
 
+      final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+      final Map<String, Terminology> map = new HashMap<>();
+      for (final Terminology terminology : terms) {
+        map.put(terminology.getTerminology(), terminology);
+      }
       final List<Concept> mapsets = osQueryService.getMapsets(new IncludeParam("properties"));
 
       final List<ConceptMap> list = new ArrayList<>();
@@ -473,7 +509,11 @@ public class ConceptMapProviderR4 implements IResourceProvider {
             .anyMatch(m -> m.getType().equals("downloadOnly") && m.getValue().equals("true"))) {
           continue;
         }
-        final ConceptMap cm = FhirUtilityR4.toR4(mapset);
+        final ConceptMap cm =
+            FhirUtilityR4.toR4(
+                map.get(mapset.getPropertyValue("sourceTerminology")),
+                map.get(mapset.getPropertyValue("targetTerminology")),
+                mapset);
         // Skip non-matching
         if (url != null && !url.getValue().equals(cm.getUrl())) {
           logger.debug("  SKIP url mismatch = " + cm.getUrl());
@@ -528,16 +568,17 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    *
    * <p>see https://hl7.org/fhir/R4/conceptmap.html
    *
-   * @param details the details
    * @param id the id
    * @return the concept map
    * @throws Exception the exception
    */
   @Read
-  public ConceptMap getConceptMap(final ServletRequestDetails details, @IdParam final IdType id)
-      throws Exception {
+  public ConceptMap getConceptMap(@IdParam final IdType id) throws Exception {
     try {
-
+      if (id.hasVersionIdPart()) {
+        // If someone somehow passes a versioned ID to read, delegate to vread
+        return vread(id);
+      }
       final List<ConceptMap> candidates =
           findPossibleConceptMaps(id, null, null, null, null, null, null, null);
       for (final ConceptMap set : candidates) {
@@ -547,9 +588,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       }
 
       throw FhirUtilityR4.exception(
-          "Concept map not found = " + (id == null ? "null" : id.getIdPart()),
-          IssueType.NOTFOUND,
-          404);
+          "Concept map not found = " + id.getIdPart(), IssueType.NOTFOUND, 404);
 
     } catch (final FHIRServerResponseException e) {
       throw e;
@@ -565,8 +604,10 @@ public class ConceptMapProviderR4 implements IResourceProvider {
    *
    * @param code the code being translated
    * @param mapsetCodes target value set to be used for translations. Extracted from system uri
+   * @param reverse the reverse
    * @param operator the operator to use for the query
-   * @return
+   * @return the string
+   * @throws Exception the exception
    */
   private String buildFhirQueryString(
       CodeType code, List<String> mapsetCodes, BooleanType reverse, String operator)
@@ -591,6 +632,190 @@ public class ConceptMapProviderR4 implements IResourceProvider {
       // compose query for target code
       clauses.add("sourceCode:\"" + escape(code.getValue()) + "\"");
       return ConceptUtils.composeQuery(operator, clauses);
+    }
+  }
+
+  /**
+   * Gets the concept map history.
+   *
+   * @param id the id
+   * @return the concept map history
+   */
+  @History(type = ConceptMap.class)
+  public List<ConceptMap> getConceptMapHistory(@IdParam IdType id) {
+    List<ConceptMap> history = new ArrayList<>();
+    try {
+      final List<ConceptMap> candidates =
+          findPossibleConceptMaps(id, null, null, null, null, null, null, null);
+      for (final ConceptMap cs : candidates) {
+        if (id.getIdPart().equals(cs.getId())) {
+          history.add(cs);
+        }
+      }
+      if (history.isEmpty()) {
+        throw FhirUtilityR4.exception(
+            "Concept map not found = " + (id == null ? "null" : id.getIdPart()),
+            OperationOutcome.IssueType.NOTFOUND,
+            404);
+      }
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      logger.error("Unexpected exception", e);
+      throw FhirUtilityR4.exception(
+          "Failed to get concept map", OperationOutcome.IssueType.EXCEPTION, 500);
+    }
+
+    // Make sure each ConceptMap has proper metadata for history
+    for (ConceptMap cs : history) {
+      if (cs.getMeta() == null) {
+        cs.setMeta(new Meta());
+      }
+      if (cs.getMeta().getVersionId() == null) {
+        cs.getMeta().setVersionId("1"); // Set appropriate version
+      }
+      if (cs.getMeta().getLastUpdated() == null) {
+        cs.getMeta().setLastUpdated(new Date());
+      }
+    }
+
+    return history;
+  }
+
+  /**
+   * Vread.
+   *
+   * @param versionedId the versioned id
+   * @return the concept map
+   */
+  @Read(version = true)
+  public ConceptMap vread(@IdParam IdType versionedId) {
+    String resourceId = versionedId.getIdPart();
+    String versionId = versionedId.getVersionIdPart(); // "1"
+
+    logger.info("Looking for resource: {} version: {}", resourceId, versionId);
+
+    try {
+      // If no version is specified in a vread call, this shouldn't happen
+      // but if it does, delegate to regular read
+      if (!versionedId.hasVersionIdPart()) {
+        logger.warn("VRead called without version ID, delegating to regular read");
+        return getConceptMap(new org.hl7.fhir.r4.model.IdType(versionedId.getIdPart()));
+      }
+      final List<ConceptMap> candidates =
+          findPossibleConceptMaps(versionedId, null, null, null, null, null, null, null);
+      logger.info("Found {} candidates", candidates.size());
+
+      for (final ConceptMap cs : candidates) {
+        String csId = cs.getId();
+        String csVersionId = cs.getMeta() != null ? cs.getMeta().getVersionId() : null;
+
+        logger.info("Checking candidate: id={}, versionId={}", csId, csVersionId);
+
+        if (resourceId.equals(csId)) {
+          // If the ConceptMap doesn't have a version ID, treat it as version "1"
+          String effectiveVersionId = (csVersionId != null) ? csVersionId : "1";
+
+          if (versionId.equals(effectiveVersionId)) {
+            // Make sure the returned ConceptMap has the version ID set
+            if (cs.getMeta() == null) {
+              cs.setMeta(new Meta());
+            }
+            cs.getMeta().setVersionId("1");
+            cs.getMeta().setLastUpdated(new Date()); // Optional: set timestamp
+
+            logger.info("Found matching version!");
+            return cs;
+          }
+        }
+      }
+
+      throw FhirUtilityR4.exception(
+          "Concept map version not found: " + resourceId + " version " + versionId,
+          OperationOutcome.IssueType.NOTFOUND,
+          404);
+    } catch (final FHIRServerResponseException e) {
+      throw e; // Re-throw FHIR exceptions as-is
+    } catch (final Exception e) {
+      logger.error("Unexpected exception in vread", e);
+      throw FhirUtilityR4.exception(
+          "Failed to get concept map version", OperationOutcome.IssueType.EXCEPTION, 500);
+    }
+  }
+
+  /**
+   * Apply sorting to the list of ConceptMaps if requested.
+   *
+   * @param list the list to sort
+   * @param sort the sort parameter
+   */
+  private void applySorting(final List<ConceptMap> list, final StringParam sort) {
+    if (sort == null || sort.getValue() == null || sort.getValue().trim().isEmpty()) {
+      return;
+    }
+
+    try {
+      final String sortValue = sort.getValue().trim();
+      final boolean descending = sortValue.startsWith("-");
+      final String field = descending ? sortValue.substring(1) : sortValue;
+
+      // Validate supported fields
+      final List<String> supportedFields =
+          Arrays.asList("name", "title", "publisher", "date", "url");
+      if (!supportedFields.contains(field)) {
+        throw FhirUtilityR4.exception(
+            "Unsupported sort field: "
+                + field
+                + ". Supported fields: "
+                + String.join(", ", supportedFields),
+            OperationOutcome.IssueType.INVALID,
+            400);
+      }
+
+      final Comparator<ConceptMap> comparator = getConceptMapComparator(field);
+      if (descending) {
+        Collections.sort(list, comparator.reversed());
+      } else {
+        Collections.sort(list, comparator);
+      }
+    } catch (final FHIRServerResponseException e) {
+      throw e;
+    } catch (final Exception e) {
+      throw FhirUtilityR4.exception(
+          "Error processing sort parameter: " + e.getMessage(),
+          OperationOutcome.IssueType.INVALID,
+          400);
+    }
+  }
+
+  /**
+   * Get comparator for ConceptMap sorting.
+   *
+   * @param field the field to sort by
+   * @return the comparator
+   */
+  private Comparator<ConceptMap> getConceptMapComparator(final String field) {
+    switch (field) {
+      case "name":
+        return Comparator.comparing(
+            cm -> cm.getName() != null ? cm.getName().toLowerCase() : "",
+            Comparator.nullsLast(String::compareTo));
+      case "title":
+        return Comparator.comparing(
+            cm -> cm.getTitle() != null ? cm.getTitle().toLowerCase() : "",
+            Comparator.nullsLast(String::compareTo));
+      case "publisher":
+        return Comparator.comparing(
+            cm -> cm.getPublisher() != null ? cm.getPublisher().toLowerCase() : "",
+            Comparator.nullsLast(String::compareTo));
+      case "date":
+        return Comparator.comparing(ConceptMap::getDate, Comparator.nullsLast(Date::compareTo));
+      case "url":
+        return Comparator.comparing(
+            cm -> cm.getUrl() != null ? cm.getUrl().toLowerCase() : "",
+            Comparator.nullsLast(String::compareTo));
+      default:
+        throw new IllegalArgumentException("Unsupported sort field: " + field);
     }
   }
 }

@@ -11,6 +11,9 @@ public class ApplicationProperties {
   /** The context path. */
   private String contextPath;
 
+  /** The mail recipient. */
+  private String mailRecipient;
+
   /** The metric log switch. */
   private Boolean metricsEnabled;
 
@@ -20,16 +23,19 @@ public class ApplicationProperties {
   /** The config base Uri. */
   private String configBaseUri;
 
+  /** The sdk base uri. */
+  private String sdkBaseUri;
+
   /** The ui license - passed by UI to the backend via X-EVSRESAPI-License-Key. */
   private String uiLicense;
 
-  /** The UnitTestData folder */
+  /** The UnitTestData folder. */
   private String unitTestData;
 
-  /** Childhood Neoplasm Subsets xls file */
+  /** Childhood Neoplasm Subsets xls file. */
   private String childhoodNeoplasmSubsetsXls;
 
-  /** FTP neoplasm site */
+  /** FTP neoplasm site. */
   private String ftpNeoplasmUrl;
 
   /** The recaptcha secret key. */
@@ -70,6 +76,24 @@ public class ApplicationProperties {
    */
   public void setContextPath(final String contextPath) {
     this.contextPath = contextPath;
+  }
+
+  /**
+   * Gets the mail recipient.
+   *
+   * @return the mail recipient
+   */
+  public String getMailRecipient() {
+    return mailRecipient;
+  }
+
+  /**
+   * Sets the mail recipient.
+   *
+   * @param mailRecipient the new mail recipient
+   */
+  public void setMailRecipient(final String mailRecipient) {
+    this.mailRecipient = mailRecipient;
   }
 
   /**
@@ -127,18 +151,36 @@ public class ApplicationProperties {
   }
 
   /**
-   * Returns the pediatricSubsetsXls.
+   * Gets the sdk base uri.
    *
-   * @return the pediatricSubsetsXls
+   * @return the sdk base uri
+   */
+  public String getSdkBaseUri() {
+    return sdkBaseUri;
+  }
+
+  /**
+   * Sets the sdk base uri.
+   *
+   * @param sdkBaseUri the new sdk base uri
+   */
+  public void setSdkBaseUri(final String sdkBaseUri) {
+    this.sdkBaseUri = sdkBaseUri;
+  }
+
+  /**
+   * Gets the childhood neoplasm subsets xls.
+   *
+   * @return the childhood neoplasm subsets xls
    */
   public String getChildhoodNeoplasmSubsetsXls() {
     return childhoodNeoplasmSubsetsXls;
   }
 
   /**
-   * Sets the pediatricSubsetsXls.
+   * Sets the childhood neoplasm subsets xls.
    *
-   * @param uiLicense the pediatricSubsetsXls
+   * @param childhoodNeoplasmSubsetsXls the new childhood neoplasm subsets xls
    */
   public void setChildhoodNeoplasmSubsetsXls(final String childhoodNeoplasmSubsetsXls) {
     this.childhoodNeoplasmSubsetsXls = childhoodNeoplasmSubsetsXls;
@@ -174,7 +216,7 @@ public class ApplicationProperties {
   /**
    * Sets the ftpNeoplasmUrl.
    *
-   * @param uiLicense the ftpNeoplasmUrl
+   * @param ftpNeoplasmUrl the new ftp neoplasm url
    */
   public void setFtpNeoplasmUrl(final String ftpNeoplasmUrl) {
     this.ftpNeoplasmUrl = ftpNeoplasmUrl;
@@ -201,7 +243,7 @@ public class ApplicationProperties {
   /**
    * Get the recaptcha site key.
    *
-   * @return
+   * @return the recaptcha site key
    */
   public String getRecaptchaSiteKey() {
     return recaptchaSiteKey;
@@ -210,7 +252,7 @@ public class ApplicationProperties {
   /**
    * Set the recaptcha site key.
    *
-   * @param recaptchaSiteKey
+   * @param recaptchaSiteKey the new recaptcha site key
    */
   public void setRecaptchaSiteKey(String recaptchaSiteKey) {
     this.recaptchaSiteKey = recaptchaSiteKey;

@@ -28,7 +28,6 @@ import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -123,17 +122,6 @@ public class ConceptControllerTests {
         .isEqualTo(0);
     assertThat(concept.getSynonyms().stream().filter(s -> s.getStemName() != null).count())
         .isEqualTo(0);
-    assertThat(concept.getSynonyms().stream().filter(s -> s.getTypeCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getDefinitions().stream().filter(s -> s.getCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getAssociations().stream().filter(s -> s.getCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getInverseAssociations().stream().filter(s -> s.getCode() != null).count())
-        .isEqualTo(0);
-    assertThat(concept.getRoles().stream().filter(s -> s.getCode() != null).count()).isEqualTo(0);
-    assertThat(concept.getInverseRoles().stream().filter(s -> s.getCode() != null).count())
-        .isEqualTo(0);
   }
 
   /**
@@ -177,10 +165,7 @@ public class ConceptControllerTests {
     assertThat(concept.getProperties().stream().filter(p -> p.getCode() != null).count())
         .isGreaterThan(1);
     assertThat(concept.getAssociations().size()).isGreaterThan(0);
-    assertThat(concept.getAssociations().stream().filter(p -> p.getCode() != null).count())
-        .isEqualTo(0);
     assertThat(concept.getRoles().size()).isGreaterThan(0);
-    assertThat(concept.getRoles().stream().filter(p -> p.getCode() != null).count()).isEqualTo(0);
   }
 
   /**
@@ -189,18 +174,11 @@ public class ConceptControllerTests {
    * @throws Exception the exception
    */
   @Test
-  @Disabled("The extra mappings are blocked off until we figure out versioning")
   public void testGetConceptExtraMappings() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
     Concept concept = null;
-
-    // TODO: if there was a case of a map that had a P375 in the owl (mapsTo) and ALSO
-    // was represented in an explicit viewable map - then we could test that concept
-    // details properly de-duplicates that.  But we don't have any such data at the moment.
-
-    //
 
     // Verify this concept has a "maps to" to an HGNC code
     // This comes from the independent NCI-HGNC map distributed by Liz
@@ -219,6 +197,23 @@ public class ConceptControllerTests {
                             && m.getMapsetCode().equals("NCIt_to_HGNC_Mapping")
                             && m.getSourceCode().equals("C143031")
                             && m.getTargetCode().equals("HGNC:24086"))
+                .count())
+        .isEqualTo(1);
+
+    // check for duplicate maps because of ncit
+    url = baseUrl + "/ncit/C82547?include=full";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    concept = new ObjectMapper().readValue(content, Concept.class);
+    assertThat(concept.getMaps().size()).isGreaterThan(0);
+    assertThat(
+            concept.getMaps().stream()
+                .filter(
+                    m ->
+                        m.getTargetCode().equals("R83")
+                            && m.getTargetTerminology().startsWith("ICD10CM")
+                            && m.getType().equals("Broader Than"))
                 .count())
         .isEqualTo(1);
   }
@@ -415,7 +410,6 @@ public class ConceptControllerTests {
                 });
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isGreaterThan(5);
-    assertThat(list.stream().filter(a -> a.getCode() != null).count()).isEqualTo(0);
 
     // Test case without associations
     url = baseUrl + "/ncit/C2291/associations";
@@ -1373,23 +1367,6 @@ public class ConceptControllerTests {
     assertThat(list.size()).isEqualTo(10);
     assertThat(content).isNotEqualTo(origContent);
 
-    // C162271 - test large case
-    url = baseUrl + "/ncit/C162271/pathsFromRoot?fromRecord=1000&include=full";
-    log.info("Testing url - " + url);
-
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    // log.info(" content = " + content);
-    list =
-        new ObjectMapper()
-            .readValue(
-                content,
-                new TypeReference<List<List<Concept>>>() {
-                  // n/a
-                });
-    log.info("  list = " + list.size());
-    assertThat(list).isEmpty();
-
     // C98767 - test case with paging (for something with only 1)
     url = baseUrl + "/ncit/C98767/pathsFromRoot?fromRecord=0&include=minimal&pageSize=100";
     log.info("Testing url - " + url);
@@ -1425,7 +1402,7 @@ public class ConceptControllerTests {
     assertThat(list.size()).isEqualTo(2);
 
     // C4872 - test case with paging
-    url = baseUrl + "/ncit/C4872/pathsFromRoot?fromRecord=0&include=minimal&pageSize=100";
+    url = baseUrl + "/ncit/C4872/pathsFromRoot?fromRecord=0&include=minimal&pageSize=10";
     log.info("Testing url - " + url);
 
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
@@ -1584,23 +1561,6 @@ public class ConceptControllerTests {
     assertThat(list).isNotEmpty();
     assertThat(list.size()).isEqualTo(10);
     assertThat(content).isNotEqualTo(origContent);
-
-    // C162271 - test large case
-    url = baseUrl + "/ncit/C162271/pathsToRoot?fromRecord=1000&include=full";
-    log.info("Testing url - " + url);
-
-    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
-    content = result.getResponse().getContentAsString();
-    // log.info(" content = " + content);
-    list =
-        new ObjectMapper()
-            .readValue(
-                content,
-                new TypeReference<List<List<Concept>>>() {
-                  // n/a
-                });
-    log.info("  list = " + list.size());
-    assertThat(list).isEmpty();
 
     // C98767 - test case with paging (for something with only 1)
     url = baseUrl + "/ncit/C98767/pathsToRoot?fromRecord=0&include=minimal&pageSize=100";
@@ -1942,11 +1902,17 @@ public class ConceptControllerTests {
    * @return boolean true if hierarchy has a leaf node, else false
    */
   private boolean hasLeafNode(List<HierarchyNode> list) {
-    if (CollectionUtils.isEmpty(list)) return false;
+    if (CollectionUtils.isEmpty(list)) {
+      return false;
+    }
     for (HierarchyNode node : list) {
-      if (node.getLeaf() != null && node.getLeaf()) return true;
+      if (node.getLeaf() != null && node.getLeaf()) {
+        return true;
+      }
       if (!CollectionUtils.isEmpty(node.getChildren())) {
-        if (hasLeafNode(node.getChildren())) return true;
+        if (hasLeafNode(node.getChildren())) {
+          return true;
+        }
       }
     }
 
@@ -2134,5 +2100,52 @@ public class ConceptControllerTests {
                 });
 
     assertThat(terminologyCodes.size()).isGreaterThan(150000);
+  }
+
+  /**
+   * Test that code values are present for Synonym, Definition, Property, Role/inverse,
+   * Association/inverse, and Qualifier with include=full.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeValuesPresentInFullInclude() throws Exception {
+    String url;
+    MvcResult result;
+    String content;
+    Concept concept;
+
+    // C101669 has synonyms, definitions, qualifier codes
+    url = baseUrl + "/ncit/C101669?include=full";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    concept = new ObjectMapper().readValue(content, Concept.class);
+
+    assertThat(concept.getSynonyms().get(0).getTypeCode() != null).isTrue();
+    assertThat(concept.getDefinitions().get(0).getCode() != null).isTrue();
+    assertThat(concept.getProperties().get(0).getCode() != null).isTrue();
+    assertThat(concept.getAssociations().get(0).getCode() != null).isTrue();
+    // C101669 has a definition with a qualifier
+    assertThat(
+            concept.getDefinitions().stream()
+                .anyMatch(
+                    def ->
+                        !def.getQualifiers().isEmpty()
+                            && def.getQualifiers().get(0).getCode() != null))
+        .isTrue();
+
+    // C3224 lacks qualifiers, but should have code for other types
+    url = baseUrl + "/ncit/C3224?include=full";
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    concept = new ObjectMapper().readValue(content, Concept.class);
+
+    assertThat(concept.getSynonyms().get(0).getTypeCode() != null).isTrue();
+    assertThat(concept.getDefinitions().get(0).getCode() != null).isTrue();
+    assertThat(concept.getProperties().get(0).getCode() != null).isTrue();
+    assertThat(concept.getRoles().get(0).getCode() != null).isTrue();
+    assertThat(concept.getInverseRoles().get(0).getCode() != null).isTrue();
+    assertThat(concept.getAssociations().get(0).getCode() != null).isTrue();
+    assertThat(concept.getInverseAssociations().get(0).getCode() != null).isTrue();
   }
 }

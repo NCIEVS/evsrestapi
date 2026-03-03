@@ -140,6 +140,7 @@ public class MetadataController extends BaseController {
 
           // Various other metadata things (schema=hidden)
           meta.setWelcomeText(null);
+          meta.setExtraSubsets(null);
           meta.setSources(null);
           meta.setDefinitionSourceSet(null);
           meta.setSynonymSourceSet(null);
@@ -230,35 +231,51 @@ public class MetadataController extends BaseController {
       @PathVariable(value = "terminology") final String terminology) throws Exception {
     Map<String, List<Concept>> metadata = new HashMap<>();
     try {
+      final java.util.Comparator<Concept> byCode = java.util.Comparator.comparing(Concept::getCode);
+
       metadata.put(
           "associations",
-          metadataService.getAssociations(terminology, Optional.empty(), Optional.empty()));
+          metadataService.getAssociations(terminology, Optional.empty(), Optional.empty()).stream()
+              .sorted(byCode)
+              .collect(Collectors.toList()));
       metadata.put(
           "properties",
-          metadataService.getProperties(terminology, Optional.empty(), Optional.empty()));
+          metadataService.getProperties(terminology, Optional.empty(), Optional.empty()).stream()
+              .sorted(byCode)
+              .collect(Collectors.toList()));
       metadata.put(
           "qualifiers",
-          metadataService.getQualifiers(terminology, Optional.empty(), Optional.empty()));
+          metadataService.getQualifiers(terminology, Optional.empty(), Optional.empty()).stream()
+              .sorted(byCode)
+              .collect(Collectors.toList()));
       metadata.put(
-          "roles", metadataService.getRoles(terminology, Optional.empty(), Optional.empty()));
+          "roles",
+          metadataService.getRoles(terminology, Optional.empty(), Optional.empty()).stream()
+              .sorted(byCode)
+              .collect(Collectors.toList()));
       metadata.put(
           "termTypes",
           metadataService.getTermTypes(terminology).stream()
               .map(Concept::new)
+              .sorted(byCode)
               .collect(Collectors.toList()));
       metadata.put(
           "sources",
           metadataService.getSynonymSources(terminology).stream()
               .map(Concept::new)
+              .sorted(byCode)
               .collect(Collectors.toList()));
       metadata.put(
           "definitionTypes",
           metadataService.getDefinitionSources(terminology).stream()
               .map(Concept::new)
+              .sorted(byCode)
               .collect(Collectors.toList()));
       metadata.put(
           "synonymTypes",
-          metadataService.getSynonymTypes(terminology, Optional.empty(), Optional.empty()));
+          metadataService.getSynonymTypes(terminology, Optional.empty(), Optional.empty()).stream()
+              .sorted(byCode)
+              .collect(Collectors.toList()));
       return metadata;
     } catch (Exception e) {
       handleException(e, terminology);
@@ -337,7 +354,10 @@ public class MetadataController extends BaseController {
       @RequestParam(required = false, name = "list") final Optional<String> list)
       throws Exception {
     try {
-      return metadataService.getAssociations(terminology, include, list);
+      // default sort by association code
+      return metadataService.getAssociations(terminology, include, list).stream()
+          .sorted((c1, c2) -> c1.getCode().compareTo(c2.getCode()))
+          .collect(Collectors.toList());
     } catch (Exception e) {
       handleException(e, terminology);
       return null;
@@ -422,9 +442,10 @@ public class MetadataController extends BaseController {
       }
 
       Optional<Concept> concept = metadataService.getAssociation(terminology, code, include);
-      if (!concept.isPresent())
+      if (!concept.isPresent()) {
         throw new ResponseStatusException(
             HttpStatus.NOT_FOUND, "Association " + code + " not found");
+      }
 
       return concept.get();
     } catch (Exception e) {
@@ -493,7 +514,10 @@ public class MetadataController extends BaseController {
       @RequestParam(required = false, name = "list") final Optional<String> list)
       throws Exception {
     try {
-      return metadataService.getRoles(terminology, include, list);
+      // default sort by role code
+      return metadataService.getRoles(terminology, include, list).stream()
+          .sorted((c1, c2) -> c1.getCode().compareTo(c2.getCode()))
+          .collect(Collectors.toList());
     } catch (Exception e) {
       handleException(e, terminology);
       return null;
@@ -571,8 +595,9 @@ public class MetadataController extends BaseController {
       }
 
       Optional<Concept> concept = metadataService.getRole(terminology, code, include);
-      if (!concept.isPresent())
+      if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Role " + code + " not found");
+      }
 
       return concept.get();
     } catch (Exception e) {
@@ -652,7 +677,10 @@ public class MetadataController extends BaseController {
       throws Exception {
 
     try {
-      return metadataService.getProperties(terminology, include, list);
+      // default sort by property code
+      return metadataService.getProperties(terminology, include, list).stream()
+          .sorted((c1, c2) -> c1.getCode().compareTo(c2.getCode()))
+          .collect(Collectors.toList());
     } catch (Exception e) {
       handleException(e, terminology);
       return null;
@@ -725,7 +753,10 @@ public class MetadataController extends BaseController {
       @RequestParam(required = false, name = "list") final Optional<String> list)
       throws Exception {
     try {
-      return metadataService.getQualifiers(terminology, include, list);
+      // default sort by qualifier code
+      return metadataService.getQualifiers(terminology, include, list).stream()
+          .sorted((c1, c2) -> c1.getCode().compareTo(c2.getCode()))
+          .collect(Collectors.toList());
     } catch (Exception e) {
       handleException(e, terminology);
       return null;
@@ -809,8 +840,9 @@ public class MetadataController extends BaseController {
       }
 
       Optional<Concept> concept = metadataService.getQualifier(terminology, code, include);
-      if (!concept.isPresent())
+      if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Qualifier " + code + " not found");
+      }
 
       return concept.get();
     } catch (Exception e) {
@@ -855,7 +887,10 @@ public class MetadataController extends BaseController {
   public @ResponseBody List<ConceptMinimal> getTermTypes(
       @PathVariable(value = "terminology") final String terminology) throws Exception {
     try {
-      return metadataService.getTermTypes(terminology);
+      // default sort by term type code
+      return metadataService.getTermTypes(terminology).stream()
+          .sorted((c1, c2) -> c1.getCode().compareTo(c2.getCode()))
+          .collect(Collectors.toList());
     } catch (Exception e) {
       handleException(e, terminology);
       return null;
@@ -982,8 +1017,9 @@ public class MetadataController extends BaseController {
       }
 
       Optional<Concept> concept = metadataService.getProperty(terminology, code, include);
-      if (!concept.isPresent())
+      if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Property " + code + " not found");
+      }
 
       return concept.get();
     } catch (Exception e) {
@@ -1074,7 +1110,10 @@ public class MetadataController extends BaseController {
   public @ResponseBody List<ConceptMinimal> getDefinitionSources(
       @PathVariable(value = "terminology") final String terminology) throws Exception {
     try {
-      return metadataService.getDefinitionSources(terminology);
+      // default sort by definition source code
+      return metadataService.getDefinitionSources(terminology).stream()
+          .sorted((c1, c2) -> c1.getCode().compareTo(c2.getCode()))
+          .collect(Collectors.toList());
     } catch (Exception e) {
       handleException(e, terminology);
       return null;
@@ -1117,7 +1156,10 @@ public class MetadataController extends BaseController {
   public @ResponseBody List<ConceptMinimal> getSynonymSources(
       @PathVariable(value = "terminology") final String terminology) throws Exception {
     try {
-      return metadataService.getSynonymSources(terminology);
+      // default sort by synonym source code
+      return metadataService.getSynonymSources(terminology).stream()
+          .sorted((c1, c2) -> c1.getCode().compareTo(c2.getCode()))
+          .collect(Collectors.toList());
     } catch (Exception e) {
       handleException(e, terminology);
       return null;
@@ -1179,8 +1221,9 @@ public class MetadataController extends BaseController {
       }
 
       Optional<List<String>> result = metadataService.getQualifierValues(terminology, code);
-      if (!result.isPresent())
+      if (!result.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Qualifier " + code + " not found");
+      }
 
       return result.get();
     } catch (Exception e) {
@@ -1261,7 +1304,10 @@ public class MetadataController extends BaseController {
       throws Exception {
 
     try {
-      return metadataService.getSynonymTypes(terminology, include, list);
+      // default sort by synonym type code
+      return metadataService.getSynonymTypes(terminology, include, list).stream()
+          .sorted((c1, c2) -> c1.getCode().compareTo(c2.getCode()))
+          .collect(Collectors.toList());
     } catch (Exception e) {
       handleException(e, terminology);
       return null;
@@ -1346,9 +1392,10 @@ public class MetadataController extends BaseController {
       }
 
       Optional<Concept> concept = metadataService.getSynonymType(terminology, code, include);
-      if (!concept.isPresent())
+      if (!concept.isPresent()) {
         throw new ResponseStatusException(
             HttpStatus.NOT_FOUND, "Synonym type " + code + " not found");
+      }
 
       return concept.get();
     } catch (Exception e) {
@@ -1429,7 +1476,10 @@ public class MetadataController extends BaseController {
       throws Exception {
 
     try {
-      return metadataService.getDefinitionTypes(terminology, include, list);
+      // default sort by definition type code
+      return metadataService.getDefinitionTypes(terminology, include, list).stream()
+          .sorted((c1, c2) -> c1.getCode().compareTo(c2.getCode()))
+          .collect(Collectors.toList());
     } catch (Exception e) {
       handleException(e, terminology);
       return null;
@@ -1514,9 +1564,10 @@ public class MetadataController extends BaseController {
       }
 
       Optional<Concept> concept = metadataService.getDefinitionType(terminology, code, include);
-      if (!concept.isPresent())
+      if (!concept.isPresent()) {
         throw new ResponseStatusException(
             HttpStatus.NOT_FOUND, "Defininition type " + code + " not found");
+      }
 
       return concept.get();
     } catch (Exception e) {
@@ -1673,8 +1724,9 @@ public class MetadataController extends BaseController {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset " + code + " not found");
       }
       Optional<Concept> concept = metadataService.getSubset(terminology, code, include);
-      if (!concept.isPresent())
+      if (!concept.isPresent()) {
         throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Subset " + code + " not found");
+      }
       return concept.get();
     } catch (Exception e) {
       handleException(e, terminology);

@@ -19,6 +19,7 @@ import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.support.es.OpensearchObject;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.EVSUtils;
+import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.PushBackReader;
 import gov.nih.nci.evs.api.util.RrfReaders;
@@ -41,7 +42,6 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.apache.commons.collections4.ListUtils;
-import org.apache.tomcat.util.buf.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -338,6 +338,11 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
           mapset.setName(codeNameMap.get(fields[0]));
           mapset.setTerminology(info.getSourceTerminology().toLowerCase());
           mapset.setVersion(info.getSourceTerminologyVersion());
+          mapset
+              .getProperties()
+              .add(
+                  new Property(
+                      "date", FhirUtility.convertToYYYYMMDD(info.getSourceTerminologyVersion())));
           // set other fields and properties as needed (to match other mapsets and needs of ui)
           mapset.getProperties().add(new Property("loader", "MetaOpensearchLoadServiceImpl"));
           final String mapsetUri =
@@ -347,8 +352,7 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
                   + "-"
                   + info.getTarget().replaceFirst("ncit", "nci")
                   + ".html";
-          final String welcomeText =
-              StringUtils.join(EVSUtils.getValueFromFile(mapsetUri, "welcome text"), '\n');
+          final String welcomeText = EVSUtils.getValueFromFile(mapsetUri);
           mapset.getProperties().add(new Property("welcomeText", welcomeText));
           mapset.getProperties().add(new Property("mapsetLink", null));
           mapset.getProperties().add(new Property("downloadOnly", "false"));
@@ -636,7 +640,9 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
     // different version
     if (!version.isEmpty()
         && currentMapVersion.isPresent()
-        && !version.equals(currentMapVersion.get())) return true;
+        && !version.equals(currentMapVersion.get())) {
+      return true;
+    }
     return false;
   }
 
@@ -959,7 +965,7 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
             String[] parts = line.split("\\|");
             StatisticsEntry statisticsEntry = new StatisticsEntry(parts[0], parts[1], parts[2]);
             statsList.add(statisticsEntry);
-            System.out.println(line);
+            logger.debug(line);
           }
           sourceStatsEntry.put("Source Overlap", statsList);
           newStatsEntry.setStatisticsMap(sourceStatsEntry);
@@ -1674,7 +1680,7 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
 
   /* see superclass */
   @Override
-  public Set<String> cleanStaleIndexes(final Terminology terminology) throws Exception {
+  public Set<String> cleanStaleIndexes() throws Exception {
     // do nothing - override superclass behavior
     return new HashSet<>(0);
   }

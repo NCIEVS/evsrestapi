@@ -124,6 +124,12 @@ public class RrfFileCopier {
       while ((line = in.readLine()) != null) {
         final String[] fields = line.split("\\|", -1);
 
+        // If MRCUI and it is a DEL entry, then keep
+        if (key == Keys.MRCUI && "DEL".equals(fields[2])) {
+          out.print(line + "\n");
+          continue;
+        }
+
         // Skip non-matching CUI
         if (cuiFields != null && cuis != null && !cuis.isEmpty()) {
           for (final int i : cuiFields) {
@@ -134,7 +140,7 @@ public class RrfFileCopier {
         }
 
         // ACTUALLY don't do this, keep all lines for files without CUIs
-        // and for fiels with CUIs, keep lines with matching CUIs
+        // and for files with CUIs, keep lines with matching CUIs
 
         // // Skip non-matching SAB (keep SRC data for CUIs specified)
         // if (sabField != -1 && sabs != null && !sabs.isEmpty() && !sabs.contains(fields[sabField])

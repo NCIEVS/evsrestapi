@@ -4,6 +4,7 @@ on:
   pull_request:
     branches:
       - develop
+      - develop-*
       - master
 
   workflow_dispatch:  # Allows manual runs from the GitHub UI
@@ -61,4 +62,4 @@ jobs:
     - name: Output vulnerabilities
       if: failure()  # Run only if the previous step fails
       run: |
-        jq '.Results[]?.Vulnerabilities[] | select(.Severity == "HIGH" or .Severity == "CRITICAL") | "\(.VulnerabilityID): \(.PkgName) - Severity: \(.Severity) - Fixed Version: \(.FixedVersion)"' trivy_report.json
+        jq '.Results[]?.Vulnerabilities[] | select(.Severity == "HIGH" or .Severity == "CRITICAL") | "\(.VulnerabilityID): \(.PkgName) - Severity: \(.Severity) - Installed Version: \(.InstalledVersion) - Fixed Version: \(.FixedVersion)"' trivy_report.json

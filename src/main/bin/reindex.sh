@@ -20,7 +20,7 @@ if [ ${#arr[@]} -ne 0 ]; then
   echo "  e.g. $0"
   echo "  e.g. $0 --noconfig"
   echo "  e.g. $0 --force"
-  echo "  e.g. $0 --noconfig --history ../data/UnitTestData/cumulative_history_21.06e.txt"
+  echo "  e.g. $0 --noconfig --history ../data/UnitTestData/NCIT/cumulative_history_25.06e.txt"
   exit 1
 fi
 
@@ -193,50 +193,74 @@ echo "Ignored source URLs:${ignored_sources}"
 echo "  Lookup terminology, version info in graph db"
 get_graph_query(){
 if [ -n "$ignored_sources" ];then
-cat > /tmp/x.$$.txt << EOF
+    # NOTE: the query must return ?source, ?graphName, and ?version with those names
+    cat > /tmp/x.$$.txt << EOF
 query=PREFIX owl:<http://www.w3.org/2002/07/owl#>
 PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>
 PREFIX dc:<http://purl.org/dc/elements/1.1/>
 PREFIX xml:<http://www.w3.org/2001/XMLSchema>
-select distinct ?source ?graphName ?version where {
+SELECT DISTINCT ?source ?graphName (STR(?safeVersion) AS ?version) WHERE {
   graph ?graphName {
     {
       ?source a owl:Ontology .
-      ?source owl:versionInfo ?version .
+      ?source owl:versionInfo ?x_version .
       FILTER (?source NOT IN ($ignored_sources))
     }
     UNION
     {
       ?source a owl:Ontology .
-      ?source owl:versionIRI ?version .
+      ?source owl:versionIRI ?x_version .
       FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo } .
       FILTER (?source NOT IN ($ignored_sources))
     }
+    BIND (
+        IF(
+            isURI(?x_version),
+            ?x_version,
+            IF(
+                DATATYPE(?x_version) = xsd:decimal,
+                xsd:integer(?x_version),
+                ?x_version
+            )
+        ) AS ?safeVersion
+    )
   }
 }
 EOF
 else
-cat > /tmp/x.$$.txt << EOF
+    # NOTE: the query must return ?source, ?graphName, and ?version with those names
+    cat > /tmp/x.$$.txt << EOF
 query=PREFIX owl:<http://www.w3.org/2002/07/owl#>
 PREFIX rdf:<http://www.w3.org/1999/02/22-rdf-syntax-ns#>
 PREFIX rdfs:<http://www.w3.org/2000/01/rdf-schema#>
 PREFIX xsd:<http://www.w3.org/2001/XMLSchema#>
 PREFIX dc:<http://purl.org/dc/elements/1.1/>
 PREFIX xml:<http://www.w3.org/2001/XMLSchema>
-select distinct ?source ?graphName ?version where {
+SELECT DISTINCT ?source ?graphName (STR(?safeVersion) AS ?version) WHERE {
   graph ?graphName {
     {
       ?source a owl:Ontology .
-      ?source owl:versionInfo ?version .
+      ?source owl:versionInfo ?x_version .
     }
     UNION
     {
       ?source a owl:Ontology .
-      ?source owl:versionIRI ?version .
+      ?source owl:versionIRI ?x_version .
       FILTER NOT EXISTS { ?source owl:versionInfo ?versionInfo } .
     }
+    BIND (
+        IF(
+            isURI(?x_version),
+            ?x_version,
+            IF(
+                DATATYPE(?x_version) = xsd:decimal,
+                xsd:integer(?x_version),
+                ?x_version
+            )
+        ) AS ?safeVersion
+    )
   }
 }
 EOF
@@ -331,10 +355,10 @@ download_and_unpack() {
         curl -w "\n%{http_code}" -s -o cumulative_history_$ver.zip "$url" > /tmp/x.$$
         # if curl command fails then try again
         if [[ $? -ne 0 ]]; then
-            echo "ERROR: problem downloading NCIt history (trying again $i)"
+            echo "      ERROR: problem downloading NCIt history (trying again $i)"
         # if status code is not 200, then bail
         elif [[ $(tail -1 /tmp/x.$$) -ne 200 ]]; then
-            echo "ERROR: unexpected status code downloading NCIt history = "$(tail -1 /tmp/x.$$)
+            echo "      ERROR: unexpected status code downloading NCIt history = "$(tail -1 /tmp/x.$$)
             break
         else
             echo "  Unpack NCIt history"
@@ -384,16 +408,27 @@ download_ncit_history() {
         -H 'accept: application/json')
       if [[ $? -ne 0 ]]; then
           echo "ERROR: Failed to get latest terminology from http://localhost:${serverPort}/api/v1/metadata/terminologies?latest=true&tag=monthly&terminology=ncit"
+          if [[ $serverPort -eq 8082 ]]; then
+              echo "  Setting default history version on local to 25.06e"
+              prev_version="25.06e"
+          else
+              echo "  Failed to find terminology version on non-local server, exiting"
+          fi
           cd - > /dev/null
           return 1
+
       fi
       echo "      response = $response"
 
-      if ! command -v jq &> /dev/null; then
-          echo "jq is not installed, using grep and perl as fallback"
-          prev_version=$(echo "$response" | grep '"version"' | perl -pe 's/.*"version":"//; s/".*//; ')
-      else
-          prev_version=$(echo "$response" | jq -r '.[] | .version')
+      if [[ -z "${prev_version}" ]]; then
+          echo "  prev_version is not set to a default, trying to parse response"
+          # Parse the response to get the previous version
+          if ! command -v jq &> /dev/null; then
+              echo "jq is not installed, using grep and perl as fallback"
+              prev_version=$(echo "$response" | grep '"version"' | perl -pe 's/.*"version":"//; s/".*//; ')
+          else
+              prev_version=$(echo "$response" | jq -r '.[] | .version')
+          fi
       fi
       echo "    Previous monthly version of ncit: $prev_version"
             
@@ -414,7 +449,7 @@ download_ncit_history() {
 for x in `cat /tmp/y.$$.txt`; do
     echo "  Check indexes for $x"
     version=`echo $x | cut -d\| -f 1 | perl -pe 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#;'`
-    cv=`echo $version | tr '[:upper:]' '[:lower:]' | perl -pe 's/[\.\-]//g;'`
+    cv=`echo $version | perl -ne 's/[\.\-]//g; print lc($_)'`
     db=`echo $x | cut -d\| -f 2`
     uri=`echo $x | cut -d\| -f 3`
     term=$(get_terminology "$uri")
@@ -432,13 +467,12 @@ for x in `cat /tmp/y.$$.txt`; do
     # Use override history file if specified
     historyFile=""
     if [[ "$term" == "ncit" ]] && [[ $historyFileOverride ]]; then
-
         historyFile=$historyFileOverride
 
     # Otherwise, download if ncit
     elif [[ "$term" == "ncit" ]]; then
         download_ncit_history
-	fi
+	  fi
 	
     for y in `echo "evs_metadata concept_${term}_$cv evs_object_${term}_$cv"`; do
 
@@ -475,29 +509,8 @@ for x in `cat /tmp/y.$$.txt`; do
       historyClause=" -d $historyFile"
     fi
     
-    if [[ $exists -eq 1 ]] && [[ $force -eq 0 ]]; then
-        echo "    FOUND indexes for $term $version"
-        
-        #if [[ $term == $pt ]]; then
-        #    echo "    SKIP RECONCILE $term stale indexes and update flags"
-        #    continue
-        #fi
-        
-        # Stale indexes are automatically cleaned up by the indexing process
-        # It checks against graph db and reconciles everything and updates latest flags
-        # regardless of whether there was new data
-        echo "    RECONCILE $term stale indexes and update flags "`pwd`
-        export EVS_SERVER_PORT="8083"
-        echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata $historyClause"
-        java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx4096M -XX:+ExitOnOutOfMemoryError -jar $jar --terminology ${term} --skipConcepts --skipMetadata $historyClause
-        if [[ $? -ne 0 ]]; then
-            cat /tmp/x.$$.log | sed 's/^/    /'
-            echo "ERROR: unexpected error building indexes"
-            exit 1
-        fi
-        /bin/rm -rf /tmp/x.$$.log
-        
-    else
+    if [[ $exists -eq 0 ]] || [[ $force -eq 1 ]]; then
+
         if [[ $exists -eq 1 ]] && [[ $force -eq 1 ]]; then
             echo "    FOUND indexes for $term $version, force reindex anyway"        
 
@@ -514,53 +527,167 @@ for x in `cat /tmp/y.$$.txt`; do
 
         # Run reindexing process (choose a port other than the one that it runs on)
         echo "    Generate indexes for $GRAPH_DB ${term} $version"
+        
+        # Set the history clause for "ncit"
+        historyClause=""
+        if [[ "$term" == "ncit" ]] && [[ $historyFile ]]; then
+            historyClause=" -d $historyFile"
+        fi
+
         echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
         java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
         if [[ $? -ne 0 ]]; then
+            echo "pwd = `pwd`"
             echo "ERROR: unexpected error building indexes"
             exit 1
         fi
- 
+
         # Unset history file once done being used
 
         # Set the indexes to have a larger max_result_window
         echo "    Set max result window to 250000 for concept_${term}_$cv"
         curl -s -X PUT "$ES_SCHEME://$ES_HOST:$ES_PORT/concept_${term}_$cv/_settings" \
-             -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 250000 } }' >> /dev/null
+              -H "Content-type: application/json" -d '{ "index" : { "max_result_window" : 250000 } }' >> /dev/null
         if [[ $? -ne 0 ]]; then
             echo "ERROR: unexpected error setting max_result_window"
             exit 1
         fi
 
-		### This needs more work to run in local, dev, qa, stage, prod
-		### main issues are API_URL setting and the requirement to use npm
-		### which may not be installed or configured
-        ## get directory of reindex.sh
-        #ORIG_DIR=$(pwd)
-        #REINDEX_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
-        #cd "$REINDEX_DIR"
-        #mkdir -p "$REINDEX_DIR/postman_content_qa"
-        #"$REINDEX_DIR/postman.sh" "${term}" > "$REINDEX_DIR/postman_content_qa/${term}_postman_content_qa.txt"
-        #POSTMAN_EXIT=$?
-        #if [ $POSTMAN_EXIT -ne 0 ]; then
-        #    echo "Error: postman.sh failed with exit code $POSTMAN_EXIT"
-        #    exit $POSTMAN_EXIT
-        #fi
-        #cd "$ORIG_DIR"
- 
+        ### This needs more work to run in local, dev, qa, stage, prod
+        ### main issues are API_URL setting and the requirement to use npm
+        ### which may not be installed or configured
+            ## get directory of reindex.sh
+            #ORIG_DIR=$(pwd)
+            #REINDEX_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
+            #cd "$REINDEX_DIR"
+            #mkdir -p "$REINDEX_DIR/postman_content_qa"
+            #"$REINDEX_DIR/postman.sh" "${term}" > "$REINDEX_DIR/postman_content_qa/${term}_postman_content_qa.txt"
+            #POSTMAN_EXIT=$?
+            #if [ $POSTMAN_EXIT -ne 0 ]; then
+            #    echo "Error: postman.sh failed with exit code $POSTMAN_EXIT"
+            #    exit $POSTMAN_EXIT
+            #fi
+            #cd "$ORIG_DIR"
+          
+        # Delete download directory for history file if it exists
+        if [[ -e $DIR/NCIT_HISTORY ]]; then
+            /bin/rm -rf $DIR/NCIT_HISTORY
+        fi
+        
+        
+        
+        # track previous version, if next one is the same, don't index again.
+        pv=$cv
+        pt=$term
     fi
-	
-	# Delete download directory for history file if it exists
-	if [[ -e $DIR/NCIT_HISTORY ]]; then
-        /bin/rm -rf $DIR/NCIT_HISTORY
-	fi
-    
-    
-    
-    # track previous version, if next one is the same, don't index again.
-    pv=$cv
-    pt=$term
 done
+
+# Get all currently indexed terminologies
+all_indexes=$(curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/_cat/indices?h=index" | grep '^concept_' | cut -d' ' -f1)
+
+# Get all valid terminology keys from the currently loaded graph db triples
+valid_keys=$(cut -d'|' -f1,3 /tmp/y.$$.txt | while IFS='|' read -r version iri; do
+  term=$(get_terminology "$iri")
+
+  # Handle cases where version is actually a URI containing the real version
+  if [[ "$version" =~ chebi/([0-9]+)/ ]]; then
+    version_compact=${BASH_REMATCH[1]}
+  elif [[ "$version" =~ releases/([0-9]{4}-[0-9]{2}-[0-9]{2})/ ]]; then
+    version_compact=$(echo ${BASH_REMATCH[1]} | sed 's/-//g')
+  else
+    version_compact=$(echo "$version" | tr '[:upper:]' '[:lower:]' | sed 's/[.-]//g')
+  fi
+
+  echo "concept_${term}_${version_compact}"
+done)
+
+# combine ncim terms with known terminologies
+ncim_terms="MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V30 NCIM"
+for t in $ncim_terms; do
+  t_lc=$(echo "$t" | tr '[:upper:]' '[:lower:]')
+  valid_keys="$valid_keys
+concept_${t_lc}_"
+done
+
+# For "rdf" or "rrf", get the indexed terminologies
+get_indexed_terminologies() {
+    local type=$1	
+    echo $(curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_search?size=1000" | jq -r '.hits.hits[]._source.terminology | select(.metadata.loader == "'"$type"'") | .terminologyVersion' | perl -ne 's/^/concept_/; print lc($_)')
+}
+
+# Takes a raw version and cleans it up for use
+get_version() {
+    local ver="$1"
+    echo $ver | cut -d\| -f 1 | perl -ne 's#.*/([\d-]+)/[a-zA-Z]+.owl#$1#; print lc($_)'
+}
+
+# Remove indexes not found in triple store
+# Remove unused indexes
+# Things loaded via RDF in the indexes that are no longer in graphdb
+remove_unused_indexes() {
+
+    RECONCILE ALL stale indexes and update flags
+
+    # NOTE: this code compares lowercase ${terminology}_${version} without cleanup of [\.\-]
+    echo "    Remove rdf terminologies no longer in graphdb ...`/bin/date`"
+    # Get all currently indexed terminologies
+    rdf_terms=$(get_indexed_terminologies "rdf")
+    echo "      rdf = $rdf_terms"
+
+    # Get all valid terminology keys from the currently loaded graph db triples
+    graphdb_terms=$(cut -d'|' -f1,3 /tmp/y.$$.txt | while IFS='|' read -r version iri; do
+        term=$(get_terminology "$iri")
+        version=$(get_version "$version")
+        echo -n " concept_${term}_${version}"
+done)
+    echo "      graphdb = $graphdb_terms"
+
+    # Remove indexes not found in triple store
+    for index in $rdf_terms; do
+        keep=0
+        for v in $graphdb_terms; do
+            if [[ "$index" == "$v" ]]; then
+                keep=1
+                break
+            fi
+        done
+        if [[ $keep -eq 0 ]]; then
+            echo "      remove indexes for ${index/concept_/}"
+            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$index" > /tmp/x.$$.txt
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$.txt | sed 's/^/    /'
+                echo "ERROR: error removing index $i"
+                exit 1
+            fi
+            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/${index/concept_/evs_object_}" > /tmp/x.$$.txt
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$.txt | sed 's/^/    /'
+                echo "ERROR: error removing index ${index/concept_/evs_object}"
+                exit 1
+            fi
+            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$index" > /tmp/x.$$.txt
+            if [[ $? -ne 0 ]]; then
+                cat /tmp/x.$$.txt | sed 's/^/    /'
+                echo "ERROR: error removing evs_metadata entry for $index"
+                exit 1
+            fi
+        fi
+    done	
+	
+}
+remove_unused_indexes
+
+# Stale indexes are automatically cleaned up by the indexing process
+# It checks against graph db and reconciles everything and updates latest flags
+# regardless of whether there was new data
+echo "    RECONCILE ALL stale indexes and update flags"
+export EVS_SERVER_PORT="8083"
+java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -jar $jar --terminology reconcile --skipLoad
+if [[ $? -ne 0 ]]; then
+    echo "ERROR: unexpected error reconciling indexes"
+    exit 1
+fi
+/bin/rm -rf /tmp/x.$$.log
 
 # Reconcile mappings after loading terminologies
 export EVS_SERVER_PORT="8083"

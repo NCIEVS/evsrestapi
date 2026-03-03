@@ -10,6 +10,7 @@ import gov.nih.nci.evs.api.model.Synonym;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.sparql.Bindings;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
@@ -238,6 +239,25 @@ public class EVSUtils {
         while (attrMatcher.find()) {
           final Qualifier qualifier = new Qualifier();
           qualifier.setType("attribution");
+          qualifier.setCode("attr");
+          // We don't want to try to inject and get a metadataService here
+          //          try {
+          //            // Try to get the qualifier code from the metadata service
+          //            Concept attributeConcept =
+          //                metadataService
+          //                    .getQualifier(
+          //                        terminology.getTerminology(), qualifier.getType(),
+          // Optional.of("minimal"))
+          //                    .orElse(null);
+          //            if (attributeConcept != null && attributeConcept.getCode() != null) {
+          //              qualifier.setCode(attributeConcept.getCode());
+          //            } else {
+          //              log.warn("No qualifier code found for type: " + qualifier.getType());
+          //            }
+          //          } catch (Exception e) {
+          //            // If it fails, just use the type as is
+          //            log.warn("Unable to get qualifier code for: " + qualifier.getType(), e);
+          //          }
           qualifier.setValue(attrMatcher.group(1));
           def.getQualifiers().add(qualifier);
         }
@@ -534,22 +554,24 @@ public class EVSUtils {
    * returns the read value from the given uri (local or repository file).
    *
    * @param uri the uri to read from
-   * @param info the info
    * @return the value from file
    * @info the info needing to be read (mostly for error message specificity)
    */
-  public static List<String> getValueFromFile(String uri, String info) throws Exception {
+  public static String getValueFromFile(String uri) throws Exception {
     try {
       try (final InputStream is = new URL(uri).openConnection().getInputStream()) {
-        return IOUtils.readLines(is, "UTF-8");
+        return String.join("\n", IOUtils.readLines(is, "UTF-8"));
       }
     } catch (final Throwable t) {
       try {
         // Try to open URI as a file
-        final File file = new File(uri);
-        return FileUtils.readLines(file, "UTF-8");
+        final File file = new File(uri.replaceFirst("file://", ""));
+        if (!file.exists()) {
+          throw new FileNotFoundException("File not found: " + file.getAbsolutePath());
+        }
+        return FileUtils.readFileToString(file, "UTF-8");
       } catch (Exception e2) {
-        throw new Exception("Unable to get data from = " + uri);
+        throw new Exception("Unable to get data from = " + uri, e2);
       }
     }
   }

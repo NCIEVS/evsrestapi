@@ -89,7 +89,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     // Escape the term in case it has special characters
     final String term = escape(searchCriteria.getTerm());
-    logger.debug("query string [{}]", term);
+    // logger.debug("query string [{}]", term);
 
     final BoolQueryBuilder boolQuery = new BoolQueryBuilder();
 
@@ -162,7 +162,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             Concept.class,
             IndexCoordinates.of(buildIndicesArray(searchCriteria)));
 
-    logger.debug("result count: {}", hits.getTotalHits());
+    // logger.debug("result count: {}", hits.getTotalHits());
 
     final ConceptResultList result = new ConceptResultList();
 
@@ -428,6 +428,62 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(39f),
             ScoreMode.Max);
 
+    // Partial word match queries - boost higher than phrase but lower than exact
+    // Only apply for "contains" type queries, not for "phrase" queries
+    QueryStringQueryBuilder partialWordNameQuery = null;
+    QueryStringQueryBuilder partialWordSynonymQuery = null;
+    NestedQueryBuilder nestedPartialWordSynonymQuery = null;
+
+    // This is a very targeted approach to a particular set of cases
+    // but does achieve support for searches like "rectal car"
+
+    // build partial word query if we have partial/short words
+    if ("contains".equalsIgnoreCase(type)) {
+      String[] tokens = normTerm.split("\\s+");
+      boolean hasPartialWord = false;
+      String[] partialTokens = new String[tokens.length];
+
+      for (int i = 0; i < tokens.length; i++) {
+        String token = tokens[i];
+        boolean isPartialWord =
+            (token.length() >= 2 && token.length() <= 4)
+                || (i == tokens.length - 1 && token.length() >= 2 && token.length() <= 5);
+
+        if (isPartialWord) {
+          partialTokens[i] = token + "*";
+          hasPartialWord = true;
+        } else {
+          partialTokens[i] = token;
+        }
+      }
+
+      // Only create partial word queries if we actually have partial words
+      if (hasPartialWord) {
+        partialWordNameQuery =
+            QueryBuilders.queryStringQuery(String.join(" AND ", partialTokens))
+                .field("name")
+                .defaultOperator(Operator.AND)
+                .analyzeWildcard(true)
+                .boost(20f);
+
+        partialWordSynonymQuery =
+            QueryBuilders.queryStringQuery(String.join(" AND ", partialTokens))
+                .field("synonyms.name")
+                .defaultOperator(Operator.AND)
+                .analyzeWildcard(true)
+                .boost(19f);
+        nestedPartialWordSynonymQuery =
+            QueryBuilders.nestedQuery("synonyms", partialWordSynonymQuery, ScoreMode.Max);
+      }
+    }
+
+    // Boost exact matches
+    final NestedQueryBuilder nestedSynonymExactQuery =
+        QueryBuilders.nestedQuery(
+            "synonyms",
+            QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(40f),
+            ScoreMode.Max);
+
     // Boosting matches with words next to each other
     final QueryStringQueryBuilder phraseNormNameQuery =
         QueryBuilders.queryStringQuery("\"" + term + "\"").field("name").boost(30f);
@@ -494,6 +550,12 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       synonymFixNormNameQuery.fuzziness(Fuzziness.ONE);
       synonymStemNameQuery.fuzziness(Fuzziness.ONE);
       definitionQuery.fuzziness(Fuzziness.ONE);
+      if (partialWordNameQuery != null) {
+        partialWordNameQuery.fuzziness(Fuzziness.ONE);
+      }
+      if (partialWordSynonymQuery != null) {
+        partialWordSynonymQuery.fuzziness(Fuzziness.ONE);
+      }
     } else {
       fixNameQuery.fuzziness(Fuzziness.ZERO);
       fixNormNameQuery.fuzziness(Fuzziness.ZERO);
@@ -502,6 +564,12 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       synonymFixNormNameQuery.fuzziness(Fuzziness.ZERO);
       synonymStemNameQuery.fuzziness(Fuzziness.ZERO);
       definitionQuery.fuzziness(Fuzziness.ZERO);
+      if (partialWordNameQuery != null) {
+        partialWordNameQuery.fuzziness(Fuzziness.ZERO);
+      }
+      if (partialWordSynonymQuery != null) {
+        partialWordSynonymQuery.fuzziness(Fuzziness.ZERO);
+      }
     }
 
     // -- wildcard search is assumed to be a term search or phrase search
@@ -545,12 +613,23 @@ public class OpenSearchServiceImpl implements OpenSearchService {
           .should(nestedSynonymNormNameQuery);
     }
 
+    // Add partial word queries (boost between exact and phrase) - only for contains type
+    if (partialWordNameQuery != null) {
+      termQuery.should(partialWordNameQuery);
+    }
+    if (nestedPartialWordSynonymQuery != null) {
+      termQuery.should(nestedPartialWordSynonymQuery);
+    }
+
     // Use phrase queries with higher boost than fixname queries
     termQuery.should(phraseNormNameQuery).should(nestedSynonymPhraseNormNameQuery);
 
     // contains, and/or
     if (!"phrase".equals(type.toLowerCase())) {
       termQuery
+
+          // Exact query
+          .should(nestedSynonymExactQuery)
 
           // Text queries on "name" and "norm name" and "stem name" using fix names
           .should(fixNameQuery)
@@ -675,7 +754,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @return the updated term
    */
   private String updateTermForType(String term, String type) {
-    if (StringUtils.isBlank(term) || StringUtils.isBlank(type)) return term;
+    if (StringUtils.isBlank(term) || StringUtils.isBlank(type)) {
+      return term;
+    }
     String result = null;
 
     switch (type.toLowerCase()) {
@@ -708,7 +789,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     StringBuilder builder = new StringBuilder();
 
     for (String token : tokens) {
-      if (builder.length() > 0) builder.append(" ");
+      if (builder.length() > 0) {
+        builder.append(" ");
+      }
       builder.append(token).append(modifier);
     }
 
@@ -850,13 +933,14 @@ public class OpenSearchServiceImpl implements OpenSearchService {
   /**
    * builds nested query for subset criteria on value field for given types.
    *
-   * @param term the term
    * @param searchCriteria the search criteria
    * @return the nested query
    */
   private QueryBuilder getSubsetValueQueryBuilder(
       final List<Terminology> terminologies, SearchCriteria searchCriteria) {
-    if (searchCriteria.getSubset().size() == 0) return null;
+    if (searchCriteria.getSubset().size() == 0) {
+      return null;
+    }
 
     List<String> subsets = searchCriteria.getSubset();
     BoolQueryBuilder subsetListQuery = QueryBuilders.boolQuery();
@@ -902,7 +986,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @return the nested query
    */
   private QueryBuilder getPropertyValueQueryBuilder(SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getProperty())) return null;
+    if (CollectionUtils.isEmpty(searchCriteria.getProperty())) {
+      return null;
+    }
 
     boolean hasValue = !StringUtils.isBlank(searchCriteria.getValue());
 
@@ -939,7 +1025,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @return the nested query
    */
   private QueryBuilder getSynonymSourceQueryBuilder(SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getSynonymSource())) return null;
+    if (CollectionUtils.isEmpty(searchCriteria.getSynonymSource())) {
+      return null;
+    }
 
     // IN query on synonym.source
 
@@ -971,7 +1059,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    */
   private QueryBuilder getSynonymTypeQueryBuilder(
       List<Terminology> terminologies, SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getSynonymType())) return null;
+    if (CollectionUtils.isEmpty(searchCriteria.getSynonymType())) {
+      return null;
+    }
 
     // bool query to match synonym.type
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
@@ -1002,7 +1092,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @return the nested query
    */
   private QueryBuilder getDefinitionSourceQueryBuilder(SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getDefinitionSource())) return null;
+    if (CollectionUtils.isEmpty(searchCriteria.getDefinitionSource())) {
+      return null;
+    }
 
     // IN query on definition.source
     BoolQueryBuilder inQuery = QueryBuilders.boolQuery();
@@ -1034,7 +1126,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    */
   private QueryBuilder getDefinitionTypeQueryBuilder(
       List<Terminology> terminologies, SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getDefinitionType())) return null;
+    if (CollectionUtils.isEmpty(searchCriteria.getDefinitionType())) {
+      return null;
+    }
 
     // bool query to match definition.type
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
@@ -1065,7 +1159,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @return the nested query
    */
   private QueryBuilder getSynonymTermTypeQueryBuilder(SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermType())) return null;
+    if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermType())) {
+      return null;
+    }
 
     // bool query to match synonym.termType
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();
@@ -1095,7 +1191,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
    * @return the nested query
    */
   private QueryBuilder getSynonymTermTypeAndSourceQueryBuilder(SearchCriteria searchCriteria) {
-    if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermType())) return null;
+    if (CollectionUtils.isEmpty(searchCriteria.getSynonymTermType())) {
+      return null;
+    }
 
     // bool query to match synonym.termType
     BoolQueryBuilder fieldBoolQuery = QueryBuilders.boolQuery();

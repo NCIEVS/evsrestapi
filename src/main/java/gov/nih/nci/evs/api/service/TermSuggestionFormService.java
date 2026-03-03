@@ -2,6 +2,7 @@ package gov.nih.nci.evs.api.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import gov.nih.nci.evs.api.model.EmailDetails;
+import org.springframework.web.multipart.MultipartFile;
 
 /** Interface for the terminology suggestion form services */
 public interface TermSuggestionFormService {
@@ -19,10 +20,27 @@ public interface TermSuggestionFormService {
    */
   void sendEmail(EmailDetails emailDetails) throws Exception;
 
-  //  /**
-  //   * Send an email with the formatted form data and an attachment, handled by javaMailSender
-  //   * @param formData
-  //   * @param formType
-  //   */
-  //  void sendEmailWithAttachment(JsonObject formData, String formType);
+  /**
+   * Validate file attachment.
+   *
+   * @param file the file
+   * @return true, if successful
+   */
+  boolean validateFileAttachment(MultipartFile file);
+
+  /**
+   * Validate file attachment and return a failure reason message when invalid.
+   *
+   * @param file the file
+   * @return null when valid, otherwise a human-readable failure reason matching the logged warning
+   */
+  String validateFileAttachmentReason(MultipartFile file);
+
+  /**
+   * Sends an email with the formatted form data and an optional attachment
+   *
+   * @param emailDetails details of the email created from the form data
+   * @param file optional file attachment
+   */
+  void sendEmailWithAttachment(EmailDetails emailDetails, MultipartFile file) throws Exception;
 }

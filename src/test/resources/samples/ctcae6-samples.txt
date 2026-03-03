@@ -1,0 +1,23 @@
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C221229	C221229	ncit:P108	Grade 4 Immune effector cell-associated neurotoxicity syndrome
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C221229	C221229	ncit:P90	Grade 4 Immune Effector Cell-Associated Neurotoxicity Syndrome, CTCAE
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C221229	C221229	ncit:P97	Life-threatening consequences; urgent intervention indicated
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C221229	C221229	ncit:P325	Life-threatening consequences; urgent intervention indicated
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C221229	C221229	ncit:P375	Immune effector cell-associated neurotoxicity syndrome
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C221229	C221229	rdfs:label	Grade 4 Immune effector cell-associated neurotoxicity syndrome
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C146387	C146387	qualifier-P90~P383~PT	Grade 5 Intra-abdominal hemorrhage~PT
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C146387	C146387	qualifier-P90~P384~NCI	Grade 5 Intra-Abdominal Hemorrhage, CTCAE~NCI
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C146387	C146387	qualifier-P90~P384~CTCAE 6.0	Grade 5 Intra-abdominal hemorrhage~CTCAE 6.0
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C146387	C146387	qualifier-P97~P378	Death~NCI
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C146387	C146387	qualifier-P325~P378	Death~CTCAE 6.0
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C146387	C146387	qualifier-P375~P393	Intra-abdominal hemorrhage~Has Synonym
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C146387	C146387	qualifier-P375~P394	Intra-abdominal hemorrhage~LLT
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C146387	C146387	qualifier-P375~P395	Intra-abdominal hemorrhage~10055291
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C146387	C146387	qualifier-P375~P396	Intra-abdominal hemorrhage~MedDRA
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C146387	C146387	qualifier-P375~P397	Intra-abdominal hemorrhage~28.0
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C220583	C220583	qualifier-P108~P383~PT	CTCAE 6.0 by Body System~PT
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C220583	C220583	qualifier-P108~P384~NCI	CTCAE 6.0 by Body System~NCI
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C221229	C221229	parent-style1	C221098
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C221229	C221098	child-style1	C221229
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C220591	C220591	max-children	122
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C221229	C221229	parent-count1
+http://ncicb.nci.nih.gov/xml/owl/EVS/ctcae6.owl#C220583	C220583	root

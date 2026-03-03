@@ -22,7 +22,7 @@ if [ $help == 1 ] || [ ${#arr[@]} -ne 1 ]; then
 fi
 dir=${arr[0]}
 # Hardcode the history file
-historyFile=$dir/cumulative_history_21.06e.txt
+historyFile=$dir/NCIT/cumulative_history_25.06e.txt
 
 
 databases=("NCIT2" "CTRP")
@@ -78,41 +78,48 @@ fi
 
 # Check NCIM
 echo "    check NCIM"
-ct=`ls $dir/NCIM | grep RRF | wc -l`
-if [[ $ct -le 20 ]]; then
-    echo "ERROR: unexpectedly small number of NCIM/*RRF files = $ct"
+ct=`ls $dir/NCIM | egrep "(AUI|COLS|CONSO|CUI|DEF|DOC|FILES|HIER|MAP|RANK|REL|SAB|SAT|STY)*RRF" | wc -l`
+if [[ $ct -le 14 ]]; then
+    echo "ERROR: unexpectedly missing NCIM/*RRF files = $dir/NCIM"
+    exit 1
+fi
+# Check NCIM2
+echo "    check NCIM2"
+ct=`ls $dir/NCIM2 | egrep "(AUI|COLS|CONSO|CUI|DEF|DOC|FILES|HIER|MAP|RANK|REL|SAB|SAT|STY)*RRF" | wc -l`
+if [[ ! $ct -eq 14 ]]; then
+    echo "ERROR: unexpectedly missing NCIM/*RRF files = $dir/NCIM"
     exit 1
 fi
 # Check NCIt weekly
 echo "    check NCIt weekly"
-if [[ ! -e "$dir/ThesaurusInferred_+1weekly.owl" ]]; then
+if [[ ! -e "$dir/NCIT/ThesaurusInferred_+1weekly.owl" ]]; then
     echo "ERROR: unexpectedly ThesaurusInferred_+1weekly.owl file"
     exit 1
 fi
 # Check NCIt monthly
 echo "    check NCIt monthly"
-if [[ ! -e "$dir/ThesaurusInferred_monthly.owl" ]]; then
+if [[ ! -e "$dir/NCIT/ThesaurusInferred_monthly.owl" ]]; then
     echo "ERROR: unexpectedly ThesaurusInferred_monthly.owl file"
     exit 1
 fi
 # Check GO monthly
 echo "    check GO monthly"
-if [[ ! -e "$dir/GO/go.2022-07-01.owl" ]]; then
-    echo "ERROR: unexpectedly missing GO/go.2022-07-01.owl file"
+if [[ ! -e "$dir/GO/GO.20250601.owl" ]]; then
+    echo "ERROR: unexpectedly missing GO/GO.20250601.owl file"
     exit 1
 fi
 
 # Check HGNC monthly
 echo "    check HGNC monthly"
-if [[ ! -e "$dir/HGNC/HGNC_202209.owl" ]]; then
-    echo "ERROR: unexpectedly missing HGNC/HGNC_202209.owl file"
+if [[ ! -e "$dir/HGNC/HGNC.202507.owl" ]]; then
+    echo "ERROR: unexpectedly missing HGNC/HGNC.202507.owl file"
     exit 1
 fi
 
 # Check ChEBI monthly
 echo "    check ChEBI monthly"
-if [[ ! -e "$dir/ChEBI/chebi_213.owl" ]]; then
-    echo "ERROR: unexpectedly missing ChEBI/chebi_213.owl file"
+if [[ ! -e "$dir/ChEBI/chebi_241.owl" ]]; then
+    echo "ERROR: unexpectedly missing ChEBI/chebi_241.owl file"
     exit 1
 fi
 
@@ -141,6 +148,13 @@ fi
 echo "    check NDFRT"
 if [[ ! -e "$dir/NDFRT/NDFRT_Public_2018.02.05_Inferred.owl" ]]; then
     echo "ERROR: unexpectedly missing NDFRT/NDFRT_Public_2018.02.05_Inferred.owl file"
+    exit 1
+fi
+
+# Check CTCAE6
+echo "    check CTCAE6"
+if [[ ! -e "$dir/CTCAE/ctcae6.owl" ]]; then
+    echo "ERROR: unexpectedly missing CTCAE/ctcae6.owl file"
     exit 1
 fi
 
@@ -243,6 +257,29 @@ reindex_ncim(){
   fi
 }
 
+# Reindex ncim - individual terminologies
+reindex_ncim2(){
+  echo "  Reindexing ncim2 ...`/bin/date`"
+  for t in MDR ICD10CM ICD9CM LNC SNOMEDCT_US RADLEX PDQ ICD10 HL7V3.0; do
+      # Keep the NCIM folder around while we run
+      echo "  Load $t (from ncim2 downloaded data) ...`/bin/date`"
+      src/main/bin/ncim-part.sh --noconfig $dir/NCIM2 --keep --terminology $t > /tmp/x.$$.txt 2>&1
+      if [[ $? -ne 0 ]]; then
+          cat /tmp/x.$$.txt | sed 's/^/    /'
+          echo "ERROR: loading $t"
+          exit 1
+      fi
+  done
+  # Reindex ncim - must run after the prior section so that maps can connect to loaded terminologies
+  echo "  Reindex ncim from ncim2 ...`/bin/date`"
+  src/main/bin/ncim-part.sh --noconfig $dir/NCIM2 > /tmp/x.$$.txt 2>&1
+  if [[ $? -ne 0 ]]; then
+      cat /tmp/x.$$.txt | sed 's/^/    /'
+      echo "ERROR: problem running ncim-part.sh"
+      exit 1
+  fi
+}
+
 drop_databases(){
   for db in "${databases[@]}"
   do
@@ -279,6 +316,8 @@ load_terminology_data_in_transaction(){
 }
 
 load_terminology_data(){
+  # e.g. curl -X POST -H 'Content-Type: application/rdf+xml' -T '../data/UnitTestData/UmlsSemNet/umlssemnet.owl' http://localhost:3030/NCIT2/data?graph=http://UmlsSemNet
+  # e.g. curl -X POST -H 'Content-Type: application/rdf+xml' -T '../data/UnitTestData/Mouse_Anatomy/ma_07_27_2016.owl' http://localhost:3030/NCIT2/data?graph=http://MA
   echo "    Loading $3 into $1 ...`/bin/date`"
   echo "      curl -X POST -H 'Content-Type: application/rdf+xml' -T '$dir/$3' http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$1/data?graph=$2"
   $curl_cmd -X POST -H "Content-Type: application/rdf+xml" -T "$dir/$3" "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/$1/data?graph=$2" 2> /dev/null > /tmp/x.$$
@@ -290,16 +329,17 @@ load_terminology_data(){
 }
 
 load_data(){
-    load_terminology_data CTRP http://NCI_T_weekly ThesaurusInferred_+1weekly.owl
-    load_terminology_data CTRP http://NCI_T_monthly ThesaurusInferred_monthly.owl
-    load_terminology_data NCIT2 http://NCI_T_monthly ThesaurusInferred_monthly.owl
-    load_terminology_data NCIT2 http://GO_monthly GO/go.2022-07-01.owl
-    load_terminology_data NCIT2 http://HGNC_monthly HGNC/HGNC_202209.owl
-    load_terminology_data NCIT2 http://ChEBI_monthly ChEBI/chebi_213.owl
+    load_terminology_data CTRP http://NCI_T_weekly NCIT/ThesaurusInferred_+1weekly.owl
+    load_terminology_data CTRP http://NCI_T_monthly NCIT/ThesaurusInferred_monthly.owl
+    load_terminology_data NCIT2 http://NCI_T_monthly NCIT/ThesaurusInferred_monthly.owl
+    load_terminology_data NCIT2 http://GO_monthly GO/GO.20250601.owl
+    load_terminology_data NCIT2 http://HGNC_monthly HGNC/HGNC.202507.owl
+    load_terminology_data NCIT2 http://ChEBI_monthly ChEBI/chebi_241.owl
     load_terminology_data NCIT2 http://UmlsSemNet UmlsSemNet/umlssemnet.owl
-    load_terminology_data NCIT2 http://MEDRT MED-RT/medrt.owl
-    load_terminology_data NCIT2 http://Canmed CanMed/canmed.owl
+    load_terminology_data NCIT2 http://Canmed CanMed/CANMED.202506.owl
+    load_terminology_data NCIT2 http://MEDRT MED-RT/MEDRT.2025-06-02.owl
     load_terminology_data NCIT2 http://CTCAE CTCAE/ctcae5.owl
+    load_terminology_data NCIT2 http://CTCAE6 CTCAE/ctcae6.owl
     load_terminology_data NCIT2 http://DUO_monthly DUO/duo_Feb21.owl
     load_terminology_data NCIT2 http://DUO_monthly DUO/iao_Dec20.owl
     load_terminology_data NCIT2 http://OBI_monthly OBI/obi_2022_07.owl
@@ -330,6 +370,7 @@ drop_databases
 create_databases
 remove_elasticsearch_indexes
 reindex_ncim
+reindex_ncim2
 load_data
 # This will load maps from github evsrestapi-operations
 reindex

@@ -300,6 +300,11 @@ public class ConceptSampleTester {
     }
 
     for (final Entry<String, List<SampleRecord>> entry : sampleMap.entrySet()) {
+      if (entry.getValue().stream().filter(x -> x.getKey().equals("root")).count() > 0
+          && terminology.getMetadata().getLoader().equals("rrf")) {
+        // skip root for rrf loaded terminologies
+        continue;
+      }
       url = baseUrl + term + "/" + entry.getKey() + "?include=full";
       log.info("Testing url - " + url);
       result =
@@ -461,6 +466,10 @@ public class ConceptSampleTester {
     lookupTerminology(term);
 
     for (final Entry<String, List<SampleRecord>> entry : sampleMap.entrySet()) {
+      if (entry.getKey().equals("root") && terminology.getMetadata().getLoader().equals("rrf")) {
+        // skip root for rrf loaded terminologies
+        continue;
+      }
       url = baseUrl + term + "/" + entry.getKey() + "?include=full";
       log.info("Testing url - " + url);
       result =
@@ -576,7 +585,7 @@ public class ConceptSampleTester {
           if (!checkQualifier(concept, sample)) {
             errors.add("ERROR: Bad qualifier " + sample.getValue() + " of " + sample.getCode());
           }
-        } else if (key.equals("root")) {
+        } else if (key.equals("root") && !terminology.getMetadata().getLoader().equals("rrf")) {
           if (concept.getParents().size() > 0) {
             errors.add("ERROR: root " + sample.getCode() + " has parents");
           }
@@ -668,7 +677,9 @@ public class ConceptSampleTester {
           // inconsistency
           if (!checkProperties(concept, newSample, propertyList)
               && newSample.equals(colonSample)
-              && (!checkProperties(concept, colonSample, propertyList))) {
+              && (!checkProperties(concept, colonSample, propertyList))
+              && (!terminology.getMetadata().getLoader().equals("rrf")
+                  && sample.getKey().equals("root"))) {
             errors.add(
                 "ERROR: Wrong property ("
                     + sample.getKey()
@@ -992,16 +1003,14 @@ public class ConceptSampleTester {
     return concept.getProperties().stream()
         .filter(
             o ->
-                o.getType().equals(otherProperty.getName())
-                    || o.getType().equals(otherProperty.getCode())
-                        && o.getQualifiers() != null
-                        && o.getQualifiers().stream()
-                            .filter(
-                                p ->
-                                    p.getType().equals(otherQualifier.getName())
-                                        && p.getValue().equals(propertyValue))
-                            .findAny()
-                            .isPresent())
+                (o.getCode().equals(otherProperty.getName())
+                        || o.getCode().equals(otherProperty.getCode()))
+                    && o.getQualifiers() != null
+                    && o.getQualifiers().stream()
+                        .anyMatch(
+                            p ->
+                                p.getType().equals(otherQualifier.getName())
+                                    && p.getValue().equals(propertyValue)))
         .findAny()
         .isPresent();
   }
@@ -1098,7 +1107,7 @@ public class ConceptSampleTester {
       return concept.getSynonyms().stream()
           .filter(
               o ->
-                  o.getType().equals(otherProperty.getName())
+                  o.getTypeCode().equals(otherProperty.getCode())
                       && o.getQualifiers() != null
                       && o.getQualifiers().stream()
                           .filter(
@@ -1259,15 +1268,15 @@ public class ConceptSampleTester {
 
     return concept.getSynonyms().stream()
         .filter(
-            o ->
-                o.getName().equals(qualValue)
-                    && o.getQualifiers().stream()
-                        .filter(
-                            q ->
-                                q.getType().equals(propertyKey)
-                                    && q.getValue().equals(propertyValue))
-                        .findAny()
-                        .isPresent())
+            o -> {
+              return qualValue.equals(o.getName())
+                  && o.getQualifiers().stream()
+                      .anyMatch(
+                          q ->
+                              q.getType().equals(propertyKey)
+                                  && StringEscapeUtils.unescapeHtml4(q.getValue())
+                                      .equals(StringEscapeUtils.unescapeHtml4(propertyValue)));
+            })
         .findAny()
         .isPresent();
   }

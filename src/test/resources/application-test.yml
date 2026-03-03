@@ -87,9 +87,11 @@ nci:
     application:
       adminKey: ${NCI_EVS_ADMIN_KEY:Default}
       contextPath: /api/v1
+      mailRecipient: ${MAIL_RECIPIENT:}
       metricsEnabled: ${METRICS_ENABLED:true}
       metricsDir: ${METRICS_DIR:/tmp}
       configBaseUri: ${CONFIG_BASE_URI:https://raw.githubusercontent.com/NCIEVS/evsrestapi-operations/develop/config/metadata}
+      sdkBaseUri: ${SDK_BASE_URI:https://raw.githubusercontent.com/NCIEVS/evsrestapi-client-SDK/develop}
       uiLicense: ${UI_LICENSE:ui-license}
     bulkload:
       historyDir: ${NCI_EVS_HISTORY_DIR:/tmp}
@@ -126,8 +128,8 @@ springdoc:
 google:
   recaptcha:
     site:
-      key: ${RECAPTCHA_KEY:REPLACE_WITH_KEY}
+      key: ${RECAPTCHA_KEY:TEST-KEY}
     secret:
-      key: ${RECAPTCHA_SECRET:REPLACE_WITH_SECRET}
+      key: ${RECAPTCHA_SECRET:TEST-SECRET}
     verify:
       url: https://www.google.com/recaptcha/api/siteverify

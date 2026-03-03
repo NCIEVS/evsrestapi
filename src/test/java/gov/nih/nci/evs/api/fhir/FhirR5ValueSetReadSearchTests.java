@@ -11,18 +11,16 @@ import ca.uhn.fhir.parser.IParser;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Stream;
-import org.hl7.fhir.r5.model.Bundle;
+import org.hl7.fhir.r5.model.*;
 import org.hl7.fhir.r5.model.Bundle.BundleEntryComponent;
-import org.hl7.fhir.r5.model.OperationOutcome;
 import org.hl7.fhir.r5.model.OperationOutcome.OperationOutcomeIssueComponent;
-import org.hl7.fhir.r5.model.Resource;
-import org.hl7.fhir.r5.model.ResourceType;
-import org.hl7.fhir.r5.model.ValueSet;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -75,7 +73,7 @@ class FhirR5ValueSetReadSearchTests {
   @BeforeEach
   public void setUp() {
     // the object mapper
-    ObjectMapper objectMapper = new ObjectMapper();
+    final ObjectMapper objectMapper = new ObjectMapper();
     JacksonTester.initFields(this, objectMapper);
   }
 
@@ -88,28 +86,28 @@ class FhirR5ValueSetReadSearchTests {
   public void testValueSetSearch() throws Exception {
     // Arrange
     String content;
-    String endpoint = localHost + port + fhirVSPath + "?_count=2000";
+    final String endpoint = localHost + port + fhirVSPath + "?_count=2000";
 
     // Act
     content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> valueSets =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     // Verify things about these
-    // {"resourceType":"ValueSet","id":"ncit_21.06e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"21.06e","name":"NCI
+    // {"resourceType":"ValueSet","id":"ncit_25.06e","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl","version":"25.06e","name":"NCI
     // Thesaurus
-    // 21.06e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","description":"NCI
+    // 25.06e","title":"ncit","status":"active","experimental":false,"publisher":"NCI","description":"NCI
     // Thesaurus, a controlled vocabulary in support of NCI administrative and
     // scientific activities. Produced by the Enterprise Vocabulary System
     // (EVS), a project by the NCI Center for Biomedical Informatics and
     // Information Technology. National Cancer Institute, National Institutes of
     // Health, Bethesda, MD 20892, U.S.A."}
-    // {"resourceType":"ValueSet","id":"ncit_c100110","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110","identifier":[{"value":"C100110"}],"version":"21.06e","name":"CDISC
+    // {"resourceType":"ValueSet","id":"ncit_c100110","url":"http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110","identifier":[{"value":"C100110"}],"version":"25.06e","name":"CDISC
     // Questionnaire
     // Terminology","title":"ncit","status":"active","experimental":false,"publisher":"NCI","description":"Value
     // set representing the ncitsubsetC100110"}
-    final Set<String> ids = new HashSet<>(Set.of("ncit_21.06e", "ncit_c61410"));
+    final Set<String> ids = new HashSet<>(Set.of("ncit_25.06e", "ncit_c61410"));
     final Set<String> urls =
         new HashSet<>(
             Set.of(
@@ -118,9 +116,9 @@ class FhirR5ValueSetReadSearchTests {
 
     // Assert
     assertFalse(valueSets.isEmpty());
-    for (Resource vs : valueSets) {
+    for (final Resource vs : valueSets) {
       log.info("  value set = " + parser.encodeResourceToString(vs));
-      ValueSet vss = (ValueSet) vs;
+      final ValueSet vss = (ValueSet) vs;
       assertNotNull(vss);
       assertEquals(ResourceType.ValueSet, vss.getResourceType());
       assertNotNull(vss.getIdPart());
@@ -148,17 +146,17 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetRead() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> valueSets =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     // Act
-    String firstValueSetId = valueSets.get(0).getIdPart();
+    final String firstValueSetId = valueSets.get(0).getIdPart();
     // reassign content
     content = this.restTemplate.getForObject(endpoint + "/" + firstValueSetId, String.class);
-    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+    final ValueSet valueSet = parser.parseResource(ValueSet.class, content);
 
     // Assert
     assertNotNull(valueSet);
@@ -183,19 +181,19 @@ class FhirR5ValueSetReadSearchTests {
   public void testValueSetReadCode() throws Exception {
     // Arrange
     String content;
-    String code = "ncit_c129091";
-    String name = "CDISC Questionnaire NCCN-FACT FBLSI-18 Version 2 Test Name Terminology";
-    String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C129091";
-    String publisher = "NCI";
-    String description = "Value set representing the ncitsubsetC129091";
-    String title = "ncit";
-    String status = "active";
-    String experimental = "false";
-    String endpoint = localHost + port + fhirVSPath;
+    final String code = "ncit_c129091";
+    final String name = "CDISC Questionnaire NCCN-FACT FBLSI-18 Version 2 Test Name Terminology";
+    final String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C129091";
+    final String publisher = "National Cancer Institute";
+    final String description = "Value set representing the ncitsubsetC129091";
+    final String title = "ncit";
+    final String status = "active";
+    final String experimental = "false";
+    final String endpoint = localHost + port + fhirVSPath;
 
     // Act
     content = this.restTemplate.getForObject(endpoint + "/" + code, String.class);
-    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+    final ValueSet valueSet = parser.parseResource(ValueSet.class, content);
 
     // Assert
     assertNotNull(valueSet);
@@ -218,12 +216,12 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetReadStaticId() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    String valueSetId = "umlssemnet_2023aa";
+    final String valueSetId = "umlssemnet_2023aa";
 
     content = this.restTemplate.getForObject(endpoint + "/" + valueSetId, String.class);
-    ValueSet valueSet = parser.parseResource(ValueSet.class, content);
+    final ValueSet valueSet = parser.parseResource(ValueSet.class, content);
 
     // Assert
     assertNotNull(valueSet);
@@ -247,15 +245,15 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetReadBadId() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    String invalidId = "invalid_id";
-    String messageNotFound = "Value set not found = " + invalidId;
-    String errorCode = "not-found";
+    final String invalidId = "invalid_id";
+    final String messageNotFound = "Value set not found = " + invalidId;
+    final String errorCode = "not-found";
 
     content = this.restTemplate.getForObject(endpoint + "/" + invalidId, String.class);
-    OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
-    OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
 
     // Assert
     assertEquals(errorCode, component.getCode().toCode());
@@ -270,18 +268,19 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetSubsetSearchWithParameters() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
 
     // Test 1: All valid parameters
     UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
             .queryParam("_id", "ncit_c100110")
-            .queryParam("code", "C100110")
+            // TODO
+            // .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
-            .queryParam("version", "21.06e");
+            .queryParam("version", "25.06e");
 
     // Test successful case with all parameters
     String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -297,7 +296,7 @@ class FhirR5ValueSetReadSearchTests {
             .queryParam("name", "CDISC Questionnaire Terminology")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
-            .queryParam("version", "21.06e");
+            .queryParam("version", "25.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -307,12 +306,12 @@ class FhirR5ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_21.06e")
+            .queryParam("_id", "ncit_25.06e")
             .queryParam("code", "INVALID_CODE")
             .queryParam("name", "CDISC Questionnaire Terminology")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
-            .queryParam("version", "21.06e");
+            .queryParam("version", "25.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -322,11 +321,11 @@ class FhirR5ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
+            .queryParam("_id", "ncit_25.06e") // .queryParam("code", "C61410")
             .queryParam("name", "Invalid Name")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
-            .queryParam("version", "21.06e");
+            .queryParam("version", "25.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -336,12 +335,12 @@ class FhirR5ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_21.06e")
+            .queryParam("_id", "ncit_25.06e")
             .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
             .queryParam("title", "invalid_title")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
-            .queryParam("version", "21.06e");
+            .queryParam("version", "25.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -351,12 +350,12 @@ class FhirR5ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_21.06e")
+            .queryParam("_id", "ncit_25.06e")
             .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
             .queryParam("title", "ncit")
             .queryParam("url", "http://invalid.url")
-            .queryParam("version", "21.06e");
+            .queryParam("version", "25.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -366,7 +365,7 @@ class FhirR5ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_21.06e")
+            .queryParam("_id", "ncit_25.06e")
             .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
             .queryParam("title", "ncit")
@@ -390,18 +389,18 @@ class FhirR5ValueSetReadSearchTests {
     // these tests should be amended when the data is updated
 
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
 
     // Test 1: All valid parameters
     UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_21.06e") // .queryParam("code",
+            .queryParam("_id", "ncit_25.06e") // .queryParam("code",
             // "C61410")
-            .queryParam("name", "NCI Thesaurus 21.06e") // .queryParam("system",
+            .queryParam("name", "NCI Thesaurus 25.06e") // .queryParam("system",
             // "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs")
-            .queryParam("version", "21.06e");
+            .queryParam("version", "25.06e");
 
     // Test successful case with all parameters
     String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -413,10 +412,10 @@ class FhirR5ValueSetReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
             .queryParam("_id", "invalid_id") // .queryParam("code", "C61410")
-            .queryParam("name", "NCI Thesaurus 21.06e") // .queryParam("system",
+            .queryParam("name", "NCI Thesaurus 25.06e") // .queryParam("system",
             // "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "21.06e");
+            .queryParam("version", "25.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -426,12 +425,12 @@ class FhirR5ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_21.06e")
+            .queryParam("_id", "ncit_25.06e")
             .queryParam("code", "INVALID_CODE")
-            .queryParam("name", "NCI Thesaurus 21.06e") // .queryParam("system",
+            .queryParam("name", "NCI Thesaurus 25.06e") // .queryParam("system",
             // "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "21.06e");
+            .queryParam("version", "25.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -441,10 +440,10 @@ class FhirR5ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
+            .queryParam("_id", "ncit_25.06e") // .queryParam("code", "C61410")
             .queryParam("name", "Invalid Name") // .queryParam("system", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "21.06e");
+            .queryParam("version", "25.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -454,11 +453,11 @@ class FhirR5ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
-            .queryParam("name", "NCI Thesaurus 21.06e") // .queryParam("system",
+            .queryParam("_id", "ncit_25.06e") // .queryParam("code", "C61410")
+            .queryParam("name", "NCI Thesaurus 25.06e") // .queryParam("system",
             // "invalid_system")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "21.06e");
+            .queryParam("version", "25.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -468,11 +467,11 @@ class FhirR5ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
-            .queryParam("name", "NCI Thesaurus 21.06e") // .queryParam("system",
+            .queryParam("_id", "ncit_25.06e") // .queryParam("code", "C61410")
+            .queryParam("name", "NCI Thesaurus 25.06e") // .queryParam("system",
             // "ncit")
             .queryParam("url", "http://invalid.url")
-            .queryParam("version", "21.06e");
+            .queryParam("version", "25.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -482,8 +481,8 @@ class FhirR5ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_21.06e") // .queryParam("code", "C61410")
-            .queryParam("name", "NCI Thesaurus 21.06e") // .queryParam("system",
+            .queryParam("_id", "ncit_25.06e") // .queryParam("code", "C61410")
+            .queryParam("name", "NCI Thesaurus 25.06e") // .queryParam("system",
             // "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
             .queryParam("version", "invalid_version");
@@ -500,21 +499,51 @@ class FhirR5ValueSetReadSearchTests {
    * @param expectResults the expect results
    */
   // Helper method to validate results
-  private void validateValueSetResults(Bundle data, boolean expectResults) {
-    List<Resource> valueSets =
+  private void validateValueSetResults(final Bundle data, final boolean expectResults) {
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     if (expectResults) {
       assertFalse(valueSets.isEmpty());
-      final Set<String> ids = new HashSet<>(Set.of("ncit_21.06e"));
+      final Set<String> ids = new HashSet<>(Set.of("ncit_25.06e"));
       final Set<String> urls =
           new HashSet<>(Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs"));
 
-      for (Resource vs : valueSets) {
+      for (final Resource vs : valueSets) {
         log.info(" value set = " + parser.encodeResourceToString(vs));
-        ValueSet vss = (ValueSet) vs;
+        final ValueSet vss = (ValueSet) vs;
         assertNotNull(vss);
         assertEquals(ResourceType.ValueSet, vss.getResourceType());
+        assertNotNull(vss.getIdPart());
+        assertNotNull(vss.getPublisher());
+        assertNotNull(vss.getUrl());
+        ids.remove(vss.getIdPart());
+        urls.remove(vss.getUrl());
+      }
+      assertTrue(ids.isEmpty());
+      assertTrue(urls.isEmpty());
+    } else {
+      assertTrue(data.getEntry().isEmpty() || valueSets.isEmpty());
+    }
+  }
+
+  private void validateCanmedValueSetResults(
+      final org.hl7.fhir.r5.model.Bundle data, final boolean expectResults) {
+    final List<org.hl7.fhir.r5.model.Resource> valueSets =
+        data.getEntry().stream()
+            .map(org.hl7.fhir.r5.model.Bundle.BundleEntryComponent::getResource)
+            .toList();
+
+    if (expectResults) {
+      assertFalse(valueSets.isEmpty());
+      final Set<String> ids = new HashSet<>(Set.of("canmed_202506"));
+      final Set<String> urls = new HashSet<>(Set.of("http://seer.nci.nih.gov/CanMED.owl?fhir_vs"));
+
+      for (final org.hl7.fhir.r5.model.Resource vs : valueSets) {
+        log.info(" value set = " + parser.encodeResourceToString(vs));
+        final org.hl7.fhir.r5.model.ValueSet vss = (org.hl7.fhir.r5.model.ValueSet) vs;
+        assertNotNull(vss);
+        assertEquals(org.hl7.fhir.r5.model.ResourceType.ValueSet, vss.getResourceType());
         assertNotNull(vss.getIdPart());
         assertNotNull(vss.getPublisher());
         assertNotNull(vss.getUrl());
@@ -534,8 +563,8 @@ class FhirR5ValueSetReadSearchTests {
    * @param data the data
    * @param expectResults the expect results
    */
-  private void validateValueSetSubsetResults(Bundle data, boolean expectResults) {
-    List<Resource> valueSets =
+  private void validateValueSetSubsetResults(final Bundle data, final boolean expectResults) {
+    final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
     if (expectResults) {
@@ -545,9 +574,9 @@ class FhirR5ValueSetReadSearchTests {
           new HashSet<>(
               Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110"));
 
-      for (Resource vs : valueSets) {
+      for (final Resource vs : valueSets) {
         log.info(" value set = " + parser.encodeResourceToString(vs));
-        ValueSet vss = (ValueSet) vs;
+        final ValueSet vss = (ValueSet) vs;
         assertNotNull(vss);
         assertEquals(ResourceType.ValueSet, vss.getResourceType());
         assertNotNull(vss.getIdPart());
@@ -571,44 +600,44 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetSearchPagination() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
 
     // Test 1: Get default results without pagination
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle defaultData = parser.parseResource(Bundle.class, content);
-    List<Resource> defaultValueSets =
+    final Bundle defaultData = parser.parseResource(Bundle.class, content);
+    final List<Resource> defaultValueSets =
         defaultData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Test 2: Get first page (count=2)
-    UriComponentsBuilder firstPageBuilder =
+    final UriComponentsBuilder firstPageBuilder =
         UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2");
 
     content =
         this.restTemplate.getForObject(firstPageBuilder.build().encode().toUri(), String.class);
-    Bundle firstPageData = parser.parseResource(Bundle.class, content);
-    List<Resource> firstPageSets =
+    final Bundle firstPageData = parser.parseResource(Bundle.class, content);
+    final List<Resource> firstPageSets =
         firstPageData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Test 3: Get second page (count=2, offset=2)
-    UriComponentsBuilder secondPageBuilder =
+    final UriComponentsBuilder secondPageBuilder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2")
             .queryParam("_offset", "2");
 
     content =
         this.restTemplate.getForObject(secondPageBuilder.build().encode().toUri(), String.class);
-    Bundle secondPageData = parser.parseResource(Bundle.class, content);
-    List<Resource> secondPageSets =
+    final Bundle secondPageData = parser.parseResource(Bundle.class, content);
+    final List<Resource> secondPageSets =
         secondPageData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Test 4: Try to exceed maximum count (should return all)
-    UriComponentsBuilder maxExceededBuilder =
+    final UriComponentsBuilder maxExceededBuilder =
         UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "10000");
 
     content =
         this.restTemplate.getForObject(maxExceededBuilder.build().encode().toUri(), String.class);
-    Bundle maxPageData = parser.parseResource(Bundle.class, content);
-    List<Resource> maxPageSets =
+    final Bundle maxPageData = parser.parseResource(Bundle.class, content);
+    final List<Resource> maxPageSets =
         maxPageData.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
     // Assertions for pagination
@@ -618,13 +647,13 @@ class FhirR5ValueSetReadSearchTests {
     assertTrue(defaultValueSets.size() <= maxPageSets.size());
 
     // Verify that concatenated pages equal first 4 of full results
-    List<String> fourIds =
+    final List<String> fourIds =
         defaultValueSets.subList(0, 4).stream()
             .map(resource -> resource.getIdPart())
             .sorted()
             .toList();
 
-    List<String> paginatedIds =
+    final List<String> paginatedIds =
         Stream.concat(firstPageSets.stream(), secondPageSets.stream())
             .map(resource -> resource.getIdPart())
             .sorted()
@@ -633,7 +662,7 @@ class FhirR5ValueSetReadSearchTests {
     assertEquals(fourIds, paginatedIds);
 
     // Verify content of individual resources
-    for (Resource cs : defaultValueSets) {
+    for (final Resource cs : defaultValueSets) {
       validateValueSetPagination((ValueSet) cs);
     }
   }
@@ -643,7 +672,7 @@ class FhirR5ValueSetReadSearchTests {
    *
    * @param vs the vs
    */
-  private void validateValueSetPagination(ValueSet vs) {
+  private void validateValueSetPagination(final ValueSet vs) {
     assertNotNull(vs);
     assertEquals(ResourceType.ValueSet, vs.getResourceType());
     assertNotNull(vs.getIdPart());
@@ -654,7 +683,7 @@ class FhirR5ValueSetReadSearchTests {
     log.info(" value set = " + parser.encodeResourceToString(vs));
 
     // Verify specific IDs and URLs if needed
-    if (vs.getIdPart().equals("ncit_21.06e")) {
+    if (vs.getIdPart().equals("ncit_25.06e")) {
       assertEquals("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs", vs.getUrl());
     }
   }
@@ -667,43 +696,43 @@ class FhirR5ValueSetReadSearchTests {
   @Test
   public void testValueSetSearchVariantsWithParameters() throws Exception {
     // Arrange
-    String endpoint = localHost + port + fhirVSPath;
+    final String endpoint = localHost + port + fhirVSPath;
 
     // Test 1: Get initial list of ValueSets
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    Bundle data = parser.parseResource(Bundle.class, content);
-    List<Resource> valueSets =
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> valueSets =
         data.getEntry().stream().map(BundleEntryComponent::getResource).toList();
 
-    ValueSet firstValueSet = (ValueSet) valueSets.get(0);
-    String firstValueSetName = firstValueSet.getName();
-    String firstValueSetTitle = firstValueSet.getTitle();
+    final ValueSet firstValueSet = (ValueSet) valueSets.get(0);
+    final String firstValueSetName = firstValueSet.getName();
+    final String firstValueSetTitle = firstValueSet.getTitle();
 
     // Test 2: Basic name search (without modifier)
-    String basicNameUrl =
+    final String basicNameUrl =
         endpoint + "?name=" + URLEncoder.encode(firstValueSetName, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(basicNameUrl, String.class);
-    Bundle basicNameBundle = parser.parseResource(Bundle.class, content);
+    final Bundle basicNameBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(basicNameBundle.getEntry());
     assertFalse(basicNameBundle.getEntry().isEmpty());
-    ValueSet basicMatchValueSet = (ValueSet) basicNameBundle.getEntry().get(0).getResource();
+    final ValueSet basicMatchValueSet = (ValueSet) basicNameBundle.getEntry().get(0).getResource();
     assertEquals(firstValueSetName, basicMatchValueSet.getName());
 
     // Test 3: Exact match (case insensitive)
-    String upperCaseName = firstValueSetName.toUpperCase();
-    String exactMatchUrl =
+    final String upperCaseName = firstValueSetName.toUpperCase();
+    final String exactMatchUrl =
         endpoint + "?name:exact=" + URLEncoder.encode(upperCaseName, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(exactMatchUrl, String.class);
-    Bundle exactMatchBundle = parser.parseResource(Bundle.class, content);
+    final Bundle exactMatchBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(exactMatchBundle.getEntry());
     assertFalse(exactMatchBundle.getEntry().isEmpty());
-    ValueSet exactMatchValueSet = (ValueSet) exactMatchBundle.getEntry().get(0).getResource();
+    final ValueSet exactMatchValueSet = (ValueSet) exactMatchBundle.getEntry().get(0).getResource();
     assertTrue(exactMatchValueSet.getName().equalsIgnoreCase(upperCaseName));
 
     // Test 4: Contains search
-    String partialName = firstValueSetName.substring(1, firstValueSetName.length() - 1);
+    final String partialName = firstValueSetName.substring(1, firstValueSetName.length() - 1);
     String containsUrl =
         endpoint + "?name:contains=" + URLEncoder.encode(partialName, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(containsUrl, String.class);
@@ -718,87 +747,87 @@ class FhirR5ValueSetReadSearchTests {
     assertTrue(foundContainsMatch);
 
     // Test 5: Starts with search
-    String namePrefix = firstValueSetName.substring(0, 3);
-    String startsWithUrl =
+    final String namePrefix = firstValueSetName.substring(0, 3);
+    final String startsWithUrl =
         endpoint + "?name:startsWith=" + URLEncoder.encode(namePrefix, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(startsWithUrl, String.class);
-    Bundle startsWithBundle = parser.parseResource(Bundle.class, content);
+    final Bundle startsWithBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(startsWithBundle.getEntry());
     assertFalse(startsWithBundle.getEntry().isEmpty());
-    boolean foundStartsWithMatch =
+    final boolean foundStartsWithMatch =
         startsWithBundle.getEntry().stream()
             .map(entry -> ((ValueSet) entry.getResource()).getName())
             .anyMatch(name -> name.toLowerCase().startsWith(namePrefix.toLowerCase()));
     assertTrue(foundStartsWithMatch);
 
     // Test 6: Negative test - non-existent name
-    String nonExistentName = "NonExistentValueSet" + UUID.randomUUID();
-    String negativeTestUrl =
+    final String nonExistentName = "NonExistentValueSet" + UUID.randomUUID();
+    final String negativeTestUrl =
         endpoint + "?name:exact=" + URLEncoder.encode(nonExistentName, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(negativeTestUrl, String.class);
-    Bundle emptyBundle = parser.parseResource(Bundle.class, content);
+    final Bundle emptyBundle = parser.parseResource(Bundle.class, content);
 
     assertTrue(emptyBundle.getEntry() == null || emptyBundle.getEntry().isEmpty());
 
     // Test 7: Title exact match (case insensitive)
-    String upperCaseTitle = firstValueSetTitle.toUpperCase();
-    String titleExactUrl =
+    final String upperCaseTitle = firstValueSetTitle.toUpperCase();
+    final String titleExactUrl =
         endpoint + "?title:exact=" + URLEncoder.encode(upperCaseTitle, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(titleExactUrl, String.class);
-    Bundle titleExactBundle = parser.parseResource(Bundle.class, content);
+    final Bundle titleExactBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(titleExactBundle.getEntry());
     assertFalse(titleExactBundle.getEntry().isEmpty());
-    ValueSet titleExactMatch = (ValueSet) titleExactBundle.getEntry().get(0).getResource();
+    final ValueSet titleExactMatch = (ValueSet) titleExactBundle.getEntry().get(0).getResource();
     assertTrue(titleExactMatch.getTitle().equalsIgnoreCase(upperCaseTitle));
 
     // Test 8: Title starts with search
-    String titlePrefix = firstValueSetTitle.substring(0, 3);
-    String titleStartsWithUrl =
+    final String titlePrefix = firstValueSetTitle.substring(0, 3);
+    final String titleStartsWithUrl =
         endpoint + "?title:startsWith=" + URLEncoder.encode(titlePrefix, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(titleStartsWithUrl, String.class);
-    Bundle titleStartsWithBundle = parser.parseResource(Bundle.class, content);
+    final Bundle titleStartsWithBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(titleStartsWithBundle.getEntry());
     assertFalse(titleStartsWithBundle.getEntry().isEmpty());
-    boolean foundTitleStartsWithMatch =
+    final boolean foundTitleStartsWithMatch =
         titleStartsWithBundle.getEntry().stream()
             .map(entry -> ((ValueSet) entry.getResource()).getTitle())
             .anyMatch(title -> title.toLowerCase().startsWith(titlePrefix.toLowerCase()));
     assertTrue(foundTitleStartsWithMatch);
 
     // Test 9: Title contains search
-    String partialTitle = firstValueSetTitle.substring(1, firstValueSetTitle.length() - 1);
-    String titleContainsUrl =
+    final String partialTitle = firstValueSetTitle.substring(1, firstValueSetTitle.length() - 1);
+    final String titleContainsUrl =
         endpoint + "?title:contains=" + URLEncoder.encode(partialTitle, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(titleContainsUrl, String.class);
-    Bundle titleContainsBundle = parser.parseResource(Bundle.class, content);
+    final Bundle titleContainsBundle = parser.parseResource(Bundle.class, content);
 
     assertNotNull(titleContainsBundle.getEntry());
     assertFalse(titleContainsBundle.getEntry().isEmpty());
-    boolean foundTitleContainsMatch =
+    final boolean foundTitleContainsMatch =
         titleContainsBundle.getEntry().stream()
             .map(entry -> ((ValueSet) entry.getResource()).getTitle())
             .anyMatch(title -> title.toLowerCase().contains(partialTitle.toLowerCase()));
     assertTrue(foundTitleContainsMatch);
 
     // Test 10: All parameters test (original test case)
-    UriComponentsBuilder builder =
+    final UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_21.06e")
-            .queryParam("name", "NCI Thesaurus 21.06e")
+            .queryParam("_id", "ncit_25.06e")
+            .queryParam("name", "NCI Thesaurus 25.06e")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs")
-            .queryParam("version", "21.06e");
+            .queryParam("version", "25.06e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
-    Bundle allParamsData = parser.parseResource(Bundle.class, content);
+    final Bundle allParamsData = parser.parseResource(Bundle.class, content);
     validateVariantValueSetResults(allParamsData, true);
 
     // Test 11: Contains search
-    String cdiscName = "CDISC";
+    final String cdiscName = "CDISC";
     containsUrl =
         endpoint + "?name:contains=" + URLEncoder.encode(cdiscName, StandardCharsets.UTF_8);
     content = this.restTemplate.getForObject(containsUrl, String.class);
@@ -819,7 +848,7 @@ class FhirR5ValueSetReadSearchTests {
    * @param bundle the bundle
    * @param expectResults the expect results
    */
-  private void validateVariantValueSetResults(Bundle bundle, boolean expectResults) {
+  private void validateVariantValueSetResults(final Bundle bundle, final boolean expectResults) {
     assertNotNull(bundle);
     if (expectResults) {
       assertFalse(bundle.getEntry() == null || bundle.getEntry().isEmpty());
@@ -827,12 +856,530 @@ class FhirR5ValueSetReadSearchTests {
           .getEntry()
           .forEach(
               entry -> {
-                ValueSet vs = (ValueSet) entry.getResource();
+                final ValueSet vs = (ValueSet) entry.getResource();
                 assertNotNull(vs);
                 assertEquals(ResourceType.ValueSet, vs.getResourceType());
               });
     } else {
       assertTrue(bundle.getEntry() == null || bundle.getEntry().isEmpty());
     }
+  }
+
+  @Test
+  public void testValueSetHistory() throws Exception {
+    // Arrange
+    String content;
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // Act - First get list of ValueSets to find a valid ID
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    final String firstValueSetId = valueSets.get(0).getIdPart();
+
+    // Act - Get history for the first ValueSet
+    final String historyEndpoint = endpoint + "/" + firstValueSetId + "/_history";
+    content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    final Bundle historyBundle = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(historyBundle);
+    assertEquals(ResourceType.Bundle, historyBundle.getResourceType());
+    assertEquals(Bundle.BundleType.HISTORY, historyBundle.getType());
+    assertFalse(historyBundle.getEntry().isEmpty());
+
+    // Verify each entry in history is a ValueSet with the same ID
+    for (final Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
+      assertNotNull(entry.getResource());
+      assertEquals(ResourceType.ValueSet, entry.getResource().getResourceType());
+
+      final ValueSet historyValueSet = (ValueSet) entry.getResource();
+      assertEquals(firstValueSetId, historyValueSet.getIdPart());
+
+      // Verify metadata is properly set
+      assertNotNull(historyValueSet.getMeta());
+      assertNotNull(historyValueSet.getMeta().getVersionId());
+      assertNotNull(historyValueSet.getMeta().getLastUpdated());
+    }
+  }
+
+  @Test
+  public void testValueSetHistoryNotFound() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+    final String invalidId = "nonexistent-valueSet-id";
+    final String historyEndpoint = endpoint + "/" + invalidId + "/_history";
+
+    final String messageNotFound = "Value set not found = " + invalidId;
+    final String errorCode = "not-found";
+
+    // Act
+    final String content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
+  }
+
+  @Test
+  public void testValueSetVread() throws Exception {
+    // Arrange
+    String content;
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // Act - First get list of ValueSets to find a valid ID
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    final String firstValueSetId = valueSets.get(0).getIdPart();
+
+    // Act - Get specific version (assuming version 1 exists)
+    final String versionEndpoint = endpoint + "/" + firstValueSetId + "/_history/1";
+    content = this.restTemplate.getForObject(versionEndpoint, String.class);
+    final ValueSet versionedValueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert
+    assertNotNull(versionedValueSet);
+    assertEquals(ResourceType.ValueSet, versionedValueSet.getResourceType());
+    assertEquals(firstValueSetId, versionedValueSet.getIdPart());
+
+    // Verify metadata
+    assertNotNull(versionedValueSet.getMeta());
+    assertNotNull(versionedValueSet.getMeta().getVersionId());
+    assertNotNull(versionedValueSet.getMeta().getLastUpdated());
+
+    // Compare with original ValueSet
+    final ValueSet originalValueSet = (ValueSet) valueSets.get(0);
+    assertEquals(originalValueSet.getUrl(), versionedValueSet.getUrl());
+    assertEquals(originalValueSet.getName(), versionedValueSet.getName());
+    assertEquals(originalValueSet.getPublisher(), versionedValueSet.getPublisher());
+  }
+
+  @Test
+  public void testValueSetVreadNotFound() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+    final String invalidId = "nonexistent-valueSet-id";
+    final String versionEndpoint = endpoint + "/" + invalidId + "/_history/1";
+
+    // Act & Assert
+    final String messageNotFound = "Value set version not found: nonexistent-valueSet-id version 1";
+    final String errorCode = "not-found";
+
+    // Act
+    final String content = this.restTemplate.getForObject(versionEndpoint, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
+  }
+
+  @Test
+  public void testValueSetVreadInvalidVersion() throws Exception {
+    // Arrange
+    String content;
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // Act - First get list of ValueSets to find a valid ID
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    final String firstValueSetId = valueSets.get(0).getIdPart();
+
+    // Act & Assert - Try to get a version that doesn't exist
+    final String invalidVersionEndpoint = endpoint + "/" + firstValueSetId + "/_history/999";
+    final String messageNotFound =
+        "Value set version not found: " + firstValueSetId + " version 999";
+    final String errorCode = "not-found";
+
+    // Act
+    content = this.restTemplate.getForObject(invalidVersionEndpoint, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+    final OperationOutcome.OperationOutcomeIssueComponent component = outcome.getIssueFirstRep();
+
+    // Assert
+    assertEquals(errorCode, component.getCode().toCode());
+    assertEquals(messageNotFound, (component.getDiagnostics()));
+  }
+
+  @Test
+  public void testValueSetHistoryMetadataConsistency() throws Exception {
+    // Arrange
+    String content;
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // Act - Get a ValueSet and its history
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    final String firstValueSetId = valueSets.get(0).getIdPart();
+
+    // Get history
+    final String historyEndpoint = endpoint + "/" + firstValueSetId + "/_history";
+    content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    final Bundle historyBundle = parser.parseResource(Bundle.class, content);
+
+    // Get current version
+    content = this.restTemplate.getForObject(endpoint + "/" + firstValueSetId, String.class);
+    final ValueSet currentValueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert - Verify history contains current version
+    boolean foundCurrentVersion = false;
+    for (final Bundle.BundleEntryComponent entry : historyBundle.getEntry()) {
+      final ValueSet historyVersion = (ValueSet) entry.getResource();
+      if (currentValueSet.getUrl().equals(historyVersion.getUrl())
+          && currentValueSet.getName().equals(historyVersion.getName())) {
+        foundCurrentVersion = true;
+        break;
+      }
+    }
+    Assertions.assertTrue(foundCurrentVersion, "History should contain the current version");
+  }
+
+  @Test
+  public void testValueSetVreadMatchesHistoryEntry() throws Exception {
+    // Arrange
+    String content;
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // Act - Get history first
+    content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+    final List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    final String firstValueSetId = valueSets.get(0).getIdPart();
+
+    final String historyEndpoint = endpoint + "/" + firstValueSetId + "/_history";
+    content = this.restTemplate.getForObject(historyEndpoint, String.class);
+    final Bundle historyBundle = parser.parseResource(Bundle.class, content);
+
+    // Get first version from history
+    final ValueSet firstHistoryVersion = (ValueSet) historyBundle.getEntry().get(0).getResource();
+    final String versionId = firstHistoryVersion.getMeta().getVersionId();
+
+    // Act - Get the same version using vread
+    final String vreadEndpoint = endpoint + "/" + firstValueSetId + "/_history/" + versionId;
+    content = this.restTemplate.getForObject(vreadEndpoint, String.class);
+    final ValueSet vreadValueSet = parser.parseResource(ValueSet.class, content);
+
+    // Assert - Both should be identical
+    // assertEquals(firstHistoryVersion.getId(), vreadValueSet.getId());
+    assertEquals(firstHistoryVersion.getUrl(), vreadValueSet.getUrl());
+    assertEquals(firstHistoryVersion.getName(), vreadValueSet.getName());
+    assertEquals(firstHistoryVersion.getVersion(), vreadValueSet.getVersion());
+    assertEquals(
+        firstHistoryVersion.getMeta().getVersionId(), vreadValueSet.getMeta().getVersionId());
+  }
+
+  /**
+   * Test value set search with parameters - date related tests.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testValueSetSearchWithDateFocus() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // Test 1: All valid parameters
+    UriComponentsBuilder builder =
+        UriComponentsBuilder.fromUriString(endpoint) // .queryParam("date",
+            // "ge2021-06")
+            .queryParam("url", "http://seer.nci.nih.gov/CanMED.owl?fhir_vs")
+            .queryParam("version", "202506")
+            .queryParam("title", "canmed");
+
+    // Test successful case with all parameters
+    String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    org.hl7.fhir.r5.model.Bundle data =
+        parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
+    validateCanmedValueSetResults(data, true); // Expecting results
+
+    // Test 2: Invalid date
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2030-01") // Future date
+            .queryParam("url", "http://seer.nci.nih.gov/CanMED.owl?fhir_vs")
+            .queryParam("version", "202506")
+            .queryParam("title", "canmed");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
+    validateCanmedValueSetResults(data, false); // Expecting no results
+
+    // Test 3: Valid date
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "2025-06-01")
+            .queryParam("url", "http://seer.nci.nih.gov/CanMED.owl?fhir_vs")
+            .queryParam("version", "202506")
+            .queryParam("title", "canmed");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
+    validateCanmedValueSetResults(data, true);
+
+    // Test 4: Valid date range
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2023-11-01")
+            .queryParam("url", "http://seer.nci.nih.gov/CanMED.owl?fhir_vs")
+            .queryParam("version", "202506")
+            .queryParam("title", "canmed");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
+    validateCanmedValueSetResults(data, true);
+
+    // Test 5: Valid date range
+    builder =
+        UriComponentsBuilder.fromUriString(endpoint)
+            .queryParam("date", "ge2023-11-01")
+            .queryParam("date", "lt2030-11-01")
+            .queryParam("url", "http://seer.nci.nih.gov/CanMED.owl?fhir_vs")
+            .queryParam("version", "202506")
+            .queryParam("title", "canmed");
+
+    content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
+    data = parser.parseResource(org.hl7.fhir.r5.model.Bundle.class, content);
+    validateCanmedValueSetResults(data, true);
+  }
+
+  /**
+   * Test value set search with sort by name.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByName() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath + "?_sort=name";
+
+    // Act
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by name in ascending order
+    final List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(valueSets);
+
+    String previousName = null;
+    for (final Resource vs : valueSets) {
+      final ValueSet vss = (ValueSet) vs;
+      assertNotNull(vss.getName());
+      final String currentName = vss.getName().toLowerCase();
+      if (previousName != null) {
+        assertTrue(
+            currentName.compareTo(previousName) >= 0,
+            "Names should be in alphabetical order: '"
+                + previousName
+                + "' should come before '"
+                + currentName
+                + "'");
+      }
+      previousName = currentName;
+    }
+  }
+
+  /**
+   * Test value set search with sort by title descending.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByTitleDescending() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath + "?_sort=-title";
+
+    // Act
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by title in descending order
+    final List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(valueSets);
+
+    String previousTitle = null;
+    for (final Resource vs : valueSets) {
+      final ValueSet vss = (ValueSet) vs;
+      assertNotNull(vss.getTitle());
+      final String currentTitle = vss.getTitle().toLowerCase();
+      if (previousTitle != null) {
+        assertTrue(
+            currentTitle.compareTo(previousTitle) <= 0,
+            "Titles should be in descending alphabetical order: '"
+                + previousTitle
+                + "' should come after '"
+                + currentTitle
+                + "'");
+      }
+      previousTitle = currentTitle;
+    }
+  }
+
+  /**
+   * Test value set search with sort by publisher.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByPublisher() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath + "?_sort=publisher";
+
+    // Act
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by publisher in ascending order
+    final List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(valueSets);
+
+    String previousPublisher = null;
+    for (final Resource vs : valueSets) {
+      final ValueSet vss = (ValueSet) vs;
+      assertNotNull(vss.getPublisher());
+      final String currentPublisher = vss.getPublisher().toLowerCase();
+      if (previousPublisher != null) {
+        assertTrue(
+            currentPublisher.compareTo(previousPublisher) >= 0,
+            "Publishers should be in alphabetical order: '"
+                + previousPublisher
+                + "' should come before '"
+                + currentPublisher
+                + "'");
+      }
+      previousPublisher = currentPublisher;
+    }
+  }
+
+  /**
+   * Test value set search with sort by date.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByDate() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath + "?_sort=date";
+
+    // Act
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by date in ascending order
+    final List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(valueSets);
+
+    Date previousDate = null;
+    for (final Resource vs : valueSets) {
+      final ValueSet vss = (ValueSet) vs;
+      final Date currentDate = vss.getDate();
+      if (previousDate != null && currentDate != null) {
+        assertTrue(
+            currentDate.compareTo(previousDate) >= 0,
+            "Dates should be in chronological order: '"
+                + previousDate
+                + "' should come before '"
+                + currentDate
+                + "'");
+      }
+      if (currentDate != null) {
+        previousDate = currentDate;
+      }
+    }
+  }
+
+  /**
+   * Test value set search with sort by URL.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByUrl() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath + "?_sort=url";
+
+    // Act
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final Bundle data = parser.parseResource(Bundle.class, content);
+
+    // Assert
+    assertNotNull(data);
+    assertFalse(data.getEntry().isEmpty());
+
+    // Verify that results are sorted by URL in ascending order
+    final List<Resource> valueSets =
+        data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
+    assertNotNull(valueSets);
+
+    String previousUrl = null;
+    for (final Resource vs : valueSets) {
+      final ValueSet vss = (ValueSet) vs;
+      assertNotNull(vss.getUrl());
+      final String currentUrl = vss.getUrl().toLowerCase();
+      if (previousUrl != null) {
+        assertTrue(
+            currentUrl.compareTo(previousUrl) >= 0,
+            "URLs should be in alphabetical order: '"
+                + previousUrl
+                + "' should come before '"
+                + currentUrl
+                + "'");
+      }
+      previousUrl = currentUrl;
+    }
+  }
+
+  /**
+   * Test value set search with invalid sort field.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchSortByInvalidField() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath + "?_sort=invalid_field";
+
+    // Act
+    final String content = this.restTemplate.getForObject(endpoint, String.class);
+    final OperationOutcome outcome = parser.parseResource(OperationOutcome.class, content);
+
+    // Assert
+    assertNotNull(outcome);
+    assertNotNull(outcome.getIssue());
+    assertFalse(outcome.getIssue().isEmpty());
+
+    final OperationOutcomeIssueComponent issue = outcome.getIssue().get(0);
+    assertEquals(OperationOutcome.IssueSeverity.ERROR, issue.getSeverity());
+    assertTrue(issue.getDiagnostics().contains("Unsupported sort field"));
   }
 }

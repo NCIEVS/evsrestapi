@@ -120,6 +120,10 @@ public class ConceptControllerExtensionTests {
     int ct = 0;
     try (final InputStream is = getClass().getClassLoader().getResourceAsStream(codeSetPath)) {
       for (final String code : IOUtils.readLines(is, "UTF-8")) {
+        if (code.startsWith("#")) {
+          log.info("   SKIP code = " + code);
+          continue;
+        }
         url = baseUrl + "/ncit/" + code + "?include=extensions";
         result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
         content = result.getResponse().getContentAsString();
@@ -245,9 +249,9 @@ public class ConceptControllerExtensionTests {
       String code = null;
       StringBuilder result = new StringBuilder();
       for (final String line : lines) {
-        if (line.matches("^CONCEPT .*")) {
+        if (line.matches("^#?CONCEPT .*")) {
           // Add prior result
-          if (code != null) {
+          if (code != null && !code.startsWith("#")) {
             map.put(code, result.toString());
             result = new StringBuilder();
           }
@@ -257,7 +261,9 @@ public class ConceptControllerExtensionTests {
         result.append(line).append("\n");
       }
       // Put the final case
-      map.put(code, result.toString());
+      if (code != null && !code.startsWith("#")) {
+        map.put(code, result.toString());
+      }
 
       return map;
     }
