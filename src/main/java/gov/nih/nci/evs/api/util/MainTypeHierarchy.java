@@ -328,6 +328,9 @@ public class MainTypeHierarchy {
     if (concept.getPaths() == null) {
       return false;
     }
+    logger.info("XXX mainTypeHierarchy = " + mainTypeHierarchy);
+    logger.info("XXX mainTypeSet = " + mainTypeSet);
+    logger.info("XXX broadCategorySet = " + broadCategorySet);
     List<Paths> mma =
         concept.getPaths().rewritePaths(mainTypeHierarchy, mainTypeSet, broadCategorySet);
     if (mma.isEmpty()) {
