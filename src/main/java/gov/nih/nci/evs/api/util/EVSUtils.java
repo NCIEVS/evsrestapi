@@ -93,7 +93,9 @@ public class EVSUtils {
     // finish
     for (Axiom axiom : axioms) {
       // log.info("AXIOM: {}", axiom);
-      final String axiomCode = EVSUtils.getQualifiedCodeFromUri(axiom.getAnnotatedProperty());
+      final String axiomCode =
+          EVSUtils.getQualifiedCodeFromUri(
+              terminology.getTerminology(), axiom.getAnnotatedProperty());
       if (syCode.contains(axiomCode)) {
         Synonym synonym = new Synonym();
         // This shouldn't happen unless axiomCode and property codes are off
@@ -169,7 +171,9 @@ public class EVSUtils {
 
     // Check axioms for definitions
     for (final Axiom axiom : axioms) {
-      final String axiomCode = EVSUtils.getQualifiedCodeFromUri(axiom.getAnnotatedProperty());
+      final String axiomCode =
+          EVSUtils.getQualifiedCodeFromUri(
+              terminology.getTerminology(), axiom.getAnnotatedProperty());
       if (defCodes.contains(axiomCode)) {
         Definition definition = new Definition();
         definition.setDefinition(axiom.getAnnotatedTarget());
@@ -301,7 +305,9 @@ public class EVSUtils {
     ArrayList<Mapping> results = new ArrayList<Mapping>();
     final String mapCode = terminology.getMetadata().getMap();
     for (Axiom axiom : axioms) {
-      final String axiomCode = EVSUtils.getQualifiedCodeFromUri(axiom.getAnnotatedProperty());
+      final String axiomCode =
+          EVSUtils.getQualifiedCodeFromUri(
+              terminology.getTerminology(), axiom.getAnnotatedProperty());
       if (axiomCode.equals(mapCode)) {
         Mapping mapsTo = new Mapping();
         mapsTo.setTargetName(axiom.getAnnotatedTarget());
@@ -324,7 +330,8 @@ public class EVSUtils {
    * @param values the values
    * @return the list
    */
-  public static <T> List<T> asList(@SuppressWarnings("unchecked") final T... values) {
+  @SuppressWarnings("unchecked")
+  public static <T> List<T> asList(final T... values) {
     final List<T> list = new ArrayList<>(values.length);
     for (final T value : values) {
       if (value != null) {
@@ -353,20 +360,71 @@ public class EVSUtils {
   }
 
   /**
-   * Returns the qualified code from uri.
+   * Converts a full RDF property URI to qualified (prefixed) form.
    *
-   * @param uri the uri
-   * @return the qualified code from uri
+   * <p>This is a key method in the prefix handling strategy. It converts full URIs returned from
+   * SPARQL queries into the qualified codes used in metadata configuration and API responses.
+   *
+   * <p><b>Conversion Rules:</b>
+   *
+   * <ol>
+   *   <li>Extract the fragment after the last "/" in the URI
+   *   <li>Normalize rdfs namespace: "rdf-schema" → "rdfs"
+   *   <li>If fragment contains "." (e.g., "HGNC.owl#P108"), strip everything before "#"
+   *   <li>Otherwise, convert "#" to ":" to create qualified form
+   * </ol>
+   *
+   * <p><b>Examples:</b>
+   *
+   * <ul>
+   *   <li>Input: {@code http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl#P108}<br>
+   *       Output: {@code ncit:P108} (qualified form)
+   *   <li>Input: {@code http://www.w3.org/2000/01/rdf-schema#label}<br>
+   *       Output: {@code rdfs:label} (normalized)
+   *   <li>Input: {@code http://purl.obolibrary.org/obo/chebi.owl#12345}<br>
+   *       Output: {@code chebi:12345}
+   * </ul>
+   *
+   * <p><b>Used by:</b> Axiom processing, property code extraction, qualifier identification. This
+   * method PRESERVES namespace information as a prefix, unlike {@link #getCodeFromUri(String)}
+   * which fully strips the namespace.
+   *
+   * <p><b>Design rationale:</b> Property codes need namespace context to match against metadata
+   * configuration (e.g., matching "ncit:P108" in axioms against "ncit:P108" in ctcae6.json).
+   * Concept codes don't need namespace context, so they use getCodeFromUri() instead.
+   *
+   * @param terminology the terminology
+   * @param uri the full RDF property URI
+   * @return the qualified code with namespace prefix (e.g., "ncit:P108", "rdfs:label")
+   * @see #getCodeFromUri(String) for fully stripping prefixes from concept codes
+   * @see #getLabelFromUri(String) for extracting human-readable labels
    */
-  public static String getQualifiedCodeFromUri(final String uri) {
+  public static String getQualifiedCodeFromUri(final String terminology, final String uri) {
     // Replace up to the last slash and fix rdfs
-    String code = uri.replaceFirst(".*\\/", "").replaceFirst("rdf-schema", "rdfs");
-    if (code.contains(".")) {
-      // Remove up to the hash if the thing before is like "HGNC.owl"
+    String code =
+        uri.replaceFirst("/skos/core", "/skos")
+            .replaceFirst(".*\\/", "")
+            .replaceFirst("rdf-schema", "rdfs");
+
+    // If ..../npo#DesignNote => :DesignNote
+    if (code.startsWith(terminology + "#")) {
       return code.replaceFirst(".*#", "");
     }
+
+    // Remove up to the hash if the thing before is like "HGNC.owl"
+    if (code.contains(".")) {
+      return code.replaceFirst(".*#", "");
+    }
+
     // otherwise, use what's before the hash as a prefix
+    // xmlns:oboInOwl="http://www.geneontology.org/formats/oboInOwl#" -> "oboInOwl"
     return code.replaceFirst("#", ":");
+
+    // A better long-term solution for this would be to extract the xmls namespace bindings
+    // and create a map.  For example "xmlns:rdfs="http://www.w3.org/2000/01/rdf-schema#"
+    // would produce the following. (this would require a sparql query that could identify
+    // the namespace bindings to urls
+    // "http://www.w3.org/2000/01/rdf-schema#" -> "rdfs"
   }
 
   /**
@@ -395,9 +453,9 @@ public class EVSUtils {
    * @param b the b
    * @return the code
    */
-  public static String getPropertyCode(final Bindings b) {
+  public static String getPropertyCode(final String terminology, final Bindings b) {
     if (b.getPropertyCode() == null) {
-      return EVSUtils.getQualifiedCodeFromUri(b.getProperty().getValue());
+      return EVSUtils.getQualifiedCodeFromUri(terminology, b.getProperty().getValue());
     } else {
       return b.getPropertyCode().getValue();
     }
@@ -409,11 +467,11 @@ public class EVSUtils {
    * @param b the b
    * @return the label
    */
-  public static String getPropertyLabel(final Bindings b) {
+  public static String getPropertyLabel(final String terminology, final Bindings b) {
     if (b.getPropertyLabel() == null) {
       // Convert
       if (b.getProperty().getValue().startsWith("http://www.w3.org/2000/01/rdf-schema")) {
-        return EVSUtils.getQualifiedCodeFromUri(b.getProperty().getValue());
+        return EVSUtils.getQualifiedCodeFromUri(terminology, b.getProperty().getValue());
       }
       return EVSUtils.getLabelFromUri(b.getProperty().getValue());
     } else {
@@ -427,10 +485,10 @@ public class EVSUtils {
    * @param b the b
    * @return the relationship type
    */
-  public static String getRelationshipType(final Bindings b) {
+  public static String getRelationshipType(final String terminology, final Bindings b) {
     if (b.getRelationshipLabel() == null) {
       if (b.getRelationship().getValue().startsWith("http://www.w3.org/2000/01/rdf-schema")) {
-        return EVSUtils.getQualifiedCodeFromUri(b.getRelationship().getValue());
+        return EVSUtils.getQualifiedCodeFromUri(terminology, b.getRelationship().getValue());
       }
       return EVSUtils.getLabelFromUri(b.getRelationship().getValue());
     } else {
@@ -444,9 +502,9 @@ public class EVSUtils {
    * @param b the b
    * @return the relationship code
    */
-  public static String getRelationshipCode(final Bindings b) {
+  public static String getRelationshipCode(final String terminology, final Bindings b) {
     if (b.getRelationshipCode() == null) {
-      return EVSUtils.getQualifiedCodeFromUri(b.getRelationship().getValue());
+      return EVSUtils.getQualifiedCodeFromUri(terminology, b.getRelationship().getValue());
     } else {
       return b.getRelationshipCode().getValue();
     }

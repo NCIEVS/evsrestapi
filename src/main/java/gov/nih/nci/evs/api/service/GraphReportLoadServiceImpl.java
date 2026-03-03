@@ -10,6 +10,7 @@ import gov.nih.nci.evs.api.properties.GraphProperties;
 import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
 import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.MainTypeHierarchy;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -39,7 +40,7 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
   private static final Logger logger = LoggerFactory.getLogger(GraphReportLoadServiceImpl.class);
 
   /** The mapper. */
-  private ObjectMapper mapper = new ObjectMapper();
+  private ObjectMapper mapper = ThreadLocalMapper.get();
 
   /** The lines. */
   private List<String> lines = new ArrayList<>();
@@ -125,7 +126,51 @@ public class GraphReportLoadServiceImpl extends AbstractGraphLoadServiceImpl {
       final HierarchyUtils hierarchy)
       throws Exception {
 
-    // TODO: show hierarchy (passed in)
+    // Show hierarchy information
+    if (terminology.getMetadata().getHierarchy() != null
+        && terminology.getMetadata().getHierarchy()) {
+      try {
+        // Report total paths in the pathsMap
+        logReport("  ", "hierarchy = " + hierarchy.getPathsMap(terminology).size());
+
+        // Report hierarchy roots
+        logReport("  ", "roots = " + hierarchy.getHierarchyRoots());
+
+        // Report min paths statistics
+        final String minPathsCode = hierarchy.getCodeWithMinPaths(terminology);
+        logReport(
+            "  ",
+            "  min paths = "
+                + minPathsCode
+                + ", "
+                + hierarchy.getPathsMap(terminology).get(minPathsCode).size());
+
+        // Report max paths statistics
+        final String maxPathsCode = hierarchy.getCodeWithMaxPaths(terminology);
+        logReport(
+            "  ",
+            "  max paths = "
+                + maxPathsCode
+                + ", "
+                + hierarchy.getPathsMap(terminology).get(maxPathsCode).size());
+
+        // Report max children statistics
+        final String maxChildrenCode = hierarchy.getCodeWithMaxChildren(terminology);
+        logReport(
+            "  ",
+            "  max children = "
+                + maxChildrenCode
+                + ", "
+                + (maxChildrenCode == null
+                    ? "0"
+                    : hierarchy.getChildNodes(maxChildrenCode, 0).size()));
+      } catch (Exception e) {
+        logReport("  ", "hierarchy = error retrieving statistics: " + e.getMessage());
+        logger.error("Error retrieving hierarchy statistics", e);
+      }
+    } else {
+      logReport("  ", "hierarchy = not applicable");
+    }
 
     // Show qualifiers
     final List<Concept> qualifiers =

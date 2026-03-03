@@ -5,12 +5,12 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.ConceptResultList;
 import gov.nih.nci.evs.api.model.HierarchyNode;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -45,20 +44,12 @@ public class MdrControllerTests {
   /** The application properties. */
   @Autowired ApplicationProperties appProperties;
 
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
-
   /** The base url. */
   private String baseUrl = "";
 
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-    /*
-     * Configure the JacksonTester object
-     */
-    this.objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/concept";
     // baseUrlMetadata = "/api/v1/metadata";
@@ -97,7 +88,7 @@ public class MdrControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("10009802");
     assertThat(concept.getName()).isEqualTo("Coagulopathy");
@@ -136,7 +127,7 @@ public class MdrControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getProperties().size()).isGreaterThan(1);
     assertThat(
             concept.getProperties().stream()
@@ -174,7 +165,7 @@ public class MdrControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("10009802");
     assertThat(concept.getAssociations().size()).isEqualTo(17);
@@ -249,7 +240,7 @@ public class MdrControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("10009802");
     assertThat(concept.getProperties().size()).isGreaterThan(1);
@@ -268,7 +259,7 @@ public class MdrControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("10036030");
     assertThat(concept.getAssociations().size()).isGreaterThan(0);
@@ -329,7 +320,7 @@ public class MdrControllerTests {
 
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    list = new ObjectMapper().readValue(content, ConceptResultList.class);
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list).isNotNull();
     // Look for the Stenosis code
     assertThat(
@@ -402,7 +393,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -435,7 +426,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -454,7 +445,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -472,7 +463,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -492,7 +483,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -514,7 +505,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -550,7 +541,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -570,7 +561,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -590,7 +581,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -625,7 +616,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<String>>() {
@@ -658,7 +649,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -677,7 +668,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -695,7 +686,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list2 =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<HierarchyNode>>() {
@@ -713,7 +704,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list2 =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<HierarchyNode>>() {
@@ -746,7 +737,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     roots =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -763,7 +754,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -788,7 +779,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -812,7 +803,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {
@@ -836,7 +827,7 @@ public class MdrControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<List<Concept>>>() {

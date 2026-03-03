@@ -16,6 +16,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Mapping;
 import gov.nih.nci.evs.api.model.MappingResultList;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -30,7 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -53,14 +53,9 @@ public class MapsetControllerTests {
   /** The base url. */
   private String baseUrl;
 
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
-
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-    objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/mapset";
   }
@@ -78,7 +73,7 @@ public class MapsetControllerTests {
     MvcResult result = mvc.perform(get(baseUrl)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
     List<Concept> metadataMappings =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -163,7 +158,7 @@ public class MapsetControllerTests {
             .andReturn();
     String content = result.getResponse().getContentAsString();
     List<Concept> metadataMappings =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -202,7 +197,7 @@ public class MapsetControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     String content = result.getResponse().getContentAsString();
-    Concept singleMetadataMap = new ObjectMapper().readValue(content, Concept.class);
+    Concept singleMetadataMap = ThreadLocalMapper.get().readValue(content, Concept.class);
 
     // Assert
     assertNotNull(singleMetadataMap);
@@ -241,7 +236,7 @@ public class MapsetControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     String content = result.getResponse().getContentAsString();
-    Concept singleMetadataMap = new ObjectMapper().readValue(content, Concept.class);
+    Concept singleMetadataMap = ThreadLocalMapper.get().readValue(content, Concept.class);
 
     // Assert
     assertNotNull(singleMetadataMap);
@@ -284,7 +279,7 @@ public class MapsetControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     String content = result.getResponse().getContentAsString();
-    Concept singleMetadataMap = new ObjectMapper().readValue(content, Concept.class);
+    Concept singleMetadataMap = ThreadLocalMapper.get().readValue(content, Concept.class);
 
     // Assert
     assertNotNull(singleMetadataMap);
@@ -339,7 +334,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
 
     // Assert
     assertTrue(mapList.getTotal() > 0);
@@ -360,7 +355,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
 
     // Assert matches for this code
     assertTrue(!mapList.getMaps().isEmpty());
@@ -381,13 +376,13 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
     Mapping tenFromZero = mapList.getMaps().get(9);
 
     // testing fromRecord and pageSize
     result = mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
     Mapping tenFromTen = mapList.getMaps().get(0);
 
     // Assert
@@ -411,13 +406,13 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
     Mapping tenFromZero = mapList.getMaps().get(9);
 
     // testing fromRecord off page size
     result = mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
     Mapping tenFromOne = mapList.getMaps().get(8);
 
     // Assert
@@ -440,7 +435,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
 
     // Assert
     assertNull(mapList.getMaps());
@@ -461,7 +456,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
 
     // Assert
     assertNull(mapList.getMaps());
@@ -482,7 +477,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());
@@ -508,7 +503,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());
@@ -534,13 +529,13 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
     Mapping sixFromZero = mapList.getMaps().get(5);
 
     result =
         mvc.perform(get(baseUrl + "/" + path + params2)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
-    mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
     Mapping sixFromThree = mapList.getMaps().get(2);
 
     // Assert
@@ -568,7 +563,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());
@@ -592,7 +587,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());
@@ -613,7 +608,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());
@@ -635,7 +630,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
 
     // Assert
     assertFalse(mapList.getMaps().isEmpty());
@@ -657,7 +652,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
     List<String> sortedNames =
         mapList.getMaps().stream()
             .map(Mapping::getSourceName)
@@ -686,7 +681,7 @@ public class MapsetControllerTests {
     MvcResult result =
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
     List<String> sortedNames =
         mapList.getMaps().stream()
             .map(Mapping::getSourceName)
@@ -722,7 +717,7 @@ public class MapsetControllerTests {
     result = mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     assertNotNull(content);
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
     assertEquals(10, mapList.getMaps().size());
   }
 
@@ -739,7 +734,7 @@ public class MapsetControllerTests {
         mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
     assertNotNull(content);
-    Concept singleMetadataMap = new ObjectMapper().readValue(content, Concept.class);
+    Concept singleMetadataMap = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertTrue(
         singleMetadataMap.getProperties().stream()
             .anyMatch(
@@ -781,7 +776,7 @@ public class MapsetControllerTests {
     result = mvc.perform(get(baseUrl + "/" + path + params)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     assertNotNull(content);
-    singleMetadataMap = new ObjectMapper().readValue(content, Concept.class);
+    singleMetadataMap = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertTrue(
         singleMetadataMap.getProperties().stream()
             .anyMatch(
@@ -833,7 +828,7 @@ public class MapsetControllerTests {
         mvc.perform(get(baseUrl + path + params)).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
     Log.info("  content = " + content);
-    MappingResultList mapList = new ObjectMapper().readValue(content, MappingResultList.class);
+    MappingResultList mapList = ThreadLocalMapper.get().readValue(content, MappingResultList.class);
 
     // Assert
     assertNull(mapList.getMaps());

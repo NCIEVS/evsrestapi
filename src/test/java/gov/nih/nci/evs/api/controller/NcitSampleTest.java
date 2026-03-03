@@ -5,9 +5,9 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.List;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -71,7 +71,7 @@ public class NcitSampleTest extends SampleTest {
     log.info(" content = " + content);
 
     final List<Terminology> terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -84,7 +84,7 @@ public class NcitSampleTest extends SampleTest {
         terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
     assertThat(ncit.getTerminology()).isEqualTo("ncit");
     assertThat(ncit.getMetadata().getUiLabel()).isEqualTo("NCI Thesaurus");
-    assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 25.06e");
+    assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 25.12e");
     assertThat(ncit.getDescription()).isNotEmpty();
 
     assertThat(ncit.getMetadata().getLoader()).isEqualTo("rdf");
@@ -128,7 +128,7 @@ public class NcitSampleTest extends SampleTest {
     log.info(" content = " + content);
 
     final List<Terminology> terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -141,7 +141,7 @@ public class NcitSampleTest extends SampleTest {
         terminologies.stream().filter(t -> t.getTerminology().equals("ncit")).findFirst().get();
     assertThat(ncit.getTerminology()).isEqualTo("ncit");
     assertThat(ncit.getMetadata().getUiLabel()).isEqualTo("NCI Thesaurus");
-    assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 25.07b");
+    assertThat(ncit.getName()).isEqualTo("NCI Thesaurus 26.01a");
     assertThat(ncit.getDescription()).isNotEmpty();
 
     assertThat(ncit.getMetadata().getLoader()).isEqualTo("rdf");
@@ -177,7 +177,7 @@ public class NcitSampleTest extends SampleTest {
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C12756");
     assertThat(concept.getTerminology()).isEqualTo("ncit");
@@ -191,7 +191,7 @@ public class NcitSampleTest extends SampleTest {
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C4631");
     assertThat(concept.getTerminology()).isEqualTo("ncit");
@@ -206,7 +206,7 @@ public class NcitSampleTest extends SampleTest {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     List<Terminology> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -237,7 +237,7 @@ public class NcitSampleTest extends SampleTest {
     result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C111020");
     assertThat(

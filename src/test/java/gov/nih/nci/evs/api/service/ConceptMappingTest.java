@@ -1,7 +1,7 @@
 package gov.nih.nci.evs.api.service;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.slf4j.Logger;
@@ -32,6 +32,6 @@ public class ConceptMappingTest {
   public void testConceptMapping() throws Exception {
     final Document doc =
         operationsService.getOpenSearchOperations().indexOps(Concept.class).createMapping();
-    logger.info(new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(doc));
+    logger.info(ThreadLocalMapper.get().writerWithDefaultPrettyPrinter().writeValueAsString(doc));
   }
 }

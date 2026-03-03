@@ -5,13 +5,16 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Property;
 import gov.nih.nci.evs.api.model.StatisticsEntry;
 import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.TestProperties;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,7 +31,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
@@ -45,11 +47,14 @@ public class MetadataControllerTests {
   /** The mvc. */
   @Autowired private MockMvc mvc;
 
+  /** The term utils. */
+  @Autowired private TerminologyUtils termUtils;
+
+  /** The os query service. */
+  @Autowired private OpensearchQueryService osQueryService;
+
   /** The test properties. */
   @Autowired TestProperties testProperties;
-
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
 
   /** The base url. */
   private String baseUrl = "";
@@ -57,9 +62,6 @@ public class MetadataControllerTests {
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-
-    objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
 
     baseUrl = "/api/v1/metadata";
   }
@@ -91,7 +93,7 @@ public class MetadataControllerTests {
     String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     List<Terminology> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -109,7 +111,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -127,7 +129,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -145,7 +147,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -163,7 +165,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -191,7 +193,7 @@ public class MetadataControllerTests {
     String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     Map<String, List<Concept>> metadata =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<Map<String, List<Concept>>>() {
@@ -235,7 +237,7 @@ public class MetadataControllerTests {
     String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     List<Terminology> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -256,7 +258,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -277,7 +279,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -307,7 +309,7 @@ public class MetadataControllerTests {
     String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     List<Terminology> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -325,7 +327,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -343,7 +345,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -370,7 +372,7 @@ public class MetadataControllerTests {
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     final List<Concept> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -404,7 +406,7 @@ public class MetadataControllerTests {
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     final List<Concept> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -434,7 +436,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("Concept_In_Subset");
     assertThat(concept.getCode()).isEqualTo("A8");
     assertThat(concept.getSynonyms()).isNotEmpty();
@@ -445,7 +447,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getCode()).isEqualTo("A8");
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
@@ -461,7 +463,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("Concept_In_Subset");
     assertThat(concept.getCode()).isEqualTo("A8");
     assertThat(concept.getSynonyms()).isNotEmpty();
@@ -543,7 +545,7 @@ public class MetadataControllerTests {
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     final List<Concept> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -576,7 +578,7 @@ public class MetadataControllerTests {
     final String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     final List<Concept> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -606,7 +608,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("Conceptual_Part_Of");
     assertThat(concept.getCode()).isEqualTo("R27");
     assertThat(concept.getSynonyms()).isNotEmpty();
@@ -617,7 +619,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getCode()).isEqualTo("R27");
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
@@ -633,7 +635,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("Conceptual_Part_Of");
     assertThat(concept.getCode()).isEqualTo("R27");
     assertThat(concept.getSynonyms()).isNotEmpty();
@@ -715,7 +717,7 @@ public class MetadataControllerTests {
     String content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     List<Concept> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -768,7 +770,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -798,7 +800,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("Chemical_Formula");
     assertThat(concept.getCode()).isEqualTo("P350");
     assertThat(concept.getSynonyms()).isNotEmpty();
@@ -809,7 +811,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getCode()).isEqualTo("P350");
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
@@ -826,7 +828,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("Chemical_Formula");
     assertThat(concept.getCode()).isEqualTo("P350");
     assertThat(concept.getSynonyms()).isNotEmpty();
@@ -894,6 +896,136 @@ public class MetadataControllerTests {
   }
 
   /**
+   * Test get property values.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testGetPropertyValues() throws Exception {
+
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<String> list = null;
+
+    // Get values for Semantic_Type property using code
+    url = baseUrl + "/ncit/property/P204/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content length = " + content.length());
+    list =
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<String>>() {
+                  // n/a
+                });
+    assertThat(list).isNotNull();
+    assertThat(list.size()).isGreaterThan(0);
+    log.info("  Property P204 has " + list.size() + " values");
+
+    // Get values for Semantic_Type property using name
+    url = baseUrl + "/ncit/property/OLD_ROLE/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content length = " + content.length());
+    list =
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<String>>() {
+                  // n/a
+                });
+    assertThat(list).isNotNull();
+    assertThat(list.size()).isGreaterThan(0);
+    log.info("  Property OLD_ROLE has " + list.size() + " values");
+  }
+
+  /**
+   * Test bad get property values.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testBadGetPropertyValues() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+
+    // Bad terminology
+    url = baseUrl + "/ncitXXX/property/P204/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // Bad property code
+    url = baseUrl + "/ncit/property/P999999/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // Remodeled property like P325 gives 404 error
+    url = baseUrl + "/ncit/property/NHC0/values";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isNotFound()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+  }
+
+  /*
+   * Test all that all properties can retrieve property values with code or name
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testPropertyValuesWithCodeAndName() throws Exception {
+    String url = null;
+    MvcResult result = null;
+    String content = null;
+    List<Concept> properties = null;
+
+    // Get all properties
+    url = baseUrl + "/ncit/properties";
+    log.info("Testing url - " + url);
+    result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    properties =
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                });
+
+    // get ncit terminology
+    Terminology term = termUtils.getIndexedTerminology("ncit", osQueryService, true);
+    for (Concept property : properties) {
+      // filter out remodeled properties because those should 404
+      if (term.getMetadata().isRemodeledProperty(property.getCode())
+          || term.getMetadata().isRemodeledProperty(property.getName())) {
+        continue;
+      }
+      // Try to get property values by code
+      url = baseUrl + "/ncit/property/" + property.getCode() + "/values";
+      log.info("Testing url - " + url);
+      result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+      content = result.getResponse().getContentAsString();
+      log.info("  content length = " + content.length());
+
+      // Try to get property values by name
+      url = baseUrl + "/ncit/property/" + property.getName() + "/values";
+      log.info("Testing url - " + url);
+      result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+      content = result.getResponse().getContentAsString();
+      log.info("  content length = " + content.length());
+    }
+  }
+
+  /**
    * Test concept statuses.
    *
    * @throws Exception the exception
@@ -912,7 +1044,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     final List<String> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<String>>() {
@@ -947,7 +1079,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     final List<Concept> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -990,7 +1122,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     final List<Concept> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1034,7 +1166,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     final List<Concept> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1075,7 +1207,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("attribution");
     assertThat(concept.getCode()).isEqualTo("P381");
     assertThat(concept.getSynonyms()).isNotEmpty();
@@ -1086,7 +1218,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getCode()).isEqualTo("P381");
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
@@ -1141,7 +1273,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("FULL_SYN");
     assertThat(concept.getCode()).isEqualTo("P90");
     assertThat(concept.getSynonyms()).isNotEmpty();
@@ -1152,7 +1284,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getCode()).isEqualTo("P90");
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
@@ -1192,7 +1324,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getName()).isEqualTo("DEFINITION");
     assertThat(concept.getCode()).isEqualTo("P97");
     assertThat(concept.getSynonyms()).isNotEmpty();
@@ -1203,7 +1335,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
-    concept = new ObjectMapper().readValue(content, Concept.class);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(concept.getCode()).isEqualTo("P97");
     // Even full doesn't include descendants and paths
     assertThat(concept.getDescendants()).isEmpty();
@@ -1243,7 +1375,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     List<Concept> list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1269,7 +1401,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1293,7 +1425,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info(" content = " + content);
     list =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1325,15 +1457,15 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     Set<String> properties =
-        new ObjectMapper()
-                .readValue(
-                    content,
-                    new TypeReference<List<Concept>>() {
-                      // n/a
-                    })
-                .stream()
-                .map(c -> c.getCode())
-                .collect(Collectors.toSet());
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                })
+            .stream()
+            .map(c -> c.getCode())
+            .collect(Collectors.toSet());
 
     // Qualifiers
     url = baseUrl + "/ncit/qualifiers";
@@ -1342,15 +1474,15 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     Set<String> qualifiers =
-        new ObjectMapper()
-                .readValue(
-                    content,
-                    new TypeReference<List<Concept>>() {
-                      // n/a
-                    })
-                .stream()
-                .map(c -> c.getCode())
-                .collect(Collectors.toSet());
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                })
+            .stream()
+            .map(c -> c.getCode())
+            .collect(Collectors.toSet());
 
     // Synonym Types
     url = baseUrl + "/ncit/synonymTypes";
@@ -1359,15 +1491,15 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     Set<String> synonymTypes =
-        new ObjectMapper()
-                .readValue(
-                    content,
-                    new TypeReference<List<Concept>>() {
-                      // n/a
-                    })
-                .stream()
-                .map(c -> c.getCode())
-                .collect(Collectors.toSet());
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                })
+            .stream()
+            .map(c -> c.getCode())
+            .collect(Collectors.toSet());
 
     // Definition Types
     url = baseUrl + "/ncit/definitionTypes";
@@ -1376,30 +1508,30 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     Set<String> definitionTypes =
-        new ObjectMapper()
-                .readValue(
-                    content,
-                    new TypeReference<List<Concept>>() {
-                      // n/a
-                    })
-                .stream()
-                .map(c -> c.getCode())
-                .collect(Collectors.toSet());
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Concept>>() {
+                  // n/a
+                })
+            .stream()
+            .map(c -> c.getCode())
+            .collect(Collectors.toSet());
 
     url = baseUrl + "/terminologies";
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     Terminology terminology =
-        new ObjectMapper()
-                .readValue(
-                    content,
-                    new TypeReference<List<Terminology>>() {
-                      // n/a
-                    })
-                .stream()
-                .filter(t -> t.getTerminology().equals("ncit"))
-                .findFirst()
-                .get();
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Terminology>>() {
+                  // n/a
+                })
+            .stream()
+            .filter(t -> t.getTerminology().equals("ncit"))
+            .findFirst()
+            .get();
     properties =
         properties.stream()
             .filter(c -> !terminology.getMetadata().isRemodeledProperty(c))
@@ -1425,7 +1557,7 @@ public class MetadataControllerTests {
    * @throws Exception the exception
    */
   @Test
-  public void testTerminolgyMetadata() throws Exception {
+  public void testTerminologyMetadata() throws Exception {
     String url = baseUrl + "/terminologies";
     MvcResult result = null;
     List<Terminology> terminologies = null;
@@ -1434,19 +1566,19 @@ public class MetadataControllerTests {
         mvc.perform(get(url).param("terminology", "ncit")).andExpect(status().isOk()).andReturn();
     String content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
                   // n/a
                 });
-    assertThat(terminologies != null && terminologies.size() == 2).isTrue();
+    assertThat(terminologies != null && terminologies.size() == 3).isTrue();
 
     result =
         mvc.perform(get(url).param("terminology", "ncim")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1457,7 +1589,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url).param("latest", "true")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1466,41 +1598,46 @@ public class MetadataControllerTests {
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isGreaterThan(10);
 
-    result = mvc.perform(get(url).param("latest", "false")).andExpect(status().isOk()).andReturn();
+    // Keep an older version of CHEBI so we can have a false
+    result =
+        mvc.perform(get(url).param("terminology", "chebi").param("latest", "false"))
+            .andExpect(status().isOk())
+            .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isGreaterThanOrEqualTo(1);
+    assertThat(terminologies.size()).isEqualTo(1);
+    assertThat(terminologies.get(0).getTerminology()).isEqualTo("chebi");
 
     result = mvc.perform(get(url).param("tag", "monthly")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(1);
+    assertThat(terminologies.size()).isEqualTo(2);
 
     result = mvc.perform(get(url).param("tag", "weekly")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(1);
+    assertThat(terminologies.size()).isEqualTo(2);
 
     result =
         mvc.perform(get(url).param("terminology", "ncit").param("latest", "true"))
@@ -1508,7 +1645,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1523,14 +1660,14 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualByComparingTo(0);
+    assertThat(terminologies.size()).isEqualByComparingTo(1);
 
     result =
         mvc.perform(get(url).param("terminology", "ncit").param("tag", "monthly"))
@@ -1538,14 +1675,17 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(1);
+    assertThat(terminologies.size()).isEqualTo(2);
+    // Don't assume order, but check that both versions are present
+    assertThat(terminologies.stream().map(Terminology::getVersion).collect(Collectors.toSet()))
+        .containsExactlyInAnyOrder("25.12e", "25.11d");
 
     result =
         mvc.perform(get(url).param("terminology", "ncit").param("tag", "weekly"))
@@ -1553,14 +1693,14 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(1);
+    assertThat(terminologies.size()).isEqualTo(2);
 
     result =
         mvc.perform(get(url).param("latest", "true").param("tag", "monthly"))
@@ -1568,7 +1708,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1576,6 +1716,7 @@ public class MetadataControllerTests {
                 });
     assertThat(terminologies).isNotNull();
     assertThat(terminologies.size()).isEqualTo(1);
+    assertThat(terminologies.get(0).getVersion()).isEqualTo("25.12e");
 
     result =
         mvc.perform(get(url).param("latest", "true").param("tag", "weekly"))
@@ -1583,7 +1724,39 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Terminology>>() {
+                  // n/a
+                });
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(1);
+    assertThat(terminologies.get(0).getVersion()).isEqualTo("26.01a");
+
+    result =
+        mvc.perform(get(url).param("latest", "false").param("tag", "monthly"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    terminologies =
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Terminology>>() {
+                  // n/a
+                });
+    assertThat(terminologies).isNotNull();
+    assertThat(terminologies.size()).isEqualTo(1);
+    assertThat(terminologies.get(0).getVersion()).isEqualTo("25.11d");
+
+    result =
+        mvc.perform(get(url).param("latest", "false").param("tag", "weekly"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    terminologies =
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1593,42 +1766,12 @@ public class MetadataControllerTests {
     assertThat(terminologies.size()).isEqualTo(1);
 
     result =
-        mvc.perform(get(url).param("latest", "false").param("tag", "monthly"))
-            .andExpect(status().isOk())
-            .andReturn();
-    content = result.getResponse().getContentAsString();
-    terminologies =
-        new ObjectMapper()
-            .readValue(
-                content,
-                new TypeReference<List<Terminology>>() {
-                  // n/a
-                });
-    assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(0);
-
-    result =
-        mvc.perform(get(url).param("latest", "false").param("tag", "weekly"))
-            .andExpect(status().isOk())
-            .andReturn();
-    content = result.getResponse().getContentAsString();
-    terminologies =
-        new ObjectMapper()
-            .readValue(
-                content,
-                new TypeReference<List<Terminology>>() {
-                  // n/a
-                });
-    assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(0);
-
-    result =
         mvc.perform(get(url).param("terminology", "ncim").param("latest", "true"))
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1643,7 +1786,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1658,7 +1801,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1673,7 +1816,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1692,7 +1835,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1711,7 +1854,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1730,14 +1873,14 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(0);
+    assertThat(terminologies.size()).isEqualTo(1);
 
     result =
         mvc.perform(
@@ -1749,14 +1892,14 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
                   // n/a
                 });
     assertThat(terminologies).isNotNull();
-    assertThat(terminologies.size()).isEqualTo(0);
+    assertThat(terminologies.size()).isEqualTo(1);
 
     result =
         mvc.perform(
@@ -1768,7 +1911,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1787,7 +1930,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1806,7 +1949,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1825,7 +1968,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1837,7 +1980,7 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     terminologies =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1864,7 +2007,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     Terminology terminology =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Terminology>>() {
@@ -1880,7 +2023,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     List<Concept> metadataResults =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1893,7 +2036,7 @@ public class MetadataControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
-    Concept metadataConcept = new ObjectMapper().readValue(content, Concept.class);
+    Concept metadataConcept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(metadataConcept.getVersion() == terminology.getVersion());
 
     result =
@@ -1902,7 +2045,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     metadataResults =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1916,7 +2059,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     metadataResults =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1929,7 +2072,7 @@ public class MetadataControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
-    metadataConcept = new ObjectMapper().readValue(content, Concept.class);
+    metadataConcept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(metadataConcept.getVersion() == terminology.getVersion());
 
     result =
@@ -1937,7 +2080,7 @@ public class MetadataControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
-    metadataConcept = new ObjectMapper().readValue(content, Concept.class);
+    metadataConcept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(metadataConcept.getVersion() == terminology.getVersion());
 
     result =
@@ -1946,7 +2089,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     metadataResults =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1959,7 +2102,7 @@ public class MetadataControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
-    metadataConcept = new ObjectMapper().readValue(content, Concept.class);
+    metadataConcept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(metadataConcept.getVersion() == terminology.getVersion());
 
     result =
@@ -1967,7 +2110,7 @@ public class MetadataControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
-    metadataConcept = new ObjectMapper().readValue(content, Concept.class);
+    metadataConcept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(metadataConcept.getVersion() == terminology.getVersion());
 
     result =
@@ -1976,7 +2119,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     metadataResults =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -1989,7 +2132,7 @@ public class MetadataControllerTests {
             .andExpect(status().isOk())
             .andReturn();
     content = result.getResponse().getContentAsString();
-    metadataConcept = new ObjectMapper().readValue(content, Concept.class);
+    metadataConcept = ThreadLocalMapper.get().readValue(content, Concept.class);
     assertThat(metadataConcept.getVersion() == terminology.getVersion());
 
     result =
@@ -1998,7 +2141,7 @@ public class MetadataControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     metadataResults =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<List<Concept>>() {
@@ -2023,7 +2166,7 @@ public class MetadataControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("content = " + content);
     Map<String, List<StatisticsEntry>> sourceStats =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<Map<String, List<StatisticsEntry>>>() {
@@ -2036,12 +2179,79 @@ public class MetadataControllerTests {
     result = mvc.perform(get(url + "/ncim/stats/NO-STATS")).andExpect(status().isOk()).andReturn();
     content = result.getResponse().getContentAsString();
     sourceStats =
-        new ObjectMapper()
+        ThreadLocalMapper.get()
             .readValue(
                 content,
                 new TypeReference<Map<String, List<StatisticsEntry>>>() {
                   // n/a
                 });
     assertThat(sourceStats.isEmpty());
+  }
+
+  /**
+   * Test that terminology metadata fields are cleaned for API responses
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testTerminologyMetadataFieldsCleared() throws Exception {
+    final String url = baseUrl + "/terminologies?terminology=ncit&tag=monthly&latest=true";
+    log.info("Testing url - " + url);
+
+    final MvcResult result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    final String content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    // Parse into objects and check metadata has been cleaned (fields either null or empty)
+    final List<Terminology> list =
+        ThreadLocalMapper.get()
+            .readValue(
+                content,
+                new TypeReference<List<Terminology>>() {
+                  // n/a
+                });
+
+    assertThat(list).isNotEmpty();
+
+    for (final Terminology term : list) {
+      final TerminologyMetadata md = term.getMetadata();
+      assertThat(md).isNotNull();
+
+      // String fields that are nulled by cleanForApi
+      assertThat(md.getWelcomeText()).isNull();
+      assertThat(md.getSparqlPrefix()).isNull();
+      assertThat(md.getMonthlyDb()).isNull();
+      assertThat(md.getLicenseCheck()).isNull();
+      assertThat(md.getRelationshipToTarget()).isNull();
+      assertThat(md.getCode()).isNull();
+      assertThat(md.getConceptStatus()).isNull();
+      assertThat(md.getPreferredName()).isNull();
+      assertThat(md.getSynonymTermType()).isNull();
+      assertThat(md.getSynonymSource()).isNull();
+      assertThat(md.getSynonymCode()).isNull();
+      assertThat(md.getSynonymSubSource()).isNull();
+      assertThat(md.getDefinitionSource()).isNull();
+      assertThat(md.getFhirPublisher()).isNull();
+      assertThat(md.getFhirUri()).isNull();
+      assertThat(md.getMapRelation()).isNull();
+      assertThat(md.getMap()).isNull();
+      assertThat(md.getMapTarget()).isNull();
+      assertThat(md.getMapTargetTermType()).isNull();
+      assertThat(md.getMapTargetTerminology()).isNull();
+      assertThat(md.getMapTargetTerminologyVersion()).isNull();
+
+      // Collections / maps are expected to be empty (getters return empty container when null)
+      assertThat(md.getExtraSubsets()).isEmpty();
+      assertThat(md.getSources()).isEmpty();
+      assertThat(md.getDefinitionSourceSet()).isEmpty();
+      assertThat(md.getSynonymSourceSet()).isEmpty();
+      assertThat(md.getSubsetMember()).isEmpty();
+      assertThat(md.getUnpublished()).isEmpty();
+      assertThat(md.getSubset()).isEmpty();
+      assertThat(md.getTermTypes()).isEmpty();
+      assertThat(md.getPreferredTermTypes()).isEmpty();
+      assertThat(md.getSynonym()).isEmpty();
+      assertThat(md.getDefinition()).isEmpty();
+    }
   }
 }

@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.Date;
@@ -30,7 +29,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -72,9 +70,7 @@ class FhirR5ConceptMapReadSearchTests {
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-    // the object mapper
-    final ObjectMapper objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
+    // n/a
   }
 
   /**
@@ -1120,5 +1116,194 @@ class FhirR5ConceptMapReadSearchTests {
     final OperationOutcomeIssueComponent issue = outcome.getIssue().get(0);
     assertEquals(OperationOutcome.IssueSeverity.ERROR, issue.getSeverity());
     assertTrue(issue.getDiagnostics().contains("Unsupported sort field"));
+  }
+
+  /**
+   * Test concept map search with :missing modifier on string parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapSearchWithMissingModifierOnStringParams() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCMPath;
+
+    // Test 1: Find ConceptMaps WITH a name (name:missing=false)
+    String url = endpoint + "?name:missing=false&_count=100";
+    String content = this.restTemplate.getForObject(url, String.class);
+    Bundle bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should have a name
+    assertNotNull(bundle);
+    assertTrue(bundle.hasEntry(), "Should find ConceptMaps with names");
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      ConceptMap cm = (ConceptMap) entry.getResource();
+      assertNotNull(cm.getName(), "ConceptMap should have a name when name:missing=false");
+      assertFalse(cm.getName().isEmpty(), "ConceptMap name should not be empty");
+    }
+
+    // Test 2: Find ConceptMaps WITHOUT a name (name:missing=true)
+    url = endpoint + "?name:missing=true&_count=100";
+    content = this.restTemplate.getForObject(url, String.class);
+    bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should NOT have a name
+    assertNotNull(bundle);
+    // Note: May be empty if all ConceptMaps have names
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      ConceptMap cm = (ConceptMap) entry.getResource();
+      assertTrue(
+          cm.getName() == null || cm.getName().isEmpty(),
+          "ConceptMap should not have a name when name:missing=true");
+    }
+  }
+
+  /**
+   * Test concept map search with :missing modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapSearchWithUrlMissingModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCMPath;
+
+    // Test 1: Find ConceptMaps WITH a url (url:missing=false)
+    String url = endpoint + "?url:missing=false&_count=100";
+    String content = this.restTemplate.getForObject(url, String.class);
+    Bundle bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should have a url
+    assertNotNull(bundle);
+    assertTrue(bundle.hasEntry(), "Should find ConceptMaps with urls");
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      ConceptMap cm = (ConceptMap) entry.getResource();
+      assertNotNull(cm.getUrl(), "ConceptMap should have a url when url:missing=false");
+      assertFalse(cm.getUrl().isEmpty(), "ConceptMap url should not be empty");
+    }
+
+    // Test 2: Find ConceptMaps WITHOUT a url (url:missing=true)
+    url = endpoint + "?url:missing=true&_count=100";
+    content = this.restTemplate.getForObject(url, String.class);
+    bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should NOT have a url
+    assertNotNull(bundle);
+    // Note: May be empty if all ConceptMaps have urls
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      ConceptMap cm = (ConceptMap) entry.getResource();
+      assertTrue(
+          cm.getUrl() == null || cm.getUrl().isEmpty(),
+          "ConceptMap should not have a url when url:missing=true");
+    }
+  }
+
+  /**
+   * Test concept map search with :contains modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapSearchWithUrlContainsModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCMPath;
+
+    // Test: Find ConceptMaps where URL contains "ncit"
+    String url = endpoint + "?url:contains=ncit&_count=100";
+    String content = this.restTemplate.getForObject(url, String.class);
+    Bundle bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should have "ncit" in their URL
+    assertNotNull(bundle);
+    if (bundle.hasEntry()) {
+      for (BundleEntryComponent entry : bundle.getEntry()) {
+        ConceptMap cm = (ConceptMap) entry.getResource();
+        assertNotNull(cm.getUrl(), "ConceptMap should have a url");
+        assertTrue(
+            cm.getUrl().toLowerCase().contains("ncit"),
+            "ConceptMap url should contain 'ncit': " + cm.getUrl());
+      }
+    }
+  }
+
+  /**
+   * Test concept map search with :below modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapSearchWithUrlBelowModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCMPath;
+
+    // First, get a known ConceptMap with a URL
+    String content = this.restTemplate.getForObject(endpoint + "?_count=1", String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    assertTrue(data.hasEntry(), "Should have at least one ConceptMap");
+    ConceptMap firstCm = (ConceptMap) data.getEntry().get(0).getResource();
+    String baseUrl = firstCm.getUrl();
+
+    // Test: Find ConceptMaps where URL is at or below the base URL
+    if (baseUrl != null && baseUrl.contains("/")) {
+      // Get parent URL (remove last path segment)
+      String parentUrl = baseUrl.substring(0, baseUrl.lastIndexOf("/"));
+
+      String url = endpoint + "?url:below=" + URLEncoder.encode(parentUrl, StandardCharsets.UTF_8);
+      content = this.restTemplate.getForObject(url, String.class);
+      Bundle bundle = parser.parseResource(Bundle.class, content);
+
+      // Assert - all returned resources should have URL at or below parent URL
+      assertNotNull(bundle);
+      if (bundle.hasEntry()) {
+        for (BundleEntryComponent entry : bundle.getEntry()) {
+          ConceptMap cm = (ConceptMap) entry.getResource();
+          assertNotNull(cm.getUrl(), "ConceptMap should have a url");
+          assertTrue(
+              cm.getUrl().startsWith(parentUrl) || cm.getUrl().equals(parentUrl),
+              "ConceptMap url should be at or below '" + parentUrl + "': " + cm.getUrl());
+        }
+      }
+    }
+  }
+
+  /**
+   * Test concept map search with :above modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testConceptMapSearchWithUrlAboveModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirCMPath;
+
+    // First, get a known ConceptMap with a URL
+    String content = this.restTemplate.getForObject(endpoint + "?_count=1", String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    assertTrue(data.hasEntry(), "Should have at least one ConceptMap");
+    ConceptMap firstCm = (ConceptMap) data.getEntry().get(0).getResource();
+    String childUrl = firstCm.getUrl();
+
+    // Test: Find ConceptMaps where URL is at or above the child URL
+    if (childUrl != null) {
+      String url = endpoint + "?url:above=" + URLEncoder.encode(childUrl, StandardCharsets.UTF_8);
+      content = this.restTemplate.getForObject(url, String.class);
+      Bundle bundle = parser.parseResource(Bundle.class, content);
+
+      // Assert - all returned resources should have URL at or above child URL
+      assertNotNull(bundle);
+      if (bundle.hasEntry()) {
+        for (BundleEntryComponent entry : bundle.getEntry()) {
+          ConceptMap cm = (ConceptMap) entry.getResource();
+          assertNotNull(cm.getUrl(), "ConceptMap should have a url");
+          assertTrue(
+              childUrl.startsWith(cm.getUrl()) || childUrl.equals(cm.getUrl()),
+              "Search url '"
+                  + childUrl
+                  + "' should be at or below ConceptMap url '"
+                  + cm.getUrl()
+                  + "'");
+        }
+      }
+    }
   }
 }

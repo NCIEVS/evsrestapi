@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
 import gov.nih.nci.evs.api.Application;
 import gov.nih.nci.evs.api.model.Audit;
 import gov.nih.nci.evs.api.model.Terminology;
@@ -38,12 +39,13 @@ public class LoaderServiceImpl {
   private static final Logger logger = LoggerFactory.getLogger(LoaderServiceImpl.class);
 
   /** the history download location *. */
-  // @Value("${nci.evs.bulkload.historyDir}")
-  private static String HISTORY_DIR;
+  // @Value("${nci.evs.bulkload.historyFile}")
+  private static String HISTORY_FILE;
 
-  @Value("${nci.evs.bulkload.historyDir}")
-  public void setHistoryDir(String historyDir) {
-    HISTORY_DIR = historyDir;
+  @Value("${nci.evs.bulkload.historyFile}")
+  @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
+  public void setHistoryFile(String historyFile) {
+    HISTORY_FILE = historyFile;
   }
 
   /** the environment *. */
@@ -62,11 +64,17 @@ public class LoaderServiceImpl {
   private static OpensearchQueryService staticOsQueryService;
   private static TerminologyUtils staticTermUtils;
 
+  public static void setStaticServices(
+      OpensearchOperationsService ops, OpensearchQueryService query, TerminologyUtils term) {
+    staticOperationsService = ops;
+    staticOsQueryService = query;
+    staticTermUtils = term;
+  }
+
   @PostConstruct
+  @SuppressWarnings("static-access")
   public void init() {
-    staticOperationsService = this.operationsService;
-    staticOsQueryService = this.osQueryService;
-    staticTermUtils = this.termUtils;
+    setStaticServices(this.operationsService, this.osQueryService, this.termUtils);
   }
 
   /**
@@ -170,6 +178,9 @@ public class LoaderServiceImpl {
     ConfigurableApplicationContext app = null;
     try {
       app = SpringApplication.run(Application.class, args);
+      if (app == null) {
+        throw new IllegalStateException("Failed to start Spring application");
+      }
       OpensearchLoadService loadService = null;
 
       // create Audit object
@@ -230,7 +241,7 @@ public class LoaderServiceImpl {
         }
         System.exit(0);
       }
-      final OpensearchLoadConfig config = buildConfig(cmd, HISTORY_DIR);
+      final OpensearchLoadConfig config = buildConfig(cmd, HISTORY_FILE);
       final Terminology term =
           loadService.getTerminology(
               app,
@@ -269,9 +280,9 @@ public class LoaderServiceImpl {
       termAudit.setEndDate(endDate);
       termAudit.setElapsedTime(endDate.getTime() - startDate.getTime());
       termAudit.setLogLevel("INFO");
-      logger.info("Audit: {}", termAudit.toString());
-      // only add new audit if something major has actually happened
-      if (termAudit.getElapsedTime() > 10000 && totalConcepts > 0) {
+      logger.info("  audit = {}", termAudit);
+      // only add new audit if concepts were added
+      if (totalConcepts > 0) {
         addAudit(termAudit);
         // update the metadata with the elapsed time
         term.getMetadata().setIndexRuntime(termAudit.getElapsedTime());

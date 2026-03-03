@@ -9,7 +9,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.parser.IParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import java.net.URI;
 import org.hl7.fhir.r5.model.BooleanType;
@@ -26,7 +25,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.http.HttpStatus;
@@ -52,9 +50,6 @@ public class FhirR5ValueSetValidateTests {
   /** The test properties. */
   @Autowired TestProperties testProperties;
 
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
-
   /** local host prefix. */
   private final String localHost = "http://localhost:";
 
@@ -74,9 +69,7 @@ public class FhirR5ValueSetValidateTests {
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-    // The object mapper
-    objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
+    // n/a
   }
 
   /**
@@ -480,7 +473,7 @@ public class FhirR5ValueSetValidateTests {
     String content;
     final String retiredCode = "C45683";
     final String retiredUrl = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
-    final String retiredId = "ncit_25.06e";
+    final String retiredId = "ncit_25.12e";
     final String retiredName = "ABCB1 1 Allele";
     final String endpoint =
         localHost

@@ -27,6 +27,7 @@ plugins {
   id 'maven-publish'
   // google java format gradle plugin
   id "com.diffplug.spotless" version "6.25.0"
+  id 'com.github.spotbugs' version '6.0.0'
 }
 
 repositories {
@@ -57,7 +58,7 @@ ext {
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
-version = "2.3.0.RELEASE"
+version = "2.4.0.RELEASE"
 
 sourceCompatibility = 17
 targetCompatibility = 17
@@ -94,6 +95,7 @@ dependencies {
 
   // For vulnerabilities - may not be needed with Spring Boot 3.4.10
   // implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.44"
+  implementation "com.fasterxml.jackson.core:jackson-core:2.18.6"
 
   //implementation "org.springframework.data:spring-data-elasticsearch:4.2.12"
   implementation "org.opensearch.client:spring-data-opensearch-starter:1.7.1"
@@ -111,12 +113,13 @@ dependencies {
 
   // Upgrade ecache to use jakarta - https://groups.google.com/g/ehcache-users/c/sKfxWuTpY-U
   // See also: https://stackoverflow.com/questions/75813659/gradle-could-not-find-org-ehcacheehcache-after-upgrading-to-spring-boot-3-0-x
-  implementation "org.ehcache:ehcache:3.10.8:jakarta"
-  // {
-  //  capabilities {
-  //    requireCapability("org.ehcache:ehcache-jakarta")
-  //  }
-  // }
+  // Note: ehcache 3.10.8 uses Jakarta by default, no classifier needed
+  implementation "org.ehcache:ehcache:3.10.8"
+
+  // JAXB dependencies required for ehcache with Java 9+
+  // ehcache 3.10.8 still uses javax.xml.bind internally for XML parsing
+  implementation 'javax.xml.bind:jaxb-api:2.3.1'
+  implementation 'com.sun.xml.bind:jaxb-impl:2.3.3'
 
   // Apache POI for reading .xls and .xlsx files
   implementation 'org.apache.poi:poi:5.2.3'
@@ -162,15 +165,14 @@ dependencies {
   //implementation "org.projectlombok:lombok:1.18.32"
   //annotationProcessor "org.projectlombok:lombok:1.18.32"
   //compileOnly "org.projectlombok:lombok:1.18.32"
-  //  compileOnly "jakarta.servlet:jakarta.servlet-api:6.0.0"
-  //providedRuntime "org.springframework.boot:spring-boot-starter-tomcat"
+
+  // SpotBugs annotations
+  compileOnly 'com.github.spotbugs:spotbugs-annotations:4.8.2'
 
   /*
    * Test Dependencies
   */
-  testImplementation("org.springframework.boot:spring-boot-starter-test") {
-    exclude group: "net.minidev", module: "json-smart"
-  }
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
   // Use spring-boot-starter-test defaults
   // testImplementation "org.opensearch.client:spring-data-opensearch-test-autoconfigure:1.6.0"
   // testImplementation "org.junit.jupiter:junit-jupiter-params:5.10.5"
@@ -218,6 +220,29 @@ spotless {
     // fix formatting of type annotations
 //        formatAnnotations()
   }
+}
+
+// SpotBugs and CheckStyle
+spotbugs {
+    ignoreFailures = false
+    showStackTraces = true
+    showProgress = true
+    excludeFilter = file("config/spotbugs/excludeFilter.xml")
+    // jvmArgs = [ "-Duser.language=ja" ]
+}
+spotbugsMain {
+    enabled = true
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
+}
+spotbugsTest {
+    enabled = true
+    reports {
+        xml.enabled = false
+        html.enabled = true
+    }
 }
 
 // # for this, the cuis with listed sources will have hierarchies computed
@@ -272,7 +297,7 @@ bootJar {
 }
 
 zipFile.dependsOn = [bootWar, bootJar]
-build.dependsOn = [spotlessCheck, test, bootWar, bootJar, zipFile]
+build.dependsOn = [spotlessCheck, spotbugsMain, spotbugsTest, test, bootWar, bootJar, zipFile]
 publishToMavenLocal.dependsOn = [bootWar, bootJar, zipFile]
 
 dependencyLocking {

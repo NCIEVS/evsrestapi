@@ -7,7 +7,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import ca.uhn.fhir.context.FhirContext;
 import ca.uhn.fhir.parser.IParser;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.properties.TestProperties;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -34,7 +33,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.json.JacksonTester;
 import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
@@ -61,9 +59,6 @@ public class FhirR4ValueSetReadSearchTests {
   /** The test properties. */
   @Autowired TestProperties testProperties;
 
-  /** The object mapper. */
-  private ObjectMapper objectMapper;
-
   /** local host prefix. */
   private final String localHost = "http://localhost:";
 
@@ -83,9 +78,7 @@ public class FhirR4ValueSetReadSearchTests {
   /** Sets the up. */
   @BeforeEach
   public void setUp() {
-    // The object mapper
-    objectMapper = new ObjectMapper();
-    JacksonTester.initFields(this, objectMapper);
+    // n/a
   }
 
   /**
@@ -105,7 +98,7 @@ public class FhirR4ValueSetReadSearchTests {
     final List<Resource> valueSets =
         data.getEntry().stream().map(Bundle.BundleEntryComponent::getResource).toList();
 
-    final Set<String> ids = new HashSet<>(Set.of("ncit_25.06e", "ncit_c61410"));
+    final Set<String> ids = new HashSet<>(Set.of("ncit_25.12e", "ncit_c61410"));
     final Set<String> urls =
         new HashSet<>(
             Set.of(
@@ -253,12 +246,12 @@ public class FhirR4ValueSetReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
             .queryParam("_id", "ncit_c100110")
-            //    TODO
+            // NOTE  investigate on ticket EVSRESTAPI-699
             // .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
-            .queryParam("version", "25.06e");
+            .queryParam("version", "25.12e");
 
     // Test successful case with all parameters
     String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -274,7 +267,7 @@ public class FhirR4ValueSetReadSearchTests {
             .queryParam("name", "CDISC Questionnaire Terminology")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
-            .queryParam("version", "25.06e");
+            .queryParam("version", "25.12e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -284,12 +277,12 @@ public class FhirR4ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_25.06e")
+            .queryParam("_id", "ncit_25.12e")
             .queryParam("code", "INVALID_CODE")
             .queryParam("name", "CDISC Questionnaire Terminology")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
-            .queryParam("version", "25.06e");
+            .queryParam("version", "25.12e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -299,11 +292,11 @@ public class FhirR4ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_25.06e") // .queryParam("code", "C61410")
+            .queryParam("_id", "ncit_25.12e") // .queryParam("code", "C61410")
             .queryParam("name", "Invalid Name")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
-            .queryParam("version", "25.06e");
+            .queryParam("version", "25.12e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -313,12 +306,12 @@ public class FhirR4ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_25.06e")
+            .queryParam("_id", "ncit_25.12e")
             .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
             .queryParam("title", "invalid_title")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs=C100110")
-            .queryParam("version", "25.06e");
+            .queryParam("version", "25.12e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -328,12 +321,12 @@ public class FhirR4ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_25.06e")
+            .queryParam("_id", "ncit_25.12e")
             .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
             .queryParam("title", "ncit")
             .queryParam("url", "http://invalid.url")
-            .queryParam("version", "25.06e");
+            .queryParam("version", "25.12e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -343,7 +336,7 @@ public class FhirR4ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_25.06e")
+            .queryParam("_id", "ncit_25.12e")
             .queryParam("code", "C100110")
             .queryParam("name", "CDISC Questionnaire Terminology")
             .queryParam("title", "ncit")
@@ -369,12 +362,12 @@ public class FhirR4ValueSetReadSearchTests {
     UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_25.06e") // .queryParam("code",
+            .queryParam("_id", "ncit_25.12e") // .queryParam("code",
             // "C61410")
-            .queryParam("name", "NCI Thesaurus 25.06e")
+            .queryParam("name", "NCI Thesaurus 25.12e")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs")
-            .queryParam("version", "25.06e");
+            .queryParam("version", "25.12e");
 
     // Test successful case with all parameters
     String content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
@@ -386,10 +379,10 @@ public class FhirR4ValueSetReadSearchTests {
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
             .queryParam("_id", "invalid_id") // .queryParam("code", "C61410")
-            .queryParam("name", "NCI Thesaurus 25.06e")
+            .queryParam("name", "NCI Thesaurus 25.12e")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "25.06e");
+            .queryParam("version", "25.12e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -398,10 +391,10 @@ public class FhirR4ValueSetReadSearchTests {
     // Test 3: Invalid code
     // builder =
     // UriComponentsBuilder.fromUriString(endpoint).queryParam("_count", "2000")
-    // .queryParam("_id", "ncit_25.06e").queryParam("code", "INVALID_CODE")
-    // .queryParam("name", "NCI Thesaurus 25.06e").queryParam("title", "ncit")
+    // .queryParam("_id", "ncit_25.12e").queryParam("code", "INVALID_CODE")
+    // .queryParam("name", "NCI Thesaurus 25.12e").queryParam("title", "ncit")
     // .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-    // .queryParam("version", "25.06e");
+    // .queryParam("version", "25.12e");
     //
     // content =
     // this.restTemplate.getForObject(builder.build().encode().toUri(),
@@ -413,11 +406,11 @@ public class FhirR4ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_25.06e") // .queryParam("code", "C61410")
+            .queryParam("_id", "ncit_25.12e") // .queryParam("code", "C61410")
             .queryParam("name", "Invalid Name")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "25.06e");
+            .queryParam("version", "25.12e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -427,11 +420,11 @@ public class FhirR4ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_25.06e") // .queryParam("code", "C61410")
-            .queryParam("name", "NCI Thesaurus 25.06e")
+            .queryParam("_id", "ncit_25.12e") // .queryParam("code", "C61410")
+            .queryParam("name", "NCI Thesaurus 25.12e")
             .queryParam("title", "invalid_title")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
-            .queryParam("version", "25.06e");
+            .queryParam("version", "25.12e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -441,11 +434,11 @@ public class FhirR4ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_25.06e") // .queryParam("code", "C61410")
-            .queryParam("name", "NCI Thesaurus 25.06e")
+            .queryParam("_id", "ncit_25.12e") // .queryParam("code", "C61410")
+            .queryParam("name", "NCI Thesaurus 25.12e")
             .queryParam("title", "ncit")
             .queryParam("url", "http://invalid.url")
-            .queryParam("version", "25.06e");
+            .queryParam("version", "25.12e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     data = parser.parseResource(Bundle.class, content);
@@ -455,8 +448,8 @@ public class FhirR4ValueSetReadSearchTests {
     builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_25.06e") // .queryParam("code", "C61410")
-            .queryParam("name", "NCI Thesaurus 25.06e")
+            .queryParam("_id", "ncit_25.12e") // .queryParam("code", "C61410")
+            .queryParam("name", "NCI Thesaurus 25.12e")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl")
             .queryParam("version", "invalid_version");
@@ -479,7 +472,7 @@ public class FhirR4ValueSetReadSearchTests {
 
     if (expectResults) {
       assertFalse(valueSets.isEmpty());
-      final Set<String> ids = new HashSet<>(Set.of("ncit_25.06e"));
+      final Set<String> ids = new HashSet<>(Set.of("ncit_25.12e"));
       final Set<String> urls =
           new HashSet<>(Set.of("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs"));
 
@@ -654,7 +647,7 @@ public class FhirR4ValueSetReadSearchTests {
     log.info(" value set = " + parser.encodeResourceToString(vs));
 
     // Verify specific IDs and URLs if needed
-    if (vs.getIdPart().equals("ncit_25.06e")) {
+    if (vs.getIdPart().equals("ncit_25.12e")) {
       assertEquals("http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs", vs.getUrl());
     }
   }
@@ -787,11 +780,11 @@ public class FhirR4ValueSetReadSearchTests {
     final UriComponentsBuilder builder =
         UriComponentsBuilder.fromUriString(endpoint)
             .queryParam("_count", "2000")
-            .queryParam("_id", "ncit_25.06e")
-            .queryParam("name", "NCI Thesaurus 25.06e")
+            .queryParam("_id", "ncit_25.12e")
+            .queryParam("name", "NCI Thesaurus 25.12e")
             .queryParam("title", "ncit")
             .queryParam("url", "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs")
-            .queryParam("version", "25.06e");
+            .queryParam("version", "25.12e");
 
     content = this.restTemplate.getForObject(builder.build().encode().toUri(), String.class);
     final Bundle allParamsData = parser.parseResource(Bundle.class, content);
@@ -1271,5 +1264,194 @@ public class FhirR4ValueSetReadSearchTests {
     assertNotNull(outcome);
     assertEquals("invalid", outcome.getIssueFirstRep().getCode().toCode());
     assertTrue(outcome.getIssueFirstRep().getDiagnostics().contains("Unsupported sort field"));
+  }
+
+  /**
+   * Test value set search with :missing modifier on string parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchWithMissingModifierOnStringParams() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // Test 1: Find ValueSets WITH a title (title:missing=false)
+    String url = endpoint + "?title:missing=false&_count=100";
+    String content = this.restTemplate.getForObject(url, String.class);
+    Bundle bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should have a title
+    assertNotNull(bundle);
+    assertTrue(bundle.hasEntry(), "Should find ValueSets with titles");
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      ValueSet vs = (ValueSet) entry.getResource();
+      assertNotNull(vs.getTitle(), "ValueSet should have a title when title:missing=false");
+      assertFalse(vs.getTitle().isEmpty(), "ValueSet title should not be empty");
+    }
+
+    // Test 2: Find ValueSets WITHOUT a title (title:missing=true)
+    url = endpoint + "?title:missing=true&_count=100";
+    content = this.restTemplate.getForObject(url, String.class);
+    bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should NOT have a title
+    assertNotNull(bundle);
+    // Note: May be empty if all ValueSets have titles
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      ValueSet vs = (ValueSet) entry.getResource();
+      assertTrue(
+          vs.getTitle() == null || vs.getTitle().isEmpty(),
+          "ValueSet should not have a title when title:missing=true");
+    }
+  }
+
+  /**
+   * Test value set search with :missing modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchWithUrlMissingModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // Test 1: Find ValueSets WITH a url (url:missing=false)
+    String url = endpoint + "?url:missing=false&_count=100";
+    String content = this.restTemplate.getForObject(url, String.class);
+    Bundle bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should have a url
+    assertNotNull(bundle);
+    assertTrue(bundle.hasEntry(), "Should find ValueSets with urls");
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      ValueSet vs = (ValueSet) entry.getResource();
+      assertNotNull(vs.getUrl(), "ValueSet should have a url when url:missing=false");
+      assertFalse(vs.getUrl().isEmpty(), "ValueSet url should not be empty");
+    }
+
+    // Test 2: Find ValueSets WITHOUT a url (url:missing=true)
+    url = endpoint + "?url:missing=true&_count=100";
+    content = this.restTemplate.getForObject(url, String.class);
+    bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should NOT have a url
+    assertNotNull(bundle);
+    // Note: May be empty if all ValueSets have urls
+    for (BundleEntryComponent entry : bundle.getEntry()) {
+      ValueSet vs = (ValueSet) entry.getResource();
+      assertTrue(
+          vs.getUrl() == null || vs.getUrl().isEmpty(),
+          "ValueSet should not have a url when url:missing=true");
+    }
+  }
+
+  /**
+   * Test value set search with :contains modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchWithUrlContainsModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // Test: Find ValueSets where URL contains "ncit"
+    String url = endpoint + "?url:contains=ncit&_count=100";
+    String content = this.restTemplate.getForObject(url, String.class);
+    Bundle bundle = parser.parseResource(Bundle.class, content);
+
+    // Assert - all returned resources should have "ncit" in their URL
+    assertNotNull(bundle);
+    if (bundle.hasEntry()) {
+      for (BundleEntryComponent entry : bundle.getEntry()) {
+        ValueSet vs = (ValueSet) entry.getResource();
+        assertNotNull(vs.getUrl(), "ValueSet should have a url");
+        assertTrue(
+            vs.getUrl().toLowerCase().contains("ncit"),
+            "ValueSet url should contain 'ncit': " + vs.getUrl());
+      }
+    }
+  }
+
+  /**
+   * Test value set search with :below modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchWithUrlBelowModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // First, get a known ValueSet with a URL
+    String content = this.restTemplate.getForObject(endpoint + "?_count=1", String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    assertTrue(data.hasEntry(), "Should have at least one ValueSet");
+    ValueSet firstVs = (ValueSet) data.getEntry().get(0).getResource();
+    String baseUrl = firstVs.getUrl();
+
+    // Test: Find ValueSets where URL is at or below the base URL
+    if (baseUrl != null && baseUrl.contains("/")) {
+      // Get parent URL (remove last path segment)
+      String parentUrl = baseUrl.substring(0, baseUrl.lastIndexOf("/"));
+
+      String url = endpoint + "?url:below=" + URLEncoder.encode(parentUrl, StandardCharsets.UTF_8);
+      content = this.restTemplate.getForObject(url, String.class);
+      Bundle bundle = parser.parseResource(Bundle.class, content);
+
+      // Assert - all returned resources should have URL at or below parent URL
+      assertNotNull(bundle);
+      if (bundle.hasEntry()) {
+        for (BundleEntryComponent entry : bundle.getEntry()) {
+          ValueSet vs = (ValueSet) entry.getResource();
+          assertNotNull(vs.getUrl(), "ValueSet should have a url");
+          assertTrue(
+              vs.getUrl().startsWith(parentUrl) || vs.getUrl().equals(parentUrl),
+              "ValueSet url should be at or below '" + parentUrl + "': " + vs.getUrl());
+        }
+      }
+    }
+  }
+
+  /**
+   * Test value set search with :above modifier on URI parameters.
+   *
+   * @throws Exception exception
+   */
+  @Test
+  public void testValueSetSearchWithUrlAboveModifier() throws Exception {
+    // Arrange
+    final String endpoint = localHost + port + fhirVSPath;
+
+    // First, get a known ValueSet with a URL
+    String content = this.restTemplate.getForObject(endpoint + "?_count=1", String.class);
+    Bundle data = parser.parseResource(Bundle.class, content);
+    assertTrue(data.hasEntry(), "Should have at least one ValueSet");
+    ValueSet firstVs = (ValueSet) data.getEntry().get(0).getResource();
+    String childUrl = firstVs.getUrl();
+
+    // Test: Find ValueSets where URL is at or above the child URL
+    if (childUrl != null) {
+      String url = endpoint + "?url:above=" + URLEncoder.encode(childUrl, StandardCharsets.UTF_8);
+      content = this.restTemplate.getForObject(url, String.class);
+      Bundle bundle = parser.parseResource(Bundle.class, content);
+
+      // Assert - all returned resources should have URL at or above child URL
+      assertNotNull(bundle);
+      if (bundle.hasEntry()) {
+        for (BundleEntryComponent entry : bundle.getEntry()) {
+          ValueSet vs = (ValueSet) entry.getResource();
+          assertNotNull(vs.getUrl(), "ValueSet should have a url");
+          assertTrue(
+              childUrl.startsWith(vs.getUrl()) || childUrl.equals(vs.getUrl()),
+              "Search url '"
+                  + childUrl
+                  + "' should be at or below ValueSet url '"
+                  + vs.getUrl()
+                  + "'");
+        }
+      }
+    }
   }
 }

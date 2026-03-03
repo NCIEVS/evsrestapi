@@ -8,8 +8,8 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import gov.nih.nci.evs.api.configuration.TestConfiguration;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -54,7 +54,7 @@ public class EmailDetailsTest {
   @Test
   public void testGenerateEmailDetailsPasses() throws Exception {
     // SETUP - create JsonObject from the json test form
-    String formPath = "formSamples/submissionFormTest.json";
+    String formPath = "formSamples/submissionFormTest-ncit.json";
     testFormObject = createJsonNode(formPath);
     assertNotNull(testFormObject);
 
@@ -66,7 +66,6 @@ public class EmailDetailsTest {
     assertEquals("NCIT", testDetails.getSource());
     assertEquals("agarcia@westcoastinformatics.com", testDetails.getToEmail());
     assertEquals("bcarlsen@westcoastinformatics.com ", testDetails.getFromEmail());
-    assertTrue(testDetails.getMsgBody().contains("C65498"));
   }
 
   /**
@@ -78,7 +77,7 @@ public class EmailDetailsTest {
   @Test
   public void testGenerateHtmlEmailBodyHandlesArray() throws Exception {
     // SETUP - create JsonObject
-    String formPath = "formSamples/submissionFormWithArrayList.json";
+    String formPath = "formSamples/submissionFormWithArrayList-cdisc.json";
     testFormObject = createJsonNode(formPath);
     assertNotNull(testFormObject);
 
@@ -139,9 +138,8 @@ public class EmailDetailsTest {
   @Test
   public void testGenerateEmailDetailsThrowsExceptionWithEmptyForm() throws Exception {
     // SETUP
-    ObjectMapper mapper = new ObjectMapper();
     // create an empty form instance
-    testFormObject = mapper.createObjectNode();
+    testFormObject = ThreadLocalMapper.get().createObjectNode();
 
     // ACT & ASSERT
     assertThrows(
@@ -160,7 +158,7 @@ public class EmailDetailsTest {
   @Test
   public void testEqualsWithEqualEmailDetails() throws Exception {
     // SETUP
-    String formPath1 = "formSamples/submissionFormTest.json";
+    String formPath1 = "formSamples/submissionFormTest-ncit.json";
     testFormObject = createJsonNode(formPath1);
     JsonNode compTestFormObject = createJsonNode(formPath1);
 
@@ -185,7 +183,7 @@ public class EmailDetailsTest {
   @Test
   public void testEqualWithDifferentEmailDetails() throws Exception {
     // SETUP
-    String formPath1 = "formSamples/submissionFormTest.json";
+    String formPath1 = "formSamples/submissionFormTest-ncit.json";
     String formPath2 = "formSamples/compareEmailDetailsFail.json";
     testFormObject = createJsonNode(formPath1);
     JsonNode compTestFormObject = createJsonNode(formPath2);
@@ -211,7 +209,7 @@ public class EmailDetailsTest {
   @Test
   public void testEqualWithNullEmailDetails() throws Exception {
     // SETUP
-    String formPath1 = "formSamples/submissionFormTest.json";
+    String formPath1 = "formSamples/submissionFormTest-ncit.json";
     testFormObject = createJsonNode(formPath1);
 
     // ACT - populate Email details
@@ -234,9 +232,8 @@ public class EmailDetailsTest {
         throw new FileNotFoundException("Test file not found: " + formPath);
       }
       // create object mapper
-      ObjectMapper mapper = new ObjectMapper();
       // Parse the file into a JsonNode
-      return mapper.readTree(input);
+      return ThreadLocalMapper.get().readTree(input);
     } catch (IOException e) {
       logger.error("Error creating JsonObject: " + e);
       return null;

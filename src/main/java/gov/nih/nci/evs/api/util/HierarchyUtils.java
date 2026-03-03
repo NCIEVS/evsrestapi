@@ -204,10 +204,10 @@ public class HierarchyUtils {
         new Comparator<Concept>() {
           @Override
           public int compare(Concept c1, Concept c2) {
-            if (c1.getLevel() == c2.getLevel()) {
+            if (c1.getLevel().equals(c2.getLevel())) {
               return c1.getName().compareTo(c2.getName());
             } else {
-              return c1.getLevel() - c2.getLevel();
+              return Integer.compare(c1.getLevel(), c2.getLevel());
             }
           }
         });

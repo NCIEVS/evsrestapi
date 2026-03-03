@@ -1,0 +1,8 @@
+{
+  "formName": "NCIT",
+  "formType": "NCIT",
+  "recipientEmail": "agarcia@westcoastinformatics.com",
+  "businessEmail": "bcarlsen@westcoastinformatics.com ",
+  "subject": "New Terminology Suggestion: TestTermName",
+  "body": {"Contact Information": { "Business Email": "testEmail@email.com", "Name": "John Doe" }, "Request Type": { "Please select": "Proposed New Concept", "Term": "TestTermName", "Synonym": "TestSynonym1, TestSynonym2", "Definition": "This is a test definition for the new concept" }, "Additional Information": { "Organization": "Test Organization", "Project": "Test Project", "Additional Information": "Additional test notes and context" } }
+}

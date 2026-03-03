@@ -40,7 +40,10 @@ public class AdminController {
   @Hidden
   public ResponseEntity clearCache(@RequestParam(name = "key", required = true) final String key) {
 
-    String adminKey = env.getProperty("nci.evs.application.adminKey").toString();
+    String adminKey = env.getProperty("nci.evs.application.adminKey");
+    if (adminKey == null) {
+      throw new IllegalStateException("nci.evs.application.adminKey property is required");
+    }
 
     if (!adminKey.equals(key)) {
       return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();

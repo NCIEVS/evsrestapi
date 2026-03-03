@@ -21,6 +21,7 @@ import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
 import gov.nih.nci.evs.api.util.ConceptUtils;
 import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.Parameters;
@@ -884,7 +885,7 @@ public class SearchController extends BaseController {
     }
 
     termUtils.checkLicense(term, license);
-    final ObjectMapper mapper = new ObjectMapper();
+    final ObjectMapper mapper = ThreadLocalMapper.get();
     try {
 
       final String sparqlQuery = queryBuilderService.prepSparql(term, query, prefixes);
@@ -1080,7 +1081,7 @@ public class SearchController extends BaseController {
                 + "characters (if using curl use --data-binary instead of -d)");
       }
 
-      final ObjectMapper mapper = new ObjectMapper();
+      final ObjectMapper mapper = ThreadLocalMapper.get();
       String sparqlQuery = queryBuilderService.prepSparql(term, query, prefixes);
 
       // The following messages up "total" - so we need to either find it another way from
@@ -1169,7 +1170,7 @@ public class SearchController extends BaseController {
       }
       final String prefixes = queryBuilderService.constructPrefix(term).replaceAll("\\r", "");
       return new ResponseEntity<>(
-          new ObjectMapper().writeValueAsString(prefixes), new HttpHeaders(), HttpStatus.OK);
+          ThreadLocalMapper.get().writeValueAsString(prefixes), new HttpHeaders(), HttpStatus.OK);
 
     } catch (final Exception e) {
       handleException(e, terminology);

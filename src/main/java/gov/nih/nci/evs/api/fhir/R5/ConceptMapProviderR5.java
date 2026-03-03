@@ -15,6 +15,7 @@ import ca.uhn.fhir.rest.param.DateRangeParam;
 import ca.uhn.fhir.rest.param.NumberParam;
 import ca.uhn.fhir.rest.param.StringParam;
 import ca.uhn.fhir.rest.param.TokenParam;
+import ca.uhn.fhir.rest.param.UriParam;
 import ca.uhn.fhir.rest.server.IResourceProvider;
 import ca.uhn.fhir.rest.server.servlet.ServletRequestDetails;
 import gov.nih.nci.evs.api.model.Concept;
@@ -101,7 +102,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       @OptionalParam(name = "_id") final TokenParam id,
       @OptionalParam(name = "date") final DateRangeParam date,
       @OptionalParam(name = "name") final StringParam name,
-      @OptionalParam(name = "url") final StringParam url,
+      @OptionalParam(name = "url") final UriParam url,
       @OptionalParam(name = "version") final StringParam version,
       @Description(shortDefinition = "Number of entries to return") @OptionalParam(name = "_count")
           final NumberParam count,
@@ -135,7 +136,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
                 map.get(mapset.getPropertyValue("targetTerminology")),
                 mapset);
         // Skip non-matching
-        if (url != null && !url.getValue().equals(cm.getUrl())) {
+        if (url != null && !FhirUtility.compareUri(url, cm.getUrl())) {
           logger.debug("  SKIP url mismatch = " + cm.getUrl());
           continue;
         }
@@ -219,7 +220,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       @OperationParam(name = "sourceScope") final UriType sourceScope,
       @OperationParam(name = "sourceCoding") final Coding sourceCoding,
       @OperationParam(name = "targetCode") final UriType targetCode,
-      // TODO: support for targetCoding not provided due to API error; should be Coding
+      // NOTE: support for targetCoding not provided due to API error; should be Coding
       @OperationParam(name = "targetCoding") final UriType targetCoding,
       @OperationParam(name = "targetScope") final UriType targetScope,
       @OperationParam(name = "targetSystem") final UriType targetSystem)
@@ -397,7 +398,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
       // @OperationParam(name = "codeableConcept") final CodeableConcept
       // sourceCodeableConcept,
       @OperationParam(name = "targetCode") final UriType targetCode,
-      // TODO: support for targetCoding not provided due to API error; should be Coding
+      // NOTE: support for targetCoding not provided due to API error; should be Coding
       @OperationParam(name = "targetCoding") final UriType targetCoding,
       @OperationParam(name = "targetScope") final UriType targetScope,
       @OperationParam(name = "targetSystem") final UriType targetSystem

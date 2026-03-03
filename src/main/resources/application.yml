@@ -41,14 +41,6 @@ management:
         include: heapdump,liquibase,loggers,prometheus,threaddump,info,metrics,health
 
 #
-# TODO: need to inject this into the application and use in VersionController, currently ignored
-#
-info:
-  app:
-    name: NCI EVS API
-    version: 1.1.2.RELEASE
-
-#
 # Logging Properties
 #
 logging:
@@ -87,7 +79,7 @@ nci:
       childhoodNeoplasmSubsetsXls: ${CHILDHOOD_NEOPLASM_SUBSETS_XLS:Childhood_Neoplasm_Subsets.xls}
       ftpNeoplasmUrl: ${FTP_NEOPLASM_URL:https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/Neoplasm/}
     bulkload:
-      historyDir: ${NCI_EVS_HISTORY_DIR:}
+      historyFile: ${NCI_EVS_HISTORY_FILE:}
       lockFile: ${NCI_EVS_BULK_LOAD_LOCK_FILE_NAME:DownloadSuccessfull.lck}
       downloadBatchSize: ${NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE:1000}
       indexBatchSize: ${NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE:1000}

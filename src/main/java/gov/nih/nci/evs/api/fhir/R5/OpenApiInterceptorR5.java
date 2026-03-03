@@ -204,7 +204,6 @@ public class OpenApiInterceptorR5 {
 
     ignoreParameter.add(Triple.of("CodeSystem", "validate-code", "system"));
     ignoreParameter.add(Triple.of("CodeSystem", "validate-code", "systemVersion"));
-    // TODO: we probably want this
     ignoreParameter.add(Triple.of("ValueSet", "validate-code", "version"));
   }
 
@@ -1014,7 +1013,7 @@ public class OpenApiInterceptorR5 {
             populateOperation(
                 theFhirContext, theOpenApi, null, operationDefinition, operation, true);
             operation.setSummary(
-                unCamelCase(theResourceType)
+                unCamelCase(theResourceType != null ? theResourceType : "System")
                     + " operation to perform "
                     + operationDefinition.getCode());
           }
