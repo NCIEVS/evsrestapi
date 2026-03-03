@@ -44,9 +44,11 @@ public class FhirVersioningStrategyTests {
   public void testCodeSystemLookupNoVersionR4() throws Exception {
     String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     String code = "C3224";
-    String endpoint = localHost + port + "/fhir/r4/CodeSystem/$lookup?system=" + url + "&code=" + code;
+    String endpoint =
+        localHost + port + "/fhir/r4/CodeSystem/$lookup?system=" + url + "&code=" + code;
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    org.hl7.fhir.r4.model.Parameters params = parserR4.parseResource(org.hl7.fhir.r4.model.Parameters.class, content);
+    org.hl7.fhir.r4.model.Parameters params =
+        parserR4.parseResource(org.hl7.fhir.r4.model.Parameters.class, content);
     assertNotNull(params.getParameter("version"));
   }
 
@@ -55,7 +57,8 @@ public class FhirVersioningStrategyTests {
     String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
     String endpoint = localHost + port + "/fhir/r4/ValueSet/$expand?url=" + url;
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    org.hl7.fhir.r4.model.ValueSet vs = parserR4.parseResource(org.hl7.fhir.r4.model.ValueSet.class, content);
+    org.hl7.fhir.r4.model.ValueSet vs =
+        parserR4.parseResource(org.hl7.fhir.r4.model.ValueSet.class, content);
     assertNotNull(vs.getVersion());
   }
 
@@ -64,9 +67,18 @@ public class FhirVersioningStrategyTests {
     String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_cm=GO_to_NCIt_Mapping";
     String system = "http://purl.obolibrary.org/obo/go.owl";
     String code = "GO:0000021";
-    String endpoint = localHost + port + "/fhir/r4/ConceptMap/$translate?url=" + url + "&system=" + system + "&code=" + code;
+    String endpoint =
+        localHost
+            + port
+            + "/fhir/r4/ConceptMap/$translate?url="
+            + url
+            + "&system="
+            + system
+            + "&code="
+            + code;
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    org.hl7.fhir.r4.model.Parameters params = parserR4.parseResource(org.hl7.fhir.r4.model.Parameters.class, content);
+    org.hl7.fhir.r4.model.Parameters params =
+        parserR4.parseResource(org.hl7.fhir.r4.model.Parameters.class, content);
     assertNotNull(params.getParameter("result"));
   }
 
@@ -74,9 +86,11 @@ public class FhirVersioningStrategyTests {
   public void testCodeSystemLookupNoVersionR5() throws Exception {
     String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl";
     String code = "C3224";
-    String endpoint = localHost + port + "/fhir/r5/CodeSystem/$lookup?system=" + url + "&code=" + code;
+    String endpoint =
+        localHost + port + "/fhir/r5/CodeSystem/$lookup?system=" + url + "&code=" + code;
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    org.hl7.fhir.r5.model.Parameters params = parserR5.parseResource(org.hl7.fhir.r5.model.Parameters.class, content);
+    org.hl7.fhir.r5.model.Parameters params =
+        parserR5.parseResource(org.hl7.fhir.r5.model.Parameters.class, content);
     assertNotNull(params.getParameter("version"));
   }
 
@@ -85,7 +99,8 @@ public class FhirVersioningStrategyTests {
     String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_vs";
     String endpoint = localHost + port + "/fhir/r5/ValueSet/$expand?url=" + url;
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    org.hl7.fhir.r5.model.ValueSet vs = parserR5.parseResource(org.hl7.fhir.r5.model.ValueSet.class, content);
+    org.hl7.fhir.r5.model.ValueSet vs =
+        parserR5.parseResource(org.hl7.fhir.r5.model.ValueSet.class, content);
     assertNotNull(vs.getVersion());
   }
 
@@ -94,9 +109,18 @@ public class FhirVersioningStrategyTests {
     String url = "http://ncicb.nci.nih.gov/xml/owl/EVS/Thesaurus.owl?fhir_cm=GO_to_NCIt_Mapping";
     String system = "http://purl.obolibrary.org/obo/go.owl";
     String code = "GO:0000021";
-    String endpoint = localHost + port + "/fhir/r5/ConceptMap/$translate?url=" + url + "&system=" + system + "&sourceCode=" + code;
+    String endpoint =
+        localHost
+            + port
+            + "/fhir/r5/ConceptMap/$translate?url="
+            + url
+            + "&system="
+            + system
+            + "&sourceCode="
+            + code;
     String content = this.restTemplate.getForObject(endpoint, String.class);
-    org.hl7.fhir.r5.model.Parameters params = parserR5.parseResource(org.hl7.fhir.r5.model.Parameters.class, content);
+    org.hl7.fhir.r5.model.Parameters params =
+        parserR5.parseResource(org.hl7.fhir.r5.model.Parameters.class, content);
     assertNotNull(params.getParameter("result"));
   }
 }
