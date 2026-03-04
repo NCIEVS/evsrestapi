@@ -1315,6 +1315,9 @@ public class ValueSetProviderR5 implements IResourceProvider {
       }
       list.add(vs);
     }
+
+    TerminologyUtils.sortLatest(list, map, a -> a.getTitle());
+
     return list;
   }
 

@@ -1698,6 +1698,8 @@ public class ValueSetProviderR4 implements IResourceProvider {
       list.add(vs);
     }
 
+    TerminologyUtils.sortLatest(list, map, a -> a.getTitle());
+
     return list;
   }
 

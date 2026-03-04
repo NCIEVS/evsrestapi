@@ -36,7 +36,9 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.hl7.fhir.r4.model.Bundle;
 import org.hl7.fhir.r4.model.CodeSystem;
@@ -946,9 +948,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       }
 
       final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+      final Map<String, Terminology> map = new HashMap<>();
 
       final List<CodeSystem> list = new ArrayList<>();
       for (final Terminology terminology : terms) {
+        map.put(terminology.getTerminology(), terminology);
         final CodeSystem cs = FhirUtilityR4.toR4(terminology);
         // Skip non-matching
         if ((id != null && !id.getIdPart().equals(cs.getId()))
@@ -963,6 +967,9 @@ public class CodeSystemProviderR4 implements IResourceProvider {
 
         list.add(cs);
       }
+
+      TerminologyUtils.sortLatest(list, map, a -> a.getTitle());
+
       return list;
     } catch (final FHIRServerResponseException e) {
       throw e;

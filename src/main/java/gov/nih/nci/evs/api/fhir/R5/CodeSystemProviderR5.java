@@ -31,7 +31,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import org.hl7.fhir.r5.model.Bundle;
 import org.hl7.fhir.r5.model.CodeSystem;
@@ -999,6 +1001,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       }
 
       final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+      final Map<String, Terminology> map = new HashMap<>();
+      for (final Terminology terminology : terms) {
+        map.put(terminology.getTerminology(), terminology);
+      }
       final List<CodeSystem> list = new ArrayList<>();
       // Find the matching code systems
       for (final Terminology terminology : terms) {
@@ -1015,6 +1021,9 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         }
         list.add(cs);
       }
+
+      TerminologyUtils.sortLatest(list, map, a -> a.getTitle());
+
       return list;
     } catch (final FHIRServerResponseException e) {
       throw e;
