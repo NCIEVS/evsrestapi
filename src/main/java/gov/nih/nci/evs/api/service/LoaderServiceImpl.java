@@ -89,8 +89,8 @@ public class LoaderServiceImpl {
     staticTermUtils = term;
   }
 
-  /** Inits the. */
   @PostConstruct
+  @SuppressWarnings("static-access")
   public void init() {
     setStaticServices(this.operationsService, this.osQueryService, this.termUtils);
   }

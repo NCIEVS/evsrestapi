@@ -12,6 +12,7 @@ import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;

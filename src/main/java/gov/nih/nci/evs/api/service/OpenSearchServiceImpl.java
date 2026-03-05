@@ -430,59 +430,51 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     // Partial word match queries - boost higher than phrase but lower than exact
     // Only apply for "contains" type queries, not for "phrase" queries
-    QueryStringQueryBuilder partialWordNameQuery = null;
-    QueryStringQueryBuilder partialWordSynonymQuery = null;
+    BoolQueryBuilder partialWordNameQuery = null;
     NestedQueryBuilder nestedPartialWordSynonymQuery = null;
-
-    // This is a very targeted approach to a particular set of cases
-    // but does achieve support for searches like "rectal car"
 
     // build partial word query if we have partial/short words
     if ("contains".equalsIgnoreCase(type)) {
-      String[] tokens = normTerm.split("\\s+");
+      final String[] tokens = normTerm.split("\\s+");
+      final StringBuilder regex = new StringBuilder();
       boolean hasPartialWord = false;
-      String[] partialTokens = new String[tokens.length];
 
       for (int i = 0; i < tokens.length; i++) {
-        String token = tokens[i];
-        boolean isPartialWord =
-            (token.length() >= 2 && token.length() <= 4)
-                || (i == tokens.length - 1 && token.length() >= 2 && token.length() <= 5);
-
-        if (isPartialWord) {
-          partialTokens[i] = token + "*";
+        if (tokens[i].length() >= 1 && tokens[i].length() <= 6) {
           hasPartialWord = true;
-        } else {
-          partialTokens[i] = token;
         }
+        if (i > 0) {
+          regex.append(" ");
+        }
+        regex.append(tokens[i]).append("[^ ]*");
       }
 
       // Only create partial word queries if we actually have partial words
       if (hasPartialWord) {
+        // Name partial word match (must match all tokens, boost exact token count)
         partialWordNameQuery =
-            QueryBuilders.queryStringQuery(String.join(" AND ", partialTokens))
-                .field("name")
-                .defaultOperator(Operator.AND)
-                .analyzeWildcard(true)
-                .boost(20f);
+            QueryBuilders.boolQuery()
+                .must(
+                    QueryBuilders.queryStringQuery(fixNormTerm)
+                        .field("name")
+                        .defaultOperator(Operator.AND))
+                .should(QueryBuilders.regexpQuery("normName", regex.toString()))
+                .boost(35.0f);
 
-        partialWordSynonymQuery =
-            QueryBuilders.queryStringQuery(String.join(" AND ", partialTokens))
-                .field("synonyms.name")
-                .defaultOperator(Operator.AND)
-                .analyzeWildcard(true)
-                .boost(19f);
+        // Synonym partial word match (must match all tokens in SAME synonym)
         nestedPartialWordSynonymQuery =
-            QueryBuilders.nestedQuery("synonyms", partialWordSynonymQuery, ScoreMode.Max);
+            QueryBuilders.nestedQuery(
+                "synonyms",
+                QueryBuilders.boolQuery()
+                    .must(
+                        QueryBuilders.queryStringQuery(fixNormTerm)
+                            .field("synonyms.name")
+                            .defaultOperator(Operator.AND))
+                    .should(QueryBuilders.regexpQuery("synonyms.normName", regex.toString())),
+                ScoreMode.Max);
+        nestedPartialWordSynonymQuery.boost(34.0f);
       }
     }
-
-    // Boost exact matches
-    final NestedQueryBuilder nestedSynonymExactQuery =
-        QueryBuilders.nestedQuery(
-            "synonyms",
-            QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(40f),
-            ScoreMode.Max);
 
     // Boosting matches with words next to each other
     final QueryStringQueryBuilder phraseNormNameQuery =
@@ -550,12 +542,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       synonymFixNormNameQuery.fuzziness(Fuzziness.ONE);
       synonymStemNameQuery.fuzziness(Fuzziness.ONE);
       definitionQuery.fuzziness(Fuzziness.ONE);
-      if (partialWordNameQuery != null) {
-        partialWordNameQuery.fuzziness(Fuzziness.ONE);
-      }
-      if (partialWordSynonymQuery != null) {
-        partialWordSynonymQuery.fuzziness(Fuzziness.ONE);
-      }
+      // partials don't use fuzziness anymore
     } else {
       fixNameQuery.fuzziness(Fuzziness.ZERO);
       fixNormNameQuery.fuzziness(Fuzziness.ZERO);
@@ -564,12 +551,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       synonymFixNormNameQuery.fuzziness(Fuzziness.ZERO);
       synonymStemNameQuery.fuzziness(Fuzziness.ZERO);
       definitionQuery.fuzziness(Fuzziness.ZERO);
-      if (partialWordNameQuery != null) {
-        partialWordNameQuery.fuzziness(Fuzziness.ZERO);
-      }
-      if (partialWordSynonymQuery != null) {
-        partialWordSynonymQuery.fuzziness(Fuzziness.ZERO);
-      }
+      // partials don't use fuzziness anymore
     }
 
     // -- wildcard search is assumed to be a term search or phrase search
@@ -627,9 +609,6 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     // contains, and/or
     if (!"phrase".equals(type.toLowerCase())) {
       termQuery
-
-          // Exact query
-          .should(nestedSynonymExactQuery)
 
           // Text queries on "name" and "norm name" and "stem name" using fix names
           .should(fixNameQuery)
