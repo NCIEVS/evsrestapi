@@ -83,10 +83,17 @@ public class HierarchyUtils {
   /**
    * Gets the paths map.
    *
+   * @param terminology the terminology
    * @return the paths map
    */
   @SuppressWarnings({"unchecked", "resource"})
-  private static Map<String, Set<String>> getPathsMap() {
+  private static Map<String, Set<String>> initPathsMap(final Terminology terminology) {
+
+    // For anything but snomed, just use a regular hashmap.
+    if (!terminology.getTerminology().startsWith("snomed")) {
+      return new HashMap<String, Set<String>>();
+    }
+
     DB db =
         DBMaker.fileDB("paths_map.db")
             // High speed for 64-bit systems
@@ -433,6 +440,16 @@ public class HierarchyUtils {
   }
 
   /**
+   * Clear paths map.
+   *
+   * @param terminology the terminology
+   * @throws Exception the exception
+   */
+  public void clearPathsMap(final Terminology terminology) throws Exception {
+    pathsMap = null;
+  }
+
+  /**
    * Returns the path map.
    *
    * @param terminology the terminology
@@ -440,11 +457,12 @@ public class HierarchyUtils {
    * @throws Exception the exception
    */
   public Map<String, Set<String>> getPathsMap(final Terminology terminology) throws Exception {
+
     if (pathsMap == null
         && terminology.getMetadata().getHierarchy() != null
         && terminology.getMetadata().getHierarchy()) {
 
-      pathsMap = getPathsMap();
+      pathsMap = initPathsMap(terminology);
 
       // This finds paths for leaf nodes, and we need to turn into full paths
       // for each code. Write to a file because this can be a lot of data.
