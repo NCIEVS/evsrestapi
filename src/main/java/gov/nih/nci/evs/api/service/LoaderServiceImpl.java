@@ -1,17 +1,10 @@
 package gov.nih.nci.evs.api.service;
 
-import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
-import gov.nih.nci.evs.api.Application;
-import gov.nih.nci.evs.api.model.Audit;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
-import gov.nih.nci.evs.api.util.HierarchyUtils;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
-import jakarta.annotation.PostConstruct;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.cli.DefaultParser;
 import org.apache.commons.cli.HelpFormatter;
@@ -27,11 +20,16 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 
-/**
- * The implementation for {@link LoaderService}.
- *
- * @author Arun
- */
+import edu.umd.cs.findbugs.annotations.SuppressFBWarnings;
+import gov.nih.nci.evs.api.Application;
+import gov.nih.nci.evs.api.model.Audit;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.support.es.OpensearchLoadConfig;
+import gov.nih.nci.evs.api.util.HierarchyUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
+import jakarta.annotation.PostConstruct;
+
+/** The implementation for {@link LoaderService}. */
 @Service
 public class LoaderServiceImpl {
 
@@ -45,7 +43,7 @@ public class LoaderServiceImpl {
   /**
    * Sets the history dir.
    *
-   * @param historyDir the new history dir
+   * @param historyFile the new history file
    */
   @Value("${nci.evs.bulkload.historyFile}")
   @SuppressFBWarnings("ST_WRITE_TO_STATIC_FROM_INSTANCE_METHOD")
@@ -89,8 +87,8 @@ public class LoaderServiceImpl {
     staticTermUtils = term;
   }
 
+  /** Inits the. */
   @PostConstruct
-  @SuppressWarnings("static-access")
   public void init() {
     setStaticServices(this.operationsService, this.osQueryService, this.termUtils);
   }

@@ -319,7 +319,7 @@ public class TermSuggestionFormServiceTest {
    * @throws Exception the exception
    */
   @Test
-  public void blankFormSubmissionFailsValidation() throws Exception {
+  public void blankSpreadsheetSubmissionFailsValidation() throws Exception {
     // SET UP
     Path p = Paths.get("src/test/resources/formSamples/blank-spreadsheet-submission-cdisc.xls");
     byte[] content = Files.readAllBytes(p);
@@ -327,7 +327,6 @@ public class TermSuggestionFormServiceTest {
 
     // ACT & ASSERT
     assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
-
   }
 
   /**
