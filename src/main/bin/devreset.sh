@@ -485,7 +485,8 @@ load_mapping2
 # Report audit data
 echo "  Audit report ...$(/bin/date)"
 # send audit report to csv with date
-./audit.sh load --noconfig > "devreset_terminology_load_audit_$(date +%Y%m%d_%H%M%S).csv"
+DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
+$DIR/audit.sh load --noconfig > "devreset_terminology_load_audit_$(date +%Y%m%d_%H%M%S).csv"
 
 
 echo ""
