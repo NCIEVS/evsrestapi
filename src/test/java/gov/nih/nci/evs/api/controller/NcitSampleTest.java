@@ -282,7 +282,8 @@ public class NcitSampleTest extends SampleTest {
     // Check for Logical_Definition property
     assertThat(
             concept.getProperties().stream()
-                .filter(p -> "Logical_Definition".equals(p.getType()) && "true".equals(p.getValue()))
+                .filter(
+                    p -> "Logical_Definition".equals(p.getType()) && "true".equals(p.getValue()))
                 .count())
         .isEqualTo(1);
 
@@ -303,7 +304,10 @@ public class NcitSampleTest extends SampleTest {
     assertThat(concept.getRoles().stream().filter(r -> r.getGroup() != null).count()).isEqualTo(0);
 
     // no Logical_Definition property
-    assertThat(concept.getProperties().stream().filter(p -> "Logical_Definition".equals(p.getType())).count())
+    assertThat(
+            concept.getProperties().stream()
+                .filter(p -> "Logical_Definition".equals(p.getType()))
+                .count())
         .isEqualTo(0);
   }
 }
