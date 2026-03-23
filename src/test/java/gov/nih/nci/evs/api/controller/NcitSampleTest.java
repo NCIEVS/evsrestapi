@@ -244,4 +244,42 @@ public class NcitSampleTest extends SampleTest {
             concept.getRoles().stream().filter(r -> r.getType().equals("Disease_Is_Grade")).count())
         .isGreaterThan(0);
   }
+
+  /**
+   * Test role grouping.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testRoleGrouping() throws Exception {
+    String url = "/api/v1/concept/ncit/C37193?include=roles,properties";
+    log.info("Testing url - " + url);
+    MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    Concept concept = ThreadLocalMapper.get().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C37193");
+
+    // Check for "simple" group (group 0)
+    assertThat(
+            concept.getRoles().stream()
+                .filter(r -> Integer.valueOf(0).equals(r.getGroup()))
+                .count())
+        .isGreaterThan(0);
+
+    // Check for numbered groups (complex groups)
+    assertThat(
+            concept.getRoles().stream()
+                .filter(r -> r.getGroup() != null && r.getGroup() > 0)
+                .count())
+        .isGreaterThan(0);
+
+    // Check for logicalDefinition property
+    assertThat(
+            concept.getProperties().stream()
+                .filter(p -> "logicalDefinition".equals(p.getType()) && "true".equals(p.getValue()))
+                .count())
+        .isEqualTo(1);
+  }
 }

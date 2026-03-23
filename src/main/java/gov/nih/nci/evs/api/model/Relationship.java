@@ -37,6 +37,10 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
   @Field(type = FieldType.Keyword)
   private String source;
 
+  /** The group (for role grouping). */
+  @Field(type = FieldType.Keyword)
+  private Integer group;
+
   /** The highlight. */
   @Transient @JsonSerialize @JsonDeserialize private String highlight;
 
@@ -71,6 +75,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
     relatedCode = other.getRelatedCode();
     relatedName = other.getRelatedName();
     source = other.getSource();
+    group = other.getGroup();
     highlight = other.getHighlight();
     qualifiers = new ArrayList<>(other.getQualifiers());
   }
@@ -168,6 +173,25 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
    */
   public void setSource(final String source) {
     this.source = source;
+  }
+
+  /**
+   * Returns the group.
+   *
+   * @return the group
+   */
+  @Schema(description = "Role group number for grouping related roles")
+  public Integer getGroup() {
+    return group;
+  }
+
+  /**
+   * Sets the group.
+   *
+   * @param group the group
+   */
+  public void setGroup(final Integer group) {
+    this.group = group;
   }
 
   /**

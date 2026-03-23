@@ -105,6 +105,9 @@ public class Bindings {
   /** The source. */
   private Property source;
 
+  /** The group (for role grouping). */
+  private Property group;
+
   /**
    * Returns the property value.
    *
@@ -707,5 +710,23 @@ public class Bindings {
    */
   public void setSource(Property source) {
     this.source = source;
+  }
+
+  /**
+   * Returns the group.
+   *
+   * @return the group
+   */
+  public Property getGroup() {
+    return group;
+  }
+
+  /**
+   * Sets the group.
+   *
+   * @param group the group
+   */
+  public void setGroup(Property group) {
+    this.group = group;
   }
 }

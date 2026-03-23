@@ -262,6 +262,17 @@ public interface SparqlQueryManagerService {
   public List<Role> getRoles(String conceptCode, Terminology terminology) throws Exception;
 
   /**
+   * Returns roles with group information for a batch of concepts.
+   *
+   * @param conceptCodes the concept codes
+   * @param terminology the terminology
+   * @return the roles with group info by concept code
+   * @throws Exception the exception
+   */
+  public Map<String, List<Role>> getRolesWithGroups(
+      List<String> conceptCodes, Terminology terminology) throws Exception;
+
+  /**
    * Returns the complex roles for all codes.
    *
    * @param terminology the terminology
