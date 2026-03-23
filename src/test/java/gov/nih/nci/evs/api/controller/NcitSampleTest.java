@@ -285,5 +285,25 @@ public class NcitSampleTest extends SampleTest {
                 .filter(p -> "Logical_Definition".equals(p.getType()) && "true".equals(p.getValue()))
                 .count())
         .isEqualTo(1);
+
+    // Concept with roles but NO role groupings
+    url = "/api/v1/concept/ncit/C10000?include=roles,properties";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C10000");
+
+    // has roles
+    assertThat(concept.getRoles()).isNotEmpty();
+
+    // no roles have a group value
+    assertThat(concept.getRoles().stream().filter(r -> r.getGroup() != null).count()).isEqualTo(0);
+
+    // no Logical_Definition property
+    assertThat(concept.getProperties().stream().filter(p -> "Logical_Definition".equals(p.getType())).count())
+        .isEqualTo(0);
   }
 }
