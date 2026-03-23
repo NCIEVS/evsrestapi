@@ -261,24 +261,28 @@ public class NcitSampleTest extends SampleTest {
     assertThat(concept).isNotNull();
     assertThat(concept.getCode()).isEqualTo("C37193");
 
-    // Check for "simple" group (group 0)
+    // Check for "simple" group (labels)
     assertThat(
             concept.getRoles().stream()
-                .filter(r -> Integer.valueOf(0).equals(r.getGroup()))
+                .filter(r -> r.getGroup() != null && !r.getGroup().matches("\\d+"))
                 .count())
         .isGreaterThan(0);
 
     // Check for numbered groups (complex groups)
     assertThat(
             concept.getRoles().stream()
-                .filter(r -> r.getGroup() != null && r.getGroup() > 0)
+                .filter(
+                    r ->
+                        r.getGroup() != null
+                            && r.getGroup().matches("\\d+")
+                            && Integer.parseInt(r.getGroup()) > 0)
                 .count())
         .isGreaterThan(0);
 
-    // Check for logicalDefinition property
+    // Check for Logical_Definition property
     assertThat(
             concept.getProperties().stream()
-                .filter(p -> "logicalDefinition".equals(p.getType()) && "true".equals(p.getValue()))
+                .filter(p -> "Logical_Definition".equals(p.getType()) && "true".equals(p.getValue()))
                 .count())
         .isEqualTo(1);
   }

@@ -485,7 +485,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           if ("ncit".equalsIgnoreCase(terminology.getTerminology())) {
             if (concept.getRoles().stream().anyMatch(r -> r.getGroup() != null)) {
               final Property p = new Property();
-              p.setType("logicalDefinition");
+              p.setType("Logical_Definition");
               p.setValue("true");
               concept.getProperties().add(p);
             }
@@ -796,7 +796,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if ("ncit".equalsIgnoreCase(terminology.getTerminology())) {
         if (concept.getRoles().stream().anyMatch(r -> r.getGroup() != null)) {
           final Property p = new Property();
-          p.setType("logicalDefinition");
+          p.setType("Logical_Definition");
           p.setValue("true");
           concept.getProperties().add(p);
         }
@@ -1402,14 +1402,14 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       // Set group number
       if (b.getGroup() != null && b.getGroup().getValue() != null) {
         final String groupStr = b.getGroup().getValue();
-        if ("0".equals(groupStr)) {
-          role.setGroup(0);
-        } else {
-          // Assign sequential group numbers
+        if (groupStr != null && groupStr.startsWith("_:")) {
+          // Assign sequential group numbers for complex groups
           if (!groupNumberMap.containsKey(groupStr)) {
             groupNumberMap.put(groupStr, nextGroupNumber++);
           }
-          role.setGroup(groupNumberMap.get(groupStr));
+          role.setGroup(String.valueOf(groupNumberMap.get(groupStr)));
+        } else {
+          role.setGroup(groupStr);
         }
       }
 
@@ -1468,16 +1468,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       if (b.getGroup() != null && b.getGroup().getValue() != null) {
         final String groupStr = b.getGroup().getValue();
-        if ("0".equals(groupStr)) {
-          role.setGroup(0);
-        } else {
+        if (groupStr != null && groupStr.startsWith("_:")) {
           Map<String, Integer> groupNumberMap = conceptGroupNumberMap.get(conceptCode);
           if (!groupNumberMap.containsKey(groupStr)) {
             int nextNum = conceptNextGroupNumber.get(conceptCode);
             groupNumberMap.put(groupStr, nextNum);
             conceptNextGroupNumber.put(conceptCode, nextNum + 1);
           }
-          role.setGroup(groupNumberMap.get(groupStr));
+          role.setGroup(String.valueOf(groupNumberMap.get(groupStr)));
+        } else {
+          role.setGroup(groupStr);
         }
       }
 

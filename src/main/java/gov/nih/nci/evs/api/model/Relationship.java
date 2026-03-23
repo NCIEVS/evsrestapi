@@ -39,7 +39,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
 
   /** The group (for role grouping). */
   @Field(type = FieldType.Keyword)
-  private Integer group;
+  private String group;
 
   /** The highlight. */
   @Transient @JsonSerialize @JsonDeserialize private String highlight;
@@ -181,7 +181,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
    * @return the group
    */
   @Schema(description = "Role group number for grouping related roles")
-  public Integer getGroup() {
+  public String getGroup() {
     return group;
   }
 
@@ -190,7 +190,7 @@ public class Relationship extends BaseModel implements Comparable<Relationship> 
    *
    * @param group the group
    */
-  public void setGroup(final Integer group) {
+  public void setGroup(final String group) {
     this.group = group;
   }
 
