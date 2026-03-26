@@ -161,7 +161,7 @@ dependencies {
   implementation "ca.uhn.hapi.fhir:hapi-fhir-server-openapi:7.6.1"
 
   // disk-backed map implementation
-  implementation 'org.mapdb:mapdb:3.0.0-M7'
+  implementation "org.mapdb:mapdb:3.1.0"
 
   // Lombok dependencies (avoid using lombok for now)
   //implementation "org.projectlombok:lombok:1.18.32"
@@ -169,7 +169,7 @@ dependencies {
   //compileOnly "org.projectlombok:lombok:1.18.32"
 
   // SpotBugs annotations
-  compileOnly 'com.github.spotbugs:spotbugs-annotations:4.8.2'
+  compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.2"
 
   /*
    * Test Dependencies
