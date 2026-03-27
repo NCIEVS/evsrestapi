@@ -1,23 +1,13 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptResultList;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Mapping;
-import gov.nih.nci.evs.api.model.MappingResultList;
-import gov.nih.nci.evs.api.model.SearchCriteria;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.EVSPageable;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
-import org.opensearch.common.unit.Fuzziness;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
 import org.opensearch.data.core.OpenSearchOperations;
 import org.opensearch.index.query.BoolQueryBuilder;
@@ -40,6 +30,17 @@ import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.MappingResultList;
+import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.support.es.EVSPageable;
+import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * Reference implementation of {@link OpenSearchService}. Includes hibernate tags for MEME database.
@@ -408,120 +409,141 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     // Generate variants to search with
     final String type = searchCriteria.getType();
+
     final String normTerm = ConceptUtils.normalize(term);
     final String stemTerm = ConceptUtils.normalizeWithStemming(term);
-    final String fixTerm = updateTermForType(term, type);
+    // final String fixTerm = updateTermForType(term, type);
     final String fixNormTerm = updateTermForType(normTerm, type);
+    final String fixStemTerm = updateTermForType(stemTerm, type);
     final String codeTerm = term.toUpperCase();
     final boolean hasCodeList = !searchCriteria.getCodeList().isEmpty();
+
+    // Regex term
+    final StringBuilder regex = new StringBuilder();
+    final String[] tokens = normTerm.split("\\s+");
+    for (int i = 0; i < tokens.length; i++) {
+      if (i > 0) {
+        regex.append(" ");
+      }
+      regex.append(tokens[i]).append("[^ ]*");
+    }
+    final String regexTerm = regex.toString();
+    //    final String regexWildcardTerm = regex.toString() + ".*";
 
     // Unable to do an exact match on "name" as it is a "text" field
     // final MatchQueryBuilder nameQuery = QueryBuilders.matchQuery("name",
     // exactTerm).boost(50f);
 
-    // Exact match queries
-    final MatchQueryBuilder normNameQuery =
-        QueryBuilders.matchQuery("normName", normTerm).boost(40f);
-    final NestedQueryBuilder nestedSynonymNormNameQuery =
+    // 1. Exact match on concept.normName, then synonyms.normName
+    final MatchQueryBuilder conceptNormNameExactQuery =
+        QueryBuilders.matchQuery("normName", normTerm).boost(50f);
+    final NestedQueryBuilder synonymNormNameExactQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
-            QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(39f),
+            QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(48f),
             ScoreMode.Max);
 
-    // Partial word match queries - boost higher than phrase but lower than exact
-    // Only apply for "contains" type queries, not for "phrase" queries
-    BoolQueryBuilder partialWordNameQuery = null;
-    NestedQueryBuilder nestedPartialWordSynonymQuery = null;
-
-    // build partial word query if we have partial/short words
-    if ("contains".equalsIgnoreCase(type)) {
-      final String[] tokens = normTerm.split("\\s+");
-      final StringBuilder regex = new StringBuilder();
-      boolean hasPartialWord = false;
-
-      for (int i = 0; i < tokens.length; i++) {
-        if (tokens[i].length() >= 1 && tokens[i].length() <= 6) {
-          hasPartialWord = true;
-        }
-        if (i > 0) {
-          regex.append(" ");
-        }
-        regex.append(tokens[i]).append("[^ ]*");
-      }
-
-      // Only create partial word queries if we actually have partial words
-      if (hasPartialWord) {
-        // Name partial word match (must match all tokens, boost exact token count)
-        partialWordNameQuery =
-            QueryBuilders.boolQuery()
-                .must(
-                    QueryBuilders.queryStringQuery(fixNormTerm)
-                        .field("name")
-                        .defaultOperator(Operator.AND))
-                .should(QueryBuilders.regexpQuery("normName", regex.toString()))
-                .boost(35.0f);
-
-        // Synonym partial word match (must match all tokens in SAME synonym)
-        nestedPartialWordSynonymQuery =
-            QueryBuilders.nestedQuery(
-                "synonyms",
-                QueryBuilders.boolQuery()
-                    .must(
-                        QueryBuilders.queryStringQuery(fixNormTerm)
-                            .field("synonyms.name")
-                            .defaultOperator(Operator.AND))
-                    .should(QueryBuilders.regexpQuery("synonyms.normName", regex.toString())),
-                ScoreMode.Max);
-        nestedPartialWordSynonymQuery.boost(34.0f);
-      }
-    }
-
-    // Boosting matches with words next to each other
-    final QueryStringQueryBuilder phraseNormNameQuery =
-        QueryBuilders.queryStringQuery("\"" + term + "\"").field("name").boost(30f);
-    final NestedQueryBuilder nestedSynonymPhraseNormNameQuery =
+    // 2. Starts with match on norm name
+    final QueryBuilder conceptNormNameStartsWithQuery =
+        QueryBuilders.prefixQuery("normName", normTerm).boost(45f);
+    final NestedQueryBuilder synonymNormNameStartsWithQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
-            QueryBuilders.queryStringQuery("\"" + term + "\"").field("synonyms.name").boost(29f),
+            QueryBuilders.prefixQuery("synonyms.normName", normTerm).boost(43f),
             ScoreMode.Max);
 
-    // Word queries
-    final QueryStringQueryBuilder fixNameQuery =
-        QueryBuilders.queryStringQuery(fixTerm).field("name").boost(20f);
-    final QueryStringQueryBuilder fixNormNameQuery =
-        QueryBuilders.queryStringQuery(fixNormTerm).field("normName").boost(20f);
-    final QueryStringQueryBuilder stemNameQuery =
-        QueryBuilders.queryStringQuery(stemTerm).field("stemName").boost(15f);
+    // 3. starts with regex without and with wildcard query
+    final QueryBuilder conceptNormNameRegexQuery =
+        QueryBuilders.regexpQuery("normName", regexTerm).boost(40f);
+    final QueryBuilder conceptNormNameRegexWildcardQuery =
+        QueryBuilders.regexpQuery("normName", regexTerm + ".*").boost(40f);
+    final NestedQueryBuilder synonymNormNameRegexQuery =
+        QueryBuilders.nestedQuery(
+            "synonyms",
+            QueryBuilders.regexpQuery("synonyms.normName", regexTerm).boost(38f),
+            ScoreMode.Max);
+    final NestedQueryBuilder synonymNormNameRegexWildcardQuery =
+        QueryBuilders.nestedQuery(
+            "synonyms",
+            QueryBuilders.regexpQuery("synonyms.normName", regexTerm + ".*").boost(38f),
+            ScoreMode.Max);
 
-    final QueryStringQueryBuilder synonymFixNameAndQuery =
-        QueryBuilders.queryStringQuery(String.join(" AND ", normTerm.split("\\s+")))
-            .field("synonyms.name")
+    // 4. phrase query based on name words (Hopefully this finds punctuation)
+    final QueryStringQueryBuilder conceptPhraseNameQuery =
+        QueryBuilders.queryStringQuery("\"" + term + "\"").field("name").boost(35f);
+    final NestedQueryBuilder synonymPhraseNameQuery =
+        QueryBuilders.nestedQuery(
+            "synonyms",
+            QueryBuilders.queryStringQuery("\"" + term + "\"").field("synonyms.name").boost(33f),
+            ScoreMode.Max);
+
+    // 5. Word queries (AND operator)
+    final QueryStringQueryBuilder conceptFixNameAndQuery =
+        QueryBuilders.queryStringQuery(fixNormTerm)
+            .field("name")
             .defaultOperator(Operator.AND)
-            .boost(15f);
-    final NestedQueryBuilder nestedSynonymFixNameAndQuery =
-        QueryBuilders.nestedQuery("synonyms", synonymFixNameAndQuery, ScoreMode.Max);
-    final QueryStringQueryBuilder synonymFixNormNameQuery =
-        QueryBuilders.queryStringQuery(fixNormTerm).field("synonyms.normName").boost(10f);
-    final QueryStringQueryBuilder synonymStemNameQuery =
-        QueryBuilders.queryStringQuery(stemTerm).field("synonyms.stemName").boost(7f);
-    final NestedQueryBuilder nestedSynonymFixNameQuery =
-        QueryBuilders.nestedQuery("synonyms", synonymFixNormNameQuery, ScoreMode.Max);
-    final NestedQueryBuilder nestedSynonymStemNameQuery =
-        QueryBuilders.nestedQuery("synonyms", synonymStemNameQuery, ScoreMode.Max);
+            // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
+            .boost(30f);
+    final NestedQueryBuilder synonymFixNameAndQuery =
+        QueryBuilders.nestedQuery(
+            "synonyms",
+            QueryBuilders.queryStringQuery(fixNormTerm)
+                .field("synonyms.name")
+                .defaultOperator(Operator.AND)
+                // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
+                .boost(27f),
+            ScoreMode.Max);
 
-    // Definition query
-    final QueryStringQueryBuilder definitionQuery =
-        QueryBuilders.queryStringQuery(fixNormTerm).field("definitions.definition");
+    // 6. Stem word queries (AND operator)
+    final QueryStringQueryBuilder stemNameAndQuery =
+        QueryBuilders.queryStringQuery(fixStemTerm)
+            .field("stemName")
+            .defaultOperator(Operator.AND)
+            // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
+            .boost(25f);
+    final NestedQueryBuilder synonymStemNameAndQuery =
+        QueryBuilders.nestedQuery(
+            "synonyms",
+            QueryBuilders.queryStringQuery(fixStemTerm)
+                .field("synonyms.stemName")
+                .defaultOperator(Operator.AND)
+                // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
+                .boost(23f),
+            ScoreMode.Max);
+
+    // 7. Stem word queries (OR operator) - low boost
+    final QueryStringQueryBuilder stemNameOrQuery =
+        QueryBuilders.queryStringQuery(stemTerm)
+            .field("stemName")
+            .defaultOperator(Operator.OR)
+            // .fuzziness(fuzzy ? Fuzziness.ONE : Fuzziness.ZERO)
+            .boost(2f);
+    final NestedQueryBuilder synonymStemNameOrQuery =
+        QueryBuilders.nestedQuery(
+            "synonyms",
+            QueryBuilders.queryStringQuery(stemTerm)
+                .field("synonyms.stemName")
+                .defaultOperator(Operator.OR)
+                // .fuzziness(fuzzy ? Fuzziness.ONE : Fuzziness.ZERO)
+                .boost(2f),
+            ScoreMode.Max);
+
+    // 8. Definition query
     final NestedQueryBuilder nestedDefinitionQuery =
-        QueryBuilders.nestedQuery("definitions", definitionQuery, ScoreMode.Max);
+        QueryBuilders.nestedQuery(
+            "definitions",
+            QueryBuilders.queryStringQuery(fixNormTerm)
+                .field("definitions.definition")
+                .defaultOperator(andFlag ? Operator.AND : Operator.OR)
+                // .fuzziness(fuzzy ? Fuzziness.ONE : Fuzziness.ZERO)
+                .boost(1f),
+            ScoreMode.Max);
 
+    // 9. Code queries
     String codeList = codeTerm;
-
     if (hasCodeList) {
       codeList = String.join(" OR ", searchCriteria.getCodeList());
     }
-
-    // Code queries
     final QueryStringQueryBuilder codeQuery =
         QueryBuilders.queryStringQuery(codeList).field("code").boost(50f);
     final NestedQueryBuilder synonymCodeQuery =
@@ -533,45 +555,10 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     // Name queries
 
-    // -- fuzzy case
-    if ("fuzzy".equalsIgnoreCase(type)) {
-      fixNameQuery.fuzziness(Fuzziness.ONE);
-      fixNormNameQuery.fuzziness(Fuzziness.ONE);
-      stemNameQuery.fuzziness(Fuzziness.ONE);
-      synonymFixNameAndQuery.fuzziness(Fuzziness.ONE);
-      synonymFixNormNameQuery.fuzziness(Fuzziness.ONE);
-      synonymStemNameQuery.fuzziness(Fuzziness.ONE);
-      definitionQuery.fuzziness(Fuzziness.ONE);
-      // partials don't use fuzziness anymore
-    } else {
-      fixNameQuery.fuzziness(Fuzziness.ZERO);
-      fixNormNameQuery.fuzziness(Fuzziness.ZERO);
-      stemNameQuery.fuzziness(Fuzziness.ZERO);
-      synonymFixNameAndQuery.fuzziness(Fuzziness.ZERO);
-      synonymFixNormNameQuery.fuzziness(Fuzziness.ZERO);
-      synonymStemNameQuery.fuzziness(Fuzziness.ZERO);
-      definitionQuery.fuzziness(Fuzziness.ZERO);
-      // partials don't use fuzziness anymore
-    }
-
-    // -- wildcard search is assumed to be a term search or phrase search
-    if ("AND".equalsIgnoreCase(type)) {
-      fixNameQuery.defaultOperator(Operator.AND);
-      fixNormNameQuery.defaultOperator(Operator.AND);
-      stemNameQuery.defaultOperator(Operator.AND);
-      synonymFixNormNameQuery.defaultOperator(Operator.AND);
-      synonymStemNameQuery.defaultOperator(Operator.AND);
-      definitionQuery.defaultOperator(Operator.AND);
-    }
-
-    // Set "best fields" and fields
-    // synonymFixNameQuery.type(Type.BEST_FIELDS);
-    // definitionQuery.type(Type.BEST_FIELDS);
-
     // prepare bool query
     BoolQueryBuilder termQuery = new BoolQueryBuilder();
 
-    // Avoid searching codes with spaces in search query
+    // Decide about adding code queries
     if (!term.contains(" ") || hasCodeList) {
       // Code match
       if (hasCodeList) {
@@ -583,45 +570,39 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       }
     }
 
-    // contains, and/or
-    if (!"phrase".equals(type.toLowerCase())) {
-      termQuery
+    termQuery.should(conceptNormNameExactQuery);
+    termQuery.should(synonymNormNameExactQuery);
 
-          // Text query on "name"
-          // .should(nameQuery)
+    termQuery.should(conceptPhraseNameQuery);
+    termQuery.should(synonymPhraseNameQuery);
 
-          // Text queries on "norm name" and synonym "norm name"
-          .should(normNameQuery)
-          .should(nestedSynonymNormNameQuery);
-    }
+    // Skip word-level and regex wildcard things for phrase queries
+    if (!"phrase".equals(type)) {
 
-    // Add partial word queries (boost between exact and phrase) - only for contains type
-    if (partialWordNameQuery != null) {
-      termQuery.should(partialWordNameQuery);
-    }
-    if (nestedPartialWordSynonymQuery != null) {
-      termQuery.should(nestedPartialWordSynonymQuery);
-    }
+      // queries with wildcards
+      termQuery.should(conceptNormNameStartsWithQuery);
+      termQuery.should(synonymNormNameStartsWithQuery);
 
-    // Use phrase queries with higher boost than fixname queries
-    termQuery.should(phraseNormNameQuery).should(nestedSynonymPhraseNormNameQuery);
+      termQuery.should(conceptNormNameRegexQuery);
+      termQuery.should(synonymNormNameRegexQuery);
 
-    // contains, and/or
-    if (!"phrase".equals(type.toLowerCase())) {
-      termQuery
+      termQuery.should(conceptNormNameRegexWildcardQuery);
+      termQuery.should(synonymNormNameRegexWildcardQuery);
 
-          // Text queries on "name" and "norm name" and "stem name" using fix names
-          .should(fixNameQuery)
-          .should(fixNormNameQuery)
-          .should(stemNameQuery)
+      // Word queries
+      termQuery.should(conceptFixNameAndQuery);
+      termQuery.should(synonymFixNameAndQuery);
 
-          // Text query on synonym "name" and "stem name" using fix query
-          .should(nestedSynonymFixNameAndQuery)
-          .should(nestedSynonymFixNameQuery)
-          .should(nestedSynonymStemNameQuery)
+      termQuery.should(stemNameAndQuery);
+      termQuery.should(synonymStemNameAndQuery);
 
-          // definition match
-          .should(nestedDefinitionQuery);
+      // Skip "or" clauses for "AND" queries
+      if (!"AND".equals(type)) {
+        termQuery.should(stemNameOrQuery);
+        termQuery.should(synonymStemNameOrQuery);
+      }
+
+      termQuery.should(nestedDefinitionQuery);
     }
     return (term.isBlank()) ? termQuery : termQuery.minimumShouldMatch(1);
   }

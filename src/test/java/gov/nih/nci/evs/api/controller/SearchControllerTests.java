@@ -1981,6 +1981,13 @@ public class SearchControllerTests {
             .andReturn();
     content = result.getResponse().getContentAsString();
     list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+
+    log.info("Top 10 results for phrase search 'corona':");
+    for (int i = 0; i < Math.min(10, list.getConcepts().size()); i++) {
+      Concept concept = list.getConcepts().get(i);
+      log.info("  " + (i + 1) + ". " + concept.getName() + " (" + concept.getCode() + ")");
+    }
+
     conceptList = list.getConcepts();
     assertThat(conceptList.size()).isEqualTo(2);
   }
@@ -3212,6 +3219,13 @@ public class SearchControllerTests {
     content = result.getResponse().getContentAsString();
     log.info("  content = " + content);
     list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+
+    log.info("Top 10 results for 'double lymphoma':");
+    for (int i = 0; i < Math.min(10, list.getConcepts().size()); i++) {
+      Concept concept = list.getConcepts().get(i);
+      log.info("  " + (i + 1) + ". " + concept.getName() + " (" + concept.getCode() + ")");
+    }
+
     boolean currentExact = true;
     boolean foundC125904 = false;
     int ct = 0;
