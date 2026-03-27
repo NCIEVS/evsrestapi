@@ -154,6 +154,28 @@ public class MdrSampleTest extends SampleTest {
                   // n/a
                 });
     assertThat(terminologies.size()).isGreaterThan(0);
+
+    // mdr 28_0 should be "latest
+    assertThat(
+            terminologies.stream()
+                .filter(
+                    t ->
+                        t.getTerminology().equals("mdr")
+                            && t.getVersion().equals("28_0")
+                            && t.getLatest())
+                .count())
+        .isEqualTo(1);
+    // The other one is not 28_0 and is not "latest"
+    assertThat(
+            terminologies.stream()
+                .filter(
+                    t ->
+                        t.getTerminology().equals("mdr")
+                            && !t.getVersion().equals("28_0")
+                            && !t.getLatest())
+                .count())
+        .isEqualTo(1);
+
     assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("mdr")).count())
         .isEqualTo(2);
     final Terminology mdr =

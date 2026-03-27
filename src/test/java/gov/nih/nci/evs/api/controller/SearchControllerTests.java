@@ -4830,7 +4830,7 @@ public class SearchControllerTests {
    *
    * @throws Exception the exception
    */
-  //  @Test
+  // @Test
   public void testSearchMeddra() throws Exception {
     String url = null;
     MvcResult result = null;
@@ -4838,10 +4838,7 @@ public class SearchControllerTests {
     ConceptResultList list = null;
 
     // Test "chronic granulomato"
-    url =
-        baseUrl
-            + "?terminology=mdr&term=chronic"
-            + " granulomato&type=contains&pageSize=10&synonymTermType=PT";
+    url = baseUrl + "?terminology=mdr&term=chronic granulomato&type=contains&pageSize=10";
     log.info("Testing 'chronic granulomato': " + url);
 
     result =
@@ -4856,13 +4853,12 @@ public class SearchControllerTests {
     list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
-    // Top is "Chronic granulomatous disease", others are in the top 10
+    // "Chronic granulomatous disease"
     assertThat(list.getConcepts().get(0).getName()).isEqualTo("Chronic granulomatous disease");
+    //
 
     // Test "chronic granul"
-    url =
-        baseUrl
-            + "?terminology=mdr&term=chronic granul&type=contains&pageSize=10&synonymTermType=PT";
+    url = baseUrl + "?terminology=mdr&term=chronic granul&type=contains&pageSize=10";
     log.info("Testing 'chronic granul': " + url);
 
     result =
@@ -4877,13 +4873,30 @@ public class SearchControllerTests {
     list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
-    // Top is "Chronic granulomatous disease", others are in the top 10
-    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Chronic granulomatous disease");
+    // Top 3 includes "Chronic granulomatous disease"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulomatous disease"))
+                .count())
+        .isEqualTo(1);
+    // Top 3 includes "Chronic granulocytic leukaemia"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulocytic leukaemia"))
+                .count())
+        .isEqualTo(1);
+    // Top 3 includes "Chronic granulocytic leukemia"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulocytic leukemia"))
+                .count())
+        .isEqualTo(1);
 
     // Test "chronic granu"
-    url =
-        baseUrl
-            + "?terminology=mdr&term=chronic granu&type=contains&pageSize=10&synonymTermType=PT";
+    url = baseUrl + "?terminology=mdr&term=chronic granu&type=contains&pageSize=10";
     log.info("Testing 'chronic granu': " + url);
 
     result =
@@ -4898,13 +4911,30 @@ public class SearchControllerTests {
     list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
-    // Top is "Chronic granulomatous disease", others are in the top 10
-    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Chronic granulomatous disease");
+    // Top 3 includes "Chronic granulomatous disease"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulomatous disease"))
+                .count())
+        .isEqualTo(1);
+    // Top 3 includes "Chronic granulocytic leukaemia"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulocytic leukaemia"))
+                .count())
+        .isEqualTo(1);
+    // Top 3 includes "Chronic granulocytic leukemia"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulocytic leukemia"))
+                .count())
+        .isEqualTo(1);
 
     // Test "granu chronic"
-    url =
-        baseUrl
-            + "?terminology=mdr&term=granu chronic&type=contains&pageSize=10&synonymTermType=PT";
+    url = baseUrl + "?terminology=mdr&term=granu chronic&type=contains&pageSize=10";
     log.info("Testing 'granu chronic': " + url);
 
     result =
@@ -4919,12 +4949,30 @@ public class SearchControllerTests {
     list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
-    // Top is "Chronic granulomatous disease", others are in the top 10
-    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Chronic granulomatous disease");
+    // Top 3 includes "Chronic granulomatous disease"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulomatous disease"))
+                .count())
+        .isEqualTo(1);
+    // Top 3 includes "Chronic granulocytic leukaemia"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulocytic leukaemia"))
+                .count())
+        .isEqualTo(1);
+    // Top 3 includes "Chronic granulocytic leukemia"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulocytic leukemia"))
+                .count())
+        .isEqualTo(1);
 
     // Test "granu chron"
-    url =
-        baseUrl + "?terminology=mdr&term=granu chron&type=contains&pageSize=10&synonymTermType=PT";
+    url = baseUrl + "?terminology=mdr&term=granu chron&type=contains&pageSize=10";
     log.info("Testing 'granu chron': " + url);
 
     result =
@@ -4939,14 +4987,30 @@ public class SearchControllerTests {
     list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
-    // Top is "Chronic granulomatous disease", others are in the top 10
-    assertThat(list.getConcepts().get(0).getName()).isEqualTo("Chronic granulomatous disease");
+    // Top 3 includes "Chronic granulomatous disease"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulomatous disease"))
+                .count())
+        .isEqualTo(1);
+    // Top 3 includes "Chronic granulocytic leukaemia"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulocytic leukaemia"))
+                .count())
+        .isEqualTo(1);
+    // Top 3 includes "Chronic granulocytic leukemia"
+    assertThat(
+            list.getConcepts().stream()
+                .limit(3)
+                .filter(c -> c.getName().equals("Chronic granulocytic leukemia"))
+                .count())
+        .isEqualTo(1);
 
     // Test "giant subep"
-    url =
-        baseUrl
-            + "?terminology=mdr&term=subependymal giant Subependymal"
-            + " giant&type=contains&pageSize=10";
+    url = baseUrl + "?terminology=mdr&term=giant subep&type=contains&pageSize=10";
     log.info("Testing 'giant subep': " + url);
 
     result =
@@ -4961,9 +5025,53 @@ public class SearchControllerTests {
     list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
     assertThat(list.getConcepts()).isNotNull();
     assertThat(list.getConcepts().size()).isGreaterThan(0);
-    // Top is "Chronic granulomatous disease", others are in the top 10
+    // Top is "Subependymal giant cell astrocytoma"
     assertThat(list.getConcepts().get(0).getName())
         .isEqualTo("Subependymal giant cell astrocytoma");
+
+    // Test "giant astro"
+    url = baseUrl + "?terminology=mdr&term=giant astro&type=contains&pageSize=10";
+    log.info("Testing 'giant subep': " + url);
+
+    result =
+        this.mvc
+            .perform(get(url).header("X-EVSRESTAPI-License-Key", "ui-license"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // Top is "Subependymal giant cell astrocytoma"
+    assertThat(list.getConcepts().get(0).getName())
+        .isEqualTo("Subependymal giant cell astrocytoma");
+
+    // "lymphoblastic" - should include "Acute lymphoblastic leukemia"
+
+    // Test "lymphoblastic" - page size 50
+    url = baseUrl + "?terminology=mdr&term=lymphoblastic&type=contains&pageSize=50";
+    log.info("Testing 'giant subep': " + url);
+
+    result =
+        this.mvc
+            .perform(get(url).header("X-EVSRESTAPI-License-Key", "ui-license"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    assertThat(
+            list.getConcepts().stream()
+                .filter(c -> c.getName().equals("Acute lymphoblastic leukemia"))
+                .count())
+        .isEqualTo(1);
   }
 
   /**
