@@ -49,7 +49,7 @@ logging:
     gov.nih.nci.evs.api: ${LOGGING_LEVEL_GOV_NIH_NCI_EVS_API:INFO}
     org.springframework.data.elasticsearch.core: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
     org.springframework.data.opensearch.core: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
-    gov.nih.nci.evs.api.configuration.EvsOpenSearchRestTemplate: ${LOGGING_LEVEL_SPRING_DATA_ES:DEBUG}
+    gov.nih.nci.evs.api.configuration.EvsOpenSearchRestTemplate: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
 
 #
 # Server Properties
