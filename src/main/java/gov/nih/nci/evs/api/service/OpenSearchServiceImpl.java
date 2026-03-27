@@ -428,52 +428,53 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(39f),
             ScoreMode.Max);
 
-    // Partial word match queries - boost higher than phrase but lower than exact
-    // Only apply for "contains" type queries, not for "phrase" queries
-    BoolQueryBuilder partialWordNameQuery = null;
-    NestedQueryBuilder nestedPartialWordSynonymQuery = null;
+    // Individual words wildcard match queries (AND operator across all wildcards)
+    // Only apply for "contains" type queries
+    QueryStringQueryBuilder conceptWildcardNameAndQuery = null;
+    QueryStringQueryBuilder conceptWildcardNormNameAndQuery = null;
+    NestedQueryBuilder nestedSynonymWildcardNameAndQuery = null;
+    NestedQueryBuilder nestedSynonymWildcardNormNameAndQuery = null;
+    NestedQueryBuilder nestedDefinitionWildcardAndQuery = null;
 
-    // build partial word query if we have partial/short words
     if ("contains".equalsIgnoreCase(type)) {
-      final String[] tokens = normTerm.split("\\s+");
-      final StringBuilder regex = new StringBuilder();
-      boolean hasPartialWord = false;
+      conceptWildcardNameAndQuery =
+          QueryBuilders.queryStringQuery(fixNormTerm)
+              .field("name")
+              .defaultOperator(Operator.AND)
+              .boost(35.0f);
 
-      for (int i = 0; i < tokens.length; i++) {
-        if (tokens[i].length() >= 1 && tokens[i].length() <= 6) {
-          hasPartialWord = true;
-        }
-        if (i > 0) {
-          regex.append(" ");
-        }
-        regex.append(tokens[i]).append("[^ ]*");
-      }
+      conceptWildcardNormNameAndQuery =
+          QueryBuilders.queryStringQuery(fixNormTerm)
+              .field("normName")
+              .defaultOperator(Operator.AND)
+              .boost(35.0f);
 
-      // Only create partial word queries if we actually have partial words
-      if (hasPartialWord) {
-        // Name partial word match (must match all tokens, boost exact token count)
-        partialWordNameQuery =
-            QueryBuilders.boolQuery()
-                .must(
-                    QueryBuilders.queryStringQuery(fixNormTerm)
-                        .field("name")
-                        .defaultOperator(Operator.AND))
-                .should(QueryBuilders.regexpQuery("normName", regex.toString()))
-                .boost(35.0f);
+      nestedSynonymWildcardNameAndQuery =
+          QueryBuilders.nestedQuery(
+              "synonyms",
+              QueryBuilders.queryStringQuery(fixNormTerm)
+                  .field("synonyms.name")
+                  .defaultOperator(Operator.AND)
+                  .boost(34.0f),
+              ScoreMode.Max);
 
-        // Synonym partial word match (must match all tokens in SAME synonym)
-        nestedPartialWordSynonymQuery =
-            QueryBuilders.nestedQuery(
-                "synonyms",
-                QueryBuilders.boolQuery()
-                    .must(
-                        QueryBuilders.queryStringQuery(fixNormTerm)
-                            .field("synonyms.name")
-                            .defaultOperator(Operator.AND))
-                    .should(QueryBuilders.regexpQuery("synonyms.normName", regex.toString())),
-                ScoreMode.Max);
-        nestedPartialWordSynonymQuery.boost(34.0f);
-      }
+      nestedSynonymWildcardNormNameAndQuery =
+          QueryBuilders.nestedQuery(
+              "synonyms",
+              QueryBuilders.queryStringQuery(fixNormTerm)
+                  .field("synonyms.normName")
+                  .defaultOperator(Operator.AND)
+                  .boost(34.0f),
+              ScoreMode.Max);
+
+      nestedDefinitionWildcardAndQuery =
+          QueryBuilders.nestedQuery(
+              "definitions",
+              QueryBuilders.queryStringQuery(fixNormTerm)
+                  .field("definitions.definition")
+                  .defaultOperator(Operator.AND)
+                  .boost(33.0f),
+              ScoreMode.Max);
     }
 
     // Boosting matches with words next to each other
@@ -595,12 +596,21 @@ public class OpenSearchServiceImpl implements OpenSearchService {
           .should(nestedSynonymNormNameQuery);
     }
 
-    // Add partial word queries (boost between exact and phrase) - only for contains type
-    if (partialWordNameQuery != null) {
-      termQuery.should(partialWordNameQuery);
+    // Add individual words wildcard AND queries - only for contains type
+    if (conceptWildcardNameAndQuery != null) {
+      termQuery.should(conceptWildcardNameAndQuery);
     }
-    if (nestedPartialWordSynonymQuery != null) {
-      termQuery.should(nestedPartialWordSynonymQuery);
+    if (conceptWildcardNormNameAndQuery != null) {
+      termQuery.should(conceptWildcardNormNameAndQuery);
+    }
+    if (nestedSynonymWildcardNameAndQuery != null) {
+      termQuery.should(nestedSynonymWildcardNameAndQuery);
+    }
+    if (nestedSynonymWildcardNormNameAndQuery != null) {
+      termQuery.should(nestedSynonymWildcardNormNameAndQuery);
+    }
+    if (nestedDefinitionWildcardAndQuery != null) {
+      termQuery.should(nestedDefinitionWildcardAndQuery);
     }
 
     // Use phrase queries with higher boost than fixname queries
