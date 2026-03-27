@@ -649,7 +649,6 @@ public class HierarchyUtils {
     this.logicalDefinitionMap = logicalDefinitionMap;
   }
 
-
   /**
    * Indicates whether or not leaf is the case.
    *

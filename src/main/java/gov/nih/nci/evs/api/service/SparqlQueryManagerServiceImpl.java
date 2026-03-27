@@ -34,10 +34,7 @@ import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import jakarta.annotation.PostConstruct;
-import java.io.BufferedWriter;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -789,15 +786,16 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (complexInverseRoleMap.containsKey(conceptCode)) {
         concept.getInverseRoles().addAll(complexInverseRoleMap.get(conceptCode));
       }
-      
+
       // Add logicalDefinition property and defining parent flags based on map
-      if ("ncit".equalsIgnoreCase(terminology.getTerminology()) && hierarchy != null && hierarchy.getLogicalDefinitionMap() != null) {
+      if ("ncit".equalsIgnoreCase(terminology.getTerminology())
+          && hierarchy != null
+          && hierarchy.getLogicalDefinitionMap() != null) {
         if (hierarchy.getLogicalDefinitionMap().containsKey(conceptCode)) {
           final Property p = new Property();
           p.setType("Logical_Definition");
           p.setValue("true");
           concept.getProperties().add(p);
-          recordLogicalDefinition(terminology, conceptCode, concept.getName());
           final Set<String> definingParents = hierarchy.getLogicalDefinitionMap().get(conceptCode);
           for (final Concept parent : concept.getParents()) {
             if (definingParents.contains(parent.getCode())) {
@@ -806,7 +804,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
           }
         }
       }
-      
+
       concept.setMaps(EVSUtils.getMapsTo(terminology, axioms));
       concept.setDisjointWith(disjointWithMap.get(conceptCode));
       if (concept.getDisjointWith().size() == 0) {
@@ -2965,32 +2963,5 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       return Arrays.asList(EVSUtils.getValueFromFile(uri).split("\\n"));
     }
     return Collections.emptyList();
-  }
-
-  /**
-   * Record logical definition concept code to a file.
-   *
-   * @param terminology the terminology
-   * @param code the code
-   * @param name the name
-   */
-  private synchronized void recordLogicalDefinition(
-      final Terminology terminology, final String code, final String name) {
-    if ("true".equals(System.getProperty("evs.report.context"))) {
-      // Use it only for indexing
-      return;
-    }
-    final String baseName = terminology.getTerminology() + "_" + terminology.getVersion();
-    final String filename = "src/main/resources/" + baseName + ".txt";
-
-    // Clear the file on first write in this session
-    final boolean append = initializedFiles.contains(baseName);
-    try (final PrintWriter out =
-        new PrintWriter(new BufferedWriter(new FileWriter(filename, append)))) {
-      out.println(code + "|" + name);
-      initializedFiles.add(baseName);
-    } catch (final IOException e) {
-      log.error("Failed to record Logical_Definition for code " + code, e);
-    }
   }
 }

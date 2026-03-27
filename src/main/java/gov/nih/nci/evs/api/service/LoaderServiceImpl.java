@@ -212,7 +212,6 @@ public class LoaderServiceImpl {
           loadService = app.getBean(MetaSourceOpensearchLoadServiceImpl.class);
         }
       } else if (cmd.hasOption("xr")) {
-        System.setProperty("evs.report.context", "true");
         loadService = app.getBean(GraphReportLoadServiceImpl.class);
       } else {
         loadService = app.getBean(GraphOpensearchLoadServiceImpl.class);

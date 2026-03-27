@@ -225,7 +225,8 @@ public interface SparqlQueryManagerService {
    * @return the map of concept code to parent codes in equivalent class
    * @throws Exception the exception
    */
-  public Map<String, Set<String>> getLogicalDefinitionCodes(Terminology terminology) throws Exception;
+  public Map<String, Set<String>> getLogicalDefinitionCodes(Terminology terminology)
+      throws Exception;
 
   /**
    * Returns the associations.
