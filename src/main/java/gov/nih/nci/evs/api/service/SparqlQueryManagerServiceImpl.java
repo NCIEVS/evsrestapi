@@ -34,7 +34,10 @@ import gov.nih.nci.evs.api.util.RESTUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import jakarta.annotation.PostConstruct;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -96,6 +99,9 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
   /** The rest utils. */
   private RESTUtils restUtils = null;
+
+  /** The initialized files (for clearing at start of session). */
+  private static final Set<String> initializedFiles = new HashSet<>();
 
   /**
    * Post init.
@@ -481,15 +487,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (conceptType.equals("concept")) {
         if (ip.isRoles()) {
           concept.setRoles(getRoles(conceptCode, terminology));
-          // Add logicalDefinition property if role groups exist
-          if ("ncit".equalsIgnoreCase(terminology.getTerminology())) {
-            if (concept.getRoles().stream().anyMatch(r -> r.getGroup() != null)) {
-              final Property p = new Property();
-              p.setType("Logical_Definition");
-              p.setValue("true");
-              concept.getProperties().add(p);
-            }
-          }
         }
 
         if (ip.isInverseRoles()) {
@@ -792,15 +789,24 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       if (complexInverseRoleMap.containsKey(conceptCode)) {
         concept.getInverseRoles().addAll(complexInverseRoleMap.get(conceptCode));
       }
-      // Add logicalDefinition property if role groups exist
-      if ("ncit".equalsIgnoreCase(terminology.getTerminology())) {
-        if (concept.getRoles().stream().anyMatch(r -> r.getGroup() != null)) {
+      
+      // Add logicalDefinition property and defining parent flags based on map
+      if ("ncit".equalsIgnoreCase(terminology.getTerminology()) && hierarchy != null && hierarchy.getLogicalDefinitionMap() != null) {
+        if (hierarchy.getLogicalDefinitionMap().containsKey(conceptCode)) {
           final Property p = new Property();
           p.setType("Logical_Definition");
           p.setValue("true");
           concept.getProperties().add(p);
+          recordLogicalDefinition(terminology, conceptCode, concept.getName());
+          final Set<String> definingParents = hierarchy.getLogicalDefinitionMap().get(conceptCode);
+          for (final Concept parent : concept.getParents()) {
+            if (definingParents.contains(parent.getCode())) {
+              parent.setDefining(true);
+            }
+          }
         }
       }
+      
       concept.setMaps(EVSUtils.getMapsTo(terminology, axioms));
       concept.setDisjointWith(disjointWithMap.get(conceptCode));
       if (concept.getDisjointWith().size() == 0) {
@@ -2917,6 +2923,36 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return sparqlQueryCacheService.getAllQualifiers(terminology, ip, restUtils, this);
   }
 
+  /* see superclass */
+  @Override
+  public Map<String, Set<String>> getLogicalDefinitionCodes(final Terminology terminology)
+      throws Exception {
+    final Map<String, Set<String>> map = new HashMap<>();
+    final String queryPrefix = queryBuilderService.constructPrefix(terminology);
+    final String query = queryBuilderService.constructQuery("equivalent.class", terminology);
+
+    if (query == null || query.equals("SKIP") || query.isEmpty()) {
+      return map;
+    }
+
+    final String res = restUtils.runSPARQL(queryPrefix + query, getQueryURL());
+    final ObjectMapper mapper = ThreadLocalMapper.get();
+    mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
+    final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
+    if (sparqlResult != null && sparqlResult.getResults() != null) {
+      final Bindings[] bindings = sparqlResult.getResults().getBindings();
+      for (final Bindings b : bindings) {
+        if (b.getConceptCode() != null && b.getParentCode() != null) {
+          final String conceptCode = b.getConceptCode().getValue();
+          final String parentCode = b.getParentCode().getValue();
+          map.computeIfAbsent(conceptCode, k -> new HashSet<>()).add(parentCode);
+        }
+      }
+    }
+    return map;
+  }
+
   /**
    * Returns the ignore source urls.
    *
@@ -2929,5 +2965,32 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       return Arrays.asList(EVSUtils.getValueFromFile(uri).split("\\n"));
     }
     return Collections.emptyList();
+  }
+
+  /**
+   * Record logical definition concept code to a file.
+   *
+   * @param terminology the terminology
+   * @param code the code
+   * @param name the name
+   */
+  private synchronized void recordLogicalDefinition(
+      final Terminology terminology, final String code, final String name) {
+    if ("true".equals(System.getProperty("evs.report.context"))) {
+      // Use it only for indexing
+      return;
+    }
+    final String baseName = terminology.getTerminology() + "_" + terminology.getVersion();
+    final String filename = "src/main/resources/" + baseName + ".txt";
+
+    // Clear the file on first write in this session
+    final boolean append = initializedFiles.contains(baseName);
+    try (final PrintWriter out =
+        new PrintWriter(new BufferedWriter(new FileWriter(filename, append)))) {
+      out.println(code + "|" + name);
+      initializedFiles.add(baseName);
+    } catch (final IOException e) {
+      log.error("Failed to record Logical_Definition for code " + code, e);
+    }
   }
 }

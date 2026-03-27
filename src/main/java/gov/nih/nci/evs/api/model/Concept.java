@@ -99,6 +99,10 @@ public class Concept extends ConceptMinimal {
   @Field(type = FieldType.Boolean)
   private Boolean active;
 
+  /** The defining flag. */
+  @Field(type = FieldType.Boolean)
+  private Boolean defining;
+
   /** The synonyms. */
   @Field(type = FieldType.Nested)
   private List<Synonym> synonyms;
@@ -358,6 +362,7 @@ public class Concept extends ConceptMinimal {
     conceptStatus = other.getConceptStatus();
     leaf = other.getLeaf();
     active = other.getActive();
+    defining = other.getDefining();
     normName = other.getNormName();
     stemName = other.getStemName();
     if (!subsetFlag || subsetFlag && subsetLink == null) {
@@ -563,6 +568,25 @@ public class Concept extends ConceptMinimal {
    */
   public void setActive(final Boolean active) {
     this.active = active;
+  }
+
+  /**
+   * Returns the defining flag.
+   *
+   * @return the defining flag
+   */
+  @Schema(description = "Indicates whether the concept is defining")
+  public Boolean getDefining() {
+    return defining;
+  }
+
+  /**
+   * Sets the defining flag.
+   *
+   * @param defining the defining flag
+   */
+  public void setDefining(final Boolean defining) {
+    this.defining = defining;
   }
 
   /**
