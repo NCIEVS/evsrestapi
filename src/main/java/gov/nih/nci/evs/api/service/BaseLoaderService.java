@@ -202,7 +202,8 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
             objectIndexName,
             "Deleting objects index " + objectIndexName + " failed!",
             "WARN");
-        continue;
+        // Keep going
+        // continue;
       }
 
       // delete concepts index
@@ -218,7 +219,8 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
             indexName,
             "Deleting concepts index " + objectIndexName + " failed!",
             "WARN");
-        continue;
+        // Keep going
+        //        continue;
       }
 
       // delete metadata object
