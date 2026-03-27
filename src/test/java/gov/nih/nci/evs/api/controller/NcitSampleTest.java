@@ -289,9 +289,17 @@ public class NcitSampleTest extends SampleTest {
         .isEqualTo(1);
 
     // Check for defining parents
-    assertThat(concept.getParents().stream().filter(p -> p.getDefining() != null && p.getDefining()).count())
+    assertThat(
+            concept.getParents().stream()
+                .filter(p -> p.getDefining() != null && p.getDefining())
+                .count())
         .isEqualTo(1);
-    assertThat(concept.getParents().stream().filter(p -> p.getDefining() != null && p.getDefining()).findFirst().get().getCode())
+    assertThat(
+            concept.getParents().stream()
+                .filter(p -> p.getDefining() != null && p.getDefining())
+                .findFirst()
+                .get()
+                .getCode())
         .isEqualTo("C3720");
 
     // Concept with roles but NO role groupings
@@ -331,10 +339,11 @@ public class NcitSampleTest extends SampleTest {
     assertThat(concept.getRoles().stream().filter(r -> r.getGroup() != null).count()).isEqualTo(0);
 
     // 3 defining parents: C3549, C6624, C6594
-    Set<String> definingParents = concept.getParents().stream()
-        .filter(p -> p.getDefining() != null && p.getDefining())
-        .map(Concept::getCode)
-        .collect(java.util.stream.Collectors.toSet());
+    Set<String> definingParents =
+        concept.getParents().stream()
+            .filter(p -> p.getDefining() != null && p.getDefining())
+            .map(Concept::getCode)
+            .collect(java.util.stream.Collectors.toSet());
     assertThat(definingParents).containsExactlyInAnyOrder("C3549", "C6624", "C6594");
   }
 }
