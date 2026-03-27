@@ -270,23 +270,14 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     boolean latestMonthlyFound = false;
     boolean latestWeeklyFound = false;
     boolean latestFound = false;
-    final Set<String> seen = new HashSet<>();
 
     for (final IndexMetadata iMeta : iMetas) {
-
       final boolean monthly = iMeta.getTerminology().getTags().containsKey("monthly");
       final boolean weekly = iMeta.getTerminology().getTags().containsKey("weekly");
-      final String clause = (monthly ? "monthly" : "") + (weekly ? "weekly" : "");
-
-      // skip if seen
-      if (seen.contains(iMeta.getTerminology().getTerminology() + clause)) {
-        continue;
-      }
-      seen.add(iMeta.getTerminology().getTerminology() + clause);
 
       // Set latest monthly
       if (!latestMonthlyFound && monthly) {
-        // Remove weekly tag if another thing was the latest weekly
+        // Remove weekly tag from a monthly if another thing was the latest weekly
         if (latestWeeklyFound) {
           logger.info("  " + iMeta.getTerminologyVersion() + " = remove weekly tag");
           iMeta.getTerminology().getTags().remove("weekly");
@@ -318,8 +309,9 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
         iMeta.getTerminology().setLatest(false);
       }
 
+      // TODO: this may not be needed here, investigate
       // see if Concept Statuses needs to be updated
-      // NOt sure why we need this here, but if we do, we need to use "indexAndWait" below
+      // Not sure why we need this here, but if we do, we need to use "indexAndWait" below
       if (!iMeta
           .getTerminology()
           .getMetadata()

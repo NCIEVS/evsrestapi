@@ -9,6 +9,7 @@ import gov.nih.nci.evs.api.util.HierarchyUtils;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.annotation.PostConstruct;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -247,11 +248,19 @@ public class LoaderServiceImpl {
           return;
         }
         final Set<String> removed = loadService.cleanStaleIndexes();
+        final Set<String> seen = new HashSet<>();
         for (Terminology terminology : terms) {
+
+          // skip if seen
+          if (seen.contains(terminology.getTerminology())) {
+            continue;
+          }
+          seen.add(terminology.getTerminology());
+
           logger.info(
-              "Cleaning stale indexes/Updating flags for terminology: {}-{}",
-              terminology.getTerminology(),
-              terminology.getVersion());
+              "Cleaning stale indexes/Updating flags for terminology: {}",
+              terminology.getTerminology());
+
           loadService.updateLatestFlag(terminology, removed);
         }
         System.exit(0);

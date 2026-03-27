@@ -4817,7 +4817,7 @@ public class SearchControllerTests {
    * @throws Exception the exception
    */
   @Test
-  public void testSearchMeddraChronicGranulomatous() throws Exception {
+  public void testSearchMeddra() throws Exception {
     String url = null;
     MvcResult result = null;
     String content = null;
@@ -4927,6 +4927,29 @@ public class SearchControllerTests {
     assertThat(list.getConcepts().size()).isGreaterThan(0);
     // Top is "Chronic granulomatous disease", others are in the top 10
     assertThat(list.getConcepts().get(0).getName()).isEqualTo("Chronic granulomatous disease");
+
+    // Test "giant subep"
+    url =
+        baseUrl
+            + "?terminology=mdr&term=subependymal giant Subependymal"
+            + " giant&type=contains&pageSize=10";
+    log.info("Testing 'giant subep': " + url);
+
+    result =
+        this.mvc
+            .perform(get(url).header("X-EVSRESTAPI-License-Key", "ui-license"))
+            .andExpect(status().isOk())
+            .andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+    assertThat(content).isNotNull();
+
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    assertThat(list.getConcepts()).isNotNull();
+    assertThat(list.getConcepts().size()).isGreaterThan(0);
+    // Top is "Chronic granulomatous disease", others are in the top 10
+    assertThat(list.getConcepts().get(0).getName())
+        .isEqualTo("Subependymal giant cell astrocytoma");
   }
 
   /**
