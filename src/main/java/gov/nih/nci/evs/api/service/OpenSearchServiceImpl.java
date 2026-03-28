@@ -475,7 +475,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             QueryBuilders.queryStringQuery("\"" + term + "\"").field("synonyms.name").boost(33f),
             ScoreMode.Max);
 
-    // 5. Word queries (AND operator)
+    // 5. Fix word queries (AND operator)
     final QueryStringQueryBuilder conceptFixNameAndQuery =
         QueryBuilders.queryStringQuery(fixNormTerm)
             .field("name")
@@ -492,9 +492,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 .boost(27f),
             ScoreMode.Max);
 
-    // 6. Stem word queries (AND operator)
+    // 6. Exact stem word queries (AND operator) (this makes both actual words being present higher)
     final QueryStringQueryBuilder stemNameAndQuery =
-        QueryBuilders.queryStringQuery(fixStemTerm)
+        QueryBuilders.queryStringQuery(stemTerm)
             .field("stemName")
             .defaultOperator(Operator.AND)
             // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
@@ -502,16 +502,16 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     final NestedQueryBuilder synonymStemNameAndQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
-            QueryBuilders.queryStringQuery(fixStemTerm)
+            QueryBuilders.queryStringQuery(stemTerm)
                 .field("synonyms.stemName")
                 .defaultOperator(Operator.AND)
                 // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
                 .boost(23f),
             ScoreMode.Max);
 
-    // 7. Stem word queries (OR operator) - low boost
+    // 7. Fix Stem word queries (OR operator) - low boost
     final QueryStringQueryBuilder stemNameOrQuery =
-        QueryBuilders.queryStringQuery(stemTerm)
+        QueryBuilders.queryStringQuery(fixStemTerm)
             .field("stemName")
             .defaultOperator(Operator.OR)
             // .fuzziness(fuzzy ? Fuzziness.ONE : Fuzziness.ZERO)
@@ -519,7 +519,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     final NestedQueryBuilder synonymStemNameOrQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
-            QueryBuilders.queryStringQuery(stemTerm)
+            QueryBuilders.queryStringQuery(fixStemTerm)
                 .field("synonyms.stemName")
                 .defaultOperator(Operator.OR)
                 // .fuzziness(fuzzy ? Fuzziness.ONE : Fuzziness.ZERO)
