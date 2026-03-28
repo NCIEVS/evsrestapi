@@ -434,11 +434,11 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     // 1. Exact match on concept.normName, then synonyms.normName
     final MatchQueryBuilder conceptNormNameExactQuery =
-        QueryBuilders.matchQuery("normName", normTerm).boost(50f);
+        QueryBuilders.matchQuery("normName", normTerm).boost(100f);
     final NestedQueryBuilder synonymNormNameExactQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
-            QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(48f),
+            QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(95f),
             ScoreMode.Max);
 
     // 2. Starts with match on norm name
@@ -475,9 +475,10 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             QueryBuilders.queryStringQuery("\"" + term + "\"").field("synonyms.name").boost(33f),
             ScoreMode.Max);
 
-    // 5. Fix word queries (AND operator)
+    // 5. Wildcard word queries (AND operator)
+    final String fixNormTermAndClause = String.join(" AND ", fixNormTerm.split(" "));
     final QueryStringQueryBuilder conceptFixNameAndQuery =
-        QueryBuilders.queryStringQuery(fixNormTerm)
+        QueryBuilders.queryStringQuery(fixNormTermAndClause)
             .field("name")
             .defaultOperator(Operator.AND)
             // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
@@ -485,16 +486,17 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     final NestedQueryBuilder synonymFixNameAndQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
-            QueryBuilders.queryStringQuery(fixNormTerm)
+            QueryBuilders.queryStringQuery(fixNormTermAndClause)
                 .field("synonyms.name")
                 .defaultOperator(Operator.AND)
                 // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
                 .boost(27f),
             ScoreMode.Max);
 
-    // 6. Exact stem word queries (AND operator) (this makes both actual words being present higher)
+    // 6. Exact Stem word queries (AND operator)
+    final String stemTermAndClause = String.join(" AND ", stemTerm.split(" "));
     final QueryStringQueryBuilder stemNameAndQuery =
-        QueryBuilders.queryStringQuery(stemTerm)
+        QueryBuilders.queryStringQuery(stemTermAndClause)
             .field("stemName")
             .defaultOperator(Operator.AND)
             // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
@@ -502,14 +504,14 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     final NestedQueryBuilder synonymStemNameAndQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
-            QueryBuilders.queryStringQuery(stemTerm)
+            QueryBuilders.queryStringQuery(stemTermAndClause)
                 .field("synonyms.stemName")
                 .defaultOperator(Operator.AND)
                 // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
                 .boost(23f),
             ScoreMode.Max);
 
-    // 7. Fix Stem word queries (OR operator) - low boost
+    // 7. Wildcard stem word queries (OR operator) - low boost
     final QueryStringQueryBuilder stemNameOrQuery =
         QueryBuilders.queryStringQuery(fixStemTerm)
             .field("stemName")
