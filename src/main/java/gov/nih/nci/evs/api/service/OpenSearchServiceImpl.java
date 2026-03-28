@@ -500,7 +500,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             .field("stemName")
             .defaultOperator(Operator.AND)
             // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
-            .boost(25f);
+            .boost(5f);
     final NestedQueryBuilder synonymStemNameAndQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
@@ -508,7 +508,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 .field("synonyms.stemName")
                 .defaultOperator(Operator.AND)
                 // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
-                .boost(23f),
+                .boost(3f),
             ScoreMode.Max);
 
     // 7. Wildcard stem word queries (OR operator) - low boost

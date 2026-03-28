@@ -4830,7 +4830,7 @@ public class SearchControllerTests {
    *
    * @throws Exception the exception
    */
-  //  @Test
+  @Test
   public void testSearchMeddra() throws Exception {
     String url = null;
     MvcResult result = null;
