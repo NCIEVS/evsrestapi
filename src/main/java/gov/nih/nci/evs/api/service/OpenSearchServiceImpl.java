@@ -475,14 +475,14 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             QueryBuilders.queryStringQuery("\"" + term + "\"").field("synonyms.name").boost(33f),
             ScoreMode.Max);
 
-    // 5. Wildcard word queries (AND operator)
+    // 5. Wildcard word queries (AND operator) - same rank as phrase
     final String fixNormTermAndClause = String.join(" AND ", fixNormTerm.split(" "));
     final QueryStringQueryBuilder conceptFixNameAndQuery =
         QueryBuilders.queryStringQuery(fixNormTermAndClause)
             .field("name")
             .defaultOperator(Operator.AND)
             // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
-            .boost(30f);
+            .boost(35f);
     final NestedQueryBuilder synonymFixNameAndQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
@@ -490,7 +490,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 .field("synonyms.name")
                 .defaultOperator(Operator.AND)
                 // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
-                .boost(27f),
+                .boost(33f),
             ScoreMode.Max);
 
     // 6. Exact Stem word queries (AND operator)
