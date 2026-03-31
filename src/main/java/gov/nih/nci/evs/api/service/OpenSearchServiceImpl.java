@@ -1,22 +1,14 @@
 package gov.nih.nci.evs.api.service;
 
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptResultList;
-import gov.nih.nci.evs.api.model.IncludeParam;
-import gov.nih.nci.evs.api.model.Mapping;
-import gov.nih.nci.evs.api.model.MappingResultList;
-import gov.nih.nci.evs.api.model.SearchCriteria;
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.support.es.EVSPageable;
-import gov.nih.nci.evs.api.util.ConceptUtils;
-import gov.nih.nci.evs.api.util.TerminologyUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
 import org.apache.commons.lang3.StringUtils;
 import org.apache.lucene.search.join.ScoreMode;
+import org.opensearch.common.unit.Fuzziness;
 import org.opensearch.data.client.orhlc.NativeSearchQueryBuilder;
 import org.opensearch.data.core.OpenSearchOperations;
 import org.opensearch.index.query.BoolQueryBuilder;
@@ -39,6 +31,17 @@ import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
 import org.springframework.data.elasticsearch.core.query.FetchSourceFilter;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
+
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptResultList;
+import gov.nih.nci.evs.api.model.IncludeParam;
+import gov.nih.nci.evs.api.model.Mapping;
+import gov.nih.nci.evs.api.model.MappingResultList;
+import gov.nih.nci.evs.api.model.SearchCriteria;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.support.es.EVSPageable;
+import gov.nih.nci.evs.api.util.ConceptUtils;
+import gov.nih.nci.evs.api.util.TerminologyUtils;
 
 /**
  * Reference implementation of {@link OpenSearchService}. Includes hibernate tags for MEME database.
@@ -485,16 +488,16 @@ public class OpenSearchServiceImpl implements OpenSearchService {
         QueryBuilders.queryStringQuery(fixNormTermAndClause)
             .field("name")
             .defaultOperator(Operator.AND)
-            // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
-            .boost(30f);
+            .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
+            .boost(45f);
     final NestedQueryBuilder synonymFixNameAndQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
             QueryBuilders.queryStringQuery(fixNormTermAndClause)
                 .field("synonyms.name")
                 .defaultOperator(Operator.AND)
-                // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
-                .boost(28f),
+                .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
+                .boost(43f),
             ScoreMode.Max);
 
     // 6. Exact Stem word queries (AND operator)
@@ -503,7 +506,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
         QueryBuilders.queryStringQuery(stemTermAndClause)
             .field("stemName")
             .defaultOperator(Operator.AND)
-            // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
+            .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
             .boost(25f);
     final NestedQueryBuilder synonymStemNameAndQuery =
         QueryBuilders.nestedQuery(
@@ -511,7 +514,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             QueryBuilders.queryStringQuery(stemTermAndClause)
                 .field("synonyms.stemName")
                 .defaultOperator(Operator.AND)
-                // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
+                .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
                 .boost(23f),
             ScoreMode.Max);
 
@@ -521,7 +524,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
         QueryBuilders.queryStringQuery(fixStemTerm)
             .field("stemName")
             .defaultOperator(Operator.OR)
-            // .fuzziness(fuzzy ? Fuzziness.ONE : Fuzziness.ZERO)
+            .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
             .boost(2f);
     final NestedQueryBuilder synonymStemNameOrQuery =
         QueryBuilders.nestedQuery(

@@ -224,7 +224,7 @@ spotless {
   }
 }
 
-// SpotBugs and CheckStyle
+// SpotBugs
 spotbugs {
     ignoreFailures = false
     showStackTraces = true
