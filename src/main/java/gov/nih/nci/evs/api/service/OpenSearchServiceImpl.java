@@ -409,6 +409,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     final String type = searchCriteria.getType();
 
     final String normTerm = ConceptUtils.normalize(term);
+    final boolean singleWord = !normTerm.contains(" ");
     final String stemTerm = ConceptUtils.normalizeWithStemming(term);
     // final String fixTerm = updateTermForType(term, type);
     final String fixNormTerm = updateTermForType(normTerm, type);
@@ -482,7 +483,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             .field("name")
             .defaultOperator(Operator.AND)
             // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
-            .boost(35f);
+            .boost(50f);
     final NestedQueryBuilder synonymFixNameAndQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
@@ -490,7 +491,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 .field("synonyms.name")
                 .defaultOperator(Operator.AND)
                 // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
-                .boost(33f),
+                .boost(48f),
             ScoreMode.Max);
 
     // 6. Exact Stem word queries (AND operator)
@@ -512,6 +513,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             ScoreMode.Max);
 
     // 7. Wildcard stem word queries (OR operator) - low boost
+    // Unnecessary for single word queries
     final QueryStringQueryBuilder stemNameOrQuery =
         QueryBuilders.queryStringQuery(fixStemTerm)
             .field("stemName")
@@ -573,8 +575,11 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     termQuery.should(conceptNormNameExactQuery);
     termQuery.should(synonymNormNameExactQuery);
 
-    termQuery.should(conceptPhraseNameQuery);
-    termQuery.should(synonymPhraseNameQuery);
+    // No need for single word queries
+    if (!singleWord || "phrase".equals(type)) {
+      termQuery.should(conceptPhraseNameQuery);
+      termQuery.should(synonymPhraseNameQuery);
+    }
 
     // Skip word-level and regex wildcard things for phrase queries
     if (!"phrase".equals(type)) {
@@ -596,8 +601,8 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       termQuery.should(stemNameAndQuery);
       termQuery.should(synonymStemNameAndQuery);
 
-      // Skip "or" clauses for "AND" queries
-      if (!"AND".equals(type)) {
+      // Skip "or" clauses for "AND" queries and for single word queries
+      if (!singleWord && !"AND".equals(type)) {
         termQuery.should(stemNameOrQuery);
         termQuery.should(synonymStemNameOrQuery);
       }
