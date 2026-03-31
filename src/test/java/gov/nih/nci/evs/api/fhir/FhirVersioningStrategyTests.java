@@ -239,7 +239,7 @@ public class FhirVersioningStrategyTests {
             + url
             + "&system="
             + system
-            + "&code="
+            + "&sourceCode="
             + code;
     String content = this.restTemplate.getForObject(endpoint, String.class);
     log.info("  content = " + content);
