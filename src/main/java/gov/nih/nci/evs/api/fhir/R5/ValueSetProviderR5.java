@@ -1259,10 +1259,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
    * @throws Exception the exception
    */
   public List<ValueSet> findPossibleValueSets(
-      @OptionalParam(name = "_id") final IdType id,
-      @OptionalParam(name = "system") final UriType system,
-      @OptionalParam(name = "url") final UriType url,
-      @OptionalParam(name = "version") final StringType version)
+      final IdType id, final UriType system, final UriType url, final StringType version)
       throws Exception {
     // If no ID and no url are specified, no code systems match
     if (id == null && url == null) {
@@ -1270,6 +1267,8 @@ public class ValueSetProviderR5 implements IResourceProvider {
     }
 
     final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+    Collections.sort(terms, TerminologyUtils.SORT_LATEST_MONTHLY);
+
     final List<ValueSet> list = new ArrayList<ValueSet>();
     final Map<String, Terminology> map = new HashMap<>();
     for (final Terminology terminology : terms) {
@@ -1294,6 +1293,7 @@ public class ValueSetProviderR5 implements IResourceProvider {
       }
       list.add(vs);
     }
+    // This currently only gets latest monthly subsets, not earlier versions
     final List<Concept> subsets = getNcitSubsets();
     final Set<Concept> subsetsAsConcepts =
         subsets.stream().flatMap(Concept::streamSelfAndChildren).collect(Collectors.toSet());
@@ -1315,8 +1315,6 @@ public class ValueSetProviderR5 implements IResourceProvider {
       }
       list.add(vs);
     }
-
-    TerminologyUtils.sortLatest(list, map, a -> a.getTitle());
 
     return list;
   }

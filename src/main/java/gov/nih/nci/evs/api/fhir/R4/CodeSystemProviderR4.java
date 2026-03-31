@@ -1,5 +1,29 @@
 package gov.nih.nci.evs.api.fhir.R4;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.CodeSystem;
+import org.hl7.fhir.r4.model.CodeType;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.Meta;
+import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.UriType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.History;
@@ -31,30 +55,6 @@ import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CodeSystem;
-import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.Meta;
-import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.UriType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /** FHIR R4 CodeSystem provider. */
 @Component
@@ -143,6 +143,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         } else if (coding != null) {
           codeToLookup = coding.getCode();
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
@@ -298,6 +299,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         } else if (coding != null) {
           codeToLookup = coding.getCode();
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         // if system is supplied, ensure it matches the url returned on the codeSys found by id
         if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
@@ -469,6 +471,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         } else if (coding != null) {
           codeToValidate = coding.getCode();
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
@@ -585,6 +588,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         } else if (coding != null) {
           codeToValidate = coding.getCode();
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         // if url is supplied, ensure it matches the url returned on the codeSys found by id
         if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
@@ -709,6 +713,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           throw FhirUtilityR4.exception(
               "No codeB parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
@@ -811,6 +816,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           throw FhirUtilityR4.exception(
               "No codeB parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
@@ -882,11 +888,9 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupportedSearchParams(request);
       FhirUtilityR4.mutuallyExclusive("url", url, "system", system);
 
-      final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
-
       final List<CodeSystem> list = new ArrayList<>();
-      for (final Terminology terminology : terms) {
-        final CodeSystem cs = FhirUtilityR4.toR4(terminology);
+      for (final CodeSystem cs : findPossibleCodeSystems(null, null, null)) {
+
         // Skip non-matching
         if ((id != null && !id.getValue().equals(cs.getId()))
             || (system != null && !system.getValue().equals(cs.getUrl()))) {
@@ -913,7 +917,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         list.add(cs);
       }
 
-      // Apply sorting if requested
+      // Apply sorting if requested via API
       applySorting(list, sort);
 
       return FhirUtilityR4.makeBundle(request, list, count, offset);
@@ -937,22 +941,19 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   private List<CodeSystem> findPossibleCodeSystems(
-      @OptionalParam(name = "_id") final IdType id,
-      @OptionalParam(name = "url") final UriType url,
-      @OptionalParam(name = "version") final StringType version)
-      throws Exception {
+      final IdType id, final UriType url, final StringType version) throws Exception {
     try {
-      // If no ID and no url are specified, no code systems match
-      if (id == null && url == null) {
-        return new ArrayList<>(0);
-      }
+      // If no ID and no url are specified, ALL code systems match
+      //      if (id == null && url == null) {
+      //        return new ArrayList<>(0);
+      //      }
 
+      // Get all terminologies sorted on version
       final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
-      final Map<String, Terminology> map = new HashMap<>();
+      Collections.sort(terms, TerminologyUtils.SORT_LATEST_MONTHLY);
 
       final List<CodeSystem> list = new ArrayList<>();
       for (final Terminology terminology : terms) {
-        map.put(terminology.getTerminology(), terminology);
         final CodeSystem cs = FhirUtilityR4.toR4(terminology);
         // Skip non-matching
         if ((id != null && !id.getIdPart().equals(cs.getId()))
@@ -967,8 +968,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
 
         list.add(cs);
       }
-
-      TerminologyUtils.sortLatest(list, map, a -> a.getTitle());
 
       return list;
     } catch (final FHIRServerResponseException e) {

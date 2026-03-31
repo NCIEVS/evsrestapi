@@ -588,6 +588,7 @@ public class ConceptMapProviderR5 implements IResourceProvider {
         map.put(terminology.getTerminology(), terminology);
       }
       final List<Concept> mapsets = osQueryService.getMapsets(new IncludeParam("properties"));
+      Collections.sort(mapsets, TerminologyUtils.REVERSE_SORT_VERSIONS);
 
       final List<ConceptMap> list = new ArrayList<>();
       // Find the matching mapsets
@@ -633,8 +634,6 @@ public class ConceptMapProviderR5 implements IResourceProvider {
 
         list.add(cm);
       }
-
-      TerminologyUtils.sortVersionsDescending(list, a -> a.getVersion());
 
       return list;
     } catch (final FHIRServerResponseException e) {

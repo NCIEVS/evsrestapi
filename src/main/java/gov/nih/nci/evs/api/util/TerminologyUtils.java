@@ -1,16 +1,11 @@
 package gov.nih.nci.evs.api.util;
 
-import gov.nih.nci.evs.api.model.Terminology;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.properties.GraphProperties;
-import gov.nih.nci.evs.api.service.OpensearchQueryService;
-import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
-import gov.nih.nci.evs.api.support.es.IndexMetadata;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -18,8 +13,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.function.Function;
 import java.util.stream.Collectors;
+
 import org.apache.commons.text.StringSubstitutor;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -37,12 +32,56 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 import org.springframework.web.server.ResponseStatusException;
 
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.Terminology;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.properties.GraphProperties;
+import gov.nih.nci.evs.api.service.OpensearchQueryService;
+import gov.nih.nci.evs.api.service.SparqlQueryManagerService;
+import gov.nih.nci.evs.api.support.es.IndexMetadata;
+
 /** Utilities for handling the "include" flag, and converting EVSConcept to Concept. */
 @Component
 public final class TerminologyUtils {
 
   /** The Constant logger. */
   private static final Logger logger = LoggerFactory.getLogger(TerminologyUtils.class);
+
+  /** The Constant SORT_LATEST. Latest sorts before not latest. */
+  public static final Comparator<Terminology> SORT_LATEST =
+      new Comparator<>() {
+        @Override
+        public int compare(final Terminology t1, final Terminology t2) {
+          return Boolean.compare(t1.getLatest(), t2.getLatest());
+        }
+      };
+
+  /**
+   * The Constant SORT_LATEST_MONTHLY. Monthly sorts before weekly. latest sorts before not latest.
+   * (lowest string value sorts first)
+   */
+  public static final Comparator<Terminology> SORT_LATEST_MONTHLY =
+      new Comparator<>() {
+        @Override
+        public int compare(final Terminology t1, final Terminology t2) {
+          final String k1 =
+              (t1.getTags().containsKey("monthly") ? "0" : "1") + (t1.getLatest() ? "0" : "1");
+          final String k2 =
+              (t2.getTags().containsKey("monthly") ? "0" : "1") + (t2.getLatest() ? "0" : "1");
+          return k1.compareTo(k2);
+        }
+      };
+
+  /** The Constant SORT_VERSIONS. Reverse sort based on version (+terminology) alphabetically. */
+  public static final Comparator<Concept> REVERSE_SORT_VERSIONS =
+      new Comparator<>() {
+        @Override
+        public int compare(final Concept c1, final Concept c2) {
+          final String k1 = c1.getVersion() + c1.getTerminology();
+          final String k2 = c1.getVersion() + c1.getTerminology();
+          return k2.compareTo(k1);
+        }
+      };
 
   /** The graph db properties. */
   @Autowired GraphProperties graphProperties;
@@ -93,7 +132,8 @@ public final class TerminologyUtils {
    * Returns the stale terminologies.
    *
    * @param dbs the dbs
-   * @param terminology the terminology
+   * @param sparqlQueryManagerService the sparql query manager service
+   * @param osQueryService the os query service
    * @return the stale terminologies
    * @throws Exception the exception
    */
@@ -144,10 +184,11 @@ public final class TerminologyUtils {
   }
 
   /**
-   * Get the indexed terminology
+   * Get the indexed terminology.
    *
    * @param terminology search terminology
    * @param osQueryService opensearch query service
+   * @param requireFlag the require flag
    * @return the Terminology
    * @throws Exception the exception
    */
@@ -163,6 +204,7 @@ public final class TerminologyUtils {
    *
    * @param terminology target terminology
    * @param terminologies list of terminologies to search through
+   * @param requireFlag the require flag
    * @return the Terminology
    */
   private Terminology findTerminology(
@@ -477,46 +519,5 @@ public final class TerminologyUtils {
   /** Clear cache. */
   public static void clearCache() {
     licenseCache.clear();
-  }
-
-  /**
-   * Sorts the given list of objects by determining the latest terminology based on the map.
-   *
-   * @param <T> the type parameter
-   * @param list the list
-   * @param map the map of terminology name to Terminology object
-   * @param keyExtractor the function to extract the terminology name from the object
-   */
-  public static <T> void sortLatest(
-      List<T> list, Map<String, Terminology> map, Function<T, String> keyExtractor) {
-    list.sort(
-        (a, b) -> {
-          Terminology termA = map.get(keyExtractor.apply(a));
-          Terminology termB = map.get(keyExtractor.apply(b));
-          if (termA != null && termB != null) {
-            return Boolean.compare(termB.getLatest(), termA.getLatest());
-          }
-          return 0;
-        });
-  }
-
-  /**
-   * Sorts the given list of objects with a version string by version descending.
-   *
-   * @param <T> the type parameter
-   * @param list the list
-   * @param versionExtractor the function to extract the version string from the object
-   */
-  public static <T> void sortVersionsDescending(
-      List<T> list, Function<T, String> versionExtractor) {
-    list.sort(
-        (a, b) -> {
-          String versionA = versionExtractor.apply(a);
-          String versionB = versionExtractor.apply(b);
-          if (versionA != null && versionB != null) {
-            return versionB.compareTo(versionA);
-          }
-          return 0;
-        });
   }
 }
