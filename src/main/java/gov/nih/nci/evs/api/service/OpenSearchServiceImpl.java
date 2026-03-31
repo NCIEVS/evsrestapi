@@ -101,7 +101,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     // Append concept status clause. Boosts active to the top of the list, and maintains inactive at
     // the bottom
     BoolQueryBuilder activeQuery = new BoolQueryBuilder();
-    activeQuery.should(QueryBuilders.matchQuery("active", true).boost(10000f));
+    activeQuery.should(QueryBuilders.matchQuery("active", true).boost(100000f));
     activeQuery.should(QueryBuilders.matchQuery("active", false).boost(0.0001f));
     boolQuery.must(activeQuery);
 
@@ -443,14 +443,14 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             QueryBuilders.termQuery("synonyms.normName", normTerm).boost(95f),
             ScoreMode.Max);
 
-    // 2. Starts with match on norm name
-    final QueryBuilder conceptNormNameStartsWithQuery =
-        QueryBuilders.prefixQuery("normName", normTerm).boost(45f);
-    final NestedQueryBuilder synonymNormNameStartsWithQuery =
-        QueryBuilders.nestedQuery(
-            "synonyms",
-            QueryBuilders.prefixQuery("synonyms.normName", normTerm).boost(43f),
-            ScoreMode.Max);
+    //    // 2. Starts with match on norm name
+    //    final QueryBuilder conceptNormNameStartsWithQuery =
+    //        QueryBuilders.prefixQuery("normName", normTerm).boost(45f);
+    //    final NestedQueryBuilder synonymNormNameStartsWithQuery =
+    //        QueryBuilders.nestedQuery(
+    //            "synonyms",
+    //            QueryBuilders.prefixQuery("synonyms.normName", normTerm).boost(43f),
+    //            ScoreMode.Max);
 
     // 3. starts with regex without and with wildcard query
     final QueryBuilder conceptNormNameRegexQuery =
@@ -470,11 +470,13 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     // 4. phrase query based on name words (Hopefully this finds punctuation)
     final QueryBuilder conceptPhraseNameQuery =
-        QueryBuilders.matchPhrasePrefixQuery("name", term).boost(35f);
+        QueryBuilders.queryStringQuery("\"" + fixNormTerm + "\"").field("name").boost(35f);
     final NestedQueryBuilder synonymPhraseNameQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
-            QueryBuilders.matchPhrasePrefixQuery("synonyms.name", term).boost(33f),
+            QueryBuilders.queryStringQuery("\"" + fixNormTerm + "\"")
+                .field("synonyms.name")
+                .boost(33f),
             ScoreMode.Max);
 
     // 5. Wildcard word queries (AND operator)
@@ -484,7 +486,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             .field("name")
             .defaultOperator(Operator.AND)
             // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
-            .boost(35f);
+            .boost(30f);
     final NestedQueryBuilder synonymFixNameAndQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
@@ -492,7 +494,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 .field("synonyms.name")
                 .defaultOperator(Operator.AND)
                 // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
-                .boost(33f),
+                .boost(28f),
             ScoreMode.Max);
 
     // 6. Exact Stem word queries (AND operator)
@@ -502,7 +504,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             .field("stemName")
             .defaultOperator(Operator.AND)
             // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
-            .boost(30f);
+            .boost(25f);
     final NestedQueryBuilder synonymStemNameAndQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
@@ -510,7 +512,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 .field("synonyms.stemName")
                 .defaultOperator(Operator.AND)
                 // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
-                .boost(28f),
+                .boost(23f),
             ScoreMode.Max);
 
     // 7. Wildcard stem word queries (OR operator) - low boost
@@ -584,9 +586,9 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     // Skip word-level and regex wildcard things for phrase queries
     if (!"phrase".equals(type)) {
 
-      // queries with wildcards
-      termQuery.should(conceptNormNameStartsWithQuery);
-      termQuery.should(synonymNormNameStartsWithQuery);
+      // These are handled by the next two queries
+      //    termQuery.should(conceptNormNameStartsWithQuery);
+      //  termQuery.should(synonymNormNameStartsWithQuery);
 
       termQuery.should(conceptNormNameRegexQuery);
       termQuery.should(synonymNormNameRegexQuery);
@@ -731,7 +733,8 @@ public class OpenSearchServiceImpl implements OpenSearchService {
         result = updateTokens(term, '*');
         break;
       case "phrase":
-        result = "\"" + term + "\"";
+        //        result = "\"" + term + "\"";
+        result = term;
         break;
       default:
         result = term;
