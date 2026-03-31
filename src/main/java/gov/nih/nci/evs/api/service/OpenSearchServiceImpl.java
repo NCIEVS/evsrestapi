@@ -101,7 +101,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     // Append concept status clause. Boosts active to the top of the list, and maintains inactive at
     // the bottom
     BoolQueryBuilder activeQuery = new BoolQueryBuilder();
-    activeQuery.should(QueryBuilders.matchQuery("active", true).boost(100000f));
+    activeQuery.should(QueryBuilders.matchQuery("active", true).boost(10000f));
     activeQuery.should(QueryBuilders.matchQuery("active", false).boost(0.0001f));
     boolQuery.must(activeQuery);
 
@@ -433,13 +433,14 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     // final MatchQueryBuilder nameQuery = QueryBuilders.matchQuery("name",
     // exactTerm).boost(50f);
 
-    // 1. Exact match on concept.normName, then synonyms.normName
-    final MatchQueryBuilder conceptNormNameExactQuery =
-        QueryBuilders.matchQuery("normName", normTerm).boost(100f);
+    // 1. Exact match on concept.normName, then synonyms.normName (use "termQuery" for exact match
+    // on keyword field)
+    final QueryBuilder conceptNormNameExactQuery =
+        QueryBuilders.termQuery("normName", normTerm).boost(100f);
     final NestedQueryBuilder synonymNormNameExactQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
-            QueryBuilders.matchQuery("synonyms.normName", normTerm).boost(95f),
+            QueryBuilders.termQuery("synonyms.normName", normTerm).boost(95f),
             ScoreMode.Max);
 
     // 2. Starts with match on norm name
@@ -468,12 +469,12 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             ScoreMode.Max);
 
     // 4. phrase query based on name words (Hopefully this finds punctuation)
-    final QueryStringQueryBuilder conceptPhraseNameQuery =
-        QueryBuilders.queryStringQuery("\"" + term + "\"").field("name").boost(35f);
+    final QueryBuilder conceptPhraseNameQuery =
+        QueryBuilders.matchPhrasePrefixQuery("name", term).boost(35f);
     final NestedQueryBuilder synonymPhraseNameQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
-            QueryBuilders.queryStringQuery("\"" + term + "\"").field("synonyms.name").boost(33f),
+            QueryBuilders.matchPhrasePrefixQuery("synonyms.name", term).boost(33f),
             ScoreMode.Max);
 
     // 5. Wildcard word queries (AND operator)
@@ -483,7 +484,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             .field("name")
             .defaultOperator(Operator.AND)
             // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
-            .boost(50f);
+            .boost(35f);
     final NestedQueryBuilder synonymFixNameAndQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
@@ -491,7 +492,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 .field("synonyms.name")
                 .defaultOperator(Operator.AND)
                 // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
-                .boost(48f),
+                .boost(33f),
             ScoreMode.Max);
 
     // 6. Exact Stem word queries (AND operator)
@@ -501,7 +502,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             .field("stemName")
             .defaultOperator(Operator.AND)
             // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
-            .boost(35f);
+            .boost(30f);
     final NestedQueryBuilder synonymStemNameAndQuery =
         QueryBuilders.nestedQuery(
             "synonyms",
@@ -509,7 +510,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
                 .field("synonyms.stemName")
                 .defaultOperator(Operator.AND)
                 // .fuzziness(fuzzyFlag ? Fuzziness.ONE : Fuzziness.ZERO)
-                .boost(33f),
+                .boost(28f),
             ScoreMode.Max);
 
     // 7. Wildcard stem word queries (OR operator) - low boost
@@ -534,9 +535,8 @@ public class OpenSearchServiceImpl implements OpenSearchService {
     final NestedQueryBuilder nestedDefinitionQuery =
         QueryBuilders.nestedQuery(
             "definitions",
-            QueryBuilders.queryStringQuery(fixNormTerm)
+            QueryBuilders.queryStringQuery(fixNormTermAndClause)
                 .field("definitions.definition")
-                .defaultOperator(andFlag ? Operator.AND : Operator.OR)
                 // .fuzziness(fuzzy ? Fuzziness.ONE : Fuzziness.ZERO)
                 .boost(1f),
             ScoreMode.Max);
@@ -661,8 +661,7 @@ public class OpenSearchServiceImpl implements OpenSearchService {
       termQuery =
           termQuery
               .should(
-                  QueryBuilders.matchQuery("normName", ConceptUtils.normalize(exactTerm))
-                      .boost(40f))
+                  QueryBuilders.termQuery("normName", ConceptUtils.normalize(exactTerm)).boost(40f))
               .should(
                   QueryBuilders.queryStringQuery(exactTerm.toUpperCase()).field("code").boost(40f));
     }
