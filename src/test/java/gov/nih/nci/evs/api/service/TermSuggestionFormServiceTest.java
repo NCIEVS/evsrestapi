@@ -109,6 +109,7 @@ public class TermSuggestionFormServiceTest {
    *
    * @throws Exception throws exception
    */
+  @SuppressWarnings("resource")
   @Test
   public void testGetFormTemplate() throws Exception {
     // SET UP
@@ -116,7 +117,8 @@ public class TermSuggestionFormServiceTest {
     JsonNode termForm = ThreadLocalMapper.get().createObjectNode();
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
-    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json"))).thenReturn(termForm);
+    when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json").openStream()))
+        .thenReturn(termForm);
 
     // ACT
     JsonNode returnedForm = termFormService.getFormTemplate(formType);
@@ -233,6 +235,7 @@ public class TermSuggestionFormServiceTest {
    *
    * @throws Exception throws exception
    */
+  @SuppressWarnings("resource")
   @Test
   public void testGetFormTemplateWhenNotObjectThrowsException() throws Exception {
     // SET UP - create an invalid term form object
@@ -241,7 +244,7 @@ public class TermSuggestionFormServiceTest {
     String filePath = configUrl + "/" + formType + ".json";
 
     when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
-    when(objectMapper.readTree(any(URL.class))).thenReturn(termForm);
+    when(objectMapper.readTree(any(URL.class).openStream())).thenReturn(termForm);
 
     // ACT & ASSERT
 

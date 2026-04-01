@@ -1,13 +1,5 @@
 package gov.nih.nci.evs.api.util;
 
-import gov.nih.nci.evs.api.model.Association;
-import gov.nih.nci.evs.api.model.Concept;
-import gov.nih.nci.evs.api.model.ConceptMinimal;
-import gov.nih.nci.evs.api.model.HierarchyNode;
-import gov.nih.nci.evs.api.model.Path;
-import gov.nih.nci.evs.api.model.Paths;
-import gov.nih.nci.evs.api.model.Role;
-import gov.nih.nci.evs.api.model.Terminology;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
@@ -23,17 +15,23 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentMap;
 import java.util.stream.Collectors;
+
 import org.apache.commons.io.FileUtils;
-import org.mapdb.DB;
-import org.mapdb.DBMaker;
-import org.mapdb.Serializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.annotation.Transient;
 import org.springframework.data.elasticsearch.annotations.Field;
 import org.springframework.data.elasticsearch.annotations.FieldType;
+
+import gov.nih.nci.evs.api.model.Association;
+import gov.nih.nci.evs.api.model.Concept;
+import gov.nih.nci.evs.api.model.ConceptMinimal;
+import gov.nih.nci.evs.api.model.HierarchyNode;
+import gov.nih.nci.evs.api.model.Path;
+import gov.nih.nci.evs.api.model.Paths;
+import gov.nih.nci.evs.api.model.Role;
+import gov.nih.nci.evs.api.model.Terminology;
 
 /** Hierarchy utilities. */
 public class HierarchyUtils {
@@ -86,7 +84,6 @@ public class HierarchyUtils {
    * @param terminology the terminology
    * @return the paths map
    */
-  @SuppressWarnings({"unchecked", "resource"})
   private static Map<String, Set<String>> initPathsMap(final Terminology terminology) {
 
     // For anything but snomed, just use a regular hashmap.
@@ -94,19 +91,24 @@ public class HierarchyUtils {
       return new HashMap<String, Set<String>>();
     }
 
-    DB db =
-        DBMaker.fileDB("paths_map.db")
-            // High speed for 64-bit systems
-            .fileMmapEnable()
-            // Ensures files close when process exits
-            .closeOnJvmShutdown()
-            // Optional: prevents corruption on crash
-            .transactionEnable()
-            // Remove files after
-            .fileDeleteAfterClose()
-            .make();
-    ConcurrentMap<String, Set<String>> map =
-        db.hashMap("pathsMap", Serializer.STRING, Serializer.JAVA).createOrOpen();
+    // for snomed loads
+    Map<String, Set<String>> map = new HashMap<String, Set<String>>();
+
+    // This cannot work without the "mapdb" implementation.  however it contains vulnerabilities
+    // that cannot be worked aroud
+    //    DB db =
+    //        DBMaker.fileDB("paths_map.db")
+    //            // High speed for 64-bit systems
+    //            .fileMmapEnable()
+    //            // Ensures files close when process exits
+    //            .closeOnJvmShutdown()
+    //            // Optional: prevents corruption on crash
+    //            .transactionEnable()
+    //            // Remove files after
+    //            .fileDeleteAfterClose()
+    //            .make();
+    //    ConcurrentMap<String, Set<String>> map =
+    //        db.hashMap("pathsMap", Serializer.STRING, Serializer.JAVA).createOrOpen();
     return map;
   }
 

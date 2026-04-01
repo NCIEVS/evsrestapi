@@ -80,7 +80,7 @@ public class DocumentationPayloadExamplesTests {
       result = mvc.perform(get(url)).andExpect(status().isOk()).andReturn();
       content = result.getResponse().getContentAsString();
       final ObjectMapper mapper = ThreadLocalMapper.get();
-      mapper.setSerializationInclusion(Include.NON_EMPTY);
+      mapper.setDefaultPropertyInclusion(Include.NON_EMPTY);
       log.info(
           " content = "
               + mapper
