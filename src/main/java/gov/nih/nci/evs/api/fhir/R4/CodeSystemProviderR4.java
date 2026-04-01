@@ -1,5 +1,29 @@
 package gov.nih.nci.evs.api.fhir.R4;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
+
+import org.hl7.fhir.r4.model.Bundle;
+import org.hl7.fhir.r4.model.CodeSystem;
+import org.hl7.fhir.r4.model.CodeType;
+import org.hl7.fhir.r4.model.Coding;
+import org.hl7.fhir.r4.model.IdType;
+import org.hl7.fhir.r4.model.Meta;
+import org.hl7.fhir.r4.model.OperationOutcome;
+import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
+import org.hl7.fhir.r4.model.Parameters;
+import org.hl7.fhir.r4.model.StringType;
+import org.hl7.fhir.r4.model.UriType;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
+
 import ca.uhn.fhir.jpa.model.util.JpaConstants;
 import ca.uhn.fhir.model.api.annotation.Description;
 import ca.uhn.fhir.rest.annotation.History;
@@ -31,28 +55,6 @@ import gov.nih.nci.evs.api.util.FhirUtility;
 import gov.nih.nci.evs.api.util.TerminologyUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.Date;
-import java.util.List;
-import java.util.Optional;
-import org.hl7.fhir.r4.model.Bundle;
-import org.hl7.fhir.r4.model.CodeSystem;
-import org.hl7.fhir.r4.model.CodeType;
-import org.hl7.fhir.r4.model.Coding;
-import org.hl7.fhir.r4.model.IdType;
-import org.hl7.fhir.r4.model.Meta;
-import org.hl7.fhir.r4.model.OperationOutcome;
-import org.hl7.fhir.r4.model.OperationOutcome.IssueType;
-import org.hl7.fhir.r4.model.Parameters;
-import org.hl7.fhir.r4.model.StringType;
-import org.hl7.fhir.r4.model.UriType;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 /** FHIR R4 CodeSystem provider. */
 @Component
@@ -712,16 +714,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
               "No codeB parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
         }
         // This should be the latest (+monthly) version
-        final CodeSystem codeSys = cs.get(0);
+        final CodeSystem codeSystem = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
+            termUtils.getIndexedTerminology(codeSystem.getTitle(), osQueryService, true);
+        logger.info("XXX = term = " + term);
         final Optional<Concept> checkA =
             osQueryService.getConcept(code1, term, new IncludeParam("minimal"));
         final Optional<Concept> checkB =
             osQueryService.getConcept(code2, term, new IncludeParam("minimal"));
         if (checkA.get() != null && checkB.get() != null) {
-          params.addParameter("system", codeSys.getUrl());
-          params.addParameter("version", codeSys.getVersion());
+          params.addParameter("system", codeSystem.getUrl());
+          params.addParameter("version", codeSystem.getVersion());
           if (osQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumes");
           } else if (osQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
@@ -815,16 +818,16 @@ public class CodeSystemProviderR4 implements IResourceProvider {
               "No codeB parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
         }
         // This should be the latest (+monthly) version
-        final CodeSystem codeSys = cs.get(0);
+        final CodeSystem codeSystem = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
+            termUtils.getIndexedTerminology(codeSystem.getTitle(), osQueryService, true);
         final Optional<Concept> checkA =
             osQueryService.getConcept(code1, term, new IncludeParam("minimal"));
         final Optional<Concept> checkB =
             osQueryService.getConcept(code2, term, new IncludeParam("minimal"));
         if (checkA.get() != null && checkB.get() != null) {
-          params.addParameter("system", codeSys.getUrl());
-          params.addParameter("version", codeSys.getVersion());
+          params.addParameter("system", codeSystem.getUrl());
+          params.addParameter("version", codeSystem.getVersion());
           if (osQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumes");
           } else if (osQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {

@@ -245,9 +245,9 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           codeToLookup = coding.getCode();
         }
         // This should be the latest (+monthly) version
-        final CodeSystem codeSys = cs.get(0);
+        final CodeSystem codeSystem = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
+            termUtils.getIndexedTerminology(codeSystem.getTitle(), osQueryService, true);
         // Fetch concept with properties, synonyms, and definitions
         final Optional<Concept> conceptOpt =
             osQueryService.getConcept(
@@ -260,11 +260,11 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         final Concept concept = conceptOpt.get();
 
         // Required in the specification
-        params.addParameter("name", codeSys.getName());
+        params.addParameter("name", codeSystem.getName());
         params.addParameter("display", concept.getName());
 
         // Optional in the specification
-        params.addParameter("version", codeSys.getVersion());
+        params.addParameter("version", codeSystem.getVersion());
 
         // Hardcoded properties - active is always included, parent/child are conditionally included
         // Active property is always included as per FHIR spec
@@ -399,20 +399,20 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           codeToLookup = coding.getCode();
         }
         // This should be the latest (+monthly) version
-        final CodeSystem codeSys = cs.get(0);
-        if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
+        final CodeSystem codeSystem = cs.get(0);
+        if ((systemToLookup != null) && !codeSystem.getUrl().equals(systemToLookup.getValue())) {
           throw FhirUtilityR5.exception(
               "Supplied url or system "
                   + systemToLookup
                   + " doesn't match the CodeSystem retrieved by the id "
                   + id
                   + " "
-                  + codeSys.getUrl(),
+                  + codeSystem.getUrl(),
               OperationOutcome.IssueType.EXCEPTION,
               400);
         }
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
+            termUtils.getIndexedTerminology(codeSystem.getTitle(), osQueryService, true);
         // Fetch concept with properties, synonyms, and definitions
         final Optional<Concept> conceptOpt =
             osQueryService.getConcept(
@@ -425,11 +425,11 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         final Concept concept = conceptOpt.get();
 
         // Required in the specification
-        params.addParameter("name", codeSys.getName());
+        params.addParameter("name", codeSystem.getName());
         params.addParameter("display", concept.getName());
 
         // Optional in the specification
-        params.addParameter("version", codeSys.getVersion());
+        params.addParameter("version", codeSystem.getVersion());
 
         // Hardcoded properties - active is always included, parent/child are conditionally included
         // Active property is always included as per FHIR spec

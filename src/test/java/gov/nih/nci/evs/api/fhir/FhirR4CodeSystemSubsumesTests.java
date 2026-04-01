@@ -4,11 +4,8 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import ca.uhn.fhir.context.FhirContext;
-import ca.uhn.fhir.jpa.model.util.JpaConstants;
-import ca.uhn.fhir.parser.IParser;
-import gov.nih.nci.evs.api.properties.TestProperties;
 import java.net.URI;
+
 import org.hl7.fhir.r4.model.Coding;
 import org.hl7.fhir.r4.model.OperationOutcome;
 import org.hl7.fhir.r4.model.OperationOutcome.OperationOutcomeIssueComponent;
@@ -28,6 +25,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.util.UriComponentsBuilder;
+
+import ca.uhn.fhir.context.FhirContext;
+import ca.uhn.fhir.jpa.model.util.JpaConstants;
+import ca.uhn.fhir.parser.IParser;
+import gov.nih.nci.evs.api.properties.TestProperties;
 
 /**
  * Class tests for FhirR4Tests. Tests the functionality of the FHIR R4 endpoints, CodeSystem,
@@ -125,11 +127,35 @@ public class FhirR4CodeSystemSubsumesTests {
    * @throws Exception the exception
    */
   @Test
-  public void testCodeSystemSubsumesImplicit() throws Exception {
+  public void testCodeSystemSubsumesImplicitParent() throws Exception {
     // Arrange
     String content;
-    final String activeCodeA = "448772000";
-    final String activeCodeB = "271860004";
+    final String activeCodeA = "249565005";
+    final String activeCodeB = "235856003";
+    final String url = "http://snomed.info/sct";
+    final String outcome = "subsumes";
+    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
+    final String parameters = "?system=" + url + "&codeA=" + activeCodeA + "&codeB=" + activeCodeB;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    final Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
+  }
+
+  /**
+   * Test code system subsumes implicit ancestor.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemSubsumesImplicitAncestor() throws Exception {
+    // Arrange
+    String content;
+    final String activeCodeA = "	64572001";
+    final String activeCodeB = "235856003";
     final String url = "http://snomed.info/sct";
     final String outcome = "subsumes";
     final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
