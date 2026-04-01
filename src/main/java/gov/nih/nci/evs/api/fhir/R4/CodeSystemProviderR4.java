@@ -892,23 +892,23 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         // Skip non-matching
         if ((id != null && !id.getValue().equals(cs.getId()))
             || (system != null && !system.getValue().equals(cs.getUrl()))) {
-          logger.debug("  SKIP system mismatch = " + cs.getUrl());
+          // logger.debug("  SKIP system mismatch = " + cs.getUrl());
           continue;
         }
         if (url != null && !FhirUtility.compareUri(url, cs.getUrl())) {
-          logger.debug("  SKIP url mismatch = " + cs.getUrl());
+          // logger.debug("  SKIP url mismatch = " + cs.getUrl());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cs.getDate())) {
-          logger.debug("  SKIP date mismatch = " + cs.getDate());
+          // logger.debug("  SKIP date mismatch = " + cs.getDate());
           continue;
         }
         if (title != null && !FhirUtility.compareString(title, cs.getTitle())) {
-          logger.debug("  SKIP title mismatch = " + cs.getTitle());
+          // logger.debug("  SKIP title mismatch = " + cs.getTitle());
           continue;
         }
         if (version != null && !FhirUtility.compareString(version, cs.getVersion())) {
-          logger.debug("  SKIP version mismatch = " + cs.getVersion());
+          //          logger.debug("  SKIP version mismatch = " + cs.getVersion());
           continue;
         }
 
@@ -956,11 +956,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         // Skip non-matching
         if ((id != null && !id.getIdPart().equals(cs.getId()))
             || (url != null && !url.getValue().equals(cs.getUrl()))) {
-          logger.debug("  SKIP url mismatch = " + cs.getUrl());
+          //          logger.debug("  SKIP url mismatch = " + cs.getUrl());
           continue;
         }
         if (version != null && !version.getValue().equals(cs.getVersion())) {
-          logger.debug("  SKIP version mismatch = " + cs.getVersion());
+          //          logger.debug("  SKIP version mismatch = " + cs.getVersion());
           continue;
         }
 

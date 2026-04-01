@@ -145,27 +145,27 @@ public class ValueSetProviderR5 implements IResourceProvider {
         final ValueSet vs = FhirUtilityR5.toR5VS(terminology);
         // Skip non-matching
         if (id != null && !id.getValue().equals(vs.getId())) {
-          logger.debug("  SKIP id mismatch = " + vs.getId());
+          //   logger.debug("  SKIP id mismatch = " + vs.getId());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, vs.getDate())) {
-          logger.debug("  SKIP date mismatch = " + vs.getDate());
+          //  logger.debug("  SKIP date mismatch = " + vs.getDate());
           continue;
         }
         if (url != null && !FhirUtility.compareUri(url, vs.getUrl())) {
-          logger.debug("  SKIP url mismatch = " + vs.getUrl());
+          //   logger.debug("  SKIP url mismatch = " + vs.getUrl());
           continue;
         }
         if (title != null && !FhirUtility.compareString(title, vs.getTitle())) {
-          logger.debug("  SKIP title mismatch = " + vs.getTitle());
+          // logger.debug("  SKIP title mismatch = " + vs.getTitle());
           continue;
         }
         if (name != null && !FhirUtility.compareString(name, vs.getName())) {
-          logger.debug("  SKIP name mismatch = " + vs.getName());
+          // logger.debug("  SKIP name mismatch = " + vs.getName());
           continue;
         }
         if (version != null && !FhirUtility.compareString(version, vs.getVersion())) {
-          logger.debug("  SKIP version mismatch = " + vs.getVersion());
+          //  logger.debug("  SKIP version mismatch = " + vs.getVersion());
           continue;
         }
         list.add(vs);
@@ -179,28 +179,28 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final ValueSet vs = FhirUtilityR5.toR5VS(map.get(subset.getTerminology()), subset);
       // Skip non-matching
       if (id != null && !id.getValue().equals(vs.getId())) {
-        logger.debug("  SKIP id mismatch = " + vs.getUrl());
+        // logger.debug("  SKIP id mismatch = " + vs.getUrl());
         continue;
       }
       if (date != null && !FhirUtility.compareDateRange(date, vs.getDate())) {
-        logger.debug("  SKIP date mismatch = " + vs.getDate());
+        // logger.debug("  SKIP date mismatch = " + vs.getDate());
         continue;
       }
       if (url != null && !FhirUtility.compareUri(url, vs.getUrl())) {
-        logger.debug("  SKIP url mismatch = " + vs.getUrl());
+        //  logger.debug("  SKIP url mismatch = " + vs.getUrl());
         continue;
       }
       if (title != null && !FhirUtility.compareString(title, vs.getTitle())) {
-        logger.debug("  SKIP title mismatch = " + vs.getTitle());
+        //  logger.debug("  SKIP title mismatch = " + vs.getTitle());
         continue;
       }
       if (name != null && !FhirUtility.compareString(name, vs.getName())) {
-        logger.debug("  SKIP name mismatch = " + vs.getName());
+        // logger.debug("  SKIP name mismatch = " + vs.getName());
         continue;
       }
       if (code != null
           && !vs.getIdentifier().stream().anyMatch(i -> i.getValue().equals(code.getValue()))) {
-        logger.debug("  SKIP code mismatch = " + vs.getTitle());
+        //  logger.debug("  SKIP code mismatch = " + vs.getTitle());
         continue;
       }
       list.add(vs);
@@ -1276,19 +1276,19 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final ValueSet vs = FhirUtilityR5.toR5VS(terminology);
       // Skip non-matching
       if (id != null && !id.getIdPart().equals(vs.getId())) {
-        logger.debug("  SKIP id mismatch = " + vs.getId());
+        //      logger.debug("  SKIP id mismatch = " + vs.getId());
         continue;
       }
       if (url != null && !url.getValue().equals(vs.getUrl())) {
-        logger.debug("  SKIP url mismatch = " + vs.getUrl());
+        //    logger.debug("  SKIP url mismatch = " + vs.getUrl());
         continue;
       }
       if (system != null && !system.getValue().equals(vs.getTitle())) {
-        logger.debug("  SKIP system mismatch = " + vs.getTitle());
+        //   logger.debug("  SKIP system mismatch = " + vs.getTitle());
         continue;
       }
       if (version != null && !version.getValue().equals(vs.getVersion())) {
-        logger.debug("  SKIP version mismatch = " + vs.getVersion());
+        // logger.debug("  SKIP version mismatch = " + vs.getVersion());
         continue;
       }
       list.add(vs);
@@ -1302,15 +1302,15 @@ public class ValueSetProviderR5 implements IResourceProvider {
       final ValueSet vs = FhirUtilityR5.toR5VS(map.get(subset.getTerminology()), subset);
       // Skip non-matching
       if (id != null && !id.getIdPart().equals(vs.getId())) {
-        logger.debug("  SKIP id mismatch = " + vs.getId());
+        // logger.debug("  SKIP id mismatch = " + vs.getId());
         continue;
       }
       if (url != null && !url.getValue().equals(vs.getUrl())) {
-        logger.debug("  SKIP url mismatch = " + vs.getUrl());
+        //  logger.debug("  SKIP url mismatch = " + vs.getUrl());
         continue;
       }
       if (system != null && !system.getValue().equals(vs.getTitle())) {
-        logger.debug("  SKIP system mismatch = " + vs.getTitle());
+        // logger.debug("  SKIP system mismatch = " + vs.getTitle());
         continue;
       }
       list.add(vs);
