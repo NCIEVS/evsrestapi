@@ -76,6 +76,9 @@ public class HierarchyUtils {
    */
   @Transient private Map<String, Set<String>> pathsMap = new HashMap<>();
 
+  /** The logical definition map for equivalent classes */
+  @Transient private Map<String, Set<String>> logicalDefinitionMap = new HashMap<>();
+
   /** The roots. */
   @Field(type = FieldType.Object)
   private Set<String> hierarchyRoots = null;
@@ -623,6 +626,27 @@ public class HierarchyUtils {
    */
   public void setTerminology(final Terminology terminology) {
     this.terminology = terminology;
+  }
+
+  /**
+   * Gets the logical definition map.
+   *
+   * @return the logical definition map
+   */
+  public Map<String, Set<String>> getLogicalDefinitionMap() {
+    if (logicalDefinitionMap == null) {
+      logicalDefinitionMap = new HashMap<>();
+    }
+    return logicalDefinitionMap;
+  }
+
+  /**
+   * Sets the logical definition map.
+   *
+   * @param logicalDefinitionMap the logical definition map
+   */
+  public void setLogicalDefinitionMap(Map<String, Set<String>> logicalDefinitionMap) {
+    this.logicalDefinitionMap = logicalDefinitionMap;
   }
 
   /**

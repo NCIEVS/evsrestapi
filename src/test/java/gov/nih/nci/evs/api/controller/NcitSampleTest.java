@@ -9,6 +9,7 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -243,5 +244,106 @@ public class NcitSampleTest extends SampleTest {
     assertThat(
             concept.getRoles().stream().filter(r -> r.getType().equals("Disease_Is_Grade")).count())
         .isGreaterThan(0);
+  }
+
+  /**
+   * Test role grouping.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testRoleGrouping() throws Exception {
+    String url = "/api/v1/concept/ncit/C37193?include=roles,properties,parents";
+    log.info("Testing url - " + url);
+    MvcResult result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    String content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    Concept concept = ThreadLocalMapper.get().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C37193");
+
+    // Check for "simple" group (labels)
+    assertThat(
+            concept.getRoles().stream()
+                .filter(r -> r.getGroup() != null && !r.getGroup().matches("\\d+"))
+                .count())
+        .isGreaterThan(0);
+
+    // Check for numbered groups (complex groups)
+    assertThat(
+            concept.getRoles().stream()
+                .filter(
+                    r ->
+                        r.getGroup() != null
+                            && r.getGroup().matches("\\d+")
+                            && Integer.parseInt(r.getGroup()) > 0)
+                .count())
+        .isGreaterThan(0);
+
+    // Check for Logical_Definition property
+    assertThat(
+            concept.getProperties().stream()
+                .filter(
+                    p -> "Logical_Definition".equals(p.getType()) && "true".equals(p.getValue()))
+                .count())
+        .isEqualTo(1);
+
+    // Check for defining parents
+    assertThat(
+            concept.getParents().stream()
+                .filter(p -> p.getDefining() != null && p.getDefining())
+                .count())
+        .isEqualTo(1);
+    assertThat(
+            concept.getParents().stream()
+                .filter(p -> p.getDefining() != null && p.getDefining())
+                .findFirst()
+                .get()
+                .getCode())
+        .isEqualTo("C3720");
+
+    // Concept with roles but NO role groupings
+    url = "/api/v1/concept/ncit/C10000?include=roles,properties,parents";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C10000");
+
+    // has roles
+    assertThat(concept.getRoles()).isNotEmpty();
+
+    // no roles have a group value
+    assertThat(concept.getRoles().stream().filter(r -> r.getGroup() != null).count()).isEqualTo(0);
+
+    // no Logical_Definition property
+    assertThat(
+            concept.getProperties().stream()
+                .filter(p -> "Logical_Definition".equals(p.getType()))
+                .count())
+        .isEqualTo(0);
+
+    // Third case: C6627 has no groups but has 3 defining parents
+    url = "/api/v1/concept/ncit/C6627?include=roles,properties,parents";
+    log.info("Testing url - " + url);
+    result = testMvc.perform(get(url)).andExpect(status().isOk()).andReturn();
+    content = result.getResponse().getContentAsString();
+    log.info(" content = " + content);
+    concept = ThreadLocalMapper.get().readValue(content, Concept.class);
+    assertThat(concept).isNotNull();
+    assertThat(concept.getCode()).isEqualTo("C6627");
+
+    // no role groupings
+    assertThat(concept.getRoles().stream().filter(r -> r.getGroup() != null).count()).isEqualTo(0);
+
+    // 3 defining parents: C3549, C6624, C6594
+    Set<String> definingParents =
+        concept.getParents().stream()
+            .filter(p -> p.getDefining() != null && p.getDefining())
+            .map(Concept::getCode)
+            .collect(java.util.stream.Collectors.toSet());
+    assertThat(definingParents).containsExactlyInAnyOrder("C3549", "C6624", "C6594");
   }
 }

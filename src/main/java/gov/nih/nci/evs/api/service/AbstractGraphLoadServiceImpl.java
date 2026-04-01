@@ -132,6 +132,13 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
     }
 
     // Get complex roles and inverse roles
+    logger.info("Load logical definition codes and parents");
+    if (terminology.getTerminology().equals("ncit")) {
+      hierarchy.setLogicalDefinitionMap(
+          sparqlQueryManagerService.getLogicalDefinitionCodes(terminology));
+    } else {
+      hierarchy.setLogicalDefinitionMap(new HashMap<>());
+    }
     logger.info("Load complex roles");
     hierarchy.setRoleMap(sparqlQueryManagerService.getComplexRolesForAllCodes(terminology, false));
     logger.info("Load complex inverse roles");
