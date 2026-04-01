@@ -56,7 +56,7 @@ logging:
         gov.nih.nci.evs.api: DEBUG
         org.springframework.data.elasticsearch.core: DEBUG
         org.springframework.data.opensearch.core: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
-        gov.nih.nci.evs.api.configuration.EVSOpenSearchRestTemplate: ${LOGGING_LEVEL_SPRING_DATA_ES:INFO}
+        gov.nih.nci.evs.api.configuration.EvsOpenSearchRestTemplate: ${LOGGING_LEVEL_SPRING_DATA_ES:DEBUG}
         org.apache.http: INFO # change to DEBUG when needed but INFO for now to avoid logspam
 
 #
@@ -83,7 +83,7 @@ nci:
       childhoodNeoplasmSubsetsXls: ${CHILDHOOD_NEOPLASM_SUBSETS_XLS:Childhood_Neoplasm_Subsets.xls}
       ftpNeoplasmUrl: ${FTP_NEOPLASM_URL:https://evs.nci.nih.gov/ftp1/NCI_Thesaurus/Neoplasm/}
     bulkload:
-      historyFile: ${NCI_EVS_HISTORY_FILE:src/main/resources/cumulative_history_25.12e.txt}
+      historyFile: ${NCI_EVS_HISTORY_FILE:}
       lockFile: ${NCI_EVS_BULK_LOAD_LOCK_FILE_NAME:DownloadSuccessfull.lck}
       downloadBatchSize: ${NCI_EVS_BULK_LOAD_DOWNLOAD_BATCH_SIZE:250}
       indexBatchSize: ${NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE:250}

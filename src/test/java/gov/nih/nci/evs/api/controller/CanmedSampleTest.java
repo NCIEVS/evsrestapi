@@ -80,8 +80,10 @@ public class CanmedSampleTest extends SampleTest {
     final Terminology terminology =
         terminologies.stream().filter(t -> t.getTerminology().equals("canmed")).findFirst().get();
     assertThat(terminology.getTerminology()).isEqualTo("canmed");
-    assertThat(terminology.getMetadata().getUiLabel()).isEqualTo("CanMED");
-    assertThat(terminology.getName()).isEqualTo("CanMED 202506");
+    assertThat(terminology.getMetadata().getUiLabel())
+        .isEqualTo("CanMED: Cancer Medications Enquiry Database");
+    assertThat(terminology.getName())
+        .isEqualTo("CanMED: Cancer Medications Enquiry Database 202506");
     assertThat(terminology.getDescription()).isNotEmpty();
 
     assertThat(terminology.getMetadata().getLoader()).isEqualTo("rdf");

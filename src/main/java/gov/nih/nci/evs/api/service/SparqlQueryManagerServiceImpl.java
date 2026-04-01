@@ -145,6 +145,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   /* see superclass */
   /* see superclass */
   /* see superclass */
+  /* see superclass */
   @Override
   public List<String> getAllGraphNames() throws Exception {
     final List<String> graphNames = new ArrayList<>();
@@ -282,6 +283,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     return getConceptByType("concept", conceptCode, terminology, ip);
   }
 
+  /* see superclass */
   @Override
   public Concept getConceptFromOpensearch(
       final String conceptCode, final Terminology terminology, final String include)
@@ -2954,6 +2956,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
    * Returns the ignore source urls.
    *
    * @return the ignore source urls
+   * @throws Exception the exception
    */
   private List<String> getIgnoreSourceUrls() throws Exception {
     final String uri = applicationProperties.getConfigBaseUri() + "/ignore-source.txt";

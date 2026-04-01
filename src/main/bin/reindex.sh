@@ -471,7 +471,9 @@ get_ignored_sources
 get_graph_query
 get_graphs
 set_total_fields_limit_5000
-remove_unused_indexes
+
+# This is done by the server internally
+# remove_unused_indexes
 
 # For each DB|version, check whether indexes already exist for that version
 echo ""

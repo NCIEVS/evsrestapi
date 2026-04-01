@@ -74,7 +74,41 @@ public class HierarchyUtils {
    * The path map. NOTE: if we need paths for >1 terminology, this doesn't work. Use a different
    * HierarchyUtils.
    */
-  @Transient private Map<String, Set<String>> pathsMap = new HashMap<>();
+  @Transient private Map<String, Set<String>> pathsMap = null;
+
+  /**
+   * Gets the paths map.
+   *
+   * @param terminology the terminology
+   * @return the paths map
+   */
+  private static Map<String, Set<String>> initPathsMap(final Terminology terminology) {
+
+    // For anything but snomed, just use a regular hashmap.
+    if (!terminology.getTerminology().startsWith("snomed")) {
+      return new HashMap<String, Set<String>>();
+    }
+
+    // for snomed loads
+    Map<String, Set<String>> map = new HashMap<String, Set<String>>();
+
+    // This cannot work without the "mapdb" implementation.  however it contains vulnerabilities
+    // that cannot be worked aroud
+    //    DB db =
+    //        DBMaker.fileDB("paths_map.db")
+    //            // High speed for 64-bit systems
+    //            .fileMmapEnable()
+    //            // Ensures files close when process exits
+    //            .closeOnJvmShutdown()
+    //            // Optional: prevents corruption on crash
+    //            .transactionEnable()
+    //            // Remove files after
+    //            .fileDeleteAfterClose()
+    //            .make();
+    //    ConcurrentMap<String, Set<String>> map =
+    //        db.hashMap("pathsMap", Serializer.STRING, Serializer.JAVA).createOrOpen();
+    return map;
+  }
 
   /** The logical definition map for equivalent classes */
   @Transient private Map<String, Set<String>> logicalDefinitionMap = new HashMap<>();
@@ -238,8 +272,11 @@ public class HierarchyUtils {
       }
       if (descendantMap.get(child) == null) {
         Concept conc = new Concept(child);
-        if (parent2child.containsKey(child)) conc.setLeaf(false);
-        else conc.setLeaf(true);
+        if (parent2child.containsKey(child)) {
+          conc.setLeaf(false);
+        } else {
+          conc.setLeaf(true);
+        }
         conc.setLevel(level);
         conc.setName(code2label.get(child));
         descendantMap.put(child, conc);
@@ -406,6 +443,16 @@ public class HierarchyUtils {
   }
 
   /**
+   * Clear paths map.
+   *
+   * @param terminology the terminology
+   * @throws Exception the exception
+   */
+  public void clearPathsMap(final Terminology terminology) throws Exception {
+    pathsMap = null;
+  }
+
+  /**
    * Returns the path map.
    *
    * @param terminology the terminology
@@ -413,9 +460,12 @@ public class HierarchyUtils {
    * @throws Exception the exception
    */
   public Map<String, Set<String>> getPathsMap(final Terminology terminology) throws Exception {
-    if (pathsMap.isEmpty()
+
+    if (pathsMap == null
         && terminology.getMetadata().getHierarchy() != null
         && terminology.getMetadata().getHierarchy()) {
+
+      pathsMap = initPathsMap(terminology);
 
       // This finds paths for leaf nodes, and we need to turn into full paths
       // for each code. Write to a file because this can be a lot of data.
@@ -449,9 +499,24 @@ public class HierarchyUtils {
           }
           if (partCt % 5000 == 0) {
             logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
+            logMemory();
           }
         }
         logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
+        logMemory();
+
+        // Report top 5 keys
+        pathsMap.entrySet().stream()
+            // Sort descending by the size of the Set
+            .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size()))
+            // Take only the top 5
+            .limit(5)
+            // Print the results
+            .forEach(
+                entry -> {
+                  logger.debug("      " + entry.getKey() + " = " + entry.getValue().size());
+                });
+
         FileUtils.deleteQuietly(file);
       }
     }
@@ -733,5 +798,15 @@ public class HierarchyUtils {
 
   public String getConceptNameFromCode(String conceptCode) {
     return this.code2label.get(conceptCode);
+  }
+
+  /** Log memory. */
+  public static void logMemory() {
+
+    logger.info(
+        "   MEMORY: ({} - {}) = {}",
+        Runtime.getRuntime().totalMemory(),
+        Runtime.getRuntime().freeMemory(),
+        (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()));
   }
 }

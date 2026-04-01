@@ -327,7 +327,7 @@ public class SearchController extends BaseController {
   @GetMapping(value = "/concept/{terminology}/search", produces = "application/json")
   public @ResponseBody ConceptResultList searchSingleTerminology(
       @PathVariable(value = "terminology") final String terminology,
-      @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
+      @Parameter(hidden = true) @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
       BindingResult bindingResult,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
@@ -557,7 +557,7 @@ public class SearchController extends BaseController {
   @RecordMetric
   @GetMapping(value = "/concept/search", produces = "application/json")
   public @ResponseBody ConceptResultList search(
-      @ModelAttribute SearchCriteria searchCriteria,
+      @Parameter(hidden = true) @ModelAttribute SearchCriteria searchCriteria,
       BindingResult bindingResult,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws Exception {
@@ -866,7 +866,7 @@ public class SearchController extends BaseController {
       @PathVariable(value = "terminology") final String terminology,
       @RequestParam(required = false, name = "prefixes") final Boolean prefixes,
       @org.springframework.web.bind.annotation.RequestBody final String query,
-      @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
+      @Parameter(hidden = true) @ModelAttribute SearchCriteriaWithoutTerminology searchCriteria,
       BindingResult bindingResult,
       @RequestHeader(name = "X-EVSRESTAPI-License-Key", required = false) final String license)
       throws ResponseStatusException, Exception {

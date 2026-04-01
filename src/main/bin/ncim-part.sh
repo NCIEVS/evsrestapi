@@ -156,7 +156,8 @@ export EVS_SERVER_PORT="8083"
 # Compute version (remove '.' from lcterm)
 lcterm=`echo $terminology | perl -ne 's/\.//; print lc($_);'`
 if [[ $terminology == "ncim" ]]; then
-    version=`grep umls.release.name $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
+    # check both places for good measure
+    version=`grep umls.release.name $dir/../release.dat $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
 else
     version=`perl -ne '@_=split/\|/; print "$_[6]\n" if $_[0] && $_[3] eq "'$terminology'";' $dir/MRSAB.RRF`
 fi
@@ -178,8 +179,8 @@ if [[ $skip -eq 0 ]]; then
     echo "  Generate indexes"
     # need to override this setting to make sure it's not too big
     export NCI_EVS_BULK_LOAD_INDEX_BATCH_SIZE=1000
-    echo "java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx5200M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
-    java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx5200M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
+    echo "java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xmx3000M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex"
+    java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx3000M -jar $jar --terminology $terminology -d $dir --forceDeleteIndex
     if [[ $? -ne 0 ]]; then
         echo "ERROR: unexpected error building indexes"
         exit 1

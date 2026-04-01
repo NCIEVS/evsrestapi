@@ -168,7 +168,8 @@ class FhirR5ClientSDKTests {
       }
 
       // Recursively process all fields in the object
-      node.fields()
+      node.properties()
+          .iterator()
           .forEachRemaining(
               entry -> {
                 extractNameRawPairs(entry.getValue());

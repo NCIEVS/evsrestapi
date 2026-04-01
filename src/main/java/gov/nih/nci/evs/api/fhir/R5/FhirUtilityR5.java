@@ -539,7 +539,7 @@ public class FhirUtilityR5 {
    * @return the parameter property component
    */
   public static ParametersParameterComponent createProperty(
-      final Object propertyValue, final String propertyName, final boolean isCode) {
+      final String propertyName, final Object propertyValue, final boolean isCode) {
     final String valueName = "value";
     // Create a property and add the code as a valueCode
     final ParametersParameterComponent property =

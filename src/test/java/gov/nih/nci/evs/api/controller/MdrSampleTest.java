@@ -10,14 +10,12 @@ import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.model.TerminologyMetadata;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.util.EVSUtils;
 import gov.nih.nci.evs.api.util.ThreadLocalMapper;
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -156,6 +154,28 @@ public class MdrSampleTest extends SampleTest {
                   // n/a
                 });
     assertThat(terminologies.size()).isGreaterThan(0);
+
+    // mdr 28_0 should be "latest
+    assertThat(
+            terminologies.stream()
+                .filter(
+                    t ->
+                        t.getTerminology().equals("mdr")
+                            && t.getVersion().equals("28_0")
+                            && t.getLatest())
+                .count())
+        .isEqualTo(1);
+    // The other one is not 28_0 and is not "latest"
+    assertThat(
+            terminologies.stream()
+                .filter(
+                    t ->
+                        t.getTerminology().equals("mdr")
+                            && !t.getVersion().equals("28_0")
+                            && !t.getLatest())
+                .count())
+        .isEqualTo(1);
+
     assertThat(terminologies.stream().filter(t -> t.getTerminology().equals("mdr")).count())
         .isEqualTo(2);
     final Terminology mdr =
@@ -196,16 +216,11 @@ public class MdrSampleTest extends SampleTest {
       return ThreadLocalMapper.get().readTree(IOUtils.toString(is, "UTF-8"));
     } catch (Throwable t) { // read as file if no url
       try {
-        return ThreadLocalMapper.get()
-            .readTree(FileUtils.readFileToString(new File(uri), StandardCharsets.UTF_8));
+        return ThreadLocalMapper.get().readTree(EVSUtils.getValueFromFile(uri));
       } catch (IOException ex) {
+        // throw exception if both fail
         throw new IOException(
             "Could not find either file or uri for config base uri: " + uri); // only
-        // throw
-        // exception
-        // if
-        // both
-        // fail
       }
     }
   }

@@ -55,7 +55,7 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
     }
 
     // create index
-    operations.indexOps(IndexCoordinates.of(index)).create();
+    operations.indexOps(IndexCoordinates.of(index)).create(Map.of("index.number_of_shards", 1));
     return true;
   }
 
@@ -76,7 +76,9 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
   @SuppressWarnings("rawtypes")
   @Override
   public void bulkIndex(List objects, String index, Class clazz) throws IOException {
-    if (CollectionUtils.isEmpty(objects)) return;
+    if (CollectionUtils.isEmpty(objects)) {
+      return;
+    }
     List<IndexQuery> indexQueries = new ArrayList<>();
 
     for (Object obj : objects) {
@@ -92,7 +94,9 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
   @SuppressWarnings("rawtypes")
   @Override
   public void bulkIndexAndWait(List objects, String index, Class clazz) throws IOException {
-    if (CollectionUtils.isEmpty(objects)) return;
+    if (CollectionUtils.isEmpty(objects)) {
+      return;
+    }
     List<IndexQuery> indexQueries = new ArrayList<>();
 
     for (Object obj : objects) {
@@ -108,7 +112,9 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
   /* see superclass */
   @Override
   public void loadMetric(Metric metric, String index) throws IOException {
-    if (metric == null) return;
+    if (metric == null) {
+      return;
+    }
 
     final IndexQuery query = new IndexQueryBuilder().withObject(metric).build();
     // BAC: removed this, we do not need to put the mapping on each request
@@ -119,7 +125,10 @@ public class OpensearchOperationsServiceImpl implements OpensearchOperationsServ
     } catch (Exception e) {
       // This happens on monthly switch-over and we need to create a new index
       if (e.getMessage().contains("index_not_found_exception")) {
-        boolean result = operations.indexOps(IndexCoordinates.of(index)).create();
+        boolean result =
+            operations
+                .indexOps(IndexCoordinates.of(index))
+                .create(Map.of("index.number_of_shards", 1));
         if (result) {
           operations.indexOps(IndexCoordinates.of(index)).putMapping(Metric.class);
         }
