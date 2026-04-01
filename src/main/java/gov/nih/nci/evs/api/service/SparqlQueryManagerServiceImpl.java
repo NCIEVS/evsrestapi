@@ -2228,7 +2228,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                 .orElse(null);
       }
       if (concept.getCode().equals(concept.getName())
-          && bindings != null
           && matchConcept != null
           && matchConcept.getPropertyLabel() != null) {
         concept.setName(matchConcept.getPropertyLabel().getValue());

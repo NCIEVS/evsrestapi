@@ -1,6 +1,6 @@
  buildscript {
   ext {
-    springBootVersion = '3.4.12'
+    springBootVersion = '3.5.13'
     // Remove this line to see what version is favored by springBootVersion
     // and the version brought in by spring-data-elasticsearch
     set('elasticsearch.version', '7.12.1')
@@ -87,26 +87,23 @@ dependencies {
 
   implementation "org.springframework.boot:spring-boot-devtools"
   implementation "org.springframework.boot:spring-boot-starter-actuator"
-  // Explicit patch for spring-core to mitigate CVE-2025-41249
-  implementation 'org.springframework:spring-core:6.2.11'
   implementation "org.springframework.boot:spring-boot-starter-cache"
   implementation "org.springframework.boot:spring-boot-properties-migrator"
   implementation "org.springframework:spring-aop"
 
-  // For vulnerabilities - may not be needed with Spring Boot 3.4.10
-  // implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.44"
-  implementation "com.fasterxml.jackson.core:jackson-core:2.18.6"
+  // These override org.hl7.fhir.*:6.4.0 requested by hapi-fhir-validation:7.6.1 and hapi-fhir-converter:7.6.1.
+  // 6.4.0 contains a vulnerability; 6.9.4 is the version co-packaged with HAPI FHIR that fixes it.
+  // These overrides can only be removed by upgrading to HAPI FHIR 8.x (a major breaking-change migration).
   implementation "org.fhir:ucum:1.0.9"
-  // These are needed to override dependencies from hapi-fhir-base (until it is fixed)
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.9.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.9.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.9.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.9.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.9.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.9.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.9.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.9.0"
-  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.9.0"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.convertors:6.9.4"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2:6.9.4"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu2016may:6.9.4"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.dstu3:6.9.4"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4:6.9.4"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r4b:6.9.4"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.r5:6.9.4"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.utilities:6.9.4"
+  implementation "ca.uhn.hapi.fhir:org.hl7.fhir.validation:6.9.4"
 
   //implementation "org.springframework.data:spring-data-elasticsearch:4.2.12"
   implementation "org.opensearch.client:spring-data-opensearch-starter:1.7.1"
@@ -118,14 +115,15 @@ dependencies {
   //Java Mail Sender dependency
   implementation "org.springframework.boot:spring-boot-starter-mail"
 
-  implementation "org.aspectj:aspectjweaver:1.9.2"
+  // aspectjweaver is now managed by Spring Boot BOM (1.9.25.1 in 3.5.x)
+  implementation "org.aspectj:aspectjweaver"
   implementation "org.apache.commons:commons-text:1.10.0"
   //implementation "org.apache.opennlp:opennlp-tools:2.2.0"
 
   // Upgrade ecache to use jakarta - https://groups.google.com/g/ehcache-users/c/sKfxWuTpY-U
   // See also: https://stackoverflow.com/questions/75813659/gradle-could-not-find-org-ehcacheehcache-after-upgrading-to-spring-boot-3-0-x
   // Note: ehcache 3.10.8 uses Jakarta by default, no classifier needed
-  implementation "org.ehcache:ehcache:3.10.8"
+  implementation "org.ehcache:ehcache:3.10.9"
 
   // JAXB dependencies required for ehcache with Java 9+
   // ehcache 3.10.8 still uses javax.xml.bind internally for XML parsing

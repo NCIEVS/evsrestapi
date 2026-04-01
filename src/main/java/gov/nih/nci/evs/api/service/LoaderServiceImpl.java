@@ -72,7 +72,6 @@ public class LoaderServiceImpl {
   }
 
   @PostConstruct
-  @SuppressWarnings("static-access")
   public void init() {
     setStaticServices(this.operationsService, this.osQueryService, this.termUtils);
   }

@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.util;
 
+import gov.nih.nci.evs.api.model.Concept;
 import gov.nih.nci.evs.api.model.Terminology;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
 import gov.nih.nci.evs.api.properties.GraphProperties;
@@ -11,6 +12,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -42,6 +44,42 @@ public final class TerminologyUtils {
 
   /** The Constant logger. */
   private static final Logger logger = LoggerFactory.getLogger(TerminologyUtils.class);
+
+  /** The Constant SORT_LATEST. Latest sorts before not latest. */
+  public static final Comparator<Terminology> SORT_LATEST =
+      new Comparator<>() {
+        @Override
+        public int compare(final Terminology t1, final Terminology t2) {
+          return Boolean.compare(t1.getLatest(), t2.getLatest());
+        }
+      };
+
+  /**
+   * The Constant SORT_LATEST_MONTHLY. Monthly sorts before weekly. latest sorts before not latest.
+   * (lowest string value sorts first)
+   */
+  public static final Comparator<Terminology> SORT_LATEST_MONTHLY =
+      new Comparator<>() {
+        @Override
+        public int compare(final Terminology t1, final Terminology t2) {
+          final String k1 =
+              (t1.getTags().containsKey("monthly") ? "0" : "1") + (t1.getLatest() ? "0" : "1");
+          final String k2 =
+              (t2.getTags().containsKey("monthly") ? "0" : "1") + (t2.getLatest() ? "0" : "1");
+          return k1.compareTo(k2);
+        }
+      };
+
+  /** The Constant SORT_VERSIONS. Reverse sort based on version (+terminology) alphabetically. */
+  public static final Comparator<Concept> REVERSE_SORT_VERSIONS =
+      new Comparator<>() {
+        @Override
+        public int compare(final Concept c1, final Concept c2) {
+          final String k1 = c1.getVersion() + c1.getTerminology();
+          final String k2 = c1.getVersion() + c1.getTerminology();
+          return k2.compareTo(k1);
+        }
+      };
 
   /** The graph db properties. */
   @Autowired GraphProperties graphProperties;
@@ -92,7 +130,8 @@ public final class TerminologyUtils {
    * Returns the stale terminologies.
    *
    * @param dbs the dbs
-   * @param terminology the terminology
+   * @param sparqlQueryManagerService the sparql query manager service
+   * @param osQueryService the os query service
    * @return the stale terminologies
    * @throws Exception the exception
    */
@@ -143,10 +182,11 @@ public final class TerminologyUtils {
   }
 
   /**
-   * Get the indexed terminology
+   * Get the indexed terminology.
    *
    * @param terminology search terminology
    * @param osQueryService opensearch query service
+   * @param requireFlag the require flag
    * @return the Terminology
    * @throws Exception the exception
    */
@@ -162,6 +202,7 @@ public final class TerminologyUtils {
    *
    * @param terminology target terminology
    * @param terminologies list of terminologies to search through
+   * @param requireFlag the require flag
    * @return the Terminology
    */
   private Terminology findTerminology(
