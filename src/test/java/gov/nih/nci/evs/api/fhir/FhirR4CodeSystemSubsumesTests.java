@@ -125,11 +125,35 @@ public class FhirR4CodeSystemSubsumesTests {
    * @throws Exception the exception
    */
   @Test
-  public void testCodeSystemSubsumesImplicit() throws Exception {
+  public void testCodeSystemSubsumesImplicitParent() throws Exception {
     // Arrange
     String content;
-    final String activeCodeA = "448772000";
-    final String activeCodeB = "271860004";
+    final String activeCodeA = "249565005";
+    final String activeCodeB = "235856003";
+    final String url = "http://snomed.info/sct";
+    final String outcome = "subsumes";
+    final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
+    final String parameters = "?system=" + url + "&codeA=" + activeCodeA + "&codeB=" + activeCodeB;
+
+    // Act
+    content = this.restTemplate.getForObject(endpoint + parameters, String.class);
+    final Parameters params = parser.parseResource(Parameters.class, content);
+
+    // Assert
+    assertEquals(outcome, ((StringType) params.getParameter("outcome").getValue()).getValue());
+  }
+
+  /**
+   * Test code system subsumes implicit ancestor.
+   *
+   * @throws Exception the exception
+   */
+  @Test
+  public void testCodeSystemSubsumesImplicitAncestor() throws Exception {
+    // Arrange
+    String content;
+    final String activeCodeA = "	64572001";
+    final String activeCodeB = "235856003";
     final String url = "http://snomed.info/sct";
     final String outcome = "subsumes";
     final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;

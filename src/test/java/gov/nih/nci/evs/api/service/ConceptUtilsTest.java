@@ -73,6 +73,8 @@ public class ConceptUtilsTest {
     log.info(ConceptUtils.normalizeWithStemming("cactus"));
     log.info(ConceptUtils.normalizeWithStemming("cacti"));
     log.info(ConceptUtils.normalizeWithStemming("appendix"));
+    log.info(ConceptUtils.normalizeWithStemming("chronic"));
+    log.info(ConceptUtils.normalizeWithStemming("granulomatous"));
 
     assertEquals("appendic", ConceptUtils.normalizeWithStemming("appendices"));
     assertEquals("connect", ConceptUtils.normalizeWithStemming("connecting"));

@@ -14,7 +14,6 @@ import static org.mockito.Mockito.when;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.configuration.TestConfiguration;
 import gov.nih.nci.evs.api.controller.TermSuggestionFormController;
 import gov.nih.nci.evs.api.model.EmailDetails;
 import gov.nih.nci.evs.api.properties.ApplicationProperties;
@@ -35,6 +34,7 @@ import org.mockito.MockedStatic;
 import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -43,7 +43,6 @@ import org.springframework.mail.MailSendException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mock.web.MockMultipartFile;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
@@ -52,44 +51,65 @@ import org.springframework.web.server.ResponseStatusException;
 @SpringBootTest
 @ExtendWith(SpringExtension.class)
 @AutoConfigureMockMvc
-@ContextConfiguration(classes = TestConfiguration.class)
+// @ContextConfiguration(classes = TestConfiguration.class)
 public class TermSuggestionFormServiceTest {
+
+  /** The Constant logger. */
   // Logger
   @SuppressWarnings("unused")
   private static final Logger logger = LoggerFactory.getLogger(TermSuggestionFormServiceTest.class);
 
+  /** The java mail sender. */
   // Mock JavaMailSender & app properties
   @Mock private JavaMailSender javaMailSender;
-  @Mock private ApplicationProperties applicationProperties;
+
+  /** The application properties. DO NOT mock this, as it needs to pick up the actual properties. */
+  @Autowired private ApplicationProperties applicationProperties;
+
+  /** The object mapper. */
   @Mock private ObjectMapper objectMapper;
 
+  /** The term form service. */
   // Inject mocks automatically into FormEmailServiceImpl
   private TermSuggestionFormServiceImpl termFormService;
 
+  /** The test email details. */
   // email details object
   private EmailDetails testEmailDetails = new EmailDetails();
 
+  /** The source. */
   // email details
   private final String source = "NCIT";
+
+  /** The to email. */
   private final String toEmail = "agarcia@westcoastinformatics.com";
+
+  /** The from email. */
   private final String fromEmail = "test@example.com";
+
+  /** The subject. */
   private final String subject = "Test Subject";
+
+  /** The msg body. */
   private final String msgBody = "Test Body";
 
+  /** The config url. */
   // Config url
   @Value("${nci.evs.application.configBaseUri}")
   private String configUrl;
 
+  /** Sets the up. */
   @BeforeEach
   public void setUp() {
     termFormService = new TermSuggestionFormServiceImpl(javaMailSender, applicationProperties);
   }
 
   /**
-   * Test the getTermForm returns our NCIT form JsonNode
+   * Test the getTermForm returns our NCIT form JsonNode.
    *
    * @throws Exception throws exception
    */
+  @SuppressWarnings("resource")
   @Test
   public void testGetFormTemplate() throws Exception {
     // SET UP
@@ -112,7 +132,7 @@ public class TermSuggestionFormServiceTest {
   }
 
   /**
-   * Test get form throws IO exception with invalid formType string
+   * Test get form throws IO exception with invalid formType string.
    *
    * @throws IOException throws exception
    */
@@ -135,27 +155,39 @@ public class TermSuggestionFormServiceTest {
     }
   }
 
-  /** Test getFormTemplate throws an exception with an empty formType string */
+  /**
+   * Test getFormTemplate throws an exception with an empty formType string.
+   *
+   * @throws IllegalArgumentException the illegal argument exception
+   */
   @Test
   public void testGetFormTemplateThrowsIllegalArgExceptionEmpty() throws IllegalArgumentException {
     testGetFormTemplateThrowsIllegalArgException("");
   }
 
-  /** Test getFormTemplate throws an exception with a blank formType string */
+  /**
+   * Test getFormTemplate throws an exception with a blank formType string.
+   *
+   * @throws IllegalArgumentException the illegal argument exception
+   */
   @Test
   public void testGetFormTemplateTypeThrowsIllegalArgExceptionSpace()
       throws IllegalArgumentException {
     testGetFormTemplateThrowsIllegalArgException(" ");
   }
 
-  /** Test getFormTemplate throws an exception with a null formType string */
+  /**
+   * Test getFormTemplate throws an exception with a null formType string.
+   *
+   * @throws IllegalArgumentException the illegal argument exception
+   */
   @Test
   public void testGetFormTemplateThrowsIllegalArgExceptionNull() throws IllegalArgumentException {
     testGetFormTemplateThrowsIllegalArgException(null);
   }
 
   /**
-   * Helper method to test multiple formType inputs throw an exception
+   * Helper method to test multiple formType inputs throw an exception.
    *
    * @param formType string form template to get
    * @throws IllegalArgumentException exception
@@ -176,7 +208,7 @@ public class TermSuggestionFormServiceTest {
   }
 
   /**
-   * Test getFormTemplate throws an exception when the file is not found
+   * Test getFormTemplate throws an exception when the file is not found.
    *
    * @throws Exception throws exception
    */
@@ -199,10 +231,11 @@ public class TermSuggestionFormServiceTest {
   }
 
   /**
-   * Test getFormTemplate throws an exception when the form is not an object
+   * Test getFormTemplate throws an exception when the form is not an object.
    *
    * @throws Exception throws exception
    */
+  @SuppressWarnings("resource")
   @Test
   public void testGetFormTemplateWhenNotObjectThrowsException() throws Exception {
     // SET UP - create an invalid term form object
@@ -231,7 +264,11 @@ public class TermSuggestionFormServiceTest {
     }
   }
 
-  /** Test sending an email */
+  /**
+   * Test sending an email.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testSendEmail() throws Exception {
     // SET UP
@@ -246,7 +283,11 @@ public class TermSuggestionFormServiceTest {
     verify(javaMailSender, times(1)).send(any(MimeMessage.class));
   }
 
-  /** Test we throw an exception when the email doesn't send */
+  /**
+   * Test we throw an exception when the email doesn't send.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void testSendEmailThrowsException() throws Exception {
     // SETUP
@@ -262,7 +303,11 @@ public class TermSuggestionFormServiceTest {
     }
   }
 
-  /** Check that blank excel form attachment fails validation. */
+  /**
+   * Check that blank excel form attachment fails validation.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void blankFormSubmissionFailsValidation() throws Exception {
     // SET UP
@@ -274,7 +319,11 @@ public class TermSuggestionFormServiceTest {
     assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
 
-  /** Check that blank excel file attachment fails validation. */
+  /**
+   * Check that blank excel file attachment fails validation.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void blankSpreadsheetSubmissionFailsValidation() throws Exception {
     // SET UP
@@ -286,7 +335,11 @@ public class TermSuggestionFormServiceTest {
     assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
 
-  /** Check that fake excel file attachment fails validation. */
+  /**
+   * Check that fake excel file attachment fails validation.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void FakeExcelSubmissionFailsValidation() throws Exception {
     // SET UP
@@ -298,7 +351,11 @@ public class TermSuggestionFormServiceTest {
     assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
 
-  /** Check that extra sheet added to the attachment fails validation. */
+  /**
+   * Check that extra sheet added to the attachment fails validation.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void ExtraSheetAddedFailsValidation() throws Exception {
     // SET UP
@@ -310,7 +367,11 @@ public class TermSuggestionFormServiceTest {
     assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
 
-  /** Check that changed sheet name in the attachment fails validation. */
+  /**
+   * Check that changed sheet name in the attachment fails validation.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void ChangedSheetNameFailsValidation() throws Exception {
     // SET UP
@@ -322,7 +383,11 @@ public class TermSuggestionFormServiceTest {
     assertFalse(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
 
-  /** Check that filled out form attachment passes validation. */
+  /**
+   * Check that filled out form attachment passes validation.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void filledFormSubmissionPassesValidation() throws Exception {
     // SET UP
@@ -334,7 +399,11 @@ public class TermSuggestionFormServiceTest {
     assertTrue(termFormService.validateFileAttachment(testFile, "CDISC"));
   }
 
-  /** Check that filled out NCIT form attachment passes validation. */
+  /**
+   * Check that filled out NCIT form attachment passes validation.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void filledFormSubmissionNCITPassesValidation() throws Exception {
     // SET UP
@@ -346,7 +415,11 @@ public class TermSuggestionFormServiceTest {
     assertTrue(termFormService.validateFileAttachment(testFile, "NCIT"));
   }
 
-  /** Check that blank NCIT form attachment fails validation. */
+  /**
+   * Check that blank NCIT form attachment fails validation.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void blankFormSubmissionNCITFailsValidation() throws Exception {
     // SET UP
@@ -358,7 +431,11 @@ public class TermSuggestionFormServiceTest {
     assertFalse(termFormService.validateFileAttachment(testFile, "NCIT"));
   }
 
-  /** Check that NCIT form with invalid C-code format fails validation. */
+  /**
+   * Check that NCIT form with invalid C-code format fails validation.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void invalidCodeFormatNCITFailsValidation() throws Exception {
     // SET UP
@@ -370,7 +447,11 @@ public class TermSuggestionFormServiceTest {
     assertFalse(termFormService.validateFileAttachment(testFile, "NCIT"));
   }
 
-  /** Check that NCIT form with missing required columns fails validation. */
+  /**
+   * Check that NCIT form with missing required columns fails validation.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void missingRequiredColumnsNCITFailsValidation() throws Exception {
     // SET UP
@@ -382,7 +463,11 @@ public class TermSuggestionFormServiceTest {
     assertFalse(termFormService.validateFileAttachment(testFile, "NCIT"));
   }
 
-  /** Check that NCIT form with wrong header fails validation. */
+  /**
+   * Check that NCIT form with wrong header fails validation.
+   *
+   * @throws Exception the exception
+   */
   @Test
   public void invalidHeaderRowNCITFailsValidation() throws Exception {
     // SET UP
@@ -397,6 +482,8 @@ public class TermSuggestionFormServiceTest {
   /**
    * Test that TermSuggestionFormController.suggestWithAttachment throws EXPECTATION_FAILED when the
    * service's validateFileAttachment returns false.
+   *
+   * @throws Exception the exception
    */
   @Test
   public void suggestWithAttachmentInvalidAttachmentThrowsExpectationFailed() throws Exception {
@@ -435,7 +522,7 @@ public class TermSuggestionFormServiceTest {
   }
 
   /**
-   * Helper method for creating the email details to send in the email
+   * Helper method for creating the email details to send in the email.
    *
    * @return EmailDetails object
    */

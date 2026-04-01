@@ -427,23 +427,23 @@ public class ConceptMapProviderR4 implements IResourceProvider {
                 mapset);
         // Skip non-matching
         if (url != null && !FhirUtility.compareUri(url, cm.getUrl())) {
-          logger.debug("  SKIP url mismatch = " + cm.getUrl());
+          // logger.debug("  SKIP url mismatch = " + cm.getUrl());
           continue;
         }
         if (id != null && !id.getValue().equals(cm.getId())) {
-          logger.debug("  SKIP id mismatch = " + cm.getName());
+          // logger.debug("  SKIP id mismatch = " + cm.getName());
           continue;
         }
         if (name != null && !FhirUtility.compareString(name, cm.getName())) {
-          logger.debug("  SKIP name mismatch = " + cm.getName());
+          // logger.debug("  SKIP name mismatch = " + cm.getName());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
-          logger.debug("  SKIP date mismatch = " + cm.getDate());
+          //  logger.debug("  SKIP date mismatch = " + cm.getDate());
           continue;
         }
         if (version != null && !FhirUtility.compareString(version, cm.getVersion())) {
-          logger.debug("  SKIP version mismatch = " + cm.getVersion());
+          // logger.debug("  SKIP version mismatch = " + cm.getVersion());
           continue;
         }
 
@@ -502,6 +502,7 @@ public class ConceptMapProviderR4 implements IResourceProvider {
         map.put(terminology.getTerminology(), terminology);
       }
       final List<Concept> mapsets = osQueryService.getMapsets(new IncludeParam("properties"));
+      Collections.sort(mapsets, TerminologyUtils.REVERSE_SORT_VERSIONS);
 
       final List<ConceptMap> list = new ArrayList<>();
       for (final Concept mapset : mapsets) {
@@ -517,43 +518,44 @@ public class ConceptMapProviderR4 implements IResourceProvider {
                 mapset);
         // Skip non-matching
         if (url != null && !FhirUtility.compareUri(url, cm.getUrl())) {
-          logger.debug("  SKIP url mismatch = " + cm.getUrl());
+          // logger.debug("  SKIP url mismatch = " + cm.getUrl());
           continue;
         }
         if (id != null && !id.getIdPart().equals(cm.getId())) {
-          logger.debug("  SKIP id mismatch = " + cm.getName());
+          // logger.debug("  SKIP id mismatch = " + cm.getName());
           continue;
         }
         if (system != null && !system.getValue().equals(cm.getSourceUriType().getValue())) {
-          logger.debug("  SKIP system mismatch = " + cm.getName());
+          // logger.debug("  SKIP system mismatch = " + cm.getName());
           continue;
         }
         if (targetSystem != null
             && !targetSystem.getValue().equals(cm.getTargetUriType().getValue())) {
-          logger.debug("  SKIP targetSystem mismatch = " + cm.getName());
+          //  logger.debug("  SKIP targetSystem mismatch = " + cm.getName());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cm.getDate())) {
-          logger.debug("  SKIP date mismatch = " + cm.getDate());
+          //  logger.debug("  SKIP date mismatch = " + cm.getDate());
           continue;
         }
         if (version != null && !version.getValue().equals(cm.getVersion())) {
-          logger.debug("  SKIP version mismatch = " + cm.getVersion());
+          //  logger.debug("  SKIP version mismatch = " + cm.getVersion());
           continue;
         }
         if (source != null
             && !source.getValue().equals(cm.getSourceUriType().getValue() + "?fhir_vs")) {
-          logger.debug("  SKIP source mismatch = " + cm.getVersion());
+          //  logger.debug("  SKIP source mismatch = " + cm.getVersion());
           continue;
         }
         if (target != null
             && !target.getValue().equals(cm.getTargetUriType().getValue() + "?fhir_vs")) {
-          logger.debug("  SKIP target mismatch = " + cm.getVersion());
+          // logger.debug("  SKIP target mismatch = " + cm.getVersion());
           continue;
         }
 
         list.add(cm);
       }
+
       return list;
     } catch (final FHIRServerResponseException e) {
       throw e;

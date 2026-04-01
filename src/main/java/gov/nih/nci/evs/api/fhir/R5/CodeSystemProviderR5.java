@@ -122,47 +122,45 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyExclusive("url", url, "system", system);
 
       // Get the indexed terms
-      final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
       final List<CodeSystem> list = new ArrayList<>();
 
       // Find the matching code systems in the list of terms
-      for (final Terminology terminology : terms) {
-        final CodeSystem cs = FhirUtilityR5.toR5(terminology);
+      for (final CodeSystem cs : findPossibleCodeSystems(null, null, null)) {
 
         // Skip non-matching
         if ((id != null && !id.getValue().equals(cs.getIdPart()))
             || (url != null && !FhirUtility.compareUri(url, cs.getUrl()))) {
-          logger.debug("  SKIP url mismatch = " + cs.getUrl());
+          //          logger.debug("  SKIP url mismatch = " + cs.getUrl());
           continue;
         }
 
         if (system != null && !system.getValue().equals(cs.getUrl())) {
-          logger.debug("  SKIP system mismatch = " + cs.getUrl());
+          //          logger.debug("  SKIP system mismatch = " + cs.getUrl());
           continue;
         }
 
         if (date != null && !FhirUtility.compareDateRange(date, cs.getDate())) {
-          logger.debug("  SKIP date mismatch = " + cs.getDate());
+          //          logger.debug("  SKIP date mismatch = " + cs.getDate());
           continue;
         }
         if (description != null && !FhirUtility.compareString(description, cs.getDescription())) {
-          logger.debug("  SKIP description mismatch = " + cs.getDescription());
+          //          logger.debug("  SKIP description mismatch = " + cs.getDescription());
           continue;
         }
         if (name != null && !FhirUtility.compareString(name, cs.getName())) {
-          logger.debug("  SKIP name mismatch = " + cs.getName());
+          //          logger.debug("  SKIP name mismatch = " + cs.getName());
           continue;
         }
         if (publisher != null && !FhirUtility.compareString(publisher, cs.getPublisher())) {
-          logger.debug("  SKIP publisher mismatch = " + cs.getPublisher());
+          //          logger.debug("  SKIP publisher mismatch = " + cs.getPublisher());
           continue;
         }
         if (title != null && !FhirUtility.compareString(title, cs.getTitle())) {
-          logger.debug("  SKIP title mismatch = " + cs.getTitle());
+          //          logger.debug("  SKIP title mismatch = " + cs.getTitle());
           continue;
         }
         if (version != null && !FhirUtility.compareString(version, cs.getVersion())) {
-          logger.debug("  SKIP version mismatch = " + cs.getVersion());
+          //          logger.debug("  SKIP version mismatch = " + cs.getVersion());
           continue;
         }
 
@@ -246,9 +244,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         } else if (coding != null) {
           codeToLookup = coding.getCode();
         }
-        final CodeSystem codeSys = cs.get(0);
+        // This should be the latest (+monthly) version
+        final CodeSystem codeSystem = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
+            termUtils.getIndexedTerminology(codeSystem.getTitle(), osQueryService, true);
         // Fetch concept with properties, synonyms, and definitions
         final Optional<Concept> conceptOpt =
             osQueryService.getConcept(
@@ -261,27 +260,27 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         final Concept concept = conceptOpt.get();
 
         // Required in the specification
-        params.addParameter("name", codeSys.getName());
+        params.addParameter("name", codeSystem.getName());
         params.addParameter("display", concept.getName());
 
         // Optional in the specification
-        params.addParameter("version", codeSys.getVersion());
+        params.addParameter("version", codeSystem.getVersion());
 
         // Hardcoded properties - active is always included, parent/child are conditionally included
         // Active property is always included as per FHIR spec
-        params.addParameter(FhirUtilityR5.createProperty(concept.getActive(), "active", false));
+        params.addParameter(FhirUtilityR5.createProperty("active", concept.getActive(), false));
 
         // Parent properties - only include if no filter OR filter includes "parent"
         if (shouldIncludeHardcodedProperty("parent", property)) {
           for (final Concept parent : concept.getParents()) {
-            params.addParameter(FhirUtilityR5.createProperty(parent.getCode(), "parent", true));
+            params.addParameter(FhirUtilityR5.createProperty("parent", parent.getCode(), true));
           }
         }
 
         // Child properties - only include if no filter OR filter includes "child"
         if (shouldIncludeHardcodedProperty("child", property)) {
           for (final Concept child : concept.getChildren()) {
-            params.addParameter(FhirUtilityR5.createProperty(child.getCode(), "child", true));
+            params.addParameter(FhirUtilityR5.createProperty("child", child.getCode(), true));
           }
         }
 
@@ -290,7 +289,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           for (final Property prop : concept.getProperties()) {
             if (shouldIncludeProperty(prop, property)) {
               params.addParameter(
-                  FhirUtilityR5.createProperty(prop.getValue(), prop.getType(), false));
+                  FhirUtilityR5.createProperty(prop.getType(), prop.getValue(), false));
             }
           }
         }
@@ -399,20 +398,21 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         } else if (coding != null) {
           codeToLookup = coding.getCode();
         }
-        final CodeSystem codeSys = cs.get(0);
-        if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
+        // This should be the latest (+monthly) version
+        final CodeSystem codeSystem = cs.get(0);
+        if ((systemToLookup != null) && !codeSystem.getUrl().equals(systemToLookup.getValue())) {
           throw FhirUtilityR5.exception(
               "Supplied url or system "
                   + systemToLookup
                   + " doesn't match the CodeSystem retrieved by the id "
                   + id
                   + " "
-                  + codeSys.getUrl(),
+                  + codeSystem.getUrl(),
               OperationOutcome.IssueType.EXCEPTION,
               400);
         }
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
+            termUtils.getIndexedTerminology(codeSystem.getTitle(), osQueryService, true);
         // Fetch concept with properties, synonyms, and definitions
         final Optional<Concept> conceptOpt =
             osQueryService.getConcept(
@@ -425,27 +425,27 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         final Concept concept = conceptOpt.get();
 
         // Required in the specification
-        params.addParameter("name", codeSys.getName());
+        params.addParameter("name", codeSystem.getName());
         params.addParameter("display", concept.getName());
 
         // Optional in the specification
-        params.addParameter("version", codeSys.getVersion());
+        params.addParameter("version", codeSystem.getVersion());
 
         // Hardcoded properties - active is always included, parent/child are conditionally included
         // Active property is always included as per FHIR spec
-        params.addParameter(FhirUtilityR5.createProperty(concept.getActive(), "active", false));
+        params.addParameter(FhirUtilityR5.createProperty("active", concept.getActive(), false));
 
         // Parent properties - only include if no filter OR filter includes "parent"
         if (shouldIncludeHardcodedProperty("parent", property)) {
           for (final Concept parent : concept.getParents()) {
-            params.addParameter(FhirUtilityR5.createProperty(parent.getCode(), "parent", true));
+            params.addParameter(FhirUtilityR5.createProperty("parent", parent.getCode(), true));
           }
         }
 
         // Child properties - only include if no filter OR filter includes "child"
         if (shouldIncludeHardcodedProperty("child", property)) {
           for (final Concept child : concept.getChildren()) {
-            params.addParameter(FhirUtilityR5.createProperty(child.getCode(), "child", true));
+            params.addParameter(FhirUtilityR5.createProperty("child", child.getCode(), true));
           }
         }
 
@@ -454,7 +454,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
           for (final Property prop : concept.getProperties()) {
             if (shouldIncludeProperty(prop, property)) {
               params.addParameter(
-                  FhirUtilityR5.createProperty(prop.getValue(), prop.getType(), false));
+                  FhirUtilityR5.createProperty(prop.getType(), prop.getValue(), false));
             }
           }
         }
@@ -989,16 +989,16 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @throws Exception exception
    */
   private List<CodeSystem> findPossibleCodeSystems(
-      @OperationParam(name = "_id") final IdType id,
-      @OperationParam(name = "url") final UriType url,
-      @OperationParam(name = "version") final StringType version)
-      throws Exception {
+      final IdType id, final UriType url, final StringType version) throws Exception {
     try {
-      if (id == null && url == null) {
-        return new ArrayList<>(0);
-      }
+      // If no ID and no url are specified, ALL code systems match
+      //      if (id == null && url == null) {
+      //        return new ArrayList<>(0);
+      //      }
 
       final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+      Collections.sort(terms, TerminologyUtils.SORT_LATEST_MONTHLY);
+
       final List<CodeSystem> list = new ArrayList<>();
       // Find the matching code systems
       for (final Terminology terminology : terms) {
@@ -1006,15 +1006,16 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         // Skip non-matching
         if ((id != null && !id.getIdPart().equals(cs.getIdPart()))
             || (url != null && !url.getValue().equals(cs.getUrl()))) {
-          logger.debug("  SKIP url mismatch = " + cs.getUrl());
+          //          logger.debug("  SKIP url mismatch = " + cs.getUrl());
           continue;
         }
         if (version != null && !version.getValue().equals(cs.getVersion())) {
-          logger.debug("  SKIP version mismatch = " + cs.getVersion());
+          //          logger.debug("  SKIP version mismatch = " + cs.getVersion());
           continue;
         }
         list.add(cs);
       }
+
       return list;
     } catch (final FHIRServerResponseException e) {
       throw e;

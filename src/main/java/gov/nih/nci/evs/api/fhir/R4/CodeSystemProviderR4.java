@@ -141,6 +141,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         } else if (coding != null) {
           codeToLookup = coding.getCode();
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
@@ -296,6 +297,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         } else if (coding != null) {
           codeToLookup = coding.getCode();
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         // if system is supplied, ensure it matches the url returned on the codeSys found by id
         if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
@@ -467,6 +469,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         } else if (coding != null) {
           codeToValidate = coding.getCode();
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
@@ -583,6 +586,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         } else if (coding != null) {
           codeToValidate = coding.getCode();
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         // if url is supplied, ensure it matches the url returned on the codeSys found by id
         if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
@@ -707,16 +711,18 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           throw FhirUtilityR4.exception(
               "No codeB parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
         }
-        final CodeSystem codeSys = cs.get(0);
+        // This should be the latest (+monthly) version
+        final CodeSystem codeSystem = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
+            termUtils.getIndexedTerminology(codeSystem.getTitle(), osQueryService, true);
+        logger.info("XXX = term = " + term);
         final Optional<Concept> checkA =
             osQueryService.getConcept(code1, term, new IncludeParam("minimal"));
         final Optional<Concept> checkB =
             osQueryService.getConcept(code2, term, new IncludeParam("minimal"));
         if (checkA.get() != null && checkB.get() != null) {
-          params.addParameter("system", codeSys.getUrl());
-          params.addParameter("version", codeSys.getVersion());
+          params.addParameter("system", codeSystem.getUrl());
+          params.addParameter("version", codeSystem.getVersion());
           if (osQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumes");
           } else if (osQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
@@ -809,16 +815,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           throw FhirUtilityR4.exception(
               "No codeB parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
         }
-        final CodeSystem codeSys = cs.get(0);
+        // This should be the latest (+monthly) version
+        final CodeSystem codeSystem = cs.get(0);
         final Terminology term =
-            termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
+            termUtils.getIndexedTerminology(codeSystem.getTitle(), osQueryService, true);
         final Optional<Concept> checkA =
             osQueryService.getConcept(code1, term, new IncludeParam("minimal"));
         final Optional<Concept> checkB =
             osQueryService.getConcept(code2, term, new IncludeParam("minimal"));
         if (checkA.get() != null && checkB.get() != null) {
-          params.addParameter("system", codeSys.getUrl());
-          params.addParameter("version", codeSys.getVersion());
+          params.addParameter("system", codeSystem.getUrl());
+          params.addParameter("version", codeSystem.getVersion());
           if (osQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumes");
           } else if (osQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
@@ -880,38 +887,36 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupportedSearchParams(request);
       FhirUtilityR4.mutuallyExclusive("url", url, "system", system);
 
-      final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
-
       final List<CodeSystem> list = new ArrayList<>();
-      for (final Terminology terminology : terms) {
-        final CodeSystem cs = FhirUtilityR4.toR4(terminology);
+      for (final CodeSystem cs : findPossibleCodeSystems(null, null, null)) {
+
         // Skip non-matching
         if ((id != null && !id.getValue().equals(cs.getId()))
             || (system != null && !system.getValue().equals(cs.getUrl()))) {
-          logger.debug("  SKIP system mismatch = " + cs.getUrl());
+          // logger.debug("  SKIP system mismatch = " + cs.getUrl());
           continue;
         }
         if (url != null && !FhirUtility.compareUri(url, cs.getUrl())) {
-          logger.debug("  SKIP url mismatch = " + cs.getUrl());
+          // logger.debug("  SKIP url mismatch = " + cs.getUrl());
           continue;
         }
         if (date != null && !FhirUtility.compareDateRange(date, cs.getDate())) {
-          logger.debug("  SKIP date mismatch = " + cs.getDate());
+          // logger.debug("  SKIP date mismatch = " + cs.getDate());
           continue;
         }
         if (title != null && !FhirUtility.compareString(title, cs.getTitle())) {
-          logger.debug("  SKIP title mismatch = " + cs.getTitle());
+          // logger.debug("  SKIP title mismatch = " + cs.getTitle());
           continue;
         }
         if (version != null && !FhirUtility.compareString(version, cs.getVersion())) {
-          logger.debug("  SKIP version mismatch = " + cs.getVersion());
+          //          logger.debug("  SKIP version mismatch = " + cs.getVersion());
           continue;
         }
 
         list.add(cs);
       }
 
-      // Apply sorting if requested
+      // Apply sorting if requested via API
       applySorting(list, sort);
 
       return FhirUtilityR4.makeBundle(request, list, count, offset);
@@ -935,17 +940,16 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   private List<CodeSystem> findPossibleCodeSystems(
-      @OptionalParam(name = "_id") final IdType id,
-      @OptionalParam(name = "url") final UriType url,
-      @OptionalParam(name = "version") final StringType version)
-      throws Exception {
+      final IdType id, final UriType url, final StringType version) throws Exception {
     try {
-      // If no ID and no url are specified, no code systems match
-      if (id == null && url == null) {
-        return new ArrayList<>(0);
-      }
+      // If no ID and no url are specified, ALL code systems match
+      //      if (id == null && url == null) {
+      //        return new ArrayList<>(0);
+      //      }
 
+      // Get all terminologies sorted on version
       final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+      Collections.sort(terms, TerminologyUtils.SORT_LATEST_MONTHLY);
 
       final List<CodeSystem> list = new ArrayList<>();
       for (final Terminology terminology : terms) {
@@ -953,16 +957,17 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         // Skip non-matching
         if ((id != null && !id.getIdPart().equals(cs.getId()))
             || (url != null && !url.getValue().equals(cs.getUrl()))) {
-          logger.debug("  SKIP url mismatch = " + cs.getUrl());
+          //          logger.debug("  SKIP url mismatch = " + cs.getUrl());
           continue;
         }
         if (version != null && !version.getValue().equals(cs.getVersion())) {
-          logger.debug("  SKIP version mismatch = " + cs.getVersion());
+          //          logger.debug("  SKIP version mismatch = " + cs.getVersion());
           continue;
         }
 
         list.add(cs);
       }
+
       return list;
     } catch (final FHIRServerResponseException e) {
       throw e;

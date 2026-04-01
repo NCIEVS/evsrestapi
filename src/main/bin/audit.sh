@@ -134,7 +134,8 @@ case $report_type in
   load)
     header="Terminology\tVersion\tElapsed Time\tCount\tDate"
     q="process:(MetaOpensearchLoadServiceImpl OR MetaSourceOpensearchLoadServiceImpl OR LoaderServiceImpl OR GraphOpensearchLoadServiceImpl) AND NOT elapsedTime:0"
-    filter='def f: . as $ms | if $ms < 1000 then ($ms|tostring)+"ms" else ($ms/1000|floor) as $s | ($s/3600|floor) as $h | (($s%3600)/60|floor) as $m | ($s%60) as $sec | (if $h>0 then ($h|tostring)+"h " else "" end) + (if $m>0 or $h>0 then ($m|tostring)+"m " else "" end) + ($sec|tostring)+"s" end; .hits.hits[] | [._source.terminology, ._source.version, (._source.elapsedTime | f), ._source.count, (._source.date // ._source.startDate)] | @tsv'
+    filter='def f: . as $ms | if $ms < 1000 then ($ms|tostring)+"ms" else ($ms/1000|floor) as $s | def pad: tostring | if length == 1 then "0" + . else . end; ($s/3600|floor|pad) + ":" + (($s%3600)/60|floor|pad) + ":" + ($s%60|pad) end; .hits.hits[] | [._source.terminology, ._source.version, (._source.elapsedTime | f), ._source.count, (._source.date // ._source.startDate)] | @tsv'
+    #filter='def f: . as $ms | if $ms < 1000 then ($ms|tostring)+"ms" else ($ms/1000|floor) as $s | ($s/3600|floor) as $h | (($s%3600)/60|floor) as $m | ($s%60) as $sec | (if $h>0 then ($h|tostring)+"h " else "" end) + (if $m>0 or $h>0 then ($m|tostring)+"m " else "" end) + ($sec|tostring)+"s" end; .hits.hits[] | [._source.terminology, ._source.version, (._source.elapsedTime | f), ._source.count, (._source.date // ._source.startDate)] | @tsv'
     ;;
   error)
     header="Terminology\tVersion\tProcess\tDetails\tDate"
@@ -149,7 +150,8 @@ case $report_type in
   all)
     header="Type\tTerminology\tVersion\tProcess\tLogLevel\tDetails\tCount\tElapsed\tDate"
     q="*:*"
-    filter='def f: . as $ms | if $ms < 1000 then ($ms|tostring)+"ms" else ($ms/1000|floor) as $s | ($s/3600|floor) as $h | (($s%3600)/60|floor) as $m | ($s%60) as $sec | (if $h>0 then ($h|tostring)+"h " else "" end) + (if $m>0 or $h>0 then ($m|tostring)+"m " else "" end) + ($sec|tostring)+"s" end; .hits.hits[] | [._source.type, ._source.terminology, ._source.version, ._source.process, ._source.logLevel, ._source.details, ._source.count, (._source.elapsedTime | f), (._source.date // ._source.startDate)] | @tsv'
+    filter='def f: . as $ms | if $ms < 1000 then ($ms|tostring)+"ms" else ($ms/1000|floor) as $s | def pad: tostring | if length == 1 then "0" + . else . end; ($s/3600|floor|pad) + ":" + (($s%3600)/60|floor|pad) + ":" + ($s%60|pad) end; .hits.hits[] | [._source.type, ._source.terminology, ._source.version, ._source.process, ._source.logLevel, ._source.details, ._source.count, (._source.elapsedTime | f), (._source.date // ._source.startDate)] | @tsv'
+    #filter='def f: . as $ms | if $ms < 1000 then ($ms|tostring)+"ms" else ($ms/1000|floor) as $s | ($s/3600|floor) as $h | (($s%3600)/60|floor) as $m | ($s%60) as $sec | (if $h>0 then ($h|tostring)+"h " else "" end) + (if $m>0 or $h>0 then ($m|tostring)+"m " else "" end) + ($sec|tostring)+"s" end; .hits.hits[] | [._source.type, ._source.terminology, ._source.version, ._source.process, ._source.logLevel, ._source.details, ._source.count, (._source.elapsedTime | f), (._source.date // ._source.startDate)] | @tsv'
     ;;
   *)
     echo "ERROR: Unknown report type: $report_type"

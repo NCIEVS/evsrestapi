@@ -200,7 +200,8 @@ public class EmailDetails extends BaseModel {
     htmlBody.append("</style></head><body>");
 
     // Iterate over each section in the body object
-    body.fields()
+    body.properties()
+        .iterator()
         .forEachRemaining(
             section -> {
               String sectionName = section.getKey();
@@ -210,7 +211,8 @@ public class EmailDetails extends BaseModel {
               // Create a list format of each subsection content with <ul>
               htmlBody.append("<ul>");
               sectionNode
-                  .fields()
+                  .properties()
+                  .iterator()
                   .forEachRemaining(
                       field -> {
                         String fieldName = field.getKey();

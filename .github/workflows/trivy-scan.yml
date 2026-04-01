@@ -1,5 +1,8 @@
 name: Trivy Vulnerability Scan
 
+permissions:
+  contents: read
+
 on:
   pull_request:
     branches:
@@ -45,21 +48,16 @@ jobs:
         TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
         TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
 
-    # Check for high or critical vulnerabilities
-    - name: Check vulnerabilities
-      id: check-vulns
+    # Check for high or critical vulnerabilities and output if found
+    - name: Check and output vulnerabilities
+      id: check-vulnerabilities
       run: |
         vuln_count=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL")] | length' trivy_report.json)
         echo "Vulnerability count: $vuln_count"
         if [ "$vuln_count" -gt 0 ]; then
           echo "High or Critical vulnerabilities found!"
+          jq -r '.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH" or .Severity == "CRITICAL") | "\(.VulnerabilityID): \(.PkgName) - Severity: \(.Severity) - Installed Version: \(.InstalledVersion) - Fixed Version: \(.FixedVersion)"' trivy_report.json
           exit 1
         else
           echo "No high or critical vulnerabilities found."
         fi
-    
-    # Output the vulnerabilities in a human-readable format
-    - name: Output vulnerabilities
-      if: failure()  # Run only if the previous step fails
-      run: |
-        jq '.Results[]?.Vulnerabilities[] | select(.Severity == "HIGH" or .Severity == "CRITICAL") | "\(.VulnerabilityID): \(.PkgName) - Severity: \(.Severity) - Installed Version: \(.InstalledVersion) - Fixed Version: \(.FixedVersion)"' trivy_report.json

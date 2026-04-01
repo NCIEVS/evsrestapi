@@ -25,7 +25,7 @@ public final class ThreadLocalMapper {
    */
   public static ObjectMapper newMapper() {
     final ObjectMapper mapper = new ObjectMapper();
-    mapper.setSerializationInclusion(Include.NON_EMPTY);
+    mapper.setDefaultPropertyInclusion(Include.NON_EMPTY);
     mapper
         .findAndRegisterModules()
         .configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
