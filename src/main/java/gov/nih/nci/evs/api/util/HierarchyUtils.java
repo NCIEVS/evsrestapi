@@ -9,8 +9,10 @@ import gov.nih.nci.evs.api.model.Paths;
 import gov.nih.nci.evs.api.model.Role;
 import gov.nih.nci.evs.api.model.Terminology;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -84,33 +86,11 @@ public class HierarchyUtils {
    */
   private static Map<String, Set<String>> initPathsMap(final Terminology terminology) {
 
-    // For anything but snomed, just use a regular hashmap.
-    if (!terminology.getTerminology().startsWith("snomed")) {
-      return new HashMap<String, Set<String>>();
-    }
-
-    // for snomed loads
-    Map<String, Set<String>> map = new HashMap<String, Set<String>>();
-
-    // This cannot work without the "mapdb" implementation.  however it contains vulnerabilities
-    // that cannot be worked aroud
-    //    DB db =
-    //        DBMaker.fileDB("paths_map.db")
-    //            // High speed for 64-bit systems
-    //            .fileMmapEnable()
-    //            // Ensures files close when process exits
-    //            .closeOnJvmShutdown()
-    //            // Optional: prevents corruption on crash
-    //            .transactionEnable()
-    //            // Remove files after
-    //            .fileDeleteAfterClose()
-    //            .make();
-    //    ConcurrentMap<String, Set<String>> map =
-    //        db.hashMap("pathsMap", Serializer.STRING, Serializer.JAVA).createOrOpen();
-    return map;
+    // Use a file-based map to avoid memory usage (for all terminologies)
+    return new FileSystemMap(1024);
   }
 
-  /** The logical definition map for equivalent classes */
+  /** The logical definition map for equivalent classes. */
   @Transient private Map<String, Set<String>> logicalDefinitionMap = new HashMap<>();
 
   /** The roots. */
@@ -467,13 +447,12 @@ public class HierarchyUtils {
 
       pathsMap = initPathsMap(terminology);
 
+      final Map<String, Integer> pathsMapCt = new HashMap<>();
+
       // This finds paths for leaf nodes, and we need to turn into full paths
       // for each code. Write to a file because this can be a lot of data.
-      final Set<String> paths = findPaths();
-      final File file = File.createTempFile("tmp", "txt");
-      logger.info("    write file = " + file.getAbsolutePath());
-      FileUtils.writeLines(file, "UTF-8", paths, "\n", false);
-      paths.clear();
+      final File file = findPathsAsFile();
+      logMemory();
       logger.info("    start build paths map");
       try (final BufferedReader in = new BufferedReader(new FileReader(file))) {
         int partCt = 0;
@@ -495,26 +474,27 @@ public class HierarchyUtils {
             if (!pathsMap.get(key).contains(ptr)) {
               partCt++;
               pathsMap.get(key).add(ptr);
+              pathsMapCt.put(key, pathsMap.get(key).size());
             }
           }
           if (partCt % 5000 == 0) {
             logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
-            logMemory();
+            // logMemory();
           }
         }
         logger.debug("    total paths map = " + pathsMap.size() + ", " + partCt);
         logMemory();
 
         // Report top 5 keys
-        pathsMap.entrySet().stream()
+        pathsMapCt.entrySet().stream()
             // Sort descending by the size of the Set
-            .sorted((e1, e2) -> Integer.compare(e2.getValue().size(), e1.getValue().size()))
+            .sorted((e1, e2) -> Integer.compare(e2.getValue(), e1.getValue()))
             // Take only the top 5
             .limit(5)
             // Print the results
             .forEach(
                 entry -> {
-                  logger.debug("      " + entry.getKey() + " = " + entry.getValue().size());
+                  logger.debug("      " + entry.getKey() + " = " + entry.getValue());
                 });
 
         FileUtils.deleteQuietly(file);
@@ -525,10 +505,11 @@ public class HierarchyUtils {
   }
 
   /**
-   * Find paths.
+   * Find paths. (no longer used because now we write file directly)
    *
    * @return the list
    */
+  @SuppressWarnings("unused")
   private Set<String> findPaths() {
     final Set<String> paths = new HashSet<>();
     final Deque<String> stack = new ArrayDeque<String>();
@@ -562,6 +543,60 @@ public class HierarchyUtils {
     logger.debug("    total paths = " + ct);
     logger.debug("    total paths size = " + paths.stream().mapToInt(p -> p.length()).sum());
     return paths;
+  }
+
+  /**
+   * Find paths as file.
+   *
+   * @return the file
+   * @throws Exception the exception
+   */
+  private File findPathsAsFile() throws Exception {
+
+    final File file = File.createTempFile("tmp", ".txt");
+
+    // Use try-with-resources to ensure the writer closes and flushes data
+    try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+      final Deque<String> stack = new ArrayDeque<>();
+      final List<String> roots = getHierarchyRoots();
+      logger.debug("    roots = " + roots.size());
+
+      for (final String root : roots) {
+        stack.push(root);
+      }
+
+      int ct = 0;
+
+      while (!stack.isEmpty()) {
+        final String path = stack.pop();
+        final String[] values = path.trim().split("\\|");
+        final String lastCode = values[values.length - 1];
+        final List<String> subclasses = getSubclassCodes(lastCode);
+
+        if (subclasses == null || subclasses.isEmpty()) {
+          // Write to file instead of adding to a Set
+          writer.write(path);
+          writer.newLine();
+
+          if (++ct % 100000 == 0) {
+            logger.debug("    paths = " + ct);
+          }
+
+        } else {
+          for (final String subclass : subclasses) {
+            if (path.contains("|" + subclass + "|")) {
+              logger.error("  unexpected cycle = " + path + ", " + subclass);
+              continue;
+            }
+            stack.push(path + "|" + subclass);
+          }
+        }
+      }
+
+      logger.debug("    total paths = " + ct);
+    }
+
+    return file;
   }
 
   /**
@@ -796,6 +831,12 @@ public class HierarchyUtils {
     this.inverseAssociationMap = inverseAssociationMap;
   }
 
+  /**
+   * Gets the concept name from code.
+   *
+   * @param conceptCode the concept code
+   * @return the concept name from code
+   */
   public String getConceptNameFromCode(String conceptCode) {
     return this.code2label.get(conceptCode);
   }

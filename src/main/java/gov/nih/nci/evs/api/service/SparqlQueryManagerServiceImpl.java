@@ -98,7 +98,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   private RESTUtils restUtils = null;
 
   /** The initialized files (for clearing at start of session). */
-  private static final Set<String> initializedFiles = new HashSet<>();
+  // private static final Set<String> initializedFiles = new HashSet<>();
 
   /**
    * Post init.
@@ -791,7 +791,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
       // Add logicalDefinition property and defining parent flags based on map
       if ("ncit".equalsIgnoreCase(terminology.getTerminology())
-          && hierarchy != null
           && hierarchy.getLogicalDefinitionMap() != null) {
         if (hierarchy.getLogicalDefinitionMap().containsKey(conceptCode)) {
           final Property p = new Property();
