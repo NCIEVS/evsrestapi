@@ -129,7 +129,8 @@ public class OpenSearchServiceImpl implements OpenSearchService {
             .withQuery(boolQuery)
             .withPageable(pageable)
             .withSourceFilter(
-                new FetchSourceFilter(include.getIncludedFields(), include.getExcludedFields()));
+                new FetchSourceFilter(
+                    true, include.getIncludedFields(), include.getExcludedFields()));
 
     // avoid setting min score
     // .withMinScore(0.01f);

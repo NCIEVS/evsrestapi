@@ -141,6 +141,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         } else if (coding != null) {
           codeToLookup = coding.getCode();
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
@@ -296,6 +297,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         } else if (coding != null) {
           codeToLookup = coding.getCode();
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         // if system is supplied, ensure it matches the url returned on the codeSys found by id
         if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
@@ -467,6 +469,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         } else if (coding != null) {
           codeToValidate = coding.getCode();
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
@@ -583,6 +586,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         } else if (coding != null) {
           codeToValidate = coding.getCode();
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         // if url is supplied, ensure it matches the url returned on the codeSys found by id
         if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
@@ -707,6 +711,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           throw FhirUtilityR4.exception(
               "No codeB parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
@@ -809,6 +814,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
           throw FhirUtilityR4.exception(
               "No codeB parameter provided in request", OperationOutcome.IssueType.EXCEPTION, 400);
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
@@ -880,11 +886,9 @@ public class CodeSystemProviderR4 implements IResourceProvider {
       FhirUtilityR4.notSupportedSearchParams(request);
       FhirUtilityR4.mutuallyExclusive("url", url, "system", system);
 
-      final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
-
       final List<CodeSystem> list = new ArrayList<>();
-      for (final Terminology terminology : terms) {
-        final CodeSystem cs = FhirUtilityR4.toR4(terminology);
+      for (final CodeSystem cs : findPossibleCodeSystems(null, null, null)) {
+
         // Skip non-matching
         if ((id != null && !id.getValue().equals(cs.getId()))
             || (system != null && !system.getValue().equals(cs.getUrl()))) {
@@ -911,7 +915,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         list.add(cs);
       }
 
-      // Apply sorting if requested
+      // Apply sorting if requested via API
       applySorting(list, sort);
 
       return FhirUtilityR4.makeBundle(request, list, count, offset);
@@ -935,17 +939,16 @@ public class CodeSystemProviderR4 implements IResourceProvider {
    * @throws Exception the exception
    */
   private List<CodeSystem> findPossibleCodeSystems(
-      @OptionalParam(name = "_id") final IdType id,
-      @OptionalParam(name = "url") final UriType url,
-      @OptionalParam(name = "version") final StringType version)
-      throws Exception {
+      final IdType id, final UriType url, final StringType version) throws Exception {
     try {
-      // If no ID and no url are specified, no code systems match
-      if (id == null && url == null) {
-        return new ArrayList<>(0);
-      }
+      // If no ID and no url are specified, ALL code systems match
+      //      if (id == null && url == null) {
+      //        return new ArrayList<>(0);
+      //      }
 
+      // Get all terminologies sorted on version
       final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+      Collections.sort(terms, TerminologyUtils.SORT_LATEST_MONTHLY);
 
       final List<CodeSystem> list = new ArrayList<>();
       for (final Terminology terminology : terms) {
@@ -963,6 +966,7 @@ public class CodeSystemProviderR4 implements IResourceProvider {
 
         list.add(cs);
       }
+
       return list;
     } catch (final FHIRServerResponseException e) {
       throw e;
