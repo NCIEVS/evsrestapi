@@ -122,12 +122,10 @@ public class CodeSystemProviderR5 implements IResourceProvider {
       FhirUtilityR5.mutuallyExclusive("url", url, "system", system);
 
       // Get the indexed terms
-      final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
       final List<CodeSystem> list = new ArrayList<>();
 
       // Find the matching code systems in the list of terms
-      for (final Terminology terminology : terms) {
-        final CodeSystem cs = FhirUtilityR5.toR5(terminology);
+      for (final CodeSystem cs : findPossibleCodeSystems(null, null, null)) {
 
         // Skip non-matching
         if ((id != null && !id.getValue().equals(cs.getIdPart()))
@@ -246,6 +244,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         } else if (coding != null) {
           codeToLookup = coding.getCode();
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSys.getTitle(), osQueryService, true);
@@ -399,6 +398,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         } else if (coding != null) {
           codeToLookup = coding.getCode();
         }
+        // This should be the latest (+monthly) version
         final CodeSystem codeSys = cs.get(0);
         if ((systemToLookup != null) && !codeSys.getUrl().equals(systemToLookup.getValue())) {
           throw FhirUtilityR5.exception(
@@ -989,16 +989,16 @@ public class CodeSystemProviderR5 implements IResourceProvider {
    * @throws Exception exception
    */
   private List<CodeSystem> findPossibleCodeSystems(
-      @OperationParam(name = "_id") final IdType id,
-      @OperationParam(name = "url") final UriType url,
-      @OperationParam(name = "version") final StringType version)
-      throws Exception {
+      final IdType id, final UriType url, final StringType version) throws Exception {
     try {
-      if (id == null && url == null) {
-        return new ArrayList<>(0);
-      }
+      // If no ID and no url are specified, ALL code systems match
+      //      if (id == null && url == null) {
+      //        return new ArrayList<>(0);
+      //      }
 
       final List<Terminology> terms = termUtils.getIndexedTerminologies(osQueryService);
+      Collections.sort(terms, TerminologyUtils.SORT_LATEST_MONTHLY);
+
       final List<CodeSystem> list = new ArrayList<>();
       // Find the matching code systems
       for (final Terminology terminology : terms) {
@@ -1015,6 +1015,7 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         }
         list.add(cs);
       }
+
       return list;
     } catch (final FHIRServerResponseException e) {
       throw e;
