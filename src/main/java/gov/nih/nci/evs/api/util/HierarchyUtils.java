@@ -86,8 +86,11 @@ public class HierarchyUtils {
    */
   private static Map<String, Set<String>> initPathsMap(final Terminology terminology) {
 
-    // Use a file-based map to avoid memory usage (for all terminologies)
-    return new FileSystemMap(1024);
+    if (terminology.getTerminology().startsWith("snomed")) {
+      // Use a file-based map to avoid memory usage (for all terminologies)
+      return new FileSystemMap(4096);
+    }
+    return new HashMap<>();
   }
 
   /** The logical definition map for equivalent classes. */
