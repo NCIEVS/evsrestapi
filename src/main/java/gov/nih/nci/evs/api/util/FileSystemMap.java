@@ -11,9 +11,9 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.LinkedHashMap;
 import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +35,7 @@ public class FileSystemMap implements Map<String, Set<String>> {
   private final int shardCount;
 
   /** The cache size limit. */
-  private static final int CACHE_SIZE = 10000;
+  private static final int CACHE_SIZE = 100000;
 
   /** The hot key cache. */
   private final LinkedHashMap<String, Set<String>> hotKeyCache;
@@ -45,6 +45,9 @@ public class FileSystemMap implements Map<String, Set<String>> {
 
   /** The current shard cache. */
   private Map<String, Set<String>> currentShard = null;
+
+  /** The total size. */
+  private int totalSize = 0;
 
   /**
    * Creates a new FileSystemMap with 256 shards.
@@ -220,25 +223,14 @@ public class FileSystemMap implements Map<String, Set<String>> {
 
   /* see superclass */
   @Override
-  public int size() {
-    int total = 0;
-    for (int i = 0; i < shardCount; i++) {
-      Map<String, Set<String>> shard = loadShard(i);
-      total += shard.size();
-    }
-    return total;
+  public synchronized int size() {
+    return totalSize;
   }
 
   /* see superclass */
   @Override
-  public boolean isEmpty() {
-    for (int i = 0; i < shardCount; i++) {
-      Map<String, Set<String>> shard = loadShard(i);
-      if (!shard.isEmpty()) {
-        return false;
-      }
-    }
-    return true;
+  public synchronized boolean isEmpty() {
+    return totalSize == 0;
   }
 
   /* see superclass */
@@ -312,16 +304,22 @@ public class FileSystemMap implements Map<String, Set<String>> {
       throw new NullPointerException("Key cannot be null");
     }
 
+    int shardIndex = getShardIndex(key);
+    Map<String, Set<String>> shard = loadShard(shardIndex);
+    // No defensive copy, store directly
+    Set<String> oldValue = shard.put(key, value);
+
+    if (oldValue == null) {
+      synchronized (this) {
+        totalSize++;
+      }
+    }
+
     synchronized (this) {
       hotKeyCache.put(key, value);
       evictIfNecessary();
     }
 
-    int shardIndex = getShardIndex(key);
-    Map<String, Set<String>> shard = loadShard(shardIndex);
-    // No defensive copy, store directly
-    Set<String> oldValue = shard.put(key, value);
-    // Removed immediate auto-flush since we save on swap/flush All
     return oldValue;
   }
 
@@ -333,13 +331,20 @@ public class FileSystemMap implements Map<String, Set<String>> {
     }
     String strKey = (String) key;
 
+    int shardIndex = getShardIndex(strKey);
+    Map<String, Set<String>> shard = loadShard(shardIndex);
+    Set<String> oldValue = shard.remove(strKey);
+
+    if (oldValue != null) {
+      synchronized (this) {
+        totalSize--;
+      }
+    }
+
     synchronized (this) {
       hotKeyCache.remove(strKey);
     }
 
-    int shardIndex = getShardIndex(strKey);
-    Map<String, Set<String>> shard = loadShard(shardIndex);
-    Set<String> oldValue = shard.remove(strKey);
     return oldValue;
   }
 
@@ -362,7 +367,12 @@ public class FileSystemMap implements Map<String, Set<String>> {
       Map<String, Set<String>> shard = loadShard(shardIndex);
 
       for (Map.Entry<? extends String, ? extends Set<String>> entry : shardEntry.getValue()) {
-        shard.put(entry.getKey(), entry.getValue());
+        Set<String> oldValue = shard.put(entry.getKey(), entry.getValue());
+        if (oldValue == null) {
+          synchronized (this) {
+            totalSize++;
+          }
+        }
       }
     }
 
@@ -381,6 +391,7 @@ public class FileSystemMap implements Map<String, Set<String>> {
     hotKeyCache.clear();
     currentShardIndex = -1;
     currentShard = null;
+    totalSize = 0;
 
     for (int i = 0; i < shardCount; i++) {
       try {
