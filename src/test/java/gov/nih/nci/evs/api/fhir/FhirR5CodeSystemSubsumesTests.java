@@ -76,10 +76,10 @@ public class FhirR5CodeSystemSubsumesTests {
    */
   @Test
   public void testCodeSystemSubsumedByImplicit() throws Exception {
-    // Arrange
+    // Arrange - 448772000 (A) is narrower than 271860004 (B) -> subsumed-by
     String content;
-    final String activeCodeB = "448772000";
-    final String activeCodeA = "271860004";
+    final String activeCodeA = "448772000";
+    final String activeCodeB = "271860004";
     final String url = "http://snomed.info/sct";
     final String outcome = "subsumed-by";
     final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
@@ -128,8 +128,8 @@ public class FhirR5CodeSystemSubsumesTests {
   public void testCodeSystemSubsumesImplicit() throws Exception {
     // Arrange
     String content;
-    final String activeCodeA = "448772000";
-    final String activeCodeB = "271860004";
+    final String activeCodeA = "271860004";
+    final String activeCodeB = "448772000";
     final String url = "http://snomed.info/sct";
     final String outcome = "subsumes";
     final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
@@ -150,11 +150,11 @@ public class FhirR5CodeSystemSubsumesTests {
    */
   @Test
   public void testCodeSystemSubsumesImplicitWithCoding() throws Exception {
-    // Arrange
+    // Arrange - 448772000 (A) is narrower than 271860004 (B) -> subsumed-by
     final String url = "http://snomed.info/sct";
     final String activeCodeA = "448772000";
     final String activeCodeB = "271860004";
-    final String outcome = "subsumes";
+    final String outcome = "subsumed-by";
     final String endpoint = localHost + port + fhirCSPath + "/" + JpaConstants.OPERATION_SUBSUMES;
 
     // Create Coding objects
@@ -178,12 +178,12 @@ public class FhirR5CodeSystemSubsumesTests {
 
   @Test
   public void testCodeSystemSubsumesInstanceWithCoding() throws Exception {
-    // Arrange
+    // Arrange - 448772000 (A) is narrower than 271860004 (B) -> subsumed-by
     final String url = "http://snomed.info/sct";
     final String activeId = "snomedct_us_2020_09_01";
     final String activeCodeA = "448772000";
     final String activeCodeB = "271860004";
-    final String outcome = "subsumes";
+    final String outcome = "subsumed-by";
     final String endpoint =
         localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES;
 
@@ -213,13 +213,13 @@ public class FhirR5CodeSystemSubsumesTests {
    */
   @Test
   public void testCodeSystemSubsumesInstance() throws Exception {
-    // Arrange
+    // Arrange - 271860004 (A) is broader than 448772000 (B) -> subsumes
     String content;
-    final String activeCodeB = "448772000";
     final String activeCodeA = "271860004";
+    final String activeCodeB = "448772000";
     final String activeId = "snomedct_us_2020_09_01";
     final String url = "http://snomed.info/sct";
-    final String outcome = "subsumed-by";
+    final String outcome = "subsumes";
     final String endpoint =
         localHost + port + fhirCSPath + "/" + activeId + "/" + JpaConstants.OPERATION_SUBSUMES;
     final String parameters = "?system=" + url + "&codeA=" + activeCodeA + "&codeB=" + activeCodeB;

@@ -715,7 +715,6 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         final CodeSystem codeSystem = cs.get(0);
         final Terminology term =
             termUtils.getIndexedTerminology(codeSystem.getTitle(), osQueryService, true);
-        logger.info("XXX = term = " + term);
         final Optional<Concept> checkA =
             osQueryService.getConcept(code1, term, new IncludeParam("minimal"));
         final Optional<Concept> checkB =
@@ -723,10 +722,12 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         if (checkA.get() != null && checkB.get() != null) {
           params.addParameter("system", codeSystem.getUrl());
           params.addParameter("version", codeSystem.getVersion());
+          // code2 is ancestor/parent of code 1
           if (osQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
-            params.addParameter("outcome", "subsumes");
-          } else if (osQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
+            // If code1 has paths that include code2, code1 is narrower than code2
             params.addParameter("outcome", "subsumed-by");
+          } else if (osQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
+            params.addParameter("outcome", "subsumes");
           } else {
             params.addParameter("outcome", "no-subsumption-relationship");
           }
@@ -826,10 +827,11 @@ public class CodeSystemProviderR4 implements IResourceProvider {
         if (checkA.get() != null && checkB.get() != null) {
           params.addParameter("system", codeSystem.getUrl());
           params.addParameter("version", codeSystem.getVersion());
+          // code2 is ancestor/parent of code 1
           if (osQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
-            params.addParameter("outcome", "subsumes");
-          } else if (osQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumed-by");
+          } else if (osQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
+            params.addParameter("outcome", "subsumes");
           } else {
             params.addParameter("outcome", "no-subsumption-relationship");
           }
