@@ -179,7 +179,7 @@ public interface OpensearchQueryService {
       throws JsonParseException, JsonMappingException, IOException;
 
   /**
-   * Returns the path to parent.
+   * Returns the paths to parent.
    *
    * @param code the code
    * @param parentCode the parent code

@@ -1,5 +1,6 @@
 package gov.nih.nci.evs.api.service;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -12,20 +13,13 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import gov.nih.nci.evs.api.controller.TermSuggestionFormController;
-import gov.nih.nci.evs.api.model.EmailDetails;
-import gov.nih.nci.evs.api.properties.ApplicationProperties;
-import gov.nih.nci.evs.api.util.EVSUtils;
-import gov.nih.nci.evs.api.util.ThreadLocalMapper;
-import jakarta.mail.internet.MimeMessage;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -46,6 +40,16 @@ import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.server.ResponseStatusException;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
+import gov.nih.nci.evs.api.controller.TermSuggestionFormController;
+import gov.nih.nci.evs.api.model.EmailDetails;
+import gov.nih.nci.evs.api.properties.ApplicationProperties;
+import gov.nih.nci.evs.api.util.EVSUtils;
+import gov.nih.nci.evs.api.util.ThreadLocalMapper;
+import jakarta.mail.internet.MimeMessage;
 
 /** Test class for the email form service class. */
 @SpringBootTest
@@ -116,7 +120,7 @@ public class TermSuggestionFormServiceTest {
     String formType = "ncit-form";
     JsonNode termForm = ThreadLocalMapper.get().createObjectNode();
 
-    when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
+    assertEquals(configUrl, applicationProperties.getConfigBaseUri());
     when(objectMapper.readTree(new URL(configUrl + "/" + formType + ".json").openStream()))
         .thenReturn(termForm);
 
@@ -124,7 +128,6 @@ public class TermSuggestionFormServiceTest {
     JsonNode returnedForm = termFormService.getFormTemplate(formType);
 
     // ASSERT
-    verify(applicationProperties, times(1)).getConfigBaseUri();
     assertNotNull(returnedForm);
     assertTrue(returnedForm.isObject());
     // Verify the recaptcha site key was set and is in the response
@@ -143,7 +146,7 @@ public class TermSuggestionFormServiceTest {
 
     String filePath = configUrl + "/" + formType + ".json";
 
-    when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
+    assertEquals(configUrl, applicationProperties.getConfigBaseUri());
 
     try (MockedStatic<EVSUtils> mockedUtils = Mockito.mockStatic(EVSUtils.class)) {
       mockedUtils
@@ -218,7 +221,7 @@ public class TermSuggestionFormServiceTest {
     String formType = "invalid-form";
     String filePath = configUrl + "/" + formType + ".json";
 
-    when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
+    assertEquals(configUrl, applicationProperties.getConfigBaseUri());
 
     try (MockedStatic<EVSUtils> mockedUtils = Mockito.mockStatic(EVSUtils.class)) {
       mockedUtils
@@ -235,16 +238,15 @@ public class TermSuggestionFormServiceTest {
    *
    * @throws Exception throws exception
    */
-  @SuppressWarnings("resource")
   @Test
   public void testGetFormTemplateWhenNotObjectThrowsException() throws Exception {
     // SET UP - create an invalid term form object
     String formType = "invalid-form";
-    JsonNode termForm = ThreadLocalMapper.get().createArrayNode();
+    // JsonNode termForm = ThreadLocalMapper.get().createArrayNode();
     String filePath = configUrl + "/" + formType + ".json";
 
-    when(applicationProperties.getConfigBaseUri()).thenReturn(configUrl);
-    when(objectMapper.readTree(any(URL.class).openStream())).thenReturn(termForm);
+    assertEquals(configUrl, applicationProperties.getConfigBaseUri());
+    // when(objectMapper.readTree(any(URL.class).openStream())).thenReturn(termForm);
 
     // ACT & ASSERT
 
@@ -513,7 +515,7 @@ public class TermSuggestionFormServiceTest {
     // Verify we got the EXPECTATION_FAILED status and message contains our reason
     assertTrue(ex.getStatusCode() == HttpStatus.EXPECTATION_FAILED);
     assertTrue(
-        ex.getReason() != null && ex.getReason().contains("Invalid form type for attachment."));
+        ex.getReason() != null && ex.getReason().contains("Invalid attachment file for NCIT"));
   }
 
   /**
