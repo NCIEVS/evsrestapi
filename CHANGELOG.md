@@ -5,9 +5,20 @@ The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
 
-## [2.4.0.RELEASE] - 2025-MM-DD
+## [2.4.0.RELEASE] - 2026-04-06
 ### Changed
-- TBD
+- Improve search result ranking algorithm and handling of shards in deployment servers
+- Improve use of schema "hidden" tags on terminology metadata
+- Standardize swagger documentation for fromRecord and pageSize parameters
+- New REST endpoint to get propertly values (or samples at least)
+- Improved use of "audit" data gathered during indexing and system operation
+- Improvements to term form handling, in particular implementation of attachments for NCIt
+- Implement relationship "group" to support NCIT 'logical definition'
+- Improvements to FHIR support for parameters in "find" methods and to support "property" in $lookup/$expand
+- Improve recaptcha handling for tests
+- Improve handling of weekly/monthly and latest flags when reindexing
+- Improve handling of removing stale terminologies when indexing
+- Improve testing around data conditions in the test environment, especially with respect to changing versions
 
 ## [2.3.0.RELEASE] - 2026-02-20
 ### Changed
