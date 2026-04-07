@@ -818,10 +818,11 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         if (checkA.get() != null && checkB.get() != null) {
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
+          // code2 is ancestor/parent of code 1
           if (osQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
-            params.addParameter("outcome", "subsumes");
-          } else if (osQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumed-by");
+          } else if (osQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
+            params.addParameter("outcome", "subsumes");
           } else {
             params.addParameter("outcome", "no-subsumption-relationship");
           }
@@ -926,10 +927,11 @@ public class CodeSystemProviderR5 implements IResourceProvider {
         if (checkA.get() != null && checkB.get() != null) {
           params.addParameter("system", codeSys.getUrl());
           params.addParameter("version", codeSys.getVersion());
+          // code2 is ancestor/parent of code 1
           if (osQueryService.getPathsToParent(code1, code2, term).getPathCount() > 0) {
-            params.addParameter("outcome", "subsumes");
-          } else if (osQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
             params.addParameter("outcome", "subsumed-by");
+          } else if (osQueryService.getPathsToParent(code2, code1, term).getPathCount() > 0) {
+            params.addParameter("outcome", "subsumes");
           } else {
             params.addParameter("outcome", "no-subsumption-relationship");
           }
