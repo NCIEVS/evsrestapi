@@ -500,13 +500,11 @@ if [ $test_reconcile == 1 ]; then
         exit 1
     fi
 
-    # Run removal script from operations repo
-    echo "    Run remove.sh for older OBIB version"
-    OPERATIONS_BIN="D:/WCI/Repos/evsrestapi-operations/bin"
-    $OPERATIONS_BIN/remove.sh --noconfig --graphdb --es obib 2019-06-20 > /tmp/x.$$.txt 2>&1
+    # Drop older OBIB graph from GraphDB
+    echo "    Drop graph http://OBIB_old from NCIT2"
+    $curl_cmd -f -X POST -d "update=DROP GRAPH <http://OBIB_old>" "http://${GRAPH_DB_HOST}:${GRAPH_DB_PORT}/NCIT2/update" > /dev/null
     if [[ $? -ne 0 ]]; then
-        cat /tmp/x.$$.txt | sed 's/^/    /'
-        echo "ERROR: problem running remove.sh for OBIB"
+        echo "ERROR: problem dropping graph http://OBIB_old"
         exit 1
     fi
 
