@@ -10,14 +10,17 @@
 # the latest dev testing data set at that google drive URL.
 #
 help=0
+test_reconcile=0
 while [[ "$#" -gt 0 ]]; do case $1 in
   --help) help=1;;
+  --test-reconcile) test_reconcile=1;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
 if [ $help == 1 ] || [ ${#arr[@]} -ne 1 ]; then
-  echo "Usage: src/main/bin/devreset.sh \"c:/data/UnitTestData\""
+  echo "Usage: src/main/bin/devreset.sh [--test-reconcile] \"c:/data/UnitTestData\""
   echo "  e.g. src/main/bin/devreset.sh ../data/UnitTestData "
+  echo "  e.g. src/main/bin/devreset.sh --test-reconcile ../data/UnitTestData "
   exit 1
 fi
 dir=${arr[0]}
@@ -411,7 +414,9 @@ load_data(){
     load_terminology_data NCIT2 http://DUO_monthly DUO/IAO.202012.owl
     load_terminology_data NCIT2 http://OBI_monthly OBI/OBI.202207.owl
     load_terminology_data NCIT2 http://OBIB OBIB/OBIB.202111.owl
-    load_terminology_data NCIT2 http://OBIB_old OBIB/obib_2019-07.owl
+    if [ $test_reconcile == 1 ]; then
+        load_terminology_data NCIT2 http://OBIB_old OBIB/obib_2019-07.owl
+    fi
     load_terminology_data NCIT2 http://NDFRT2 NDFRT/NDFRT.20180205.owl
     load_terminology_data NCIT2 http://MGED MGED/MGED.20070209.owl
     load_terminology_data NCIT2 http://NPO NPO/NPO.20111208.owl
@@ -484,42 +489,44 @@ export CONFIG_BASE_URI=file://$(realpath $dir)/mappings2/config/metadata
 load_mapping2
 # NOTE: here $CONFIG_BASE_URI is pointing to the new value still
 
-# Test reconciliation
-echo "  Removal test (using older OBIB) ...`/bin/date`"
-# Verify older OBIB is loaded
-obib_old_index=$(curl -s "$ES/_cat/indices" | awk '$1 ~ /^concept_obib_201907/ {print $1; exit}')
-echo "    Verify $obib_old_index exists"
-if [[ -z "$obib_old_index" ]] || [[ `curl -s "$ES/_cat/indices" | grep "$obib_old_index" | wc -l` -eq 0 ]]; then
-    echo "ERROR: Older OBIB index NOT found before test"
-    exit 1
-fi
+if [ $test_reconcile == 1 ]; then
+    # Test reconciliation
+    echo "  Removal test (using older OBIB) ...`/bin/date`"
+    # Verify older OBIB is loaded
+    obib_old_index=$(curl -s "$ES/_cat/indices" | awk '$3 == "concept_obib_20190620" {print $3; exit}')
+    echo "    Verify $obib_old_index exists"
+    if [[ -z "$obib_old_index" ]] || [[ `curl -s "$ES/_cat/indices" | grep "$obib_old_index" | wc -l` -eq 0 ]]; then
+        echo "ERROR: Older OBIB index NOT found before test"
+        exit 1
+    fi
 
-# Run removal script from operations repo
-echo "    Run remove.sh for older OBIB version"
-OPERATIONS_BIN="D:/WCI/Repos/evsrestapi-operations/bin"
-$OPERATIONS_BIN/remove.sh --noconfig --graphdb --es obib 2019-07 > /tmp/x.$$.txt 2>&1
-if [[ $? -ne 0 ]]; then
-    cat /tmp/x.$$.txt | sed 's/^/    /'
-    echo "ERROR: problem running remove.sh for OBIB"
-    exit 1
-fi
+    # Run removal script from operations repo
+    echo "    Run remove.sh for older OBIB version"
+    OPERATIONS_BIN="D:/WCI/Repos/evsrestapi-operations/bin"
+    $OPERATIONS_BIN/remove.sh --noconfig --graphdb --es obib 2019-06-20 > /tmp/x.$$.txt 2>&1
+    if [[ $? -ne 0 ]]; then
+        cat /tmp/x.$$.txt | sed 's/^/    /'
+        echo "ERROR: problem running remove.sh for OBIB"
+        exit 1
+    fi
 
-# Run reindex (which includes reconciliation)
-echo "    Run reindex (reconciliation)"
-src/main/bin/reindex.sh --noconfig > /tmp/x.$$.txt 2>&1
-if [[ $? -ne 0 ]]; then
-    cat /tmp/x.$$.txt | sed 's/^/    /'
-    echo "ERROR: problem running reindex.sh during test"
-    exit 1
-fi
+    # Run reindex (which includes reconciliation)
+    echo "    Run reindex (reconciliation)"
+    src/main/bin/reindex.sh --noconfig > /tmp/x.$$.txt 2>&1
+    if [[ $? -ne 0 ]]; then
+        cat /tmp/x.$$.txt | sed 's/^/    /'
+        echo "ERROR: problem running reindex.sh during test"
+        exit 1
+    fi
 
-# Verify OBIB index is GONE
-echo "    Verify $obib_old_index is removed"
-if [[ `curl -s "$ES/_cat/indices" | grep "$obib_old_index" | wc -l` -ne 0 ]]; then
-    echo "ERROR: Older OBIB index STILL EXISTS after removal and reconciliation"
-    exit 1
+    # Verify OBIB index is GONE
+    echo "    Verify $obib_old_index is removed"
+    if [[ `curl -s "$ES/_cat/indices" | grep "$obib_old_index" | wc -l` -ne 0 ]]; then
+        echo "ERROR: Older OBIB index STILL EXISTS after removal and reconciliation"
+        exit 1
+    fi
+    echo "    Older OBIB index successfully removed."
 fi
-echo "    Older OBIB index successfully removed."
 # Cleanup
 /bin/rm -f /tmp/x.$$.txt $dir/x.{sh,txt}
 
