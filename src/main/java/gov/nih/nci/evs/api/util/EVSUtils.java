@@ -404,7 +404,8 @@ public class EVSUtils {
     String code =
         uri.replaceFirst("/skos/core", "/skos")
             .replaceFirst(".*\\/", "")
-            .replaceFirst("rdf-schema", "rdfs");
+            .replaceFirst("rdf-schema", "rdfs")
+            .replaceFirst("22-rdf-syntax-ns", "rdf");
 
     // If ..../npo#DesignNote => :DesignNote
     if (code.startsWith(terminology + "#")) {
