@@ -86,8 +86,7 @@ public class HierarchyUtils {
    */
   private static Map<String, Set<String>> initPathsMap(final Terminology terminology) {
 
-    if (terminology.getTerminology().startsWith("snomed")
-        || terminology.getTerminology().startsWith("ncit")) {
+    if (terminology.getTerminology().startsWith("snomed")) {
       // Use a file-based map to avoid memory usage (for all terminologies)
       return new FileSystemMap(512);
     }
