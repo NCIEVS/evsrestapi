@@ -8,19 +8,22 @@
 config=1
 force=0
 historyFileOverride=
+terminologyOverride=
 while [[ "$#" -gt 0 ]]; do case $1 in
   --noconfig) config=0;;
   --force) force=1;;
   --history) historyFileOverride=$2; shift;;
+  --terminology) terminologyOverride=$2; shift;;
   *) arr=( "${arr[@]}" "$1" );;
 esac; shift; done
 
 if [ ${#arr[@]} -ne 0 ]; then
-  echo "Usage: $0 [--noconfig] [--force] [--history <history file>]"
+  echo "Usage: $0 [--noconfig] [--force] [--history <history file>] [--terminology <terminology>]"
   echo "  e.g. $0"
   echo "  e.g. $0 --noconfig"
   echo "  e.g. $0 --force"
   echo "  e.g. $0 --noconfig --history ../data/UnitTestData/NCIT/cumulative_history_25.12e.txt"
+  echo "  e.g. $0 --terminology medrt"
   exit 1
 fi
 
@@ -405,63 +408,6 @@ download_ncit_history() {
   return 0
 }
 
-# For "rdf" or "rrf", get the indexed terminologies
-get_indexed_terminologies() {
-    local type=$1	
-    echo $(curl -s "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_search?size=1000" | jq -r '.hits.hits[]._source.terminology | select(.metadata.loader == "'"$type"'") | .terminologyVersion' | sed 's/^/concept_/')
-}
-
-# Remove unused indexes
-# Things loaded via RDF in the indexes that are no longer in graphdb
-remove_unused_indexes() {
-
-    echo "    Remove rdf terminologies no longer in graphdb ...`/bin/date`"
-    # Get all currently indexed terminologies
-    rdf_terms=$(get_indexed_terminologies "rdf")
-    echo "      rdf = $rdf_terms"
-
-    # Get all valid terminology keys from the currently loaded graph db triples
-    graphdb_terms=$(cut -d'|' -f1,3 /tmp/y.$$.txt | while IFS='|' read -r version iri; do
-        term=$(get_terminology "$iri")
-        version=$(get_version "$version")
-        echo -n " concept_${term}_${version}"
-done)
-    echo "      graphdb = $graphdb_terms"
-
-    # Remove indexes not found in triple store
-    for index in $rdf_terms; do
-        keep=0
-        for v in $graphdb_terms; do
-            if [[ "$index" == "$v" ]]; then
-                keep=1
-                break
-            fi
-        done
-        if [[ $keep -eq 0 ]]; then
-            echo "      remove $index"
-            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/$index" > /tmp/x.$$.txt
-            if [[ $? -ne 0 ]]; then
-                cat /tmp/x.$$.txt | sed 's/^/    /'
-                echo "ERROR: error removing index $i"
-                # exit 1
-            fi
-            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/${index/concept_/evs_object_}" > /tmp/x.$$.txt
-            if [[ $? -ne 0 ]]; then
-                cat /tmp/x.$$.txt | sed 's/^/    /'
-                echo "ERROR: error removing index ${index/concept_/evs_object}"
-                # exit 1
-            fi
-            curl -s -X DELETE "$ES_SCHEME://$ES_HOST:$ES_PORT/evs_metadata/_doc/$index" > /tmp/x.$$.txt
-            if [[ $? -ne 0 ]]; then
-                cat /tmp/x.$$.txt | sed 's/^/    /'
-                echo "ERROR: error removing evs_metadata entry for $index"
-                # exit 1
-            fi
-        fi
-    done	
-	
-}
-
 #---------------------------------------------------------
 # Perform Reindex Operations
 #---------------------------------------------------------
@@ -472,8 +418,6 @@ get_graph_query
 get_graphs
 set_total_fields_limit_5000
 
-# This is done by the server internally
-# remove_unused_indexes
 
 # For each DB|version, check whether indexes already exist for that version
 echo ""
@@ -484,6 +428,12 @@ for x in `cat /tmp/y.$$.txt`; do
     db=`echo $x | cut -d\| -f 2`
     uri=`echo $x | cut -d\| -f 3`
     term=$(get_terminology "$uri")
+
+    # If terminology override is specified, skip others
+    if [[ $terminologyOverride ]] && [[ $term != $terminologyOverride ]]; then
+        echo "    SKIPPING $term (targeted reindex of $terminologyOverride)"
+        continue
+    fi
 
     # if previous version and current version match, then skip
     # this is a monthly that's in both NCIT2 and CTRP databases
