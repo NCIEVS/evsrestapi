@@ -189,44 +189,59 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
         objectIndexName = "evs_object_" + indexName.replace("concept_", "");
       }
 
-      // delete objects index
-      logger.info("    REMOVE " + objectIndexName);
-      boolean result = operationsService.deleteIndex(objectIndexName);
-
-      if (!result) {
-        logger.warn("Deleting objects index {} failed!", objectIndexName);
-        Audit.addAudit(
-            operationsService,
-            "DeleteIndexFailed",
-            "cleanStaleIndexes",
-            objectIndexName,
-            "Deleting objects index " + objectIndexName + " failed!",
-            "WARN");
-        // Keep going
-        // continue;
+      // Check and delete concepts index
+      try {
+        if (operationsService.indexExists(indexName)) {
+          logger.info("    REMOVE " + indexName);
+          boolean result = operationsService.deleteIndex(indexName);
+          if (!result) {
+            logger.warn("Deleting concepts index {} failed!", indexName);
+            Audit.addAudit(
+                operationsService,
+                "WARN",
+                "cleanStaleIndexes",
+                indexName,
+                "Deleting concepts index " + indexName + " failed!",
+                "WARN");
+          }
+        } else {
+          logger.info("    SKIP " + indexName + " (does not exist)");
+        }
+      } catch (Exception e) {
+        logger.warn("Error checking/deleting concepts index {}: {}", indexName, e.getMessage());
       }
 
-      // delete concepts index
-      logger.info("    REMOVE " + indexName);
-      result = operationsService.deleteIndex(indexName);
-
-      if (!result) {
-        logger.warn("Deleting concepts index {} failed!", indexName);
-        Audit.addAudit(
-            operationsService,
-            "WARN",
-            "cleanStaleIndexes",
-            indexName,
-            "Deleting concepts index " + objectIndexName + " failed!",
-            "WARN");
-        // Keep going
-        //        continue;
+      // Check and delete objects index
+      try {
+        if (operationsService.indexExists(objectIndexName)) {
+          logger.info("    REMOVE " + objectIndexName);
+          boolean result = operationsService.deleteIndex(objectIndexName);
+          if (!result) {
+            logger.warn("Deleting objects index {} failed!", objectIndexName);
+            Audit.addAudit(
+                operationsService,
+                "DeleteIndexFailed",
+                "cleanStaleIndexes",
+                objectIndexName,
+                "Deleting objects index " + objectIndexName + " failed!",
+                "WARN");
+          }
+        } else {
+          logger.info("    SKIP " + objectIndexName + " (does not exist)");
+        }
+      } catch (Exception e) {
+        logger.warn(
+            "Error checking/deleting objects index {}: {}", objectIndexName, e.getMessage());
       }
 
-      // delete metadata object
-      logger.info("    REMOVE evs_metadata " + indexName);
-      String id = operationsService.deleteIndexMetadata(indexName);
-      logger.info("      id = " + id);
+      // Always attempt to delete metadata entry (even if indexes were missing or broken)
+      try {
+        logger.info("    REMOVE evs_metadata " + indexName);
+        String id = operationsService.deleteIndexMetadata(indexName);
+        logger.info("      id = " + id);
+      } catch (Exception e) {
+        logger.warn("Failed to delete evs_metadata entry for {}: {}", indexName, e.getMessage());
+      }
 
       removed.add(iMeta.getTerminologyVersion());
     }
