@@ -168,7 +168,9 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
 
     List<IndexMetadata> iMetas =
         termUtils.getStaleGraphTerminologies(
-            Arrays.asList(dbs.split(",")), sparqlQueryManagerService, osQueryService);
+            Arrays.stream(dbs.split(",")).map(String::trim).collect(Collectors.toList()),
+            sparqlQueryManagerService,
+            osQueryService);
     if (CollectionUtils.isEmpty(iMetas)) {
       logger.info("NO stale terminologies to remove");
       return new HashSet<>(0);
@@ -178,16 +180,14 @@ public abstract class BaseLoaderService implements OpensearchLoadService {
     final Set<String> removed = new HashSet<>();
     for (IndexMetadata iMeta : iMetas) {
 
+      if (iMeta.getTerminology() == null) {
+        logger.warn("IndexMetadata found with null terminology: {}", iMeta.getIndexName());
+        continue;
+      }
+
       logger.info("  REMOVE stale terminology = " + iMeta.getTerminology().getTerminologyVersion());
       String indexName = iMeta.getIndexName();
-      String objectIndexName = iMeta.getObjectIndexName();
-
-      // objectIndexName will be NULL if terminology object is not part of
-      // IndexMetadata temporarily required to accommodate change in
-      // IndexMetadata object
-      if (objectIndexName == null) {
-        objectIndexName = "evs_object_" + indexName.replace("concept_", "");
-      }
+      String objectIndexName = iMeta.getTerminology().getObjectIndexName();
 
       // Check and delete concepts index
       try {
