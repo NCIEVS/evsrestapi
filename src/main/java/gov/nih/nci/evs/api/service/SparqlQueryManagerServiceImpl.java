@@ -1356,7 +1356,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       role.setRelatedName(b.getRelatedConceptLabel().getValue());
 
       // Set the URI for the relationship node
-      role.setUri(b.getRelationship().getValue());
+      // TODO: ASSUMPTION rel+relatedConcept is unique - we may want to include the container URL
+      role.setUri(b.getRelationship().getValue() + b.getRelatedConcept().getValue());
 
       // SKIP distinct roles only - the UI needs to deal with this.
       //      final String key = role.getCode() + role.getRelatedCode();
@@ -1442,7 +1443,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       // Set uri of role
-      role.setUri(b.getRelationship().getValue());
+      // TODO: ASSUMPTION rel+relatedConcept is unique - we may want to include the container URL
+      role.setUri(b.getRelationship().getValue() + b.getRelatedConcept().getValue());
 
       // SKIP logic for distinct roles
       roles.add(role);
@@ -1505,7 +1507,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       }
 
       // Set uri of role
-      role.setUri(b.getRelationship().getValue());
+      // TODO: ASSUMPTION rel+relatedConcept is unique - we may want to include the container URL
+      role.setUri(b.getRelationship().getValue() + b.getRelatedConcept().getValue());
 
       // SKIP logic for distinct roles
       resultMap.get(conceptCode).add(role);
@@ -1553,7 +1556,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
 
       // Set URI for now
-      role.setUri(b.getRelationship().getValue());
+      // TODO: ASSUMPTION rel+relatedConcept is unique - we may want to include the container URL
+      role.setUri(b.getRelationship().getValue() + b.getRelatedConcept().getValue());
 
       // SKIP distinct roles only (the UI must deal with this)
       //      final String key = conceptCode + role.getCode() + role.getRelatedCode();
@@ -1620,7 +1624,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         role.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
         role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
 
-        role.setUri(b.getRelationship().getValue());
+        // TODO: ASSUMPTION rel+relatedConcept is unique - we may want to include the container URL
+        role.setUri(b.getRelationship().getValue() + b.getRelatedConcept().getValue());
 
         // SKIP distinct roles only - the UI needs to deal with this.
         //        final String key = conceptCode + role.getCode() + role.getRelatedCode();
