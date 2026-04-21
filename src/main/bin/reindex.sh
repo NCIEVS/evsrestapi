@@ -396,7 +396,7 @@ download_ncit_history() {
       # done looking
       else 
           echo "    Trying again with prev_version = $prev_version"
-          download_and_unpack "$prev_version"
+          download_ncit_history_helper "$prev_version"
       fi
   fi
 

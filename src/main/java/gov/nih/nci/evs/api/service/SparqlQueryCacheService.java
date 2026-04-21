@@ -56,6 +56,9 @@ public class SparqlQueryCacheService {
       final RESTUtils restUtils,
       final SparqlQueryManagerService sparqlQueryManagerService)
       throws Exception {
+
+    logger.info("Load hierarchy");
+
     final List<String> parentchild = new ArrayList<>();
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query = queryBuilderService.constructQuery("hierarchy", terminology);
@@ -91,6 +94,7 @@ public class SparqlQueryCacheService {
       str.append("\n");
       parentchild.add(str.toString());
     }
+    logger.debug("  hierarchy entries = " + parentchild.size());
 
     // Add role entries
     parentchild.addAll(getHierarchyRoleHelper(terminology, restUtils, sparqlQueryManagerService));
@@ -99,7 +103,8 @@ public class SparqlQueryCacheService {
   }
 
   /**
-   * Returns the hierarchy role helper.
+   * Returns the hierarchy role helper. This is for terminologies that define hierarchy roles such
+   * as GO.
    *
    * @param terminology the terminology
    * @param restUtils the rest utils
@@ -118,6 +123,8 @@ public class SparqlQueryCacheService {
       logger.debug("  no hierarchy roles defined");
       return new ArrayList<>(0);
     }
+    logger.debug("  add hierarchy roles");
+
     final List<String> parentchild = new ArrayList<>();
     final String queryPrefix = queryBuilderService.constructPrefix(terminology);
     final String query =
