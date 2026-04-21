@@ -564,8 +564,8 @@ for x in `cat /tmp/y.$$.txt`; do
             historyClause=" -d $historyFile"
         fi
 
-        echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4596M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
-        java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4596M -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
+        echo "    java --add-opens=java.base/java.io=ALL-UNNAMED $local -Xm4096M -jar $jar --terminology ${term}_$version --realTime --forceDeleteIndex $historyClause"
+        java --add-opens=java.base/java.io=ALL-UNNAMED $local -XX:+ExitOnOutOfMemoryError -Xmx4096M -jar $jar --terminology "${term}_$version" --realTime --forceDeleteIndex $historyClause
         if [[ $? -ne 0 ]]; then
             echo "pwd = `pwd`"
             echo "ERROR: unexpected error building indexes"
