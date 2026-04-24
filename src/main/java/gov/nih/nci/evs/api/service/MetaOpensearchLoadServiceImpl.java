@@ -1557,7 +1557,7 @@ public class MetaOpensearchLoadServiceImpl extends BaseLoaderService {
 
       return term;
     } catch (Exception ex) {
-      throw new Exception("Could not load terminology ncim", ex);
+      throw new Exception("Could not load terminology " + terminology, ex);
     }
   }
 

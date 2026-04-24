@@ -159,7 +159,11 @@ if [[ $terminology == "ncim" ]]; then
     # check both places for good measure
     version=`grep umls.release.name $dir/../release.dat $dir/release.dat | perl -pe 's/.*=//; s/\r//;'`
 else
-    version=`perl -ne '@_=split/\|/; print "$_[6]\n" if $_[0] && $_[3] eq "'$terminology'";' $dir/MRSAB.RRF`
+    search=$terminology
+    if [[ $terminology == "hl7v30" ]]; then
+        search="HL7V3.0"
+    fi
+    version=`perl -ne '@_=split/\|/; print "$_[6]\n" if $_[0] && $_[3] eq "'$search'";' $dir/MRSAB.RRF`
 fi
 
 ## check whether this index exists already, and if so skip indexing call
