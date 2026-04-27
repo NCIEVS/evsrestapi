@@ -40,7 +40,8 @@ repositories {
 }
 
 // Avoid specifying version unless needed
-// ext['log4j2.version'] = '2.25.3'
+// Explicit override for medium-severity CVEs pulled in by OpenSearch 2.19.x
+ext['log4j2.version'] = '2.25.4'
 
 // Extra Properties
 ext {
@@ -113,6 +114,7 @@ dependencies {
   implementation "org.opensearch:opensearch-common:2.19.4"
 
   // other explicit vulnerability overrides
+  implementation "org.apache.commons:commons-lang3:3.18.0"
   implementation "org.apache.tomcat.embed:tomcat-embed-core:10.1.54"
   implementation "org.thymeleaf:thymeleaf:3.1.4.RELEASE"
   implementation "org.thymeleaf:thymeleaf-spring6:3.1.4.RELEASE"
@@ -136,8 +138,8 @@ dependencies {
   implementation 'com.sun.xml.bind:jaxb-impl:2.3.3'
 
   // Apache POI for reading .xls and .xlsx files
-  implementation 'org.apache.poi:poi:5.2.3'
-  implementation 'org.apache.poi:poi-ooxml:5.2.3'
+  implementation 'org.apache.poi:poi:5.4.0'
+  implementation 'org.apache.poi:poi-ooxml:5.4.0'
 
   //implementation 'commons-io:commons-io:2.14.0'
   //implementation 'commons-cli:commons-cli:1.4'
@@ -173,6 +175,7 @@ dependencies {
 
   // SpotBugs annotations
   compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.2"
+  spotbugs "org.apache.commons:commons-lang3:3.18.0"
 
   /*
    * Test Dependencies
