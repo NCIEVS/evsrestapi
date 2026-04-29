@@ -174,8 +174,7 @@ dependencies {
   //compileOnly "org.projectlombok:lombok:1.18.32"
 
   // SpotBugs annotations
-  compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.2"
-  spotbugs "org.apache.commons:commons-lang3:3.18.0"
+  compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.6"
 
   /*
    * Test Dependencies
