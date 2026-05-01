@@ -443,6 +443,8 @@ public class MetaSourceOpensearchLoadServiceImpl extends BaseLoaderService {
 
         if (fields[3].equals("PAR")
             && !srcAuis.contains(fields[5])
+            && auiCodeMap.get(fields[5]) != null
+            && auiCodeMap.get(fields[1]) != null
             && !auiCodeMap.get(fields[5]).equals(auiCodeMap.get(fields[1]))) {
           final StringBuffer str = new StringBuffer();
           str.append(auiCodeMap.get(fields[5]));
