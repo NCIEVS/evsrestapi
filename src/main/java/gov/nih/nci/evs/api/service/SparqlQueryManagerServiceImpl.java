@@ -288,10 +288,10 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
   public Concept getConceptFromOpensearch(
       final String conceptCode, final Terminology terminology, final String include)
       throws Exception {
-    SearchCriteria searchCriteria = new SearchCriteria();
+    final SearchCriteria searchCriteria = new SearchCriteria();
     searchCriteria.setTerm(conceptCode);
     searchCriteria.setInclude(include);
-    ConceptResultList result =
+    final ConceptResultList result =
         openSearchService.findConcepts(Collections.singletonList(terminology), searchCriteria);
     return !result.getConcepts().isEmpty() ? result.getConcepts().get(0) : null;
   }
@@ -565,7 +565,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
                 getProperties(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
             disjointWithMap.putAll(
                 getDisjointWith(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
-            log.info("      finish main");
+            log.info(
+                "      finish main = "
+                    + propertyMap.size()
+                    + ", "
+                    + propertyMap.values().stream().mapToInt(List::size).sum());
           } catch (final Exception e) {
             log.error("Unexpected error on main", e);
             exceptions.add(e);
@@ -578,28 +582,46 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             log.info("      start roles");
             roleMap.putAll(
                 getRoles(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
-            log.info("      finish roles");
+
+            // Add complex roles
+            for (final String codeOrUri : conceptUris.isEmpty() ? conceptCodes : conceptUris) {
+              if (complexRoleMap.containsKey(codeOrUri)) {
+                if (!roleMap.containsKey(codeOrUri)) {
+                  roleMap.put(codeOrUri, new ArrayList<>());
+                }
+                roleMap.get(codeOrUri).addAll(complexRoleMap.get(codeOrUri));
+              }
+            }
+
+            log.info(
+                "      finish roles = "
+                    + roleMap.size()
+                    + ", "
+                    + roleMap.values().stream().mapToInt(List::size).sum());
           } catch (final Exception e) {
             log.error("Unexpected error on roles", e);
             exceptions.add(e);
           }
         });
 
-    if ("ncit".equalsIgnoreCase(terminology.getTerminology())) {
-      executor.submit(
-          () -> {
-            try {
-              log.info("      start role groups");
-              roleGroupMap.putAll(
-                  getRolesWithGroups(
-                      conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
-              log.info("      finish role groups");
-            } catch (final Exception e) {
-              log.error("Unexpected error on role groups", e);
-              exceptions.add(e);
-            }
-          });
-    }
+    // Given default query in sparql-queries.properties, only NCIt will return anything for this
+    executor.submit(
+        () -> {
+          try {
+            log.info("      start role groups");
+            roleGroupMap.putAll(
+                getRolesWithGroups(
+                    conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
+            log.info(
+                "      finish role groups = "
+                    + roleGroupMap.size()
+                    + ", "
+                    + roleGroupMap.values().stream().mapToInt(List::size).sum());
+          } catch (final Exception e) {
+            log.error("Unexpected error on role groups", e);
+            exceptions.add(e);
+          }
+        });
 
     executor.submit(
         () -> {
@@ -607,7 +629,22 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             log.info("      start inverse roles");
             inverseRoleMap.putAll(
                 getInverseRoles(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology));
-            log.info("      finish inverse roles");
+
+            // Add complex inverse roles
+            for (final String codeOrUri : conceptUris.isEmpty() ? conceptCodes : conceptUris) {
+              if (complexInverseRoleMap.containsKey(codeOrUri)) {
+                if (!inverseRoleMap.containsKey(codeOrUri)) {
+                  inverseRoleMap.put(codeOrUri, new ArrayList<>());
+                }
+                inverseRoleMap.get(codeOrUri).addAll(complexInverseRoleMap.get(codeOrUri));
+              }
+            }
+
+            log.info(
+                "      finish inverse roles = "
+                    + inverseRoleMap.size()
+                    + ", "
+                    + inverseRoleMap.values().stream().mapToInt(List::size).sum());
           } catch (final Exception e) {
             log.error("Unexpected error on inverse roles", e);
             exceptions.add(e);
@@ -620,7 +657,11 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
             log.info("      start axioms");
             axiomMap.putAll(
                 getAxioms(conceptUris.isEmpty() ? conceptCodes : conceptUris, terminology, true));
-            log.info("      finish axioms");
+            log.info(
+                "      finish axioms = "
+                    + axiomMap.size()
+                    + ", "
+                    + axiomMap.values().stream().mapToInt(List::size).sum());
           } catch (final Exception e) {
             log.error("Unexpected error on axioms", e);
             exceptions.add(e);
@@ -643,34 +684,31 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     if (!exceptions.isEmpty()) {
       throw new RuntimeException(exceptions.get(0));
     }
-
-    // Merge role groups into roleMap (ncit only)
-    if ("ncit".equalsIgnoreCase(terminology.getTerminology()) && !roleGroupMap.isEmpty()) {
+    // Merge role groups into roleMap
+    if (!roleGroupMap.isEmpty()) {
       for (final String conceptCode : roleGroupMap.keySet()) {
         if (roleMap.containsKey(conceptCode)) {
+          // These roles will already contain complex roles.
           final List<Role> roles = roleMap.get(conceptCode);
           final List<Role> groupRoles = roleGroupMap.get(conceptCode);
 
-          final Map<String, Role> grMap = new HashMap<>();
-          for (final Role gr : groupRoles) {
-            grMap.put(gr.getCode() + gr.getRelatedCode(), gr);
-          }
+          // Remove any roles that have group roles based on uri
+          roles.removeIf(
+              r -> groupRoles.stream().filter(gr -> gr.getUri().equals(r.getUri())).count() > 0);
 
-          for (int i = 0; i < roles.size(); i++) {
-            final Role r = roles.get(i);
-            final String key = r.getCode() + r.getRelatedCode();
-            if (grMap.containsKey(key)) {
-              roles.set(i, grMap.get(key));
-              grMap.remove(key);
-            }
-          }
-          // Add any remaining group roles that weren't in the base query
-          roles.addAll(grMap.values());
-        } else {
-          roleMap.put(conceptCode, roleGroupMap.get(conceptCode));
+          // Then add in any remaining group roles - these should replace the ones removed above
+          roles.addAll(groupRoles);
+
+        }
+        // roleGroupMap should only contain data that is also in roleMap
+        else {
+          throw new Exception("Code with role groups but not regular roles = " + conceptCode);
         }
       }
     }
+
+    // Clear role uris after resolving groups
+    roleMap.values().stream().flatMap(r -> r.stream()).forEach(r -> r.setUri(null));
 
     for (final Concept concept : concepts) {
       final String conceptCode = concept.getCode();
@@ -772,36 +810,30 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       concept.setParents(parentMap.get(conceptCode));
       concept.setAssociations(associationMap.get(conceptCode));
       concept.setInverseAssociations(inverseAssociationMap.get(conceptCode));
+
+      // Set roles - check via codes and URIs
       concept.setRoles(roleMap.get(conceptCode));
-      // check uris
       if (concept.getRoles().size() == 0) {
         concept.setRoles(roleMap.get(concept.getUri()));
       }
-      if (complexRoleMap.containsKey(conceptCode)) {
-        concept.getRoles().addAll(complexRoleMap.get(conceptCode));
-      }
-      // check uris
+
+      // Set inverse roles - check via codes and URIs
       concept.setInverseRoles(inverseRoleMap.get(conceptCode));
       if (concept.getInverseRoles().size() == 0) {
         concept.setInverseRoles(inverseRoleMap.get(concept.getUri()));
       }
-      if (complexInverseRoleMap.containsKey(conceptCode)) {
-        concept.getInverseRoles().addAll(complexInverseRoleMap.get(conceptCode));
-      }
 
       // Add logicalDefinition property and defining parent flags based on map
       if ("ncit".equalsIgnoreCase(terminology.getTerminology())
-          && hierarchy.getLogicalDefinitionMap() != null) {
-        if (hierarchy.getLogicalDefinitionMap().containsKey(conceptCode)) {
-          final Property p = new Property();
-          p.setType("Logical_Definition");
-          p.setValue("true");
-          concept.getProperties().add(p);
-          final Set<String> definingParents = hierarchy.getLogicalDefinitionMap().get(conceptCode);
-          for (final Concept parent : concept.getParents()) {
-            if (definingParents.contains(parent.getCode())) {
-              parent.setDefining(true);
-            }
+          && hierarchy.getLogicalDefinitionMap().containsKey(conceptCode)) {
+        final Property p = new Property();
+        p.setType("Logical_Definition");
+        p.setValue("true");
+        concept.getProperties().add(p);
+        final Set<String> definingParents = hierarchy.getLogicalDefinitionMap().get(conceptCode);
+        for (final Concept parent : concept.getParents()) {
+          if (definingParents.contains(parent.getCode())) {
+            parent.setDefining(true);
           }
         }
       }
@@ -1312,7 +1344,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
-    final Set<String> seen = new HashSet<>();
+    //    final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
       final Role role = new Role();
       role.setCode(EVSUtils.getRelationshipCode(terminology.getTerminology(), b));
@@ -1322,41 +1354,36 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
               ? b.getRelatedConceptCode().getValue()
               : b.getRelatedConcept().getValue());
       role.setRelatedName(b.getRelatedConceptLabel().getValue());
-      // distinct roles only
-      final String key = role.getCode() + role.getRelatedCode();
-      if (!seen.contains(key)) {
-        // Exclude roles remodeled as parent/child
-        if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
-          roles.add(role);
-        }
-      }
 
-      seen.add(key);
+      // Set the URI for the relationship node
+      // TODO: ASSUMPTION rel+relatedConcept is unique - we may want to include the container URL
+      role.setUri(b.getRelationship().getValue() + b.getRelatedConcept().getValue());
+
+      // SKIP distinct roles only - the UI needs to deal with this.
+      //      final String key = role.getCode() + role.getRelatedCode();
+      //      if (!seen.contains(key)) {
+      // Exclude roles remodeled as parent/child
+      if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+        roles.add(role);
+      }
+      //      }
+      //      seen.add(key);
     }
 
-    // Get roles with group information and merge (ncit only)
-    if ("ncit".equalsIgnoreCase(terminology.getTerminology())) {
-      final List<Role> groupRoles = getRolesWithGroups(conceptCode, terminology);
-      if (!groupRoles.isEmpty()) {
-        // Build a map of group roles by key for quick lookup
-        final Map<String, Role> groupRoleMap = new HashMap<>();
-        for (final Role gr : groupRoles) {
-          final String key = gr.getCode() + gr.getRelatedCode();
-          groupRoleMap.put(key, gr);
-        }
-        // Replace matching roles with group-enhanced versions
-        for (int i = 0; i < roles.size(); i++) {
-          final Role r = roles.get(i);
-          final String key = r.getCode() + r.getRelatedCode();
-          if (groupRoleMap.containsKey(key)) {
-            roles.set(i, groupRoleMap.get(key));
-            groupRoleMap.remove(key);
-          }
-        }
-        // Add any remaining group roles that weren't in the base query
-        roles.addAll(groupRoleMap.values());
-      }
+    // Get roles with group information and merge (ncit only as done via sparql-queries.properties)
+    final List<Role> groupRoles = getRolesWithGroups(conceptCode, terminology);
+    if (!groupRoles.isEmpty()) {
+
+      // Remove any roles that have group roles based on uri
+      roles.removeIf(
+          r -> groupRoles.stream().filter(gr -> gr.getUri().equals(r.getUri())).count() > 0);
+
+      // Then add in any remaining group roles
+      roles.addAll(groupRoles);
     }
+
+    // Clear uris (after resolving groups)
+    roles.forEach(r -> r.setUri(null));
 
     return roles;
   }
@@ -1388,7 +1415,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
-    final Set<String> seen = new HashSet<>();
 
     // Map blank node strings to sequential group numbers
     final Map<String, Integer> groupNumberMap = new HashMap<>();
@@ -1404,29 +1430,24 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
               : b.getRelatedConcept().getValue());
       role.setRelatedName(b.getRelatedConceptLabel().getValue());
 
-      // Set group number
-      if (b.getGroup() != null && b.getGroup().getValue() != null) {
-        final String groupStr = b.getGroup().getValue();
-        if (groupStr != null && groupStr.startsWith("_:")) {
-          // Assign sequential group numbers for complex groups
-          if (!groupNumberMap.containsKey(groupStr)) {
-            groupNumberMap.put(groupStr, nextGroupNumber++);
-          }
-          role.setGroup(String.valueOf(groupNumberMap.get(groupStr)));
-        } else {
-          role.setGroup(groupStr);
+      // Set group number (the group must not be blank at this point)
+      final String groupStr = b.getGroup().getValue();
+      // Assign sequential group numbers for complex groups (not "range" roles)
+      if (groupStr != null && !groupStr.matches("^[A-Z].*")) {
+        if (!groupNumberMap.containsKey(groupStr)) {
+          groupNumberMap.put(groupStr, nextGroupNumber++);
         }
+        role.setGroup(String.valueOf(groupNumberMap.get(groupStr)));
+      } else {
+        role.setGroup(groupStr);
       }
 
-      // distinct roles only
-      final String key = role.getCode() + role.getRelatedCode();
-      if (!seen.contains(key)) {
-        // Exclude roles remodeled as parent/child
-        if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
-          roles.add(role);
-        }
-      }
-      seen.add(key);
+      // Set uri of role
+      // TODO: ASSUMPTION rel+relatedConcept is unique - we may want to include the container URL
+      role.setUri(b.getRelationship().getValue() + b.getRelatedConcept().getValue());
+
+      // SKIP logic for distinct roles
+      roles.add(role);
     }
 
     return roles;
@@ -1451,7 +1472,6 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
     // Track group numbers PER concept
     final Map<String, Map<String, Integer>> conceptGroupNumberMap = new HashMap<>();
     final Map<String, Integer> conceptNextGroupNumber = new HashMap<>();
-    final Set<String> seen = new HashSet<>();
 
     for (final Bindings b : bindings) {
       final String conceptCode =
@@ -1471,30 +1491,27 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       role.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
 
-      if (b.getGroup() != null && b.getGroup().getValue() != null) {
-        final String groupStr = b.getGroup().getValue();
-        if (groupStr != null && groupStr.startsWith("_:")) {
-          Map<String, Integer> groupNumberMap = conceptGroupNumberMap.get(conceptCode);
-          if (!groupNumberMap.containsKey(groupStr)) {
-            int nextNum = conceptNextGroupNumber.get(conceptCode);
-            groupNumberMap.put(groupStr, nextNum);
-            conceptNextGroupNumber.put(conceptCode, nextNum + 1);
-          }
-          role.setGroup(String.valueOf(groupNumberMap.get(groupStr)));
-        } else {
-          role.setGroup(groupStr);
+      // Set group number (the group must not be blank at this point)
+      final String groupStr = b.getGroup().getValue();
+      // Assign sequential group numbers for complex groups (not "range" roles)
+      if (!groupStr.matches("^[A-Z].*")) {
+        final Map<String, Integer> groupNumberMap = conceptGroupNumberMap.get(conceptCode);
+        if (!groupNumberMap.containsKey(groupStr)) {
+          final int nextNum = conceptNextGroupNumber.get(conceptCode);
+          groupNumberMap.put(groupStr, nextNum);
+          conceptNextGroupNumber.put(conceptCode, nextNum + 1);
         }
+        role.setGroup(String.valueOf(groupNumberMap.get(groupStr)));
+      } else {
+        role.setGroup(groupStr);
       }
 
-      // distinct roles only
-      final String key = conceptCode + role.getCode() + role.getRelatedCode();
-      if (!seen.contains(key)) {
-        // Exclude roles remodeled as parent/child
-        if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
-          resultMap.get(conceptCode).add(role);
-        }
-      }
-      seen.add(key);
+      // Set uri of role
+      // TODO: ASSUMPTION rel+relatedConcept is unique - we may want to include the container URL
+      role.setUri(b.getRelationship().getValue() + b.getRelatedConcept().getValue());
+
+      // SKIP logic for distinct roles
+      resultMap.get(conceptCode).add(role);
     }
 
     return resultMap;
@@ -1521,7 +1538,7 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
 
     final Sparql sparqlResult = mapper.readValue(res, Sparql.class);
     final Bindings[] bindings = sparqlResult.getResults().getBindings();
-    final Set<String> seen = new HashSet<>();
+    //    final Set<String> seen = new HashSet<>();
     for (final Bindings b : bindings) {
       final String conceptCode =
           b.getConceptCode() != null
@@ -1538,15 +1555,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       role.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
       role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
 
-      // distinct roles only
-      final String key = conceptCode + role.getCode() + role.getRelatedCode();
-      if (!seen.contains(key)) {
-        // Exclude roles remodeled as parent/child
-        if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
-          resultMap.get(conceptCode).add(role);
-        }
+      // Set URI for now
+      // TODO: ASSUMPTION rel+relatedConcept is unique - we may want to include the container URL
+      role.setUri(b.getRelationship().getValue() + b.getRelatedConcept().getValue());
+
+      // SKIP distinct roles only (the UI must deal with this)
+      //      final String key = conceptCode + role.getCode() + role.getRelatedCode();
+      //      if (!seen.contains(key)) {
+      // Exclude roles remodeled as parent/child
+      if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+        resultMap.get(conceptCode).add(role);
       }
-      seen.add(key);
+      //      }
+      //      seen.add(key);
     }
 
     return resultMap;
@@ -1602,15 +1623,19 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       } else {
         role.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
         role.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
-        // distinct roles only
-        final String key = conceptCode + role.getCode() + role.getRelatedCode();
-        if (!seen.contains(key)) {
-          // Exclude roles remodeled as parent/child
-          if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
-            resultMap.get(conceptCode).add(role);
-          }
+
+        // TODO: ASSUMPTION rel+relatedConcept is unique - we may want to include the container URL
+        role.setUri(b.getRelationship().getValue() + b.getRelatedConcept().getValue());
+
+        // SKIP distinct roles only - the UI needs to deal with this.
+        //        final String key = conceptCode + role.getCode() + role.getRelatedCode();
+        //        if (!seen.contains(key)) {
+        // Exclude roles remodeled as parent/child
+        if (!terminology.getMetadata().getHierarchyRoles().contains(role.getCode())) {
+          resultMap.get(conceptCode).add(role);
         }
-        seen.add(key);
+        //        }
+        //        seen.add(key);
       }
     }
 
@@ -1674,7 +1699,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
       final DisjointWith disjointWith = new DisjointWith();
       disjointWith.setType("disjointWith");
       disjointWith.setRelatedCode(EVSUtils.getRelatedConceptCode(b));
-      if (disjointWith.getRelatedCode().contains("anon-genid")) { // skip complex roles
+      // skip complex roles
+      if (disjointWith.getRelatedCode().contains("anon-genid")) {
         continue;
       }
       disjointWith.setRelatedName(EVSUtils.getRelatedConceptLabel(b));
@@ -2857,11 +2883,8 @@ public class SparqlQueryManagerServiceImpl implements SparqlQueryManagerService 
         }
       }
       // Skip "No" entries
-      if (found && !valInSubset) {
-        continue;
-      }
       // Skip "not found" entries
-      if (!found) {
+      if ((found && !valInSubset) || !found) {
         continue;
       }
       childFull.setProperties(null);

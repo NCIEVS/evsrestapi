@@ -119,8 +119,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       Map<String, List<Map<String, String>>> historyMap)
       throws Exception {
 
-    logger.debug(
-        "OpensearchLoadServiceImpl::load() - index = {}, type = {}", terminology.getIndexName());
+    logger.debug("Load concepts - index = {}, type = {}", terminology.getIndexName());
 
     boolean result =
         operationsService.createIndex(terminology.getIndexName(), config.isForceDeleteIndex());
@@ -880,6 +879,9 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
       String terminology,
       boolean forceDelete)
       throws Exception {
+
+    logger.info("Get terminology = " + terminology);
+
     TerminologyUtils termUtils = app.getBean(TerminologyUtils.class);
 
     // first check to see if this terminology already exists and if so return it
@@ -962,7 +964,7 @@ public abstract class AbstractGraphLoadServiceImpl extends BaseLoaderService {
         mapsets.put("ICD9CM", ncitMapsToIcd9cm);
         mapsets.put("ICDO3", ncitMapsToIcdo3);
         mapsets.put("MedDRA", ncitMapsToMeddra);
-        logger.info("mapsets = " + mapsets.size());
+        logger.info("  NCIt mapsets = " + mapsets.size());
       }
 
     } catch (Exception e) {

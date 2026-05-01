@@ -4,9 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/en/1.0.0/)
 and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.html).
 
+## [2.5.0.RELEASE] - 2026-MM-DD
+### Changed
+- TBD
 
 ## [2.4.0.RELEASE] - 2026-04-06
 ### Changed
+- Various minor bug fixes and typo corrections and updates for vulnerabilities
 - Improve search result ranking algorithm and handling of shards in deployment servers
 - Improve use of schema "hidden" tags on terminology metadata
 - Standardize swagger documentation for fromRecord and pageSize parameters
@@ -22,7 +26,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [2.3.0.RELEASE] - 2026-02-20
 ### Changed
-- Various minor bug fixes and typo corrections
+- Various minor bug fixes and typo corrections and updates for vulnerabilities
 - FHIR improvements (resource _history, improved parameter support, POST call support for adhoc value sets, set dates properly on ConceptMap)
 - On Reindex, handle "updates" to latest versions only once rather than for each terminology one at a time
 - Ensure old mapsets get removed on reindex
@@ -36,10 +40,12 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ## [2.2.0.RELEASE] - 2025-06-10
 ### Changed
+- Various minor bug fixes and typo corrections and updates for vulnerabilities
 - FHIR improvements (improved param support, improved swagger, improved metadata, more tests)
 - Improvements to computed childhood neoplasm subsets
 - Improved handling of complex definitions
 - Improved handling of NCI Thesaurus cumulative history
+- Minor swagger improvements
 
 ## [2.1.1.RELEASE] - 2025-04-30
 ### Changed
@@ -50,6 +56,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 ### Added
 - Added support for Childhood Malignant Neoplasm Subset.
 ### Changed
+- Various minor bug fixes and typo corrections and updates for vulnerabilities
 - Backend migration from Stardog to Apache Jena for data loading and indexing
 - Updates to the EVSRESTAPI SDK examples.
 
@@ -60,6 +67,7 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 - Added endpoint for URL mapping from terms browser to evs explore
 - Add sending email to term form handling
 ### Changed
+- Various minor bug fixes and typo corrections and updates for vulnerabilities
 - Upgrade backend to Spring Boot 3 (and J17), Upgrade tests to Junit 5
 - FHIR R4 improvements and alignment with spec
 - More consistent error handling
