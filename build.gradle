@@ -27,7 +27,7 @@ plugins {
   id 'maven-publish'
   // google java format gradle plugin
   id "com.diffplug.spotless" version "6.25.0"
-  id 'com.github.spotbugs' version '6.0.0'
+  id "com.github.spotbugs" version "6.0.26"
 }
 
 repositories {
@@ -59,7 +59,7 @@ ext {
 
 /* Version info */
 group = "gov.nih.nci.evs.api"
-version = "2.4.0.RELEASE"
+version = "2.5.0.RELEASE"
 
 sourceCompatibility = 17
 targetCompatibility = 17
@@ -173,13 +173,10 @@ dependencies {
   //annotationProcessor "org.projectlombok:lombok:1.18.32"
   //compileOnly "org.projectlombok:lombok:1.18.32"
 
-  // SpotBugs annotations
-  compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.2"
-  spotbugs "org.apache.commons:commons-lang3:3.18.0"
-
   /*
    * Test Dependencies
   */
+  compileOnly "com.github.spotbugs:spotbugs-annotations:4.8.6"
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   // Use spring-boot-starter-test defaults
   // testImplementation "org.opensearch.client:spring-data-opensearch-test-autoconfigure:1.6.0"
@@ -239,17 +236,21 @@ spotbugs {
     // jvmArgs = [ "-Duser.language=ja" ]
 }
 spotbugsMain {
-    enabled = true
     reports {
-        xml.enabled = false
-        html.enabled = true
+        html {
+            enabled = true
+            outputLocation = file("$buildDir/reports/spotbugs/main/spotbugs.html")
+            stylesheet = 'fancy-hist.xsl'
+        }
     }
 }
 spotbugsTest {
-    enabled = true
     reports {
-        xml.enabled = false
-        html.enabled = true
+        html {
+            enabled = true
+            outputLocation = file("$buildDir/reports/spotbugs/main/spotbugs.html")
+            stylesheet = 'fancy-hist.xsl'
+        }
     }
 }
 

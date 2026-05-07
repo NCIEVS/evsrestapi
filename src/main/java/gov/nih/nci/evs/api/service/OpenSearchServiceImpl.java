@@ -537,13 +537,23 @@ public class OpenSearchServiceImpl implements OpenSearchService {
 
     // 8. Definition query
     final NestedQueryBuilder nestedDefinitionQuery =
-        QueryBuilders.nestedQuery(
-            "definitions",
-            QueryBuilders.queryStringQuery(fixNormTermAndClause)
-                .field("definitions.definition")
-                // .fuzziness(fuzzy ? Fuzziness.ONE : Fuzziness.ZERO)
-                .boost(1f),
-            ScoreMode.Max);
+        // for "or" type use or logic, otherwise use and logic
+        "OR".equals(type)
+            ? QueryBuilders.nestedQuery(
+                "definitions",
+                QueryBuilders.queryStringQuery(
+                        "(" + String.join(" OR ", fixNormTerm.split(" ")) + ")")
+                    .field("definitions.definition")
+                    // .fuzziness(fuzzy ? Fuzziness.ONE : Fuzziness.ZERO)
+                    .boost(1f),
+                ScoreMode.Max)
+            : QueryBuilders.nestedQuery(
+                "definitions",
+                QueryBuilders.queryStringQuery(fixNormTermAndClause)
+                    .field("definitions.definition")
+                    // .fuzziness(fuzzy ? Fuzziness.ONE : Fuzziness.ZERO)
+                    .boost(1f),
+                ScoreMode.Max);
 
     // 9. Code queries
     String codeList = codeTerm;

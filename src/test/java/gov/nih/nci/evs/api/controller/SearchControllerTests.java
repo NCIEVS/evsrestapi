@@ -1794,6 +1794,53 @@ public class SearchControllerTests {
         currentExact = false; // should be at end of exact matches
       }
     }
+
+    // Show definitions logic for contains case works - single word
+    log.info(
+        "Testing url - "
+            + url
+            + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=arachnodactyly&type=OR");
+    result =
+        mvc.perform(
+                get(url)
+                    .param("terminology", "ncit")
+                    .param("term", "arachnodactyly")
+                    .param("pageSize", "100")
+                    .param("type", "contains")
+                    .param("include", "synonyms,properties,definitions"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    content = result.getResponse().getContentAsString();
+
+    // multiple words
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    // Should match C35809
+    assertThat(conceptList.stream().filter(c -> c.getCode().equals("C35809")).count()).isEqualTo(1);
+    // Show definitions logic for OR case works - single word
+    log.info(
+        "Testing url - "
+            + url
+            + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=arachnodactyly%xxx&type=OR");
+    result =
+        mvc.perform(
+                get(url)
+                    .param("terminology", "ncit")
+                    .param("term", "arachnodactyly xxx")
+                    .param("pageSize", "100")
+                    .param("type", "contains")
+                    .param("include", "synonyms,properties,definitions"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    // Does not match C35809 (because of AND logic)
+    assertThat(conceptList.stream().filter(c -> c.getCode().equals("C35809")).count()).isEqualTo(0);
   }
 
   /**
@@ -2378,6 +2425,53 @@ public class SearchControllerTests {
         assertThat(found);
       }
     }
+
+    // Show definitions logic for OR case works - single word
+    log.info(
+        "Testing url - "
+            + url
+            + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=arachnodactyly&type=OR");
+    result =
+        mvc.perform(
+                get(url)
+                    .param("terminology", "ncit")
+                    .param("term", "arachnodactyly")
+                    .param("pageSize", "100")
+                    .param("type", "OR")
+                    .param("include", "synonyms,properties,definitions"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    content = result.getResponse().getContentAsString();
+
+    // multiple words
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    // Should match C35809
+    assertThat(conceptList.stream().filter(c -> c.getCode().equals("C35809")).count()).isEqualTo(1);
+    // Show definitions logic for OR case works - single word
+    log.info(
+        "Testing url - "
+            + url
+            + "?fromRecord=0&include=synonyms,properties,definitions&pageSize=100&term=arachnodactyly%xxx&type=OR");
+    result =
+        mvc.perform(
+                get(url)
+                    .param("terminology", "ncit")
+                    .param("term", "arachnodactyly xxx")
+                    .param("pageSize", "100")
+                    .param("type", "OR")
+                    .param("include", "synonyms,properties,definitions"))
+            .andExpect(status().isOk())
+            .andReturn();
+
+    content = result.getResponse().getContentAsString();
+    log.info("  content = " + content);
+
+    list = ThreadLocalMapper.get().readValue(content, ConceptResultList.class);
+    conceptList = list.getConcepts();
+    // Should match C35809 (because of OR logic)
+    assertThat(conceptList.stream().filter(c -> c.getCode().equals("C35809")).count()).isEqualTo(1);
   }
 
   /**
